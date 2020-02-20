@@ -1,0 +1,1 @@
+config.module.rules.push({test: /\.woff(2)?(\?\S+)?$/, loader: 'file-loader'});

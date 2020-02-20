@@ -1,0 +1,9 @@
+FROM openjdk:13-alpine
+RUN apk add --update \
+    bash \
+    ffmpeg \
+  && rm -rf /var/cache/apk/*
+WORKDIR /app
+COPY server/build/install ./install
+COPY client-web/build/distributions ./client-web
+ENTRYPOINT ["./install/server-shadow/bin/server"]

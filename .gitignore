@@ -1,0 +1,12 @@
+.gradle/
+/.idea
+!/.idea/codeStyles
+out/
+build/
+.env
+*.iml
+*.ipr
+*.iws
+.DS_Store
+qbittorrent/
+local.properties

@@ -1,0 +1,71 @@
+version: '3.1'
+
+services:
+
+  app:
+    container_name: app
+    image: index.docker.io/drewcarlson/anystream:latest
+    restart: unless-stopped
+    command: >
+      ./install/server-shadow/bin/server
+      -P:app.ffmpegPath=/usr/bin
+      -P:app.frontEndPath=/app/client-web
+      -P:app.mongoUrl=mongodb://root:password@mongo
+      -P:app.qbittorrentUrl=http://qbittorrent:9090
+      -port=8888
+    ports:
+      - 8888:8888
+    volumes:
+      - ./qbittorrent/content:/content
+      - ./qbittorrent/downloads:/downloads
+    links:
+      - mongo
+      - qbittorrent
+    depends_on:
+      - mongo
+      - qbittorrent
+
+  mongo:
+    container_name: mongo
+    image: mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: password
+    ports:
+      - 27017:27017
+
+  qbittorrent:
+    image: drewcarlson/docker-qbittorrentvpn
+    container_name: qbittorrent
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=0
+    privileged: true
+    environment:
+      - VPN_ENABLED=yes
+      - LAN_NETWORK=192.168.1.0/24
+      - NAME_SERVERS=8.8.8.8,8.8.4.4
+      - WEBUI_PORT=9090
+      - INCOMING_PORT=8148
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Los_Angeles
+      - UMASK_SET=022
+    ports:
+      - 9090:9090
+    volumes:
+      - ./qbittorrent/config:/config
+      - ./qbittorrent/downloads:/downloads
+      - ./qbittorrent/content:/content
+
+  mongo-express:
+    container_name: mongo-express
+    image: mongo-express
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: password
+    ports:
+      - 8081:8081

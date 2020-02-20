@@ -1,0 +1,7 @@
+.gradle
+.idea
+**/build/**
+/qbittorrent/
+!/server/build/install/
+!/client-web/build/distributions/
+!/client-web-old/build/distributions/
