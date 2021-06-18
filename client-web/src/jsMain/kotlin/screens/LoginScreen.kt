@@ -41,6 +41,7 @@ fun LoginScreen(client: AnyStreamClient) {
                 flexDirection(FlexDirection.Column)
                 justifyContent(JustifyContent.Center)
                 alignItems(AlignItems.Center)
+                property("gap", 12.px)
             }
         }
     ) {

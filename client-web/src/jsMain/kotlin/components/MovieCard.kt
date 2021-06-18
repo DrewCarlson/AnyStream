@@ -40,7 +40,7 @@ fun MovieCard(
     val isOverlayVisible = remember { mutableStateOf(false) }
     Div(
         attrs = {
-            classes("p-3")
+            classes("px-3")
             style {
                 display(DisplayStyle.Flex)
                 flexDirection(FlexDirection.Column)
@@ -49,9 +49,13 @@ fun MovieCard(
     ) {
         Div(
             attrs = {
-                classes("card", "movie-card")
+                classes("card", "movie-card", "border-0", "shadow")
                 onMouseEnter { isOverlayVisible.value = true }
                 onMouseLeave { isOverlayVisible.value = false }
+                style {
+                    height(250.px)
+                    width(166.px)
+                }
             }
         ) {
 
@@ -60,12 +64,8 @@ fun MovieCard(
             Img(
                 src = "https://image.tmdb.org/t/p/w200${posterPath}",
                 attrs = {
-                    classes("rounded")
+                    classes("rounded", "h-100", "w-100")
                     attr("loading", "lazy")
-                    style {
-                        height(300.px)
-                        width(200.px)
-                    }
                 }
             )
         }
@@ -106,6 +106,7 @@ private fun CardOverlay(
                 attrs = {
                     classes("bi-three-dots-vertical")
                     style {
+                        fontSize(22.px)
                         display(DisplayStyle.Flex)
                         alignSelf(AlignSelf.FlexEnd)
                         color(Color.RGB(255, 255, 255))
@@ -119,12 +120,15 @@ private fun CardOverlay(
                     }
                 }
             ) {
+                val isPlaySelected = remember { mutableStateOf(false) }
                 I(
                     attrs = {
-                        classes("bi-play-circle-fill")
+                        classes(if (isPlaySelected.value) "bi-play-circle-fill" else "bi-play-circle")
+                        onMouseEnter { isPlaySelected.value = true }
+                        onMouseLeave { isPlaySelected.value = false }
                         style {
                             property("margin", auto)
-                            fontSize(36.px)
+                            fontSize(48.px)
                             color(Color.RGB(255, 255, 255))
                         }
                     }

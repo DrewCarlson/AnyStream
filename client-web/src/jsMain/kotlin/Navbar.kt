@@ -39,10 +39,10 @@ fun Navbar(client: AnyStreamClient) {
     val isAuthenticated = client.authenticated.collectAsState(client.isAuthenticated())
     Nav(attrs = { classes("navbar", "navbar-expand-lg", "navbar-dark", "bg-dark") }) {
         Div(attrs = { classes("container-fluid") }) {
-            A(attrs = { classes("navbar-brand") }) {
+            A(attrs = { classes("navbar-brand", "mx-2") }) {
                 Img(src = "/images/as-logo.svg")
             }
-            Div(attrs = { classes("collapse", "navbar-collapse") }) {
+            Div(attrs = { classes("collapse", "navbar-collapse", "pt-2") }) {
                 if (isAuthenticated.value) {
                     MainMenu(client)
                     SecondaryMenu(client)
@@ -55,22 +55,25 @@ fun Navbar(client: AnyStreamClient) {
 @Composable
 private fun MainMenu(client: AnyStreamClient) {
     Div(attrs = { classes("navbar-nav") }) {
-        A(attrs = { classes("nav-link", "active") }) {
-            ButtonIcon("bi-search")
-            Text("Discover")
+        //NavLink("Discover", "bi-search", false)
+        NavLink("Home", "bi-house", true)
+        NavLink("Movies", "bi-film", false)
+        NavLink("TV", "bi-tv", false)
+        NavLink("Download", "bi-cloud-arrow-down", false)
+    }
+}
+
+@Composable
+private fun NavLink(text: String, icon: String, isActive: Boolean) {
+    A(attrs = {
+        if (isActive) {
+            classes("nav-link", "mx-2", "active")
+        } else {
+            classes("nav-link", "mx-2")
         }
-        A(attrs = { classes("nav-link") }) {
-            ButtonIcon("bi-film")
-            Text("Movies")
-        }
-        A(attrs = { classes("nav-link") }) {
-            ButtonIcon("bi-tv")
-            Text("TV")
-        }
-        A(attrs = { classes("nav-link") }) {
-            ButtonIcon("bi-cloud-arrow-down")
-            Text("Downloads")
-        }
+    }) {
+        ButtonIcon(icon)
+        Text(text)
     }
 }
 
@@ -99,12 +102,9 @@ private fun ButtonIcon(
     style: (StyleBuilder.() -> Unit) = {},
 ) {
     I({
-        classes(icon)
+        classes(icon, "mx-2")
         attrs()
         style(style)
-        style {
-            margin(5.px)
-        }
     }, {
 
     })

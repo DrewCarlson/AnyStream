@@ -1,7 +1,7 @@
 html, body, #root, #main-panel {
     width: 100%;
     height: 100%;
-    background-color: black;
+    background-color: #44494f;
     color: white;
 }
 
@@ -24,11 +24,6 @@ html, body, #root, #main-panel {
 
 .navbar-nav {
     margin-top: auto;
-    /* TODO: Fix the logo so the emblem and
-     *   text align logically with nav buttons,
-     *   making the padding unnecessary.
-     */
-    margin-bottom: 2px;
 }
 
 .navbar-brand img {

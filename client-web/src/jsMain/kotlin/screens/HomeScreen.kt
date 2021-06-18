@@ -82,7 +82,7 @@ fun HomeScreen(client: AnyStreamClient) {
 
         if (recentlyAddedTv.isNotEmpty()) {
             MovieRow(
-                title = { Text("Recently Added Movies") }
+                title = { Text("Recently Added TV") }
             ) {
                 recentlyAddedTv.forEach { show ->
                     MovieCard(
@@ -104,8 +104,8 @@ private fun MovieRow(
     buildItems: @Composable () -> Unit,
 ) {
     Div {
-        H3({
-            classes("p-3")
+        H4({
+            classes("px-3", "pt-3", "pb-1")
         }) {
             title()
         }
@@ -113,6 +113,7 @@ private fun MovieRow(
     Div(
         attrs = {
             style {
+                classes("pb-4")
                 display(DisplayStyle.Flex)
                 flexDirection(FlexDirection.Row)
                 property("overflow-x", "auto")
