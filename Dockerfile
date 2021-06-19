@@ -2,7 +2,7 @@ FROM openjdk:13-alpine
 
 COPY . /build-project
 WORKDIR /build-project
-RUN ./gradlew installShadowDist jsBrowserProductionWebpack --no-daemon
+RUN ./gradlew :server:installShadowDist :client-web:jsBrowserProductionWebpack --console=plain --no-daemon
 
 FROM openjdk:13-alpine
 RUN apk add --update \
