@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     application
-    kotlin("jvm")
+    kotlin("multiplatform")
     kotlin("plugin.serialization")
     id("com.github.johnrengelman.shadow") version "7.0.0"
 }
@@ -13,10 +13,13 @@ application {
 }
 
 kotlin {
+    jvm {
+        withJava()
+    }
     sourceSets {
-        main {
+        named("jvmMain") {
             dependencies {
-                implementation(project(":data-models"))
+                implementation(projects.dataModels)
 
                 implementation(libs.serialization.json)
                 implementation(libs.coroutines.core)
@@ -53,7 +56,7 @@ kotlin {
             }
         }
 
-        test {
+        named("jvmTest") {
             dependencies {
                 implementation(libs.ktor.server.tests)
             }
