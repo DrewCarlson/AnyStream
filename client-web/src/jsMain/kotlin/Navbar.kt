@@ -37,12 +37,12 @@ import org.w3c.dom.HTMLElement
 @Composable
 fun Navbar(client: AnyStreamClient) {
     val isAuthenticated = client.authenticated.collectAsState(client.isAuthenticated())
-    Nav(attrs = { classes("navbar", "navbar-expand-lg", "navbar-dark", "bg-dark") }) {
-        Div(attrs = { classes("container-fluid") }) {
+    Nav({ classes("navbar", "navbar-expand-lg", "navbar-dark", "bg-dark") }) {
+        Div({ classes("container-fluid") }) {
             A(attrs = { classes("navbar-brand", "mx-2") }) {
                 Img(src = "/images/as-logo.svg")
             }
-            Div(attrs = { classes("collapse", "navbar-collapse", "pt-2") }) {
+            Div({ classes("collapse", "navbar-collapse", "pt-2") }) {
                 if (isAuthenticated.value) {
                     MainMenu(client)
                     SecondaryMenu(client)
@@ -54,7 +54,7 @@ fun Navbar(client: AnyStreamClient) {
 
 @Composable
 private fun MainMenu(client: AnyStreamClient) {
-    Div(attrs = { classes("navbar-nav") }) {
+    Div({ classes("navbar-nav") }) {
         //NavLink("Discover", "bi-search", false)
         NavLink("Home", "bi-house", true)
         NavLink("Movies", "bi-film", false)
@@ -81,7 +81,7 @@ private fun NavLink(text: String, icon: String, isActive: Boolean) {
 private fun SecondaryMenu(client: AnyStreamClient) {
     val scope = rememberCoroutineScope()
     val authMutex = Mutex()
-    Div(attrs = { classes("navbar-nav", "ms-auto") }) {
+    Div({ classes("navbar-nav", "ms-auto") }) {
         A(attrs = { classes("nav-link") }) {
             I(attrs = { classes("bi-people") }) { }
         }
