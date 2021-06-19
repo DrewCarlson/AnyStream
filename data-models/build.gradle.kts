@@ -18,8 +18,5 @@ kotlin {
                 api(libs.qbittorrent.models)
             }
         }
-
-        val jvmMain by getting {
-        }
     }
 }
