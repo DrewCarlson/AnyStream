@@ -34,6 +34,7 @@ fun DownloadsScreen(client: AnyStreamClient) {
     val torrents = client.torrentListChanges()
         .debounce(2000)
         .mapLatest { client.getTorrents() }
+        .onStart { emit(client.getTorrents()) }
         .collectAsState(emptyList())
     Div({
         style {
