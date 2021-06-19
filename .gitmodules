@@ -1,0 +1,3 @@
+[submodule "external/routing-compose"]
+	path = external/routing-compose
+	url = https://github.com/DrewCarlson/routing-compose.git

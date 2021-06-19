@@ -15,19 +15,27 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.models
+package anystream.client.navigation
 
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 
-@Serializable
-data class InviteCode(
-    @SerialName("_id")
-    val value: String,
-    val permissions: Set<String>,
-    val createdByUserId: String,
+data class NavigationModel(
+    val isAuthenticated: Boolean,
+    val navigationStack: List<NavigationTarget>,
+    val pendingTarget: NavigationTarget? = null,
 ) {
-    companion object {
-        const val SIZE = 32
-    }
+    val currentTarget: NavigationTarget?
+        get() = navigationStack.lastOrNull()
+}
+
+sealed class NavigationTarget {
+    object Home : NavigationTarget()
+
+    object Login : NavigationTarget()
+    data class Signup(
+        val inviteCode: String? = null,
+    ) : NavigationTarget()
+
+    data class MediaPlayer(
+        val mediaRefId: String
+    ) : NavigationTarget()
 }

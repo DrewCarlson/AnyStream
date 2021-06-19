@@ -19,9 +19,8 @@ package anystream.frontend.screens
 
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
-import anystream.frontend.components.MovieCard
+import anystream.frontend.components.PosterCard
 import anystream.models.api.HomeResponse
-import com.soywiz.kmem.toInt
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 
@@ -37,7 +36,7 @@ fun HomeScreen(client: AnyStreamClient) {
                 title = { Text("Continue Watching") }
             ) {
                 currentlyWatching.forEach { (movie, state) ->
-                    MovieCard(
+                    PosterCard(
                         title = movie.title,
                         posterPath = movie.posterPath,
                         overview = movie.overview,
@@ -53,7 +52,7 @@ fun HomeScreen(client: AnyStreamClient) {
                 title = { Text("Popular") }
             ) {
                 popularMovies.forEach { (movie, ref) ->
-                    MovieCard(
+                    PosterCard(
                         title = movie.title,
                         posterPath = movie.posterPath,
                         overview = movie.overview,
@@ -69,7 +68,7 @@ fun HomeScreen(client: AnyStreamClient) {
                 title = { Text("Recently Added Movies") }
             ) {
                 recentlyAdded.forEach { (movie, ref) ->
-                    MovieCard(
+                    PosterCard(
                         title = movie.title,
                         posterPath = movie.posterPath,
                         overview = movie.overview,
@@ -85,7 +84,7 @@ fun HomeScreen(client: AnyStreamClient) {
                 title = { Text("Recently Added TV") }
             ) {
                 recentlyAddedTv.forEach { show ->
-                    MovieCard(
+                    PosterCard(
                         title = show.name,
                         posterPath = show.posterPath,
                         overview = show.overview,
@@ -110,17 +109,15 @@ private fun MovieRow(
             title()
         }
     }
-    Div(
-        attrs = {
-            style {
-                classes("pb-4")
-                display(DisplayStyle.Flex)
-                flexDirection(FlexDirection.Row)
-                property("overflow-x", "auto")
-                property("scrollbar-width", "none")
-            }
+    Div({
+        style {
+            classes("pb-4")
+            display(DisplayStyle.Flex)
+            flexDirection(FlexDirection.Row)
+            property("overflow-x", "auto")
+            property("scrollbar-width", "none")
         }
-    ) {
+    }) {
         buildItems()
     }
 }

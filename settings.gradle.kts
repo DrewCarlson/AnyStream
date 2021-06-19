@@ -19,3 +19,10 @@ pluginManagement {
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     }
 }
+
+includeBuild("external/routing-compose") {
+    dependencySubstitution {
+        substitute(module("app.softwork:routing-compose"))
+            .with(project(":"))
+    }
+}

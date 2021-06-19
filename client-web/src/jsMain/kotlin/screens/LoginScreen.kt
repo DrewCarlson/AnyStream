@@ -20,6 +20,7 @@ package anystream.frontend.screens
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
 import anystream.models.api.CreateSessionError
+import app.softwork.routingcompose.BrowserRouter
 import com.soywiz.korio.async.launch
 import org.jetbrains.compose.web.attributes.ButtonType
 import org.jetbrains.compose.web.attributes.InputType
@@ -34,17 +35,16 @@ fun LoginScreen(client: AnyStreamClient) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
-    Div(
-        attrs = {
-            style {
-                display(DisplayStyle.Flex)
-                flexDirection(FlexDirection.Column)
-                justifyContent(JustifyContent.Center)
-                alignItems(AlignItems.Center)
-                property("gap", 12.px)
-            }
+    Div({
+        style {
+            classes("py-4")
+            display(DisplayStyle.Flex)
+            flexDirection(FlexDirection.Column)
+            justifyContent(JustifyContent.Center)
+            alignItems(AlignItems.Center)
+            property("gap", 12.px)
         }
-    ) {
+    }) {
         Div { H3 { Text("Login") } }
         Div {
             Input(
@@ -70,25 +70,23 @@ fun LoginScreen(client: AnyStreamClient) {
             error?.run { Text(this) }
         }
         Div {
-            Button(
-                attrs = {
-                    classes("btn", "btn-primary")
-                    type(ButtonType.Button)
-                    onClick {
-                        scope.launch {
-                            error = null
-                            val response = client.login(username, password)
-                            error = when (response.error) {
-                                CreateSessionError.USERNAME_INVALID -> "Invalid username"
-                                CreateSessionError.USERNAME_NOT_FOUND -> "Username not found"
-                                CreateSessionError.PASSWORD_INVALID -> "Invalid password"
-                                CreateSessionError.PASSWORD_INCORRECT -> "Incorrect password"
-                                null -> null
-                            }
+            Button({
+                classes("btn", "btn-primary")
+                type(ButtonType.Button)
+                onClick {
+                    scope.launch {
+                        error = null
+                        val response = client.login(username, password)
+                        error = when (response.error) {
+                            CreateSessionError.USERNAME_INVALID -> "Invalid username"
+                            CreateSessionError.USERNAME_NOT_FOUND -> "Username not found"
+                            CreateSessionError.PASSWORD_INVALID -> "Invalid password"
+                            CreateSessionError.PASSWORD_INCORRECT -> "Incorrect password"
+                            null -> null
                         }
                     }
                 }
-            ) {
+            }) {
                 Text("Confirm")
             }
         }
@@ -98,6 +96,7 @@ fun LoginScreen(client: AnyStreamClient) {
                     style {
                         property("cursor", "pointer")
                     }
+                    onClick { BrowserRouter.navigate("/signup") }
                 }
             ) {
                 Text("Go to Signup")

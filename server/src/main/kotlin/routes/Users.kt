@@ -59,7 +59,6 @@ import kotlin.time.seconds
 
 private const val SALT_BYTES = 128 / 8
 private const val BCRYPT_COST = 10
-private const val INVITE_CODE_BYTES = 32
 private const val PAIRING_SESSION_SECONDS = 60
 
 private val pairingCodes = ConcurrentHashMap<String, PairingMessage>()
@@ -173,7 +172,7 @@ fun Route.addUserRoutes(mongodb: CoroutineDatabase) {
                             ?: setOf(Permissions.VIEW_COLLECTION)
 
                         val inviteCode = InviteCode(
-                            value = Hex.toHexString(Random.nextBytes(INVITE_CODE_BYTES)),
+                            value = Hex.toHexString(Random.nextBytes(InviteCode.SIZE)),
                             permissions = permissions,
                             createdByUserId = session.userId
                         )

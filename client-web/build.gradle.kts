@@ -44,6 +44,7 @@ kotlin {
                 implementation(compose.web.core)
                 implementation(compose.web.widgets)
                 implementation(compose.runtime)
+                implementation("app.softwork:routing-compose")
 
                 implementation(libs.kotlinjs.extensions)
                 implementation(npm("bootstrap", "5.0.1"))

@@ -22,6 +22,8 @@ import anystream.client.AnyStreamClient
 import anystream.client.SessionManager
 import anystream.frontend.screens.HomeScreen
 import anystream.frontend.screens.LoginScreen
+import anystream.frontend.screens.SignupScreen
+import app.softwork.routingcompose.BrowserRouter
 import kotlinx.browser.window
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
@@ -29,7 +31,7 @@ import org.jetbrains.compose.web.renderComposable
 
 fun webApp() = renderComposable(rootElementId = "root") {
     val client = AnyStreamClient(
-        serverUrl = window.location.run { "$protocol//$host" },
+        serverUrl = "https://mmm.anystream.dev",//window.location.run { "$protocol//$host" },
         sessionManager = SessionManager(JsSessionDataStore)
     )
     Div(
@@ -49,22 +51,42 @@ fun webApp() = renderComposable(rootElementId = "root") {
 
 @Composable
 private fun ContentContainer(client: AnyStreamClient) {
-    Div(
-        attrs = {
-            classes("container-fluid")
-            style {
-                flexGrow(1)
-                flexShrink(1)
-                property("flex-basis", "auto")
-                property("overflow-y", "auto")
+    Div({
+        classes("container-fluid")
+        style {
+            flexGrow(1)
+            flexShrink(1)
+            property("flex-basis", "auto")
+            property("overflow-y", "auto")
+        }
+    }) {
+        val authRoutes = listOf("/signup", "/login")
+        val currentRoute by BrowserRouter.getPath("/")
+        val isAuthenticated by client.authenticated.collectAsState(client.isAuthenticated())
+        BrowserRouter("/") {
+            route("home") {
+                noMatch {
+                    HomeScreen(client)
+                }
+            }
+            route("login") {
+                noMatch {
+                    LoginScreen(client)
+                    if (isAuthenticated) BrowserRouter.navigate("/home")
+                }
+            }
+            route("signup") {
+                noMatch {
+                    SignupScreen(client)
+                    if (isAuthenticated) BrowserRouter.navigate("/home")
+                }
+            }
+            noMatch {
+                BrowserRouter.navigate(if (isAuthenticated) "/home" else "/login")
             }
         }
-    ) {
-        val isAuthenticated = client.authenticated.collectAsState(client.isAuthenticated())
-        if (isAuthenticated.value) {
-            HomeScreen(client)
-        } else {
-            LoginScreen(client)
+        if (!isAuthenticated && !authRoutes.contains(currentRoute)) {
+            BrowserRouter.navigate("/login")
         }
     }
 }
