@@ -20,6 +20,7 @@ package anystream.frontend.screens
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import anystream.client.AnyStreamClient
+import drewcarlson.qbittorrent.models.ConnectionStatus
 import drewcarlson.qbittorrent.models.Torrent
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.mapLatest
@@ -28,9 +29,11 @@ import org.jetbrains.compose.web.attributes.Scope
 import org.jetbrains.compose.web.attributes.scope
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
+import kotlin.math.roundToInt
 
 @Composable
 fun DownloadsScreen(client: AnyStreamClient) {
+    val globalInfoState = client.globalInfoChanges().collectAsState(null)
     val torrents = client.torrentListChanges()
         .debounce(2000)
         .mapLatest { client.getTorrents() }
@@ -44,6 +47,27 @@ fun DownloadsScreen(client: AnyStreamClient) {
             property("gap", 12.px)
         }
     }) {
+        Div({
+            style {
+                classes("px-2")
+                display(DisplayStyle.Flex)
+                flexDirection(FlexDirection.Row)
+                property("gap", 12.px)
+            }
+        }) {
+            val globalInfo = globalInfoState.value
+            val (statusName, iconClass) = when (globalInfo?.connectionStatus) {
+                ConnectionStatus.CONNECTED -> "Connected" to "bi-wifi"
+                ConnectionStatus.FIREWALLED -> "Firewalled" to "bi-shield-exclamation"
+                ConnectionStatus.DISCONNECTED -> "Disconnected" to "bi-plug"
+                else -> "Loading" to "bi-hourglass-split"
+            }
+            I({ classes(iconClass) }) {
+                Text(statusName)
+            }
+            Span { Text("Upload: ${globalInfo?.upInfoSpeed}") }
+            Span { Text("Download: ${globalInfo?.dlInfoSpeed}") }
+        }
         Div({
             classes("table-responsive")
         }) {
@@ -90,7 +114,7 @@ private fun TorrentRow(torrent: Torrent) {
             Text(torrent.size.toString())
         }
         Td {
-            Text(torrent.progress.toString())
+            Text("${(torrent.progress * 100).roundToInt()}%")
         }
         Td {
             Text(torrent.state.toString())
