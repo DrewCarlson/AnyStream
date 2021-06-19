@@ -32,7 +32,7 @@ data class CreateUserBody(
 @Serializable
 data class CreateUserResponse(
     val success: CreateUserSuccess? = null,
-    val error: CreateUserError? = null
+    val error: CreateUserError? = null,
 ) {
     companion object {
         fun success(user: User, permissions: Set<String>) =
@@ -54,7 +54,7 @@ data class CreateUserSuccess(
 @Serializable
 data class CreateUserError(
     val usernameError: UsernameError?,
-    val passwordError: PasswordError?
+    val passwordError: PasswordError?,
 ) {
     enum class PasswordError {
         TOO_SHORT, TOO_LONG, BLANK

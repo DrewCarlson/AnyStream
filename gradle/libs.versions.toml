@@ -7,13 +7,12 @@ bouncy_castle = "1.67"
 tmdb = "1.10"
 coroutines = "1.5.0-native-mt"
 serialization = "1.2.1"
-kmongo = "4.2.7"
-kvision = "4.8.1"
-jaffree = "2021-05-07"
+kmongo = "4.2.8"
+jaffree = "2021.05.31"
 qbittorrent = "0.2.0"
 torrent_search = "0.0.3"
 ktor_perm = "0.1.0"
-compose = "1.0.0-beta08"
+compose = "1.0.0-beta09"
 exoplayer = "2.14.0"
 zxing = "3.3.0"
 anr_watchdog = "1.4.0"
@@ -75,25 +74,6 @@ logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 tmdbapi = { module = "info.movito:themoviedbapi", version.ref = "tmdb" }
 
 kmongo-coroutine-serialization = { module = "org.litote.kmongo:kmongo-coroutine-serialization", version.ref = "kmongo" }
-
-kvision-core = { module = "io.kvision:kvision", version.ref = "kvision" }
-kvision-routing-navigo = { module = "io.kvision:kvision-routing-navigo", version.ref = "kvision" }
-kvision-bootstrap-core = { module = "io.kvision:kvision-bootstrap", version.ref = "kvision" }
-kvision-bootstrap-css = { module = "io.kvision:kvision-bootstrap-css", version.ref = "kvision" }
-kvision-bootstrap-datetime = { module = "io.kvision:kvision-bootstrap-datetime", version.ref = "kvision" }
-kvision-bootstrap-select = { module = "io.kvision:kvision-bootstrap-select", version.ref = "kvision" }
-kvision-bootstrap-spinner = { module = "io.kvision:kvision-bootstrap-spinner", version.ref = "kvision" }
-kvision-bootstrap-upload = { module = "io.kvision:kvision-bootstrap-upload", version.ref = "kvision" }
-kvision-bootstrap-dialog = { module = "io.kvision:kvision-bootstrap-dialog", version.ref = "kvision" }
-kvision-fontawesome = { module = "io.kvision:kvision-fontawesome", version.ref = "kvision" }
-kvision-richtext = { module = "io.kvision:kvision-richtext", version.ref = "kvision" }
-kvision-handlebars = { module = "io.kvision:kvision-handlebars", version.ref = "kvision" }
-kvision-tabulator = { module = "io.kvision:kvision-tabulator", version.ref = "kvision" }
-kvision-pace = { module = "io.kvision:kvision-pace", version.ref = "kvision" }
-kvision-moment = { module = "io.kvision:kvision-moment", version.ref = "kvision" }
-kvision-datacontainer = { module = "io.kvision:kvision-datacontainer", version.ref = "kvision" }
-kvision-toast = { module = "io.kvision:kvision-toast", version.ref = "kvision" }
-kvision-eventFlow = { module = "io.kvision:kvision-event-flow", version.ref = "kvision" }
 
 androidx-core-ktx = { module = "androidx.core:core-ktx", version = "1.5.0-rc01" }
 androidx-appcompat-core = { module = "androidx.appcompat:appcompat", version = "1.3.0-rc01" }
