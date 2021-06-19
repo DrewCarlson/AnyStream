@@ -26,7 +26,7 @@ import com.mongodb.MongoQueryException
 import info.movito.themoviedbapi.TmdbApi
 import info.movito.themoviedbapi.TmdbTV
 import info.movito.themoviedbapi.TmdbTvSeasons
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.toList
 import org.bson.types.ObjectId
@@ -40,6 +40,7 @@ import java.time.Instant
 class TvImportProcessor(
     private val tmdb: TmdbApi,
     mongodb: CoroutineDatabase,
+    private val scope: CoroutineScope,
     private val logger: Logger,
 ) : MediaImportProcessor {
 
@@ -138,7 +139,7 @@ class TvImportProcessor(
             }
 
         val seasonResults = seasonDirectories.asFlow()
-            .concurrentMap(GlobalScope, 5) { (season, folder) ->
+            .concurrentMap(scope, 5) { (season, folder) ->
                 folder.importSeason(userId, season, episodes, marker)
             }
             .toList()

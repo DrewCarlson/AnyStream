@@ -43,19 +43,16 @@ import io.ktor.routing.*
 import io.ktor.sessions.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.serialization.encodeToString
 import org.bouncycastle.crypto.generators.BCrypt
 import org.bouncycastle.util.encoders.Hex
 import org.bson.types.ObjectId
 import org.litote.kmongo.coroutine.*
 import org.litote.kmongo.eq
-import java.time.Instant
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.random.Random
-import kotlin.reflect.jvm.internal.impl.protobuf.Internal
-import kotlin.time.seconds
+import kotlin.time.Duration
 
 private const val SALT_BYTES = 128 / 8
 private const val BCRYPT_COST = 10
@@ -91,7 +88,7 @@ fun Route.addUserRoutes(mongodb: CoroutineDatabase) {
                 return@post call.respond(CreateUserResponse.error(usernameError, passwordError))
             }
 
-            val username = body.username.toLowerCase(Locale.ROOT)
+            val username = body.username.lowercase()
             if (users.findOne(User::username eq username) != null) {
                 return@post call.respond(
                     CreateUserResponse.error(
@@ -210,7 +207,7 @@ fun Route.addUserRoutes(mongodb: CoroutineDatabase) {
                         return@post call.respond(CreateSessionResponse.error(USERNAME_INVALID))
                     }
 
-                    val username = body.username.toLowerCase(Locale.ROOT)
+                    val username = body.username.lowercase()
                     if (pairingCodes.containsKey(body.password)) {
                         val session = call.principal<UserSession>()
                             ?: return@post call.respond(CreateSessionResponse.error(USERNAME_INVALID))
@@ -342,7 +339,7 @@ fun Route.addUserWsRoutes(
     mongodb: CoroutineDatabase,
 ) {
     webSocket("/ws/users/pair") {
-        val pairingCode = UUID.randomUUID().toString().toLowerCase(Locale.ROOT)
+        val pairingCode = UUID.randomUUID().toString().lowercase()
         val startingJson = json.encodeToString<PairingMessage>(PairingMessage.Started(pairingCode))
         send(Frame.Text(startingJson))
 
@@ -351,7 +348,7 @@ fun Route.addUserWsRoutes(
         var tick = 0
         var finalMessage: PairingMessage = PairingMessage.Idle
         while (finalMessage == PairingMessage.Idle) {
-            delay(1.seconds)
+            delay(Duration.seconds(1))
             tick++
             finalMessage = pairingCodes[pairingCode] ?: return@webSocket close()
             println(pairingCodes.toList())

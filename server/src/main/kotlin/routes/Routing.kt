@@ -31,6 +31,9 @@ import info.movito.themoviedbapi.TmdbApi
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.routing.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import org.litote.kmongo.coroutine.CoroutineDatabase
 import java.nio.file.Path
 
@@ -55,11 +58,12 @@ fun Application.installRouting(mongodb: CoroutineDatabase) {
 
     val mediaRefs = mongodb.getCollection<MediaReference>()
 
+    val importScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     val processors = listOf(
         MovieImportProcessor(tmdb, mongodb, log),
-        TvImportProcessor(tmdb, mongodb, log),
+        TvImportProcessor(tmdb, mongodb, importScope, log),
     )
-    val importer = MediaImporter(tmdb, processors, mediaRefs, log)
+    val importer = MediaImporter(tmdb, processors, mediaRefs, importScope, log)
 
     routing {
         route("/api") {

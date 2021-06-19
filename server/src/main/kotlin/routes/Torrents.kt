@@ -28,7 +28,9 @@ import drewcarlson.qbittorrent.models.Torrent
 import drewcarlson.qbittorrent.models.TorrentFile
 import io.ktor.application.*
 import io.ktor.auth.*
+import io.ktor.client.features.*
 import io.ktor.http.HttpStatusCode.Companion.Conflict
+import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.UnprocessableEntity
 import io.ktor.http.cio.websocket.*
@@ -54,8 +56,12 @@ fun Route.addTorrentRoutes(qbClient: QBittorrentClient, mongodb: CoroutineDataba
             val session = call.principal<UserSession>()!!
             val description = call.receiveOrNull<TorrentDescription2>()
                 ?: return@post call.respond(UnprocessableEntity)
-            if (qbClient.getTorrentProperties(description.hash) != null) {
-                return@post call.respond(Conflict)
+            try {
+                qbClient.getTorrentProperties(description.hash)
+            } catch (e: ResponseException) {
+                if (e.response.status == NotFound)
+                    return@post call.respond(Conflict)
+                else throw e
             }
             qbClient.addTorrent {
                 urls.add(description.magnetUrl)

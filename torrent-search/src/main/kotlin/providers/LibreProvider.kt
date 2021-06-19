@@ -28,7 +28,7 @@ class LibreProvider : BaseTorrentProvider() {
     override val categories: Map<Category, String> = emptyMap()
 
     override suspend fun search(query: String, category: Category, limit: Int): List<TorrentDescription> {
-        return when (query.toLowerCase()) {
+        return when (query.lowercase()) {
             "sintel" -> listOf(
                 TorrentDescription(
                     provider = name,

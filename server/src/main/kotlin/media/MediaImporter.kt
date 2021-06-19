@@ -23,7 +23,7 @@ import anystream.models.api.ImportMedia
 import anystream.models.api.ImportMediaResult
 import anystream.routes.concurrentMap
 import info.movito.themoviedbapi.TmdbApi
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.*
 import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.exists
@@ -37,6 +37,7 @@ class MediaImporter(
     tmdb: TmdbApi,
     private val processors: List<MediaImportProcessor>,
     private val mediaRefs: CoroutineCollection<MediaReference>,
+    private val scope: CoroutineScope,
     private val logger: Logger,
 ) {
     private val classMarker = MarkerFactory.getMarker(this::class.simpleName)
@@ -78,7 +79,7 @@ class MediaImporter(
             ?.toList()
             .orEmpty()
             .asFlow()
-            .concurrentMap(GlobalScope, 10) { file ->
+            .concurrentMap(scope, 10) { file ->
                 internalImport(
                     userId,
                     request.copy(contentPath = file.absolutePath),
