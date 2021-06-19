@@ -67,7 +67,7 @@ kotlin {
         if (hasAndroidSdk) {
             val androidMain by getting {
                 dependencies {
-                    implementation("androidx.core:core-ktx:1.6.0-beta02")
+                    implementation("androidx.core:core-ktx:1.6.0-rc01")
                 }
             }
         }
