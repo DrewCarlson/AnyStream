@@ -21,7 +21,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import anystream.client.AnyStreamClient
-import com.soywiz.korio.async.launch
+import anystream.models.Permissions
+import app.softwork.routingcompose.BrowserRouter
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.jetbrains.compose.web.attributes.AttrsBuilder
@@ -42,10 +44,11 @@ fun Navbar(client: AnyStreamClient) {
             A(attrs = { classes("navbar-brand", "mx-2") }) {
                 Img(src = "/images/as-logo.svg")
             }
-            Div({ classes("collapse", "navbar-collapse", "pt-2") }) {
+            Div({ classes("collapse", "navbar-collapse") }) {
+                val permissionsState = client.permissions.collectAsState(null)
                 if (isAuthenticated.value) {
-                    MainMenu(client)
-                    SecondaryMenu(client)
+                    MainMenu(client, permissionsState.value ?: emptySet())
+                    SecondaryMenu(client, permissionsState.value ?: emptySet())
                 }
             }
         }
@@ -53,24 +56,30 @@ fun Navbar(client: AnyStreamClient) {
 }
 
 @Composable
-private fun MainMenu(client: AnyStreamClient) {
+private fun MainMenu(client: AnyStreamClient, permissions: Set<String>) {
     Div({ classes("navbar-nav") }) {
         //NavLink("Discover", "bi-search", false)
-        NavLink("Home", "bi-house", true)
-        NavLink("Movies", "bi-film", false)
-        NavLink("TV", "bi-tv", false)
-        NavLink("Download", "bi-cloud-arrow-down", false)
+        NavLink("Home", "bi-house", "/home")
+        if (Permissions.check(Permissions.VIEW_COLLECTION, permissions)) {
+            NavLink("Movies", "bi-film", "/movies")
+            NavLink("TV", "bi-tv", "/tv")
+        }
+        if (Permissions.check(Permissions.TORRENT_MANAGEMENT, permissions)) {
+            NavLink("Downloads", "bi-cloud-arrow-down", "/downloads")
+        }
     }
 }
 
 @Composable
-private fun NavLink(text: String, icon: String, isActive: Boolean) {
+private fun NavLink(text: String, icon: String, path: String) {
+    val currentPath = BrowserRouter.getPath("/")
     A(attrs = {
-        if (isActive) {
+        if (currentPath.value.startsWith(path)) {
             classes("nav-link", "mx-2", "active")
         } else {
             classes("nav-link", "mx-2")
         }
+        onClick { BrowserRouter.navigate(path) }
     }) {
         ButtonIcon(icon)
         Text(text)
@@ -78,12 +87,14 @@ private fun NavLink(text: String, icon: String, isActive: Boolean) {
 }
 
 @Composable
-private fun SecondaryMenu(client: AnyStreamClient) {
+private fun SecondaryMenu(client: AnyStreamClient, permissions: Set<String>) {
     val scope = rememberCoroutineScope()
     val authMutex = Mutex()
     Div({ classes("navbar-nav", "ms-auto") }) {
-        A(attrs = { classes("nav-link") }) {
-            I(attrs = { classes("bi-people") }) { }
+        if (Permissions.check(Permissions.GLOBAL, permissions)) {
+            A(attrs = { classes("nav-link") }) {
+                I(attrs = { classes("bi-people") }) { }
+            }
         }
         A(attrs = {
             onClick {
