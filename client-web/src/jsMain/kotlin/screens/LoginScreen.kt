@@ -41,15 +41,18 @@ fun LoginScreen(client: AnyStreamClient) {
         isLocked = true
         error = null
         val response = client.login(username, password)
-        error = when (response.error) {
-            CreateSessionError.USERNAME_INVALID -> "Invalid username"
-            CreateSessionError.USERNAME_NOT_FOUND -> "Username not found"
-            CreateSessionError.PASSWORD_INVALID -> "Invalid password"
-            CreateSessionError.PASSWORD_INCORRECT -> "Incorrect password"
-            null -> null
-        }
-        if (!error.isNullOrBlank()) {
-            isLocked = false
+        when {
+            response.success != null -> BrowserRouter.navigate("/home")
+            response.error != null -> {
+                error = when (response.error) {
+                    CreateSessionError.USERNAME_INVALID -> "Invalid username"
+                    CreateSessionError.USERNAME_NOT_FOUND -> "Username not found"
+                    CreateSessionError.PASSWORD_INVALID -> "Invalid password"
+                    CreateSessionError.PASSWORD_INCORRECT -> "Incorrect password"
+                    null -> null
+                }
+                isLocked = false
+            }
         }
     }
 

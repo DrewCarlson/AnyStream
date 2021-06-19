@@ -32,7 +32,7 @@ import org.jetbrains.compose.web.renderComposable
 
 fun webApp() = renderComposable(rootElementId = "root") {
     val client = AnyStreamClient(
-        serverUrl = window.location.run { "$protocol//$host" },
+        serverUrl = "http://mmm.anystream.dev",//window.location.run { "$protocol//$host" },
         sessionManager = SessionManager(JsSessionDataStore)
     )
     Div(
@@ -73,13 +73,11 @@ private fun ContentContainer(client: AnyStreamClient) {
             route("login") {
                 noMatch {
                     LoginScreen(client)
-                    if (isAuthenticated) BrowserRouter.navigate("/home")
                 }
             }
             route("signup") {
                 noMatch {
                     SignupScreen(client)
-                    if (isAuthenticated) BrowserRouter.navigate("/home")
                 }
             }
             route("downloads") {

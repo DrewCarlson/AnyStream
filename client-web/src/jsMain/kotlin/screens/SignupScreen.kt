@@ -49,7 +49,7 @@ fun SignupScreen(client: AnyStreamClient) {
         try {
             val (success, error) = client.createUser(username, password, inviteCode)
             when {
-                success != null -> Unit
+                success != null -> BrowserRouter.navigate("/home")
                 error != null -> {
                     isLocked = false
                     errorMessage = error.usernameError?.message ?: error.passwordError?.message
