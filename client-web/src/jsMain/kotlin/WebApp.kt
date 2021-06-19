@@ -32,7 +32,7 @@ import org.jetbrains.compose.web.renderComposable
 
 fun webApp() = renderComposable(rootElementId = "root") {
     val client = AnyStreamClient(
-        serverUrl = "http://mmm.anystream.dev",//window.location.run { "$protocol//$host" },
+        serverUrl = window.location.run { "$protocol//$host" },
         sessionManager = SessionManager(JsSessionDataStore)
     )
     Div(
