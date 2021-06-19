@@ -21,20 +21,38 @@ import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
 import anystream.models.api.CreateSessionError
 import app.softwork.routingcompose.BrowserRouter
-import com.soywiz.korio.async.launch
-import org.jetbrains.compose.web.attributes.ButtonType
-import org.jetbrains.compose.web.attributes.InputType
-import org.jetbrains.compose.web.attributes.placeholder
-import org.jetbrains.compose.web.attributes.type
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import org.jetbrains.compose.web.attributes.*
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 
 @Composable
 fun LoginScreen(client: AnyStreamClient) {
+    val authMutex = Mutex()
     val scope = rememberCoroutineScope()
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
+    var isLocked by remember { mutableStateOf(false) }
+
+    suspend fun login() {
+        isLocked = true
+        error = null
+        val response = client.login(username, password)
+        error = when (response.error) {
+            CreateSessionError.USERNAME_INVALID -> "Invalid username"
+            CreateSessionError.USERNAME_NOT_FOUND -> "Username not found"
+            CreateSessionError.PASSWORD_INVALID -> "Invalid password"
+            CreateSessionError.PASSWORD_INCORRECT -> "Incorrect password"
+            null -> null
+        }
+        if (!error.isNullOrBlank()) {
+            isLocked = false
+        }
+    }
+
     Div({
         style {
             classes("py-4")
@@ -53,6 +71,7 @@ fun LoginScreen(client: AnyStreamClient) {
                     classes("form-control")
                     placeholder("Username")
                     type(InputType.Text)
+                    if (isLocked) disabled()
                 }
             )
         }
@@ -63,6 +82,7 @@ fun LoginScreen(client: AnyStreamClient) {
                     classes("form-control")
                     placeholder("Password")
                     type(InputType.Password)
+                    if (isLocked) disabled()
                 }
             )
         }
@@ -73,17 +93,10 @@ fun LoginScreen(client: AnyStreamClient) {
             Button({
                 classes("btn", "btn-primary")
                 type(ButtonType.Button)
+                if (isLocked) disabled()
                 onClick {
                     scope.launch {
-                        error = null
-                        val response = client.login(username, password)
-                        error = when (response.error) {
-                            CreateSessionError.USERNAME_INVALID -> "Invalid username"
-                            CreateSessionError.USERNAME_NOT_FOUND -> "Username not found"
-                            CreateSessionError.PASSWORD_INVALID -> "Invalid password"
-                            CreateSessionError.PASSWORD_INCORRECT -> "Incorrect password"
-                            null -> null
-                        }
+                        authMutex.withLock { login() }
                     }
                 }
             }) {
@@ -96,7 +109,9 @@ fun LoginScreen(client: AnyStreamClient) {
                     style {
                         property("cursor", "pointer")
                     }
-                    onClick { BrowserRouter.navigate("/signup") }
+                    onClick {
+                        if (!isLocked) BrowserRouter.navigate("/signup")
+                    }
                 }
             ) {
                 Text("Go to Signup")

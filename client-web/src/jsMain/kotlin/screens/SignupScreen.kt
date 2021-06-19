@@ -22,10 +22,10 @@ import anystream.client.AnyStreamClient
 import anystream.models.*
 import anystream.models.api.CreateUserError
 import app.softwork.routingcompose.BrowserRouter
-import com.soywiz.korio.async.launch
 import io.ktor.client.features.*
 import io.ktor.http.*
 import kotlinx.browser.window
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.jetbrains.compose.web.attributes.*
@@ -43,7 +43,7 @@ fun SignupScreen(client: AnyStreamClient) {
     }
     var inviteCode by remember { mutableStateOf(launchInviteCode) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    var locked by remember { mutableStateOf(false) }
+    var isLocked by remember { mutableStateOf(false) }
 
     suspend fun signup() {
         try {
@@ -51,12 +51,12 @@ fun SignupScreen(client: AnyStreamClient) {
             when {
                 success != null -> Unit
                 error != null -> {
-                    locked = false
+                    isLocked = false
                     errorMessage = error.usernameError?.message ?: error.passwordError?.message
                 }
             }
         } catch (e: ResponseException) {
-            locked = false
+            isLocked = false
             errorMessage = if (e.response.status == HttpStatusCode.Forbidden) {
                 "A valid invite code is required."
             } else {
@@ -84,6 +84,7 @@ fun SignupScreen(client: AnyStreamClient) {
                     classes("form-control")
                     placeholder("Username")
                     type(InputType.Text)
+                    if (isLocked) disabled()
                 }
             )
         }
@@ -94,6 +95,7 @@ fun SignupScreen(client: AnyStreamClient) {
                     classes("form-control")
                     placeholder("Password")
                     type(InputType.Password)
+                    if (isLocked) disabled()
                 }
             )
         }
@@ -105,6 +107,7 @@ fun SignupScreen(client: AnyStreamClient) {
                     classes("form-control")
                     placeholder("Invite Code")
                     type(InputType.Text)
+                    if (isLocked) disabled()
                     if (!launchInviteCode.isNullOrBlank()) disabled()
                 }
             )
@@ -116,7 +119,7 @@ fun SignupScreen(client: AnyStreamClient) {
             Button({
                 classes("btn", "btn-primary")
                 type(ButtonType.Button)
-                if (locked) disabled()
+                if (isLocked) disabled()
                 onClick {
                     scope.launch {
                         authMutex.withLock { signup() }
@@ -132,7 +135,9 @@ fun SignupScreen(client: AnyStreamClient) {
                     style {
                         property("cursor", "pointer")
                     }
-                    onClick { BrowserRouter.navigate("/login") }
+                    onClick {
+                        if (!isLocked) BrowserRouter.navigate("/login")
+                    }
                 }
             ) {
                 Text("Go to Login")

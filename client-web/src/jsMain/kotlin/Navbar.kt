@@ -22,10 +22,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import anystream.client.AnyStreamClient
 import com.soywiz.korio.async.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.jetbrains.compose.web.attributes.AttrsBuilder
 import org.jetbrains.compose.web.css.StyleBuilder
-import org.jetbrains.compose.web.css.margin
-import org.jetbrains.compose.web.css.px
 import org.jetbrains.compose.web.dom.A
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.I
@@ -80,13 +80,16 @@ private fun NavLink(text: String, icon: String, isActive: Boolean) {
 @Composable
 private fun SecondaryMenu(client: AnyStreamClient) {
     val scope = rememberCoroutineScope()
+    val authMutex = Mutex()
     Div(attrs = { classes("navbar-nav", "ms-auto") }) {
         A(attrs = { classes("nav-link") }) {
             I(attrs = { classes("bi-people") }) { }
         }
         A(attrs = {
             onClick {
-                scope.launch { client.logout() }
+                scope.launch {
+                    authMutex.withLock { client.logout() }
+                }
             }
             classes("nav-link")
         }) {
