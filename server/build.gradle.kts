@@ -18,6 +18,8 @@ kotlin {
     }
     sourceSets {
         named("jvmMain") {
+            kotlin.srcDir("src/main/kotlin")
+            resources.srcDir("src/main/resources")
             dependencies {
                 implementation(projects.dataModels)
 
@@ -57,6 +59,7 @@ kotlin {
         }
 
         named("jvmTest") {
+            kotlin.srcDir("src/test/kotlin")
             dependencies {
                 implementation(libs.ktor.server.tests)
             }
