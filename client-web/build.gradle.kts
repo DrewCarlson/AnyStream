@@ -35,6 +35,12 @@ kotlin {
     }
 
     sourceSets {
+        all {
+            languageSettings.apply {
+                useExperimentalAnnotation("kotlinx.coroutines.ExperimentalCoroutinesApi")
+                useExperimentalAnnotation("kotlinx.coroutines.FlowPreview")
+            }
+        }
         named("jsMain") {
             dependencies {
                 implementation(projects.client)

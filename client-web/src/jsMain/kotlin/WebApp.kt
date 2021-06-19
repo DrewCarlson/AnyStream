@@ -20,6 +20,7 @@ package anystream.frontend
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
 import anystream.client.SessionManager
+import anystream.frontend.screens.DownloadsScreen
 import anystream.frontend.screens.HomeScreen
 import anystream.frontend.screens.LoginScreen
 import anystream.frontend.screens.SignupScreen
@@ -52,7 +53,7 @@ fun webApp() = renderComposable(rootElementId = "root") {
 @Composable
 private fun ContentContainer(client: AnyStreamClient) {
     Div({
-        classes("container-fluid")
+        classes("container-fluid", "px-0")
         style {
             flexGrow(1)
             flexShrink(1)
@@ -79,6 +80,11 @@ private fun ContentContainer(client: AnyStreamClient) {
                 noMatch {
                     SignupScreen(client)
                     if (isAuthenticated) BrowserRouter.navigate("/home")
+                }
+            }
+            route("downloads") {
+                noMatch {
+                    DownloadsScreen(client)
                 }
             }
             noMatch {

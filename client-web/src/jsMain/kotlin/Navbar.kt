@@ -47,7 +47,7 @@ fun Navbar(client: AnyStreamClient) {
             Div({ classes("collapse", "navbar-collapse") }) {
                 val permissionsState = client.permissions.collectAsState(null)
                 if (isAuthenticated.value) {
-                    MainMenu(client, permissionsState.value ?: emptySet())
+                    MainMenu(permissionsState.value ?: emptySet())
                     SecondaryMenu(client, permissionsState.value ?: emptySet())
                 }
             }
@@ -56,7 +56,7 @@ fun Navbar(client: AnyStreamClient) {
 }
 
 @Composable
-private fun MainMenu(client: AnyStreamClient, permissions: Set<String>) {
+private fun MainMenu(permissions: Set<String>) {
     Div({ classes("navbar-nav") }) {
         //NavLink("Discover", "bi-search", false)
         NavLink("Home", "bi-house", "/home")
