@@ -92,8 +92,11 @@ private fun SecondaryMenu(client: AnyStreamClient, permissions: Set<String>) {
     val authMutex = Mutex()
     Div({ classes("navbar-nav", "ms-auto") }) {
         if (Permissions.check(Permissions.GLOBAL, permissions)) {
-            A(attrs = { classes("nav-link") }) {
-                I(attrs = { classes("bi-people") }) { }
+            A(attrs = {
+                classes("nav-link")
+                onClick { BrowserRouter.navigate("/usermanager") }
+            }) {
+                I({ classes("bi-people") })
             }
         }
         A(attrs = {
@@ -104,7 +107,7 @@ private fun SecondaryMenu(client: AnyStreamClient, permissions: Set<String>) {
             }
             classes("nav-link")
         }) {
-            I(attrs = { classes("bi-box-arrow-right") }) { }
+            I({ classes("bi-box-arrow-right") }) { }
         }
     }
 }

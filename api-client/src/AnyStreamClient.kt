@@ -284,6 +284,9 @@ class AnyStreamClient(
     suspend fun getUser(id: String) =
         http.get<User>("/api/users/$id")
 
+    suspend fun getUsers(): List<User> =
+        http.get("/api/users")
+
     suspend fun updateUser(
         userId: String,
         displayName: String,

@@ -18,6 +18,7 @@
 package anystream.frontend
 
 fun main() {
+    kotlinext.js.require("bootstrap/js/dist/offcanvas.js")
     kotlinext.js.require("bootstrap/dist/css/bootstrap.min.css")
     kotlinext.js.require("bootstrap-icons/font/bootstrap-icons.css")
     webApp()

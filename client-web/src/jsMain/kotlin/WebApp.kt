@@ -20,10 +20,7 @@ package anystream.frontend
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
 import anystream.client.SessionManager
-import anystream.frontend.screens.DownloadsScreen
-import anystream.frontend.screens.HomeScreen
-import anystream.frontend.screens.LoginScreen
-import anystream.frontend.screens.SignupScreen
+import anystream.frontend.screens.*
 import app.softwork.routingcompose.BrowserRouter
 import kotlinx.browser.window
 import org.jetbrains.compose.web.css.*
@@ -66,24 +63,19 @@ private fun ContentContainer(client: AnyStreamClient) {
         val isAuthenticated by client.authenticated.collectAsState(client.isAuthenticated())
         BrowserRouter("/") {
             route("home") {
-                noMatch {
-                    HomeScreen(client)
-                }
+                noMatch { HomeScreen(client) }
             }
             route("login") {
-                noMatch {
-                    LoginScreen(client)
-                }
+                noMatch { LoginScreen(client) }
             }
             route("signup") {
-                noMatch {
-                    SignupScreen(client)
-                }
+                noMatch { SignupScreen(client) }
             }
             route("downloads") {
-                noMatch {
-                    DownloadsScreen(client)
-                }
+                noMatch { DownloadsScreen(client) }
+            }
+            route("usermanager") {
+                noMatch { UserManagerScreen(client) }
             }
             noMatch {
                 BrowserRouter.navigate(if (isAuthenticated) "/home" else "/login")
