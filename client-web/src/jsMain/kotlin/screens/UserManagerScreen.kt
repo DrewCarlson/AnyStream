@@ -22,7 +22,6 @@ import anystream.client.AnyStreamClient
 import anystream.models.InviteCode
 import anystream.models.Permissions
 import anystream.models.User
-import com.soywiz.korio.lang.enterDebugger
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
