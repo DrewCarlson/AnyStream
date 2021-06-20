@@ -43,15 +43,14 @@ fun DownloadsScreen(client: AnyStreamClient) {
         style {
             display(DisplayStyle.Flex)
             flexDirection(FlexDirection.Column)
-            justifyContent(JustifyContent.Center)
-            property("gap", 12.px)
         }
     }) {
         Div({
             style {
-                classes("px-2")
+                classes("p-2", "bg-dark")
                 display(DisplayStyle.Flex)
                 flexDirection(FlexDirection.Row)
+                alignItems(AlignItems.Center)
                 property("gap", 12.px)
             }
         }) {
@@ -62,11 +61,12 @@ fun DownloadsScreen(client: AnyStreamClient) {
                 ConnectionStatus.DISCONNECTED -> "Disconnected" to "bi-plug"
                 else -> "Loading" to "bi-hourglass-split"
             }
-            I({ classes(iconClass) }) {
-                Text(statusName)
+            I({ classes(iconClass) })
+            Span { Text(statusName) }
+            globalInfo?.run {
+                Span { Text("Upload: $upInfoSpeed") }
+                Span { Text("Download: $dlInfoSpeed") }
             }
-            Span { Text("Upload: ${globalInfo?.upInfoSpeed}") }
-            Span { Text("Download: ${globalInfo?.dlInfoSpeed}") }
         }
         Div({
             classes("table-responsive")
@@ -106,9 +106,8 @@ private fun TorrentHeader() {
 private fun TorrentRow(torrent: Torrent) {
     Tr {
         Td {
-            I({ classes(stateIcon(torrent)) }) {
-                Text(torrent.name)
-            }
+            I({ classes(stateIcon(torrent)) })
+            Span { Text(torrent.name) }
         }
         Td {
             Text(torrent.size.toString())

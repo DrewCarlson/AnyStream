@@ -119,7 +119,5 @@ private fun ButtonIcon(
         classes(icon, "mx-2")
         attrs()
         style(style)
-    }, {
-
     })
 }
