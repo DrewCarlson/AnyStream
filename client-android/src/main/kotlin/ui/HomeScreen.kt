@@ -41,8 +41,9 @@ import anystream.client.AnyStreamClient
 import anystream.models.*
 import anystream.models.api.HomeResponse
 import anystream.models.tmdb.PartialMovie
-import com.google.accompanist.coil.rememberCoilPainter
-import com.google.accompanist.imageloading.ImageLoadState
+import coil.compose.ImagePainter
+import coil.compose.rememberImagePainter
+import coil.request.ImageRequest
 
 private val CARD_SPACING = 12.dp
 
@@ -141,9 +142,11 @@ private fun WatchingCard(
             .clickable(onClick = { onClick(playbackState.mediaReferenceId) }),
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            val painter = rememberCoilPainter(
-                request = "https://image.tmdb.org/t/p/w300${movie.backdropPath}",
-                fadeIn = true,
+            val painter = rememberImagePainter(
+                data = "https://image.tmdb.org/t/p/w300${movie.backdropPath}",
+                builder = {
+                    crossfade(true)
+                }
             )
             Box(
                 modifier = Modifier
@@ -156,15 +159,15 @@ private fun WatchingCard(
                     modifier = Modifier.fillMaxSize()
                 )
 
-                when (painter.loadState) {
-                    is ImageLoadState.Loading -> {
+                when (painter.state) {
+                    is ImagePainter.State.Loading -> {
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .background(Color.DarkGray)
                         )
                     }
-                    is ImageLoadState.Error -> {
+                    is ImagePainter.State.Error -> {
                         Box(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier
@@ -174,6 +177,8 @@ private fun WatchingCard(
                             Text("No Backdrop")
                         }
                     }
+                    ImagePainter.State.Empty,
+                    is ImagePainter.State.Success -> Unit
                 }
             }
 

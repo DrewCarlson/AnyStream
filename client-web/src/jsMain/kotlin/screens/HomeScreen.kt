@@ -111,7 +111,6 @@ private fun MovieRow(
     }
     Div({
         style {
-            classes("pb-4")
             display(DisplayStyle.Flex)
             flexDirection(FlexDirection.Row)
             property("overflow-x", "auto")

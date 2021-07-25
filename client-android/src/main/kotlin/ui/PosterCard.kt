@@ -34,8 +34,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.google.accompanist.coil.rememberCoilPainter
-import com.google.accompanist.imageloading.ImageLoadState
+import coil.compose.ImagePainter
+import coil.compose.rememberImagePainter
 
 @Composable
 fun PosterCard(
@@ -63,9 +63,11 @@ fun PosterCard(
                 modifier = Modifier
                     .aspectRatio(ratio = 0.69f)
             ) {
-                val painter = rememberCoilPainter(
-                    request = "https://image.tmdb.org/t/p/w200$imagePath",
-                    fadeIn = true,
+                val painter = rememberImagePainter(
+                    data = "https://image.tmdb.org/t/p/w200$imagePath",
+                    builder = {
+                        crossfade(true)
+                    }
                 )
                 Box(
                     modifier = Modifier.fillMaxSize()
@@ -78,15 +80,15 @@ fun PosterCard(
                         alignment = Alignment.Center,
                     )
 
-                    when (painter.loadState) {
-                        is ImageLoadState.Loading -> {
+                    when (painter.state) {
+                        is ImagePainter.State.Loading -> {
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .background(Color.DarkGray)
                             )
                         }
-                        is ImageLoadState.Error -> {
+                        is ImagePainter.State.Empty -> {
                             Box(
                                 contentAlignment = Alignment.Center,
                                 modifier = Modifier

@@ -50,10 +50,10 @@ kotlin {
                 implementation(compose.web.core)
                 implementation(compose.web.widgets)
                 implementation(compose.runtime)
-                implementation("app.softwork:routing-compose")
+                implementation("app.softwork:routing-compose:0.0.21")
 
                 implementation(libs.kotlinjs.extensions)
-                implementation(npm("bootstrap", "5.0.1"))
+                implementation(npm("bootstrap", "5.0.2"))
                 implementation(npm("bootstrap-icons", "1.5.0"))
                 implementation(devNpm("file-loader", "6.2.0"))
                 implementation(devNpm("webpack-bundle-analyzer", "4.4.2"))

@@ -52,7 +52,7 @@ fun SignupScreen(client: AnyStreamClient) {
                 success != null -> BrowserRouter.navigate("/home")
                 error != null -> {
                     isLocked = false
-                    errorMessage = error.usernameError?.message ?: error.passwordError?.message
+                    errorMessage = error.usernameError?.name ?: error.passwordError?.name
                 }
             }
         } catch (e: ResponseException) {
@@ -78,39 +78,33 @@ fun SignupScreen(client: AnyStreamClient) {
     }) {
         Div { H3 { Text("Signup") } }
         Div {
-            Input(
-                attrs = {
-                    onTextInput { username = it.inputValue }
-                    classes("form-control")
-                    placeholder("Username")
-                    type(InputType.Text)
-                    if (isLocked) disabled()
-                }
-            )
+            Input(InputType.Text) {
+                onInput { username = it.value }
+                classes("form-control")
+                placeholder("Username")
+                type(InputType.Text)
+                if (isLocked) disabled()
+            }
+    }
+        Div {
+            Input(InputType.Text) {
+                onInput { password = it.value }
+                classes("form-control")
+                placeholder("Password")
+                type(InputType.Password)
+                if (isLocked) disabled()
+            }
         }
         Div {
-            Input(
-                attrs = {
-                    onTextInput { password = it.inputValue }
-                    classes("form-control")
-                    placeholder("Password")
-                    type(InputType.Password)
-                    if (isLocked) disabled()
-                }
-            )
-        }
-        Div {
-            Input(
-                value = inviteCode ?: "",
-                attrs = {
-                    onTextInput { inviteCode = it.inputValue }
-                    classes("form-control")
-                    placeholder("Invite Code")
-                    type(InputType.Text)
-                    if (isLocked) disabled()
-                    if (!launchInviteCode.isNullOrBlank()) disabled()
-                }
-            )
+            Input(InputType.Text) {
+                value(inviteCode ?: "")
+                onInput { inviteCode = it.value }
+                classes("form-control")
+                placeholder("Invite Code")
+                type(InputType.Text)
+                if (isLocked) disabled()
+                if (!launchInviteCode.isNullOrBlank()) disabled()
+            }
         }
         Div {
             errorMessage?.run { Text(this) }

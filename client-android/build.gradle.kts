@@ -34,6 +34,13 @@ android {
             signingConfig = signingConfigs.findByName("debug")
         }
     }
+    kotlinOptions.freeCompilerArgs += listOf(
+        "-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
+        "-Xopt-in=kotlinx.coroutines.FlowPreview",
+        "-Xopt-in=kotlin.time.ExperimentalTime",
+        "-Xopt-in=kotlin.RequiresOptIn",
+        "-Xopt-in=coil.annotation.ExperimentalCoilApi",
+    )
 }
 
 dependencies {
@@ -44,7 +51,7 @@ dependencies {
     implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(libs.bundles.compose)
-    implementation(libs.accompanist.coil)
+    implementation(libs.coil)
     implementation(libs.bundles.exoplayer)
     implementation(libs.zxing.core)
     implementation(libs.quickie.bundled)

@@ -68,26 +68,22 @@ fun LoginScreen(client: AnyStreamClient) {
     }) {
         Div { H3 { Text("Login") } }
         Div {
-            Input(
-                attrs = {
-                    onTextInput { username = it.inputValue }
-                    classes("form-control")
-                    placeholder("Username")
-                    type(InputType.Text)
-                    if (isLocked) disabled()
-                }
-            )
+            Input(InputType.Text) {
+                onInput { username = it.value }
+                classes("form-control")
+                placeholder("Username")
+                type(InputType.Text)
+                if (isLocked) disabled()
+            }
         }
         Div {
-            Input(
-                attrs = {
-                    onTextInput { password = it.inputValue }
-                    classes("form-control")
-                    placeholder("Password")
-                    type(InputType.Password)
-                    if (isLocked) disabled()
-                }
-            )
+            Input(InputType.Text) {
+                onInput { password = it.value }
+                classes("form-control")
+                placeholder("Password")
+                type(InputType.Password)
+                if (isLocked) disabled()
+            }
         }
         Div {
             error?.run { Text(this) }

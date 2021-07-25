@@ -124,7 +124,7 @@ private fun InviteCodeDialog(
             emptyMap()
         } else {
             inviteCodesState.groupBy { inviteCode ->
-                users.first { it.id == inviteCode.createdByUserId }
+                users.firstOrNull { it.id == inviteCode.createdByUserId }
             }
         }
     }
@@ -201,7 +201,7 @@ private fun CreateInviteCodeGroup(createInviteCode: (Set<String>) -> Unit) {
 
 @Composable
 private fun InviteCodeTable(
-    inviteCodeMap: Map<User, List<InviteCode>>,
+    inviteCodeMap: Map<User?, List<InviteCode>>,
     deleteInviteCode: (InviteCode) -> Unit,
 ) {
     Div({
@@ -238,7 +238,7 @@ private fun InviteCodeHeaderRow() {
 
 @Composable
 private fun InviteCodeRow(
-    user: User,
+    user: User?,
     inviteCode: InviteCode,
     deleteInviteCode: (InviteCode) -> Unit,
 ) {
@@ -252,7 +252,7 @@ private fun InviteCodeRow(
                 I({ classes("bi-x-circle") })
             }
         }
-        Td { Text(user.displayName) }
+        Td { Text(user?.displayName ?: "<deleted>") }
         Td {
             Select({
                 disabled()
@@ -266,14 +266,14 @@ private fun InviteCodeRow(
         Td {
             val base = "${window.location.protocol}//${window.location.host}"
             val url = "$base/signup?inviteCode=${inviteCode.value}"
-            Input(InputType.Text, url) {
+            Input(InputType.Text) {
+                value(url)
                 classes("visually-hidden")
                 onInput { it.nativeEvent.preventDefault() }
                 ref { el ->
                     focusAndCopy = {
-                        val input = (el as HTMLInputElement)
-                        input.focus()
-                        input.select()
+                        el.focus()
+                        el.select()
                         document.execCommand("copy")
                     }
                     onDispose {

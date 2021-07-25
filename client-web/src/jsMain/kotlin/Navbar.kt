@@ -72,7 +72,6 @@ private fun MainMenu(permissions: Set<String>) {
 
 @Composable
 private fun NavLink(text: String, icon: String, path: String) {
-    val currentPath = BrowserRouter.getPath("/")
     A(attrs = {
         if (currentPath.value.startsWith(path)) {
             classes("nav-link", "mx-2", "active")

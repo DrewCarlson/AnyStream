@@ -1,8 +1,8 @@
 plugins {
-    kotlin("multiplatform") version "1.5.10" apply false
-    kotlin("jvm") version "1.5.10" apply false
-    kotlin("plugin.serialization") version "1.5.10" apply false
-    id("org.jetbrains.compose") version "0.5.0-build225" apply false
+    kotlin("multiplatform") version "1.5.21" apply false
+    kotlin("jvm") version "1.5.21" apply false
+    kotlin("plugin.serialization") version "1.5.21" apply false
+    id("org.jetbrains.compose") version "0.5.0-build262" apply false
 }
 
 buildscript {
@@ -12,7 +12,7 @@ buildscript {
         google()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:7.0.0-beta04")
+        classpath("com.android.tools.build:gradle:7.0.0-rc01")
     }
 }
 

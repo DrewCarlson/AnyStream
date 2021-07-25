@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import org.jetbrains.compose.web.css.*
+import org.jetbrains.compose.web.css.keywords.auto
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.I
 import org.jetbrains.compose.web.dom.Img
@@ -38,7 +39,7 @@ fun PosterCard(
 ) {
     val isOverlayVisible = remember { mutableStateOf(false) }
     Div({
-        classes("px-3")
+        classes("p-3")
         style {
             display(DisplayStyle.Flex)
             flexDirection(FlexDirection.Column)
@@ -99,7 +100,7 @@ private fun CardOverlay(
                     fontSize(22.px)
                     display(DisplayStyle.Flex)
                     alignSelf(AlignSelf.FlexEnd)
-                    color(Color.RGB(255, 255, 255))
+                    color(rgb(255, 255, 255))
                 }
             })
             Div({
@@ -115,7 +116,7 @@ private fun CardOverlay(
                     style {
                         property("margin", auto)
                         fontSize(48.px)
-                        color(Color.RGB(255, 255, 255))
+                        color(rgb(255, 255, 255))
                     }
                 })
             }
@@ -128,7 +129,7 @@ private fun CardOverlay(
                 I({
                     classes(if (isAdded) "bi-check-lg" else "bi-plus-lg")
                     style {
-                        color(Color.RGB(255, 255, 255))
+                        color(rgb(255, 255, 255))
                     }
                 })
             }
@@ -137,7 +138,7 @@ private fun CardOverlay(
         Div({
             classes("rounded", "h-100", "w-100")
             style {
-                backgroundColor(Color.RGB(0, 0, 0))
+                backgroundColor(rgb(0, 0, 0))
                 position(Position.Absolute)
                 property("z-index", 2)
                 opacity(.7)
