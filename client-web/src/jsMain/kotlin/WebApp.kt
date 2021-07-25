@@ -27,8 +27,6 @@ import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 import org.jetbrains.compose.web.renderComposable
 
-val currentPath = mutableStateOf(window.location.pathname)
-
 fun webApp() = renderComposable(rootElementId = "root") {
     val client = AnyStreamClient(
         serverUrl = window.location.run { "$protocol//$host" },
@@ -62,29 +60,24 @@ private fun ContentContainer(client: AnyStreamClient) {
     }) {
         val authRoutes = listOf("/signup", "/login")
         val isAuthenticated by client.authenticated.collectAsState(client.isAuthenticated())
+        val currentPath = BrowserRouter.getPath("/")
         BrowserRouter("/") {
             route("home") {
-                currentPath.value = "/home"
                 noMatch { HomeScreen(client) }
             }
             route("login") {
-                currentPath.value = "/login"
                 noMatch { LoginScreen(client) }
             }
             route("signup") {
-                currentPath.value = "/signup"
                 noMatch { SignupScreen(client) }
             }
             route("movies") {
-                currentPath.value = "/movies"
                 noMatch { MoviesScreen(client) }
             }
             route("downloads") {
-                currentPath.value = "/downloads"
                 noMatch { DownloadsScreen(client) }
             }
             route("usermanager") {
-                currentPath.value = "/usermanager"
                 noMatch { UserManagerScreen(client) }
             }
             noMatch {

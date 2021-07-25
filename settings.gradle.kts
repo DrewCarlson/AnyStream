@@ -20,9 +20,9 @@ pluginManagement {
     }
 }
 
-/*includeBuild("external/routing-compose") {
+includeBuild("external/routing-compose") {
     dependencySubstitution {
         substitute(module("app.softwork:routing-compose"))
             .with(project(":"))
     }
-}*/
+}

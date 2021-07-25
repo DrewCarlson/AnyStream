@@ -17,14 +17,15 @@
  */
 package anystream.frontend.screens
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
 import drewcarlson.qbittorrent.models.ConnectionStatus
 import drewcarlson.qbittorrent.models.Torrent
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.web.attributes.Scope
 import org.jetbrains.compose.web.attributes.scope
 import org.jetbrains.compose.web.css.*
@@ -68,6 +69,11 @@ fun DownloadsScreen(client: AnyStreamClient) {
                 Span { Text("Download: $dlInfoSpeed") }
             }
         }
+
+        val menuScope = rememberCoroutineScope()
+        val contextMenuPosition = mutableStateOf<Triple<Torrent, Double, Double>?>(null)
+        TorrentContextMenu(menuScope, client, contextMenuPosition)
+
         Div({
             classes("table-responsive")
         }) {
@@ -77,7 +83,9 @@ fun DownloadsScreen(client: AnyStreamClient) {
                 Thead { TorrentHeader() }
                 Tbody {
                     torrents.value.forEach { torrent ->
-                        TorrentRow(torrent)
+                        TorrentRow(torrent) { pos ->
+                            contextMenuPosition.value = pos
+                        }
                     }
                 }
             }
@@ -103,45 +111,99 @@ private fun TorrentHeader() {
 }
 
 @Composable
-private fun TorrentRow(torrent: Torrent) {
-    Tr {
+private fun TorrentRow(
+    torrent: Torrent,
+    setContextPos: (Triple<Torrent, Double, Double>) -> Unit,
+) {
+    Tr({
+        onContextMenu { event ->
+            event.preventDefault()
+            setContextPos(Triple(torrent, event.x, event.y))
+        }
+        style {
+            cursor("pointer")
+        }
+    }) {
         Td {
             I({ classes(stateIcon(torrent)) })
             Span { Text(torrent.name) }
         }
-        Td {
-            Text(torrent.size.toString())
-        }
-        Td {
-            Text("${(torrent.progress * 100).roundToInt()}%")
-        }
-        Td {
-            Text(torrent.state.toString())
-        }
-        Td {
-            Text("${torrent.connectedSeeds} (${torrent.seedsInSwarm})")
-        }
-        Td {
-            Text("${torrent.connectedLeechers} (${torrent.leechersInSwarm})")
-        }
-        Td {
-            Text(torrent.dlspeed.toString())
-        }
-        Td {
-            Text(torrent.uploadSpeed.toString())
-        }
-        Td {
-            Text(torrent.eta.toString())
-        }
-        Td {
-            Text(torrent.ratio.toString())
-        }
-        Td {
-            Text(torrent.availability.toString())
-        }
+        Td { Text(torrent.size.toString()) }
+        Td { Text("${(torrent.progress * 100).roundToInt()}%") }
+        Td { Text(torrent.state.toString()) }
+        Td { Text("${torrent.connectedSeeds} (${torrent.seedsInSwarm})") }
+        Td { Text("${torrent.connectedLeechers} (${torrent.leechersInSwarm})") }
+        Td { Text(torrent.dlspeed.toString()) }
+        Td { Text(torrent.uploadSpeed.toString()) }
+        Td { Text(torrent.eta.toString()) }
+        Td { Text(torrent.ratio.toString()) }
+        Td { Text(torrent.availability.toString()) }
     }
 }
 
+private const val MENU_OFFSET = 18.0
+@Composable
+private fun TorrentContextMenu(
+    scope: CoroutineScope,
+    client: AnyStreamClient,
+    contextMenuPosition: MutableState<Triple<Torrent, Double, Double>?>,
+) {
+    val pos = contextMenuPosition.value
+    if (pos != null) {
+        val (torrent, _, _) = pos
+        val isPaused = when (torrent.state) {
+            Torrent.State.PAUSED_DL,
+            Torrent.State.PAUSED_UP -> true
+            else -> false
+        }
+        Ul({
+            classes("dropdown-menu", "position-absolute")
+            style {
+                val (_, x, y) = pos
+                property("left", (x - MENU_OFFSET).px)
+                property("top", (y - MENU_OFFSET).px)
+                display(DisplayStyle.Block)
+            }
+            onMouseLeave { contextMenuPosition.value = null }
+        }) {
+            Li { H5({ classes("dropdown-header") }) { Text(torrent.name) } }
+            Li {
+                A(attrs = {
+                    classes("dropdown-item")
+                    if (isPaused) classes("disabled")
+                    onClick {
+                        scope.launch { client.pauseTorrent(torrent.hash) }
+                    }
+                }) { Text("Pause") }
+            }
+            Li {
+                A(attrs = {
+                    classes("dropdown-item")
+                    if (!isPaused) classes("disabled")
+                    onClick {
+                        scope.launch { client.resumeTorrent(torrent.hash) }
+                    }
+                }) { Text("Resume") }
+            }
+            Li {
+                A(attrs = {
+                    classes("dropdown-item")
+                    onClick {
+                        scope.launch { client.deleteTorrent(torrent.hash) }
+                    }
+                }) { Text("Delete") }
+            }
+            Li {
+                A(attrs = {
+                    classes("dropdown-item")
+                    onClick {
+                        scope.launch { client.deleteTorrent(torrent.hash, true) }
+                    }
+                }) { Text("Delete, Remove Files") }
+            }
+        }
+    }
+}
 
 private fun stateIcon(torrent: Torrent): String {
     return when (torrent.state) {
