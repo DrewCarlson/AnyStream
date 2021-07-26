@@ -21,16 +21,25 @@ import anystream.data.asApiResponse
 import anystream.data.asCompleteTvSeries
 import anystream.models.Episode
 import anystream.models.MediaReference
+import anystream.models.Permissions.GLOBAL
+import anystream.models.Permissions.MANAGE_COLLECTION
 import anystream.models.TvShow
 import anystream.models.api.TmdbTvShowResponse
 import anystream.util.logger
+import anystream.util.withAnyPermission
+import com.mongodb.MongoException
 import info.movito.themoviedbapi.TmdbApi
 import info.movito.themoviedbapi.TmdbTV.TvMethod
-import io.ktor.application.call
+import io.ktor.application.*
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.HttpStatusCode.Companion.InternalServerError
+import io.ktor.http.HttpStatusCode.Companion.NotFound
+import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.response.respond
 import io.ktor.routing.*
+import io.ktor.util.pipeline.*
 import org.litote.kmongo.coroutine.CoroutineDatabase
+import org.litote.kmongo.eq
 
 fun Route.addTvShowRoutes(
     tmdb: TmdbApi,
@@ -47,36 +56,31 @@ fun Route.addTvShowRoutes(
         route("/tmdb") {
             get("/popular") {
                 val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
-                runCatching {
-                    tmdb.tvSeries.getPopular("en", page)
-                }.onSuccess { tmdbShows ->
+                try {
+                    val tmdbShows = tmdb.tvSeries.getPopular("en", page)
                     call.respond(tmdbShows.asApiResponse())
-                }.onFailure { e ->
+                } catch (e: Throwable) {
                     // TODO: Decompose this exception and retry where possible
                     logger.error("Error fetching popular series from TMDB - page=$page", e)
-                    call.respond(HttpStatusCode.InternalServerError)
+                    call.respond(InternalServerError)
                 }
             }
 
             get("/{tmdb_id}") {
                 val tmdbId = call.parameters["tmdb_id"]?.toIntOrNull()
+                    ?: return@get call.respond(NotFound)
 
-                if (tmdbId == null) {
-                    call.respond(HttpStatusCode.NotFound)
-                } else {
-                    runCatching {
-                        tmdb.tvSeries.getSeries(
-                            tmdbId,
-                            null,
-                            TvMethod.keywords
-                        )
-                    }.onSuccess { tmdbSeries ->
-                        call.respond(tmdbSeries.asCompleteTvSeries())
-                    }.onFailure { e ->
-                        // TODO: Decompose this exception and retry where possible
-                        logger.error("Error fetching series from TMDB - tmdb=$tmdbId", e)
-                        call.respond(HttpStatusCode.InternalServerError)
-                    }
+                try {
+                    val tmdbSeries = tmdb.tvSeries.getSeries(
+                        tmdbId,
+                        null,
+                        TvMethod.keywords
+                    )
+                    call.respond(tmdbSeries.asCompleteTvSeries())
+                } catch (e: Throwable) {
+                    // TODO: Decompose this exception and retry where possible
+                    logger.error("Error fetching series from TMDB - tmdb=$tmdbId", e)
+                    call.respond(InternalServerError)
                 }
             }
 
@@ -87,21 +91,41 @@ fun Route.addTvShowRoutes(
                 if (query.isNullOrBlank()) {
                     call.respond(TmdbTvShowResponse())
                 } else {
-                    runCatching {
-                        tmdb.search.searchTv(query, null, page)
-                    }.onSuccess { tmdbShows ->
-                        call.respond(tmdbShows.asApiResponse())
-                    }.onFailure { e ->
+                    try {
+                        val shows = tmdb.search.searchTv(query, null, page)
+                        call.respond(shows.asApiResponse())
+                    } catch (e: Throwable) {
                         // TODO: Decompose this exception and retry where possible
                         logger.error("Error searching TMDB - page=$page, query='$query'", e)
-                        call.respond(HttpStatusCode.InternalServerError)
+                        call.respond(InternalServerError)
                     }
                 }
             }
         }
 
-        get("/{show_id}") {
-            val showId = call.parameters["show_id"] ?: ""
+        route("/{show_id}") {
+            fun PipelineContext<Unit, ApplicationCall>.showId() = call.parameters["show_id"]
+            get {
+                showId()
+                    ?.let { showId -> tvShowDb.findOneById(showId) }
+                    ?.let { tvShow -> call.respond(tvShow) }
+                    ?: call.respond(NotFound)
+            }
+            withAnyPermission(GLOBAL, MANAGE_COLLECTION) {
+                delete {
+                    val result = showId()?.let { showId ->
+                        try {
+                            tvShowDb.deleteOneById(showId)
+                            episodeDb.deleteMany(Episode::showId eq showId)
+                            mediaRefs.deleteMany(MediaReference::rootContentId eq showId)
+                            OK
+                        } catch (e: MongoException) {
+                            InternalServerError
+                        }
+                    }
+                    call.respond(result ?: NotFound)
+                }
+            }
         }
     }
 }

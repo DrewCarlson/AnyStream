@@ -35,7 +35,7 @@ fun PosterCard(
     releaseDate: String?,
     isAdded: Boolean,
     //onPlayClicked: () -> Unit,
-    //onBodyClicked: () -> Unit
+    onBodyClicked: () -> Unit = {},
 ) {
     val isOverlayVisible = remember { mutableStateOf(false) }
     Div({
@@ -53,6 +53,7 @@ fun PosterCard(
                 height(250.px)
                 width(166.px)
             }
+            onClick { onBodyClicked() }
         }) {
 
             CardOverlay(isAdded, isOverlayVisible.value)

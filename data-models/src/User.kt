@@ -47,8 +47,15 @@ object Permissions {
     const val VIEW_COLLECTION = "view_collection"
     const val MANAGE_COLLECTION = "manage_collection"
     const val TORRENT_MANAGEMENT = "torrent_management"
+    const val CONFIGURE_SYSTEM = "configure_system"
 
-    val all = listOf(GLOBAL, VIEW_COLLECTION, MANAGE_COLLECTION, TORRENT_MANAGEMENT)
+    val all = listOf(
+        GLOBAL,
+        VIEW_COLLECTION,
+        MANAGE_COLLECTION,
+        TORRENT_MANAGEMENT,
+        CONFIGURE_SYSTEM,
+    )
 
     fun check(permission: String, permissions: Set<String>): Boolean {
         return permissions.contains(permission) || permissions.contains(GLOBAL)

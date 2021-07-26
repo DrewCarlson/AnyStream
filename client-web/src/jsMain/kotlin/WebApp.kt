@@ -80,6 +80,16 @@ private fun ContentContainer(client: AnyStreamClient) {
             route("usermanager") {
                 noMatch { UserManagerScreen(client) }
             }
+            route("media") {
+                string { id ->
+                    if (id.contains(':')) {
+                        // todo: tmdb view
+                    } else {
+                        MediaScreen(client, id)
+                    }
+                }
+                noMatch { BrowserRouter.navigate("/home") }
+            }
             noMatch {
                 BrowserRouter.navigate(if (isAuthenticated) "/home" else "/login")
             }

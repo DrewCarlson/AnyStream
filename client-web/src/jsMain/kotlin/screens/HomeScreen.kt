@@ -21,6 +21,8 @@ import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
 import anystream.frontend.components.PosterCard
 import anystream.models.api.HomeResponse
+import app.softwork.routingcompose.BrowserRouter
+import app.softwork.routingcompose.Router
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 
@@ -42,6 +44,9 @@ fun HomeScreen(client: AnyStreamClient) {
                         overview = movie.overview,
                         releaseDate = movie.releaseDate,
                         isAdded = true,
+                        onBodyClicked = {
+                            BrowserRouter.navigate("/media/${movie.id}")
+                        }
                     )
                 }
             }
@@ -58,6 +63,9 @@ fun HomeScreen(client: AnyStreamClient) {
                         overview = movie.overview,
                         releaseDate = movie.releaseDate,
                         isAdded = ref != null,
+                        onBodyClicked = {
+                            BrowserRouter.navigate("/media/tmdb:${movie.tmdbId}")
+                        }
                     )
                 }
             }
@@ -74,6 +82,9 @@ fun HomeScreen(client: AnyStreamClient) {
                         overview = movie.overview,
                         releaseDate = movie.releaseDate,
                         isAdded = true,
+                        onBodyClicked = {
+                            BrowserRouter.navigate("/media/${movie.id}")
+                        }
                     )
                 }
             }
@@ -90,6 +101,9 @@ fun HomeScreen(client: AnyStreamClient) {
                         overview = show.overview,
                         releaseDate = show.firstAirDate,
                         isAdded = true,
+                        onBodyClicked = {
+                            BrowserRouter.navigate("/media/${show.id}")
+                        }
                     )
                 }
             }
