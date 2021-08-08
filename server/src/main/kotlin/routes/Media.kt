@@ -54,9 +54,24 @@ fun Route.addMediaRoutes(
     importer: MediaImporter,
 ) {
     val moviesDb = mongodb.getCollection<Movie>()
-    val mediaRefs = mongodb.getCollection<MediaReference>()
+    val mediaRefsDb = mongodb.getCollection<MediaReference>()
     withAnyPermission(GLOBAL, MANAGE_COLLECTION) {
         route("/media") {
+            route("/refs") {
+                get {
+                    call.respond(mediaRefsDb.find().toList())
+                }
+                get("/{ref_id}") {
+                    val refId = call.parameters["ref_id"] ?: ""
+                    val ref = mediaRefsDb.findOneById(refId)
+                    if (ref == null) {
+                        call.respond(NotFound)
+                    } else {
+                        call.respond(ref)
+                    }
+                }
+            }
+
             post("/import") {
                 val session = call.principal<UserSession>()!!
                 val import = call.receiveOrNull<ImportMedia>()

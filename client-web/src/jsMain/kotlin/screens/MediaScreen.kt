@@ -20,11 +20,17 @@ package anystream.frontend.screens
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import anystream.client.AnyStreamClient
 import anystream.frontend.components.PosterCard
+import anystream.models.MediaReference
 import anystream.models.Movie
 import anystream.models.TvSeason
 import anystream.models.TvShow
+import anystream.models.api.MovieResponse
+import anystream.models.api.TvShowResponse
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 
@@ -33,11 +39,19 @@ fun MediaScreen(
     client: AnyStreamClient,
     mediaId: String,
 ) {
-    val movieState by produceState<Movie?>(null) {
-        value = try { client.getMovie(mediaId) } catch (e: Throwable) { null }
+    val movieState by produceState<MovieResponse?>(null) {
+        value = try {
+            client.getMovie(mediaId)
+        } catch (e: Throwable) {
+            null
+        }
     }
-    val showState by produceState<TvShow?>(null) {
-        value = try { client.getTvShow(mediaId) } catch (e: Throwable) { null }
+    val showState by produceState<TvShowResponse?>(null) {
+        value = try {
+            client.getTvShow(mediaId)
+        } catch (e: Throwable) {
+            null
+        }
     }
 
     Div({
@@ -47,19 +61,43 @@ fun MediaScreen(
             flexDirection(FlexDirection.Column)
         }
     }) {
-        movieState?.let { movie ->
+        val pjson = remember {
+            Json {
+                prettyPrint = true
+            }
+        }
+        movieState?.let { response ->
             BaseDetailsView(
-                mediaItem = movie.toMediaItem()
+                mediaItem = response.toMediaItem()
             )
+
+            response.mediaRefs?.let { mediaRefs ->
+                BaseRow({
+                    Text("Media Refs")
+                }) {
+                    mediaRefs.forEach { ref ->
+                        Div { Pre { Text(pjson.encodeToString(ref)) } }
+                    }
+                }
+            }
         }
 
-        showState?.let { show ->
+        showState?.let { response ->
             BaseDetailsView(
-                mediaItem = show.toMediaItem()
+                mediaItem = response.toMediaItem()
             )
 
-            if (show.seasons.isNotEmpty()) {
-                SeasonRow(show.seasons)
+            if (response.tvShow.seasons.isNotEmpty()) {
+                SeasonRow(response.tvShow.seasons)
+            }
+            response.mediaRefs?.let { mediaRefs ->
+                BaseRow({
+                    Text("Media Refs")
+                }) {
+                    mediaRefs.forEach { ref ->
+                        Div { Pre { Text(pjson.encodeToString(ref)) } }
+                    }
+                }
             }
         }
     }
@@ -85,7 +123,6 @@ private fun BaseDetailsView(
                 posterPath = mediaItem.posterPath,
                 overview = mediaItem.overview,
                 releaseDate = mediaItem.releaseDate,
-                isAdded = true,
             )
         }
         Div({
@@ -98,8 +135,10 @@ private fun BaseDetailsView(
         }) {
             Div { H3 { Text(mediaItem.contentTitle) } }
             mediaItem.releaseDate?.also { releaseDate ->
-                val year = releaseDate.split("-").first { it.length == 4 }
-                Div { H5 { Text(year) } }
+                val year = releaseDate.split("-").firstOrNull { it.length == 4 }
+                if (year != null) {
+                    Div { H5 { Text(year) } }
+                }
             }
             Div { Text(mediaItem.overview) }
         }
@@ -115,16 +154,16 @@ private fun SeasonRow(seasons: List<TvSeason>) {
         seasons
             .filter { it.seasonNumber != 0 }
             .forEach { season ->
-            PosterCard(
-                title = season.name,
-                posterPath = season.posterPath,
-                overview = season.overview,
-                releaseDate = season.airDate,
-                isAdded = true,
-            )
-        }
+                PosterCard(
+                    title = season.name,
+                    posterPath = season.posterPath,
+                    overview = season.overview,
+                    releaseDate = season.airDate,
+                )
+            }
     }
 }
+
 @Composable
 private fun BaseRow(
     title: @Composable () -> Unit,
@@ -159,22 +198,25 @@ private data class MediaItem(
     val posterPath: String?,
     val overview: String,
     val releaseDate: String?,
+    val mediaRefs: List<MediaReference>?,
 )
 
-private fun Movie.toMediaItem(): MediaItem {
+private fun MovieResponse.toMediaItem(): MediaItem {
     return MediaItem(
-        contentTitle = title,
-        posterPath = posterPath,
-        overview = overview,
-        releaseDate = releaseDate,
+        contentTitle = movie.title,
+        posterPath = movie.posterPath,
+        overview = movie.overview,
+        releaseDate = movie.releaseDate,
+        mediaRefs = mediaRefs,
     )
 }
 
-private fun TvShow.toMediaItem(): MediaItem {
+private fun TvShowResponse.toMediaItem(): MediaItem {
     return MediaItem(
-        contentTitle = name,
-        posterPath = posterPath,
-        overview = overview,
-        releaseDate = firstAirDate
+        contentTitle = tvShow.name,
+        posterPath = tvShow.posterPath,
+        overview = tvShow.overview,
+        releaseDate = tvShow.firstAirDate,
+        mediaRefs = null,
     )
 }

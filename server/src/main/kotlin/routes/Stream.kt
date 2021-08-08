@@ -123,7 +123,6 @@ fun Route.addStreamRoutes(
 }
 
 fun Route.addStreamWsRoutes(
-    qbClient: QBittorrentClient,
     mongodb: CoroutineDatabase
 ) {
     val playbackStateDb = mongodb.getCollection<PlaybackState>()

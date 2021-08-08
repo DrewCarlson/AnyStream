@@ -33,11 +33,13 @@ fun PosterCard(
     posterPath: String?,
     overview: String,
     releaseDate: String?,
-    isAdded: Boolean,
-    //onPlayClicked: () -> Unit,
-    onBodyClicked: () -> Unit = {},
+    isAdded: Boolean? = null,
+    onPlayClicked: (() -> Unit)? = null,
+    onBodyClicked: (() -> Unit)? = null,
+    buildMenu: @Composable (() -> Unit)? = null,
 ) {
     val isOverlayVisible = remember { mutableStateOf(false) }
+    val isMenuVisible = remember { mutableStateOf(false) }
     Div({
         classes("p-3")
         style {
@@ -50,29 +52,41 @@ fun PosterCard(
             onMouseEnter { isOverlayVisible.value = true }
             onMouseLeave { isOverlayVisible.value = false }
             style {
+                backgroundColor(Color.darkgray)
                 height(250.px)
                 width(166.px)
             }
-            onClick { onBodyClicked() }
         }) {
 
-            CardOverlay(isAdded, isOverlayVisible.value)
-
-            Img(
-                src = "https://image.tmdb.org/t/p/w200${posterPath}",
-                attrs = {
-                    classes("rounded", "h-100", "w-100")
-                    attr("loading", "lazy")
-                }
+            CardOverlay(
+                isAdded = isAdded,
+                onPlayClicked = onPlayClicked,
+                onBodyClicked = onBodyClicked,
+                isOverlayVisible = isOverlayVisible.value || isMenuVisible.value,
+                onMenuClicked = { isMenuVisible.value = true }
+                    .takeUnless { buildMenu == null }
             )
+
+            if (!posterPath.isNullOrBlank()) {
+                Img(
+                    src = "https://image.tmdb.org/t/p/w200${posterPath}",
+                    attrs = {
+                        classes("rounded", "h-100", "w-100")
+                        attr("loading", "lazy")
+                    }
+                )
+            }
         }
     }
 }
 
 @Composable
 private fun CardOverlay(
-    isAdded: Boolean,
+    isAdded: Boolean?,
     isOverlayVisible: Boolean,
+    onPlayClicked: (() -> Unit)? = null,
+    onBodyClicked: (() -> Unit)? = null,
+    onMenuClicked: (() -> Unit)? = null,
 ) {
     Div({
         classes("rounded", "h-100", "w-100")
@@ -82,6 +96,7 @@ private fun CardOverlay(
             property("z-index", 1)
             opacity(if (isOverlayVisible) 1 else 0)
             property("transition", "opacity 0.15s ease-in-out")
+            onClick { onBodyClicked?.invoke() }
         }
     }) {
         Div({
@@ -102,6 +117,11 @@ private fun CardOverlay(
                     display(DisplayStyle.Flex)
                     alignSelf(AlignSelf.FlexEnd)
                     color(rgb(255, 255, 255))
+                    if (onMenuClicked == null) {
+                        opacity(0)
+                    } else {
+                        onClick { onMenuClicked() }
+                    }
                 }
             })
             Div({
@@ -109,15 +129,19 @@ private fun CardOverlay(
                     display(DisplayStyle.Flex)
                 }
             }) {
-                val isPlaySelected = remember { mutableStateOf(false) }
+                val isPlaySelected = remember { mutableStateOf(onPlayClicked == null) }
                 I({
                     classes(if (isPlaySelected.value) "bi-play-circle-fill" else "bi-play-circle")
-                    onMouseEnter { isPlaySelected.value = true }
-                    onMouseLeave { isPlaySelected.value = false }
                     style {
                         property("margin", auto)
                         fontSize(48.px)
                         color(rgb(255, 255, 255))
+
+                        if (onPlayClicked != null) {
+                            onMouseEnter { isPlaySelected.value = true }
+                            onMouseLeave { isPlaySelected.value = false }
+                            onClick { onPlayClicked() }
+                        }
                     }
                 })
             }
@@ -128,9 +152,12 @@ private fun CardOverlay(
                 }
             }) {
                 I({
-                    classes(if (isAdded) "bi-check-lg" else "bi-plus-lg")
+                    classes(if (isAdded == true) "bi-check-lg" else "bi-plus-lg")
                     style {
                         color(rgb(255, 255, 255))
+                        if (isAdded == null) {
+                            opacity(0)
+                        }
                     }
                 })
             }

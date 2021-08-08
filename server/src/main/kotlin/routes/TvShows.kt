@@ -23,8 +23,10 @@ import anystream.models.Episode
 import anystream.models.MediaReference
 import anystream.models.Permissions.GLOBAL
 import anystream.models.Permissions.MANAGE_COLLECTION
+import anystream.models.TvSeason
 import anystream.models.TvShow
 import anystream.models.api.TmdbTvShowResponse
+import anystream.models.api.TvShowResponse
 import anystream.util.logger
 import anystream.util.withAnyPermission
 import com.mongodb.MongoException
@@ -38,8 +40,10 @@ import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.response.respond
 import io.ktor.routing.*
 import io.ktor.util.pipeline.*
+import org.litote.kmongo.`in`
 import org.litote.kmongo.coroutine.CoroutineDatabase
 import org.litote.kmongo.eq
+import org.litote.kmongo.or
 
 fun Route.addTvShowRoutes(
     tmdb: TmdbApi,
@@ -47,7 +51,7 @@ fun Route.addTvShowRoutes(
 ) {
     val tvShowDb = mongodb.getCollection<TvShow>()
     val episodeDb = mongodb.getCollection<Episode>()
-    val mediaRefs = mongodb.getCollection<MediaReference>()
+    val mediaRefsDb = mongodb.getCollection<MediaReference>()
     route("/tv") {
         get {
             call.respond(tvShowDb.find().toList())
@@ -104,20 +108,39 @@ fun Route.addTvShowRoutes(
         }
 
         route("/{show_id}") {
-            fun PipelineContext<Unit, ApplicationCall>.showId() = call.parameters["show_id"]
             get {
-                showId()
-                    ?.let { showId -> tvShowDb.findOneById(showId) }
-                    ?.let { tvShow -> call.respond(tvShow) }
-                    ?: call.respond(NotFound)
+                val showId = call.parameters["show_id"]
+                if (showId.isNullOrBlank()) {
+                    call.respond(NotFound)
+                } else {
+                    val show = tvShowDb.findOneById(showId)
+                    if (show == null) {
+                        call.respond(NotFound)
+                    } else {
+                        val seasonIds = show.seasons.map(TvSeason::id)
+                        val mediaRefs = mediaRefsDb.find(
+                            or(
+                                MediaReference::rootContentId `in` seasonIds + showId,
+                                MediaReference::contentId `in` seasonIds + showId,
+                            )
+                        ).toList()
+                        call.respond(
+                            TvShowResponse(
+                                tvShow = show,
+                                mediaRefs = mediaRefs,
+                            )
+                        )
+                    }
+                }
             }
+
             withAnyPermission(GLOBAL, MANAGE_COLLECTION) {
                 delete {
-                    val result = showId()?.let { showId ->
+                    val result = call.parameters["show_id"]?.let { showId ->
                         try {
                             tvShowDb.deleteOneById(showId)
                             episodeDb.deleteMany(Episode::showId eq showId)
-                            mediaRefs.deleteMany(MediaReference::rootContentId eq showId)
+                            mediaRefsDb.deleteMany(MediaReference::rootContentId eq showId)
                             OK
                         } catch (e: MongoException) {
                             InternalServerError

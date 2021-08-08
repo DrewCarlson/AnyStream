@@ -80,6 +80,9 @@ private fun ContentContainer(client: AnyStreamClient) {
             route("usermanager") {
                 noMatch { UserManagerScreen(client) }
             }
+            route("settings") {
+                noMatch { SettingsScreen(client) }
+            }
             route("media") {
                 string { id ->
                     if (id.contains(':')) {

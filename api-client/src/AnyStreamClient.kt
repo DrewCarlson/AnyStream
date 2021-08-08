@@ -160,10 +160,22 @@ class AnyStreamClient(
         }
 
     suspend fun getMovie(id: String) =
-        http.get<Movie>("/api/movies/$id")
+        http.get<MovieResponse>("/api/movies/$id")
 
     suspend fun deleteMovie(id: String) =
         http.delete<Unit>("/api/movies/$id")
+
+    suspend fun getMediaRefs() =
+        http.get<List<MediaReference>>("/api/media/refs")
+
+    suspend fun getMediaRef(refId: String) =
+        http.get<MediaReference>("/api/media/refs/$refId")
+
+    suspend fun getMediaRefsForMovie(movieId: String) =
+        http.get<List<MediaReference>>("/api/movies/$movieId/refs")
+
+    suspend fun getMediaRefsForShow(showId: String) =
+        http.get<List<MediaReference>>("/api/tv/$showId/refs")
 
     suspend fun importMedia(importMedia: ImportMedia, importAll: Boolean) {
         http.post<Unit>("/api/media/import") {
@@ -181,7 +193,7 @@ class AnyStreamClient(
     }
 
     suspend fun getTvShow(id: String) =
-        http.get<TvShow>("/api/tv/$id")
+        http.get<TvShowResponse>("/api/tv/$id")
 
     suspend fun searchTmdbMovies(query: String, page: Int = 1) =
         http.get<TmdbMoviesResponse>("/api/movies/tmdb/search") {

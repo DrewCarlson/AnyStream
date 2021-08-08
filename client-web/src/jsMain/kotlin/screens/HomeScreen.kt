@@ -64,7 +64,11 @@ fun HomeScreen(client: AnyStreamClient) {
                         releaseDate = movie.releaseDate,
                         isAdded = ref != null,
                         onBodyClicked = {
-                            BrowserRouter.navigate("/media/tmdb:${movie.tmdbId}")
+                            if (ref == null) {
+                                BrowserRouter.navigate("/media/tmdb:${movie.tmdbId}")
+                            } else {
+                                BrowserRouter.navigate("/media/${ref.contentId}")
+                            }
                         }
                     )
                 }

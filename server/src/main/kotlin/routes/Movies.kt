@@ -29,6 +29,7 @@ import anystream.models.api.ImportMedia
 import anystream.models.api.MoviesResponse
 import anystream.models.api.TmdbMoviesResponse
 import anystream.media.MediaImporter
+import anystream.models.api.MovieResponse
 import anystream.util.logger
 import anystream.util.withAnyPermission
 import drewcarlson.torrentsearch.Category
@@ -61,13 +62,13 @@ fun Route.addMovieRoutes(
     mongodb: CoroutineDatabase,
 ) {
     val moviesDb = mongodb.getCollection<Movie>()
-    val mediaRefs = mongodb.getCollection<MediaReference>()
+    val mediaRefsDb = mongodb.getCollection<MediaReference>()
     route("/movies") {
         get {
             call.respond(
                 MoviesResponse(
                     movies = moviesDb.find().toList(),
-                    mediaReferences = mediaRefs.find().toList()
+                    mediaReferences = mediaRefsDb.find().toList()
                 )
             )
         }
@@ -189,24 +190,47 @@ fun Route.addMovieRoutes(
 
         route("/{movie_id}") {
             get {
-                val movieId = call.parameters["movie_id"] ?: ""
+                val movieId = call.parameters["movie_id"]
+                    ?.takeUnless(String::isNullOrBlank)
+                val movie = movieId?.let { moviesDb.findOneById(it) }
+                val mediaRefs = movieId?.let {
+                    mediaRefsDb.find(MediaReference::contentId eq it)
+                }?.toList()
 
-                val movie = moviesDb.findOneById(movieId)
                 if (movie == null) {
                     call.respond(NotFound)
                 } else {
-                    call.respond(movie)
+                    call.respond(
+                        MovieResponse(
+                            movie = movie,
+                            mediaRefs = mediaRefs
+                        )
+                    )
+                }
+            }
+
+            get("/refs") {
+                val mediaRefs = call.parameters["movie_id"]
+                    ?.takeUnless(String::isNullOrBlank)
+                    ?.let { mediaRefsDb.find(MediaReference::contentId eq it) }
+                    ?.toList()
+                if (mediaRefs == null) {
+                    call.respond(NotFound)
+                } else {
+                    call.respond(mediaRefs)
                 }
             }
 
             withAnyPermission(GLOBAL, MANAGE_COLLECTION) {
                 delete {
-                    val movieId = call.parameters["movie_id"] ?: ""
+                    val movieId = call.parameters["movie_id"]
+                        ?.takeUnless(String::isNullOrBlank)
+                        ?: return@delete call.respond(NotFound)
                     val result = moviesDb.deleteOneById(movieId)
                     if (result.deletedCount == 0L) {
                         call.respond(NotFound)
                     } else {
-                        mediaRefs.deleteMany(MediaReference::contentId eq movieId)
+                        mediaRefsDb.deleteMany(MediaReference::contentId eq movieId)
                         call.respond(OK)
                     }
                 }
