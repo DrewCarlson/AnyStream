@@ -21,10 +21,12 @@ import anystream.media.MediaImporter
 import anystream.media.processor.MovieImportProcessor
 import anystream.media.processor.TvImportProcessor
 import anystream.models.*
+import anystream.stream.StreamManager
 import anystream.torrent.search.KMongoTorrentProviderCache
 import anystream.util.SinglePageApp
 import anystream.util.withAnyPermission
 import com.github.kokorin.jaffree.ffmpeg.FFmpeg
+import com.github.kokorin.jaffree.ffprobe.FFprobe
 import drewcarlson.qbittorrent.QBittorrentClient
 import drewcarlson.torrentsearch.TorrentSearch
 import info.movito.themoviedbapi.TmdbApi
@@ -54,7 +56,8 @@ fun Application.installRouting(mongodb: CoroutineDatabase) {
         username = qbittorrentUser,
         password = qbittorrentPass,
     )
-    val ffmpeg = FFmpeg.atPath(Path.of(ffmpegPath))
+    val ffmpeg = { FFmpeg.atPath(Path.of(ffmpegPath)) }
+    val ffprobe = { FFprobe.atPath(Path.of(ffmpegPath)) }
 
     val mediaRefs = mongodb.getCollection<MediaReference>()
 
@@ -64,6 +67,8 @@ fun Application.installRouting(mongodb: CoroutineDatabase) {
         TvImportProcessor(tmdb, mongodb, importScope, log),
     )
     val importer = MediaImporter(tmdb, processors, mediaRefs, importScope, log)
+
+    val streamManager = StreamManager(ffmpeg, ffprobe, log)
 
     routing {
         route("/api") {
@@ -83,8 +88,8 @@ fun Application.installRouting(mongodb: CoroutineDatabase) {
             }
 
             // TODO: WS endpoint Authentication and permissions
-            addStreamRoutes(qbClient, mongodb, ffmpeg)
-            addStreamWsRoutes(qbClient, mongodb)
+            addStreamRoutes(streamManager, mongodb, ffmpeg)
+            addStreamWsRoutes(streamManager, mongodb)
             addTorrentWsRoutes(qbClient)
             addUserWsRoutes(mongodb)
         }

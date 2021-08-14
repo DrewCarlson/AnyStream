@@ -155,7 +155,7 @@ class AnyStreamClient(
         http.get<List<TorrentDescription2>>("/api/media/tv/$id/sources")
 
     suspend fun getTvShows(page: Int = 1) =
-        http.get<List<TvShow>>("/api/tv") {
+        http.get<TvShowsResponse>("/api/tv") {
             pageParam(page)
         }
 
@@ -194,6 +194,15 @@ class AnyStreamClient(
 
     suspend fun getTvShow(id: String) =
         http.get<TvShowResponse>("/api/tv/$id")
+
+    suspend fun getEpisodes(showId: String) =
+        http.get<EpisodesResponse>("/api/tv/$showId/episodes")
+
+    suspend fun getEpisode(id: String) =
+        http.get<EpisodeResponse>("/api/tv/episode/$id")
+
+    suspend fun getSeason(seasonId: String) =
+        http.get<SeasonResponse>("/api/tv/season/$seasonId")
 
     suspend fun searchTmdbMovies(query: String, page: Int = 1) =
         http.get<TmdbMoviesResponse>("/api/movies/tmdb/search") {
@@ -255,7 +264,7 @@ class AnyStreamClient(
     suspend fun playbackSession(
         mediaRefId: String,
         init: (state: PlaybackState) -> Unit
-    ): suspend (progress: Long) -> Unit {
+    ): PlaybackSessionHandle {
         var currentState: PlaybackState? = null
         var open = false
         val client = wsClient("/api/ws/stream/$mediaRefId/state")
@@ -267,14 +276,17 @@ class AnyStreamClient(
         }
         client.onError { open = false }
         client.onClose { open = false }
-        return { progress ->
-            if (open) {
-                currentState = currentState!!.copy(
-                    position = progress
-                )
-                client.send(json.encodeToString(currentState!!))
-            }
-        }
+        return PlaybackSessionHandle(
+            update = { progress ->
+                if (open) {
+                    currentState = currentState!!.copy(
+                        position = progress
+                    )
+                    client.send(json.encodeToString(currentState!!))
+                }
+            },
+            cancel = { client.close() }
+        )
     }
 
     suspend fun createUser(
@@ -381,9 +393,22 @@ class AnyStreamClient(
         awaitClose { client.close() }
     }
 
+    suspend fun closeStream(token: String) {
+
+    }
+
+    fun createHlsStreamUrl(mediaRefId: String, token: String): String {
+        return "${serverUrl}/api/stream/${mediaRefId}/hls/playlist.m3u8?token=$token"
+    }
+
     private suspend fun wsClient(path: String): WebSocketClient {
         return WebSocketClient(url = "$wsServerUrl$path")
     }
+
+    data class PlaybackSessionHandle(
+        val update: suspend (progress: Long) -> Unit,
+        val cancel: () -> Unit,
+    )
 }
 
 fun HttpRequestBuilder.pageParam(page: Int) {

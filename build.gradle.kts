@@ -2,7 +2,7 @@ plugins {
     kotlin("multiplatform") version "1.5.21" apply false
     kotlin("jvm") version "1.5.21" apply false
     kotlin("plugin.serialization") version "1.5.21" apply false
-    id("org.jetbrains.compose") version "0.5.0-build262" apply false
+    id("org.jetbrains.compose") version "1.0.0-alpha4-build310" apply false
 }
 
 buildscript {

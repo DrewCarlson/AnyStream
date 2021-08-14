@@ -25,25 +25,21 @@ import anystream.models.Permissions.GLOBAL
 import anystream.models.Permissions.MANAGE_COLLECTION
 import anystream.models.TvSeason
 import anystream.models.TvShow
-import anystream.models.api.TmdbTvShowResponse
-import anystream.models.api.TvShowResponse
+import anystream.models.api.*
 import anystream.util.logger
 import anystream.util.withAnyPermission
 import com.mongodb.MongoException
 import info.movito.themoviedbapi.TmdbApi
 import info.movito.themoviedbapi.TmdbTV.TvMethod
 import io.ktor.application.*
-import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.response.respond
 import io.ktor.routing.*
 import io.ktor.util.pipeline.*
-import org.litote.kmongo.`in`
+import org.litote.kmongo.*
 import org.litote.kmongo.coroutine.CoroutineDatabase
-import org.litote.kmongo.eq
-import org.litote.kmongo.or
 
 fun Route.addTvShowRoutes(
     tmdb: TmdbApi,
@@ -54,7 +50,13 @@ fun Route.addTvShowRoutes(
     val mediaRefsDb = mongodb.getCollection<MediaReference>()
     route("/tv") {
         get {
-            call.respond(tvShowDb.find().toList())
+            val tvShows = tvShowDb.find().toList()
+            call.respond(
+                TvShowsResponse(
+                    tvShows = tvShows,
+                    mediaRefs = emptyList(),
+                )
+            )
         }
 
         route("/tmdb") {
@@ -110,28 +112,56 @@ fun Route.addTvShowRoutes(
         route("/{show_id}") {
             get {
                 val showId = call.parameters["show_id"]
-                if (showId.isNullOrBlank()) {
+                if (showId.isNullOrBlank()) return@get call.respond(NotFound)
+                val show = tvShowDb.findOneById(showId)
+                if (show == null) {
                     call.respond(NotFound)
                 } else {
-                    val show = tvShowDb.findOneById(showId)
-                    if (show == null) {
-                        call.respond(NotFound)
-                    } else {
-                        val seasonIds = show.seasons.map(TvSeason::id)
-                        val mediaRefs = mediaRefsDb.find(
-                            or(
-                                MediaReference::rootContentId `in` seasonIds + showId,
-                                MediaReference::contentId `in` seasonIds + showId,
-                            )
-                        ).toList()
-                        call.respond(
-                            TvShowResponse(
-                                tvShow = show,
-                                mediaRefs = mediaRefs,
-                            )
+                    val seasonIds = show.seasons.map(TvSeason::id)
+                    val searchList = seasonIds + showId
+                    val mediaRefs = mediaRefsDb.find(
+                        or(
+                            MediaReference::rootContentId `in` searchList,
+                            MediaReference::contentId `in` seasonIds + showId,
                         )
-                    }
+                    ).toList()
+                    call.respond(
+                        TvShowResponse(
+                            tvShow = show,
+                            mediaRefs = mediaRefs,
+                        )
+                    )
                 }
+            }
+
+            get("/episodes") {
+                val showId = call.parameters["show_id"]
+                val seasonNumber = call.parameters["season_number"]?.toIntOrNull()
+                if (showId.isNullOrBlank()) return@get call.respond(NotFound)
+
+                tvShowDb.findOneById(showId) ?: return@get call.respond(NotFound)
+
+                val episodes = episodeDb
+                    .find(
+                        Episode::showId eq showId,
+                        Episode::seasonNumber eq seasonNumber,
+                    )
+                    .toList()
+                val episodeIds = episodes.map(Episode::id)
+                val mediaRefs = mediaRefsDb
+                    .find(MediaReference::contentId `in` episodeIds)
+                    .toList()
+
+                call.respond(
+                    EpisodesResponse(
+                        episodes = if (seasonNumber == null) {
+                            episodes
+                        } else {
+                            episodes.filter { it.seasonNumber == seasonNumber }
+                        },
+                        mediaRefs = mediaRefs.associateBy(MediaReference::contentId)
+                    )
+                )
             }
 
             withAnyPermission(GLOBAL, MANAGE_COLLECTION) {
@@ -149,6 +179,58 @@ fun Route.addTvShowRoutes(
                     call.respond(result ?: NotFound)
                 }
             }
+        }
+
+        get("/episode/{episode_id}") {
+            val episodeId = call.parameters["episode_id"]
+            if (episodeId.isNullOrBlank()) return@get call.respond(NotFound)
+
+            val episode = episodeDb.findOneById(episodeId)
+                ?: return@get call.respond(NotFound)
+            val show = tvShowDb.findOneById(episode.showId)
+                ?: return@get call.respond(NotFound)
+            val mediaRefs = mediaRefsDb
+                .find(MediaReference::contentId eq episode.id)
+                .toList()
+            call.respond(
+                EpisodeResponse(
+                    episode = episode,
+                    show = show,
+                    mediaRefs = mediaRefs,
+                )
+            )
+        }
+
+        get("/season/{season_id}") {
+            val seasonId = call.parameters["season_id"]
+            if (seasonId.isNullOrBlank()) return@get call.respond(NotFound)
+
+            val tvShow = tvShowDb
+                .findOne(TvShow::seasons elemMatch (TvSeason::id eq seasonId))
+                ?: return@get call.respond(NotFound)
+            val season = tvShow.seasons.find { it.id == seasonId }
+                ?: return@get call.respond(NotFound)
+            val episodes = episodeDb
+                .find(
+                    and(
+                        Episode::showId eq tvShow.id,
+                        Episode::seasonNumber eq season.seasonNumber,
+                    )
+                )
+                .toList()
+            val episodeIds = episodes.map(Episode::id)
+            val mediaRefs = mediaRefsDb
+                .find(MediaReference::contentId `in` episodeIds)
+                .toList()
+
+            call.respond(
+                SeasonResponse(
+                    show = tvShow,
+                    season = season,
+                    episodes = episodes,
+                    mediaRefs = mediaRefs.associateBy(MediaReference::contentId)
+                )
+            )
         }
     }
 }

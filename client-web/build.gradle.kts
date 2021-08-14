@@ -7,6 +7,7 @@ plugins {
 
 kotlin {
     js(IR) {
+        useCommonJs()
         browser {
             binaries.executable()
             commonWebpackConfig {
@@ -53,8 +54,10 @@ kotlin {
                 implementation("app.softwork:routing-compose")
 
                 implementation(libs.kotlinjs.extensions)
-                implementation(npm("bootstrap", "5.0.2"))
-                implementation(npm("bootstrap-icons", "1.5.0"))
+                implementation(devNpm("bootstrap", "5.1.0"))
+                implementation(devNpm("bootstrap-icons", "1.5.0"))
+                implementation(devNpm("video.js", "7.14.3"))
+                implementation(devNpm("webworkify-webpack-dropin", "1.1.9"))
                 implementation(devNpm("file-loader", "6.2.0"))
                 implementation(devNpm("webpack-bundle-analyzer", "4.4.2"))
             }

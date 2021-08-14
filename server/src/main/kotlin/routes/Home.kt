@@ -30,6 +30,7 @@ import io.ktor.routing.*
 import org.litote.kmongo.*
 import org.litote.kmongo.coroutine.CoroutineDatabase
 
+private const val CURRENTLY_WATCHING_ITEM_LIMIT = 10
 
 fun Route.addHomeRoutes(tmdb: TmdbApi, mongodb: CoroutineDatabase) {
     val playbackStatesDb = mongodb.getCollection<PlaybackState>()
@@ -42,19 +43,42 @@ fun Route.addHomeRoutes(tmdb: TmdbApi, mongodb: CoroutineDatabase) {
             val session = call.principal<UserSession>()!!
 
             // Currently watching
-            val playbackStates = playbackStatesDb
+            val allPlaybackStates = playbackStatesDb
                 .find(PlaybackState::userId eq session.userId)
                 .sort(descending(PlaybackState::updatedAt))
-                .limit(10)
+                .limit(CURRENTLY_WATCHING_ITEM_LIMIT)
                 .toList()
+
+            val playbackMediaIds = allPlaybackStates.map(PlaybackState::mediaId)
 
             val playbackStateMovies = moviesDb
-                .find(Movie::id `in` playbackStates.map(PlaybackState::mediaId))
+                .find(Movie::id `in` playbackMediaIds)
                 .toList()
+                .associateBy { movie ->
+                    allPlaybackStates.first { it.mediaId == movie.id }.id
+                }
 
-            val playbackStateItems = playbackStates.associateBy { state ->
-                playbackStateMovies.first { it.id == state.mediaId }
-            }
+            val playbackStateEpisodes = episodeDb
+                .find(Episode::id `in` playbackMediaIds)
+                .toList()
+                .distinctBy(Episode::showId)
+
+            val playbackStateTv = tvShowDb
+                .find(TvShow::id `in` playbackStateEpisodes.map(Episode::showId))
+                .toList()
+                .associateBy { show ->
+                    playbackStateEpisodes.first { it.showId == show.id }
+                }
+                .toList()
+                .associateBy { (episode, _) ->
+                    allPlaybackStates.first { it.mediaId == episode.id }.id
+                }
+
+            val playbackStates = allPlaybackStates
+                .filter { state ->
+                    playbackStateEpisodes.any { it.id == state.mediaId } ||
+                            playbackStateMovies.any { (_, movie) -> movie.id == state.mediaId }
+                }
 
             // Recently Added Movies
             val recentlyAddedMovies = moviesDb
@@ -100,7 +124,9 @@ fun Route.addHomeRoutes(tmdb: TmdbApi, mongodb: CoroutineDatabase) {
 
             call.respond(
                 HomeResponse(
-                    currentlyWatching = playbackStateItems,
+                    playbackStates = playbackStates,
+                    currentlyWatchingMovies = playbackStateMovies,
+                    currentlyWatchingTv = playbackStateTv,
                     recentlyAdded = recentlyAdded,
                     popularMovies = popularMoviesMap,
                     recentlyAddedTv = tvShows

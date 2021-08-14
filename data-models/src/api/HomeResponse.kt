@@ -23,7 +23,9 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class HomeResponse(
-    val currentlyWatching: Map<Movie, PlaybackState>,
+    val playbackStates: List<PlaybackState>,
+    val currentlyWatchingMovies: Map<String, Movie>,
+    val currentlyWatchingTv: Map<String, Pair<Episode, TvShow>>,
     val recentlyAdded: Map<Movie, MediaReference?>,
     val popularMovies: Map<PartialMovie, MediaReference?>,
     val recentlyAddedTv: List<TvShow>,

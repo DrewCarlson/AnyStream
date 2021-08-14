@@ -23,12 +23,14 @@ import anystream.models.LocalMediaReference
 import anystream.models.DownloadMediaReference
 import anystream.models.MediaReference
 import anystream.models.PlaybackState
+import anystream.stream.StreamManager
 import com.github.kokorin.jaffree.ffmpeg.*
-import drewcarlson.qbittorrent.QBittorrentClient
 import io.ktor.application.*
 import io.ktor.auth.*
+import io.ktor.http.*
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
+import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.http.HttpStatusCode.Companion.UnprocessableEntity
 import io.ktor.http.cio.websocket.*
 import io.ktor.http.cio.websocket.Frame
@@ -43,19 +45,21 @@ import kotlinx.coroutines.flow.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import org.bson.types.ObjectId
+import org.litote.kmongo.contains
 import org.litote.kmongo.coroutine.CoroutineDatabase
 import org.litote.kmongo.coroutine.replaceOne
 import org.litote.kmongo.eq
 import java.io.File
+import java.nio.file.StandardOpenOption.*
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
 import java.util.*
 
 
 fun Route.addStreamRoutes(
-    qbClient: QBittorrentClient,
+    streamManager: StreamManager,
     mongodb: CoroutineDatabase,
-    ffmpeg: FFmpeg,
+    ffmpeg: () -> FFmpeg,
 ) {
     val transcodePath = application.environment.config.property("app.transcodePath").getString()
     val playbackStateDb = mongodb.getCollection<PlaybackState>()
@@ -88,7 +92,6 @@ fun Route.addStreamRoutes(
             }
 
             val videoFileCache = ConcurrentHashMap<String, File>()
-            @Suppress("BlockingMethodInNonBlockingContext")
             get("/direct") {
                 val mediaRefId = call.parameters["media_ref_id"]!!
                 val file = if (videoFileCache.containsKey(mediaRefId)) {
@@ -110,7 +113,7 @@ fun Route.addStreamRoutes(
                     val name = UUID.randomUUID().toString()
                     val outfile = File(transcodePath, "$name.mp4")
 
-                    ffmpeg.addInput(UrlInput.fromPath(file.toPath()))
+                    ffmpeg().addInput(UrlInput.fromPath(file.toPath()))
                         .addOutput(UrlOutput.toPath(outfile.toPath()).copyAllCodecs())
                         .setOverwriteOutput(true)
                         .execute()
@@ -118,15 +121,73 @@ fun Route.addStreamRoutes(
                     call.respond(LocalFileContent(outfile))
                 }
             }
+
+            route("/hls") {
+                get("/playlist.m3u8") {
+                    val mediaRefId = call.parameters["media_ref_id"]!!
+                    val mediaRef = mediaRefs.findOneById(mediaRefId)
+                        ?: return@get call.respond(NotFound)
+                    val token = call.parameters["token"]
+                        ?: return@get call.respond(Unauthorized)
+
+                    val file = when (mediaRef) {
+                        is LocalMediaReference -> mediaRef.filePath
+                        is DownloadMediaReference -> mediaRef.filePath
+                    }?.run(::File) ?: return@get call.respond(NotFound)
+
+
+                    val duration = streamManager.getFileDuration(file)
+                    if (!streamManager.hasSession(token)) {
+                        val output = File("$transcodePath/$mediaRefId/$token")
+                        streamManager.startTranscode(
+                            token = token,
+                            name = mediaRefId,
+                            mediaFile = file,
+                            outputDir = output,
+                            duration = duration
+                        )
+                    }
+
+                    val playlist = streamManager.createVariantPlaylist(
+                        name = mediaRefId,
+                        mediaFile = file,
+                        token = token,
+                        duration = duration
+                    )
+                    call.respond(playlist)
+                }
+
+                get("/{segment_file}") {
+                    val segmentFile = call.parameters["segment_file"]!!
+                    val token = call.request.queryParameters["token"]
+                        ?: return@get call.respond(Unauthorized)
+                    val session = streamManager.getSession(token)
+                        ?: return@get call.respond(NotFound)
+                    val output = File("${session.outputPath}/$segmentFile")
+                    if (output.exists()) {
+                        call.respond(LocalFileContent(output, ContentType.Application.OctetStream))
+                    } else {
+                        call.respond(NotFound)
+                    }
+                }
+            }
+        }
+
+        get("/stop/{token}") {
+            val token = call.parameters["token"]!!
+            streamManager.stopSession(token, call.parameters["delete"]?.toBoolean() ?: false)
+            call.respond(OK)
         }
     }
 }
 
 fun Route.addStreamWsRoutes(
-    mongodb: CoroutineDatabase
+    streamManager: StreamManager,
+    mongodb: CoroutineDatabase,
 ) {
     val playbackStateDb = mongodb.getCollection<PlaybackState>()
     val mediaRefs = mongodb.getCollection<MediaReference>()
+    val transcodePath = application.environment.config.property("app.transcodePath").getString()
 
     webSocket("/ws/stream/{media_ref_id}/state") {
         val userId = (incoming.receive() as Frame.Text).readText()
@@ -141,16 +202,37 @@ fun Route.addStreamWsRoutes(
             position = 0,
             userId = userId,
             mediaId = mediaRef.contentId,
-            updatedAt = Instant.now().toEpochMilli()
+            updatedAt = Instant.now().toEpochMilli(),
         ).also {
             playbackStateDb.insertOne(it)
+        }
+
+        val file = when (mediaRef) {
+            is LocalMediaReference -> mediaRef.filePath
+            is DownloadMediaReference -> mediaRef.filePath
+        }?.run(::File) ?: return@webSocket close()
+
+        if (!streamManager.hasSession(state.id)) {
+            val duration = streamManager.getFileDuration(file)
+            val output = File("$transcodePath/$mediaRefId/${state.id}")
+            streamManager.startTranscode(
+                token = state.id,
+                name = mediaRefId,
+                mediaFile = file,
+                outputDir = output,
+                duration = duration,
+                startAt = state.position,
+            )
         }
 
         send(Frame.Text(json.encodeToString(state)))
 
         incoming.receiveAsFlow()
-            .takeWhile { !outgoing.isClosedForSend }
+            .takeWhile { it !is Frame.Close }
             .filterIsInstance<Frame.Text>()
+            .onCompletion {
+                streamManager.stopSession(state.id, true)
+            }
             .collect { frame ->
                 val newState = json.decodeFromString<PlaybackState>(frame.readText())
                 playbackStateDb.replaceOne(newState.copy(updatedAt = Instant.now().toEpochMilli()))

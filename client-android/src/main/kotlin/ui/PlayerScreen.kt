@@ -123,13 +123,13 @@ fun PlayerScreen(
     }
 
     LaunchedEffect(mediaRefId) {
-        val updateProgress = client.playbackSession(mediaRefId) { initialState ->
+        val handle = client.playbackSession(mediaRefId) { initialState ->
             player.seekTo(initialState.position * 1000)
         }
 
         while (true) {
             if (player.playWhenReady && player.playbackState == Player.STATE_READY) {
-                updateProgress((player.currentPosition / 1000).coerceAtLeast(0L))
+                handle.update((player.currentPosition / 1000).coerceAtLeast(0L))
             }
             delay(PLAYER_STATE_REMOTE_UPDATE_INTERVAL)
         }

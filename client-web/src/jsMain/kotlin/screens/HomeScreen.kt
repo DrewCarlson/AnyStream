@@ -23,6 +23,7 @@ import anystream.frontend.components.PosterCard
 import anystream.models.api.HomeResponse
 import app.softwork.routingcompose.BrowserRouter
 import app.softwork.routingcompose.Router
+import kotlinx.browser.window
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 
@@ -33,19 +34,27 @@ fun HomeScreen(client: AnyStreamClient) {
     }
 
     homeResponse?.run {
-        if (currentlyWatching.isNotEmpty()) {
+        if (playbackStates.isNotEmpty()) {
             MovieRow(
                 title = { Text("Continue Watching") }
             ) {
-                currentlyWatching.forEach { (movie, state) ->
+                playbackStates.forEach { state ->
+                    val movie = currentlyWatchingMovies[state.id]
+                    val (episode, show) = currentlyWatchingTv[state.id] ?: null to null
                     PosterCard(
-                        title = movie.title,
-                        posterPath = movie.posterPath,
-                        overview = movie.overview,
-                        releaseDate = movie.releaseDate,
+                        mediaId = movie?.id ?: episode?.id ?: "",
+                        title = movie?.title ?: show?.name ?: "",
+                        subtitle1 = movie?.releaseDate?.substringBefore("-") ?: episode?.name,
+                        subtitle2 = episode?.run { "S$seasonNumber · E$number" },
+                        posterPath = movie?.posterPath ?: show?.posterPath,
+                        overview = movie?.overview ?: episode?.overview ?: show?.overview ?: "",
+                        releaseDate = movie?.releaseDate ?: episode?.airDate ?: "",
                         isAdded = true,
+                        onPlayClicked = {
+                            window.location.hash = "!play:${state.mediaReferenceId}"
+                        },
                         onBodyClicked = {
-                            BrowserRouter.navigate("/media/${movie.id}")
+                            BrowserRouter.navigate("/media/${movie?.id ?: episode?.id}")
                         }
                     )
                 }
@@ -58,11 +67,15 @@ fun HomeScreen(client: AnyStreamClient) {
             ) {
                 popularMovies.forEach { (movie, ref) ->
                     PosterCard(
+                        mediaId = "tmdb:${movie.tmdbId}",
                         title = movie.title,
+                        subtitle1 = movie.releaseDate?.substringBefore("-"),
                         posterPath = movie.posterPath,
                         overview = movie.overview,
                         releaseDate = movie.releaseDate,
                         isAdded = ref != null,
+                        onPlayClicked = { window.location.hash = "!play:${ref?.id}" }
+                            .takeIf { ref != null },
                         onBodyClicked = {
                             if (ref == null) {
                                 BrowserRouter.navigate("/media/tmdb:${movie.tmdbId}")
@@ -81,11 +94,16 @@ fun HomeScreen(client: AnyStreamClient) {
             ) {
                 recentlyAdded.forEach { (movie, ref) ->
                     PosterCard(
+                        mediaId = movie.id,
                         title = movie.title,
+                        subtitle1 = movie.releaseDate?.substringBefore("-"),
                         posterPath = movie.posterPath,
                         overview = movie.overview,
                         releaseDate = movie.releaseDate,
                         isAdded = true,
+                        onPlayClicked = {
+                            window.location.hash = "!play:${ref?.id}"
+                        }.takeIf { ref != null },
                         onBodyClicked = {
                             BrowserRouter.navigate("/media/${movie.id}")
                         }
@@ -100,6 +118,7 @@ fun HomeScreen(client: AnyStreamClient) {
             ) {
                 recentlyAddedTv.forEach { show ->
                     PosterCard(
+                        mediaId = show.id,
                         title = show.name,
                         posterPath = show.posterPath,
                         overview = show.overview,

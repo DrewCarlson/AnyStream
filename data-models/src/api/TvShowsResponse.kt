@@ -15,13 +15,14 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.frontend
+package anystream.models.api
 
-fun main() {
-    kotlinext.js.require("bootstrap/js/dist/offcanvas.js")
-    kotlinext.js.require("bootstrap/dist/css/bootstrap.min.css")
-    kotlinext.js.require("bootstrap-icons/font/bootstrap-icons.css")
-    kotlinext.js.require("video.js/dist/video-js.min.css")
-    kotlinext.js.require("video.js/dist/video.cjs.js")
-    webApp()
-}
+import anystream.models.MediaReference
+import anystream.models.TvShow
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class TvShowsResponse(
+    val tvShows: List<TvShow>,
+    val mediaRefs: List<MediaReference>,
+)

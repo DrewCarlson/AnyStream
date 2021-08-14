@@ -22,17 +22,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import anystream.client.AnyStreamClient
 import anystream.frontend.components.PosterCard
-import anystream.models.Movie
-import anystream.models.api.MoviesResponse
+import anystream.models.api.TvShowsResponse
 import app.softwork.routingcompose.BrowserRouter
 import kotlinx.browser.window
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.Div
 
 @Composable
-fun MoviesScreen(client: AnyStreamClient) {
-    val moviesResponse by produceState(MoviesResponse(emptyList(), emptyList())) {
-        value = client.getMovies()
+fun TvShowScreen(client: AnyStreamClient) {
+    val showResponse by produceState(TvShowsResponse(emptyList(), emptyList())) {
+        value = client.getTvShows()
     }
     Div({
         style {
@@ -42,23 +41,23 @@ fun MoviesScreen(client: AnyStreamClient) {
             flexWrap(FlexWrap.Wrap)
         }
     }) {
-        val (movies, refs) = moviesResponse
-        if (movies.isNotEmpty()) {
-            movies.forEach { movie ->
-                val ref = refs.find { it.contentId == movie.id }
+        val (shows, refs) = showResponse
+        if (shows.isNotEmpty()) {
+            shows.forEach { show ->
+                val ref = refs.find { it.contentId == show.id }
                 PosterCard(
-                    mediaId = movie.id,
-                    title = movie.title,
-                    posterPath = movie.posterPath,
-                    overview = movie.overview,
-                    releaseDate = movie.releaseDate,
+                    mediaId = show.id,
+                    title = show.name,
+                    posterPath = show.posterPath,
+                    overview = show.overview,
+                    releaseDate = show.firstAirDate,
                     isAdded = true,
                     onPlayClicked = {
                         window.location.hash = "!play:${ref?.id}"
                     }.takeIf { ref != null },
                     onBodyClicked = {
-                        BrowserRouter.navigate("/media/${movie.id}")
-                    },
+                        BrowserRouter.navigate("/media/${show.id}")
+                    }
                 )
             }
         }

@@ -23,9 +23,14 @@ import anystream.client.SessionManager
 import anystream.frontend.screens.*
 import app.softwork.routingcompose.BrowserRouter
 import kotlinx.browser.window
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 import org.jetbrains.compose.web.renderComposable
+import org.w3c.dom.HashChangeEvent
+
+private val urlHashFlow = MutableStateFlow(window.location.hash)
 
 fun webApp() = renderComposable(rootElementId = "root") {
     val client = AnyStreamClient(
@@ -42,8 +47,31 @@ fun webApp() = renderComposable(rootElementId = "root") {
             }
         },
     ) {
+        DomSideEffect {
+            val listener = { event: HashChangeEvent ->
+                urlHashFlow.value = event.newURL.substringAfter("!")
+                true
+            }
+            window.onhashchange = listener
+            onDispose { window.onhashchange = null }
+        }
+
         Div { Navbar(client) }
         ContentContainer(client)
+
+        val hashValue by urlHashFlow
+            .map { hash ->
+                if (hash.contains("close")) {
+                    null
+                } else {
+                    hash.substringAfter(":")
+                        .takeIf(String::isNotBlank)
+                }
+            }
+            .collectAsState(null)
+        hashValue?.run {
+            PlayerScreen(client, this)
+        }
     }
 }
 
@@ -73,6 +101,9 @@ private fun ContentContainer(client: AnyStreamClient) {
             }
             route("movies") {
                 noMatch { MoviesScreen(client) }
+            }
+            route("tv") {
+                noMatch { TvShowScreen(client) }
             }
             route("downloads") {
                 noMatch { DownloadsScreen(client) }

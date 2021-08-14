@@ -17,22 +17,26 @@
  */
 package anystream.frontend.components
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
+import app.softwork.routingcompose.BrowserRouter
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.css.keywords.auto
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.I
 import org.jetbrains.compose.web.dom.Img
+import org.jetbrains.compose.web.dom.Text
 
 
 @Composable
 fun PosterCard(
-    title: String,
+    mediaId: String,
+    title: String?,
     posterPath: String?,
     overview: String,
     releaseDate: String?,
+    wide: Boolean = false,
+    subtitle1: String? = null,
+    subtitle2: String? = null,
     isAdded: Boolean? = null,
     onPlayClicked: (() -> Unit)? = null,
     onBodyClicked: (() -> Unit)? = null,
@@ -47,14 +51,26 @@ fun PosterCard(
             flexDirection(FlexDirection.Column)
         }
     }) {
+        val (posterHeight, posterWidth) = if (wide) {
+            166.px to 250.px
+        } else {
+            250.px to 166.px
+        }
+
         Div({
             classes("card", "movie-card", "border-0", "shadow")
-            onMouseEnter { isOverlayVisible.value = true }
-            onMouseLeave { isOverlayVisible.value = false }
+            onMouseEnter {
+                isOverlayVisible.value = true
+                it.stopPropagation()
+            }
+            onMouseLeave {
+                isOverlayVisible.value = false
+                it.stopPropagation()
+            }
             style {
                 backgroundColor(Color.darkgray)
-                height(250.px)
-                width(166.px)
+                height(posterHeight)
+                width(posterWidth)
             }
         }) {
 
@@ -77,6 +93,57 @@ fun PosterCard(
                 )
             }
         }
+
+        Div({
+            style {
+                display(DisplayStyle.Flex)
+                flexDirection(FlexDirection.Column)
+                width(posterWidth)
+                overflow("hidden")
+                whiteSpace("nowrap")
+            }
+        }) {
+            if (title != null) {
+                var hovering by mutableStateOf(false)
+                Div({
+                    style {
+                        cursor("pointer")
+                        textDecoration(if (hovering) "underline" else "none")
+                        property("text-overflow", "ellipsis")
+                        overflow("hidden")
+                    }
+                    onMouseEnter { hovering = true }
+                    onMouseLeave { hovering = false }
+                    onClick {
+                        BrowserRouter.navigate("/media/$mediaId")
+                    }
+                }) {
+                    Text(title)
+                }
+            }
+
+            if (subtitle1 != null) {
+                Div({
+                    style {
+                        property("text-overflow", "ellipsis")
+                        overflow("hidden")
+                    }
+                }) {
+                    Text(subtitle1)
+                }
+            }
+
+            if (subtitle2 != null) {
+                Div({
+                    style {
+                        property("text-overflow", "ellipsis")
+                        overflow("hidden")
+                    }
+                }) {
+                    Text(subtitle2)
+                }
+            }
+        }
     }
 }
 
@@ -96,7 +163,10 @@ private fun CardOverlay(
             property("z-index", 1)
             opacity(if (isOverlayVisible) 1 else 0)
             property("transition", "opacity 0.15s ease-in-out")
-            onClick { onBodyClicked?.invoke() }
+            onClick {
+                it.stopPropagation()
+                onBodyClicked?.invoke()
+            }
         }
     }) {
         Div({
@@ -110,6 +180,7 @@ private fun CardOverlay(
                 position(Position.Absolute)
             }
         }) {
+            val isPlaySelected = remember { mutableStateOf(onPlayClicked == null) }
             I({
                 classes("bi-three-dots-vertical")
                 style {
@@ -120,7 +191,10 @@ private fun CardOverlay(
                     if (onMenuClicked == null) {
                         opacity(0)
                     } else {
-                        onClick { onMenuClicked() }
+                        onClick {
+                            it.stopPropagation()
+                            onMenuClicked()
+                        }
                     }
                 }
             })
@@ -128,20 +202,27 @@ private fun CardOverlay(
                 style {
                     display(DisplayStyle.Flex)
                 }
+                if (onPlayClicked != null) {
+                    onMouseEnter {
+                        isPlaySelected.value = true
+                        it.stopPropagation()
+                    }
+                    onMouseLeave {
+                        isPlaySelected.value = false
+                        it.stopPropagation()
+                    }
+                    onClick {
+                        it.stopPropagation()
+                        onPlayClicked()
+                    }
+                }
             }) {
-                val isPlaySelected = remember { mutableStateOf(onPlayClicked == null) }
                 I({
                     classes(if (isPlaySelected.value) "bi-play-circle-fill" else "bi-play-circle")
                     style {
                         property("margin", auto)
                         fontSize(48.px)
                         color(rgb(255, 255, 255))
-
-                        if (onPlayClicked != null) {
-                            onMouseEnter { isPlaySelected.value = true }
-                            onMouseLeave { isPlaySelected.value = false }
-                            onClick { onPlayClicked() }
-                        }
                     }
                 })
             }
