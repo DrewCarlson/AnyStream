@@ -35,7 +35,6 @@ fun PlayerScreen(
     client: AnyStreamClient,
     mediaRefId: String,
 ) {
-    val scope = rememberCoroutineScope()
     var player: VjsPlayer? by mutableStateOf(null)
     var isMouseOnPlayer by mutableStateOf(false)
     var playerIsPlaying by mutableStateOf(false)
@@ -43,10 +42,10 @@ fun PlayerScreen(
         isMouseOnPlayer || !playerIsPlaying
     }
     val isInMiniMode = mutableStateOf(false)
-    var updateTime by mutableStateOf<(suspend (progress: Long) -> Unit)?>(null)
+    var sessionHandle by mutableStateOf<AnyStreamClient.PlaybackSessionHandle?>(null)
     val playbackState by produceState<PlaybackState?>(null) {
         var initialState: PlaybackState? = null
-        val handle = client.playbackSession(mediaRefId) { state ->
+        sessionHandle = client.playbackSession(mediaRefId) { state ->
             println("[player] $state")
             value = state
             if (initialState == null) {
@@ -54,10 +53,9 @@ fun PlayerScreen(
                 player?.currentTime(state.position.toFloat())
             }
         }
-        updateTime = handle.update
         awaitDispose {
-            updateTime = null
-            handle.cancel()
+            sessionHandle?.cancel?.invoke()
+            sessionHandle = null
         }
     }
     Div({
@@ -109,9 +107,7 @@ fun PlayerScreen(
                         true
                     }
                     element.ontimeupdate = {
-                        scope.launch {
-                            updateTime?.invoke(element.currentTime.toLong())
-                        }
+                        sessionHandle?.update?.tryEmit(element.currentTime.toLong())
                     }
                     element.onplay = {
                         playerIsPlaying = true

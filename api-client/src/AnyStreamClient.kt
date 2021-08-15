@@ -35,14 +35,16 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-
 
 private const val PAGE = "page"
 private const val QUERY = "query"
@@ -265,27 +267,41 @@ class AnyStreamClient(
         mediaRefId: String,
         init: (state: PlaybackState) -> Unit
     ): PlaybackSessionHandle {
-        var currentState: PlaybackState? = null
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+        val currentState = MutableStateFlow<PlaybackState?>(null)
+        val progressFlow = MutableSharedFlow<Long>(
+            extraBufferCapacity = 1,
+            onBufferOverflow = BufferOverflow.DROP_OLDEST
+        )
         var open = false
         val client = wsClient("/api/ws/stream/$mediaRefId/state")
         client.send(sessionManager.fetchUser()!!.id)
         client.onStringMessage { msg ->
-            currentState = json.decodeFromString(msg)
-            init(currentState!!)
+            currentState.value = json.decodeFromString(msg)
+            init(currentState.value!!)
             open = true
         }
         client.onError { open = false }
         client.onClose { open = false }
-        return PlaybackSessionHandle(
-            update = { progress ->
+        progressFlow
+            .onEach { println(it) }
+            .sample(5000)
+            .distinctUntilChanged()
+            .onEach { progress ->
                 if (open) {
-                    currentState = currentState!!.copy(
-                        position = progress
-                    )
-                    client.send(json.encodeToString(currentState!!))
+                    currentState.update { currentState ->
+                        currentState?.copy(position = progress)
+                    }
+                    client.send(json.encodeToString(currentState.value))
                 }
-            },
-            cancel = { client.close() }
+            }
+            .launchIn(scope)
+        return PlaybackSessionHandle(
+            update = progressFlow,
+            cancel = {
+                scope.cancel()
+                client.close()
+            }
         )
     }
 
@@ -412,7 +428,7 @@ class AnyStreamClient(
     }
 
     data class PlaybackSessionHandle(
-        val update: suspend (progress: Long) -> Unit,
+        val update: MutableSharedFlow<Long>,
         val cancel: () -> Unit,
     )
 }

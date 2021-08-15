@@ -101,7 +101,7 @@ fun HomeScreen(client: AnyStreamClient) {
                 popularMovies.forEach { (movie, ref) ->
                     PosterCard(
                         title = {
-                            LinkedText(url = "/media/${ref?.contentId}") {
+                            LinkedText(url = "/media/${ref?.contentId ?: "tmdb:${movie.tmdbId}"}") {
                                 Text(movie.title)
                             }
                         },
