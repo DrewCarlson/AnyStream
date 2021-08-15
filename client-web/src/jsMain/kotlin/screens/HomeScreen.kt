@@ -19,10 +19,10 @@ package anystream.frontend.screens
 
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
+import anystream.frontend.components.LinkedText
 import anystream.frontend.components.PosterCard
 import anystream.models.api.HomeResponse
 import app.softwork.routingcompose.BrowserRouter
-import app.softwork.routingcompose.Router
 import kotlinx.browser.window
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
@@ -42,13 +42,46 @@ fun HomeScreen(client: AnyStreamClient) {
                     val movie = currentlyWatchingMovies[state.id]
                     val (episode, show) = currentlyWatchingTv[state.id] ?: null to null
                     PosterCard(
-                        mediaId = movie?.id ?: episode?.id ?: "",
-                        title = movie?.title ?: show?.name ?: "",
-                        subtitle1 = movie?.releaseDate?.substringBefore("-") ?: episode?.name,
-                        subtitle2 = episode?.run { "S$seasonNumber · E$number" },
+                        title = (movie?.title ?: show?.name)?.let { title ->
+                            {
+                                LinkedText(url = "/media/${movie?.id ?: show?.id}") {
+                                    Text(title)
+                                }
+                            }
+                        },
+                        subtitle1 = {
+                            movie?.releaseDate?.run {
+                                Text(substringBefore("-"))
+                            }
+                            episode?.run {
+                                LinkedText(url = "/media/${episode.id}") {
+                                    Text(name)
+                                }
+                            }
+                        },
+                        subtitle2 = {
+                            episode?.run {
+                                "S$seasonNumber"
+                                Div({
+                                    style {
+                                        display(DisplayStyle.Flex)
+                                        flexDirection(FlexDirection.Row)
+                                    }
+                                }) {
+                                    LinkedText(
+                                        checkNotNull(show)
+                                            .seasons
+                                            .first { it.seasonNumber == seasonNumber }
+                                            .run { "/media/${id}" }
+                                    ) { Text("S$seasonNumber") }
+                                    Div { Text(" · ") }
+                                    LinkedText(url = "/media/${episode.id}") {
+                                        Text("E$number")
+                                    }
+                                }
+                            }
+                        },
                         posterPath = movie?.posterPath ?: show?.posterPath,
-                        overview = movie?.overview ?: episode?.overview ?: show?.overview ?: "",
-                        releaseDate = movie?.releaseDate ?: episode?.airDate ?: "",
                         isAdded = true,
                         onPlayClicked = {
                             window.location.hash = "!play:${state.mediaReferenceId}"
@@ -67,12 +100,15 @@ fun HomeScreen(client: AnyStreamClient) {
             ) {
                 popularMovies.forEach { (movie, ref) ->
                     PosterCard(
-                        mediaId = "tmdb:${movie.tmdbId}",
-                        title = movie.title,
-                        subtitle1 = movie.releaseDate?.substringBefore("-"),
+                        title = {
+                            LinkedText(url = "/media/${ref?.contentId}") {
+                                Text(movie.title)
+                            }
+                        },
+                        subtitle1 = movie.releaseDate?.run {
+                            { Text(substringBefore("-")) }
+                        },
                         posterPath = movie.posterPath,
-                        overview = movie.overview,
-                        releaseDate = movie.releaseDate,
                         isAdded = ref != null,
                         onPlayClicked = { window.location.hash = "!play:${ref?.id}" }
                             .takeIf { ref != null },
@@ -94,12 +130,15 @@ fun HomeScreen(client: AnyStreamClient) {
             ) {
                 recentlyAdded.forEach { (movie, ref) ->
                     PosterCard(
-                        mediaId = movie.id,
-                        title = movie.title,
-                        subtitle1 = movie.releaseDate?.substringBefore("-"),
+                        title = {
+                            LinkedText(url = "/media/${movie.id}") {
+                                Text(movie.title)
+                            }
+                        },
+                        subtitle1 = movie.releaseDate?.run {
+                            { Text(substringBefore("-")) }
+                        },
                         posterPath = movie.posterPath,
-                        overview = movie.overview,
-                        releaseDate = movie.releaseDate,
                         isAdded = true,
                         onPlayClicked = {
                             window.location.hash = "!play:${ref?.id}"
@@ -118,11 +157,12 @@ fun HomeScreen(client: AnyStreamClient) {
             ) {
                 recentlyAddedTv.forEach { show ->
                     PosterCard(
-                        mediaId = show.id,
-                        title = show.name,
+                        title = {
+                            LinkedText(url = "/media/${show.id}") {
+                                Text(show.name)
+                            }
+                        },
                         posterPath = show.posterPath,
-                        overview = show.overview,
-                        releaseDate = show.firstAirDate,
                         isAdded = true,
                         onBodyClicked = {
                             BrowserRouter.navigate("/media/${show.id}")

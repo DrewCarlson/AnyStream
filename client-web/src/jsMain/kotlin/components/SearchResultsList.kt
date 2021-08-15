@@ -72,11 +72,12 @@ fun SearchResultsList(
                 searchResponse.movies.forEach { movie ->
                     Div {
                         PosterCard(
-                            mediaId = movie.id,
-                            title = movie.title,
+                            title = {
+                                LinkedText(url = "/media/${movie.id}") {
+                                    Text(movie.title)
+                                }
+                            },
                             posterPath = movie.posterPath,
-                            overview = movie.overview,
-                            releaseDate = movie.releaseDate,
                             onPlayClicked = searchResponse.mediaReferences[movie.id]
                                 ?.let { mediaRef ->
                                     {
@@ -107,11 +108,12 @@ fun SearchResultsList(
                 searchResponse.tvShows.forEach { show ->
                     Div {
                         PosterCard(
-                            mediaId = show.id,
-                            title = show.name,
+                            title = {
+                                LinkedText(url = "/media/${show.id}") {
+                                    Text(show.name)
+                                }
+                            },
                             posterPath = show.posterPath,
-                            overview = show.overview,
-                            releaseDate = show.firstAirDate,
                             onPlayClicked = searchResponse.mediaReferences[show.id]
                                 ?.let { mediaRef ->
                                     {
@@ -142,11 +144,8 @@ fun SearchResultsList(
                 searchResponse.episodes.forEach { episode ->
                     Div {
                         PosterCard(
-                            mediaId = episode.id,
-                            title = episode.name,
+                            title = { Text(episode.name) },
                             posterPath = episode.stillPath,
-                            overview = episode.overview,
-                            releaseDate = episode.airDate,
                             wide = true,
                             onPlayClicked = searchResponse.mediaReferences[episode.id]
                                 ?.let { mediaRef ->

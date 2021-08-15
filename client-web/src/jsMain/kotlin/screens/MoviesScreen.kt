@@ -21,13 +21,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import anystream.client.AnyStreamClient
+import anystream.frontend.components.LinkedText
 import anystream.frontend.components.PosterCard
-import anystream.models.Movie
 import anystream.models.api.MoviesResponse
 import app.softwork.routingcompose.BrowserRouter
 import kotlinx.browser.window
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.Div
+import org.jetbrains.compose.web.dom.Text
 
 @Composable
 fun MoviesScreen(client: AnyStreamClient) {
@@ -47,11 +48,12 @@ fun MoviesScreen(client: AnyStreamClient) {
             movies.forEach { movie ->
                 val ref = refs.find { it.contentId == movie.id }
                 PosterCard(
-                    mediaId = movie.id,
-                    title = movie.title,
+                    title = {
+                        LinkedText(url = "/media/${movie.id}") {
+                            Text(movie.title)
+                        }
+                    },
                     posterPath = movie.posterPath,
-                    overview = movie.overview,
-                    releaseDate = movie.releaseDate,
                     isAdded = true,
                     onPlayClicked = {
                         window.location.hash = "!play:${ref?.id}"

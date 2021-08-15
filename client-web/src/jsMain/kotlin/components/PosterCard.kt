@@ -24,20 +24,16 @@ import org.jetbrains.compose.web.css.keywords.auto
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.I
 import org.jetbrains.compose.web.dom.Img
-import org.jetbrains.compose.web.dom.Text
 
 
 @Composable
 fun PosterCard(
-    mediaId: String,
-    title: String?,
+    title: (@Composable () -> Unit)?,
     posterPath: String?,
-    overview: String,
-    releaseDate: String?,
     wide: Boolean = false,
-    subtitle1: String? = null,
-    subtitle2: String? = null,
     isAdded: Boolean? = null,
+    subtitle1: (@Composable () -> Unit)? = null,
+    subtitle2: (@Composable () -> Unit)? = null,
     onPlayClicked: (() -> Unit)? = null,
     onBodyClicked: (() -> Unit)? = null,
     buildMenu: @Composable (() -> Unit)? = null,
@@ -103,46 +99,9 @@ fun PosterCard(
                 whiteSpace("nowrap")
             }
         }) {
-            if (title != null) {
-                var hovering by mutableStateOf(false)
-                Div({
-                    style {
-                        cursor("pointer")
-                        textDecoration(if (hovering) "underline" else "none")
-                        property("text-overflow", "ellipsis")
-                        overflow("hidden")
-                    }
-                    onMouseEnter { hovering = true }
-                    onMouseLeave { hovering = false }
-                    onClick {
-                        BrowserRouter.navigate("/media/$mediaId")
-                    }
-                }) {
-                    Text(title)
-                }
-            }
-
-            if (subtitle1 != null) {
-                Div({
-                    style {
-                        property("text-overflow", "ellipsis")
-                        overflow("hidden")
-                    }
-                }) {
-                    Text(subtitle1)
-                }
-            }
-
-            if (subtitle2 != null) {
-                Div({
-                    style {
-                        property("text-overflow", "ellipsis")
-                        overflow("hidden")
-                    }
-                }) {
-                    Text(subtitle2)
-                }
-            }
+            title?.invoke()
+            subtitle1?.invoke()
+            subtitle2?.invoke()
         }
     }
 }

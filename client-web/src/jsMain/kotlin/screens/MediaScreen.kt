@@ -136,11 +136,8 @@ private fun BaseDetailsView(
             }
         }) {
             PosterCard(
-                mediaId = mediaItem.mediaId,
                 title = null,
                 posterPath = mediaItem.posterPath,
-                overview = mediaItem.overview,
-                releaseDate = mediaItem.releaseDate,
                 wide = mediaItem.wide,
                 onPlayClicked = {
                     window.location.hash = "!play:${mediaItem.mediaRefs?.firstOrNull()?.id}"
@@ -181,11 +178,8 @@ private fun SeasonRow(seasons: List<TvSeason>) {
     ) {
         seasons.forEach { season ->
             PosterCard(
-                mediaId = season.id,
-                title = season.name,
+                title = { Text(season.name) },
                 posterPath = season.posterPath,
-                overview = season.overview,
-                releaseDate = season.airDate,
                 onBodyClicked = {
                     BrowserRouter.navigate("/media/${season.id}")
                 }
@@ -206,12 +200,9 @@ private fun EpisodeGrid(
         episodes.forEach { episode ->
             val ref = mediaRefs[episode.id]
             PosterCard(
-                mediaId = episode.id,
-                title = episode.name,
-                subtitle1 = "Episode ${episode.number}",
+                title = { Text(episode.name) },
+                subtitle1 = { Text("Episode ${episode.number}") },
                 posterPath = episode.stillPath,
-                overview = episode.overview,
-                releaseDate = episode.airDate,
                 wide = true,
                 onPlayClicked = if (ref == null) {
                     null
