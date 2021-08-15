@@ -20,8 +20,8 @@ package anystream.frontend.screens
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
-import androidx.compose.runtime.remember
 import anystream.client.AnyStreamClient
+import anystream.frontend.components.LinkedText
 import anystream.frontend.components.PosterCard
 import anystream.models.Episode
 import anystream.models.MediaReference
@@ -32,14 +32,8 @@ import anystream.models.api.SeasonResponse
 import anystream.models.api.TvShowResponse
 import app.softwork.routingcompose.BrowserRouter
 import kotlinx.browser.window
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
-
-private val pjson = Json {
-    prettyPrint = true
-}
 
 @Composable
 fun MediaScreen(
@@ -178,7 +172,11 @@ private fun SeasonRow(seasons: List<TvSeason>) {
     ) {
         seasons.forEach { season ->
             PosterCard(
-                title = { Text(season.name) },
+                title = {
+                    LinkedText("/media/${season.id}") {
+                        Text(season.name)
+                    }
+                },
                 posterPath = season.posterPath,
                 onBodyClicked = {
                     BrowserRouter.navigate("/media/${season.id}")
@@ -200,8 +198,16 @@ private fun EpisodeGrid(
         episodes.forEach { episode ->
             val ref = mediaRefs[episode.id]
             PosterCard(
-                title = { Text(episode.name) },
-                subtitle1 = { Text("Episode ${episode.number}") },
+                title = {
+                    LinkedText("/media/${episode.id}") {
+                        Text(episode.name)
+                    }
+                },
+                subtitle1 = {
+                    LinkedText("/media/${episode.id}") {
+                        Text("Episode ${episode.number}")
+                    }
+                },
                 posterPath = episode.stillPath,
                 wide = true,
                 onPlayClicked = if (ref == null) {

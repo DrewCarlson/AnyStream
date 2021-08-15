@@ -284,7 +284,6 @@ class AnyStreamClient(
         client.onError { open = false }
         client.onClose { open = false }
         progressFlow
-            .onEach { println(it) }
             .sample(5000)
             .distinctUntilChanged()
             .onEach { progress ->

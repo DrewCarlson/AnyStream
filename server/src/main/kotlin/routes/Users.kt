@@ -351,7 +351,6 @@ fun Route.addUserWsRoutes(
             delay(Duration.seconds(1))
             tick++
             finalMessage = pairingCodes[pairingCode] ?: return@webSocket close()
-            println(pairingCodes.toList())
             if (tick >= PAIRING_SESSION_SECONDS) {
                 send(Frame.Text(json.encodeToString<PairingMessage>(PairingMessage.Failed)))
                 return@webSocket close()
