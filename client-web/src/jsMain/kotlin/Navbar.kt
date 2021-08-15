@@ -17,29 +17,34 @@
  */
 package anystream.frontend
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
 import anystream.models.Permissions
 import app.softwork.routingcompose.BrowserRouter
+import kotlinx.browser.window
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.jetbrains.compose.web.attributes.AttrsBuilder
+import org.jetbrains.compose.web.attributes.onSubmit
+import org.jetbrains.compose.web.attributes.placeholder
 import org.jetbrains.compose.web.css.StyleBuilder
-import org.jetbrains.compose.web.dom.A
-import org.jetbrains.compose.web.dom.Div
-import org.jetbrains.compose.web.dom.I
-import org.jetbrains.compose.web.dom.Img
-import org.jetbrains.compose.web.dom.Nav
-import org.jetbrains.compose.web.dom.Text
+import org.jetbrains.compose.web.dom.*
 import org.w3c.dom.HTMLElement
+import org.w3c.dom.HTMLInputElement
+
+val searchQuery = MutableStateFlow<String?>(null)
+val searchWindowPosition = MutableStateFlow(0 to 0)
 
 @Composable
 fun Navbar(client: AnyStreamClient) {
     val isAuthenticated = client.authenticated.collectAsState(client.isAuthenticated())
     Nav({ classes("navbar", "navbar-expand-lg", "navbar-dark", "bg-dark") }) {
+        DisposableRefEffect { ref ->
+            searchWindowPosition.value = ref.clientHeight to (window.innerWidth / 4)
+            onDispose {}
+        }
         Div({ classes("container-fluid") }) {
             A(attrs = { classes("navbar-brand", "mx-2") }) {
                 Img(src = "/images/as-logo.svg")
@@ -48,6 +53,7 @@ fun Navbar(client: AnyStreamClient) {
                 val permissionsState = client.permissions.collectAsState(null)
                 if (isAuthenticated.value) {
                     MainMenu(permissionsState.value ?: emptySet())
+                    SearchBar()
                     SecondaryMenu(client, permissionsState.value ?: emptySet())
                 }
             }
@@ -114,6 +120,32 @@ private fun SecondaryMenu(client: AnyStreamClient, permissions: Set<String>) {
             classes("nav-link")
         }) {
             I({ classes("bi-box-arrow-right") }) { }
+        }
+    }
+}
+
+@Composable
+private fun SearchBar() {
+    Form(null, {
+        onSubmit { it.preventDefault() }
+    }) {
+        SearchInput {
+            val ref = mutableStateOf<HTMLInputElement?>(null)
+            ref { newRef ->
+                ref.value = newRef
+                onDispose {
+                    ref.value = null
+                }
+            }
+            placeholder("Search")
+            onFocus {
+                searchQuery.value = (it.target as? HTMLInputElement)
+                    ?.value
+                    ?.takeUnless(String::isNullOrBlank)
+            }
+            onInput { event ->
+                searchQuery.value = event.value.takeUnless(String::isNullOrBlank)
+            }
         }
     }
 }

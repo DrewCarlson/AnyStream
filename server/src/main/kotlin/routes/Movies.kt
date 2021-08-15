@@ -23,28 +23,21 @@ import anystream.data.asMovie
 import anystream.data.asPartialMovie
 import anystream.models.MediaReference
 import anystream.models.Movie
-import anystream.models.Permissions.GLOBAL
 import anystream.models.Permissions.MANAGE_COLLECTION
-import anystream.models.api.ImportMedia
 import anystream.models.api.MoviesResponse
 import anystream.models.api.TmdbMoviesResponse
-import anystream.media.MediaImporter
 import anystream.models.api.MovieResponse
 import anystream.util.logger
 import anystream.util.withAnyPermission
-import drewcarlson.torrentsearch.Category
-import drewcarlson.torrentsearch.TorrentSearch
 import info.movito.themoviedbapi.TmdbApi
 import info.movito.themoviedbapi.TmdbMovies.MovieMethod
 import info.movito.themoviedbapi.model.MovieDb
 import io.ktor.application.call
-import io.ktor.application.log
 import io.ktor.auth.*
 import io.ktor.http.*
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
-import io.ktor.http.HttpStatusCode.Companion.UnprocessableEntity
 import io.ktor.http.cio.websocket.*
 import io.ktor.request.*
 import io.ktor.response.respond
@@ -148,7 +141,7 @@ fun Route.addMovieRoutes(
                     }
                 }
 
-                withAnyPermission(GLOBAL, MANAGE_COLLECTION) {
+                withAnyPermission(MANAGE_COLLECTION) {
                     get("/add") {
                         val session = call.principal<UserSession>()!!
                         val tmdbId = call.parameters["tmdb_id"]?.toIntOrNull()
@@ -221,7 +214,7 @@ fun Route.addMovieRoutes(
                 }
             }
 
-            withAnyPermission(GLOBAL, MANAGE_COLLECTION) {
+            withAnyPermission(MANAGE_COLLECTION) {
                 delete {
                     val movieId = call.parameters["movie_id"]
                         ?.takeUnless(String::isNullOrBlank)

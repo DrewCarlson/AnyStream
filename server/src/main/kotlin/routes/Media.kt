@@ -20,7 +20,6 @@ package anystream.routes
 import anystream.data.UserSession
 import anystream.models.MediaReference
 import anystream.models.Movie
-import anystream.models.Permissions.GLOBAL
 import anystream.models.Permissions.MANAGE_COLLECTION
 import anystream.models.api.ImportMedia
 import anystream.media.MediaImporter
@@ -55,7 +54,7 @@ fun Route.addMediaRoutes(
 ) {
     val moviesDb = mongodb.getCollection<Movie>()
     val mediaRefsDb = mongodb.getCollection<MediaReference>()
-    withAnyPermission(GLOBAL, MANAGE_COLLECTION) {
+    withAnyPermission(MANAGE_COLLECTION) {
         route("/media") {
             route("/refs") {
                 get {

@@ -393,6 +393,12 @@ class AnyStreamClient(
         awaitClose { client.close() }
     }
 
+    suspend fun search(query: String, limit: Int? = null): SearchResponse =
+        http.get("/api/search") {
+            parameter("query", query)
+            parameter("limit", limit)
+        }
+
     suspend fun closeStream(token: String) {
 
     }

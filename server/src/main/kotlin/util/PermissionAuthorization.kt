@@ -17,6 +17,7 @@
  */
 package anystream.util
 
+import anystream.models.Permissions
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.http.HttpStatusCode.Companion.Forbidden
@@ -51,6 +52,11 @@ class PermissionAuthorization {
             val principal = call.authentication.principal<Principal>()
                 ?: throw AuthorizationException("Missing principal")
             val activePermissions = extractPermissions(principal)
+
+            if (activePermissions.contains(Permissions.GLOBAL)) {
+                return@intercept
+            }
+
             val denyReasons = mutableListOf<String>()
             all?.let {
                 val missing = all - activePermissions

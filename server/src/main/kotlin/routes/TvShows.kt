@@ -21,7 +21,6 @@ import anystream.data.asApiResponse
 import anystream.data.asCompleteTvSeries
 import anystream.models.Episode
 import anystream.models.MediaReference
-import anystream.models.Permissions.GLOBAL
 import anystream.models.Permissions.MANAGE_COLLECTION
 import anystream.models.TvSeason
 import anystream.models.TvShow
@@ -164,7 +163,7 @@ fun Route.addTvShowRoutes(
                 )
             }
 
-            withAnyPermission(GLOBAL, MANAGE_COLLECTION) {
+            withAnyPermission(MANAGE_COLLECTION) {
                 delete {
                     val result = call.parameters["show_id"]?.let { showId ->
                         try {

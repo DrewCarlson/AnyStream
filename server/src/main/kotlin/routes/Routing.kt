@@ -27,6 +27,7 @@ import anystream.util.SinglePageApp
 import anystream.util.withAnyPermission
 import com.github.kokorin.jaffree.ffmpeg.FFmpeg
 import com.github.kokorin.jaffree.ffprobe.FFprobe
+import com.mongodb.MongoException
 import drewcarlson.qbittorrent.QBittorrentClient
 import drewcarlson.torrentsearch.TorrentSearch
 import info.movito.themoviedbapi.TmdbApi
@@ -36,7 +37,9 @@ import io.ktor.routing.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.runBlocking
 import org.litote.kmongo.coroutine.CoroutineDatabase
+import org.litote.kmongo.textIndex
 import java.nio.file.Path
 
 fun Application.installRouting(mongodb: CoroutineDatabase) {
@@ -70,19 +73,33 @@ fun Application.installRouting(mongodb: CoroutineDatabase) {
 
     val streamManager = StreamManager(ffmpeg, ffprobe, log)
 
+   runBlocking {
+       try {
+           mongodb.getCollection<Movie>()
+               .ensureIndex(Movie::title.textIndex())
+           mongodb.getCollection<TvShow>()
+               .ensureIndex(TvShow::name.textIndex())
+           mongodb.getCollection<Episode>()
+               .ensureIndex(Episode::name.textIndex())
+       } catch (e: MongoException) {
+           log.error("Failed to create search indexes", e)
+       }
+   }
+
     routing {
         route("/api") {
             addUserRoutes(mongodb)
             authenticate {
                 addHomeRoutes(tmdb, mongodb)
-                withAnyPermission(Permissions.GLOBAL, Permissions.VIEW_COLLECTION) {
+                withAnyPermission(Permissions.VIEW_COLLECTION) {
                     addTvShowRoutes(tmdb, mongodb)
                     addMovieRoutes(tmdb, mongodb)
+                    addSearchRoutes(tmdb, mongodb)
                 }
-                withAnyPermission(Permissions.GLOBAL, Permissions.TORRENT_MANAGEMENT) {
+                withAnyPermission(Permissions.TORRENT_MANAGEMENT) {
                     addTorrentRoutes(qbClient, mongodb)
                 }
-                withAnyPermission(Permissions.GLOBAL, Permissions.MANAGE_COLLECTION) {
+                withAnyPermission(Permissions.MANAGE_COLLECTION) {
                     addMediaRoutes(tmdb, mongodb, torrentSearch, importer)
                 }
             }

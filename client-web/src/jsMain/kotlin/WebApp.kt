@@ -20,10 +20,13 @@ package anystream.frontend
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
 import anystream.client.SessionManager
+import anystream.frontend.components.SearchResultsList
 import anystream.frontend.screens.*
+import anystream.models.api.SearchResponse
 import app.softwork.routingcompose.BrowserRouter
 import kotlinx.browser.window
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.map
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
@@ -55,10 +58,12 @@ fun webApp() = renderComposable(rootElementId = "root") {
             window.onhashchange = listener
             onDispose { window.onhashchange = null }
         }
-
-        Div { Navbar(client) }
-        ContentContainer(client)
-
+        val queryState by searchQuery
+            .debounce(500)
+            .collectAsState(null)
+        val isDisplayingSearch = searchQuery
+            .map { it != null }
+            .collectAsState(queryState != null)
         val hashValue by urlHashFlow
             .map { hash ->
                 if (hash.contains("close")) {
@@ -69,21 +74,43 @@ fun webApp() = renderComposable(rootElementId = "root") {
                 }
             }
             .collectAsState(null)
+
+        Div { Navbar(client) }
+        ContentContainer(client)
+
         hashValue?.run {
             PlayerScreen(client, this)
+        }
+
+        val searchResponse by produceState<SearchResponse?>(null, queryState) {
+            value = queryState?.let { query ->
+                try {
+                    client.search(query)
+                } catch (e: Throwable) {
+                    null
+                }
+            }
+        }
+
+        if (isDisplayingSearch.value) {
+            searchResponse?.also { response ->
+                SearchResultsList(response)
+            }
         }
     }
 }
 
 @Composable
-private fun ContentContainer(client: AnyStreamClient) {
+private fun ContentContainer(
+    client: AnyStreamClient,
+) {
     Div({
         classes("container-fluid", "px-0")
         style {
             flexGrow(1)
             flexShrink(1)
-            property("flex-basis", "auto")
-            property("overflow-y", "auto")
+            flexBasis("auto")
+            overflowY("auto")
         }
     }) {
         val authRoutes = listOf("/signup", "/login")
