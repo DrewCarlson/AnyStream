@@ -164,6 +164,7 @@ class TvImportProcessor(
             TmdbTV.TvMethod.credits,
         )
         val tmdbSeasons = tmdbShow.seasons
+            .filter { it.seasonNumber > 0 }
             .map { season ->
                 tmdb.tvSeasons.getSeason(
                     tmdbId,
