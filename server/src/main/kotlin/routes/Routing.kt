@@ -69,7 +69,7 @@ fun Application.installRouting(mongodb: CoroutineDatabase) {
         MovieImportProcessor(tmdb, mongodb, log),
         TvImportProcessor(tmdb, mongodb, importScope, log),
     )
-    val importer = MediaImporter(tmdb, processors, mediaRefs, importScope, log)
+    val importer = MediaImporter(tmdb, ffprobe, processors, mediaRefs, importScope, log)
 
     val streamManager = StreamManager(ffmpeg, ffprobe, log)
 

@@ -45,16 +45,18 @@ import kotlinx.coroutines.flow.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import org.bson.types.ObjectId
-import org.litote.kmongo.contains
+import org.litote.kmongo.combine
 import org.litote.kmongo.coroutine.CoroutineDatabase
-import org.litote.kmongo.coroutine.replaceOne
 import org.litote.kmongo.eq
+import org.litote.kmongo.setValue
 import java.io.File
 import java.nio.file.StandardOpenOption.*
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
 import java.util.*
+import kotlin.math.roundToInt
 
+private const val PLAYBACK_COMPLETE_PERCENT = 90
 
 fun Route.addStreamRoutes(
     streamManager: StreamManager,
@@ -212,8 +214,8 @@ fun Route.addStreamWsRoutes(
             is DownloadMediaReference -> mediaRef.filePath
         }?.run(::File) ?: return@webSocket close()
 
+        val duration = streamManager.getFileDuration(file)
         if (!streamManager.hasSession(state.id)) {
-            val duration = streamManager.getFileDuration(file)
             val output = File("$transcodePath/$mediaRefId/${state.id}")
             streamManager.startTranscode(
                 token = state.id,
@@ -227,15 +229,30 @@ fun Route.addStreamWsRoutes(
 
         send(Frame.Text(json.encodeToString(state)))
 
+        var currentPosition = state.position
+
         incoming.receiveAsFlow()
             .takeWhile { it !is Frame.Close }
             .filterIsInstance<Frame.Text>()
+            .onEach { frame ->
+                val newState = json.decodeFromString<PlaybackState>(frame.readText())
+                currentPosition = newState.position
+                playbackStateDb.updateOne(
+                    PlaybackState::id eq newState.id,
+                    combine(
+                        setValue(PlaybackState::position, newState.position),
+                        setValue(PlaybackState::updatedAt, Instant.now().toEpochMilli()),
+                    )
+                )
+            }
             .onCompletion {
                 streamManager.stopSession(state.id, true)
+
+                val completePercent = (duration / currentPosition * 100).roundToInt()
+                if (completePercent >= PLAYBACK_COMPLETE_PERCENT) {
+                    playbackStateDb.deleteOneById(state.id)
+                }
             }
-            .collect { frame ->
-                val newState = json.decodeFromString<PlaybackState>(frame.readText())
-                playbackStateDb.replaceOne(newState.copy(updatedAt = Instant.now().toEpochMilli()))
-            }
+            .collect()
     }
 }

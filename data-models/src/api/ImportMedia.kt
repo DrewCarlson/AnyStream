@@ -18,6 +18,7 @@
 package anystream.models.api
 
 import anystream.models.MediaKind
+import anystream.models.MediaReference
 import kotlinx.serialization.Serializable
 
 
@@ -33,7 +34,7 @@ sealed class ImportMediaResult {
     @Serializable
     data class Success(
         val mediaId: String,
-        val mediaRefId: String,
+        val mediaReference: MediaReference,
         val subresults: List<ImportMediaResult> = emptyList(),
     ) : ImportMediaResult()
 

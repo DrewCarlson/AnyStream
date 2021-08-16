@@ -108,19 +108,17 @@ class TvImportProcessor(
             return ImportMediaResult.ErrorDataProviderException(e.stackTraceToString())
         }
 
-        val mediaRefId = ObjectId.get().toString()
+        val mediaRef = LocalMediaReference(
+            id = ObjectId.get().toString(),
+            contentId = show.id,
+            added = Instant.now().toEpochMilli(),
+            addedByUserId = userId,
+            filePath = contentFile.absolutePath,
+            mediaKind = MediaKind.TV,
+            directory = true,
+        )
         try {
-            mediaRefDb.insertOne(
-                LocalMediaReference(
-                    id = mediaRefId,
-                    contentId = show.id,
-                    added = Instant.now().toEpochMilli(),
-                    addedByUserId = userId,
-                    filePath = contentFile.absolutePath,
-                    mediaKind = MediaKind.TV,
-                    directory = true,
-                )
-            )
+            mediaRefDb.insertOne(mediaRef)
         } catch (e: MongoException) {
             logger.debug(marker, "Failed to create media reference", e)
             return ImportMediaResult.ErrorDatabaseException(e.stackTraceToString())
@@ -146,7 +144,7 @@ class TvImportProcessor(
 
         return ImportMediaResult.Success(
             mediaId = show.id,
-            mediaRefId = mediaRefId,
+            mediaReference = mediaRef,
             subresults = seasonResults,
         )
     }
@@ -222,19 +220,17 @@ class TvImportProcessor(
         episodes: List<Episode>,
         marker: Marker,
     ): ImportMediaResult {
-        val seasonRefId = ObjectId.get().toString()
+        val mediaRef = LocalMediaReference(
+            id = ObjectId.get().toString(),
+            contentId = season.id,
+            added = Instant.now().toEpochMilli(),
+            addedByUserId = userId,
+            filePath = absolutePath,
+            mediaKind = MediaKind.TV,
+            directory = true,
+        )
         try {
-            mediaRefDb.insertOne(
-                LocalMediaReference(
-                    id = seasonRefId,
-                    contentId = season.id,
-                    added = Instant.now().toEpochMilli(),
-                    addedByUserId = userId,
-                    filePath = absolutePath,
-                    mediaKind = MediaKind.TV,
-                    directory = true,
-                )
-            )
+            mediaRefDb.insertOne(mediaRef)
         } catch (e: MongoException) {
             logger.debug(marker, "Failed to create season media ref", e)
             return ImportMediaResult.ErrorDatabaseException(e.stackTraceToString())
@@ -275,7 +271,7 @@ class TvImportProcessor(
                 episodeRefs.map { ref ->
                     ImportMediaResult.Success(
                         mediaId = ref.contentId,
-                        mediaRefId = ref.id,
+                        mediaReference = ref,
                     )
                 }
             } else emptyList()
@@ -286,7 +282,7 @@ class TvImportProcessor(
 
         return ImportMediaResult.Success(
             mediaId = season.id,
-            mediaRefId = seasonRefId,
+            mediaReference = mediaRef,
             subresults = results,
         )
     }

@@ -25,6 +25,7 @@ import anystream.frontend.components.LinkedText
 import anystream.frontend.components.PosterCard
 import anystream.models.Episode
 import anystream.models.MediaReference
+import anystream.models.StreamEncodingDetails
 import anystream.models.TvSeason
 import anystream.models.api.EpisodeResponse
 import anystream.models.api.MovieResponse
@@ -134,7 +135,7 @@ private fun BaseDetailsView(
                 posterPath = mediaItem.posterPath,
                 wide = mediaItem.wide,
                 onPlayClicked = {
-                    window.location.hash = "!play:${mediaItem.mediaRefs?.firstOrNull()?.id}"
+                    window.location.hash = "!play:${mediaItem.mediaRefs.firstOrNull()?.id}"
                 }.takeIf { !mediaItem.mediaRefs.isNullOrEmpty() }
             )
         }
@@ -159,8 +160,66 @@ private fun BaseDetailsView(
                     Div { H6 { Text(year) } }
                 }
             }
-            Div { Text(mediaItem.overview) }
+            Div({
+                classes("py-4")
+            }) { Text(mediaItem.overview) }
+
+            val videoStreams = mediaItem.mediaRefs.flatMap {
+                it.streams.filterIsInstance<StreamEncodingDetails.Video>()
+            }
+            val audioStreams = mediaItem.mediaRefs.flatMap {
+                it.streams.filterIsInstance<StreamEncodingDetails.Audio>()
+            }
+            val subtitlesStreams = mediaItem.mediaRefs.flatMap {
+                it.streams.filterIsInstance<StreamEncodingDetails.Subtitle>()
+            }
+
+            Div({
+                style {
+                    display(DisplayStyle.Flex)
+                    flexDirection(FlexDirection.Column)
+                }
+            }) {
+                videoStreams.take(1).forEach { details ->
+                    EncodingDetailsItem(
+                        title = { Text("Video") },
+                        value = { Text("${details.width}x${details.height} (${details.codecName})") },
+                    )
+                }
+
+                audioStreams.take(1).forEach { details ->
+                    EncodingDetailsItem(
+                        title = { Text("Audio") },
+                        // TODO: Display language when possible
+                        value = { Text("Unknown (${details.codecName})") },
+                    )
+                }
+
+                subtitlesStreams.take(1).forEach { details ->
+                    EncodingDetailsItem(
+                        title = { Text("Subtitles") },
+                        value = { Text(details.codecName) },
+                    )
+                }
+            }
         }
+    }
+}
+
+@Composable
+private fun EncodingDetailsItem(
+    title: @Composable () -> Unit,
+    value: @Composable () -> Unit,
+) {
+    Div({
+        style {
+            display(DisplayStyle.Flex)
+            flexDirection(FlexDirection.Row)
+            gap(15.px)
+        }
+    }) {
+        Div { H5 { title() } }
+        Div { value() }
     }
 }
 
@@ -260,7 +319,7 @@ private data class MediaItem(
     val posterPath: String?,
     val overview: String,
     val releaseDate: String?,
-    val mediaRefs: List<MediaReference>?,
+    val mediaRefs: List<MediaReference>,
     val wide: Boolean = false,
 )
 
@@ -282,7 +341,7 @@ private fun TvShowResponse.toMediaItem(): MediaItem {
         posterPath = tvShow.posterPath,
         overview = tvShow.overview,
         releaseDate = tvShow.firstAirDate,
-        mediaRefs = null,
+        mediaRefs = emptyList(),
     )
 }
 
@@ -308,6 +367,6 @@ private fun SeasonResponse.toMediaItem(): MediaItem {
         subtitle1 = "Season ${season.seasonNumber}",
         overview = season.overview,
         releaseDate = season.airDate,
-        mediaRefs = null,
+        mediaRefs = emptyList(),
     )
 }

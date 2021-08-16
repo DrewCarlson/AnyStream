@@ -47,7 +47,11 @@ class MovieImportProcessor(
 
     override val mediaKinds: List<MediaKind> = listOf(MediaKind.MOVIE)
 
-    override suspend fun process(contentFile: File, userId: String, marker: Marker): ImportMediaResult {
+    override suspend fun process(
+        contentFile: File,
+        userId: String,
+        marker: Marker
+    ): ImportMediaResult {
         val movieFile = if (contentFile.isFile) {
             logger.debug(marker, "Detected single content file")
             contentFile
@@ -108,20 +112,18 @@ class MovieImportProcessor(
             movieFile.importMovie(userId, tmdbMovie.id, marker)
         } else {
             logger.debug(marker, "Movie data exists at ${existingRecord.id}, creating media ref")
-            val mediaRefId = ObjectId.get().toString()
             try {
-                mediaRefs.insertOne(
-                    LocalMediaReference(
-                        id = mediaRefId,
-                        contentId = existingRecord.id,
-                        added = Instant.now().toEpochMilli(),
-                        addedByUserId = userId,
-                        filePath = movieFile.absolutePath,
-                        mediaKind = MediaKind.MOVIE,
-                        directory = false,
-                    )
+                val reference = LocalMediaReference(
+                    id = ObjectId.get().toString(),
+                    contentId = existingRecord.id,
+                    added = Instant.now().toEpochMilli(),
+                    addedByUserId = userId,
+                    filePath = movieFile.absolutePath,
+                    mediaKind = MediaKind.MOVIE,
+                    directory = false,
                 )
-                ImportMediaResult.Success(existingRecord.id, mediaRefId)
+                mediaRefs.insertOne(reference)
+                ImportMediaResult.Success(existingRecord.id, reference)
             } catch (e: MongoException) {
                 logger.debug(marker, "Failed to create media reference", e)
                 ImportMediaResult.ErrorDatabaseException(e.stackTraceToString())
@@ -149,25 +151,23 @@ class MovieImportProcessor(
             return ImportMediaResult.ErrorDataProviderException(e.stackTraceToString())
         }
         val movieId = ObjectId.get().toString()
-        val mediaRefId = ObjectId.get().toString()
         try {
-            moviesDb.insertOne(movie.asMovie(movieId, userId))
-            mediaRefs.insertOne(
-                LocalMediaReference(
-                    id = mediaRefId,
-                    contentId = movieId,
-                    added = Instant.now().toEpochMilli(),
-                    addedByUserId = userId,
-                    filePath = absolutePath,
-                    mediaKind = MediaKind.MOVIE,
-                    directory = false,
-                )
+            val reference = LocalMediaReference(
+                id = ObjectId.get().toString(),
+                contentId = movieId,
+                added = Instant.now().toEpochMilli(),
+                addedByUserId = userId,
+                filePath = absolutePath,
+                mediaKind = MediaKind.MOVIE,
+                directory = false,
             )
+            moviesDb.insertOne(movie.asMovie(movieId, userId))
+            mediaRefs.insertOne(reference)
             logger.debug(
                 marker,
-                "Movie and media ref created movieId=$movieId, mediaRefId=$mediaRefId"
+                "Movie and media ref created movieId=$movieId, mediaRefId=${reference.id}"
             )
-            return ImportMediaResult.Success(movieId, mediaRefId)
+            return ImportMediaResult.Success(movieId, reference)
         } catch (e: MongoException) {
             logger.debug(marker, "Movie or media ref creation failed", e)
             return ImportMediaResult.ErrorDatabaseException(e.stackTraceToString())

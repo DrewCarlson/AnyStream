@@ -188,7 +188,7 @@ fun Route.addMovieRoutes(
                 val movie = movieId?.let { moviesDb.findOneById(it) }
                 val mediaRefs = movieId?.let {
                     mediaRefsDb.find(MediaReference::contentId eq it)
-                }?.toList()
+                }?.toList().orEmpty()
 
                 if (movie == null) {
                     call.respond(NotFound)

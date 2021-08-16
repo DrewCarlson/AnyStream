@@ -19,14 +19,25 @@ package anystream.media
 
 import anystream.models.LocalMediaReference
 import anystream.models.MediaReference
+import anystream.models.StreamEncodingDetails
 import anystream.models.api.ImportMedia
 import anystream.models.api.ImportMediaResult
 import anystream.routes.concurrentMap
+import com.github.kokorin.jaffree.StreamType
+import com.github.kokorin.jaffree.ffprobe.FFprobe
+import com.github.kokorin.jaffree.ffprobe.Stream
 import info.movito.themoviedbapi.TmdbApi
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.*
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import org.litote.kmongo.*
 import org.litote.kmongo.coroutine.CoroutineCollection
-import org.litote.kmongo.exists
 import org.slf4j.Logger
 import org.slf4j.Marker
 import org.slf4j.MarkerFactory
@@ -35,6 +46,7 @@ import java.util.UUID
 
 class MediaImporter(
     tmdb: TmdbApi,
+    private val ffprobe: () -> FFprobe,
     private val processors: List<MediaImportProcessor>,
     private val mediaRefs: CoroutineCollection<MediaReference>,
     private val scope: CoroutineScope,
@@ -121,7 +133,7 @@ class MediaImporter(
             return ImportMediaResult.ErrorFileNotFound
         }
 
-        return processors
+        val result = processors
             .mapNotNull { processor ->
                 if (processor.mediaKinds.contains(request.mediaKind)) {
                     processor.process(contentFile, userId, marker)
@@ -129,9 +141,116 @@ class MediaImporter(
             }
             .firstOrNull()
             ?: ImportMediaResult.ErrorNothingToImport
+
+        if (result is ImportMediaResult.Success) {
+            val refs = result.subresults
+                .filterIsInstance<ImportMediaResult.Success>()
+                .flatMap { it.subresults.filterIsInstance<ImportMediaResult.Success>() }
+                .plus(result)
+                .map { innerResult ->
+                    val ref = innerResult.mediaReference
+                    try {
+                        if (ref is LocalMediaReference && !ref.directory) {
+                            ref to awaitAll(
+                                ffprobe().processStreamsAsync(ref, StreamType.VIDEO),
+                                ffprobe().processStreamsAsync(ref, StreamType.AUDIO),
+                                ffprobe().processStreamsAsync(ref, StreamType.SUBTITLE),
+                            ).flatten()
+                        } else null
+                    } catch (e: Throwable) {
+                        logger.error("FFProbe failed", e)
+                        null
+                    } ?: Pair(ref, emptyList())
+                }
+                .toMap()
+
+            val updates = refs.map { (ref, streams) ->
+                updateOne<MediaReference>(
+                    MediaReference::id eq ref.id,
+                    setValue(MediaReference::streams, streams),
+                )
+            }
+
+            mediaRefs.bulkWrite(updates)
+        }
+
+        return result
     }
 
     // Create a unique nested marker to identify import requests
     private fun marker() = MarkerFactory.getMarker(UUID.randomUUID().toString())
         .apply { add(classMarker) }
+
+    private fun FFprobe.processStreamsAsync(
+        ref: LocalMediaReference,
+        streamType: StreamType,
+    ): Deferred<List<StreamEncodingDetails>> {
+        return scope.async {
+            try {
+                setShowStreams(true)
+                    .setShowFormat(true)
+                    .setSelectStreams(streamType)
+                    .setShowEntries("stream=index:stream_tags=language,title")
+                    .setInput(ref.filePath)
+                    .execute()
+                    .streams
+                    .mapNotNull { it.toStreamEncodingDetails() }
+            } catch (e: Throwable) {
+                emptyList()
+            }
+        }
+    }
+
+    private fun Stream.toStreamEncodingDetails(): StreamEncodingDetails? {
+        val rawData = Json.encodeToString(buildJsonObject {
+            put("id", id)
+            put("index", index)
+            put("codecName", codecName)
+            put("codecLongName", codecLongName)
+            put("codecType", codecType.name)
+            put("codecTag", codecTag)
+            put("channels", channels)
+            put("codedWidth", codedWidth)
+            put("codedHeight", codedHeight)
+            put("avgFrameRate", avgFrameRate?.toString())
+            put("bitRate", bitRate)
+            put("level", level)
+            put("width", width)
+            put("height", height)
+            put("extradata", extradata)
+            put("profile", profile)
+            put("duration", duration)
+            put("durationTs", durationTs)
+            put("fieldOrder", fieldOrder)
+        })
+        return when (codecType) {
+            StreamType.VIDEO -> StreamEncodingDetails.Video(
+                index = index,
+                codecName = codecName,
+                profile = profile,
+                bitRate = bitRate,
+                level = level,
+                height = height,
+                width = width,
+                rawProbeData = rawData,
+            )
+            StreamType.AUDIO -> StreamEncodingDetails.Audio(
+                index = index,
+                codecName = codecName,
+                profile = profile,
+                bitRate = bitRate,
+                channels = channels,
+                rawProbeData = rawData,
+            )
+            StreamType.SUBTITLE -> StreamEncodingDetails.Subtitle(
+                index = index,
+                codecName = codecName,
+                rawProbeData = rawData,
+            )
+            StreamType.VIDEO_NOT_PICTURE,
+            StreamType.DATA,
+            StreamType.ATTACHMENT,
+            null -> null
+        }
+    }
 }
