@@ -25,6 +25,7 @@ import anystream.models.MediaReference
 import anystream.models.PlaybackState
 import anystream.stream.StreamManager
 import com.github.kokorin.jaffree.ffmpeg.*
+import com.mongodb.MongoException
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.http.*
@@ -229,30 +230,29 @@ fun Route.addStreamWsRoutes(
 
         send(Frame.Text(json.encodeToString(state)))
 
-        var currentPosition = state.position
-
-        incoming.receiveAsFlow()
+        val finalPosition = incoming.receiveAsFlow()
             .takeWhile { it !is Frame.Close }
             .filterIsInstance<Frame.Text>()
-            .onEach { frame ->
+            .map { frame ->
                 val newState = json.decodeFromString<PlaybackState>(frame.readText())
-                currentPosition = newState.position
-                playbackStateDb.updateOne(
-                    PlaybackState::id eq newState.id,
-                    combine(
-                        setValue(PlaybackState::position, newState.position),
-                        setValue(PlaybackState::updatedAt, Instant.now().toEpochMilli()),
-                    )
+                val update = combine(
+                    setValue(PlaybackState::position, newState.position),
+                    setValue(PlaybackState::updatedAt, Instant.now().toEpochMilli()),
                 )
+                playbackStateDb.updateOne(PlaybackState::id eq newState.id, update)
+                newState.position
             }
-            .onCompletion {
-                streamManager.stopSession(state.id, true)
+            .lastOrNull() ?: state.position
 
-                val completePercent = (duration / currentPosition * 100).roundToInt()
-                if (completePercent >= PLAYBACK_COMPLETE_PERCENT) {
-                    playbackStateDb.deleteOneById(state.id)
-                }
+        val completePercent = (duration / finalPosition * 100).roundToInt()
+        val isComplete = completePercent >= PLAYBACK_COMPLETE_PERCENT
+        if (isComplete) {
+            try {
+                playbackStateDb.deleteOneById(state.id)
+            } catch (e: MongoException) {
+                e.printStackTrace()
             }
-            .collect()
+        }
+        streamManager.stopSession(state.id, isComplete)
     }
 }
