@@ -206,6 +206,9 @@ class AnyStreamClient(
     suspend fun getSeason(seasonId: String) =
         http.get<SeasonResponse>("/api/tv/season/$seasonId")
 
+    suspend fun lookupMedia(mediaId: String): MediaLookupResponse =
+        http.get("/api/media/$mediaId")
+
     suspend fun searchTmdbMovies(query: String, page: Int = 1) =
         http.get<TmdbMoviesResponse>("/api/movies/tmdb/search") {
             parameter(QUERY, query)

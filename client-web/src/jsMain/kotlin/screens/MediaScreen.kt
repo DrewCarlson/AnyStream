@@ -23,14 +23,13 @@ import androidx.compose.runtime.produceState
 import anystream.client.AnyStreamClient
 import anystream.frontend.components.LinkedText
 import anystream.frontend.components.PosterCard
+import anystream.frontend.models.MediaItem
+import anystream.frontend.models.toMediaItem
 import anystream.models.Episode
 import anystream.models.MediaReference
 import anystream.models.StreamEncodingDetails
 import anystream.models.TvSeason
-import anystream.models.api.EpisodeResponse
-import anystream.models.api.MovieResponse
-import anystream.models.api.SeasonResponse
-import anystream.models.api.TvShowResponse
+import anystream.models.api.*
 import app.softwork.routingcompose.BrowserRouter
 import kotlinx.browser.window
 import org.jetbrains.compose.web.css.*
@@ -41,31 +40,9 @@ fun MediaScreen(
     client: AnyStreamClient,
     mediaId: String,
 ) {
-    // TODO: Create a single polymorphic endpoint for media lookup
-    val movieState by produceState<MovieResponse?>(null, mediaId) {
+    val mediaResponse by produceState<MediaLookupResponse?>(null, mediaId) {
         value = try {
-            client.getMovie(mediaId)
-        } catch (e: Throwable) {
-            null
-        }
-    }
-    val showState by produceState<TvShowResponse?>(null, mediaId) {
-        value = try {
-            client.getTvShow(mediaId)
-        } catch (e: Throwable) {
-            null
-        }
-    }
-    val seasonState by produceState<SeasonResponse?>(null, mediaId) {
-        value = try {
-            client.getSeason(mediaId)
-        } catch (e: Throwable) {
-            null
-        }
-    }
-    val episodeState by produceState<EpisodeResponse?>(null, mediaId) {
-        value = try {
-            client.getEpisode(mediaId)
+            client.lookupMedia(mediaId)
         } catch (e: Throwable) {
             null
         }
@@ -78,13 +55,13 @@ fun MediaScreen(
             flexDirection(FlexDirection.Column)
         }
     }) {
-        movieState?.let { response ->
+        mediaResponse?.movie?.let { response ->
             BaseDetailsView(
                 mediaItem = response.toMediaItem()
             )
         }
 
-        showState?.let { response ->
+        mediaResponse?.tvShow?.let { response ->
             BaseDetailsView(
                 mediaItem = response.toMediaItem()
             )
@@ -94,7 +71,7 @@ fun MediaScreen(
             }
         }
 
-        seasonState?.let { response ->
+        mediaResponse?.season?.let { response ->
             BaseDetailsView(
                 mediaItem = response.toMediaItem()
             )
@@ -107,7 +84,7 @@ fun MediaScreen(
             }
         }
 
-        episodeState?.let { response ->
+        mediaResponse?.episode?.let { response ->
             BaseDetailsView(
                 mediaItem = response.toMediaItem()
             )
@@ -309,64 +286,4 @@ private fun BaseRow(
     }) {
         buildItems()
     }
-}
-
-private data class MediaItem(
-    val mediaId: String,
-    val contentTitle: String,
-    val subtitle1: String? = null,
-    val subtitle2: String? = null,
-    val posterPath: String?,
-    val overview: String,
-    val releaseDate: String?,
-    val mediaRefs: List<MediaReference>,
-    val wide: Boolean = false,
-)
-
-private fun MovieResponse.toMediaItem(): MediaItem {
-    return MediaItem(
-        mediaId = movie.id,
-        contentTitle = movie.title,
-        posterPath = movie.posterPath,
-        overview = movie.overview,
-        releaseDate = movie.releaseDate,
-        mediaRefs = mediaRefs,
-    )
-}
-
-private fun TvShowResponse.toMediaItem(): MediaItem {
-    return MediaItem(
-        mediaId = tvShow.id,
-        contentTitle = tvShow.name,
-        posterPath = tvShow.posterPath,
-        overview = tvShow.overview,
-        releaseDate = tvShow.firstAirDate,
-        mediaRefs = emptyList(),
-    )
-}
-
-private fun EpisodeResponse.toMediaItem(): MediaItem {
-    return MediaItem(
-        mediaId = episode.id,
-        contentTitle = show.name,
-        posterPath = episode.stillPath,
-        overview = episode.overview,
-        subtitle1 = "Season ${episode.seasonNumber}",
-        subtitle2 = "Episode ${episode.number} · ${episode.name}",
-        releaseDate = episode.airDate,
-        mediaRefs = mediaRefs,
-        wide = true,
-    )
-}
-
-private fun SeasonResponse.toMediaItem(): MediaItem {
-    return MediaItem(
-        mediaId = season.id,
-        contentTitle = show.name,
-        posterPath = season.posterPath,
-        subtitle1 = "Season ${season.seasonNumber}",
-        overview = season.overview,
-        releaseDate = season.airDate,
-        mediaRefs = emptyList(),
-    )
 }

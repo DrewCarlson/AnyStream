@@ -15,20 +15,14 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.models
+package anystream.models.api
 
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-
 @Serializable
-data class PlaybackState(
-    @SerialName("_id")
-    val id: String,
-    val mediaReferenceId: String,
-    val mediaId: String,
-    val userId: String,
-    val position: Long,
-    val duration: Double,
-    val updatedAt: Long = 0L,
+data class MediaLookupResponse(
+    val movie: MovieResponse?,
+    val tvShow: TvShowResponse?,
+    val episode: EpisodeResponse?,
+    val season: SeasonResponse?,
 )

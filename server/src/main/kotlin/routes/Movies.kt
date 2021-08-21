@@ -17,10 +17,7 @@
  */
 package anystream.routes
 
-import anystream.data.UserSession
-import anystream.data.asApiResponse
-import anystream.data.asMovie
-import anystream.data.asPartialMovie
+import anystream.data.*
 import anystream.models.MediaReference
 import anystream.models.Movie
 import anystream.models.Permissions.MANAGE_COLLECTION
@@ -53,6 +50,7 @@ import org.litote.kmongo.coroutine.CoroutineDatabase
 fun Route.addMovieRoutes(
     tmdb: TmdbApi,
     mongodb: CoroutineDatabase,
+    queries: MediaDbQueries,
 ) {
     val moviesDb = mongodb.getCollection<Movie>()
     val mediaRefsDb = mongodb.getCollection<MediaReference>()
@@ -185,21 +183,11 @@ fun Route.addMovieRoutes(
             get {
                 val movieId = call.parameters["movie_id"]
                     ?.takeUnless(String::isNullOrBlank)
-                val movie = movieId?.let { moviesDb.findOneById(it) }
-                val mediaRefs = movieId?.let {
-                    mediaRefsDb.find(MediaReference::contentId eq it)
-                }?.toList().orEmpty()
+                    ?: return@get call.respond(NotFound)
+                val response = queries.findMovieAndMediaRefs(movieId)
+                    ?: return@get call.respond(NotFound)
 
-                if (movie == null) {
-                    call.respond(NotFound)
-                } else {
-                    call.respond(
-                        MovieResponse(
-                            movie = movie,
-                            mediaRefs = mediaRefs
-                        )
-                    )
-                }
+                call.respond(response)
             }
 
             get("/refs") {

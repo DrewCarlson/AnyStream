@@ -17,12 +17,13 @@
  */
 package anystream.routes
 
+import anystream.data.MediaDbQueries
 import anystream.data.UserSession
-import anystream.models.MediaReference
-import anystream.models.Movie
 import anystream.models.Permissions.MANAGE_COLLECTION
 import anystream.models.api.ImportMedia
 import anystream.media.MediaImporter
+import anystream.models.*
+import anystream.models.api.MediaLookupResponse
 import anystream.util.logger
 import anystream.util.withAnyPermission
 import drewcarlson.torrentsearch.Category
@@ -33,7 +34,6 @@ import io.ktor.auth.*
 import io.ktor.http.*
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
-import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.UnprocessableEntity
 import io.ktor.http.cio.websocket.*
 import io.ktor.request.*
@@ -51,11 +51,26 @@ fun Route.addMediaRoutes(
     mongodb: CoroutineDatabase,
     torrentSearch: TorrentSearch,
     importer: MediaImporter,
+    queries: MediaDbQueries,
 ) {
     val moviesDb = mongodb.getCollection<Movie>()
     val mediaRefsDb = mongodb.getCollection<MediaReference>()
     withAnyPermission(MANAGE_COLLECTION) {
         route("/media") {
+            get("/{mediaId}") {
+                val mediaId = call.parameters["mediaId"]
+                    ?: return@get call.respond(NotFound)
+
+                call.respond(
+                    MediaLookupResponse(
+                        movie = queries.findMovieAndMediaRefs(mediaId),
+                        tvShow = queries.findShowAndMediaRefs(mediaId),
+                        episode = queries.findEpisodeAndMediaRefs(mediaId),
+                        season = queries.findSeasonAndMediaRefs(mediaId),
+                    )
+                )
+            }
+
             route("/refs") {
                 get {
                     call.respond(mediaRefsDb.find().toList())

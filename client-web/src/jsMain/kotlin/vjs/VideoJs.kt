@@ -42,6 +42,8 @@ external class VjsPlayer {
     fun play()
     fun pause()
 
+    fun paused(): Boolean
+
     fun controls(show: Boolean)
     fun controls(): Boolean
 
@@ -52,18 +54,30 @@ external class VjsPlayer {
     fun isFullscreen(): Boolean
     fun isFullscreen(isFullscreen: Boolean)
 
+    fun isInPictureInPicture(): Boolean
+    fun requestPictureInPicture()
+    fun exitPictureInPicture()
+
     fun volume(): Float
     fun volume(volume: Float)
 
+    fun muted(): Boolean
+    fun muted(muted: Boolean)
+
     fun currentTime(): Float
     fun currentTime(currentTime: Float)
+
+    fun duration(): Float
+    fun duration(duration: Float)
+
+    fun on(event: String, callback: () -> Unit)
 }
 
 class VjsOptions {
     var preload: String = "auto"
     var src: String? = null
     var poster: String? = null
-    var controls: Boolean = true
+    var controls: Boolean = false
     var autoplay: Any? = null
 }
 

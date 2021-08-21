@@ -27,10 +27,13 @@ import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.*
 import org.litote.kmongo.*
 import org.litote.kmongo.coroutine.CoroutineDatabase
 
 private const val CURRENTLY_WATCHING_ITEM_LIMIT = 10
+private const val POPULAR_MOVIES_REFRESH = 86_400_000L // 24 hours
 
 fun Route.addHomeRoutes(tmdb: TmdbApi, mongodb: CoroutineDatabase) {
     val playbackStatesDb = mongodb.getCollection<PlaybackState>()
@@ -38,6 +41,13 @@ fun Route.addHomeRoutes(tmdb: TmdbApi, mongodb: CoroutineDatabase) {
     val tvShowDb = mongodb.getCollection<TvShow>()
     val episodeDb = mongodb.getCollection<Episode>()
     val mediaRefsDb = mongodb.getCollection<MediaReference>()
+
+    val popularMoviesFlow = flow {
+        while (true) {
+            emit(tmdb.movies.getPopularMovies("en", 1))
+            delay(POPULAR_MOVIES_REFRESH)
+        }
+    }.stateIn(application, SharingStarted.Eagerly, null)
     route("/home") {
         get {
             val session = call.principal<UserSession>()!!
@@ -100,7 +110,7 @@ fun Route.addHomeRoutes(tmdb: TmdbApi, mongodb: CoroutineDatabase) {
                 .toList()
 
             // Popular movies
-            val tmdbPopular = tmdb.movies.getPopularMovies("en", 1)
+            val tmdbPopular = popularMoviesFlow.filterNotNull().first()
             val ids = tmdbPopular.map(MovieDb::getId)
             val existingIds = moviesDb
                 .find(Movie::tmdbId `in` ids)

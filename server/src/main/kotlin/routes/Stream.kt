@@ -196,6 +196,13 @@ fun Route.addStreamWsRoutes(
         val userId = (incoming.receive() as Frame.Text).readText()
         val mediaRefId = call.parameters["media_ref_id"]!!
         val mediaRef = mediaRefs.findOneById(mediaRefId)!!
+        val file = when (mediaRef) {
+            is LocalMediaReference -> mediaRef.filePath
+            is DownloadMediaReference -> mediaRef.filePath
+        }?.run(::File) ?: return@webSocket close()
+
+        val duration = streamManager.getFileDuration(file)
+
         val state = playbackStateDb.findOne(
             PlaybackState::userId eq userId,
             PlaybackState::mediaReferenceId eq mediaRefId
@@ -205,17 +212,13 @@ fun Route.addStreamWsRoutes(
             position = 0,
             userId = userId,
             mediaId = mediaRef.contentId,
+            duration = duration,
             updatedAt = Instant.now().toEpochMilli(),
         ).also {
             playbackStateDb.insertOne(it)
         }
 
-        val file = when (mediaRef) {
-            is LocalMediaReference -> mediaRef.filePath
-            is DownloadMediaReference -> mediaRef.filePath
-        }?.run(::File) ?: return@webSocket close()
 
-        val duration = streamManager.getFileDuration(file)
         if (!streamManager.hasSession(state.id)) {
             val output = File("$transcodePath/$mediaRefId/${state.id}")
             streamManager.startTranscode(
@@ -235,16 +238,18 @@ fun Route.addStreamWsRoutes(
             .filterIsInstance<Frame.Text>()
             .map { frame ->
                 val newState = json.decodeFromString<PlaybackState>(frame.readText())
-                val update = combine(
-                    setValue(PlaybackState::position, newState.position),
-                    setValue(PlaybackState::updatedAt, Instant.now().toEpochMilli()),
+                playbackStateDb.updateOne(
+                    filter = PlaybackState::id eq newState.id,
+                    update = combine(
+                        setValue(PlaybackState::position, newState.position),
+                        setValue(PlaybackState::updatedAt, Instant.now().toEpochMilli()),
+                    )
                 )
-                playbackStateDb.updateOne(PlaybackState::id eq newState.id, update)
                 newState.position
             }
             .lastOrNull() ?: state.position
 
-        val completePercent = (duration / finalPosition * 100).roundToInt()
+        val completePercent = ((finalPosition / duration) * 100).roundToInt()
         val isComplete = completePercent >= PLAYBACK_COMPLETE_PERCENT
         if (isComplete) {
             try {
