@@ -25,5 +25,8 @@ data class PartialTvSeries(
     val name: String,
     val overview: String,
     val firstAirDate: String?,
-    val lastAirDate: String?
+    val lastAirDate: String?,
+    val posterPath: String?,
+    val backdropPath: String?,
+    val isAdded: Boolean,
 )

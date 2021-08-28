@@ -17,12 +17,14 @@
  */
 package anystream.routes
 
+import anystream.data.MediaDbQueries
 import anystream.data.UserSession
 import anystream.data.asApiResponse
 import anystream.models.*
 import anystream.models.api.HomeResponse
 import info.movito.themoviedbapi.TmdbApi
 import info.movito.themoviedbapi.model.MovieDb
+import info.movito.themoviedbapi.model.tv.TvSeries
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.response.*
@@ -35,11 +37,13 @@ import org.litote.kmongo.coroutine.CoroutineDatabase
 private const val CURRENTLY_WATCHING_ITEM_LIMIT = 10
 private const val POPULAR_MOVIES_REFRESH = 86_400_000L // 24 hours
 
-fun Route.addHomeRoutes(tmdb: TmdbApi, mongodb: CoroutineDatabase) {
-    val playbackStatesDb = mongodb.getCollection<PlaybackState>()
+fun Route.addHomeRoutes(
+    tmdb: TmdbApi,
+    mongodb: CoroutineDatabase,
+    queries: MediaDbQueries,
+) {
     val moviesDb = mongodb.getCollection<Movie>()
     val tvShowDb = mongodb.getCollection<TvShow>()
-    val episodeDb = mongodb.getCollection<Episode>()
     val mediaRefsDb = mongodb.getCollection<MediaReference>()
 
     val popularMoviesFlow = flow {
@@ -48,66 +52,23 @@ fun Route.addHomeRoutes(tmdb: TmdbApi, mongodb: CoroutineDatabase) {
             delay(POPULAR_MOVIES_REFRESH)
         }
     }.stateIn(application, SharingStarted.Eagerly, null)
+    val popularTvShowsFlow = flow {
+        while (true) {
+            emit(tmdb.tvSeries.getPopular("en", 1))
+            delay(POPULAR_MOVIES_REFRESH)
+        }
+    }.stateIn(application, SharingStarted.Eagerly, null)
     route("/home") {
         get {
             val session = call.principal<UserSession>()!!
 
             // Currently watching
-            val allPlaybackStates = playbackStatesDb
-                .find(PlaybackState::userId eq session.userId)
-                .sort(descending(PlaybackState::updatedAt))
-                .limit(CURRENTLY_WATCHING_ITEM_LIMIT)
-                .toList()
+            val (playbackStates, playbackStateMovies, playbackStateTv) =
+                queries.findCurrentlyWatching(session.userId, CURRENTLY_WATCHING_ITEM_LIMIT)
 
-            val playbackMediaIds = allPlaybackStates.map(PlaybackState::mediaId)
-
-            val playbackStateMovies = moviesDb
-                .find(Movie::id `in` playbackMediaIds)
-                .toList()
-                .associateBy { movie ->
-                    allPlaybackStates.first { it.mediaId == movie.id }.id
-                }
-
-            val playbackStateEpisodes = episodeDb
-                .find(Episode::id `in` playbackMediaIds)
-                .toList()
-                .distinctBy(Episode::showId)
-
-            val playbackStateTv = tvShowDb
-                .find(TvShow::id `in` playbackStateEpisodes.map(Episode::showId))
-                .toList()
-                .associateBy { show ->
-                    playbackStateEpisodes.first { it.showId == show.id }
-                }
-                .toList()
-                .associateBy { (episode, _) ->
-                    allPlaybackStates.first { it.mediaId == episode.id }.id
-                }
-
-            val playbackStates = allPlaybackStates
-                .filter { state ->
-                    playbackStateEpisodes.any { it.id == state.mediaId } ||
-                            playbackStateMovies.any { (_, movie) -> movie.id == state.mediaId }
-                }
-
-            // Recently Added Movies
-            val recentlyAddedMovies = moviesDb
-                .find()
-                .sort(descending(Movie::added))
-                .limit(20)
-                .toList()
-            val recentlyAddedRefs = mediaRefsDb
-                .find(MediaReference::contentId `in` recentlyAddedMovies.map(Movie::id))
-                .toList()
-            val recentlyAdded = recentlyAddedMovies.associateWith { movie ->
-                recentlyAddedRefs.find { it.contentId == movie.id }
-            }
-
-            val tvShows = tvShowDb
-                .find()
-                .sort(descending(TvShow::added))
-                .limit(20)
-                .toList()
+            // Recently Added
+            val recentlyAddedMovies = queries.findRecentlyAddedMovies(20)
+            val recentlyAddedTvShows = queries.findRecentlyAddedTv(20)
 
             // Popular movies
             val tmdbPopular = popularMoviesFlow.filterNotNull().first()
@@ -132,14 +93,23 @@ fun Route.addHomeRoutes(tmdb: TmdbApi, mongodb: CoroutineDatabase) {
                 }
             }
 
+            val tmdbPopularShows = popularTvShowsFlow.filterNotNull().first()
+            val showIds = tmdbPopularShows.map(TvSeries::getId)
+            val existingShowIds = tvShowDb
+                .find(TvShow::tmdbId `in` showIds)
+                .toList()
+                .map(TvShow::tmdbId)
+            val popularTvShows = tmdbPopularShows.asApiResponse(existingShowIds).items
+
             call.respond(
                 HomeResponse(
                     playbackStates = playbackStates,
                     currentlyWatchingMovies = playbackStateMovies,
                     currentlyWatchingTv = playbackStateTv,
-                    recentlyAdded = recentlyAdded,
+                    recentlyAdded = recentlyAddedMovies,
                     popularMovies = popularMoviesMap,
-                    recentlyAddedTv = tvShows
+                    popularTvShows = popularTvShows,
+                    recentlyAddedTv = recentlyAddedTvShows,
                 )
             )
         }

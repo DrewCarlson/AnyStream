@@ -94,36 +94,6 @@ fun HomeScreen(client: AnyStreamClient) {
             }
         }
 
-        if (popularMovies.isNotEmpty()) {
-            MovieRow(
-                title = { Text("Popular") }
-            ) {
-                popularMovies.forEach { (movie, ref) ->
-                    PosterCard(
-                        title = {
-                            LinkedText(url = "/media/${ref?.contentId ?: "tmdb:${movie.tmdbId}"}") {
-                                Text(movie.title)
-                            }
-                        },
-                        subtitle1 = movie.releaseDate?.run {
-                            { Text(substringBefore("-")) }
-                        },
-                        posterPath = movie.posterPath,
-                        isAdded = ref != null,
-                        onPlayClicked = { window.location.hash = "!play:${ref?.id}" }
-                            .takeIf { ref != null },
-                        onBodyClicked = {
-                            if (ref == null) {
-                                BrowserRouter.navigate("/media/tmdb:${movie.tmdbId}")
-                            } else {
-                                BrowserRouter.navigate("/media/${ref.contentId}")
-                            }
-                        }
-                    )
-                }
-            }
-        }
-
         if (recentlyAdded.isNotEmpty()) {
             MovieRow(
                 title = { Text("Recently Added Movies") }
@@ -167,6 +137,66 @@ fun HomeScreen(client: AnyStreamClient) {
                         onBodyClicked = {
                             BrowserRouter.navigate("/media/${show.id}")
                         }
+                    )
+                }
+            }
+        }
+
+        if (popularMovies.isNotEmpty()) {
+            MovieRow(
+                title = { Text("Popular Movies") }
+            ) {
+                popularMovies.forEach { (movie, ref) ->
+                    PosterCard(
+                        title = {
+                            LinkedText(url = "/media/${ref?.contentId ?: "tmdb:${movie.tmdbId}"}") {
+                                Text(movie.title)
+                            }
+                        },
+                        subtitle1 = movie.releaseDate?.run {
+                            { Text(substringBefore("-")) }
+                        },
+                        posterPath = movie.posterPath,
+                        isAdded = ref != null,
+                        onPlayClicked = { window.location.hash = "!play:${ref?.id}" }
+                            .takeIf { ref != null },
+                        onBodyClicked = {
+                            if (ref == null) {
+                                BrowserRouter.navigate("/media/tmdb:${movie.tmdbId}")
+                            } else {
+                                BrowserRouter.navigate("/media/${ref.contentId}")
+                            }
+                        }
+                    )
+                }
+            }
+        }
+
+        if (popularTvShows.isNotEmpty()) {
+            MovieRow(
+                title = { Text("Popular TV") }
+            ) {
+                popularTvShows.forEach { tvShow ->
+                    PosterCard(
+                        title = {
+                            LinkedText(url = "/media/${"tmdb:${tvShow.tmdbId}"}") {
+                                Text(tvShow.name)
+                            }
+                        },
+                        subtitle1 = tvShow.firstAirDate?.run {
+                            { Text(substringBefore("-")) }
+                        },
+                        posterPath = tvShow.posterPath,
+                        isAdded = tvShow.isAdded,
+                        /*onPlayClicked = { window.location.hash = "!play:${ref?.id}" }
+                            .takeIf { ref != null },
+                        onBodyClicked = {
+                            if (ref == null) {
+                                BrowserRouter.navigate("/media/tmdb:${movie.tmdbId}")
+                            } else {
+                                BrowserRouter.navigate("/media/${ref.contentId}")
+                            }
+                        }*/
                     )
                 }
             }

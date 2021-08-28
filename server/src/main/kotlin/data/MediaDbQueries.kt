@@ -23,9 +23,6 @@ import anystream.models.api.MovieResponse
 import anystream.models.api.SeasonResponse
 import anystream.models.api.TvShowResponse
 import com.mongodb.MongoException
-import io.ktor.application.*
-import io.ktor.http.*
-import io.ktor.response.*
 import org.litote.kmongo.*
 import org.litote.kmongo.coroutine.CoroutineDatabase
 
@@ -37,7 +34,7 @@ class MediaDbQueries(
     private val tvShowDb = mongodb.getCollection<TvShow>()
     private val episodeDb = mongodb.getCollection<Episode>()
     private val mediaRefsDb = mongodb.getCollection<MediaReference>()
-    private val playbackStateDb = mongodb.getCollection<PlaybackState>()
+    private val playbackStatesDb = mongodb.getCollection<PlaybackState>()
 
     suspend fun createIndexes() {
         try {
@@ -48,7 +45,7 @@ class MediaDbQueries(
             episodeDb.ensureIndex(Episode::name.textIndex())
             episodeDb.ensureIndex(Episode::showId)
             mediaRefsDb.ensureIndex(MediaReference::contentId)
-            playbackStateDb.ensureIndex(PlaybackState::userId)
+            playbackStatesDb.ensureIndex(PlaybackState::userId)
         } catch (e: MongoException) {
             println("Failed to create search indexes")
             e.printStackTrace()
@@ -118,4 +115,77 @@ class MediaDbQueries(
             mediaRefs = mediaRefs,
         )
     }
+
+    suspend fun findCurrentlyWatching(userId: String, limit: Int): CurrentlyWatchingQueryResults {
+        val allPlaybackStates = playbackStatesDb
+            .find(PlaybackState::userId eq userId)
+            .sort(descending(PlaybackState::updatedAt))
+            .limit(limit)
+            .toList()
+
+        val playbackMediaIds = allPlaybackStates.map(PlaybackState::mediaId)
+
+        val playbackStateMovies = moviesDb
+            .find(Movie::id `in` playbackMediaIds)
+            .toList()
+            .associateBy { movie ->
+                allPlaybackStates.first { it.mediaId == movie.id }.id
+            }
+
+        val playbackStateEpisodes = episodeDb
+            .find(Episode::id `in` playbackMediaIds)
+            .toList()
+            .distinctBy(Episode::showId)
+
+        val playbackStateTv = tvShowDb
+            .find(TvShow::id `in` playbackStateEpisodes.map(Episode::showId))
+            .toList()
+            .associateBy { show ->
+                playbackStateEpisodes.first { it.showId == show.id }
+            }
+            .toList()
+            .associateBy { (episode, _) ->
+                allPlaybackStates.first { it.mediaId == episode.id }.id
+            }
+
+        val playbackStates = allPlaybackStates
+            .filter { state ->
+                playbackStateEpisodes.any { it.id == state.mediaId } ||
+                        playbackStateMovies.any { (_, movie) -> movie.id == state.mediaId }
+            }
+
+        return CurrentlyWatchingQueryResults(
+            playbackStates = playbackStates,
+            currentlyWatchingMovies = playbackStateMovies,
+            currentlyWatchingTv = playbackStateTv,
+        )
+    }
+
+    suspend fun findRecentlyAddedMovies(limit: Int): Map<Movie, MediaReference?> {
+        val recentlyAddedMovies = moviesDb
+            .find()
+            .sort(descending(Movie::added))
+            .limit(limit)
+            .toList()
+        val recentlyAddedRefs = mediaRefsDb
+            .find(MediaReference::contentId `in` recentlyAddedMovies.map(Movie::id))
+            .toList()
+        return recentlyAddedMovies.associateWith { movie ->
+            recentlyAddedRefs.find { it.contentId == movie.id }
+        }
+    }
+
+    suspend fun findRecentlyAddedTv(limit: Int): List<TvShow> {
+        return tvShowDb
+            .find()
+            .sort(descending(TvShow::added))
+            .limit(limit)
+            .toList()
+    }
+
+    data class CurrentlyWatchingQueryResults(
+        val playbackStates: List<PlaybackState>,
+        val currentlyWatchingMovies: Map<String, Movie>,
+        val currentlyWatchingTv: Map<String, Pair<Episode, TvShow>>,
+    )
 }

@@ -85,25 +85,31 @@ fun MovieDb.asMovie(
     addedByUserId = userId
 )
 
-fun TvResultsPage.asApiResponse() =
-    when (results) {
+fun TvResultsPage.asApiResponse(existingRecordIds: List<Int>): TmdbTvShowResponse {
+    val ids = existingRecordIds.toMutableList()
+    return when (results) {
         null -> TmdbTvShowResponse()
         else -> TmdbTvShowResponse(
-            items = results.map { it.asPartialTvSeries() },
+            items = results.map { it.asPartialTvSeries(ids) },
             itemTotal = totalResults,
             page = page,
             pageTotal = totalPages
         )
     }
+}
 
-fun TvSeries.asPartialTvSeries() = PartialTvSeries(
+fun TvSeries.asPartialTvSeries(
+    existingRecordIds: MutableList<Int>? = null
+) = PartialTvSeries(
     tmdbId = id,
     name = name,
     overview = overview,
     firstAirDate = firstAirDate,
-    lastAirDate = lastAirDate
+    lastAirDate = lastAirDate,
+    posterPath = posterPath,
+    backdropPath = backdropPath,
+    isAdded = existingRecordIds?.remove(id) ?: false
 )
-
 
 fun TvSeries.asCompleteTvSeries() = CompleteTvSeries(
     tmdbId = id,

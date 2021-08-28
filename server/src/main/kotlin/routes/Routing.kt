@@ -79,7 +79,7 @@ fun Application.installRouting(mongodb: CoroutineDatabase) {
         route("/api") {
             addUserRoutes(mongodb)
             authenticate {
-                addHomeRoutes(tmdb, mongodb)
+                addHomeRoutes(tmdb, mongodb, queries)
                 withAnyPermission(Permissions.VIEW_COLLECTION) {
                     addTvShowRoutes(tmdb, mongodb, queries)
                     addMovieRoutes(tmdb, mongodb, queries)

@@ -62,7 +62,7 @@ fun Route.addTvShowRoutes(
                 val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
                 try {
                     val tmdbShows = tmdb.tvSeries.getPopular("en", page)
-                    call.respond(tmdbShows.asApiResponse())
+                    call.respond(tmdbShows.asApiResponse(emptyList()))
                 } catch (e: Throwable) {
                     // TODO: Decompose this exception and retry where possible
                     logger.error("Error fetching popular series from TMDB - page=$page", e)
@@ -97,7 +97,7 @@ fun Route.addTvShowRoutes(
                 } else {
                     try {
                         val shows = tmdb.search.searchTv(query, null, page)
-                        call.respond(shows.asApiResponse())
+                        call.respond(shows.asApiResponse(emptyList()))
                     } catch (e: Throwable) {
                         // TODO: Decompose this exception and retry where possible
                         logger.error("Error searching TMDB - page=$page, query='$query'", e)
