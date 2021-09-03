@@ -165,6 +165,7 @@ fun PlayerScreen(
                 style {
                     cursor(if (areControlsVisible) "pointer" else "none")
                 }
+                attr("poster", "https://image.tmdb.org/t/p/w1920_and_h800_multi_faces${mediaItem.value?.backdropPath}")
                 onClick {
                     if (player?.paused() == true) {
                         player?.play()
