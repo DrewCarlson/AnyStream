@@ -183,6 +183,41 @@ class MediaDbQueries(
             .toList()
     }
 
+    suspend fun findMediaRefByFilePath(path: String): MediaReference? {
+        return mediaRefsDb.findOne(LocalMediaReference::filePath eq path)
+    }
+
+    suspend fun findMovieByTmdbId(tmdbId: Int): Movie? {
+        return moviesDb.findOne(Movie::tmdbId eq tmdbId)
+    }
+    
+    suspend fun findTvShowByTmdbId(tmdbId: Int): TvShow? {
+        return tvShowDb.findOne(Movie::tmdbId eq tmdbId)
+    }
+
+    suspend fun findEpisodesByShow(showId: String): List<Episode> {
+        return episodeDb.find(Episode::showId eq showId).toList()
+    }
+
+    suspend fun insertMediaReference(mediaReference: MediaReference) {
+        mediaRefsDb.insertOne(mediaReference)
+    }
+
+    suspend fun insertMediaReferences(mediaReferences: List<MediaReference>) {
+        mediaRefsDb.insertMany(mediaReferences)
+    }
+
+    suspend fun insertMovie(movie: Movie) {
+        moviesDb.insertOne(movie)
+    }
+
+    suspend fun insertTvShow(tvShow: TvShow, episodes: List<Episode> = emptyList()) {
+        tvShowDb.insertOne(tvShow)
+        if (episodes.isNotEmpty()) {
+            episodeDb.insertMany(episodes)
+        }
+    }
+
     data class CurrentlyWatchingQueryResults(
         val playbackStates: List<PlaybackState>,
         val currentlyWatchingMovies: Map<String, Movie>,

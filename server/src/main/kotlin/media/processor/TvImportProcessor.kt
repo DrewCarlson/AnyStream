@@ -17,6 +17,7 @@
  */
 package anystream.media.processor
 
+import anystream.data.MediaDbQueries
 import anystream.media.MediaImportProcessor
 import anystream.models.*
 import anystream.models.api.ImportMediaResult
@@ -30,8 +31,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.toList
 import org.bson.types.ObjectId
-import org.litote.kmongo.coroutine.CoroutineDatabase
-import org.litote.kmongo.eq
 import org.slf4j.Logger
 import org.slf4j.Marker
 import java.io.File
@@ -39,14 +38,10 @@ import java.time.Instant
 
 class TvImportProcessor(
     private val tmdb: TmdbApi,
-    mongodb: CoroutineDatabase,
+    private val queries: MediaDbQueries,
     private val scope: CoroutineScope,
     private val logger: Logger,
 ) : MediaImportProcessor {
-
-    private val tvShowDb = mongodb.getCollection<TvShow>()
-    private val episodeDb = mongodb.getCollection<Episode>()
-    private val mediaRefDb = mongodb.getCollection<MediaReference>()
 
     override val mediaKinds: List<MediaKind> = listOf(MediaKind.TV)
 
@@ -67,13 +62,15 @@ class TvImportProcessor(
         }
 
         val existingRef = try {
-            mediaRefDb.findOne(LocalMediaReference::filePath eq contentFile.absolutePath)
+            queries.findMediaRefByFilePath(contentFile.absolutePath)
         } catch (e: MongoQueryException) {
             return ImportMediaResult.ErrorDatabaseException(e.stackTraceToString())
         }
         if (existingRef != null) {
             logger.debug(marker, "Content file reference already exists")
-            return ImportMediaResult.ErrorMediaRefAlreadyExists(existingRef.id)
+            // NOTE: only tv show folders can be imported, if already imported
+            // we still need to find new episode files
+            //return ImportMediaResult.ErrorMediaRefAlreadyExists(existingRef.id)
         }
 
         // TODO: Improve query capabilities
@@ -94,9 +91,9 @@ class TvImportProcessor(
             logger.debug(marker, "Detected media as ${id}:'${name}' (${firstAirDate})")
         }
 
-        val existingRecord = tvShowDb.findOne(TvShow::tmdbId eq tmdbShow.id)
+        val existingRecord = queries.findTvShowByTmdbId(tmdbShow.id)
         val (show, episodes) = existingRecord?.let { show ->
-            show to episodeDb.find(Episode::showId eq show.id).toList()
+            show to queries.findEpisodesByShow(show.id)
         } ?: try {
             logger.debug(marker, "Show data import required")
             importShow(tmdbShow.id)
@@ -108,7 +105,7 @@ class TvImportProcessor(
             return ImportMediaResult.ErrorDataProviderException(e.stackTraceToString())
         }
 
-        val mediaRef = LocalMediaReference(
+        val mediaRef = existingRef ?: LocalMediaReference(
             id = ObjectId.get().toString(),
             contentId = show.id,
             added = Instant.now().toEpochMilli(),
@@ -116,12 +113,13 @@ class TvImportProcessor(
             filePath = contentFile.absolutePath,
             mediaKind = MediaKind.TV,
             directory = true,
-        )
-        try {
-            mediaRefDb.insertOne(mediaRef)
-        } catch (e: MongoException) {
-            logger.debug(marker, "Failed to create media reference", e)
-            return ImportMediaResult.ErrorDatabaseException(e.stackTraceToString())
+        ).also { mediaRef ->
+            try {
+                queries.insertMediaReference(mediaRef)
+            } catch (e: MongoException) {
+                logger.debug(marker, "Failed to create media reference", e)
+                return ImportMediaResult.ErrorDatabaseException(e.stackTraceToString())
+            }
         }
 
         val subFolders = contentFile.listFiles()?.toList().orEmpty()
@@ -209,8 +207,7 @@ class TvImportProcessor(
             }
         )
 
-        tvShowDb.insertOne(show)
-        episodeDb.insertMany(episodes)
+        queries.insertTvShow(show, episodes)
         return show to episodes
     }
 
@@ -220,7 +217,8 @@ class TvImportProcessor(
         episodes: List<Episode>,
         marker: Marker,
     ): ImportMediaResult {
-        val mediaRef = LocalMediaReference(
+        val existingMediaRef = queries.findMediaRefByFilePath(absolutePath)
+        val mediaRef = existingMediaRef ?: LocalMediaReference(
             id = ObjectId.get().toString(),
             contentId = season.id,
             added = Instant.now().toEpochMilli(),
@@ -228,12 +226,13 @@ class TvImportProcessor(
             filePath = absolutePath,
             mediaKind = MediaKind.TV,
             directory = true,
-        )
-        try {
-            mediaRefDb.insertOne(mediaRef)
-        } catch (e: MongoException) {
-            logger.debug(marker, "Failed to create season media ref", e)
-            return ImportMediaResult.ErrorDatabaseException(e.stackTraceToString())
+        ).also { mediaRef ->
+            try {
+                queries.insertMediaReference(mediaRef)
+            } catch (e: MongoException) {
+                logger.debug(marker, "Failed to create season media ref", e)
+                return ImportMediaResult.ErrorDatabaseException(e.stackTraceToString())
+            }
         }
 
         val episodeFiles = listFiles()?.toList().orEmpty()
@@ -248,6 +247,8 @@ class TvImportProcessor(
                 episode.seasonNumber == seasonNumber.toIntOrNull() &&
                         episode.number == episodeNumber.toIntOrNull()
             }
+        }.filter { (file, _) ->
+            queries.findMediaRefByFilePath(file.absolutePath) == null
         }
 
         val episodeRefs = episodeFileMatches
@@ -267,7 +268,7 @@ class TvImportProcessor(
             }
         val results = try {
             if (episodeRefs.isNotEmpty()) {
-                mediaRefDb.insertMany(episodeRefs)
+                queries.insertMediaReferences(episodeRefs)
                 episodeRefs.map { ref ->
                     ImportMediaResult.Success(
                         mediaId = ref.contentId,

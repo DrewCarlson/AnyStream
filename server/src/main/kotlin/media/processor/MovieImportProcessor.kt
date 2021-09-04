@@ -17,19 +17,16 @@
  */
 package anystream.media.processor
 
+import anystream.data.MediaDbQueries
 import anystream.data.asMovie
 import anystream.media.MediaImportProcessor
 import anystream.models.LocalMediaReference
-import anystream.models.MediaReference
 import anystream.models.MediaKind
-import anystream.models.Movie
 import anystream.models.api.ImportMediaResult
 import com.mongodb.MongoException
 import info.movito.themoviedbapi.TmdbApi
 import info.movito.themoviedbapi.TmdbMovies
 import org.bson.types.ObjectId
-import org.litote.kmongo.coroutine.CoroutineDatabase
-import org.litote.kmongo.eq
 import org.slf4j.Logger
 import org.slf4j.Marker
 import java.io.File
@@ -37,12 +34,10 @@ import java.time.Instant
 
 class MovieImportProcessor(
     private val tmdb: TmdbApi,
-    mongodb: CoroutineDatabase,
+    private val queries: MediaDbQueries,
     private val logger: Logger,
 ) : MediaImportProcessor {
 
-    private val moviesDb = mongodb.getCollection<Movie>()
-    private val mediaRefs = mongodb.getCollection<MediaReference>()
     private val yearRegex = "\\((\\d\\d\\d\\d)\\)".toRegex()
 
     override val mediaKinds: List<MediaKind> = listOf(MediaKind.MOVIE)
@@ -72,7 +67,7 @@ class MovieImportProcessor(
         }
 
         val existingRef = try {
-            mediaRefs.findOne(LocalMediaReference::filePath eq movieFile.absolutePath)
+            queries.findMediaRefByFilePath(movieFile.absolutePath)
         } catch (e: MongoException) {
             return ImportMediaResult.ErrorDatabaseException(e.stackTraceToString())
         }
@@ -106,7 +101,7 @@ class MovieImportProcessor(
             logger.debug(marker, "Detected media as ${id}:'${title}' (${releaseDate})")
         }
 
-        val existingRecord = moviesDb.findOne(Movie::tmdbId eq tmdbMovie.id)
+        val existingRecord = queries.findMovieByTmdbId(tmdbMovie.id)
         return if (existingRecord == null) {
             logger.debug(marker, "Movie data import required")
             movieFile.importMovie(userId, tmdbMovie.id, marker)
@@ -122,7 +117,7 @@ class MovieImportProcessor(
                     mediaKind = MediaKind.MOVIE,
                     directory = false,
                 )
-                mediaRefs.insertOne(reference)
+                queries.insertMediaReference(reference)
                 ImportMediaResult.Success(existingRecord.id, reference)
             } catch (e: MongoException) {
                 logger.debug(marker, "Failed to create media reference", e)
@@ -161,8 +156,8 @@ class MovieImportProcessor(
                 mediaKind = MediaKind.MOVIE,
                 directory = false,
             )
-            moviesDb.insertOne(movie.asMovie(movieId, userId))
-            mediaRefs.insertOne(reference)
+            queries.insertMovie(movie.asMovie(movieId, userId))
+            queries.insertMediaReference(reference)
             logger.debug(
                 marker,
                 "Movie and media ref created movieId=$movieId, mediaRefId=${reference.id}"

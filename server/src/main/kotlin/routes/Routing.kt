@@ -28,7 +28,6 @@ import anystream.util.SinglePageApp
 import anystream.util.withAnyPermission
 import com.github.kokorin.jaffree.ffmpeg.FFmpeg
 import com.github.kokorin.jaffree.ffprobe.FFprobe
-import com.mongodb.MongoException
 import drewcarlson.qbittorrent.QBittorrentClient
 import drewcarlson.torrentsearch.TorrentSearch
 import info.movito.themoviedbapi.TmdbApi
@@ -37,7 +36,6 @@ import io.ktor.auth.*
 import io.ktor.routing.*
 import kotlinx.coroutines.*
 import org.litote.kmongo.coroutine.CoroutineDatabase
-import org.litote.kmongo.textIndex
 import java.nio.file.Path
 
 fun Application.installRouting(mongodb: CoroutineDatabase) {
@@ -60,20 +58,20 @@ fun Application.installRouting(mongodb: CoroutineDatabase) {
     val ffmpeg = { FFmpeg.atPath(Path.of(ffmpegPath)) }
     val ffprobe = { FFprobe.atPath(Path.of(ffmpegPath)) }
 
+    val queries = MediaDbQueries(mongodb)
+    launch { queries.createIndexes() }
+
     val mediaRefs = mongodb.getCollection<MediaReference>()
 
     val importScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     val processors = listOf(
-        MovieImportProcessor(tmdb, mongodb, log),
-        TvImportProcessor(tmdb, mongodb, importScope, log),
+        MovieImportProcessor(tmdb, queries, log),
+        TvImportProcessor(tmdb, queries, importScope, log),
     )
     val importer = MediaImporter(tmdb, ffprobe, processors, mediaRefs, importScope, log)
 
     val streamManager = StreamManager(ffmpeg, ffprobe, log)
 
-    val queries = MediaDbQueries(mongodb)
-
-    launch { queries.createIndexes() }
 
     routing {
         route("/api") {
