@@ -41,8 +41,6 @@ import io.ktor.response.respond
 import io.ktor.routing.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.flow.*
-import kotlinx.serialization.json.buildJsonArray
-import kotlinx.serialization.json.encodeToJsonElement
 import org.litote.kmongo.*
 import org.litote.kmongo.coroutine.CoroutineDatabase
 
@@ -92,19 +90,11 @@ fun Route.addMediaRoutes(
                     ?: return@post call.respond(UnprocessableEntity)
                 val importAll = call.parameters["importAll"]?.toBoolean() ?: false
 
-                call.respond(
-                    if (importAll) {
-                        val list = importer.importAll(session.userId, import).toList()
-                        // TODO: List with different types cannot be serialized yet.
-                        buildJsonArray {
-                            list.forEach {
-                                add(anystream.json.encodeToJsonElement(it))
-                            }
-                        }
-                    } else {
-                        importer.import(session.userId, import)
-                    }
-                )
+                if (importAll) {
+                    call.respond(importer.importAll(session.userId, import).toList())
+                } else {
+                    call.respond(importer.import(session.userId, import))
+                }
             }
 
             post("/unmapped") {
