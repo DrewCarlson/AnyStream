@@ -87,7 +87,11 @@ class TvImportProcessor(
             return ImportMediaResult.ErrorMediaMatchNotFound(contentFile.path, query)
         }
 
-        val tmdbShow = response.results.first().apply {
+        val tmdbShow = response.results
+            .maxByOrNull { it.name.equals(query, true) }
+            ?: response.results.first()
+
+        with(tmdbShow) {
             logger.debug(marker, "Detected media as ${id}:'${name}' (${firstAirDate})")
         }
 
