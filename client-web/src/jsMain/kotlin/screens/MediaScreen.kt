@@ -17,21 +17,17 @@
  */
 package anystream.frontend.screens
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
+import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
 import anystream.frontend.components.LinkedText
 import anystream.frontend.components.PosterCard
 import anystream.frontend.models.MediaItem
 import anystream.frontend.models.toMediaItem
-import anystream.models.Episode
-import anystream.models.MediaReference
-import anystream.models.StreamEncodingDetails
-import anystream.models.TvSeason
+import anystream.models.*
 import anystream.models.api.*
 import app.softwork.routingcompose.BrowserRouter
 import kotlinx.browser.window
+import kotlinx.coroutines.flow.*
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 
@@ -40,12 +36,24 @@ fun MediaScreen(
     client: AnyStreamClient,
     mediaId: String,
 ) {
-    val mediaResponse by produceState<MediaLookupResponse?>(null, mediaId) {
-        value = try {
+    val lookupIdFlow = remember(mediaId) { MutableStateFlow<Int?>(null) }
+    val refreshMetadata: () -> Unit = { lookupIdFlow.update { (it ?: 0) + 1 } }
+    var mediaResponse by remember(mediaId) { mutableStateOf<MediaLookupResponse?>(null) }
+    LaunchedEffect(mediaId) {
+        mediaResponse = try {
             client.lookupMedia(mediaId)
         } catch (e: Throwable) {
             null
         }
+        lookupIdFlow
+            .filterNotNull()
+            .debounce(1_000L)
+            .collect {
+                try {
+                    mediaResponse = client.refreshMetadata(mediaId)
+                } catch (_: Throwable) {
+                }
+            }
     }
 
     Div({
@@ -57,13 +65,17 @@ fun MediaScreen(
     }) {
         mediaResponse?.movie?.let { response ->
             BaseDetailsView(
-                mediaItem = response.toMediaItem()
+                mediaItem = response.toMediaItem(),
+                refreshMetadata = refreshMetadata,
+                client = client,
             )
         }
 
         mediaResponse?.tvShow?.let { response ->
             BaseDetailsView(
-                mediaItem = response.toMediaItem()
+                mediaItem = response.toMediaItem(),
+                refreshMetadata = refreshMetadata,
+                client = client,
             )
 
             if (response.tvShow.seasons.isNotEmpty()) {
@@ -73,7 +85,9 @@ fun MediaScreen(
 
         mediaResponse?.season?.let { response ->
             BaseDetailsView(
-                mediaItem = response.toMediaItem()
+                mediaItem = response.toMediaItem(),
+                refreshMetadata = refreshMetadata,
+                client = client,
             )
 
             if (response.episodes.isNotEmpty()) {
@@ -86,7 +100,9 @@ fun MediaScreen(
 
         mediaResponse?.episode?.let { response ->
             BaseDetailsView(
-                mediaItem = response.toMediaItem()
+                mediaItem = response.toMediaItem(),
+                refreshMetadata = refreshMetadata,
+                client = client,
             )
         }
     }
@@ -95,6 +111,8 @@ fun MediaScreen(
 @Composable
 private fun BaseDetailsView(
     mediaItem: MediaItem,
+    refreshMetadata: () -> Unit,
+    client: AnyStreamClient,
 ) {
     Div({
         style {
@@ -124,7 +142,24 @@ private fun BaseDetailsView(
                 flexGrow(1)
             }
         }) {
-            Div { H3 { Text(mediaItem.contentTitle) } }
+            Div({
+                style {
+                    display(DisplayStyle.Flex)
+                    flexDirection(FlexDirection.Row)
+                    alignItems(AlignItems.Center)
+                }
+            }) {
+                H3 { Text(mediaItem.contentTitle) }
+                if (client.userPermissions().contains(Permissions.MANAGE_COLLECTION)) {
+                    I({
+                        classes("bi", "bi-arrow-repeat", "p-1")
+                        style {
+                            cursor("pointer")
+                            onClick { refreshMetadata() }
+                        }
+                    })
+                }
+            }
             mediaItem.subtitle1?.also { subtitle1 ->
                 Div { H5 { Text(subtitle1) } }
             }

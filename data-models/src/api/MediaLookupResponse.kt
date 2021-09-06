@@ -21,8 +21,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class MediaLookupResponse(
-    val movie: MovieResponse?,
-    val tvShow: TvShowResponse?,
-    val episode: EpisodeResponse?,
-    val season: SeasonResponse?,
+    val movie: MovieResponse? = null,
+    val tvShow: TvShowResponse? = null,
+    val episode: EpisodeResponse? = null,
+    val season: SeasonResponse? = null,
 )

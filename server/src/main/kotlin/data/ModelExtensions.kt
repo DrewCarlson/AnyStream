@@ -17,8 +17,7 @@
  */
 package anystream.data
 
-import anystream.models.Image
-import anystream.models.Movie
+import anystream.models.*
 import anystream.models.api.TmdbMoviesResponse
 import anystream.models.api.TmdbTvShowResponse
 import anystream.models.tmdb.CompleteTvSeries
@@ -29,8 +28,11 @@ import info.movito.themoviedbapi.model.ArtworkType
 import info.movito.themoviedbapi.model.MovieDb
 import info.movito.themoviedbapi.model.core.MovieResultsPage
 import info.movito.themoviedbapi.model.keywords.Keyword
+import info.movito.themoviedbapi.model.tv.TvEpisode
 import info.movito.themoviedbapi.model.tv.TvSeries
+import org.bson.types.ObjectId
 import java.time.Instant
+import info.movito.themoviedbapi.model.tv.TvSeason as TvSeasonDb
 
 private const val MAX_CACHED_POSTERS = 5
 
@@ -84,6 +86,64 @@ fun MovieDb.asMovie(
     added = Instant.now().toEpochMilli(),
     addedByUserId = userId
 )
+
+fun TvSeries.asTvShow(
+    tmdbSeasons: List<TvSeasonDb>,
+    id: String,
+    userId: String,
+    createId: (id: Int) -> String = { ObjectId.get().toString() },
+): Pair<TvShow, List<Episode>> {
+    val episodes = tmdbSeasons.flatMap { season ->
+        season.episodes.map { episode ->
+            episode.asTvEpisode(createId(episode.id), id, userId)
+        }
+    }
+    val seasons = tmdbSeasons.map { season ->
+        season.asTvSeason(createId(season.id), userId)
+    }
+    return asTvShow(seasons, id, userId) to episodes
+}
+
+fun TvEpisode.asTvEpisode(id: String, showId: String, userId: String): Episode {
+    return Episode(
+        id = id,
+        tmdbId = this.id,
+        name = name,
+        overview = overview,
+        airDate = airDate ?: "",
+        number = episodeNumber,
+        seasonNumber = seasonNumber,
+        showId = showId,
+        stillPath = stillPath ?: ""
+    )
+}
+
+fun TvSeasonDb.asTvSeason(id: String, userId: String): TvSeason {
+    return TvSeason(
+        id = id,
+        tmdbId = this.id,
+        name = name,
+        overview = overview,
+        seasonNumber = seasonNumber,
+        airDate = airDate ?: "",
+        posterPath = posterPath ?: "",
+    )
+}
+
+fun TvSeries.asTvShow(seasons: List<TvSeason>, id: String, userId: String): TvShow {
+    return TvShow(
+        id = id,
+        name = name,
+        tmdbId = this.id,
+        overview = overview,
+        firstAirDate = firstAirDate ?: "",
+        numberOfSeasons = numberOfSeasons,
+        numberOfEpisodes = numberOfEpisodes,
+        posterPath = posterPath ?: "",
+        added = Instant.now().toEpochMilli(),
+        seasons = seasons
+    )
+}
 
 fun TvResultsPage.asApiResponse(existingRecordIds: List<Int>): TmdbTvShowResponse {
     val ids = existingRecordIds.toMutableList()

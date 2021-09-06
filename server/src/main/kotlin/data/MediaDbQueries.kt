@@ -18,13 +18,11 @@
 package anystream.data
 
 import anystream.models.*
-import anystream.models.api.EpisodeResponse
-import anystream.models.api.MovieResponse
-import anystream.models.api.SeasonResponse
-import anystream.models.api.TvShowResponse
+import anystream.models.api.*
 import com.mongodb.MongoException
 import org.litote.kmongo.*
 import org.litote.kmongo.coroutine.CoroutineDatabase
+import org.litote.kmongo.coroutine.updateOne
 
 class MediaDbQueries(
     mongodb: CoroutineDatabase
@@ -187,16 +185,52 @@ class MediaDbQueries(
         return mediaRefsDb.findOne(LocalMediaReference::filePath eq path)
     }
 
+    suspend fun findMediaRefsByContentId(mediaId: String): List<MediaReference> {
+        return mediaRefsDb.find(MediaReference::contentId eq mediaId).toList()
+    }
+
+    suspend fun findMediaRefsByRootContentId(rootMediaId: String): List<MediaReference> {
+        return mediaRefsDb.find(MediaReference::rootContentId eq rootMediaId).toList()
+    }
+
     suspend fun findMovieByTmdbId(tmdbId: Int): Movie? {
         return moviesDb.findOne(Movie::tmdbId eq tmdbId)
     }
-    
+
+    suspend fun findTvShowById(showId: String): TvShow? {
+        return tvShowDb.findOneById(showId)
+    }
+
+    suspend fun findTvShowBySeasonId(seasonId: String): TvShow? {
+        return tvShowDb.findOne(TvShow::seasons elemMatch (TvSeason::id eq seasonId))
+    }
+
     suspend fun findTvShowByTmdbId(tmdbId: Int): TvShow? {
-        return tvShowDb.findOne(Movie::tmdbId eq tmdbId)
+        return tvShowDb.findOne(TvShow::tmdbId eq tmdbId)
     }
 
     suspend fun findEpisodesByShow(showId: String): List<Episode> {
         return episodeDb.find(Episode::showId eq showId).toList()
+    }
+
+    suspend fun findEpisodesBySeason(seasonId: String): List<Episode> {
+        val show = findTvShowBySeasonId(seasonId) ?: return emptyList()
+        val seasonNumber = show.seasons.first { it.id == seasonId }.seasonNumber
+        return episodeDb.find(
+            Episode::showId eq show.id,
+            Episode::seasonNumber eq seasonNumber,
+        ).toList()
+    }
+
+    suspend fun findMediaById(mediaId: String): FindMediaResult {
+        return FindMediaResult(
+            movie = moviesDb.findOneById(mediaId),
+            tvShow = tvShowDb.findOneById(mediaId),
+            episode = episodeDb.findOneById(mediaId),
+            season = tvShowDb.findOne(TvShow::seasons elemMatch (TvSeason::id eq mediaId))
+                ?.seasons
+                ?.firstOrNull { it.id == mediaId },
+        )
     }
 
     suspend fun insertMediaReference(mediaReference: MediaReference) {
@@ -218,9 +252,48 @@ class MediaDbQueries(
         }
     }
 
+    suspend fun updateMovie(movie: Movie): Boolean {
+        return moviesDb.updateOne(movie).modifiedCount > 0
+    }
+
+    suspend fun updateTvShow(tvShow: TvShow): Boolean {
+        return tvShowDb.updateOne(tvShow).modifiedCount > 0
+    }
+
+    suspend fun updateTvSeason(tvSeason: TvSeason): Boolean {
+        return tvShowDb.updateOne(
+            TvShow::seasons elemMatch (TvSeason::id eq tvSeason.id),
+            set(TvShow::seasons.posOp setTo tvSeason)
+        ).modifiedCount > 0
+    }
+
+    suspend fun updateTvEpisode(episode: Episode): Boolean {
+        return episodeDb.updateOne(episode).modifiedCount > 0
+    }
+
+    suspend fun updateTvEpisodes(episodes: List<Episode>): Boolean {
+        val updates = episodes.map { episode ->
+            replaceOne(Episode::id eq episode.id, episode)
+        }
+        return episodeDb.bulkWrite(updates).run {
+            modifiedCount > 0 || deletedCount > 0 || insertedCount > 0
+        }
+    }
+
     data class CurrentlyWatchingQueryResults(
         val playbackStates: List<PlaybackState>,
         val currentlyWatchingMovies: Map<String, Movie>,
         val currentlyWatchingTv: Map<String, Pair<Episode, TvShow>>,
     )
+
+    data class FindMediaResult(
+        val movie: Movie? = null,
+        val tvShow: TvShow? = null,
+        val episode: Episode? = null,
+        val season: TvSeason? = null,
+    ) {
+        fun hasResult(): Boolean {
+            return movie != null || tvShow != null || episode != null || season != null
+        }
+    }
 }

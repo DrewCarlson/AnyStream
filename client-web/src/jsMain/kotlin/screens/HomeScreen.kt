@@ -149,7 +149,7 @@ fun HomeScreen(client: AnyStreamClient) {
                 popularMovies.forEach { (movie, ref) ->
                     PosterCard(
                         title = {
-                            LinkedText(url = "/media/${ref?.contentId ?: "tmdb:${movie.tmdbId}"}") {
+                            LinkedText(url = "/media/${ref?.contentId ?: "tmdb:movie:${movie.tmdbId}"}") {
                                 Text(movie.title)
                             }
                         },
@@ -162,7 +162,7 @@ fun HomeScreen(client: AnyStreamClient) {
                             .takeIf { ref != null },
                         onBodyClicked = {
                             if (ref == null) {
-                                BrowserRouter.navigate("/media/tmdb:${movie.tmdbId}")
+                                BrowserRouter.navigate("/media/tmdb:movie:${movie.tmdbId}")
                             } else {
                                 BrowserRouter.navigate("/media/${ref.contentId}")
                             }
@@ -179,7 +179,7 @@ fun HomeScreen(client: AnyStreamClient) {
                 popularTvShows.forEach { tvShow ->
                     PosterCard(
                         title = {
-                            LinkedText(url = "/media/${"tmdb:${tvShow.tmdbId}"}") {
+                            LinkedText(url = "/media/${"tmdb:tv:${tvShow.tmdbId}"}") {
                                 Text(tvShow.name)
                             }
                         },
@@ -189,14 +189,10 @@ fun HomeScreen(client: AnyStreamClient) {
                         posterPath = tvShow.posterPath,
                         isAdded = tvShow.isAdded,
                         /*onPlayClicked = { window.location.hash = "!play:${ref?.id}" }
-                            .takeIf { ref != null },
+                            .takeIf { ref != null },*/
                         onBodyClicked = {
-                            if (ref == null) {
-                                BrowserRouter.navigate("/media/tmdb:${movie.tmdbId}")
-                            } else {
-                                BrowserRouter.navigate("/media/${ref.contentId}")
-                            }
-                        }*/
+                            BrowserRouter.navigate("/media/tmdb:tv:${tvShow.tmdbId}")
+                        }
                     )
                 }
             }

@@ -25,9 +25,7 @@ import anystream.frontend.screens.*
 import anystream.models.api.SearchResponse
 import app.softwork.routingcompose.BrowserRouter
 import kotlinx.browser.window
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.*
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 import org.jetbrains.compose.web.renderComposable
@@ -143,11 +141,7 @@ private fun ContentContainer(
             }
             route("media") {
                 string { id ->
-                    if (id.contains(':')) {
-                        // todo: tmdb view
-                    } else {
-                        MediaScreen(client, id)
-                    }
+                    MediaScreen(client, id)
                 }
                 noMatch { BrowserRouter.navigate("/home") }
             }

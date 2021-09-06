@@ -26,6 +26,7 @@ import anystream.stream.StreamManager
 import anystream.torrent.search.KMongoTorrentProviderCache
 import anystream.util.SinglePageApp
 import anystream.util.withAnyPermission
+import anystream.util.withPermission
 import com.github.kokorin.jaffree.ffmpeg.FFmpeg
 import com.github.kokorin.jaffree.ffprobe.FFprobe
 import drewcarlson.qbittorrent.QBittorrentClient
@@ -89,6 +90,9 @@ fun Application.installRouting(mongodb: CoroutineDatabase) {
                 withAnyPermission(Permissions.MANAGE_COLLECTION) {
                     addMediaRoutes(tmdb, mongodb, torrentSearch, importer, queries)
                 }
+                withPermission(Permissions.CONFIGURE_SYSTEM) {
+                    addAdminRoutes()
+                }
             }
 
             // TODO: WS endpoint Authentication and permissions
@@ -96,6 +100,7 @@ fun Application.installRouting(mongodb: CoroutineDatabase) {
             addStreamWsRoutes(streamManager, mongodb)
             addTorrentWsRoutes(qbClient)
             addUserWsRoutes(mongodb)
+            addAdminWsRoutes()
         }
     }
 

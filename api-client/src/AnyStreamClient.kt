@@ -194,6 +194,10 @@ class AnyStreamClient(
         }
     }
 
+    suspend fun refreshMetadata(mediaId: String): MediaLookupResponse {
+        return http.get("/api/media/$mediaId/metadata/refresh")
+    }
+
     suspend fun getTvShow(id: String) =
         http.get<TvShowResponse>("/api/tv/$id")
 
@@ -419,6 +423,14 @@ class AnyStreamClient(
 
     suspend fun closeStream(token: String) {
 
+    }
+
+    fun observeLogs(): Flow<String> = callbackFlow {
+        val client = wsClient("/api/ws/admin/logs")
+        client.onStringMessage { msg -> trySend(msg) }
+        client.onError { close(it) }
+        client.onClose { close() }
+        awaitClose { client.close() }
     }
 
     fun createHlsStreamUrl(mediaRefId: String, token: String): String {

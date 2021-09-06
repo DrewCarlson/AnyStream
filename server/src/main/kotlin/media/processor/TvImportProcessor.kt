@@ -18,6 +18,7 @@
 package anystream.media.processor
 
 import anystream.data.MediaDbQueries
+import anystream.data.asTvShow
 import anystream.media.MediaImportProcessor
 import anystream.models.*
 import anystream.models.api.ImportMediaResult
@@ -173,44 +174,7 @@ class TvImportProcessor(
                     TmdbTvSeasons.SeasonMethod.images,
                 )
             }
-        val episodes = tmdbSeasons.flatMap { season ->
-            season.episodes.map { episode ->
-                Episode(
-                    id = ObjectId.get().toString(),
-                    tmdbId = episode.id,
-                    name = episode.name,
-                    overview = episode.overview,
-                    airDate = episode.airDate ?: "",
-                    number = episode.episodeNumber,
-                    seasonNumber = episode.seasonNumber,
-                    showId = showId,
-                    stillPath = episode.stillPath ?: ""
-                )
-            }
-        }
-        val show = TvShow(
-            id = showId,
-            name = tmdbShow.name,
-            tmdbId = tmdbShow.id,
-            overview = tmdbShow.overview,
-            firstAirDate = tmdbShow.firstAirDate ?: "",
-            numberOfSeasons = tmdbShow.numberOfSeasons,
-            numberOfEpisodes = tmdbShow.numberOfEpisodes,
-            posterPath = tmdbShow.posterPath ?: "",
-            added = Instant.now().toEpochMilli(),
-            seasons = tmdbSeasons.map { season ->
-                TvSeason(
-                    id = ObjectId.get().toString(),
-                    tmdbId = season.id,
-                    name = season.name,
-                    overview = season.overview,
-                    seasonNumber = season.seasonNumber,
-                    airDate = season.airDate ?: "",
-                    posterPath = season.posterPath ?: "",
-                )
-            }
-        )
-
+        val (show, episodes) = tmdbShow.asTvShow(tmdbSeasons, showId, "")
         queries.insertTvShow(show, episodes)
         return show to episodes
     }
