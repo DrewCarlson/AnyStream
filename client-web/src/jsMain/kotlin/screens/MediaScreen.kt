@@ -150,7 +150,7 @@ private fun BaseDetailsView(
                 }
             }) {
                 H3 { Text(mediaItem.contentTitle) }
-                if (client.userPermissions().contains(Permissions.MANAGE_COLLECTION)) {
+                if (client.hasPermission(Permissions.MANAGE_COLLECTION)) {
                     I({
                         classes("bi", "bi-arrow-repeat", "p-1")
                         style {

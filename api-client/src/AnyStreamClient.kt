@@ -115,6 +115,10 @@ class AnyStreamClient(
         return sessionManager.fetchPermissions() ?: emptySet()
     }
 
+    fun hasPermission(permission: String): Boolean {
+        return userPermissions().run { contains(Permissions.GLOBAL) || contains(permission) }
+    }
+
     fun authedUser(): User? {
         return sessionManager.fetchUser()
     }
