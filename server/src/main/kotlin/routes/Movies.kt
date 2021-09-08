@@ -23,7 +23,6 @@ import anystream.models.Movie
 import anystream.models.Permissions.MANAGE_COLLECTION
 import anystream.models.api.MoviesResponse
 import anystream.models.api.TmdbMoviesResponse
-import anystream.models.api.MovieResponse
 import anystream.util.logger
 import anystream.util.withAnyPermission
 import info.movito.themoviedbapi.TmdbApi
@@ -56,10 +55,13 @@ fun Route.addMovieRoutes(
     val mediaRefsDb = mongodb.getCollection<MediaReference>()
     route("/movies") {
         get {
+            val movies = moviesDb.find().toList()
+            val movieIds = movies.map(Movie::id)
+            val mediaRefs = mediaRefsDb.find(MediaReference::contentId `in` movieIds).toList()
             call.respond(
                 MoviesResponse(
-                    movies = moviesDb.find().toList(),
-                    mediaReferences = mediaRefsDb.find().toList()
+                    movies = movies,
+                    mediaReferences = mediaRefs,
                 )
             )
         }

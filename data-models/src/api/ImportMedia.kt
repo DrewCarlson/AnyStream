@@ -19,6 +19,7 @@ package anystream.models.api
 
 import anystream.models.MediaKind
 import anystream.models.MediaReference
+import anystream.models.StreamEncodingDetails
 import kotlinx.serialization.Serializable
 
 
@@ -26,6 +27,7 @@ import kotlinx.serialization.Serializable
 data class ImportMedia(
     val contentPath: String,
     val mediaKind: MediaKind,
+    val mediaId: String? = null,
 )
 
 @Serializable
@@ -46,6 +48,7 @@ sealed class ImportMediaResult {
     data class ErrorMediaMatchNotFound(
         val contentPath: String,
         val query: String,
+        val results: List<QueryMetadataResult>,
     ) : ImportMediaResult()
     @Serializable
     object ErrorMediaRefNotFound : ImportMediaResult()
@@ -59,9 +62,29 @@ sealed class ImportMediaResult {
     data class ErrorDatabaseException(
         val stacktrace: String,
     ) : ImportMediaResult()
+}
+
+@Serializable
+sealed class ImportStreamDetailsResult {
+    @Serializable
+    data class Success(
+        val mediaRefId: String,
+        val streamDetails: List<StreamEncodingDetails>,
+    ) : ImportStreamDetailsResult()
 
     @Serializable
-    data class ErrorDataProviderException(
+    data class ProcessError(
         val stacktrace: String,
-    ) : ImportMediaResult()
+    ) : ImportStreamDetailsResult()
+
+    @Serializable
+    object ErrorFileNotFound : ImportStreamDetailsResult()
+
+    @Serializable
+    object ErrorNothingToImport : ImportStreamDetailsResult()
+
+    @Serializable
+    data class ErrorDatabaseException(
+        val stacktrace: String,
+    ) : ImportStreamDetailsResult()
 }
