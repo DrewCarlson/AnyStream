@@ -76,7 +76,7 @@ fun Route.addMediaManageRoutes(
 
                 if (!result.hasResult()) {
                     logger.warn("No media found for $mediaId")
-                    return@get call.respond(NotFound)
+                    return@get call.respond(MediaLookupResponse())
                 }
                 when {
                     result.movie != null -> {

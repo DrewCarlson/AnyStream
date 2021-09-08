@@ -72,19 +72,20 @@ class TmdbMetadataProvider(
                     return QueryMetadataResult.ErrorDataProviderException(e.stackTraceToString())
                 }
                 val tmdbMovieIds = tmdbMovies.map(MovieDb::getId)
-                val existingTmdbIds = try {
-                    queries.findMoviesByTmdbId(tmdbMovieIds).map(Movie::tmdbId)
-                } catch (e: Throwable) {
+                val existingMovies = try {
+                    queries.findMoviesByTmdbId(tmdbMovieIds)
+                } catch (e: MongoException) {
                     return QueryMetadataResult.ErrorDatabaseException(e.stackTraceToString())
                 }
                 val matches = tmdbMovies.map { movieDb ->
+                    val existingMovie = existingMovies.find { it.tmdbId == movieDb.id }
                     val remoteId = movieDb.toRemoteId()
                     MetadataMatch.MovieMatch(
                         contentId = movieDb.id.toString(),
                         remoteId = remoteId,
-                        exists = existingTmdbIds.contains(movieDb.id),
+                        exists = existingMovie != null,
                         movie = movieDb.asMovie(
-                            id = remoteId,
+                            id = existingMovie?.id ?: remoteId,
                             userId = "",
                         )
                     )
@@ -103,16 +104,21 @@ class TmdbMetadataProvider(
                     return QueryMetadataResult.ErrorDataProviderException(e.stackTraceToString())
                 }
                 val tmdbSeriesIds = tmdbSeries.map(TvSeries::getId)
-                val existingTmdbIds = queries.findTvShowsByTmdbId(tmdbSeriesIds).map(TvShow::tmdbId)
+                val existingShows = try {
+                    queries.findTvShowsByTmdbId(tmdbSeriesIds)
+                } catch (e: MongoException) {
+                    return QueryMetadataResult.ErrorDatabaseException(e.stackTraceToString())
+                }
                 val matches = tmdbSeries.map { tvSeries ->
+                    val existingShow = existingShows.find { it.tmdbId == tvSeries.id }
                     val remoteId = tvSeries.toRemoteId()
                     MetadataMatch.TvShowMatch(
                         contentId = tvSeries.id.toString(),
                         remoteId = remoteId,
-                        exists = existingTmdbIds.contains(tvSeries.id),
+                        exists = existingShow != null,
                         tvShow = tvSeries.asTvShow(
                             seasons = emptyList(),
-                            id = remoteId,
+                            id = existingShow?.id ?: remoteId,
                         )
                     )
                 }

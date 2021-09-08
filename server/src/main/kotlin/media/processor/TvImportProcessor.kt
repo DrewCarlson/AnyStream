@@ -64,66 +64,67 @@ class TvImportProcessor(
         } catch (e: MongoQueryException) {
             return ImportMediaResult.ErrorDatabaseException(e.stackTraceToString())
         }
-        if (existingRef != null) {
+
+        val tvShow = if (existingRef == null) {
+            // TODO: Improve query capabilities
+            val query = contentFile.name
+            logger.debug(marker, "Querying provider for '$query'")
+
+            val queryResults = metadataManager.search(
+                QueryMetadata(
+                    providerId = null,
+                    query = query,
+                    mediaKind = MediaKind.TV,
+                )
+            )
+            val result = queryResults.firstOrNull { result ->
+                result is QueryMetadataResult.Success && result.results.isNotEmpty()
+            }
+            when (result) {
+                is QueryMetadataResult.Success -> {
+                    val metadataMatch = result.results
+                        .filterIsInstance<MetadataMatch.TvShowMatch>()
+                        .maxByOrNull { it.tvShow.name.equals(query, true) }
+                        ?: result.results.first()
+
+                    if (metadataMatch.exists) {
+                        (metadataMatch as MetadataMatch.TvShowMatch).tvShow
+                    } else {
+                        val importResults = metadataManager.importMetadata(
+                            ImportMetadata(
+                                contentIds = listOf(metadataMatch.contentId),
+                                providerId = result.providerId,
+                                mediaKind = MediaKind.TV,
+                            )
+                        ).filterIsInstance<ImportMetadataResult.Success>()
+
+                        if (importResults.isEmpty()) {
+                            logger.debug(marker, "Provider lookup error: $queryResults")
+                            return ImportMediaResult.ErrorMediaMatchNotFound(
+                                contentPath = contentFile.absolutePath,
+                                query = query,
+                                results = queryResults,
+                            )
+                        } else {
+                            (importResults.first().match as MetadataMatch.TvShowMatch).tvShow
+                        }
+                    }
+                }
+                else -> {
+                    logger.debug(marker, "Provider lookup error: $queryResults")
+                    return ImportMediaResult.ErrorMediaMatchNotFound(
+                        contentPath = contentFile.absolutePath,
+                        query = query,
+                        results = queryResults,
+                    )
+                }
+            }
+        } else {
             logger.debug(marker, "Content file reference already exists")
             // NOTE: only tv show folders can be imported, if already imported
             // we still need to find new episode files
             //return ImportMediaResult.ErrorMediaRefAlreadyExists(existingRef.id)
-        }
-
-        // TODO: Improve query capabilities
-        val query = contentFile.name
-        logger.debug(marker, "Querying provider for '$query'")
-
-        val queryResults = metadataManager.search(
-            QueryMetadata(
-                providerId = null,
-                query = query,
-                mediaKind = MediaKind.TV,
-            )
-        )
-        val result = queryResults.firstOrNull { result ->
-            result is QueryMetadataResult.Success && result.results.isNotEmpty()
-        }
-
-        val tvShow = when (result) {
-            is QueryMetadataResult.Success -> {
-                val metadataMatch = result.results
-                    .filterIsInstance<MetadataMatch.TvShowMatch>()
-                    .maxByOrNull { it.tvShow.name.equals(query, true) }
-                    ?: result.results.first()
-
-                if (metadataMatch.exists) {
-                    (metadataMatch as MetadataMatch.TvShowMatch).tvShow
-                } else {
-                    val importResults = metadataManager.importMetadata(
-                        ImportMetadata(
-                            contentIds = listOf(metadataMatch.contentId),
-                            providerId = result.providerId,
-                            mediaKind = MediaKind.TV,
-                        )
-                    ).filterIsInstance<ImportMetadataResult.Success>()
-
-                    if (importResults.isEmpty()) {
-                        logger.debug(marker, "Provider lookup error: $queryResults")
-                        return ImportMediaResult.ErrorMediaMatchNotFound(
-                            contentPath = contentFile.absolutePath,
-                            query = query,
-                            results = queryResults,
-                        )
-                    } else {
-                        (importResults.first().match as MetadataMatch.TvShowMatch).tvShow
-                    }
-                }
-            }
-            else -> {
-                logger.debug(marker, "Provider lookup error: $queryResults")
-                return ImportMediaResult.ErrorMediaMatchNotFound(
-                    contentPath = contentFile.absolutePath,
-                    query = query,
-                    results = queryResults,
-                )
-            }
+            checkNotNull(queries.findTvShowById(existingRef.rootContentId ?: existingRef.contentId))
         }
         val episodes = queries.findEpisodesByShow(tvShow.id)
 

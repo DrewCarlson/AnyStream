@@ -251,10 +251,14 @@ class MediaDbQueries(
     }
 
     suspend fun findEpisodesByShow(showId: String, seasonNumber: Int? = null): List<Episode> {
-        return episodeDb.find(
-            Episode::showId eq showId,
-            Episode::seasonNumber eq seasonNumber,
-        ).toList()
+        return if (seasonNumber == null) {
+            episodeDb.find(Episode::showId eq showId).toList()
+        } else {
+            episodeDb.find(
+                Episode::showId eq showId,
+                Episode::seasonNumber eq seasonNumber,
+            ).toList()
+        }
     }
 
     suspend fun findEpisodesBySeason(seasonId: String): List<Episode> {
