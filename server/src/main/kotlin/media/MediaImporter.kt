@@ -24,6 +24,7 @@ import anystream.models.api.ImportMedia
 import anystream.models.api.ImportMediaResult
 import anystream.models.api.ImportStreamDetailsResult
 import anystream.routes.concurrentMap
+import com.github.kokorin.jaffree.JaffreeException
 import com.github.kokorin.jaffree.StreamType
 import com.github.kokorin.jaffree.ffprobe.FFprobe
 import com.github.kokorin.jaffree.ffprobe.Stream
@@ -159,7 +160,7 @@ class MediaImporter(
                             ffprobe().processStreamsAsync(filePath, StreamType.SUBTITLE),
                         ).flatten()
                         ImportStreamDetailsResult.Success(refId, streams)
-                    } catch (e: Throwable) {
+                    } catch (e: JaffreeException) {
                         logger.error(marker, "FFProbe error, failed to extract stream details", e)
                         ImportStreamDetailsResult.ProcessError(e.stackTraceToString())
                     }
@@ -175,8 +176,12 @@ class MediaImporter(
             return listOf(ImportStreamDetailsResult.ErrorNothingToImport)
         }
 
-        val updates = results
-            .filterIsInstance<ImportStreamDetailsResult.Success>()
+        val successResults = results.filterIsInstance<ImportStreamDetailsResult.Success>()
+        if (successResults.isEmpty()) {
+            return results
+        }
+
+        val updates = successResults
             .map { (refId, streams) ->
                 updateOne<MediaReference>(
                     MediaReference::id eq refId,
@@ -226,18 +231,14 @@ class MediaImporter(
         streamType: StreamType,
     ): Deferred<List<StreamEncodingDetails>> {
         return scope.async {
-            try {
-                setShowStreams(true)
-                    .setShowFormat(true)
-                    .setSelectStreams(streamType)
-                    .setShowEntries("stream=index:stream_tags=language,title")
-                    .setInput(filePath)
-                    .execute()
-                    .streams
-                    .mapNotNull { it.toStreamEncodingDetails() }
-            } catch (e: Throwable) {
-                emptyList()
-            }
+            setShowStreams(true)
+                .setShowFormat(true)
+                .setSelectStreams(streamType)
+                .setShowEntries("stream=index:stream_tags=language,title")
+                .setInput(filePath)
+                .execute()
+                .streams
+                .mapNotNull { it.toStreamEncodingDetails() }
         }
     }
 
