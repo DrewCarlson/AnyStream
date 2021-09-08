@@ -21,6 +21,9 @@ import anystream.data.MediaDbQueries
 import anystream.media.MediaImporter
 import anystream.media.processor.MovieImportProcessor
 import anystream.media.processor.TvImportProcessor
+import anystream.metadata.MetadataManager
+import anystream.metadata.MetadataProvider
+import anystream.metadata.providers.TmdbMetadataProvider
 import anystream.models.*
 import anystream.stream.StreamManager
 import anystream.torrent.search.KMongoTorrentProviderCache
@@ -64,12 +67,17 @@ fun Application.installRouting(mongodb: CoroutineDatabase) {
 
     val mediaRefs = mongodb.getCollection<MediaReference>()
 
+    val providers = listOf<MetadataProvider>(
+        TmdbMetadataProvider(tmdb, queries)
+    )
+    val metadataManager = MetadataManager(providers, log)
+
     val importScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     val processors = listOf(
-        MovieImportProcessor(tmdb, queries, log),
-        TvImportProcessor(tmdb, queries, importScope, log),
+        MovieImportProcessor(metadataManager, queries, log),
+        TvImportProcessor(metadataManager, queries, importScope, log),
     )
-    val importer = MediaImporter(tmdb, ffprobe, processors, mediaRefs, importScope, log)
+    val importer = MediaImporter(ffprobe, processors, mediaRefs, importScope, log)
 
     val streamManager = StreamManager(ffmpeg, ffprobe, log)
 
@@ -83,12 +91,13 @@ fun Application.installRouting(mongodb: CoroutineDatabase) {
                     addTvShowRoutes(tmdb, mongodb, queries)
                     addMovieRoutes(tmdb, mongodb, queries)
                     addSearchRoutes(tmdb, mongodb)
+                    addMediaViewRoutes(tmdb, queries)
                 }
                 withAnyPermission(Permissions.TORRENT_MANAGEMENT) {
                     addTorrentRoutes(qbClient, mongodb)
                 }
                 withAnyPermission(Permissions.MANAGE_COLLECTION) {
-                    addMediaRoutes(tmdb, mongodb, torrentSearch, importer, queries)
+                    addMediaManageRoutes(tmdb, mongodb, torrentSearch, importer, queries)
                 }
                 withPermission(Permissions.CONFIGURE_SYSTEM) {
                     addAdminRoutes()
