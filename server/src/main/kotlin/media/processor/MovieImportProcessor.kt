@@ -18,14 +18,12 @@
 package anystream.media.processor
 
 import anystream.data.MediaDbQueries
-import anystream.data.asMovie
 import anystream.media.MediaImportProcessor
+import anystream.metadata.MetadataManager
 import anystream.models.LocalMediaReference
 import anystream.models.MediaKind
-import anystream.models.api.ImportMediaResult
+import anystream.models.api.*
 import com.mongodb.MongoException
-import info.movito.themoviedbapi.TmdbApi
-import info.movito.themoviedbapi.TmdbMovies
 import org.bson.types.ObjectId
 import org.slf4j.Logger
 import org.slf4j.Marker
@@ -33,7 +31,7 @@ import java.io.File
 import java.time.Instant
 
 class MovieImportProcessor(
-    private val tmdb: TmdbApi,
+    private val metadataManager: MetadataManager,
     private val queries: MediaDbQueries,
     private val logger: Logger,
 ) : MediaImportProcessor {
@@ -85,87 +83,75 @@ class MovieImportProcessor(
         val query = movieFile.nameWithoutExtension
             .replace(yearRegex, "")
             .trim()
-        val response = try {
-            logger.debug(marker, "Querying provider for '$query'")
-            tmdb.search.searchMovie(query, year, null, false, 0)
-        } catch (e: Throwable) {
-            logger.debug(marker, "Provider lookup error", e)
-            return ImportMediaResult.ErrorDataProviderException(e.stackTraceToString())
-        }
-        logger.debug(marker, "Provider returned ${response.totalResults} results")
-        if (response.results.isEmpty()) {
-            return ImportMediaResult.ErrorMediaMatchNotFound(contentFile.absolutePath, query)
+
+        logger.debug(marker, "Querying provider for '$query'")
+        val results = metadataManager.search(
+            QueryMetadata(
+                providerId = null,
+                query = query,
+                mediaKind = MediaKind.MOVIE,
+                year = year,
+            )
+        )
+        val result = results.firstOrNull { result ->
+            result is QueryMetadataResult.Success && result.results.isNotEmpty()
         }
 
-        val tmdbMovie = response.results.first().apply {
-            logger.debug(marker, "Detected media as ${id}:'${title}' (${releaseDate})")
-        }
+        val movie = when (result) {
+            is QueryMetadataResult.Success -> {
+                val metadataMatch = result.results
+                    .filterIsInstance<MetadataMatch.MovieMatch>()
+                    .maxByOrNull { it.movie.title.equals(query, true) }
+                    ?: result.results.first()
 
-        val existingRecord = queries.findMovieByTmdbId(tmdbMovie.id)
-        return if (existingRecord == null) {
-            logger.debug(marker, "Movie data import required")
-            movieFile.importMovie(userId, tmdbMovie.id, marker)
-        } else {
-            logger.debug(marker, "Movie data exists at ${existingRecord.id}, creating media ref")
-            try {
-                val reference = LocalMediaReference(
-                    id = ObjectId.get().toString(),
-                    contentId = existingRecord.id,
-                    added = Instant.now().toEpochMilli(),
-                    addedByUserId = userId,
-                    filePath = movieFile.absolutePath,
-                    mediaKind = MediaKind.MOVIE,
-                    directory = false,
+                if (metadataMatch.exists) {
+                    (metadataMatch as MetadataMatch.MovieMatch).movie
+                } else {
+                    val importResults = metadataManager.importMetadata(
+                        ImportMetadata(
+                            contentIds = listOf(metadataMatch.contentId),
+                            providerId = result.providerId,
+                            mediaKind = MediaKind.MOVIE,
+                        )
+                    ).filterIsInstance<ImportMetadataResult.Success>()
+
+                    if (importResults.isEmpty()) {
+                        logger.debug(marker, "Provider lookup error: $results")
+                        return ImportMediaResult.ErrorMediaMatchNotFound(
+                            contentPath = contentFile.absolutePath,
+                            query = query,
+                            results = results,
+                        )
+                    } else {
+                        (importResults.first().match as MetadataMatch.MovieMatch).movie
+                    }
+                }
+            }
+            else -> {
+                logger.debug(marker, "Provider lookup error: $results")
+                return ImportMediaResult.ErrorMediaMatchNotFound(
+                    contentPath = contentFile.absolutePath,
+                    query = query,
+                    results = results,
                 )
-                queries.insertMediaReference(reference)
-                ImportMediaResult.Success(existingRecord.id, reference)
-            } catch (e: MongoException) {
-                logger.debug(marker, "Failed to create media reference", e)
-                ImportMediaResult.ErrorDatabaseException(e.stackTraceToString())
             }
         }
-    }
 
-    // Import movie data and create media ref
-    private suspend fun File.importMovie(
-        userId: String,
-        tmdbId: Int,
-        marker: Marker
-    ): ImportMediaResult {
-        val movie = try {
-            tmdb.movies.getMovie(
-                tmdbId,
-                null,
-                TmdbMovies.MovieMethod.images,
-                TmdbMovies.MovieMethod.release_dates,
-                TmdbMovies.MovieMethod.alternative_titles,
-                TmdbMovies.MovieMethod.keywords
-            )
-        } catch (e: Throwable) {
-            logger.debug(marker, "Extended provider data query failed", e)
-            return ImportMediaResult.ErrorDataProviderException(e.stackTraceToString())
-        }
-        val movieId = ObjectId.get().toString()
-        try {
-            val reference = LocalMediaReference(
-                id = ObjectId.get().toString(),
-                contentId = movieId,
-                added = Instant.now().toEpochMilli(),
-                addedByUserId = userId,
-                filePath = absolutePath,
-                mediaKind = MediaKind.MOVIE,
-                directory = false,
-            )
-            queries.insertMovie(movie.asMovie(movieId, userId))
+        val reference = LocalMediaReference(
+            id = ObjectId.get().toString(),
+            contentId = movie.id,
+            added = Instant.now().toEpochMilli(),
+            addedByUserId = userId,
+            filePath = movieFile.absolutePath,
+            mediaKind = MediaKind.MOVIE,
+            directory = false,
+        )
+        return try {
             queries.insertMediaReference(reference)
-            logger.debug(
-                marker,
-                "Movie and media ref created movieId=$movieId, mediaRefId=${reference.id}"
-            )
-            return ImportMediaResult.Success(movieId, reference)
+            ImportMediaResult.Success(movie.id, reference)
         } catch (e: MongoException) {
-            logger.debug(marker, "Movie or media ref creation failed", e)
-            return ImportMediaResult.ErrorDatabaseException(e.stackTraceToString())
+            logger.debug(marker, "Failed to create media reference", e)
+            ImportMediaResult.ErrorDatabaseException(e.stackTraceToString())
         }
     }
 }

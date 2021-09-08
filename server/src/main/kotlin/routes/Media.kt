@@ -40,8 +40,10 @@ import io.ktor.response.respond
 import io.ktor.routing.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import org.litote.kmongo.*
 import org.litote.kmongo.coroutine.CoroutineDatabase
+import org.litote.kmongo.coroutine.projection
 
 fun Route.addMediaManageRoutes(
     tmdb: TmdbApi,
@@ -54,110 +56,119 @@ fun Route.addMediaManageRoutes(
     val mediaRefsDb = mongodb.getCollection<MediaReference>()
     route("/media") {
         route("/{mediaId}") {
-            route("/metadata") {
-                get("/refresh") {
-                    val mediaId = call.parameters["mediaId"] ?: ""
-                    val session = checkNotNull(call.principal<UserSession>())
-                    val result = queries.findMediaById(mediaId)
+            get("/refresh-stream-details") {
+                val mediaId = call.parameters["mediaId"] ?: ""
+                val mediaRefIds = mediaRefsDb.projection(
+                    MediaReference::id,
+                    or(
+                        MediaReference::contentId eq mediaId,
+                        MediaReference::rootContentId eq mediaId,
+                    )
+                ).toList()
+                call.respond(importer.importStreamDetails(mediaRefIds))
+            }
+            get("/refresh-metadata") {
+                val mediaId = call.parameters["mediaId"] ?: ""
+                val session = checkNotNull(call.principal<UserSession>())
+                val result = queries.findMediaById(mediaId)
 
-                    if (!result.hasResult()) {
-                        logger.warn("No media found for $mediaId")
-                        return@get call.respond(NotFound)
+                if (!result.hasResult()) {
+                    logger.warn("No media found for $mediaId")
+                    return@get call.respond(NotFound)
+                }
+                when {
+                    result.movie != null -> {
+                        val movie = try {
+                            tmdb.movies.getMovie(
+                                result.movie.tmdbId,
+                                null,
+                                TmdbMovies.MovieMethod.images,
+                                TmdbMovies.MovieMethod.release_dates,
+                                TmdbMovies.MovieMethod.alternative_titles,
+                                TmdbMovies.MovieMethod.keywords
+                            )
+                        } catch (e: Throwable) {
+                            logger.error("Extended provider data query failed", e)
+                            return@get call.respond(InternalServerError)
+                        }.asMovie(mediaId, session.userId)
+                        queries.updateMovie(movie)
+                        val mediaRefs = queries.findMediaRefsByContentId(movie.id)
+                        return@get call.respond(
+                            MediaLookupResponse(
+                                movie = MovieResponse(movie, mediaRefs)
+                            )
+                        )
                     }
-                    when {
-                        result.movie != null -> {
-                            val movie = try {
-                                tmdb.movies.getMovie(
-                                    result.movie.tmdbId,
-                                    null,
-                                    TmdbMovies.MovieMethod.images,
-                                    TmdbMovies.MovieMethod.release_dates,
-                                    TmdbMovies.MovieMethod.alternative_titles,
-                                    TmdbMovies.MovieMethod.keywords
-                                )
-                            } catch (e: Throwable) {
-                                logger.error("Extended provider data query failed", e)
-                                return@get call.respond(InternalServerError)
-                            }.asMovie(mediaId, session.userId)
-                            queries.updateMovie(movie)
-                            val mediaRefs = queries.findMediaRefsByContentId(movie.id)
-                            return@get call.respond(
-                                MediaLookupResponse(
-                                    movie = MovieResponse(movie, mediaRefs)
-                                )
+                    result.tvShow != null -> {
+                        val tmdbSeries = try {
+                            tmdb.tvSeries.getSeries(
+                                result.tvShow.tmdbId,
+                                "en",
+                                TmdbTV.TvMethod.keywords,
+                                TmdbTV.TvMethod.external_ids,
+                                TmdbTV.TvMethod.images,
+                                TmdbTV.TvMethod.content_ratings,
+                                TmdbTV.TvMethod.credits,
                             )
+                        } catch (e: Throwable) {
+                            logger.error("Extended provider data query failed", e)
+                            return@get call.respond(InternalServerError)
                         }
-                        result.tvShow != null -> {
-                            val tmdbSeries = try {
-                                tmdb.tvSeries.getSeries(
-                                    result.tvShow.tmdbId,
-                                    "en",
-                                    TmdbTV.TvMethod.keywords,
-                                    TmdbTV.TvMethod.external_ids,
-                                    TmdbTV.TvMethod.images,
-                                    TmdbTV.TvMethod.content_ratings,
-                                    TmdbTV.TvMethod.credits,
-                                )
-                            } catch (e: Throwable) {
-                                logger.error("Extended provider data query failed", e)
-                                return@get call.respond(InternalServerError)
-                            }
-                            val tvShow = tmdbSeries.asTvShow(result.tvShow.seasons, mediaId, "")
-                            queries.updateTvShow(tvShow.copy(added = result.tvShow.added))
-                            return@get call.respond(
-                                MediaLookupResponse(
-                                    tvShow = TvShowResponse(tvShow, emptyList())
-                                )
+                        val tvShow = tmdbSeries.asTvShow(result.tvShow.seasons, mediaId, "")
+                        queries.updateTvShow(tvShow.copy(added = result.tvShow.added))
+                        return@get call.respond(
+                            MediaLookupResponse(
+                                tvShow = TvShowResponse(tvShow, emptyList())
                             )
+                        )
+                    }
+                    result.season != null -> {
+                        val tvShow =
+                            checkNotNull(queries.findTvShowBySeasonId(result.season.id))
+                        val season = try {
+                            tmdb.tvSeasons.getSeason(
+                                tvShow.tmdbId,
+                                result.season.seasonNumber,
+                                null,
+                                TmdbTvSeasons.SeasonMethod.images,
+                            ).asTvSeason(result.season.id, "")
+                        } catch (e: Throwable) {
+                            logger.error("Extended provider data query failed", e)
+                            return@get call.respond(InternalServerError)
                         }
-                        result.season != null -> {
-                            val tvShow =
-                                checkNotNull(queries.findTvShowBySeasonId(result.season.id))
-                            val season = try {
-                                tmdb.tvSeasons.getSeason(
-                                    tvShow.tmdbId,
-                                    result.season.seasonNumber,
-                                    null,
-                                    TmdbTvSeasons.SeasonMethod.images,
-                                ).asTvSeason(result.season.id, "")
-                            } catch (e: Throwable) {
-                                logger.error("Extended provider data query failed", e)
-                                return@get call.respond(InternalServerError)
-                            }
-                            queries.updateTvSeason(season)
-                            val episodes = queries.findEpisodesBySeason(season.id)
-                            val episodeIds = episodes.map(Episode::id)
-                            val mediaRefs = queries.findMediaRefsByRootContentId(tvShow.id)
-                                .filter { it.contentId in episodeIds }
-                                .associateBy(MediaReference::contentId)
-                            return@get call.respond(
-                                MediaLookupResponse(
-                                    season = SeasonResponse(tvShow, season, episodes, mediaRefs)
-                                )
+                        queries.updateTvSeason(season)
+                        val episodes = queries.findEpisodesBySeason(season.id)
+                        val episodeIds = episodes.map(Episode::id)
+                        val mediaRefs = queries.findMediaRefsByRootContentId(tvShow.id)
+                            .filter { it.contentId in episodeIds }
+                            .associateBy(MediaReference::contentId)
+                        return@get call.respond(
+                            MediaLookupResponse(
+                                season = SeasonResponse(tvShow, season, episodes, mediaRefs)
                             )
+                        )
+                    }
+                    result.episode != null -> {
+                        val show = checkNotNull(queries.findTvShowById(result.episode.showId))
+                        val episode = try {
+                            tmdb.tvEpisodes.getEpisode(
+                                show.tmdbId,
+                                result.episode.seasonNumber,
+                                result.episode.number,
+                                null,
+                            ).asTvEpisode(result.episode.id, show.id, "")
+                        } catch (e: Throwable) {
+                            logger.error("Extended provider data query failed", e)
+                            return@get call.respond(InternalServerError)
                         }
-                        result.episode != null -> {
-                            val show = checkNotNull(queries.findTvShowById(result.episode.showId))
-                            val episode = try {
-                                tmdb.tvEpisodes.getEpisode(
-                                    show.tmdbId,
-                                    result.episode.seasonNumber,
-                                    result.episode.number,
-                                    null,
-                                ).asTvEpisode(result.episode.id, show.id, "")
-                            } catch (e: Throwable) {
-                                logger.error("Extended provider data query failed", e)
-                                return@get call.respond(InternalServerError)
-                            }
-                            queries.updateTvEpisode(episode)
-                            val tvShow = checkNotNull(queries.findTvShowById(episode.showId))
-                            val mediaRefs = queries.findMediaRefsByContentId(episode.id)
-                            return@get call.respond(
-                                MediaLookupResponse(
-                                    episode = EpisodeResponse(episode, tvShow, mediaRefs)
-                                )
+                        queries.updateTvEpisode(episode)
+                        val tvShow = checkNotNull(queries.findTvShowById(episode.showId))
+                        val mediaRefs = queries.findMediaRefsByContentId(episode.id)
+                        return@get call.respond(
+                            MediaLookupResponse(
+                                episode = EpisodeResponse(episode, tvShow, mediaRefs)
                             )
-                        }
+                        )
                     }
                 }
             }
@@ -185,9 +196,37 @@ fun Route.addMediaManageRoutes(
             val importAll = call.parameters["importAll"]?.toBoolean() ?: false
 
             if (importAll) {
-                call.respond(importer.importAll(session.userId, import).toList())
+                val results = importer.importAll(session.userId, import).toList()
+                val mediaRefIds = results.flatMap { result ->
+                    (result as? ImportMediaResult.Success)?.let { success ->
+                        val nestedResults = success.subresults
+                            .filterIsInstance<ImportMediaResult.Success>()
+                            .flatMap(ImportMediaResult.Success::subresults)
+                        (nestedResults + success.subresults + result)
+                            .filterIsInstance<ImportMediaResult.Success>()
+                            .map { it.mediaReference.id }
+                    }.orEmpty()
+                }
+                if (mediaRefIds.isNotEmpty()) {
+                    application.launch {
+                        importer.importStreamDetails(mediaRefIds)
+                    }
+                }
+                call.respond(results)
             } else {
-                call.respond(importer.import(session.userId, import))
+                val result = importer.import(session.userId, import)
+                (result as? ImportMediaResult.Success)?.also { success ->
+                    val nestedResults = success.subresults
+                        .filterIsInstance<ImportMediaResult.Success>()
+                        .flatMap(ImportMediaResult.Success::subresults)
+                    val mediaRefIds = (nestedResults + success.subresults + success)
+                        .filterIsInstance<ImportMediaResult.Success>()
+                        .map { it.mediaReference.id }
+                    application.launch {
+                        importer.importStreamDetails(mediaRefIds)
+                    }
+                }
+                call.respond(result)
             }
         }
 

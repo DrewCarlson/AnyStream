@@ -22,11 +22,12 @@ import anystream.models.MediaReference
 import anystream.models.StreamEncodingDetails
 import anystream.models.api.ImportMedia
 import anystream.models.api.ImportMediaResult
+import anystream.models.api.ImportStreamDetailsResult
 import anystream.routes.concurrentMap
 import com.github.kokorin.jaffree.StreamType
 import com.github.kokorin.jaffree.ffprobe.FFprobe
 import com.github.kokorin.jaffree.ffprobe.Stream
-import info.movito.themoviedbapi.TmdbApi
+import com.mongodb.MongoException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
@@ -38,14 +39,22 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import org.litote.kmongo.*
 import org.litote.kmongo.coroutine.CoroutineCollection
+import org.litote.kmongo.coroutine.projection
 import org.slf4j.Logger
 import org.slf4j.Marker
 import org.slf4j.MarkerFactory
 import java.io.File
 import java.util.UUID
 
+private val FFMPEG_EXTENSIONS = listOf(
+    "webm", "mpg", "mp2", "mpeg", "mov", "mkv",
+    "avi", "m4a", "m4p", "mp4", "ogg",
+    //
+    "3gp", "aac", "flac", "ogg", "mp3", "opus",
+    "wav",
+)
+
 class MediaImporter(
-    tmdb: TmdbApi,
     private val ffprobe: () -> FFprobe,
     private val processors: List<MediaImportProcessor>,
     private val mediaRefs: CoroutineCollection<MediaReference>,
@@ -88,23 +97,21 @@ class MediaImporter(
         }
 
         return contentFile.listFiles()
-            ?.toList()
-            .orEmpty()
-            .asFlow()
-            .concurrentMap(scope, 10) { file ->
+            ?.asFlow()
+            ?.concurrentMap(scope, 10) { file ->
                 internalImport(
                     userId,
                     request.copy(contentPath = file.absolutePath),
                     marker,
                 )
             }
-            .onCompletion { error ->
+            ?.onCompletion { error ->
                 if (error == null) {
                     logger.debug(marker, "Recursive import completed")
                 } else {
                     logger.debug(marker, "Recursive import interrupted", error)
                 }
-            }
+            } ?: emptyFlow()
     }
 
     suspend fun import(userId: String, request: ImportMedia): ImportMediaResult {
@@ -118,6 +125,71 @@ class MediaImporter(
         }
 
         return internalImport(userId, request, marker)
+    }
+
+    suspend fun importStreamDetails(mediaRefIds: List<String>): List<ImportStreamDetailsResult> {
+        val marker = marker()
+        logger.debug(marker, "Importing stream details for ${mediaRefIds.size} item(s)")
+        val mediaFilePaths = mediaRefs
+            .projection(
+                LocalMediaReference::id,
+                LocalMediaReference::filePath,
+                and(
+                    MediaReference::id `in` mediaRefIds,
+                    LocalMediaReference::directory eq false,
+                )
+            )
+            .toList()
+            .toMap()
+        logger.debug(marker, "Removed ${mediaRefIds.size - mediaFilePaths.size} invalid item(s)")
+
+        val results = mediaFilePaths
+            .filterValues { path ->
+                val extension = path?.substringAfterLast('.')?.lowercase().orEmpty()
+                FFMPEG_EXTENSIONS.contains(extension)
+            }
+            .map { (refId, filePath) ->
+                checkNotNull(refId)
+                checkNotNull(filePath)
+                if (File(filePath).exists()) {
+                    try {
+                        val streams = awaitAll(
+                            ffprobe().processStreamsAsync(filePath, StreamType.VIDEO),
+                            ffprobe().processStreamsAsync(filePath, StreamType.AUDIO),
+                            ffprobe().processStreamsAsync(filePath, StreamType.SUBTITLE),
+                        ).flatten()
+                        ImportStreamDetailsResult.Success(refId, streams)
+                    } catch (e: Throwable) {
+                        logger.error(marker, "FFProbe error, failed to extract stream details", e)
+                        ImportStreamDetailsResult.ProcessError(e.stackTraceToString())
+                    }
+                } else {
+                    logger.error(marker, "Media file reference path does not exist: $refId $filePath")
+                    ImportStreamDetailsResult.ErrorFileNotFound
+                }
+            }
+
+        logger.debug(marker, "Processed ${results.size} item(s)")
+
+        if (results.isEmpty()) {
+            return listOf(ImportStreamDetailsResult.ErrorNothingToImport)
+        }
+
+        val updates = results
+            .filterIsInstance<ImportStreamDetailsResult.Success>()
+            .map { (refId, streams) ->
+                updateOne<MediaReference>(
+                    MediaReference::id eq refId,
+                    setValue(MediaReference::streams, streams)
+                )
+            }
+        return try {
+            mediaRefs.bulkWrite(updates)
+            results
+        } catch (e: MongoException) {
+            logger.error(marker, "Failed to update stream data", e)
+            listOf(ImportStreamDetailsResult.ErrorDatabaseException(e.stackTraceToString()))
+        }
     }
 
     // Process a single media file and attempt to import missing data and references
@@ -142,38 +214,6 @@ class MediaImporter(
             .firstOrNull()
             ?: ImportMediaResult.ErrorNothingToImport
 
-        if (result is ImportMediaResult.Success) {
-            val refs = result.subresults
-                .filterIsInstance<ImportMediaResult.Success>()
-                .flatMap { it.subresults.filterIsInstance<ImportMediaResult.Success>() }
-                .plus(result)
-                .map { innerResult ->
-                    val ref = innerResult.mediaReference
-                    try {
-                        if (ref is LocalMediaReference && !ref.directory) {
-                            ref to awaitAll(
-                                ffprobe().processStreamsAsync(ref, StreamType.VIDEO),
-                                ffprobe().processStreamsAsync(ref, StreamType.AUDIO),
-                                ffprobe().processStreamsAsync(ref, StreamType.SUBTITLE),
-                            ).flatten()
-                        } else null
-                    } catch (e: Throwable) {
-                        logger.error("FFProbe failed", e)
-                        null
-                    } ?: Pair(ref, emptyList())
-                }
-                .toMap()
-
-            val updates = refs.map { (ref, streams) ->
-                updateOne<MediaReference>(
-                    MediaReference::id eq ref.id,
-                    setValue(MediaReference::streams, streams),
-                )
-            }
-
-            mediaRefs.bulkWrite(updates)
-        }
-
         return result
     }
 
@@ -182,7 +222,7 @@ class MediaImporter(
         .apply { add(classMarker) }
 
     private fun FFprobe.processStreamsAsync(
-        ref: LocalMediaReference,
+        filePath: String,
         streamType: StreamType,
     ): Deferred<List<StreamEncodingDetails>> {
         return scope.async {
@@ -191,7 +231,7 @@ class MediaImporter(
                     .setShowFormat(true)
                     .setSelectStreams(streamType)
                     .setShowEntries("stream=index:stream_tags=language,title")
-                    .setInput(ref.filePath)
+                    .setInput(filePath)
                     .execute()
                     .streams
                     .mapNotNull { it.toStreamEncodingDetails() }

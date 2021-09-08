@@ -50,6 +50,7 @@ fun MediaScreen(
             .debounce(1_000L)
             .collect {
                 try {
+                    client.refreshStreamDetails(mediaId)
                     mediaResponse = client.refreshMetadata(mediaId)
                 } catch (_: Throwable) {
                 }

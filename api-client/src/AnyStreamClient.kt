@@ -199,7 +199,11 @@ class AnyStreamClient(
     }
 
     suspend fun refreshMetadata(mediaId: String): MediaLookupResponse {
-        return http.get("/api/media/$mediaId/metadata/refresh")
+        return http.get("/api/media/$mediaId/refresh-metadata")
+    }
+
+    suspend fun refreshStreamDetails(mediaId: String): List<ImportStreamDetailsResult> {
+        return http.get("/api/media/$mediaId/refresh-stream-details")
     }
 
     suspend fun getTvShow(id: String) =

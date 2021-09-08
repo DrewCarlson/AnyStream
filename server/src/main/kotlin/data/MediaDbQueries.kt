@@ -63,13 +63,7 @@ class MediaDbQueries(
     suspend fun findShowAndMediaRefs(showId: String): TvShowResponse? {
         val show = tvShowDb.findOneById(showId) ?: return null
         val seasonIds = show.seasons.map(TvSeason::id)
-        val searchList = seasonIds + showId
-        val mediaRefs = mediaRefsDb.find(
-            or(
-                MediaReference::rootContentId `in` searchList,
-                MediaReference::contentId `in` seasonIds + showId,
-            )
-        ).toList()
+        val mediaRefs = mediaRefsDb.find(MediaReference::contentId `in` seasonIds + showId).toList()
         return TvShowResponse(
             tvShow = show,
             mediaRefs = mediaRefs,
@@ -197,6 +191,10 @@ class MediaDbQueries(
         return moviesDb.findOne(Movie::tmdbId eq tmdbId)
     }
 
+    suspend fun findMoviesByTmdbId(tmdbIds: List<Int>): List<Movie> {
+        return moviesDb.find(Movie::tmdbId `in` tmdbIds).toList()
+    }
+
     suspend fun findTvShowById(showId: String): TvShow? {
         return tvShowDb.findOneById(showId)
     }
@@ -207,6 +205,10 @@ class MediaDbQueries(
 
     suspend fun findTvShowByTmdbId(tmdbId: Int): TvShow? {
         return tvShowDb.findOne(TvShow::tmdbId eq tmdbId)
+    }
+
+    suspend fun findTvShowsByTmdbId(tmdbIds: List<Int>): List<TvShow> {
+        return tvShowDb.find(TvShow::tmdbId `in` tmdbIds).toList()
     }
 
     suspend fun findEpisodesByShow(showId: String): List<Episode> {

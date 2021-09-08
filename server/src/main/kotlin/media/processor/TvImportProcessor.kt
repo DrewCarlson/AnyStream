@@ -18,16 +18,13 @@
 package anystream.media.processor
 
 import anystream.data.MediaDbQueries
-import anystream.data.asTvShow
 import anystream.media.MediaImportProcessor
+import anystream.metadata.MetadataManager
 import anystream.models.*
-import anystream.models.api.ImportMediaResult
+import anystream.models.api.*
 import anystream.routes.concurrentMap
 import com.mongodb.MongoException
 import com.mongodb.MongoQueryException
-import info.movito.themoviedbapi.TmdbApi
-import info.movito.themoviedbapi.TmdbTV
-import info.movito.themoviedbapi.TmdbTvSeasons
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.toList
@@ -38,7 +35,7 @@ import java.io.File
 import java.time.Instant
 
 class TvImportProcessor(
-    private val tmdb: TmdbApi,
+    private val metadataManager: MetadataManager,
     private val queries: MediaDbQueries,
     private val scope: CoroutineScope,
     private val logger: Logger,
@@ -76,43 +73,63 @@ class TvImportProcessor(
 
         // TODO: Improve query capabilities
         val query = contentFile.name
-        val response = try {
-            logger.debug(marker, "Querying provider for '$query'")
-            tmdb.search.searchTv(query, "en", 1)
-        } catch (e: Throwable) {
-            logger.debug(marker, "Provider lookup error", e)
-            return ImportMediaResult.ErrorDataProviderException(e.stackTraceToString())
-        }
-        logger.debug(marker, "Provider returned ${response.totalResults} results")
-        if (response.results.isEmpty()) {
-            return ImportMediaResult.ErrorMediaMatchNotFound(contentFile.path, query)
+        logger.debug(marker, "Querying provider for '$query'")
+
+        val queryResults = metadataManager.search(
+            QueryMetadata(
+                providerId = null,
+                query = query,
+                mediaKind = MediaKind.TV,
+            )
+        )
+        val result = queryResults.firstOrNull { result ->
+            result is QueryMetadataResult.Success && result.results.isNotEmpty()
         }
 
-        val tmdbShow = response.results
-            .maxByOrNull { it.name.equals(query, true) }
-            ?: response.results.first()
+        val tvShow = when (result) {
+            is QueryMetadataResult.Success -> {
+                val metadataMatch = result.results
+                    .filterIsInstance<MetadataMatch.TvShowMatch>()
+                    .maxByOrNull { it.tvShow.name.equals(query, true) }
+                    ?: result.results.first()
 
-        with(tmdbShow) {
-            logger.debug(marker, "Detected media as ${id}:'${name}' (${firstAirDate})")
-        }
+                if (metadataMatch.exists) {
+                    (metadataMatch as MetadataMatch.TvShowMatch).tvShow
+                } else {
+                    val importResults = metadataManager.importMetadata(
+                        ImportMetadata(
+                            contentIds = listOf(metadataMatch.contentId),
+                            providerId = result.providerId,
+                            mediaKind = MediaKind.TV,
+                        )
+                    ).filterIsInstance<ImportMetadataResult.Success>()
 
-        val existingRecord = queries.findTvShowByTmdbId(tmdbShow.id)
-        val (show, episodes) = existingRecord?.let { show ->
-            show to queries.findEpisodesByShow(show.id)
-        } ?: try {
-            logger.debug(marker, "Show data import required")
-            importShow(tmdbShow.id)
-        } catch (e: MongoException) {
-            logger.debug(marker, "Failed to insert new show", e)
-            return ImportMediaResult.ErrorDatabaseException(e.stackTraceToString())
-        } catch (e: Throwable) {
-            logger.debug(marker, "Data provider query failed", e)
-            return ImportMediaResult.ErrorDataProviderException(e.stackTraceToString())
+                    if (importResults.isEmpty()) {
+                        logger.debug(marker, "Provider lookup error: $queryResults")
+                        return ImportMediaResult.ErrorMediaMatchNotFound(
+                            contentPath = contentFile.absolutePath,
+                            query = query,
+                            results = queryResults,
+                        )
+                    } else {
+                        (importResults.first().match as MetadataMatch.TvShowMatch).tvShow
+                    }
+                }
+            }
+            else -> {
+                logger.debug(marker, "Provider lookup error: $queryResults")
+                return ImportMediaResult.ErrorMediaMatchNotFound(
+                    contentPath = contentFile.absolutePath,
+                    query = query,
+                    results = queryResults,
+                )
+            }
         }
+        val episodes = queries.findEpisodesByShow(tvShow.id)
 
         val mediaRef = existingRef ?: LocalMediaReference(
             id = ObjectId.get().toString(),
-            contentId = show.id,
+            contentId = tvShow.id,
             added = Instant.now().toEpochMilli(),
             addedByUserId = userId,
             filePath = contentFile.absolutePath,
@@ -135,7 +152,7 @@ class TvImportProcessor(
                     .split(" ")
                     .lastOrNull()
                     ?.toIntOrNull()
-                    ?.let { num -> show.seasons.firstOrNull { it.seasonNumber == num } }
+                    ?.let { num -> tvShow.seasons.firstOrNull { it.seasonNumber == num } }
                     ?.let { it to file }
             }
 
@@ -146,37 +163,10 @@ class TvImportProcessor(
             .toList()
 
         return ImportMediaResult.Success(
-            mediaId = show.id,
+            mediaId = tvShow.id,
             mediaReference = mediaRef,
             subresults = seasonResults,
         )
-    }
-
-    // Import show data
-    private suspend fun importShow(tmdbId: Int): Pair<TvShow, List<Episode>> {
-        val showId = ObjectId.get().toString()
-        val tmdbShow = tmdb.tvSeries.getSeries(
-            tmdbId,
-            "en",
-            TmdbTV.TvMethod.keywords,
-            TmdbTV.TvMethod.external_ids,
-            TmdbTV.TvMethod.images,
-            TmdbTV.TvMethod.content_ratings,
-            TmdbTV.TvMethod.credits,
-        )
-        val tmdbSeasons = tmdbShow.seasons
-            .filter { it.seasonNumber > 0 }
-            .map { season ->
-                tmdb.tvSeasons.getSeason(
-                    tmdbId,
-                    season.seasonNumber,
-                    "en",
-                    TmdbTvSeasons.SeasonMethod.images,
-                )
-            }
-        val (show, episodes) = tmdbShow.asTvShow(tmdbSeasons, showId, "")
-        queries.insertTvShow(show, episodes)
-        return show to episodes
     }
 
     private suspend fun File.importSeason(
