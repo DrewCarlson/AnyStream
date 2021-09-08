@@ -186,7 +186,7 @@ fun Route.addMovieRoutes(
                 val movieId = call.parameters["movie_id"]
                     ?.takeUnless(String::isNullOrBlank)
                     ?: return@get call.respond(NotFound)
-                val response = queries.findMovieAndMediaRefs(movieId)
+                val response = queries.findMovieById(movieId)
                     ?: return@get call.respond(NotFound)
 
                 call.respond(response)

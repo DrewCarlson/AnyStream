@@ -30,7 +30,6 @@ import kotlinx.browser.window
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.css.keywords.auto
 import org.jetbrains.compose.web.dom.Div
@@ -68,21 +67,21 @@ fun PlayerScreen(
         isMouseOnPlayer || !playerIsPlaying
     }
     var sessionHandle by mutableStateOf<AnyStreamClient.PlaybackSessionHandle?>(null)
-    val mediaItem = mutableStateOf<MediaItem?>(null)
+    val mediaItem = produceState<MediaItem?>(null) {
+        value = try {
+            client.lookupMediaByRefId(mediaRefId).run {
+                movie?.toMediaItem() ?: episode?.toMediaItem()
+            }
+        } catch (e: Throwable) {
+            null
+        }
+    }
     val playbackState by produceState<PlaybackState?>(null) {
         var initialState: PlaybackState? = null
         sessionHandle = client.playbackSession(mediaRefId) { state ->
             println("[player] $state")
             value = state
             if (initialState == null) {
-                launch {
-                    mediaItem.value = try {
-                        client.lookupMedia(state.mediaId)
-                            .run { movie?.toMediaItem() ?: episode?.toMediaItem() }
-                    } catch (e: Throwable) {
-                        null
-                    }
-                }
                 initialState = state
                 player?.currentTime(state.position.toFloat())
             }
@@ -96,9 +95,7 @@ fun PlayerScreen(
     val setFullscreen = mutableStateOf<((Boolean) -> Unit)?>(null)
     var duration by mutableStateOf(1f)
     var progress by mutableStateOf(0f)
-    val progressScale = derivedStateOf {
-        ((progress / duration) * 100)
-    }
+    val progressScale = derivedStateOf { ((progress / duration) * 100) }
     Div({
         style {
             classes("w-100")
@@ -165,7 +162,10 @@ fun PlayerScreen(
                 style {
                     cursor(if (areControlsVisible) "pointer" else "none")
                 }
-                attr("poster", "https://image.tmdb.org/t/p/w1920_and_h800_multi_faces${mediaItem.value?.backdropPath}")
+                attr(
+                    "poster",
+                    "https://image.tmdb.org/t/p/w1920_and_h800_multi_faces${mediaItem.value?.backdropPath}"
+                )
                 onClick {
                     if (player?.paused() == true) {
                         player?.play()
@@ -260,7 +260,7 @@ fun PlayerScreen(
             PlaybackControls(
                 areControlsVisible = areControlsVisible,
                 player = currentPlayer,
-                mediaItemState = mediaItem,
+                mediaItem = mediaItem,
                 progressScale = progressScale,
                 overlayMode = !isInMiniMode.value,
             )
@@ -285,6 +285,7 @@ private fun MiniModeOverlay(
             justifyContent(JustifyContent.Center)
             alignItems(AlignItems.Center)
             backgroundColor(rgba(0, 0, 0, .6))
+            cursor("pointer")
             opacity(if (isVisible) 100 else 0)
         }
         onMouseEnter { isVisible = true }
@@ -347,7 +348,7 @@ private fun MaxPlayerTopBar(
 private fun PlaybackControls(
     areControlsVisible: Boolean,
     player: VjsPlayer,
-    mediaItemState: State<MediaItem?>,
+    mediaItem: State<MediaItem?>,
     progressScale: State<Float>,
     overlayMode: Boolean,
 ) {
@@ -377,15 +378,10 @@ private fun PlaybackControls(
                 display(DisplayStyle.Flex)
                 flexDirection(FlexDirection.Column)
                 flexBasis(33.percent)
-
-                if (mediaItemState.value == null) {
-                    opacity(0)
-                }
             }
         }) {
-            val mediaItem = mediaItemState.value
             Div {
-                mediaItem?.run {
+                mediaItem.value?.run {
                     Text(contentTitle)
                 }
             }
@@ -398,10 +394,10 @@ private fun PlaybackControls(
                     gap(10.px)
                 }
             }) {
-                mediaItem?.subtitle1?.also { subtitle ->
+                mediaItem.value?.subtitle1?.also { subtitle ->
                     Div { Text(subtitle) }
                 }
-                mediaItem?.subtitle2?.also { subtitle ->
+                mediaItem.value?.subtitle2?.also { subtitle ->
                     Div { Text(subtitle) }
                 }
             }
@@ -415,9 +411,6 @@ private fun PlaybackControls(
                 flexBasis(33.percent)
                 fontSize(24.px)
                 gap(6.px)
-                if (mediaItemState.value == null) {
-                    opacity(0)
-                }
             }
         }) {
             Div({
@@ -501,9 +494,6 @@ private fun PlaybackControls(
                 fontSize(20.px)
                 padding(12.px)
                 gap(6.px)
-                if (mediaItemState.value == null) {
-                    opacity(0)
-                }
             }
             ref {
                 player.on("loadedmetadata") {
@@ -515,7 +505,7 @@ private fun PlaybackControls(
                 player.on("leavepictureinpicture") {
                     isInPipMode = false
                 }
-                onDispose {  }
+                onDispose { }
             }
         }) {
             if (isPipAvailable) {
@@ -555,6 +545,7 @@ private fun PlaybackControls(
                     val elementHeight = (event.target as HTMLDivElement).clientHeight
                     val percent = (elementHeight - event.offsetY) / elementHeight
                     player.volume(percent.toFloat())
+                    volume = player.volume()
                 }
                 var isMouseDown by mutableStateOf(false)
                 onMouseUp { isMouseDown = false }
@@ -565,6 +556,7 @@ private fun PlaybackControls(
                         val elementHeight = (event.target as HTMLDivElement).clientHeight
                         val percent = (elementHeight - event.offsetY) / elementHeight
                         player.volume(percent.toFloat())
+                        volume = player.volume()
                     }
                 }
             }) {
@@ -603,7 +595,7 @@ private fun PlaybackControls(
                         volume = player.volume()
                         muted = player.muted()
                     }
-                    onDispose {  }
+                    onDispose { }
                 }
             }) {
                 I({

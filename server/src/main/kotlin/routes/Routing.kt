@@ -81,7 +81,6 @@ fun Application.installRouting(mongodb: CoroutineDatabase) {
 
     val streamManager = StreamManager(ffmpeg, ffprobe, log)
 
-
     routing {
         route("/api") {
             addUserRoutes(mongodb)

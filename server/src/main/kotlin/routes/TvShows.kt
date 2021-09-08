@@ -112,7 +112,8 @@ fun Route.addTvShowRoutes(
                 val showId = call.parameters["show_id"]
                     ?.takeUnless(String::isNullOrBlank)
                     ?: return@get call.respond(NotFound)
-                val response = queries.findShowAndMediaRefs(showId)
+                val includeRefs = call.parameters["includeRefs"]?.toBoolean() ?: false
+                val response = queries.findShowById(showId, includeRefs = includeRefs)
                     ?: return@get call.respond(NotFound)
                 call.respond(response)
             }
@@ -124,24 +125,13 @@ fun Route.addTvShowRoutes(
 
                 tvShowDb.findOneById(showId) ?: return@get call.respond(NotFound)
 
-                val episodes = episodeDb
-                    .find(
-                        Episode::showId eq showId,
-                        Episode::seasonNumber eq seasonNumber,
-                    )
-                    .toList()
+                val episodes = queries.findEpisodesByShow(showId, seasonNumber = seasonNumber)
                 val episodeIds = episodes.map(Episode::id)
-                val mediaRefs = mediaRefsDb
-                    .find(MediaReference::contentId `in` episodeIds)
-                    .toList()
+                val mediaRefs = queries.findMediaRefsByContentIds(episodeIds)
 
                 call.respond(
                     EpisodesResponse(
-                        episodes = if (seasonNumber == null) {
-                            episodes
-                        } else {
-                            episodes.filter { it.seasonNumber == seasonNumber }
-                        },
+                        episodes = episodes,
                         mediaRefs = mediaRefs.associateBy(MediaReference::contentId)
                     )
                 )
@@ -167,7 +157,8 @@ fun Route.addTvShowRoutes(
         get("/episode/{episode_id}") {
             val episodeId = call.parameters["episode_id"]
             if (episodeId.isNullOrBlank()) return@get call.respond(NotFound)
-            val response = queries.findEpisodeAndMediaRefs(episodeId)
+            val includeRefs = call.parameters["includeRefs"]?.toBoolean() ?: true
+            val response = queries.findEpisodeById(episodeId, includeRefs = includeRefs)
                 ?: return@get call.respond(NotFound)
             call.respond(response)
         }
@@ -175,7 +166,8 @@ fun Route.addTvShowRoutes(
         get("/season/{season_id}") {
             val seasonId = call.parameters["season_id"]
             if (seasonId.isNullOrBlank()) return@get call.respond(NotFound)
-            val response = queries.findSeasonAndMediaRefs(seasonId)
+            val includeRefs = call.parameters["includeRefs"]?.toBoolean() ?: true
+            val response = queries.findSeasonById(seasonId, includeRefs = includeRefs)
                 ?: return@get call.respond(NotFound)
 
             call.respond(response)

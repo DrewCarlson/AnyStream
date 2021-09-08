@@ -22,6 +22,7 @@ import anystream.models.api.*
 import com.mongodb.MongoException
 import org.litote.kmongo.*
 import org.litote.kmongo.coroutine.CoroutineDatabase
+import org.litote.kmongo.coroutine.projection
 import org.litote.kmongo.coroutine.updateOne
 
 class MediaDbQueries(
@@ -50,9 +51,11 @@ class MediaDbQueries(
         }
     }
 
-    suspend fun findMovieAndMediaRefs(movieId: String): MovieResponse? {
+    suspend fun findMovieById(movieId: String, includeRefs: Boolean = false): MovieResponse? {
         val movie = moviesDb.findOneById(movieId) ?: return null
-        val mediaRefs = mediaRefsDb.find(MediaReference::contentId eq movieId).toList()
+        val mediaRefs = if (includeRefs) {
+            mediaRefsDb.find(MediaReference::contentId eq movieId).toList()
+        } else emptyList()
 
         return MovieResponse(
             movie = movie,
@@ -60,17 +63,19 @@ class MediaDbQueries(
         )
     }
 
-    suspend fun findShowAndMediaRefs(showId: String): TvShowResponse? {
+    suspend fun findShowById(showId: String, includeRefs: Boolean = false): TvShowResponse? {
         val show = tvShowDb.findOneById(showId) ?: return null
-        val seasonIds = show.seasons.map(TvSeason::id)
-        val mediaRefs = mediaRefsDb.find(MediaReference::contentId `in` seasonIds + showId).toList()
+        val mediaRefs = if (includeRefs) {
+            val seasonIds = show.seasons.map(TvSeason::id)
+            mediaRefsDb.find(MediaReference::contentId `in` seasonIds + showId).toList()
+        } else emptyList()
         return TvShowResponse(
             tvShow = show,
             mediaRefs = mediaRefs,
         )
     }
 
-    suspend fun findSeasonAndMediaRefs(seasonId: String): SeasonResponse? {
+    suspend fun findSeasonById(seasonId: String, includeRefs: Boolean = false): SeasonResponse? {
         val tvShow = tvShowDb.findOne(TvShow::seasons elemMatch (TvSeason::id eq seasonId))
             ?: return null
         val season = tvShow.seasons.find { it.id == seasonId }
@@ -83,10 +88,12 @@ class MediaDbQueries(
                 )
             )
             .toList()
-        val episodeIds = episodes.map(Episode::id)
-        val mediaRefs = mediaRefsDb
-            .find(MediaReference::contentId `in` episodeIds)
-            .toList()
+        val mediaRefs = if (includeRefs) {
+            val episodeIds = episodes.map(Episode::id)
+            mediaRefsDb
+                .find(MediaReference::contentId `in` episodeIds)
+                .toList()
+        } else emptyList()
         return SeasonResponse(
             show = tvShow,
             season = season,
@@ -95,12 +102,14 @@ class MediaDbQueries(
         )
     }
 
-    suspend fun findEpisodeAndMediaRefs(episodeId: String): EpisodeResponse? {
+    suspend fun findEpisodeById(episodeId: String, includeRefs: Boolean = false): EpisodeResponse? {
         val episode = episodeDb.findOneById(episodeId) ?: return null
         val show = tvShowDb.findOneById(episode.showId) ?: return null
-        val mediaRefs = mediaRefsDb
-            .find(MediaReference::contentId eq episode.id)
-            .toList()
+        val mediaRefs = if (includeRefs) {
+            mediaRefsDb
+                .find(MediaReference::contentId eq episode.id)
+                .toList()
+        } else emptyList()
         return EpisodeResponse(
             episode = episode,
             show = show,
@@ -183,6 +192,10 @@ class MediaDbQueries(
         return mediaRefsDb.find(MediaReference::contentId eq mediaId).toList()
     }
 
+    suspend fun findMediaRefsByContentIds(mediaIds: List<String>): List<MediaReference> {
+        return mediaRefsDb.find(MediaReference::contentId `in` mediaIds).toList()
+    }
+
     suspend fun findMediaRefsByRootContentId(rootMediaId: String): List<MediaReference> {
         return mediaRefsDb.find(MediaReference::rootContentId eq rootMediaId).toList()
     }
@@ -211,8 +224,11 @@ class MediaDbQueries(
         return tvShowDb.find(TvShow::tmdbId `in` tmdbIds).toList()
     }
 
-    suspend fun findEpisodesByShow(showId: String): List<Episode> {
-        return episodeDb.find(Episode::showId eq showId).toList()
+    suspend fun findEpisodesByShow(showId: String, seasonNumber: Int? = null): List<Episode> {
+        return episodeDb.find(
+            Episode::showId eq showId,
+            Episode::seasonNumber eq seasonNumber,
+        ).toList()
     }
 
     suspend fun findEpisodesBySeason(seasonId: String): List<Episode> {
@@ -233,6 +249,15 @@ class MediaDbQueries(
                 ?.seasons
                 ?.firstOrNull { it.id == mediaId },
         )
+    }
+
+    suspend fun findMediaIdByRefId(refId: String): String? {
+        return mediaRefsDb
+            .projection(
+                MediaReference::contentId,
+                MediaReference::id eq refId,
+            )
+            .first()
     }
 
     suspend fun insertMediaReference(mediaReference: MediaReference) {

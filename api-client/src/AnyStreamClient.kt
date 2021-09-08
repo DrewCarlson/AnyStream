@@ -221,6 +221,9 @@ class AnyStreamClient(
     suspend fun lookupMedia(mediaId: String): MediaLookupResponse =
         http.get("/api/media/$mediaId")
 
+    suspend fun lookupMediaByRefId(refId: String): MediaLookupResponse =
+        http.get("/api/media/by-ref/$refId")
+
     suspend fun searchTmdbMovies(query: String, page: Int = 1) =
         http.get<TmdbMoviesResponse>("/api/movies/tmdb/search") {
             parameter(QUERY, query)

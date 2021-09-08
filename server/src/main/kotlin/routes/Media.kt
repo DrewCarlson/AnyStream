@@ -291,6 +291,7 @@ fun Route.addMediaViewRoutes(
             get {
                 val mediaId = call.parameters["mediaId"]
                     ?: return@get call.respond(NotFound)
+                val includeRefs = call.parameters["includeRefs"]?.toBoolean() ?: true
 
                 if (mediaId.contains(':')) {
                     val (provider, kind, remoteId) = try {
@@ -357,14 +358,32 @@ fun Route.addMediaViewRoutes(
                 } else {
                     call.respond(
                         MediaLookupResponse(
-                            movie = queries.findMovieAndMediaRefs(mediaId),
-                            tvShow = queries.findShowAndMediaRefs(mediaId),
-                            episode = queries.findEpisodeAndMediaRefs(mediaId),
-                            season = queries.findSeasonAndMediaRefs(mediaId),
+                            movie = queries.findMovieById(mediaId, includeRefs = includeRefs),
+                            tvShow = queries.findShowById(mediaId, includeRefs = includeRefs),
+                            episode = queries.findEpisodeById(mediaId, includeRefs = includeRefs),
+                            season = queries.findSeasonById(mediaId, includeRefs = includeRefs),
                         )
                     )
                 }
             }
+        }
+
+        get("/by-ref/{refId}") {
+            val refId = call.parameters["refId"]
+                ?: return@get call.respond(NotFound)
+            val includeRefs = call.parameters["includeRefs"]?.toBoolean() ?: false
+
+            val mediaId = queries.findMediaIdByRefId(refId)
+                ?: return@get call.respond(NotFound)
+
+            call.respond(
+                MediaLookupResponse(
+                    movie = queries.findMovieById(mediaId, includeRefs = includeRefs),
+                    tvShow = queries.findShowById(mediaId, includeRefs = includeRefs),
+                    episode = queries.findEpisodeById(mediaId, includeRefs = includeRefs),
+                    season = queries.findSeasonById(mediaId, includeRefs = includeRefs),
+                )
+            )
         }
     }
 }
