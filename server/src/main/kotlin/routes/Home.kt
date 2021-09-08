@@ -19,9 +19,11 @@ package anystream.routes
 
 import anystream.data.MediaDbQueries
 import anystream.data.UserSession
-import anystream.data.asApiResponse
+import anystream.data.asMovie
+import anystream.data.asTvShow
 import anystream.models.*
 import anystream.models.api.HomeResponse
+import anystream.util.toRemoteId
 import info.movito.themoviedbapi.TmdbApi
 import info.movito.themoviedbapi.model.MovieDb
 import info.movito.themoviedbapi.model.tv.TvSeries
@@ -31,21 +33,14 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
-import org.litote.kmongo.*
-import org.litote.kmongo.coroutine.CoroutineDatabase
 
 private const val CURRENTLY_WATCHING_ITEM_LIMIT = 10
 private const val POPULAR_MOVIES_REFRESH = 86_400_000L // 24 hours
 
 fun Route.addHomeRoutes(
     tmdb: TmdbApi,
-    mongodb: CoroutineDatabase,
     queries: MediaDbQueries,
 ) {
-    val moviesDb = mongodb.getCollection<Movie>()
-    val tvShowDb = mongodb.getCollection<TvShow>()
-    val mediaRefsDb = mongodb.getCollection<MediaReference>()
-
     val popularMoviesFlow = flow {
         while (true) {
             emit(tmdb.movies.getPopularMovies("en", 1))
@@ -72,34 +67,36 @@ fun Route.addHomeRoutes(
 
             // Popular movies
             val tmdbPopular = popularMoviesFlow.filterNotNull().first()
-            val ids = tmdbPopular.map(MovieDb::getId)
-            val existingIds = moviesDb
-                .find(Movie::tmdbId `in` ids)
-                .toList()
-                .map(Movie::tmdbId)
-            val popularMovies = tmdbPopular.asApiResponse(existingIds).items
-            val localPopularMovies = moviesDb
-                .find(Movie::tmdbId `in` existingIds)
-                .toList()
-            val popularMediaRefs = mediaRefsDb
-                .find(MediaReference::contentId `in` localPopularMovies.map(Movie::id))
-                .toList()
-            val popularMoviesMap = popularMovies.associateWith { m ->
-                val contentId = localPopularMovies.find { it.tmdbId == m.tmdbId }?.id
-                if (contentId == null) {
-                    null
-                } else {
-                    popularMediaRefs.find { it.contentId == contentId }
+            val existingMovies = queries
+                .findMoviesByTmdbId(tmdbPopular.map(MovieDb::getId))
+                .toMutableList()
+            val popularMovies = tmdbPopular.results
+                .map { dbMovie ->
+                    val existingIndex = existingMovies.indexOfFirst { it.tmdbId == dbMovie.id }
+                    if (existingIndex == -1) {
+                        dbMovie.asMovie(dbMovie.toRemoteId())
+                    } else {
+                        existingMovies.removeAt(existingIndex)
+                    }
                 }
+            val popularMediaRefs = queries.findMediaRefsByContentIds(popularMovies.map(Movie::id))
+            val popularMoviesMap = popularMovies.associateWith { m ->
+                popularMediaRefs.find { it.contentId == m.id }
             }
 
             val tmdbPopularShows = popularTvShowsFlow.filterNotNull().first()
-            val showIds = tmdbPopularShows.map(TvSeries::getId)
-            val existingShowIds = tvShowDb
-                .find(TvShow::tmdbId `in` showIds)
-                .toList()
-                .map(TvShow::tmdbId)
-            val popularTvShows = tmdbPopularShows.asApiResponse(existingShowIds).items
+            val existingShows = queries
+                .findTvShowsByTmdbId(tmdbPopularShows.map(TvSeries::getId))
+                .toMutableList()
+            val popularTvShows = tmdbPopularShows
+                .map { series ->
+                    val existingIndex = existingShows.indexOfFirst { it.tmdbId == series.id }
+                    if (existingIndex == -1) {
+                        series.asTvShow(emptyList(), series.toRemoteId())
+                    } else {
+                        existingShows.removeAt(existingIndex)
+                    }
+                }
 
             call.respond(
                 HomeResponse(

@@ -22,7 +22,7 @@ import anystream.media.MediaImportProcessor
 import anystream.metadata.MetadataManager
 import anystream.models.*
 import anystream.models.api.*
-import anystream.routes.concurrentMap
+import anystream.util.concurrentMap
 import com.mongodb.MongoException
 import com.mongodb.MongoQueryException
 import kotlinx.coroutines.CoroutineScope

@@ -17,6 +17,7 @@
  */
 package anystream.metadata
 
+import anystream.models.MediaKind
 import anystream.models.api.*
 import org.slf4j.Logger
 import org.slf4j.MarkerFactory
@@ -26,6 +27,16 @@ class MetadataManager(
     private val logger: Logger,
 ) {
     private val classMarker = MarkerFactory.getMarker(this::class.simpleName)
+
+    suspend fun findByRemoteId(remoteId: String): QueryMetadataResult {
+        val (providerId, mediaKind, id) = remoteId.split(':')
+
+        return search(QueryMetadata(
+            providerId = providerId,
+            contentId = id,
+            mediaKind = MediaKind.valueOf(mediaKind.uppercase()),
+        )).firstOrNull() ?: QueryMetadataResult.ErrorProviderNotFound
+    }
 
     suspend fun search(request: QueryMetadata): List<QueryMetadataResult> {
         return if (request.providerId == null) {

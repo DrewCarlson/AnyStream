@@ -19,13 +19,13 @@ package anystream.metadata.providers
 
 import anystream.data.MediaDbQueries
 import anystream.data.asMovie
-import anystream.data.asTvSeason
 import anystream.data.asTvShow
 import anystream.metadata.MetadataProvider
 import anystream.models.MediaKind
 import anystream.models.Movie
 import anystream.models.TvShow
 import anystream.models.api.*
+import anystream.util.toRemoteId
 import com.mongodb.MongoException
 import info.movito.themoviedbapi.TmdbApi
 import info.movito.themoviedbapi.TmdbMovies
@@ -61,7 +61,13 @@ class TmdbMetadataProvider(
         return when (request.mediaKind) {
             MediaKind.MOVIE -> {
                 val tmdbMovies = try {
-                    queryMovies(request.query, request.year)
+                    when {
+                        request.query != null ->
+                            queryMovies(request.query!!, request.year)
+                        request.contentId != null ->
+                            listOfNotNull(fetchMovie(request.contentId!!.toInt()))
+                        else -> error("No content")
+                    }
                 } catch (e: Throwable) {
                     return QueryMetadataResult.ErrorDataProviderException(e.stackTraceToString())
                 }
@@ -72,7 +78,7 @@ class TmdbMetadataProvider(
                     return QueryMetadataResult.ErrorDatabaseException(e.stackTraceToString())
                 }
                 val matches = tmdbMovies.map { movieDb ->
-                    val remoteId = "$id:movie:${movieDb.id}"
+                    val remoteId = movieDb.toRemoteId()
                     MetadataMatch.MovieMatch(
                         contentId = movieDb.id.toString(),
                         remoteId = remoteId,
@@ -86,11 +92,20 @@ class TmdbMetadataProvider(
                 QueryMetadataResult.Success(providerId = id, results = matches)
             }
             MediaKind.TV -> {
-                val tmdbSeries = queryTvSeries(request.query)
+                val tmdbSeries = try {
+                    when {
+                        request.query != null -> queryTvSeries(request.query!!)
+                        request.contentId != null ->
+                            listOfNotNull(fetchTvSeries(request.contentId!!.toInt()))
+                        else -> error("No content")
+                    }
+                } catch (e: Throwable) {
+                    return QueryMetadataResult.ErrorDataProviderException(e.stackTraceToString())
+                }
                 val tmdbSeriesIds = tmdbSeries.map(TvSeries::getId)
                 val existingTmdbIds = queries.findTvShowsByTmdbId(tmdbSeriesIds).map(TvShow::tmdbId)
                 val matches = tmdbSeries.map { tvSeries ->
-                    val remoteId = "$id:tv:${tvSeries.id}"
+                    val remoteId = tvSeries.toRemoteId()
                     MetadataMatch.TvShowMatch(
                         contentId = tvSeries.id.toString(),
                         remoteId = remoteId,
@@ -98,7 +113,6 @@ class TmdbMetadataProvider(
                         tvShow = tvSeries.asTvShow(
                             seasons = emptyList(),
                             id = remoteId,
-                            userId = "",
                         )
                     )
                 }

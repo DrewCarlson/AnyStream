@@ -18,16 +18,8 @@
 package anystream.data
 
 import anystream.models.*
-import anystream.models.api.TmdbMoviesResponse
-import anystream.models.api.TmdbTvShowResponse
-import anystream.models.tmdb.CompleteTvSeries
-import anystream.models.tmdb.PartialMovie
-import anystream.models.tmdb.PartialTvSeries
-import info.movito.themoviedbapi.TvResultsPage
 import info.movito.themoviedbapi.model.ArtworkType
 import info.movito.themoviedbapi.model.MovieDb
-import info.movito.themoviedbapi.model.core.MovieResultsPage
-import info.movito.themoviedbapi.model.keywords.Keyword
 import info.movito.themoviedbapi.model.tv.TvEpisode
 import info.movito.themoviedbapi.model.tv.TvSeries
 import org.bson.types.ObjectId
@@ -36,34 +28,9 @@ import info.movito.themoviedbapi.model.tv.TvSeason as TvSeasonDb
 
 private const val MAX_CACHED_POSTERS = 5
 
-fun MovieResultsPage.asApiResponse(existingRecordIds: List<Int>): TmdbMoviesResponse {
-    val ids = existingRecordIds.toMutableList()
-    return when (results) {
-        null -> TmdbMoviesResponse()
-        else -> TmdbMoviesResponse(
-            items = results.map { it.asPartialMovie(ids) },
-            itemTotal = totalResults,
-            page = page,
-            pageTotal = totalPages
-        )
-    }
-}
-
-fun MovieDb.asPartialMovie(
-    existingRecordIds: MutableList<Int>? = null
-) = PartialMovie(
-    tmdbId = id,
-    title = title,
-    overview = overview,
-    posterPath = posterPath,
-    releaseDate = releaseDate,
-    backdropPath = backdropPath,
-    isAdded = existingRecordIds?.remove(id) ?: false
-)
-
 fun MovieDb.asMovie(
     id: String,
-    userId: String
+    userId: String = "",
 ) = Movie(
     id = id,
     tmdbId = this.id,
@@ -74,7 +41,9 @@ fun MovieDb.asMovie(
     backdropPath = backdropPath,
     imdbId = imdbID,
     runtime = runtime,
-    posters = getImages(ArtworkType.POSTER)
+    posters = runCatching { getImages(ArtworkType.POSTER) }
+        .getOrNull()
+        .orEmpty()
         .filter { "en".equals(it.language, true) }
         .take(MAX_CACHED_POSTERS)
         .map { img ->
@@ -130,7 +99,7 @@ fun TvSeasonDb.asTvSeason(id: String, userId: String): TvSeason {
     )
 }
 
-fun TvSeries.asTvShow(seasons: List<TvSeason>, id: String, userId: String): TvShow {
+fun TvSeries.asTvShow(seasons: List<TvSeason>, id: String, userId: String = ""): TvShow {
     return TvShow(
         id = id,
         name = name,
@@ -144,38 +113,3 @@ fun TvSeries.asTvShow(seasons: List<TvSeason>, id: String, userId: String): TvSh
         seasons = seasons
     )
 }
-
-fun TvResultsPage.asApiResponse(existingRecordIds: List<Int>): TmdbTvShowResponse {
-    val ids = existingRecordIds.toMutableList()
-    return when (results) {
-        null -> TmdbTvShowResponse()
-        else -> TmdbTvShowResponse(
-            items = results.map { it.asPartialTvSeries(ids) },
-            itemTotal = totalResults,
-            page = page,
-            pageTotal = totalPages
-        )
-    }
-}
-
-fun TvSeries.asPartialTvSeries(
-    existingRecordIds: MutableList<Int>? = null
-) = PartialTvSeries(
-    tmdbId = id,
-    name = name,
-    overview = overview,
-    firstAirDate = firstAirDate,
-    lastAirDate = lastAirDate,
-    posterPath = posterPath,
-    backdropPath = backdropPath,
-    isAdded = existingRecordIds?.remove(id) ?: false
-)
-
-fun TvSeries.asCompleteTvSeries() = CompleteTvSeries(
-    tmdbId = id,
-    name = name,
-    overview = overview,
-    firstAirDate = firstAirDate,
-    lastAirDate = lastAirDate,
-    keywords = keywords.map(Keyword::getName)
-)

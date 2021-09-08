@@ -23,7 +23,7 @@ import anystream.models.StreamEncodingDetails
 import anystream.models.api.ImportMedia
 import anystream.models.api.ImportMediaResult
 import anystream.models.api.ImportStreamDetailsResult
-import anystream.routes.concurrentMap
+import anystream.util.concurrentMap
 import com.github.kokorin.jaffree.JaffreeException
 import com.github.kokorin.jaffree.StreamType
 import com.github.kokorin.jaffree.ffprobe.FFprobe
@@ -73,9 +73,11 @@ class MediaImporter(
 
         val mediaRefPaths = mediaRefs
             .withDocumentClass<LocalMediaReference>()
-            .find(LocalMediaReference::filePath.exists())
+            .projection(
+                LocalMediaReference::filePath,
+                LocalMediaReference::filePath.exists()
+            )
             .toList()
-            .map(LocalMediaReference::filePath)
 
         return contentFile.listFiles()
             ?.toList()

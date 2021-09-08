@@ -15,15 +15,11 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.models.api
+package anystream.util
 
-import anystream.models.tmdb.PartialMovie
-import kotlinx.serialization.Serializable
+import info.movito.themoviedbapi.model.MovieDb
+import info.movito.themoviedbapi.model.tv.TvSeries
 
-@Serializable
-data class TmdbMoviesResponse(
-    override val items: List<PartialMovie> = emptyList(),
-    override val itemTotal: Int = 0,
-    override val page: Int = 1,
-    override val pageTotal: Int = 1
-) : PagedResponse<PartialMovie>
+val String.isRemoteId: Boolean get() = split(':').size == 3
+fun MovieDb.toRemoteId(): String = "tmdb:movie:$id"
+fun TvSeries.toRemoteId(): String = "tmdb:tv:$id"

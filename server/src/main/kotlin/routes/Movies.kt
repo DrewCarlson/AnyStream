@@ -18,20 +18,11 @@
 package anystream.routes
 
 import anystream.data.*
-import anystream.models.MediaReference
-import anystream.models.Movie
 import anystream.models.Permissions.MANAGE_COLLECTION
-import anystream.models.api.MoviesResponse
-import anystream.models.api.TmdbMoviesResponse
-import anystream.util.logger
 import anystream.util.withAnyPermission
-import info.movito.themoviedbapi.TmdbApi
-import info.movito.themoviedbapi.TmdbMovies.MovieMethod
-import info.movito.themoviedbapi.model.MovieDb
 import io.ktor.application.call
 import io.ktor.auth.*
 import io.ktor.http.*
-import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.cio.websocket.*
@@ -39,146 +30,16 @@ import io.ktor.request.*
 import io.ktor.response.respond
 import io.ktor.routing.*
 import io.ktor.websocket.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.*
-import org.bson.types.ObjectId
 import org.litote.kmongo.*
-import org.litote.kmongo.coroutine.CoroutineDatabase
 
 fun Route.addMovieRoutes(
-    tmdb: TmdbApi,
-    mongodb: CoroutineDatabase,
     queries: MediaDbQueries,
 ) {
-    val moviesDb = mongodb.getCollection<Movie>()
-    val mediaRefsDb = mongodb.getCollection<MediaReference>()
     route("/movies") {
         get {
-            val movies = moviesDb.find().toList()
-            val movieIds = movies.map(Movie::id)
-            val mediaRefs = mediaRefsDb.find(MediaReference::contentId `in` movieIds).toList()
-            call.respond(
-                MoviesResponse(
-                    movies = movies,
-                    mediaReferences = mediaRefs,
-                )
-            )
-        }
-
-        route("/tmdb") {
-            get("/popular") {
-                val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
-                runCatching {
-                    tmdb.movies.getPopularMovies("en", page)
-                }.onSuccess { tmdbMovies ->
-                    val ids = tmdbMovies.map(MovieDb::getId)
-                    val existingIds = moviesDb
-                        .find(Movie::tmdbId `in` ids)
-                        .toList()
-                        .map(Movie::tmdbId)
-
-                    call.respond(tmdbMovies.asApiResponse(existingIds))
-                }.onFailure { e ->
-                    // TODO: Decompose this exception and retry where possible
-                    logger.error("Error fetching popular movies from TMDB - page=$page", e)
-                    call.respond(InternalServerError)
-                }
-            }
-
-            get("/search") {
-                val query = call.request.queryParameters["query"]
-                val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
-
-                if (query.isNullOrBlank()) {
-                    call.respond(TmdbMoviesResponse())
-                } else {
-                    runCatching {
-                        tmdb.search.searchMovie(
-                            query.encodeURLQueryComponent(),
-                            0,
-                            null,
-                            false,
-                            page
-                        )
-                    }.onSuccess { tmdbMovies ->
-                        val ids = tmdbMovies.map(MovieDb::getId)
-                        val existingIds = moviesDb
-                            .find(Movie::tmdbId `in` ids)
-                            .toList()
-                            .map(Movie::tmdbId)
-                        call.respond(tmdbMovies.asApiResponse(existingIds))
-                    }.onFailure { e ->
-                        // TODO: Decompose this exception and retry where possible
-                        logger.error("Error searching TMDB - page=$page, query='$query'", e)
-                        call.respond(InternalServerError)
-                    }
-                }
-            }
-
-            route("/{tmdb_id}") {
-                get {
-                    val tmdbId = call.parameters["tmdb_id"]?.toIntOrNull()
-
-                    if (tmdbId == null) {
-                        call.respond(NotFound)
-                    } else {
-                        runCatching {
-                            tmdb.movies.getMovie(
-                                tmdbId,
-                                null,
-                                MovieMethod.keywords,
-                                MovieMethod.images,
-                                MovieMethod.alternative_titles
-                            )
-                        }.onSuccess { tmdbMovie ->
-                            call.respond(tmdbMovie.asPartialMovie())
-                        }.onFailure { e ->
-                            // TODO: Decompose this exception and retry where possible
-                            logger.error("Error fetching movie from TMDB - tmdb=$tmdbId", e)
-                            call.respond(InternalServerError)
-                        }
-                    }
-                }
-
-                withAnyPermission(MANAGE_COLLECTION) {
-                    get("/add") {
-                        val session = call.principal<UserSession>()!!
-                        val tmdbId = call.parameters["tmdb_id"]?.toIntOrNull()
-
-                        when {
-                            tmdbId == null -> {
-                                call.respond(NotFound)
-                            }
-                            moviesDb.findOne(Movie::tmdbId eq tmdbId) != null -> {
-                                call.respond(HttpStatusCode.Conflict)
-                            }
-                            else -> {
-                                runCatching {
-                                    tmdb.movies.getMovie(
-                                        tmdbId,
-                                        null,
-                                        MovieMethod.images,
-                                        MovieMethod.release_dates,
-                                        MovieMethod.alternative_titles,
-                                        MovieMethod.keywords
-                                    )
-                                }.onSuccess { tmdbMovie ->
-                                    val id = ObjectId.get().toString()
-                                    moviesDb.insertOne(tmdbMovie.asMovie(id, session.userId))
-                                    call.respond(OK)
-                                }.onFailure { e ->
-                                    logger.error(
-                                        "Error fetching movie from TMDB - tmdbId=$tmdbId",
-                                        e
-                                    )
-                                    call.respond(InternalServerError)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            val includeRefs = call.parameters["includeRefs"]?.toBoolean() ?: true
+            call.respond(queries.findMovies(includeRefs = includeRefs))
         }
 
         route("/{movie_id}") {
@@ -193,15 +54,11 @@ fun Route.addMovieRoutes(
             }
 
             get("/refs") {
-                val mediaRefs = call.parameters["movie_id"]
+                val movieId = call.parameters["movie_id"]
                     ?.takeUnless(String::isNullOrBlank)
-                    ?.let { mediaRefsDb.find(MediaReference::contentId eq it) }
-                    ?.toList()
-                if (mediaRefs == null) {
-                    call.respond(NotFound)
-                } else {
-                    call.respond(mediaRefs)
-                }
+                    ?: return@get call.respond(NotFound)
+
+                call.respond(queries.findMediaRefsByContentId(movieId))
             }
 
             withAnyPermission(MANAGE_COLLECTION) {
@@ -209,24 +66,15 @@ fun Route.addMovieRoutes(
                     val movieId = call.parameters["movie_id"]
                         ?.takeUnless(String::isNullOrBlank)
                         ?: return@delete call.respond(NotFound)
-                    val result = moviesDb.deleteOneById(movieId)
-                    if (result.deletedCount == 0L) {
-                        call.respond(NotFound)
-                    } else {
-                        mediaRefsDb.deleteMany(MediaReference::contentId eq movieId)
-                        call.respond(OK)
+                    val deleteRefs = call.parameters["deleteRefs"]?.toBoolean() ?: true
+
+                    if (deleteRefs) {
+                        queries.deleteRefsByContentId(movieId)
                     }
+
+                    call.respond(if (queries.deleteMovie(movieId)) OK else NotFound)
                 }
             }
         }
     }
 }
-
-fun <T, R> Flow<T>.concurrentMap(
-    scope: CoroutineScope,
-    concurrencyLevel: Int,
-    transform: suspend (T) -> R
-): Flow<R> = this
-    .map { scope.async { transform(it) } }
-    .buffer(concurrencyLevel)
-    .map { it.await() }

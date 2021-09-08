@@ -18,8 +18,6 @@
 package anystream.models.api
 
 import anystream.models.*
-import anystream.models.tmdb.PartialMovie
-import anystream.models.tmdb.PartialTvSeries
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -28,7 +26,7 @@ data class HomeResponse(
     val currentlyWatchingMovies: Map<String, Movie>,
     val currentlyWatchingTv: Map<String, Pair<Episode, TvShow>>,
     val recentlyAdded: Map<Movie, MediaReference?>,
-    val popularMovies: Map<PartialMovie, MediaReference?>,
-    val popularTvShows: List<PartialTvSeries>,
+    val popularMovies: Map<Movie, MediaReference?>,
+    val popularTvShows: List<TvShow>,
     val recentlyAddedTv: List<TvShow>,
 )

@@ -224,33 +224,8 @@ class AnyStreamClient(
     suspend fun lookupMediaByRefId(refId: String): MediaLookupResponse =
         http.get("/api/media/by-ref/$refId")
 
-    suspend fun searchTmdbMovies(query: String, page: Int = 1) =
-        http.get<TmdbMoviesResponse>("/api/movies/tmdb/search") {
-            parameter(QUERY, query)
-            pageParam(page)
-        }
-
     suspend fun getTmdbSources(tmdbId: Int) =
         http.get<List<TorrentDescription2>>("/api/media/tmdb/$tmdbId/sources")
-
-    suspend fun searchTmbdTvShows(query: String, page: Int = 1) =
-        http.get<TmdbTvShowResponse>("/api/tv/tmdb/search") {
-            parameter(QUERY, query)
-            pageParam(page)
-        }
-
-    suspend fun getTmdbPopularMovies(page: Int = 1) =
-        http.get<TmdbMoviesResponse>("/api/movies/tmdb/popular") {
-            pageParam(page)
-        }
-
-    suspend fun getTmdbPopularTvShows(page: Int = 1) =
-        http.get<TmdbTvShowResponse>("/api/tv/tmdb/popular") {
-            pageParam(page)
-        }
-
-    suspend fun addMovieFromTmdb(tmdbId: Int) =
-        http.get<Unit>("/api/movies/tmdb/$tmdbId/add")
 
     suspend fun getGlobalTransferInfo() =
         http.get<GlobalTransferInfo>("/api/torrents/global")

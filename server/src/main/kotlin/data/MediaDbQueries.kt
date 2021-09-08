@@ -51,6 +51,19 @@ class MediaDbQueries(
         }
     }
 
+    suspend fun findMovies(includeRefs: Boolean = false): MoviesResponse {
+        val movies = moviesDb.find().toList()
+        val mediaRefs = if (includeRefs) {
+            val movieIds = movies.map(Movie::id)
+            mediaRefsDb.find(MediaReference::contentId `in` movieIds).toList()
+        } else emptyList()
+
+        return MoviesResponse(
+            movies = movies,
+            mediaReferences = mediaRefs,
+        )
+    }
+
     suspend fun findMovieById(movieId: String, includeRefs: Boolean = false): MovieResponse? {
         val movie = moviesDb.findOneById(movieId) ?: return null
         val mediaRefs = if (includeRefs) {
@@ -60,6 +73,19 @@ class MediaDbQueries(
         return MovieResponse(
             movie = movie,
             mediaRefs = mediaRefs
+        )
+    }
+
+    suspend fun findShows(includeRefs: Boolean = false): TvShowsResponse {
+        val tvShows = tvShowDb.find().toList()
+        val mediaRefs = if (includeRefs) {
+            val tvShowIds = tvShows.map(TvShow::id)
+            mediaRefsDb.find(MediaReference::rootContentId `in` tvShowIds).toList()
+        } else emptyList()
+
+        return TvShowsResponse(
+            tvShows = tvShows,
+            mediaRefs = mediaRefs,
         )
     }
 
@@ -305,6 +331,26 @@ class MediaDbQueries(
         return episodeDb.bulkWrite(updates).run {
             modifiedCount > 0 || deletedCount > 0 || insertedCount > 0
         }
+    }
+
+    suspend fun deleteMovie(mediaId: String): Boolean {
+        return moviesDb.deleteOneById(mediaId).deletedCount > 0
+    }
+
+    suspend fun deleteTvShow(mediaId: String): Boolean {
+        return if (tvShowDb.deleteOneById(mediaId).deletedCount > 0) {
+            episodeDb.deleteMany(Episode::showId eq mediaId)
+            mediaRefsDb.deleteMany(MediaReference::rootContentId eq mediaId)
+            true
+        } else false
+    }
+
+    suspend fun deleteRefsByContentId(mediaId: String) {
+        mediaRefsDb.deleteMany(MediaReference::contentId eq mediaId)
+    }
+
+    suspend fun deleteRefsByRootContentId(mediaId: String) {
+        mediaRefsDb.deleteMany(MediaReference::rootContentId eq mediaId)
     }
 
     data class CurrentlyWatchingQueryResults(

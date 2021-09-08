@@ -40,7 +40,6 @@ import anystream.android.router.BackStack
 import anystream.client.AnyStreamClient
 import anystream.models.*
 import anystream.models.api.HomeResponse
-import anystream.models.tmdb.PartialMovie
 import coil.compose.ImagePainter
 import coil.compose.rememberImagePainter
 import coil.request.ImageRequest
@@ -71,11 +70,11 @@ fun HomeScreen(
 
                 homeData.value?.run {
                     Spacer(modifier = Modifier.size(4.dp))
-                    if (currentlyWatching.isNotEmpty()) {
+                    /*if (currentlyWatching.isNotEmpty()) {
                         RowTitle(text = "Continue Watching")
                         ContinueWatchingRow(currentlyWatching, onClick = onMediaClick)
                         RowSpace()
-                    }
+                    }*/
 
                     Row(
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -104,7 +103,7 @@ fun HomeScreen(
                     RowSpace()
 
                     RowTitle(text = "Popular Movies")
-                    PartialMovieRow(movies = popularMovies, onClick = onMediaClick)
+                    MovieRow(movies = popularMovies, onClick = onMediaClick)
                     RowSpace()
                 }
             }
@@ -235,27 +234,6 @@ private fun TvRow(
                     title = show.name,
                     imagePath = show.posterPath,
                     onClick = {  },
-                )
-            }
-        }
-    )
-}
-
-@Composable
-private fun PartialMovieRow(
-    movies: Map<PartialMovie, MediaReference?>,
-    onClick: (mediaRefId: String?) -> Unit
-) {
-    LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(CARD_SPACING),
-        content = {
-            items(movies.toList()) { (movie, mediaRef) ->
-                PosterCard(
-                    title = movie.title,
-                    imagePath = movie.posterPath,
-                    onClick = {
-                        mediaRef?.run { onClick(id) }
-                    },
                 )
             }
         }

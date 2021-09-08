@@ -19,8 +19,10 @@ package anystream.routes
 
 import anystream.data.*
 import anystream.media.MediaImporter
+import anystream.metadata.MetadataManager
 import anystream.models.*
 import anystream.models.api.*
+import anystream.util.isRemoteId
 import anystream.util.logger
 import drewcarlson.torrentsearch.Category
 import drewcarlson.torrentsearch.TorrentSearch
@@ -283,7 +285,7 @@ fun Route.addMediaManageRoutes(
 }
 
 fun Route.addMediaViewRoutes(
-    tmdb: TmdbApi,
+    metadataManager: MetadataManager,
     queries: MediaDbQueries,
 ) {
     route("/media") {
@@ -293,67 +295,23 @@ fun Route.addMediaViewRoutes(
                     ?: return@get call.respond(NotFound)
                 val includeRefs = call.parameters["includeRefs"]?.toBoolean() ?: true
 
-                if (mediaId.contains(':')) {
-                    val (provider, kind, remoteId) = try {
-                        mediaId.split(':')
-                    } catch (e: IndexOutOfBoundsException) {
-                        return@get call.respond(NotFound)
-                    }
-
-                    when (provider.lowercase()) {
-                        "tmdb" -> {
-                            when (MediaKind.valueOf(kind.uppercase())) {
-                                MediaKind.MOVIE -> {
-                                    val movie = tmdb.movies.getMovie(
-                                        remoteId.toInt(),
-                                        null,
-                                        TmdbMovies.MovieMethod.images,
-                                        TmdbMovies.MovieMethod.release_dates,
-                                        TmdbMovies.MovieMethod.alternative_titles,
-                                        TmdbMovies.MovieMethod.keywords
-                                    ).asMovie(mediaId, "")
-
-                                    call.respond(
-                                        MediaLookupResponse(
-                                            movie = MovieResponse(movie, emptyList())
-                                        )
-                                    )
-                                }
-                                MediaKind.TV -> {
-                                    val tmdbSeries = tmdb.tvSeries.getSeries(
-                                        remoteId.toInt(),
-                                        null,
-                                        TmdbTV.TvMethod.keywords,
-                                        TmdbTV.TvMethod.external_ids,
-                                        TmdbTV.TvMethod.images,
-                                        TmdbTV.TvMethod.content_ratings,
-                                        TmdbTV.TvMethod.credits,
-                                    )
-                                    val tmdbSeasons = tmdbSeries.seasons
-                                        .filter { it.seasonNumber > 0 }
-                                        .map { season ->
-                                            tmdb.tvSeasons.getSeason(
-                                                tmdbSeries.id,
-                                                season.seasonNumber,
-                                                null,
-                                                TmdbTvSeasons.SeasonMethod.images,
-                                            )
-                                        }
-                                    val (show, _) = tmdbSeries.asTvShow(
-                                        tmdbSeasons = tmdbSeasons,
-                                        id = mediaId,
-                                        userId = ""
-                                    ) { id -> "tmdb:tv:$id" }
-                                    call.respond(
-                                        MediaLookupResponse(
-                                            tvShow = TvShowResponse(show, emptyList())
-                                        )
-                                    )
-                                }
-                                else -> return@get call.respond(NotFound)
+                return@get if (mediaId.isRemoteId) {
+                    when (val queryResult = metadataManager.findByRemoteId(mediaId)) {
+                        is QueryMetadataResult.Success -> {
+                            if (queryResult.results.isEmpty()) {
+                                return@get call.respond(MediaLookupResponse())
                             }
+                            val match = queryResult.results.first()
+                            call.respond(
+                                MediaLookupResponse(
+                                    movie = (match as? MetadataMatch.MovieMatch)
+                                        ?.run { MovieResponse(movie) },
+                                    tvShow = (match as? MetadataMatch.TvShowMatch)
+                                        ?.run { TvShowResponse(tvShow) },
+                                )
+                            )
                         }
-                        else -> return@get call.respond(NotFound)
+                        else -> call.respond(MediaLookupResponse())
                     }
                 } else {
                     call.respond(
@@ -370,11 +328,11 @@ fun Route.addMediaViewRoutes(
 
         get("/by-ref/{refId}") {
             val refId = call.parameters["refId"]
-                ?: return@get call.respond(NotFound)
+                ?: return@get call.respond(MediaLookupResponse())
             val includeRefs = call.parameters["includeRefs"]?.toBoolean() ?: false
 
             val mediaId = queries.findMediaIdByRefId(refId)
-                ?: return@get call.respond(NotFound)
+                ?: return@get call.respond(MediaLookupResponse())
 
             call.respond(
                 MediaLookupResponse(

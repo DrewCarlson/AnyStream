@@ -33,4 +33,7 @@ data class TvShow(
     val seasons: List<TvSeason>,
     val posterPath: String,
     val added: Long,
-)
+) {
+    val isAdded: Boolean
+        get() = !id.contains(':')
+}

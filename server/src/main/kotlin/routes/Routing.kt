@@ -85,12 +85,12 @@ fun Application.installRouting(mongodb: CoroutineDatabase) {
         route("/api") {
             addUserRoutes(mongodb)
             authenticate {
-                addHomeRoutes(tmdb, mongodb, queries)
+                addHomeRoutes(tmdb, queries)
                 withAnyPermission(Permissions.VIEW_COLLECTION) {
-                    addTvShowRoutes(tmdb, mongodb, queries)
-                    addMovieRoutes(tmdb, mongodb, queries)
+                    addTvShowRoutes(queries)
+                    addMovieRoutes(queries)
                     addSearchRoutes(tmdb, mongodb)
-                    addMediaViewRoutes(tmdb, queries)
+                    addMediaViewRoutes(metadataManager, queries)
                 }
                 withAnyPermission(Permissions.TORRENT_MANAGEMENT) {
                     addTorrentRoutes(qbClient, mongodb)

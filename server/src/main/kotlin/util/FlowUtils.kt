@@ -15,18 +15,20 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.models.tmdb
+package anystream.util
 
-import kotlinx.serialization.Serializable
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.buffer
+import kotlinx.coroutines.flow.map
 
-@Serializable
-data class PartialTvSeries(
-    val tmdbId: Int,
-    val name: String,
-    val overview: String,
-    val firstAirDate: String?,
-    val lastAirDate: String?,
-    val posterPath: String?,
-    val backdropPath: String?,
-    val isAdded: Boolean,
-)
+
+fun <T, R> Flow<T>.concurrentMap(
+    scope: CoroutineScope,
+    concurrencyLevel: Int,
+    transform: suspend (T) -> R
+): Flow<R> = this
+    .map { scope.async { transform(it) } }
+    .buffer(concurrencyLevel)
+    .map { it.await() }

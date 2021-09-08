@@ -35,8 +35,9 @@ data class ImportMetadata(
 @Serializable
 data class QueryMetadata(
     val providerId: String?,
-    val query: String,
     val mediaKind: MediaKind,
+    val query: String? = null,
+    val contentId: String? = null,
     val year: Int? = null,
 )
 
@@ -95,6 +96,9 @@ sealed class QueryMetadataResult {
         val providerId: String,
         val results: List<MetadataMatch>
     ) : QueryMetadataResult()
+
+    @Serializable
+    object ErrorProviderNotFound : QueryMetadataResult()
 
     @Serializable
     data class ErrorDatabaseException(

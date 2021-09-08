@@ -24,5 +24,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class TvShowResponse(
     val tvShow: TvShow,
-    val mediaRefs: List<MediaReference>,
+    val mediaRefs: List<MediaReference> = emptyList(),
 )

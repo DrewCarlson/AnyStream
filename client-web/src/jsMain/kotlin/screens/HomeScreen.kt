@@ -149,7 +149,7 @@ fun HomeScreen(client: AnyStreamClient) {
                 popularMovies.forEach { (movie, ref) ->
                     PosterCard(
                         title = {
-                            LinkedText(url = "/media/${ref?.contentId ?: "tmdb:movie:${movie.tmdbId}"}") {
+                            LinkedText(url = "/media/${ref?.contentId ?: movie.id}") {
                                 Text(movie.title)
                             }
                         },
@@ -161,11 +161,7 @@ fun HomeScreen(client: AnyStreamClient) {
                         onPlayClicked = { window.location.hash = "!play:${ref?.id}" }
                             .takeIf { ref != null },
                         onBodyClicked = {
-                            if (ref == null) {
-                                BrowserRouter.navigate("/media/tmdb:movie:${movie.tmdbId}")
-                            } else {
-                                BrowserRouter.navigate("/media/${ref.contentId}")
-                            }
+                            BrowserRouter.navigate("/media/${movie.id}")
                         }
                     )
                 }
@@ -179,11 +175,11 @@ fun HomeScreen(client: AnyStreamClient) {
                 popularTvShows.forEach { tvShow ->
                     PosterCard(
                         title = {
-                            LinkedText(url = "/media/${"tmdb:tv:${tvShow.tmdbId}"}") {
+                            LinkedText(url = "/media/${tvShow.id}") {
                                 Text(tvShow.name)
                             }
                         },
-                        subtitle1 = tvShow.firstAirDate?.run {
+                        subtitle1 = tvShow.firstAirDate.run {
                             { Text(substringBefore("-")) }
                         },
                         posterPath = tvShow.posterPath,
@@ -191,7 +187,7 @@ fun HomeScreen(client: AnyStreamClient) {
                         /*onPlayClicked = { window.location.hash = "!play:${ref?.id}" }
                             .takeIf { ref != null },*/
                         onBodyClicked = {
-                            BrowserRouter.navigate("/media/tmdb:tv:${tvShow.tmdbId}")
+                            BrowserRouter.navigate("/media/${tvShow.id}")
                         }
                     )
                 }

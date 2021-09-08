@@ -35,7 +35,10 @@ data class Movie(
     val releaseDate: String?,
     val added: Long,
     val addedByUserId: String,
-)
+) {
+    val isAdded: Boolean
+        get() = !id.contains(':')
+}
 
 @Serializable
 data class Image(

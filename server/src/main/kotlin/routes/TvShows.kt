@@ -18,16 +18,11 @@
 package anystream.routes
 
 import anystream.data.MediaDbQueries
-import anystream.data.asApiResponse
-import anystream.data.asCompleteTvSeries
 import anystream.models.*
 import anystream.models.Permissions.MANAGE_COLLECTION
 import anystream.models.api.*
-import anystream.util.logger
 import anystream.util.withAnyPermission
 import com.mongodb.MongoException
-import info.movito.themoviedbapi.TmdbApi
-import info.movito.themoviedbapi.TmdbTV.TvMethod
 import io.ktor.application.*
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
@@ -36,75 +31,14 @@ import io.ktor.response.respond
 import io.ktor.routing.*
 import io.ktor.util.pipeline.*
 import org.litote.kmongo.*
-import org.litote.kmongo.coroutine.CoroutineDatabase
 
 fun Route.addTvShowRoutes(
-    tmdb: TmdbApi,
-    mongodb: CoroutineDatabase,
     queries: MediaDbQueries,
 ) {
-    val tvShowDb = mongodb.getCollection<TvShow>()
-    val episodeDb = mongodb.getCollection<Episode>()
-    val mediaRefsDb = mongodb.getCollection<MediaReference>()
     route("/tv") {
         get {
-            val tvShows = tvShowDb.find().toList()
-            call.respond(
-                TvShowsResponse(
-                    tvShows = tvShows,
-                    mediaRefs = emptyList(),
-                )
-            )
-        }
-
-        route("/tmdb") {
-            get("/popular") {
-                val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
-                try {
-                    val tmdbShows = tmdb.tvSeries.getPopular("en", page)
-                    call.respond(tmdbShows.asApiResponse(emptyList()))
-                } catch (e: Throwable) {
-                    // TODO: Decompose this exception and retry where possible
-                    logger.error("Error fetching popular series from TMDB - page=$page", e)
-                    call.respond(InternalServerError)
-                }
-            }
-
-            get("/{tmdb_id}") {
-                val tmdbId = call.parameters["tmdb_id"]?.toIntOrNull()
-                    ?: return@get call.respond(NotFound)
-
-                try {
-                    val tmdbSeries = tmdb.tvSeries.getSeries(
-                        tmdbId,
-                        null,
-                        TvMethod.keywords
-                    )
-                    call.respond(tmdbSeries.asCompleteTvSeries())
-                } catch (e: Throwable) {
-                    // TODO: Decompose this exception and retry where possible
-                    logger.error("Error fetching series from TMDB - tmdb=$tmdbId", e)
-                    call.respond(InternalServerError)
-                }
-            }
-
-            get("/search") {
-                val query = call.request.queryParameters["query"]
-                val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
-
-                if (query.isNullOrBlank()) {
-                    call.respond(TmdbTvShowResponse())
-                } else {
-                    try {
-                        val shows = tmdb.search.searchTv(query, null, page)
-                        call.respond(shows.asApiResponse(emptyList()))
-                    } catch (e: Throwable) {
-                        // TODO: Decompose this exception and retry where possible
-                        logger.error("Error searching TMDB - page=$page, query='$query'", e)
-                        call.respond(InternalServerError)
-                    }
-                }
-            }
+            val includeRefs = call.parameters["includeRefs"]?.toBoolean() ?: false
+            call.respond(queries.findShows(includeRefs = includeRefs))
         }
 
         route("/{show_id}") {
@@ -123,7 +57,7 @@ fun Route.addTvShowRoutes(
                 val seasonNumber = call.parameters["season_number"]?.toIntOrNull()
                 if (showId.isNullOrBlank()) return@get call.respond(NotFound)
 
-                tvShowDb.findOneById(showId) ?: return@get call.respond(NotFound)
+                queries.findShowById(showId, false) ?: return@get call.respond(NotFound)
 
                 val episodes = queries.findEpisodesByShow(showId, seasonNumber = seasonNumber)
                 val episodeIds = episodes.map(Episode::id)
@@ -141,9 +75,8 @@ fun Route.addTvShowRoutes(
                 delete {
                     val result = call.parameters["show_id"]?.let { showId ->
                         try {
-                            tvShowDb.deleteOneById(showId)
-                            episodeDb.deleteMany(Episode::showId eq showId)
-                            mediaRefsDb.deleteMany(MediaReference::rootContentId eq showId)
+                            queries.deleteTvShow(showId)
+                            queries.deleteRefsByRootContentId(showId)
                             OK
                         } catch (e: MongoException) {
                             InternalServerError
