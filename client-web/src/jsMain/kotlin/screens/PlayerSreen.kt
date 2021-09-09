@@ -41,7 +41,7 @@ import org.w3c.dom.get
 
 private val playerControlsColor = rgba(35, 36, 38, .45)
 
-private const val CONTROL_HIDE_DELAY = 2_250L
+private const val CONTROL_HIDE_DELAY = 2_750L
 
 @Composable
 fun PlayerScreen(
@@ -95,7 +95,8 @@ fun PlayerScreen(
     val setFullscreen = mutableStateOf<((Boolean) -> Unit)?>(null)
     var duration by mutableStateOf(1f)
     var progress by mutableStateOf(0f)
-    val progressScale = derivedStateOf { ((progress / duration) * 100) }
+    val progressScale = derivedStateOf { progress / duration }
+    val bufferedProgress = mutableStateOf(0f)
     Div({
         style {
             classes("w-100")
@@ -129,7 +130,7 @@ fun PlayerScreen(
                 }
             }) {
                 player?.also { player ->
-                    SeekBar(player, progressScale)
+                    SeekBar(player, progressScale, bufferedProgress)
                 }
             }
         }
@@ -183,6 +184,12 @@ fun PlayerScreen(
                         }
                     }
                     player = VideoJs.default(element, VjsOptions())
+                    element.onprogress = {
+                        bufferedProgress.value = if (element.buffered.length > 0) {
+                            (element.buffered.end(0) / element.duration).toFloat()
+                        } else 0f
+                        true
+                    }
                     element.onloadedmetadata = {
                         duration = player?.duration() ?: 1f
                         element.currentTime = playbackState?.position?.toDouble() ?: 0.0
@@ -262,6 +269,7 @@ fun PlayerScreen(
                 player = currentPlayer,
                 mediaItem = mediaItem,
                 progressScale = progressScale,
+                bufferedPercent = bufferedProgress,
                 overlayMode = !isInMiniMode.value,
             )
         }
@@ -350,6 +358,7 @@ private fun PlaybackControls(
     player: VjsPlayer,
     mediaItem: State<MediaItem?>,
     progressScale: State<Float>,
+    bufferedPercent: State<Float>,
     overlayMode: Boolean,
 ) {
     Div({
@@ -629,6 +638,7 @@ private fun PlaybackControls(
                 SeekBar(
                     player = player,
                     progressScale = progressScale,
+                    bufferedPercent = bufferedPercent,
                 )
             }
         }
@@ -639,9 +649,9 @@ private fun PlaybackControls(
 private fun SeekBar(
     player: VjsPlayer,
     progressScale: State<Float>,
+    bufferedPercent: State<Float>,
 ) {
     var isThumbVisible by mutableStateOf(false)
-    var barHeight by mutableStateOf(4)
     Div({
         classes("w-100")
         style {
@@ -693,26 +703,32 @@ private fun SeekBar(
         Div({
             classes("w-100")
             style {
-                height(barHeight.px)
+                height(4.px)
                 property("transform", "translateY(-50%)")
+                backgroundColor(rgba(255, 255, 255, .7))
             }
         }) {
             Div({
-                classes("w-100")
-                style {
-                    position(Position.Absolute)
-                    backgroundColor(Color.white)
-                    height(barHeight.px)
-                    property("pointer-events", "none")
-                }
-            })
-            Div({
+                classes("w-100", "h-100")
                 style {
                     position(Position.Absolute)
                     backgroundColor(Color("#C7081C"))
-                    width(progressScale.value.percent)
-                    height(barHeight.px)
+                    opacity(.5)
                     property("pointer-events", "none")
+                    property("transform", "scaleX(${bufferedPercent.value})")
+                    property("transform-origin", "left")
+                    property("transition", "transform .1s")
+                }
+            })
+            Div({
+                classes("w-100", "h-100")
+                style {
+                    position(Position.Absolute)
+                    backgroundColor(Color("#C7081C"))
+                    property("pointer-events", "none")
+                    property("transform", "scaleX(${progressScale.value})")
+                    property("transform-origin", "left")
+                    property("transition", "transform .1s")
                 }
             })
         }
