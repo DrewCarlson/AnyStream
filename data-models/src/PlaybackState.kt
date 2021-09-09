@@ -31,4 +31,11 @@ data class PlaybackState(
     val position: Long,
     val duration: Double,
     val updatedAt: Long = 0L,
-)
+) {
+    val completedPercent: Float
+        get() {
+            return (position.toDouble() / duration)
+                .coerceIn(0.0, 1.0)
+                .toFloat()
+        }
+}

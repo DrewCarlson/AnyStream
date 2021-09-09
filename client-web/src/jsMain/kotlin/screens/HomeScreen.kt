@@ -49,6 +49,7 @@ fun HomeScreen(client: AnyStreamClient) {
                                 }
                             }
                         },
+                        completedPercent = state.completedPercent,
                         subtitle1 = {
                             movie?.releaseDate?.run {
                                 Text(substringBefore("-"))

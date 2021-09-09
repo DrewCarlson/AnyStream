@@ -18,7 +18,6 @@
 package anystream.frontend.components
 
 import androidx.compose.runtime.*
-import app.softwork.routingcompose.BrowserRouter
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.css.keywords.auto
 import org.jetbrains.compose.web.dom.Div
@@ -32,13 +31,14 @@ fun PosterCard(
     posterPath: String?,
     wide: Boolean = false,
     isAdded: Boolean? = null,
+    completedPercent: Float? = null,
     subtitle1: (@Composable () -> Unit)? = null,
     subtitle2: (@Composable () -> Unit)? = null,
     onPlayClicked: (() -> Unit)? = null,
     onBodyClicked: (() -> Unit)? = null,
     buildMenu: @Composable (() -> Unit)? = null,
 ) {
-    val isOverlayVisible = remember { mutableStateOf(false) }
+    val isMouseOver = remember { mutableStateOf(false) }
     val isMenuVisible = remember { mutableStateOf(false) }
     Div({
         classes("p-3")
@@ -56,11 +56,11 @@ fun PosterCard(
         Div({
             classes("card", "movie-card", "border-0", "shadow")
             onMouseEnter {
-                isOverlayVisible.value = true
+                isMouseOver.value = true
                 it.stopPropagation()
             }
             onMouseLeave {
-                isOverlayVisible.value = false
+                isMouseOver.value = false
                 it.stopPropagation()
             }
             style {
@@ -69,15 +69,51 @@ fun PosterCard(
                 width(posterWidth)
             }
         }) {
+            val isOverlayVisible by derivedStateOf {
+                isMouseOver.value || isMenuVisible.value
+            }
 
             CardOverlay(
                 isAdded = isAdded,
                 onPlayClicked = onPlayClicked,
                 onBodyClicked = onBodyClicked,
-                isOverlayVisible = isOverlayVisible.value || isMenuVisible.value,
+                isOverlayVisible = isOverlayVisible,
                 onMenuClicked = { isMenuVisible.value = true }
                     .takeUnless { buildMenu == null }
             )
+
+            if (completedPercent != null) {
+                val progressBarHeight = 5.px
+                Div({
+                    classes("w-100", "rounded-bottom")
+                    style {
+                        position(Position.Absolute)
+                        height(progressBarHeight)
+                        bottom(0.px)
+                        backgroundColor(rgba(0, 0, 0, .6))
+                        property("transition", "opacity 0.15s ease-in-out 0s;")
+                        if (isOverlayVisible) {
+                            opacity(0)
+                        }
+                    }
+                }) {
+                    Div({
+                        style {
+                            position(Position.Absolute)
+                            height(progressBarHeight)
+                            backgroundColor(rgb(255, 8, 28))
+                            width((completedPercent * 100).toInt().percent)
+                            val roundingRadius = .25.cssRem
+                            borderRadius(
+                                topLeft = 0.px,
+                                topRight = 0.px,
+                                bottomLeft = roundingRadius,
+                                bottomRight = if (completedPercent <= .98) 0.px else roundingRadius,
+                            )
+                        }
+                    })
+                }
+            }
 
             if (!posterPath.isNullOrBlank()) {
                 Img(
