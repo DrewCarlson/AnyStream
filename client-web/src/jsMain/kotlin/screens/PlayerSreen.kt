@@ -185,9 +185,17 @@ fun PlayerScreen(
                     }
                     player = VideoJs.default(element, VjsOptions())
                     element.onprogress = {
-                        bufferedProgress.value = if (element.buffered.length > 0) {
-                            (element.buffered.end(0) / element.duration).toFloat()
-                        } else 0f
+                        val timeSpans = List(element.buffered.length) { i ->
+                            element.buffered.start(i)..element.buffered.end(i)
+                        }
+
+                        val closestBufferProgress = timeSpans
+                            .filter { span -> element.currentTime in span }
+                            .map { span -> span.endInclusive }
+                            .maxByOrNull { it }
+                            ?.div(element.duration)
+
+                        bufferedProgress.value = closestBufferProgress?.toFloat() ?: 0f
                         true
                     }
                     element.onloadedmetadata = {
@@ -680,26 +688,19 @@ private fun SeekBar(
             }
         }
     }) {
-        Div({
+        I({
+            classes("bi-circle-fill")
             style {
-                position(Position.Absolute)
-                marginLeft(progressScale.value.percent)
-                fontSize(12.px)
-                left((-5).px)
                 opacity(if (isThumbVisible) 1 else 0)
+                position(Position.Absolute)
+                color(Color.white)
+                marginLeft((progressScale.value * 100).percent)
+                fontSize(12.px)
                 property("z-index", "1")
+                property("transform", "translate(-50%, -50%)")
                 property("pointer-events", "none")
-                property("transform", "translateY(-50%)")
             }
-        }) {
-            I({
-                classes("bi-circle-fill")
-                style {
-                    color(Color.white)
-                    property("pointer-events", "none")
-                }
-            })
-        }
+        })
         Div({
             classes("w-100")
             style {
