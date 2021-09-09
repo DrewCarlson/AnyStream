@@ -98,7 +98,12 @@ fun SignupScreen(client: AnyStreamClient) {
         Div {
             Input(InputType.Text) {
                 value(inviteCode ?: "")
-                onInput { inviteCode = it.value }
+                onInput {
+                    if (!launchInviteCode.isNullOrBlank()) {
+                        return@onInput it.preventDefault()
+                    }
+                    inviteCode = it.value
+                }
                 classes("form-control")
                 placeholder("Invite Code")
                 type(InputType.Text)
