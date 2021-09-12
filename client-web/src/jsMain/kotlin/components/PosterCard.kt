@@ -30,6 +30,7 @@ fun PosterCard(
     title: (@Composable () -> Unit)?,
     posterPath: String?,
     wide: Boolean = false,
+    heightAndWidth: Pair<CSSpxValue, CSSpxValue>? = null,
     isAdded: Boolean? = null,
     completedPercent: Float? = null,
     subtitle1: (@Composable () -> Unit)? = null,
@@ -47,7 +48,7 @@ fun PosterCard(
             flexDirection(FlexDirection.Column)
         }
     }) {
-        val (posterHeight, posterWidth) = if (wide) {
+        val (posterHeight, posterWidth) = heightAndWidth ?: if (wide) {
             166.px to 250.px
         } else {
             250.px to 166.px
@@ -117,7 +118,7 @@ fun PosterCard(
 
             if (!posterPath.isNullOrBlank()) {
                 Img(
-                    src = "https://image.tmdb.org/t/p/w200${posterPath}",
+                    src = "https://image.tmdb.org/t/p/w300${posterPath}",
                     attrs = {
                         classes("rounded", "h-100", "w-100")
                         attr("loading", "lazy")

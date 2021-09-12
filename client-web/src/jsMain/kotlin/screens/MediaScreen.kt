@@ -130,6 +130,11 @@ private fun BaseDetailsView(
                 title = null,
                 posterPath = mediaItem.posterPath,
                 wide = mediaItem.wide,
+                heightAndWidth = if (mediaItem.wide) {
+                    168.px to 300.px
+                } else {
+                    375.px to 250.px
+                },
                 onPlayClicked = {
                     window.location.hash = "!play:${mediaItem.mediaRefs.firstOrNull()?.id}"
                 }.takeIf { !mediaItem.mediaRefs.isNullOrEmpty() }
@@ -281,7 +286,7 @@ private fun EpisodeGrid(
                     }
                 },
                 posterPath = episode.stillPath,
-                wide = true,
+                heightAndWidth = 178.px to 318.px,
                 onPlayClicked = if (ref == null) {
                     null
                 } else {
