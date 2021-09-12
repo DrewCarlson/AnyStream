@@ -178,8 +178,38 @@ private fun BaseDetailsView(
                     Div { H6 { Text(year) } }
                 }
             }
+
             Div({
-                classes("py-4")
+                classes("py-2")
+                style {
+                    display(DisplayStyle.Flex)
+                    flexDirection(FlexDirection.Row)
+                }
+            }) {
+                // TODO: Allow user mediaRef selection, order refs on server
+                val mediaRef = mediaItem.mediaRefs.firstOrNull()
+                if (mediaRef != null) {
+                    Button({
+                        classes("btn", "btn-primary")
+                        style {
+                            backgroundColor(rgb(199, 8, 28))
+                            property("border-color", rgb(199, 8, 28))
+                        }
+                        onClick {
+                            window.location.hash = "!play:${mediaRef.id}"
+                        }
+                    }) {
+                        I({
+                            classes("bi", "bi-play-fill", "pe-1")
+                            style { property("pointer-events", "none") }
+                        })
+                        Text("Play")
+                    }
+                }
+            }
+
+            Div({
+                classes("pt-2", "pb-4")
             }) { Text(mediaItem.overview) }
 
             val videoStreams = mediaItem.mediaRefs.flatMap {
