@@ -43,6 +43,7 @@ class TvImportProcessor(
 
     override val mediaKinds: List<MediaKind> = listOf(MediaKind.TV)
 
+    private val yearRegex = "\\((\\d\\d\\d\\d)\\)".toRegex()
     private val episodeRegex = "(.*) - S([0-9]{1,2})E([0-9]{1,2}) - (.*)".toRegex()
 
     override suspend fun process(
@@ -67,7 +68,13 @@ class TvImportProcessor(
 
         val tvShow = if (existingRef == null) {
             // TODO: Improve query capabilities
-            val query = contentFile.name
+            val match = yearRegex.find(contentFile.nameWithoutExtension)
+            val year = match?.value?.trim('(', ')')?.toInt() ?: 0
+            logger.debug(marker, "Found content year: $year")
+
+            val query = contentFile.nameWithoutExtension
+                .replace(yearRegex, "")
+                .trim()
             logger.debug(marker, "Querying provider for '$query'")
 
             val queryResults = metadataManager.search(
@@ -75,6 +82,7 @@ class TvImportProcessor(
                     providerId = null,
                     query = query,
                     mediaKind = MediaKind.TV,
+                    year = year,
                 )
             )
             val result = queryResults.firstOrNull { result ->

@@ -94,12 +94,21 @@ class TmdbMetadataProvider(
             }
             MediaKind.TV -> {
                 val tmdbSeries = try {
-                    when {
-                        request.query != null -> queryTvSeries(request.query!!)
-                        request.contentId != null ->
-                            listOfNotNull(fetchTvSeries(request.contentId!!.toInt()))
-                        else -> error("No content")
-                    }
+                    // search for tv show, sort by optional year
+                    request.query
+                        ?.run(::queryTvSeries)
+                        ?.sortedBy { series ->
+                            request.year == series.firstAirDate
+                                .split('-')
+                                .find { it.length == 4 }
+                                ?.toInt()
+                        }
+                    // load series by tmdb id
+                        ?: request.contentId
+                            ?.toIntOrNull()
+                            ?.run(::fetchTvSeries)
+                            ?.run(::listOf)
+                        ?: error("No query or content id")
                 } catch (e: Throwable) {
                     return QueryMetadataResult.ErrorDataProviderException(e.stackTraceToString())
                 }
