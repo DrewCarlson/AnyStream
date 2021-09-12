@@ -44,6 +44,8 @@ kotlin {
             languageSettings.apply {
                 useExperimentalAnnotation("kotlinx.coroutines.ExperimentalCoroutinesApi")
                 useExperimentalAnnotation("kotlinx.coroutines.FlowPreview")
+                useExperimentalAnnotation("kotlin.time.ExperimentalTime")
+                useExperimentalAnnotation("kotlin.RequiresOptIn")
             }
         }
         named("jsMain") {

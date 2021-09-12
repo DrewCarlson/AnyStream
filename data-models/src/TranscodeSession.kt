@@ -17,25 +17,18 @@
  */
 package anystream.models
 
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-
 @Serializable
-data class PlaybackState(
-    @SerialName("_id")
-    val id: String,
-    val mediaReferenceId: String,
-    val mediaId: String,
-    val userId: String,
-    val position: Double,
+data class TranscodeSession(
+    val token: String,
+    val mediaRefId: String,
+    val mediaPath: String,
+    val outputPath: String,
+    val ffmpegCommand: String,
     val runtime: Double,
-    val updatedAt: Long = 0L,
-) {
-    val completedPercent: Float
-        get() {
-            return (position / runtime)
-                .coerceIn(0.0, 1.0)
-                .toFloat()
-        }
-}
+    val segmentLength: Int,
+    val startSegment: Int,
+    val endSegment: Int,
+    val transcodedSegments: List<Int>,
+)

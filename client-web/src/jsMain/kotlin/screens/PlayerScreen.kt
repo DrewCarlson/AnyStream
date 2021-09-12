@@ -38,6 +38,7 @@ import org.jetbrains.compose.web.dom.Text
 import org.jetbrains.compose.web.dom.Video
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.get
+import kotlin.time.Duration
 
 private val playerControlsColor = rgba(35, 36, 38, .45)
 
@@ -83,7 +84,7 @@ fun PlayerScreen(
             value = state
             if (initialState == null) {
                 initialState = state
-                player?.currentTime(state.position.toFloat())
+                player?.currentTime(state.position)
             }
         }
         awaitDispose {
@@ -93,10 +94,10 @@ fun PlayerScreen(
     }
     val isFullscreen = mutableStateOf(document.fullscreenElement != null)
     val setFullscreen = mutableStateOf<((Boolean) -> Unit)?>(null)
-    var duration by mutableStateOf(1f)
-    var progress by mutableStateOf(0f)
+    var duration by mutableStateOf(1.0)
+    var progress by mutableStateOf(0.0)
     val progressScale = derivedStateOf { progress / duration }
-    val bufferedProgress = mutableStateOf(0f)
+    val bufferedProgress = mutableStateOf(0.0)
     Div({
         style {
             classes("w-100")
@@ -157,16 +158,16 @@ fun PlayerScreen(
                     miniPlayerWidth = miniPlayerWidth,
                 )
             }
+            val posterPath by derivedStateOf {
+                "https://image.tmdb.org/t/p/w1920_and_h800_multi_faces${mediaItem.value?.backdropPath}"
+            }
             Video({
                 id("player")
                 classes("video-js", "h-100", "w-100")
                 style {
                     cursor(if (areControlsVisible) "pointer" else "none")
                 }
-                attr(
-                    "poster",
-                    "https://image.tmdb.org/t/p/w1920_and_h800_multi_faces${mediaItem.value?.backdropPath}"
-                )
+                attr("poster", posterPath)
                 onClick {
                     if (player?.paused() == true) {
                         player?.play()
@@ -195,17 +196,17 @@ fun PlayerScreen(
                             .maxByOrNull { it }
                             ?.div(element.duration)
 
-                        bufferedProgress.value = closestBufferProgress?.toFloat() ?: 0f
+                        bufferedProgress.value = closestBufferProgress ?: 0.0
                         true
                     }
                     element.onloadedmetadata = {
-                        duration = player?.duration() ?: 1f
-                        element.currentTime = playbackState?.position?.toDouble() ?: 0.0
+                        duration = player?.duration() ?: 1.0
+                        element.currentTime = playbackState?.position ?: 0.0
                         true
                     }
                     element.ontimeupdate = {
-                        sessionHandle?.update?.tryEmit(element.currentTime.toLong())
-                        progress = player?.currentTime() ?: 0f
+                        sessionHandle?.update?.tryEmit(element.currentTime)
+                        progress = player?.currentTime() ?: 0.0
                         true
                     }
                     element.onplay = {
@@ -365,8 +366,8 @@ private fun PlaybackControls(
     areControlsVisible: Boolean,
     player: VjsPlayer,
     mediaItem: State<MediaItem?>,
-    progressScale: State<Float>,
-    bufferedPercent: State<Float>,
+    progressScale: State<Double>,
+    bufferedPercent: State<Double>,
     overlayMode: Boolean,
 ) {
     Div({
@@ -417,6 +418,17 @@ private fun PlaybackControls(
                 mediaItem.value?.subtitle2?.also { subtitle ->
                     Div { Text(subtitle) }
                 }
+            }
+            val playProgressString = remember(progressScale.value) {
+                if (player.currentTime().isNaN() || player.duration().isNaN()) {
+                    return@remember ""
+                }
+                val currentTime = Duration.seconds(player.currentTime())
+                val duration = Duration.seconds(player.duration())
+                formatProgressAndRuntime(currentTime, duration)
+            }
+            Div {
+                Div { Text(playProgressString) }
             }
         }
 
@@ -656,8 +668,8 @@ private fun PlaybackControls(
 @Composable
 private fun SeekBar(
     player: VjsPlayer,
-    progressScale: State<Float>,
-    bufferedPercent: State<Float>,
+    progressScale: State<Double>,
+    bufferedPercent: State<Double>,
 ) {
     var isThumbVisible by mutableStateOf(false)
     Div({
@@ -699,6 +711,7 @@ private fun SeekBar(
                 property("z-index", "1")
                 property("transform", "translate(-50%, -50%)")
                 property("pointer-events", "none")
+                property("transition", "opacity 0.15s ease-in-out")
             }
         })
         Div({
@@ -733,5 +746,30 @@ private fun SeekBar(
                 }
             })
         }
+    }
+}
+
+fun formatProgressAndRuntime(progress: Duration, runtime: Duration): String {
+    fun Long.formatTime(): String = toString().padStart(2, '0')
+    return buildString {
+        if (progress.inWholeHours >= 1) {
+            append(progress.inWholeHours)
+            append(':')
+            append((progress.inWholeMinutes % 60).formatTime())
+        } else {
+            append(progress.inWholeMinutes % 60)
+        }
+        append(':')
+        append((progress.inWholeSeconds % 60).formatTime())
+        append(" / ")
+        if (runtime.inWholeHours >= 1) {
+            append(runtime.inWholeHours)
+            append(':')
+            append((runtime.inWholeMinutes % 60).formatTime())
+        } else {
+            append(runtime.inWholeMinutes % 60)
+        }
+        append(':')
+        append((runtime.inWholeSeconds % 60).formatTime())
     }
 }

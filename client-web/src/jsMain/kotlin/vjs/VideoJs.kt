@@ -64,11 +64,11 @@ external class VjsPlayer {
     fun muted(): Boolean
     fun muted(muted: Boolean)
 
-    fun currentTime(): Float
-    fun currentTime(currentTime: Float)
+    fun currentTime(): Double
+    fun currentTime(currentTime: Double)
 
-    fun duration(): Float
-    fun duration(duration: Float)
+    fun duration(): Double
+    fun duration(duration: Double)
 
     fun on(event: String, callback: () -> Unit)
 }

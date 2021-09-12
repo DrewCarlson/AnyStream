@@ -262,7 +262,7 @@ class AnyStreamClient(
     ): PlaybackSessionHandle {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
         val currentState = MutableStateFlow<PlaybackState?>(null)
-        val progressFlow = MutableSharedFlow<Long>(
+        val progressFlow = MutableSharedFlow<Double>(
             extraBufferCapacity = 1,
             onBufferOverflow = BufferOverflow.DROP_OLDEST
         )
@@ -419,6 +419,9 @@ class AnyStreamClient(
         awaitClose { client.close() }
     }
 
+    suspend fun getStreams(): PlaybackSessionsResponse =
+        http.get("/api/stream")
+
     fun createHlsStreamUrl(mediaRefId: String, token: String): String {
         return "${serverUrl}/api/stream/${mediaRefId}/hls/playlist.m3u8?token=$token"
     }
@@ -428,7 +431,7 @@ class AnyStreamClient(
     }
 
     data class PlaybackSessionHandle(
-        val update: MutableSharedFlow<Long>,
+        val update: MutableSharedFlow<Double>,
         val cancel: () -> Unit,
     )
 }

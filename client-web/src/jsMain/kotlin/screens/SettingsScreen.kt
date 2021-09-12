@@ -17,18 +17,23 @@
  */
 package anystream.frontend.screens
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
+import anystream.frontend.models.toMediaItem
 import anystream.models.MediaKind
 import anystream.models.api.ImportMedia
+import anystream.models.api.PlaybackSessionsResponse
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.web.attributes.InputType
 import org.jetbrains.compose.web.attributes.placeholder
+import org.jetbrains.compose.web.css.DisplayStyle
+import org.jetbrains.compose.web.css.FlexDirection
+import org.jetbrains.compose.web.css.display
+import org.jetbrains.compose.web.css.flexDirection
 import org.jetbrains.compose.web.dom.*
+import kotlin.time.Duration
 
 @Composable
 fun SettingsScreen(
@@ -48,6 +53,17 @@ fun SettingsScreen(
             classes("row")
         }) {
             ImportMediaArea(client, scope)
+        }
+        Div({
+        }) {
+            H3 {
+                Text("Active Streams")
+            }
+        }
+        Div({
+            classes("row")
+        }) {
+            ActiveStreamsList(client)
         }
     }
 }
@@ -114,6 +130,54 @@ private fun ImportMediaArea(
             }
         }) {
             Text("Import")
+        }
+    }
+}
+
+@Composable
+private fun ActiveStreamsList(
+    client: AnyStreamClient,
+) {
+    val sessionsResponse by produceState<PlaybackSessionsResponse?>(null) {
+        while (true) {
+            value = try {
+                client.getStreams()
+            } catch (e: Throwable) {
+                null
+            }
+            delay(5_000L)
+        }
+    }
+
+    Div({
+        style {
+            display(DisplayStyle.Flex)
+            flexDirection(FlexDirection.Row)
+        }
+    }) {
+        sessionsResponse?.apply {
+            playbackStates.forEach { playbackState ->
+                val user = users.getValue(playbackState.userId)
+                val mediaLookup = mediaLookups.getValue(playbackState.mediaId)
+                //val transcodeSession = transcodeSessions.getValue(playbackState.id)
+                val mediaItem = checkNotNull(
+                    mediaLookup.run { movie?.toMediaItem() ?: episode?.toMediaItem() }
+                )
+                Div({
+                    style {
+                        display(DisplayStyle.Flex)
+                        flexDirection(FlexDirection.Column)
+                    }
+                }) {
+                    Div { Text(mediaItem.contentTitle) }
+                    Div { Text("User: ${user.displayName}") }
+                    Div {
+                        val progress = Duration.Companion.seconds(playbackState.position)
+                        val runtime = Duration.Companion.seconds(playbackState.runtime)
+                        Text(formatProgressAndRuntime(progress, runtime))
+                    }
+                }
+            }
         }
     }
 }

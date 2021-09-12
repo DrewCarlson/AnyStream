@@ -32,6 +32,7 @@ class MediaDbQueries(
     private val moviesDb = mongodb.getCollection<Movie>()
     private val tvShowDb = mongodb.getCollection<TvShow>()
     private val episodeDb = mongodb.getCollection<Episode>()
+    private val usersDb = mongodb.getCollection<User>()
     private val mediaRefsDb = mongodb.getCollection<MediaReference>()
     private val playbackStatesDb = mongodb.getCollection<PlaybackState>()
 
@@ -141,6 +142,14 @@ class MediaDbQueries(
             show = show,
             mediaRefs = mediaRefs,
         )
+    }
+
+    suspend fun findPlaybackStatesByIds(ids: List<String>): List<PlaybackState> {
+        return playbackStatesDb.find(PlaybackState::id `in` ids).toList()
+    }
+
+    suspend fun findUsersByIds(ids: List<String>): List<User> {
+        return usersDb.find(User::id `in` ids).toList()
     }
 
     suspend fun findCurrentlyWatching(userId: String, limit: Int): CurrentlyWatchingQueryResults {
