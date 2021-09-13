@@ -28,10 +28,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.web.attributes.InputType
 import org.jetbrains.compose.web.attributes.placeholder
-import org.jetbrains.compose.web.css.DisplayStyle
-import org.jetbrains.compose.web.css.FlexDirection
-import org.jetbrains.compose.web.css.display
-import org.jetbrains.compose.web.css.flexDirection
+import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 import kotlin.time.Duration
 
@@ -41,28 +38,26 @@ fun SettingsScreen(
 ) {
     val scope = rememberCoroutineScope()
     Div({
-        classes("container-fluid", "p-4")
+        style {
+            display(DisplayStyle.Flex)
+            flexDirection(FlexDirection.Column)
+            gap(1.cssRem)
+        }
     }) {
-        Div({
-        }) {
+        Div {
             H3 {
                 Text("Settings")
             }
         }
-        Div({
-            classes("row")
-        }) {
+        Div {
             ImportMediaArea(client, scope)
         }
-        Div({
-        }) {
+        Div {
             H3 {
                 Text("Active Streams")
             }
         }
-        Div({
-            classes("row")
-        }) {
+        Div {
             ActiveStreamsList(client)
         }
     }
@@ -164,17 +159,28 @@ private fun ActiveStreamsList(
                     mediaLookup.run { movie?.toMediaItem() ?: episode?.toMediaItem() }
                 )
                 Div({
+                    classes("p-3", "rounded")
                     style {
                         display(DisplayStyle.Flex)
                         flexDirection(FlexDirection.Column)
+                        backgroundColor(rgba(0, 0, 0, 0.2))
+                        width(300.px)
                     }
                 }) {
                     Div { Text(mediaItem.contentTitle) }
-                    mediaItem.subtitle1?.let { subtitle ->
-                        Div { Text(subtitle) }
-                    }
-                    mediaItem.subtitle2?.let { subtitle ->
-                        Div { Text(subtitle) }
+                    Div({
+                        style {
+                            property("text-overflow", "ellipsis")
+                            overflow("hidden")
+                            whiteSpace("nowrap")
+                        }
+                    }) {
+                        mediaItem.subtitle1?.let { subtitle1 ->
+                            Text(subtitle1.replace("Season ", "S"))
+                        }
+                        mediaItem.subtitle2?.let { subtitle2 ->
+                            Text(subtitle2.replace("Episode ", "E"))
+                        }
                     }
                     Div { Text("User: ${user.displayName}") }
                     Div {

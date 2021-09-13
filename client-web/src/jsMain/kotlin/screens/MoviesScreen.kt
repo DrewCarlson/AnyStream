@@ -37,7 +37,6 @@ fun MoviesScreen(client: AnyStreamClient) {
     }
     Div({
         style {
-            classes("p-4")
             display(DisplayStyle.Flex)
             flexDirection(FlexDirection.Row)
             flexWrap(FlexWrap.Wrap)

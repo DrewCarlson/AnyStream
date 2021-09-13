@@ -127,44 +127,60 @@ private fun ContentContainer(
             flexBasis("auto")
             overflowY("auto")
             property("z-index", "1")
+            display(DisplayStyle.Flex)
+            flexDirection(FlexDirection.Row)
         }
     }) {
         val authRoutes = listOf("/signup", "/login")
         val isAuthenticated by client.authenticated.collectAsState(client.isAuthenticated())
         val currentPath = BrowserRouter.getPath("/")
-        BrowserRouter("/") {
-            route("home") {
-                noMatch { HomeScreen(client) }
-            }
-            route("login") {
-                noMatch { LoginScreen(client) }
-            }
-            route("signup") {
-                noMatch { SignupScreen(client) }
-            }
-            route("movies") {
-                noMatch { MoviesScreen(client) }
-            }
-            route("tv") {
-                noMatch { TvShowScreen(client) }
-            }
-            route("downloads") {
-                noMatch { DownloadsScreen(client) }
-            }
-            route("usermanager") {
-                noMatch { UserManagerScreen(client) }
-            }
-            route("settings") {
-                noMatch { SettingsScreen(client) }
-            }
-            route("media") {
-                string { id ->
-                    MediaScreen(client, id)
+        val permissions by client.permissions.collectAsState(client.userPermissions())
+
+        if (isAuthenticated) {
+            SideMenu(
+                client = client,
+                permissions = permissions.orEmpty(),
+            )
+        }
+
+        Div({
+            classes("h-100", "w-100")
+            style { overflowY("scroll") }
+        }) {
+            BrowserRouter("/") {
+                route("home") {
+                    noMatch { HomeScreen(client) }
                 }
-                noMatch { BrowserRouter.navigate("/home") }
-            }
-            noMatch {
-                BrowserRouter.navigate(if (isAuthenticated) "/home" else "/login")
+                route("login") {
+                    noMatch { LoginScreen(client) }
+                }
+                route("signup") {
+                    noMatch { SignupScreen(client) }
+                }
+                route("movies") {
+                    noMatch { MoviesScreen(client) }
+                }
+                route("tv") {
+                    noMatch { TvShowScreen(client) }
+                }
+                route("downloads") {
+                    noMatch { DownloadsScreen(client) }
+                }
+                route("usermanager") {
+                    noMatch { UserManagerScreen(client) }
+                }
+                route("settings") {
+                    noMatch { SettingsScreen(client) }
+                }
+                route("media") {
+                    string { id ->
+                        MediaScreen(client, id)
+                    }
+                    noMatch { BrowserRouter.navigate("/home") }
+                }
+                noMatch {
+                    BrowserRouter.navigate(if (isAuthenticated) "/home" else "/login")
+                }
             }
         }
         if (!isAuthenticated && !authRoutes.contains(currentPath.value)) {

@@ -8,6 +8,7 @@ html, body, #root, #main-panel {
 
 #main-panel {
     background-image: url('../images/noise.webp');
+    background-repeat: repeat;
 }
 
 :root {
@@ -20,7 +21,7 @@ html, body, #root, #main-panel {
 
 .nav-link {
     cursor: pointer;
-    font-size: 20pt;
+    font-size: 16pt;
 }
 
 .navbar.bg-dark {

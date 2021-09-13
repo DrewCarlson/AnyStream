@@ -42,7 +42,7 @@ fun Navbar(client: AnyStreamClient) {
     Nav({
         classes(
             "navbar", "navbar-expand-lg", "navbar-dark",
-            "rounded", "shadow", "mx-2", "mt-2"
+            "rounded", "shadow", "m-2"
         )
         style {
             backgroundColor(rgba(0, 0, 0, 0.3))
@@ -53,13 +53,18 @@ fun Navbar(client: AnyStreamClient) {
             onDispose {}
         }
         Div({ classes("container-fluid") }) {
-            A(attrs = { classes("navbar-brand", "mx-2") }) {
+            A(attrs = {
+                classes("navbar-brand", "mx-2")
+                style {
+                    cursor("pointer")
+                }
+                onClick { BrowserRouter.navigate("/home") }
+            }) {
                 Img(src = "/images/as-logo.svg")
             }
             Div({ classes("collapse", "navbar-collapse") }) {
                 val permissionsState = client.permissions.collectAsState(null)
                 if (isAuthenticated.value) {
-                    MainMenu(permissionsState.value ?: emptySet())
                     SearchBar()
                     SecondaryMenu(client, permissionsState.value ?: emptySet())
                 }
@@ -69,33 +74,36 @@ fun Navbar(client: AnyStreamClient) {
 }
 
 @Composable
-private fun MainMenu(permissions: Set<String>) {
-    Div({ classes("navbar-nav") }) {
-        //NavLink("Discover", "bi-search", false)
-        NavLink("Home", "bi-house", "/home")
-        if (Permissions.check(Permissions.VIEW_COLLECTION, permissions)) {
-            NavLink("Movies", "bi-film", "/movies")
-            NavLink("TV", "bi-tv", "/tv")
-        }
-        if (Permissions.check(Permissions.TORRENT_MANAGEMENT, permissions)) {
-            NavLink("Downloads", "bi-cloud-arrow-down", "/downloads")
-        }
-    }
-}
-
-@Composable
-private fun NavLink(text: String, icon: String, path: String) {
+private fun NavLink(
+    text: String,
+    icon: String,
+    path: String,
+    expanded: Boolean,
+) {
     val currentPath = BrowserRouter.getPath("/")
+    var hovering by mutableStateOf(false)
     A(attrs = {
-        if (currentPath.value.startsWith(path)) {
-            classes("nav-link", "mx-2", "active")
-        } else {
-            classes("nav-link", "mx-2")
+        classes("nav-link")
+        style {
+            backgroundColor(Color.transparent)
+            val isActive = currentPath.value.startsWith(path)
+            when {
+                hovering && isActive -> color(Color.white) // TODO: active indicator icon
+                hovering -> color(Color.white)
+                isActive -> color(rgb(255, 8, 28)) // TODO: active indicator icon
+                else -> color(rgba(255, 255, 255, 0.7))
+            }
         }
+        onMouseEnter { hovering = true }
+        onMouseLeave { hovering = false }
         onClick { BrowserRouter.navigate(path) }
     }) {
         ButtonIcon(icon)
-        Text(text)
+        if (expanded) {
+            Span({ classes("ms-3") }) {
+                Text(text)
+            }
+        }
     }
 }
 
@@ -136,17 +144,19 @@ private fun SearchBar() {
     var focused by mutableStateOf(false)
     Form(null, {
         onSubmit { it.preventDefault() }
-        classes("p-2", "rounded-pill")
+        classes("mx-4", "p-1", "rounded-pill")
         style {
-            backgroundColor(if (focused) {
-                Color.white
-            } else {
-                hsla(0, 0, 100, .08)
-            })
+            backgroundColor(
+                if (focused) {
+                    Color.white
+                } else {
+                    hsla(0, 0, 100, .08)
+                }
+            )
         }
     }) {
         I({
-            classes("bi", "bi-search", "p-2")
+            classes("bi", "bi-search", "p-1")
             style {
                 if (focused) {
                     color(rgba(0, 0, 0, .8))
@@ -192,8 +202,77 @@ private fun ButtonIcon(
     style: (StyleBuilder.() -> Unit) = {},
 ) {
     I({
-        classes("bi", icon, "mx-2")
+        classes("bi", icon)
         attrs()
         style(style)
     })
+}
+
+@Composable
+fun SideMenu(
+    client: AnyStreamClient,
+    permissions: Set<String>,
+) {
+    var expanded by mutableStateOf(true)
+    Div({
+        classes("mx-2", "me-4", "pb-2")
+        style {
+            display(DisplayStyle.InlineBlock)
+            property("transition", "width .2s ease-in-out 0s")
+            if (expanded) {
+                width(250.px)
+                minWidth(250.px)
+            } else {
+                width(53.px)
+                minWidth(53.px)
+            }
+        }
+    }) {
+        Ul({
+            classes(
+                "nav", "nav-pills", "flex-column",
+                "h-100", "mb-auto", "rounded", "shadow"
+            )
+            style {
+                overflow("hidden")
+                backgroundColor(rgba(0, 0, 0, 0.3))
+            }
+        }) {
+
+            //NavLink("Discover", "bi-search", false)
+            Li {
+                NavLink("Home", "bi-house", "/home", expanded)
+            }
+            if (Permissions.check(Permissions.VIEW_COLLECTION, permissions)) {
+                Li {
+                    NavLink("Movies", "bi-film", "/movies", expanded)
+                }
+                Li {
+                    NavLink("TV", "bi-tv", "/tv", expanded)
+                }
+            }
+            if (Permissions.check(Permissions.TORRENT_MANAGEMENT, permissions)) {
+                Li {
+                    NavLink("Downloads", "bi-cloud-arrow-down", "/downloads", expanded)
+                }
+            }
+            Li {
+                A(attrs = {
+                    classes("nav-link")
+                    style {
+                        backgroundColor(Color.transparent)
+                        color(rgba(255, 255, 255, 0.7))
+                    }
+                    onClick { expanded = !expanded }
+                }) {
+                    ButtonIcon(if (expanded) "bi-arrow-bar-left" else "bi-arrow-bar-right")
+                    if (expanded) {
+                        Span({ classes("ms-3") }) {
+                            Text("Hide")
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

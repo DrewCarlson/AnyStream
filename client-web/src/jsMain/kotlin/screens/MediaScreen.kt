@@ -64,7 +64,7 @@ fun MediaScreen(
     }
 
     Div({
-        classes("p-4")
+        classes("h-100")
         style {
             display(DisplayStyle.Flex)
             flexDirection(FlexDirection.Column)
