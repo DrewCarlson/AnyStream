@@ -65,15 +65,23 @@ class MediaDbQueries(
         )
     }
 
-    suspend fun findMovieById(movieId: String, includeRefs: Boolean = false): MovieResponse? {
+    suspend fun findMovieById(
+        movieId: String,
+        includeRefs: Boolean = false,
+        includePlaybackStateForUser: String? = null,
+    ): MovieResponse? {
         val movie = moviesDb.findOneById(movieId) ?: return null
         val mediaRefs = if (includeRefs) {
             mediaRefsDb.find(MediaReference::contentId eq movieId).toList()
         } else emptyList()
+        val playbackState = includePlaybackStateForUser?.let {
+            findPlaybackStateByUserId(it, movieId)
+        }
 
         return MovieResponse(
             movie = movie,
-            mediaRefs = mediaRefs
+            mediaRefs = mediaRefs,
+            playbackState = playbackState,
         )
     }
 
@@ -90,19 +98,39 @@ class MediaDbQueries(
         )
     }
 
-    suspend fun findShowById(showId: String, includeRefs: Boolean = false): TvShowResponse? {
+    suspend fun findShowById(
+        showId: String,
+        includeRefs: Boolean = false,
+        includePlaybackStateForUser: String? = null,
+    ): TvShowResponse? {
         val show = tvShowDb.findOneById(showId) ?: return null
         val mediaRefs = if (includeRefs) {
             val seasonIds = show.seasons.map(TvSeason::id)
             mediaRefsDb.find(MediaReference::contentId `in` seasonIds + showId).toList()
         } else emptyList()
+        val playbackState = includePlaybackStateForUser?.let {
+            val mediaRefIds = mediaRefsDb.projection(
+                MediaReference::id,
+                MediaReference::rootContentId eq showId,
+            ).toList()
+            playbackStatesDb.find(
+                PlaybackState::userId eq it,
+                PlaybackState::mediaReferenceId `in` mediaRefIds,
+            ).descendingSort(PlaybackState::updatedAt)
+                .first()
+        }
         return TvShowResponse(
             tvShow = show,
             mediaRefs = mediaRefs,
+            playbackState = playbackState,
         )
     }
 
-    suspend fun findSeasonById(seasonId: String, includeRefs: Boolean = false): SeasonResponse? {
+    suspend fun findSeasonById(
+        seasonId: String,
+        includeRefs: Boolean = false,
+        includePlaybackStateForUser: String? = null,
+    ): SeasonResponse? {
         val tvShow = tvShowDb.findOne(TvShow::seasons elemMatch (TvSeason::id eq seasonId))
             ?: return null
         val season = tvShow.seasons.find { it.id == seasonId }
@@ -115,21 +143,33 @@ class MediaDbQueries(
                 )
             )
             .toList()
+        val episodeIds = episodes.map(Episode::id)
         val mediaRefs = if (includeRefs) {
-            val episodeIds = episodes.map(Episode::id)
             mediaRefsDb
                 .find(MediaReference::contentId `in` episodeIds)
                 .toList()
         } else emptyList()
+        val playbackState = includePlaybackStateForUser?.let {
+            playbackStatesDb.find(
+                PlaybackState::userId eq it,
+                PlaybackState::mediaId `in` episodeIds,
+            ).descendingSort(PlaybackState::updatedAt)
+                .first()
+        }
         return SeasonResponse(
             show = tvShow,
             season = season,
             episodes = episodes,
-            mediaRefs = mediaRefs.associateBy(MediaReference::contentId)
+            mediaRefs = mediaRefs.associateBy(MediaReference::contentId),
+            playbackState = playbackState,
         )
     }
 
-    suspend fun findEpisodeById(episodeId: String, includeRefs: Boolean = false): EpisodeResponse? {
+    suspend fun findEpisodeById(
+        episodeId: String,
+        includeRefs: Boolean = false,
+        includePlaybackStateForUser: String? = null,
+    ): EpisodeResponse? {
         val episode = episodeDb.findOneById(episodeId) ?: return null
         val show = tvShowDb.findOneById(episode.showId) ?: return null
         val mediaRefs = if (includeRefs) {
@@ -137,11 +177,33 @@ class MediaDbQueries(
                 .find(MediaReference::contentId eq episode.id)
                 .toList()
         } else emptyList()
+        val playbackState = includePlaybackStateForUser?.let { userId ->
+            playbackStatesDb.findOne(
+                PlaybackState::userId eq userId,
+                PlaybackState::mediaId eq episodeId,
+            )
+        }
         return EpisodeResponse(
             episode = episode,
             show = show,
             mediaRefs = mediaRefs,
+            playbackState = playbackState,
         )
+    }
+
+    suspend fun findPlaybackStateByIds(id: String): PlaybackState? {
+        return playbackStatesDb.findOneById(id)
+    }
+
+    suspend fun findPlaybackStateByUserId(userId: String, mediaId: String?): PlaybackState? {
+        return if (mediaId == null) {
+            playbackStatesDb.findOne(PlaybackState::userId eq userId)
+        } else {
+            playbackStatesDb.findOne(
+                PlaybackState::userId eq userId,
+                PlaybackState::mediaId eq mediaId,
+            )
+        }
     }
 
     suspend fun findPlaybackStatesByIds(ids: List<String>): List<PlaybackState> {

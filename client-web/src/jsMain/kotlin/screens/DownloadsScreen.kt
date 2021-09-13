@@ -62,7 +62,7 @@ fun DownloadsScreen(client: AnyStreamClient) {
                 ConnectionStatus.DISCONNECTED -> "Disconnected" to "bi-plug"
                 else -> "Loading" to "bi-hourglass-split"
             }
-            I({ classes(iconClass) })
+            I({ classes("bi", iconClass) })
             Span { Text(statusName) }
             globalInfo?.run {
                 Span { Text("Upload: $upInfoSpeed") }
@@ -125,7 +125,7 @@ private fun TorrentRow(
         }
     }) {
         Td {
-            I({ classes(stateIcon(torrent)) })
+            I({ classes("bi", stateIcon(torrent)) })
             Span { Text(torrent.name) }
         }
         Td { Text(torrent.size.toString()) }

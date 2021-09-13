@@ -6,6 +6,10 @@ html, body, #root, #main-panel {
     font-family: Open Sans Regular,Helvetica Neue,Helvetica,Arial,sans-serif;
 }
 
+#main-panel {
+    background-image: url('../images/noise.webp');
+}
+
 :root {
   scrollbar-color: #403f3e transparent;
 }
@@ -23,12 +27,8 @@ html, body, #root, #main-panel {
     border: none;
 }
 
-.navbar-nav {
-    margin-top: auto;
-}
-
 .navbar-brand img {
-    height: 50px;
+    height: 46px;
 }
 
 video {

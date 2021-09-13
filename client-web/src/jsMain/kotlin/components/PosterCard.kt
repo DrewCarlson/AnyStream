@@ -178,7 +178,7 @@ private fun CardOverlay(
         }) {
             val isPlaySelected = remember { mutableStateOf(onPlayClicked == null) }
             I({
-                classes("bi-three-dots-vertical")
+                classes("bi", "bi-three-dots-vertical")
                 style {
                     fontSize(22.px)
                     display(DisplayStyle.Flex)
@@ -214,7 +214,7 @@ private fun CardOverlay(
                 }
             }) {
                 I({
-                    classes(if (isPlaySelected.value) "bi-play-circle-fill" else "bi-play-circle")
+                    classes("bi", if (isPlaySelected.value) "bi-play-circle-fill" else "bi-play-circle")
                     style {
                         property("margin", auto)
                         fontSize(48.px)
@@ -229,7 +229,7 @@ private fun CardOverlay(
                 }
             }) {
                 I({
-                    classes(if (isAdded == true) "bi-check-lg" else "bi-plus-lg")
+                    classes("bi", if (isAdded == true) "bi-check-lg" else "bi-plus-lg")
                     style {
                         color(rgb(255, 255, 255))
                         if (isAdded == null) {

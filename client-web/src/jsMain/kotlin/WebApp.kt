@@ -73,6 +73,23 @@ fun webApp() = renderComposable(rootElementId = "root") {
             }
             .collectAsState(null)
 
+        val backgroundUrl by backdropImageUrl.collectAsState(null)
+
+        if (backgroundUrl != null) {
+            Div({
+                classes("h-100", "w-100")
+                style {
+                    position(Position.Absolute)
+                    opacity(0.1)
+                    backgroundImage("url('$backgroundUrl')")
+                    backgroundPosition("center center")
+                    backgroundSize("cover")
+                    backgroundRepeat("no-repeat")
+                    property("transition", "background 0.8s linear")
+                }
+            })
+        }
+
         Div { Navbar(client) }
         ContentContainer(client)
 
@@ -109,6 +126,7 @@ private fun ContentContainer(
             flexShrink(1)
             flexBasis("auto")
             overflowY("auto")
+            property("z-index", "1")
         }
     }) {
         val authRoutes = listOf("/signup", "/login")

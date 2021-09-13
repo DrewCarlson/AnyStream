@@ -171,7 +171,7 @@ private fun CreateInviteCodeGroup(createInviteCode: (Set<String>) -> Unit) {
             classes("btn", "btn-primary")
             onClick { createInviteCode(selectedPermissions) }
         }) {
-            I({ classes("bi-plus") })
+            I({ classes("bi", "bi-plus") })
             Text("Create Invite")
         }
         Select({
@@ -249,7 +249,7 @@ private fun InviteCodeRow(
                 classes("btn", "btn-danger", "btn-small")
                 onClick { deleteInviteCode(inviteCode) }
             }) {
-                I({ classes("bi-x-circle") })
+                I({ classes("bi", "bi-x-circle") })
             }
         }
         Td { Text(user?.displayName ?: "<deleted>") }
@@ -285,7 +285,7 @@ private fun InviteCodeRow(
                 classes("btn", "btn-info", "btn-small")
                 onClick { focusAndCopy?.invoke() }
             }) {
-                I({ classes("bi-clipboard") })
+                I({ classes("bi", "bi-clipboard") })
             }
         }
     }

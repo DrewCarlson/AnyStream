@@ -246,7 +246,7 @@ fun PlayerScreen(
 
             if (!playerIsPlaying) {
                 I({
-                    classes("bi-play-circle-fill")
+                    classes("bi", "bi-play-circle-fill")
                     style {
                         position(Position.Absolute)
                         left(50.percent)
@@ -258,7 +258,7 @@ fun PlayerScreen(
                     }
                 })
                 I({
-                    classes("bi-play-circle")
+                    classes("bi", "bi-play-circle")
                     style {
                         position(Position.Absolute)
                         left(50.percent)
@@ -311,7 +311,7 @@ private fun MiniModeOverlay(
             isInMiniMode.value = false
         }
     }) {
-        I({ classes("bi-chevron-up") })
+        I({ classes("bi", "bi-chevron-up") })
     }
 }
 
@@ -341,7 +341,7 @@ private fun MaxPlayerTopBar(
         }
     }) {
         I({
-            classes("bi-chevron-down")
+            classes("bi", "bi-chevron-down")
             style {
                 cursor("pointer")
             }
@@ -350,7 +350,7 @@ private fun MaxPlayerTopBar(
             }
         })
         I({
-            classes(if (isFullscreen.value) "bi-arrows-angle-contract" else "bi-arrows-angle-expand")
+            classes("bi", if (isFullscreen.value) "bi-arrows-angle-contract" else "bi-arrows-angle-expand")
             style {
                 cursor("pointer")
             }
@@ -450,7 +450,7 @@ private fun PlaybackControls(
                 onClick { }
             }) {
                 I({
-                    classes("bi-skip-start-fill")
+                    classes("bi", "bi-skip-start-fill")
                     style {
                         property("pointer-events", "none")
                     }
@@ -473,7 +473,7 @@ private fun PlaybackControls(
                 }
             }) {
                 I({
-                    classes(if (isPlaying) "bi-pause-fill" else "bi-play-fill")
+                    classes("bi", if (isPlaying) "bi-pause-fill" else "bi-play-fill")
                     style {
                         property("pointer-events", "none")
                     }
@@ -488,7 +488,7 @@ private fun PlaybackControls(
                 onClick { }
             }) {
                 I({
-                    classes("bi-skip-end-fill")
+                    classes("bi", "bi-skip-end-fill")
                     style {
                         property("pointer-events", "none")
                     }
@@ -504,7 +504,7 @@ private fun PlaybackControls(
                 }
             }) {
                 I({
-                    classes("bi-stop-fill")
+                    classes("bi", "bi-stop-fill")
                     style {
                         property("pointer-events", "none")
                     }
@@ -551,7 +551,7 @@ private fun PlaybackControls(
                     }
                 }) {
                     I({
-                        classes(if (isInPipMode) "bi-pip-fill" else "bi-pip")
+                        classes("bi", if (isInPipMode) "bi-pip-fill" else "bi-pip")
                         style {
                             property("pointer-events", "none")
                         }
@@ -634,7 +634,7 @@ private fun PlaybackControls(
                         volume < 0.5f -> "bi-volume-down-fill"
                         else -> "bi-volume-up-fill"
                     }
-                    classes(icon)
+                    classes("bi", icon)
                     style {
                         property("pointer-events", "none")
                     }
@@ -701,7 +701,7 @@ private fun SeekBar(
         }
     }) {
         I({
-            classes("bi-circle-fill")
+            classes("bi", "bi-circle-fill")
             style {
                 opacity(if (isThumbVisible) 1 else 0)
                 position(Position.Absolute)

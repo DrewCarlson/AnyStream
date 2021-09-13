@@ -291,9 +291,13 @@ fun Route.addMediaViewRoutes(
     route("/media") {
         route("/{mediaId}") {
             get {
+                val session = checkNotNull(call.principal<UserSession>())
                 val mediaId = call.parameters["mediaId"]
                     ?: return@get call.respond(NotFound)
                 val includeRefs = call.parameters["includeRefs"]?.toBoolean() ?: true
+                val includePlaybackState =
+                    call.parameters["includePlaybackStates"]?.toBoolean() ?: true
+                val playbackStateUserId = if (includePlaybackState) session.userId else null
 
                 return@get if (mediaId.isRemoteId) {
                     when (val queryResult = metadataManager.findByRemoteId(mediaId)) {
@@ -316,10 +320,26 @@ fun Route.addMediaViewRoutes(
                 } else {
                     call.respond(
                         MediaLookupResponse(
-                            movie = queries.findMovieById(mediaId, includeRefs = includeRefs),
-                            tvShow = queries.findShowById(mediaId, includeRefs = includeRefs),
-                            episode = queries.findEpisodeById(mediaId, includeRefs = includeRefs),
-                            season = queries.findSeasonById(mediaId, includeRefs = includeRefs),
+                            movie = queries.findMovieById(
+                                mediaId,
+                                includeRefs = includeRefs,
+                                includePlaybackStateForUser = playbackStateUserId,
+                            ),
+                            tvShow = queries.findShowById(
+                                mediaId,
+                                includeRefs = includeRefs,
+                                includePlaybackStateForUser = playbackStateUserId,
+                            ),
+                            episode = queries.findEpisodeById(
+                                mediaId,
+                                includeRefs = includeRefs,
+                                includePlaybackStateForUser = playbackStateUserId,
+                            ),
+                            season = queries.findSeasonById(
+                                mediaId,
+                                includeRefs = includeRefs,
+                                includePlaybackStateForUser = playbackStateUserId,
+                            ),
                         )
                     )
                 }

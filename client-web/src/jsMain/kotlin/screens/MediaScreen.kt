@@ -30,6 +30,9 @@ import kotlinx.browser.window
 import kotlinx.coroutines.flow.*
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
+import kotlin.time.Duration
+
+val backdropImageUrl = MutableStateFlow<String?>(null)
 
 @Composable
 fun MediaScreen(
@@ -56,6 +59,9 @@ fun MediaScreen(
                 }
             }
     }
+    DisposableEffect(mediaId) {
+        onDispose { backdropImageUrl.value = null }
+    }
 
     Div({
         classes("p-4")
@@ -66,7 +72,10 @@ fun MediaScreen(
     }) {
         mediaResponse?.movie?.let { response ->
             BaseDetailsView(
-                mediaItem = response.toMediaItem(),
+                mediaItem = response.toMediaItem().also { mediaItem ->
+                    // TODO: Support tv show backdrops, requests extra images api call on media import
+                    backdropImageUrl.value = "https://image.tmdb.org/t/p/w1280/${mediaItem.backdropPath}"
+                },
                 refreshMetadata = refreshMetadata,
                 client = client,
             )
@@ -123,7 +132,10 @@ private fun BaseDetailsView(
     }) {
         Div({
             style {
+                display(DisplayStyle.Flex)
+                flexDirection(FlexDirection.Column)
                 flexShrink(0)
+                alignItems(AlignItems.Center)
             }
         }) {
             PosterCard(
@@ -135,10 +147,25 @@ private fun BaseDetailsView(
                 } else {
                     375.px to 250.px
                 },
+                completedPercent = mediaItem.playbackState?.completedPercent,
                 onPlayClicked = {
                     window.location.hash = "!play:${mediaItem.mediaRefs.firstOrNull()?.id}"
                 }.takeIf { !mediaItem.mediaRefs.isNullOrEmpty() }
             )
+
+            mediaItem.playbackState?.run {
+                Div {
+                    Text(buildString {
+                        val remaining = Duration.seconds(runtime - position)
+                        if (remaining.inWholeHours >= 1) {
+                            append(remaining.inWholeHours)
+                            append(" hr ")
+                        }
+                        append(remaining.inWholeMinutes % 60)
+                        append(" min left")
+                    })
+                }
+            }
         }
         Div({
             classes("p-4")
@@ -203,7 +230,7 @@ private fun BaseDetailsView(
                             classes("bi", "bi-play-fill", "pe-1")
                             style { property("pointer-events", "none") }
                         })
-                        Text("Play")
+                        Text(if (mediaItem.playbackState == null) "Play" else "Resume")
                     }
                 }
             }

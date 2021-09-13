@@ -18,6 +18,7 @@
 package anystream.frontend.models
 
 import anystream.models.MediaReference
+import anystream.models.PlaybackState
 import anystream.models.api.EpisodeResponse
 import anystream.models.api.MovieResponse
 import anystream.models.api.SeasonResponse
@@ -35,6 +36,7 @@ data class MediaItem(
     val releaseDate: String?,
     val mediaRefs: List<MediaReference>,
     val wide: Boolean = false,
+    val playbackState: PlaybackState? = null,
 )
 
 fun MovieResponse.toMediaItem(): MediaItem {
@@ -46,6 +48,7 @@ fun MovieResponse.toMediaItem(): MediaItem {
         overview = movie.overview,
         releaseDate = movie.releaseDate,
         mediaRefs = mediaRefs,
+        playbackState = playbackState,
     )
 }
 
@@ -57,7 +60,8 @@ fun TvShowResponse.toMediaItem(): MediaItem {
         backdropPath = tvShow.posterPath,
         overview = tvShow.overview,
         releaseDate = tvShow.firstAirDate,
-        mediaRefs = emptyList(),
+        mediaRefs = mediaRefs,
+        playbackState = playbackState,
     )
 }
 
@@ -73,6 +77,7 @@ fun EpisodeResponse.toMediaItem(): MediaItem {
         releaseDate = episode.airDate,
         mediaRefs = mediaRefs,
         wide = true,
+        playbackState = playbackState,
     )
 }
 
@@ -86,5 +91,6 @@ fun SeasonResponse.toMediaItem(): MediaItem {
         overview = season.overview,
         releaseDate = season.airDate,
         mediaRefs = emptyList(),
+        playbackState = playbackState,
     )
 }

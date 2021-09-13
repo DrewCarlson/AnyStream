@@ -170,6 +170,12 @@ private fun ActiveStreamsList(
                     }
                 }) {
                     Div { Text(mediaItem.contentTitle) }
+                    mediaItem.subtitle1?.let { subtitle ->
+                        Div { Text(subtitle) }
+                    }
+                    mediaItem.subtitle2?.let { subtitle ->
+                        Div { Text(subtitle) }
+                    }
                     Div { Text("User: ${user.displayName}") }
                     Div {
                         val progress = Duration.Companion.seconds(playbackState.position)

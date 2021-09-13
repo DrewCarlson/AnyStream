@@ -28,8 +28,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.jetbrains.compose.web.attributes.AttrsBuilder
 import org.jetbrains.compose.web.attributes.onSubmit
-import org.jetbrains.compose.web.attributes.placeholder
-import org.jetbrains.compose.web.css.StyleBuilder
+import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLInputElement
@@ -40,7 +39,15 @@ val searchWindowPosition = MutableStateFlow(0 to 0)
 @Composable
 fun Navbar(client: AnyStreamClient) {
     val isAuthenticated = client.authenticated.collectAsState(client.isAuthenticated())
-    Nav({ classes("navbar", "navbar-expand-lg", "navbar-dark", "bg-dark") }) {
+    Nav({
+        classes(
+            "navbar", "navbar-expand-lg", "navbar-dark",
+            "rounded", "shadow", "mx-2", "mt-2"
+        )
+        style {
+            backgroundColor(rgba(0, 0, 0, 0.3))
+        }
+    }) {
         DisposableRefEffect { ref ->
             searchWindowPosition.value = ref.clientHeight to (window.innerWidth / 4)
             onDispose {}
@@ -102,13 +109,13 @@ private fun SecondaryMenu(client: AnyStreamClient, permissions: Set<String>) {
                 classes("nav-link")
                 onClick { BrowserRouter.navigate("/usermanager") }
             }) {
-                I({ classes("bi-people") })
+                I({ classes("bi", "bi-people") })
             }
             A(attrs = {
                 classes("nav-link")
                 onClick { BrowserRouter.navigate("/settings") }
             }) {
-                I({ classes("bi-gear") })
+                I({ classes("bi", "bi-gear") })
             }
         }
         A(attrs = {
@@ -119,16 +126,33 @@ private fun SecondaryMenu(client: AnyStreamClient, permissions: Set<String>) {
             }
             classes("nav-link")
         }) {
-            I({ classes("bi-box-arrow-right") }) { }
+            I({ classes("bi", "bi-box-arrow-right") }) { }
         }
     }
 }
 
 @Composable
 private fun SearchBar() {
+    var focused by mutableStateOf(false)
     Form(null, {
         onSubmit { it.preventDefault() }
+        classes("p-2", "rounded-pill")
+        style {
+            backgroundColor(if (focused) {
+                Color.white
+            } else {
+                hsla(0, 0, 100, .08)
+            })
+        }
     }) {
+        I({
+            classes("bi", "bi-search", "p-2")
+            style {
+                if (focused) {
+                    color(rgba(0, 0, 0, .8))
+                }
+            }
+        })
         SearchInput {
             val ref = mutableStateOf<HTMLInputElement?>(null)
             ref { newRef ->
@@ -137,14 +161,25 @@ private fun SearchBar() {
                     ref.value = null
                 }
             }
-            placeholder("Search")
             onFocus {
+                focused = true
                 searchQuery.value = (it.target as? HTMLInputElement)
                     ?.value
                     ?.takeUnless(String::isNullOrBlank)
             }
+            onFocusOut { focused = false }
             onInput { event ->
                 searchQuery.value = event.value.takeUnless(String::isNullOrBlank)
+            }
+            style {
+                backgroundColor(Color.transparent)
+                outline("0")
+                property("border", 0)
+                if (focused) {
+                    color(rgba(0, 0, 0, .8))
+                } else {
+                    color(Color.white)
+                }
             }
         }
     }
@@ -157,7 +192,7 @@ private fun ButtonIcon(
     style: (StyleBuilder.() -> Unit) = {},
 ) {
     I({
-        classes(icon, "mx-2")
+        classes("bi", icon, "mx-2")
         attrs()
         style(style)
     })
