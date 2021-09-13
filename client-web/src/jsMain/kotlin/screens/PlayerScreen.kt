@@ -22,6 +22,7 @@ import anystream.client.AnyStreamClient
 import anystream.frontend.models.MediaItem
 import anystream.frontend.models.toMediaItem
 import anystream.models.PlaybackState
+import app.softwork.routingcompose.BrowserRouter
 import com.videojs.VideoJs
 import com.videojs.VjsOptions
 import com.videojs.VjsPlayer
@@ -398,7 +399,20 @@ private fun PlaybackControls(
                 flexBasis(33.percent)
             }
         }) {
-            Div {
+            Div({
+                var hovering by mutableStateOf(false)
+                onMouseEnter { hovering = true }
+                onMouseLeave { hovering = false }
+                onClick {
+                    BrowserRouter.navigate("/media/${mediaItem.value?.mediaId}")
+                }
+                style {
+                    cursor("pointer")
+                    if (hovering) {
+                        textDecoration("underline")
+                    }
+                }
+            }) {
                 mediaItem.value?.run {
                     Text(contentTitle)
                 }

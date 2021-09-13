@@ -21,6 +21,7 @@ import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
 import anystream.models.Permissions
 import app.softwork.routingcompose.BrowserRouter
+import kotlinx.browser.localStorage
 import kotlinx.browser.window
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -33,6 +34,7 @@ import org.jetbrains.compose.web.dom.*
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLInputElement
 
+private const val MENU_EXPANDED_KEY = "menu_expanded"
 val searchQuery = MutableStateFlow<String?>(null)
 val searchWindowPosition = MutableStateFlow(0 to 0)
 
@@ -213,7 +215,7 @@ fun SideMenu(
     client: AnyStreamClient,
     permissions: Set<String>,
 ) {
-    var expanded by mutableStateOf(true)
+    var expanded by mutableStateOf(localStorage.getItem(MENU_EXPANDED_KEY)?.toBoolean() ?: false)
     Div({
         classes("mx-2", "me-4", "pb-2")
         style {
@@ -263,7 +265,10 @@ fun SideMenu(
                         backgroundColor(Color.transparent)
                         color(rgba(255, 255, 255, 0.7))
                     }
-                    onClick { expanded = !expanded }
+                    onClick {
+                        expanded = !expanded
+                        localStorage.setItem(MENU_EXPANDED_KEY, expanded.toString())
+                    }
                 }) {
                     ButtonIcon(if (expanded) "bi-arrow-bar-left" else "bi-arrow-bar-right")
                     if (expanded) {
