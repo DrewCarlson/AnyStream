@@ -29,4 +29,7 @@ data class SearchResponse(
     val tvShows: List<TvShow> = emptyList(),
     val episodes: List<Episode> = emptyList(),
     val mediaReferences: Map<String, MediaReference> = emptyMap(),
-)
+) {
+    fun hasResult(): Boolean =
+        movies.isNotEmpty() || tvShows.isNotEmpty() || episodes.isNotEmpty()
+}

@@ -22,13 +22,14 @@ import anystream.client.AnyStreamClient
 import anystream.models.Permissions
 import app.softwork.routingcompose.BrowserRouter
 import kotlinx.browser.localStorage
-import kotlinx.browser.window
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.jetbrains.compose.web.attributes.AttrsBuilder
 import org.jetbrains.compose.web.attributes.onSubmit
+import org.jetbrains.compose.web.attributes.value
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 import org.w3c.dom.HTMLElement
@@ -36,7 +37,7 @@ import org.w3c.dom.HTMLInputElement
 
 private const val MENU_EXPANDED_KEY = "menu_expanded"
 val searchQuery = MutableStateFlow<String?>(null)
-val searchWindowPosition = MutableStateFlow(0 to 0)
+val searchWindowPosition = MutableStateFlow(Triple(0, 0, 0))
 
 @Composable
 fun Navbar(client: AnyStreamClient) {
@@ -50,10 +51,6 @@ fun Navbar(client: AnyStreamClient) {
             backgroundColor(rgba(0, 0, 0, 0.3))
         }
     }) {
-        DisposableRefEffect { ref ->
-            searchWindowPosition.value = ref.clientHeight to (window.innerWidth / 4)
-            onDispose {}
-        }
         Div({ classes("container-fluid") }) {
             A(attrs = {
                 classes("navbar-brand", "mx-2")
@@ -143,34 +140,49 @@ private fun SecondaryMenu(client: AnyStreamClient, permissions: Set<String>) {
 
 @Composable
 private fun SearchBar() {
-    var focused by mutableStateOf(false)
+    var focused by remember { mutableStateOf(false) }
+    var elementValue by remember { mutableStateOf<String?>(null) }
+    val inputRef = mutableStateOf<HTMLInputElement?>(null)
+    val scope = rememberCoroutineScope()
     Form(null, {
         onSubmit { it.preventDefault() }
         classes("mx-4", "p-1", "rounded-pill")
         style {
-            backgroundColor(
-                if (focused) {
-                    Color.white
-                } else {
-                    hsla(0, 0, 100, .08)
-                }
-            )
+            width(320.px)
+            maxWidth(320.px)
+            display(DisplayStyle.Flex)
+            flexDirection(FlexDirection.Row)
+            backgroundColor(if (focused) Color.white else hsla(0, 0, 100, .08))
+            property("transition", "background-color .2s")
         }
     }) {
+        DomSideEffect { element ->
+            scope.launch {
+                delay(100)// fixme: Delay to ensure correct position is provided
+                val rect = element.getBoundingClientRect()
+                val searchTop = rect.bottom.toInt()
+                val searchLeft = rect.left.toInt()
+                val searchWidth = element.clientWidth
+                searchWindowPosition.value = Triple(searchTop, searchLeft, searchWidth)
+            }
+            onDispose {
+                searchWindowPosition.value = Triple(0, 0, 0)
+            }
+        }
         I({
             classes("bi", "bi-search", "p-1")
             style {
                 if (focused) {
                     color(rgba(0, 0, 0, .8))
                 }
+                property("transition", "color .2s")
             }
         })
         SearchInput {
-            val ref = mutableStateOf<HTMLInputElement?>(null)
             ref { newRef ->
-                ref.value = newRef
+                inputRef.value = newRef
                 onDispose {
-                    ref.value = null
+                    inputRef.value = null
                 }
             }
             onFocus {
@@ -179,14 +191,26 @@ private fun SearchBar() {
                     ?.value
                     ?.takeUnless(String::isNullOrBlank)
             }
-            onFocusOut { focused = false }
+            onFocusOut {
+                focused = false
+
+                scope.launch {
+                    // TODO: Improve search result clear behavior
+                    delay(100)
+                    searchQuery.value = null
+                }
+            }
             onInput { event ->
                 searchQuery.value = event.value.takeUnless(String::isNullOrBlank)
+                elementValue = event.value
             }
+            value(elementValue ?: "")
+            classes("w-100")
             style {
                 backgroundColor(Color.transparent)
                 outline("0")
                 property("border", 0)
+                property("transition", "color .2s")
                 if (focused) {
                     color(rgba(0, 0, 0, .8))
                 } else {
@@ -194,6 +218,27 @@ private fun SearchBar() {
                 }
             }
         }
+        I({
+            classes("bi", "bi-x-circle-fill", "p-1")
+            onClick {
+                inputRef.value?.run {
+                    value = ""
+                    elementValue = null
+                    focus()
+                }
+            }
+            style {
+                property("transition", "color .2s")
+                if (focused) {
+                    color(rgba(0, 0, 0, .8))
+                }
+                if (elementValue.isNullOrBlank()) {
+                    opacity(0)
+                } else {
+                    cursor("pointer")
+                }
+            }
+        })
     }
 }
 

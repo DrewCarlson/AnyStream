@@ -22,10 +22,10 @@ import anystream.frontend.searchQuery
 import anystream.frontend.searchWindowPosition
 import anystream.models.api.SearchResponse
 import app.softwork.routingcompose.BrowserRouter
-import kotlinx.browser.window
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.Div
-import org.jetbrains.compose.web.dom.H3
+import org.jetbrains.compose.web.dom.H5
+import org.jetbrains.compose.web.dom.Img
 import org.jetbrains.compose.web.dom.Text
 
 
@@ -33,134 +33,168 @@ import org.jetbrains.compose.web.dom.Text
 fun SearchResultsList(
     searchResponse: SearchResponse,
 ) {
-    val (height, width) = searchWindowPosition.value
+    val (top, left, width) = searchWindowPosition.value
     Div({
-        classes("h-100", "w-100")
+        classes("rounded", "shadow", "py-3")
         style {
+            display(DisplayStyle.Flex)
+            flexDirection(FlexDirection.Column)
+            overflowY("scroll")
+            backgroundColor(rgb(28, 28, 28))
+            backgroundImage("url('../images/noise.webp')")
+            backgroundRepeat("repeat")
             position(Position.Absolute)
+            left(left.px)
+            top(top.px)
+            width(width.px)
+            maxHeight(70.vh)
             property("z-index", 1)
         }
-        onClick {
-            searchQuery.value = null
-        }
     }) {
+        if (searchResponse.movies.isNotEmpty()) {
+            SectionTitle("Movies")
+        }
         Div({
-            classes("w-50", "p-4")
+            classes("w-100")
             style {
                 display(DisplayStyle.Flex)
                 flexDirection(FlexDirection.Column)
-                overflowY("auto")
-                backgroundColor(rgba(0, 0, 0, .9))
-                position(Position.Absolute)
-                top(height.px)
-                left(width.px)
-                height((window.innerHeight - height).px)
-                property("z-index", 1)
+                flexWrap(FlexWrap.Wrap)
             }
         }) {
-            if (searchResponse.movies.isNotEmpty()) {
-                Div { H3 { Text("Movies") } }
+            searchResponse.movies.forEach { movie ->
+                SearchResultItem(
+                    mediaId = movie.id,
+                    posterPath = movie.posterPath,
+                    title = movie.title,
+                    subtitle = movie.releaseDate
+                        ?.split("-")
+                        ?.first() ?: "TBD",
+                )
             }
-            Div({
-                classes("w-100")
-                style {
-                    display(DisplayStyle.Flex)
-                    flexDirection(FlexDirection.Row)
-                    flexWrap(FlexWrap.Wrap)
-                }
-            }) {
-                searchResponse.movies.forEach { movie ->
-                    Div {
-                        PosterCard(
-                            title = {
-                                LinkedText(url = "/media/${movie.id}") {
-                                    Text(movie.title)
-                                }
-                            },
-                            posterPath = movie.posterPath,
-                            onPlayClicked = searchResponse.mediaReferences[movie.id]
-                                ?.let { mediaRef ->
-                                    {
-                                        searchQuery.value = null
-                                        window.location.hash = "!play:${mediaRef.id}"
-                                    }
-                                },
-                            onBodyClicked = {
-                                searchQuery.value = null
-                                BrowserRouter.navigate("/media/${movie.id}")
-                            },
-                        )
-                    }
-                }
-            }
+        }
 
-            if (searchResponse.tvShows.isNotEmpty()) {
-                Div { H3 { Text("TV Shows") } }
+        if (searchResponse.tvShows.isNotEmpty()) {
+            SectionTitle("TV Shows")
+        }
+        Div({
+            classes("w-100")
+            style {
+                display(DisplayStyle.Flex)
+                flexDirection(FlexDirection.Column)
+                flexWrap(FlexWrap.Wrap)
             }
-            Div({
-                classes("w-100")
-                style {
-                    display(DisplayStyle.Flex)
-                    flexDirection(FlexDirection.Row)
-                    flexWrap(FlexWrap.Wrap)
-                }
-            }) {
-                searchResponse.tvShows.forEach { show ->
-                    Div {
-                        PosterCard(
-                            title = {
-                                LinkedText(url = "/media/${show.id}") {
-                                    Text(show.name)
-                                }
-                            },
-                            posterPath = show.posterPath,
-                            onPlayClicked = searchResponse.mediaReferences[show.id]
-                                ?.let { mediaRef ->
-                                    {
-                                        searchQuery.value = null
-                                        window.location.hash = "!play:${mediaRef.id}"
-                                    }
-                                },
-                            onBodyClicked = {
-                                searchQuery.value = null
-                                BrowserRouter.navigate("/media/${show.id}")
-                            },
-                        )
+        }) {
+            searchResponse.tvShows.forEach { show ->
+                SearchResultItem(
+                    mediaId = show.id,
+                    posterPath = show.posterPath,
+                    title = show.name,
+                    subtitle = buildString {
+                        append(show.numberOfSeasons)
+                        append(' ')
+                        append("season")
+                        if (show.numberOfEpisodes > 1) {
+                            append('s')
+                        }
                     }
-                }
+                )
             }
+        }
 
-            if (searchResponse.episodes.isNotEmpty()) {
-                Div { H3 { Text("Episodes") } }
+        if (searchResponse.episodes.isNotEmpty()) {
+            SectionTitle("Episodes")
+        }
+        Div({
+            classes("w-100")
+            style {
+                display(DisplayStyle.Flex)
+                flexDirection(FlexDirection.Column)
+                flexWrap(FlexWrap.Wrap)
             }
+        }) {
+            searchResponse.episodes.forEach { episode ->
+                SearchResultItem(
+                    mediaId = episode.id,
+                    posterPath = episode.stillPath,
+                    title = episode.name,
+                    subtitle = "", // TODO: display show name
+                    wide = true,
+                )
+            }
+        }
+
+        if (!searchResponse.hasResult()) {
             Div({
                 classes("w-100")
-                style {
-                    display(DisplayStyle.Flex)
-                    flexDirection(FlexDirection.Row)
-                    flexWrap(FlexWrap.Wrap)
-                }
+                style { textAlign("center") }
             }) {
-                searchResponse.episodes.forEach { episode ->
-                    Div {
-                        PosterCard(
-                            title = { Text(episode.name) },
-                            posterPath = episode.stillPath,
-                            wide = true,
-                            onPlayClicked = searchResponse.mediaReferences[episode.id]
-                                ?.let { mediaRef ->
-                                    {
-                                        searchQuery.value = null
-                                        window.location.hash = "!play:${mediaRef.id}"
-                                    }
-                                },
-                            onBodyClicked = {
-                                searchQuery.value = null
-                                BrowserRouter.navigate("/media/${episode.id}")
-                            },
-                        )
-                    }
+                H5 { Text("No results") }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SectionTitle(title: String) {
+    Div({
+        classes("mx-3")
+    }) {
+        H5 { Text(title) }
+    }
+}
+
+@Composable
+private fun SearchResultItem(
+    mediaId: String,
+    posterPath: String?,
+    title: String,
+    subtitle: String,
+    wide: Boolean = false,
+) {
+    val (posterHeight, posterWidth) = if (wide) 28.px to 42.px else 42.px to 28.px
+
+    Div({
+        classes("px-3", "py-1")
+        style {
+            cursor("pointer")
+            display(DisplayStyle.Flex)
+            flexDirection(FlexDirection.Row)
+            alignItems(AlignItems.Center)
+        }
+        onClick {
+            searchQuery.value = null
+            BrowserRouter.navigate("/media/${mediaId}")
+        }
+    }) {
+        Div({
+            style {
+                backgroundColor(Color.darkgray)
+                height(posterHeight)
+                width(posterWidth)
+            }
+        }) {
+            Img(
+                src = "https://image.tmdb.org/t/p/w300${posterPath}",
+                attrs = {
+                    classes("h-100", "w-100")
+                    attr("loading", "lazy")
                 }
+            )
+        }
+
+        Div({
+            classes("px-2")
+            style {
+                display(DisplayStyle.Flex)
+                flexDirection(FlexDirection.Column)
+            }
+        }) {
+            Div {
+                Text(title)
+            }
+            Div {
+                Text(subtitle)
             }
         }
     }

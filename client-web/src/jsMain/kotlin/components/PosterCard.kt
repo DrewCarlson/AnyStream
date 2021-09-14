@@ -38,11 +38,16 @@ fun PosterCard(
     onPlayClicked: (() -> Unit)? = null,
     onBodyClicked: (() -> Unit)? = null,
     buildMenu: @Composable (() -> Unit)? = null,
+    classes: List<String>? = null,
 ) {
     val isMouseOver = remember { mutableStateOf(false) }
     val isMenuVisible = remember { mutableStateOf(false) }
     Div({
-        classes("p-3")
+        if (classes == null) {
+            classes("p-3")
+        } else {
+            classes(*classes.toTypedArray())
+        }
         style {
             display(DisplayStyle.Flex)
             flexDirection(FlexDirection.Column)

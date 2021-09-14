@@ -161,8 +161,12 @@ private fun BaseDetailsView(
                             append(remaining.inWholeHours)
                             append(" hr ")
                         }
-                        append(remaining.inWholeMinutes % 60)
-                        append(" min left")
+                        val minutes = remaining.inWholeMinutes % 60
+                        if (minutes > 0) {
+                            append(minutes)
+                            append(" min")
+                        }
+                        append(" left")
                     })
                 }
             }

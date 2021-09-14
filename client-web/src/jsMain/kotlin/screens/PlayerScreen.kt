@@ -426,11 +426,13 @@ private fun PlaybackControls(
                     gap(10.px)
                 }
             }) {
-                mediaItem.value?.subtitle1?.also { subtitle ->
-                    Div { Text(subtitle) }
-                }
-                mediaItem.value?.subtitle2?.also { subtitle ->
-                    Div { Text(subtitle) }
+                mediaItem.value?.apply {
+                    if (!subtitle1.isNullOrBlank() && !subtitle2.isNullOrBlank()) {
+                        Text("$subtitle1 · $subtitle2")
+                    } else {
+                        subtitle1?.also { subtitle -> Text(subtitle) }
+                        subtitle2?.also { subtitle -> Text(subtitle) }
+                    }
                 }
             }
             val playProgressString = remember(progressScale.value) {
@@ -766,22 +768,24 @@ private fun SeekBar(
 fun formatProgressAndRuntime(progress: Duration, runtime: Duration): String {
     fun Long.formatTime(): String = toString().padStart(2, '0')
     return buildString {
+        val progressMinutes = progress.inWholeMinutes % 60
+        val runtimeMinutes = runtime.inWholeMinutes % 60
         if (progress.inWholeHours >= 1) {
             append(progress.inWholeHours)
             append(':')
-            append((progress.inWholeMinutes % 60).formatTime())
+            append(progressMinutes.formatTime())
         } else {
-            append(progress.inWholeMinutes % 60)
+            append(progressMinutes)
         }
         append(':')
         append((progress.inWholeSeconds % 60).formatTime())
-        append(" / ")
+    append(" / ")
         if (runtime.inWholeHours >= 1) {
             append(runtime.inWholeHours)
             append(':')
-            append((runtime.inWholeMinutes % 60).formatTime())
+            append(runtimeMinutes.formatTime())
         } else {
-            append(runtime.inWholeMinutes % 60)
+            append(runtimeMinutes)
         }
         append(':')
         append((runtime.inWholeSeconds % 60).formatTime())
