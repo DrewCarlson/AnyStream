@@ -176,6 +176,8 @@ fun PlayerScreen(
                         player?.pause()
                     }
                 }
+                onTouchStart { mouseMoveFlow.tryEmit(Unit) }
+                onTouchMove { mouseMoveFlow.tryEmit(Unit) }
                 onDoubleClick {
                     setFullscreen.value?.invoke(document.fullscreenElement == null)
                 }
@@ -247,26 +249,28 @@ fun PlayerScreen(
 
             if (!playerIsPlaying) {
                 I({
-                    classes("bi", "bi-play-circle-fill")
+                    classes("bi", "bi-play-circle-fill", "user-select-none")
+                    onClick { if (player?.paused() == true) player?.play() else player?.pause() }
                     style {
                         position(Position.Absolute)
                         left(50.percent)
                         top(50.percent)
                         fontSize(82.px)
-                        property("pointer-events", "none")
+                        cursor("pointer")
                         property("transform", "translate(-50%, -50%)")
                         color(rgba(199, 8, 28, 0.8))
                     }
                 })
                 I({
-                    classes("bi", "bi-play-circle")
+                    classes("bi", "bi-play-circle", "user-select-none")
+                    onClick { if (player?.paused() == true) player?.play() else player?.pause() }
                     style {
                         position(Position.Absolute)
                         left(50.percent)
                         top(50.percent)
                         fontSize(82.px)
                         color(Color.white)
-                        property("pointer-events", "none")
+                        cursor("pointer")
                         property("transform", "translate(-50%, -50%)")
                     }
                 })
@@ -312,7 +316,7 @@ private fun MiniModeOverlay(
             isInMiniMode.value = false
         }
     }) {
-        I({ classes("bi", "bi-chevron-up") })
+        I({ classes("bi", "bi-chevron-up", "user-select-none") })
     }
 }
 
@@ -341,24 +345,47 @@ private fun MaxPlayerTopBar(
             }
         }
     }) {
-        I({
-            classes("bi", "bi-chevron-down")
+        Div({
             style {
                 cursor("pointer")
+                if (isFullscreen.value) {
+                    opacity(0)
+                }
             }
             onClick {
                 isInMiniMode.value = !isInMiniMode.value
             }
-        })
-        I({
-            classes("bi", if (isFullscreen.value) "bi-arrows-angle-contract" else "bi-arrows-angle-expand")
+        }) {
+            I({
+                classes("bi", "bi-chevron-down", "user-select-none")
+                style {
+                    property("pointer-events", "none")
+                }
+            })
+        }
+        Div({
             style {
                 cursor("pointer")
             }
             onClick {
                 setFullscreen.value?.invoke(!isFullscreen.value)
             }
-        })
+        }) {
+            I({
+                classes(
+                    "user-select-none",
+                    "bi",
+                    if (isFullscreen.value) {
+                        "bi-arrows-angle-contract"
+                    } else {
+                        "bi-arrows-angle-expand"
+                    },
+                )
+                style {
+                    property("pointer-events", "none")
+                }
+            })
+        }
     }
 }
 
@@ -466,7 +493,7 @@ private fun PlaybackControls(
                 onClick { }
             }) {
                 I({
-                    classes("bi", "bi-skip-start-fill")
+                    classes("bi", "bi-skip-start-fill", "user-select-none")
                     style {
                         property("pointer-events", "none")
                     }
@@ -489,7 +516,10 @@ private fun PlaybackControls(
                 }
             }) {
                 I({
-                    classes("bi", if (isPlaying) "bi-pause-fill" else "bi-play-fill")
+                    classes(
+                        "user-select-none", "bi",
+                        if (isPlaying) "bi-pause-fill" else "bi-play-fill"
+                    )
                     style {
                         property("pointer-events", "none")
                     }
@@ -504,7 +534,7 @@ private fun PlaybackControls(
                 onClick { }
             }) {
                 I({
-                    classes("bi", "bi-skip-end-fill")
+                    classes("bi", "bi-skip-end-fill", "user-select-none")
                     style {
                         property("pointer-events", "none")
                     }
@@ -520,7 +550,7 @@ private fun PlaybackControls(
                 }
             }) {
                 I({
-                    classes("bi", "bi-stop-fill")
+                    classes("bi", "bi-stop-fill", "user-select-none")
                     style {
                         property("pointer-events", "none")
                     }
@@ -567,7 +597,10 @@ private fun PlaybackControls(
                     }
                 }) {
                     I({
-                        classes("bi", if (isInPipMode) "bi-pip-fill" else "bi-pip")
+                        classes(
+                            "user-select-none",
+                            "bi", if (isInPipMode) "bi-pip-fill" else "bi-pip"
+                        )
                         style {
                             property("pointer-events", "none")
                         }
@@ -650,7 +683,7 @@ private fun PlaybackControls(
                         volume < 0.5f -> "bi-volume-down-fill"
                         else -> "bi-volume-up-fill"
                     }
-                    classes("bi", icon)
+                    classes("bi", icon, "user-select-none")
                     style {
                         property("pointer-events", "none")
                     }
@@ -717,7 +750,7 @@ private fun SeekBar(
         }
     }) {
         I({
-            classes("bi", "bi-circle-fill")
+            classes("bi", "bi-circle-fill", "user-select-none")
             style {
                 opacity(if (isThumbVisible) 1 else 0)
                 position(Position.Absolute)
@@ -779,7 +812,7 @@ fun formatProgressAndRuntime(progress: Duration, runtime: Duration): String {
         }
         append(':')
         append((progress.inWholeSeconds % 60).formatTime())
-    append(" / ")
+        append(" / ")
         if (runtime.inWholeHours >= 1) {
             append(runtime.inWholeHours)
             append(':')
