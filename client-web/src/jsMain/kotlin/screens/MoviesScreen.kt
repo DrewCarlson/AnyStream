@@ -17,17 +17,14 @@
  */
 package anystream.frontend.screens
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
+import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
-import anystream.frontend.components.LinkedText
-import anystream.frontend.components.PosterCard
+import anystream.frontend.components.*
+import anystream.models.MediaReference
+import anystream.models.Movie
 import anystream.models.api.MoviesResponse
 import app.softwork.routingcompose.BrowserRouter
 import kotlinx.browser.window
-import org.jetbrains.compose.web.css.*
-import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.Text
 
 @Composable
@@ -35,33 +32,33 @@ fun MoviesScreen(client: AnyStreamClient) {
     val moviesResponse by produceState(MoviesResponse(emptyList(), emptyList())) {
         value = client.getMovies()
     }
-    Div({
-        style {
-            display(DisplayStyle.Flex)
-            flexDirection(FlexDirection.Row)
-            flexWrap(FlexWrap.Wrap)
-        }
-    }) {
-        val (movies, refs) = moviesResponse
-        if (movies.isNotEmpty()) {
-            movies.forEach { movie ->
-                val ref = refs.find { it.contentId == movie.id }
-                PosterCard(
-                    title = {
-                        LinkedText(url = "/media/${movie.id}") {
-                            Text(movie.title)
-                        }
-                    },
-                    posterPath = movie.posterPath,
-                    isAdded = true,
-                    onPlayClicked = {
-                        window.location.hash = "!play:${ref?.id}"
-                    }.takeIf { ref != null },
-                    onBodyClicked = {
-                        BrowserRouter.navigate("/media/${movie.id}")
-                    },
-                )
-            }
+
+    val (movies, refs) = moviesResponse
+    if (movies.isEmpty()) {
+        FullSizeCenteredLoader()
+    } else {
+        VirtualScroller(movies) { movie ->
+            val ref = refs.find { it.contentId == movie.id }
+            MovieCard(movie, ref)
         }
     }
+}
+
+@Composable
+private fun MovieCard(movie: Movie, ref: MediaReference?) {
+    PosterCard(
+        title = {
+            LinkedText(url = "/media/${movie.id}") {
+                Text(movie.title)
+            }
+        },
+        posterPath = movie.posterPath,
+        isAdded = true,
+        onPlayClicked = {
+            window.location.hash = "!play:${ref?.id}"
+        }.takeIf { ref != null },
+        onBodyClicked = {
+            BrowserRouter.navigate("/media/${movie.id}")
+        },
+    )
 }

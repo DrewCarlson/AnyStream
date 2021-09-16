@@ -21,13 +21,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import anystream.client.AnyStreamClient
-import anystream.frontend.components.LinkedText
-import anystream.frontend.components.PosterCard
+import anystream.frontend.components.*
+import anystream.models.MediaReference
+import anystream.models.TvShow
 import anystream.models.api.TvShowsResponse
 import app.softwork.routingcompose.BrowserRouter
 import kotlinx.browser.window
-import org.jetbrains.compose.web.css.*
-import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.Text
 
 @Composable
@@ -35,33 +34,33 @@ fun TvShowScreen(client: AnyStreamClient) {
     val showResponse by produceState(TvShowsResponse(emptyList(), emptyList())) {
         value = client.getTvShows()
     }
-    Div({
-        style {
-            display(DisplayStyle.Flex)
-            flexDirection(FlexDirection.Row)
-            flexWrap(FlexWrap.Wrap)
-        }
-    }) {
-        val (shows, refs) = showResponse
-        if (shows.isNotEmpty()) {
-            shows.forEach { show ->
-                val ref = refs.find { it.contentId == show.id }
-                PosterCard(
-                    title = {
-                        LinkedText(url = "/media/${show.id}") {
-                            Text(show.name)
-                        }
-                    },
-                    posterPath = show.posterPath,
-                    isAdded = true,
-                    onPlayClicked = {
-                        window.location.hash = "!play:${ref?.id}"
-                    }.takeIf { ref != null },
-                    onBodyClicked = {
-                        BrowserRouter.navigate("/media/${show.id}")
-                    }
-                )
-            }
+
+    val (shows, refs) = showResponse
+    if (shows.isEmpty()) {
+        FullSizeCenteredLoader()
+    } else {
+        VirtualScroller(shows) { show ->
+            val ref = refs.find { it.contentId == show.id }
+            TvShowCard(show, ref)
         }
     }
+}
+
+@Composable
+fun TvShowCard(show: TvShow, ref: MediaReference?) {
+    PosterCard(
+        title = {
+            LinkedText(url = "/media/${show.id}") {
+                Text(show.name)
+            }
+        },
+        posterPath = show.posterPath,
+        isAdded = true,
+        onPlayClicked = {
+            window.location.hash = "!play:${ref?.id}"
+        }.takeIf { ref != null },
+        onBodyClicked = {
+            BrowserRouter.navigate("/media/${show.id}")
+        }
+    )
 }
