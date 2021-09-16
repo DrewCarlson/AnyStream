@@ -19,6 +19,7 @@ package anystream.frontend.screens
 
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
+import anystream.frontend.components.FullSizeCenteredLoader
 import anystream.frontend.components.LinkedText
 import anystream.frontend.components.PosterCard
 import anystream.models.api.HomeResponse
@@ -31,6 +32,10 @@ import org.jetbrains.compose.web.dom.*
 fun HomeScreen(client: AnyStreamClient) {
     val homeResponse by produceState<HomeResponse?>(null) {
         value = client.getHomeData()
+    }
+
+    if (homeResponse == null) {
+        FullSizeCenteredLoader()
     }
 
     homeResponse?.run {

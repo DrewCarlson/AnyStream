@@ -53,7 +53,9 @@ class MediaDbQueries(
     }
 
     suspend fun findMovies(includeRefs: Boolean = false): MoviesResponse {
-        val movies = moviesDb.find().toList()
+        val movies = moviesDb.find()
+            .ascendingSort(Movie::title)
+            .toList()
         val mediaRefs = if (includeRefs) {
             val movieIds = movies.map(Movie::id)
             mediaRefsDb.find(MediaReference::contentId `in` movieIds).toList()
@@ -86,7 +88,9 @@ class MediaDbQueries(
     }
 
     suspend fun findShows(includeRefs: Boolean = false): TvShowsResponse {
-        val tvShows = tvShowDb.find().toList()
+        val tvShows = tvShowDb.find()
+            .ascendingSort(TvShow::name)
+            .toList()
         val mediaRefs = if (includeRefs) {
             val tvShowIds = tvShows.map(TvShow::id)
             mediaRefsDb.find(MediaReference::rootContentId `in` tvShowIds).toList()

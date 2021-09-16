@@ -19,8 +19,7 @@ package anystream.frontend.screens
 
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
-import anystream.frontend.components.LinkedText
-import anystream.frontend.components.PosterCard
+import anystream.frontend.components.*
 import anystream.frontend.models.MediaItem
 import anystream.frontend.models.toMediaItem
 import anystream.models.*
@@ -70,6 +69,9 @@ fun MediaScreen(
             flexDirection(FlexDirection.Column)
         }
     }) {
+        if (mediaResponse == null) {
+            FullSizeCenteredLoader()
+        }
         mediaResponse?.movie?.let { response ->
             BaseDetailsView(
                 mediaItem = response.toMediaItem().also { mediaItem ->
