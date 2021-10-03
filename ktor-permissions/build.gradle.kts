@@ -3,6 +3,15 @@ plugins {
     kotlin("plugin.serialization")
 }
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    sourceCompatibility = "11"
+    targetCompatibility = "11"
+}
 
 dependencies {
     implementation(kotlin("stdlib"))

@@ -1,8 +1,9 @@
+@Suppress("DSL_SCOPE_VIOLATION", "UnstableApiUsage")
 plugins {
-    kotlin("multiplatform") version "1.5.21" apply false
-    kotlin("jvm") version "1.5.21" apply false
-    kotlin("plugin.serialization") version "1.5.21" apply false
-    id("org.jetbrains.compose") version "1.0.0-alpha4-build310" apply false
+    alias(libs.plugins.multiplatform) apply false
+    alias(libs.plugins.jvm) apply false
+    alias(libs.plugins.serialization) apply false
+    alias(libs.plugins.composejb) apply false
 }
 
 buildscript {
