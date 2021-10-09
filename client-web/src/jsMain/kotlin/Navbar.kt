@@ -262,7 +262,7 @@ fun SideMenu(
 ) {
     var expanded by mutableStateOf(localStorage.getItem(MENU_EXPANDED_KEY)?.toBoolean() ?: false)
     Div({
-        classes("mx-2", "me-4", "pb-2")
+        classes("mx-2", "py-2")
         style {
             display(DisplayStyle.InlineBlock)
             property("transition", "width .2s ease-in-out 0s")

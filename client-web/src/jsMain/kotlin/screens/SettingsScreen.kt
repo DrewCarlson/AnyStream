@@ -38,6 +38,7 @@ fun SettingsScreen(
 ) {
     val scope = rememberCoroutineScope()
     Div({
+        classes("p-2")
         style {
             display(DisplayStyle.Flex)
             flexDirection(FlexDirection.Column)
@@ -148,13 +149,13 @@ private fun ActiveStreamsList(
         style {
             display(DisplayStyle.Flex)
             flexDirection(FlexDirection.Row)
+            gap(10.px)
         }
     }) {
         sessionsResponse?.apply {
             playbackStates.forEach { playbackState ->
                 val user = users.getValue(playbackState.userId)
                 val mediaLookup = mediaLookups.getValue(playbackState.mediaId)
-                //val transcodeSession = transcodeSessions.getValue(playbackState.id)
                 val mediaItem = checkNotNull(
                     mediaLookup.run { movie?.toMediaItem() ?: episode?.toMediaItem() }
                 )

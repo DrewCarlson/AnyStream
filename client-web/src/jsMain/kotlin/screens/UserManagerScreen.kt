@@ -41,18 +41,20 @@ fun UserManagerScreen(
         value = client.getUsers()
     }
     Div({
+        classes("pt-2", "ps-2")
         style {
             display(DisplayStyle.Flex)
             flexDirection(FlexDirection.Column)
         }
     }) {
+        Div { H4 { Text("Users") } }
         Div({
+            classes("pb-2")
             style {
-                classes("p-2", "bg-dark")
                 display(DisplayStyle.Flex)
                 flexDirection(FlexDirection.Row)
                 alignItems(AlignItems.Center)
-                property("gap", 12.px)
+                gap(12.px)
             }
         }) {
             Button({
@@ -61,21 +63,19 @@ fun UserManagerScreen(
                 attr("data-bs-target", "#inviteCodeCanvas")
                 attr("aria-controls", "inviteCodeCanvas")
             }) {
-                Text("Invite Codes")
+                Text("Manage Invites")
             }
         }
         Div({
-            classes("table-responsive")
+            classes("py-1")
+            style {
+                display(DisplayStyle.Flex)
+                flexDirection(FlexDirection.Column)
+                gap(10.px)
+            }
         }) {
-            Table({
-                classes("table", "table-dark", "table-striped", "table-hover")
-            }) {
-                Thead { UserHeaderRow() }
-                Tbody {
-                    usersState.value.forEach { user ->
-                        UserRow(user)
-                    }
-                }
+            usersState.value.forEach { user ->
+                UserRow(user)
             }
         }
     }
@@ -83,20 +83,17 @@ fun UserManagerScreen(
 }
 
 @Composable
-private fun UserHeaderRow() {
-    Tr {
-        Th({ scope(Scope.Col) }) { Text("ID") }
-        Th({ scope(Scope.Col) }) { Text("Display Name") }
-        Th({ scope(Scope.Col) }) { Text("User Name") }
-    }
-}
-
-@Composable
 private fun UserRow(user: User) {
-    Tr {
-        Th({ scope(Scope.Row) }) { Text(user.id) }
-        Td { Text(user.displayName) }
-        Td { Text(user.username) }
+    Div({
+        classes("p-3", "rounded")
+        style {
+            display(DisplayStyle.Flex)
+            flexDirection(FlexDirection.Column)
+            backgroundColor(rgba(0, 0, 0, 0.2))
+            width(300.px)
+        }
+    }) {
+        Div { Text(user.displayName) }
     }
 }
 
