@@ -2,7 +2,7 @@ FROM openjdk:13-alpine
 
 COPY . /build-project
 WORKDIR /build-project
-RUN ./gradlew :server:installShadowDist :client-web:jsBrowserProductionWebpack --console=plain --no-daemon
+RUN ./gradlew :anystream-server:installShadowDist :anystream-client-web:jsBrowserProductionWebpack --console=plain --no-daemon
 
 FROM openjdk:13-alpine
 RUN apk add --update \
@@ -10,6 +10,6 @@ RUN apk add --update \
     ffmpeg \
   && rm -rf /var/cache/apk/*
 WORKDIR /app
-COPY --from=0 /build-project/server/build/install ./install
-COPY --from=0 /build-project/client-web/build/distributions ./client-web
-ENTRYPOINT ["./install/server-shadow/bin/server"]
+COPY --from=0 /build-project/anystream-server/build/install ./install
+COPY --from=0 /build-project/anystream-client-web/build/distributions ./client-web
+ENTRYPOINT ["./install/anystream-server-shadow/bin/anystream-server"]

@@ -4,6 +4,6 @@ RUN apk add --update \
     ffmpeg \
   && rm -rf /var/cache/apk/*
 WORKDIR /app
-COPY server/build/install ./install
-COPY client-web/build/distributions ./client-web
-ENTRYPOINT ["./install/server-shadow/bin/server"]
+COPY anystream-server/build/install ./install
+COPY anystream-client-web/build/distributions ./client-web
+ENTRYPOINT ["./install/anystream-server-shadow/bin/anystream-server"]

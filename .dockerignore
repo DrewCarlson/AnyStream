@@ -2,6 +2,5 @@
 .idea
 **/build/**
 /qbittorrent/
-!/server/build/install/
-!/client-web/build/distributions/
-!/client-web-old/build/distributions/
+!/anystream-server/build/install/
+!/anystream-client-web/build/distributions/
