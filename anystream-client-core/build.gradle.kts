@@ -44,8 +44,8 @@ kotlin {
         }
         val commonMain by getting {
             dependencies {
-                api(projects.dataModels)
-                api(projects.apiClient)
+                api(projects.anystreamDataModels)
+                api(projects.anystreamClientApi)
                 api(libs.coroutines.core)
                 api(libs.mobiuskt.core)
                 api(libs.mobiuskt.extras)

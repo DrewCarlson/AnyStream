@@ -40,11 +40,13 @@ android {
         "-Xopt-in=kotlin.time.ExperimentalTime",
         "-Xopt-in=kotlin.RequiresOptIn",
         "-Xopt-in=coil.annotation.ExperimentalCoilApi",
+        "-P",
+        "plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=true"
     )
 }
 
 dependencies {
-    implementation(projects.client)
+    implementation(projects.anystreamClientCore)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat.core)
     implementation(libs.androidx.leanback.core)

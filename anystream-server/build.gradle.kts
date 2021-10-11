@@ -21,7 +21,7 @@ kotlin {
             kotlin.srcDir("src/main/kotlin")
             resources.srcDir("src/main/resources")
             dependencies {
-                implementation(projects.dataModels)
+                implementation(projects.anystreamDataModels)
 
                 implementation(libs.serialization.json)
                 implementation(libs.coroutines.core)
@@ -53,8 +53,8 @@ kotlin {
                 implementation(libs.tmdbapi)
 
                 implementation(libs.qbittorrent.client)
-                implementation(projects.torrentSearch)
-                implementation(projects.ktorPermissions)
+                implementation(projects.libs.torrentSearch)
+                implementation(projects.libs.ktorPermissions)
             }
         }
 

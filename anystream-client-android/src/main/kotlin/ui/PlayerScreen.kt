@@ -33,9 +33,12 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.OnLifecycleEvent
 import anystream.client.AnyStreamClient
+import anystream.frontend.models.MediaItem
+import anystream.frontend.models.toMediaItem
 import anystream.models.MediaReference
 import anystream.models.Movie
-import com.google.android.exoplayer2.MediaItem
+import anystream.models.PlaybackState
+import com.google.android.exoplayer2.MediaItem as ExoMediaItem
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.ui.PlayerView
@@ -62,11 +65,11 @@ fun PlayerScreen(
     var autoPlay by rememberSaveable { mutableStateOf(true) }
     var window by rememberSaveable { mutableStateOf(0) }
     var position by rememberSaveable { mutableStateOf(0L) }
-
+    var sessionHandle by remember { mutableStateOf<AnyStreamClient.PlaybackSessionHandle?>(null) }
     val player = remember {
         SimpleExoPlayer.Builder(context).build().apply {
             var updateStateJob: Job? = null
-            addListener(object : Player.EventListener {
+            addListener(object : Player.Listener {
                 override fun onPlaybackStateChanged(state: Int) {
                     updateStateJob?.cancel()
                     updateStateJob = when (state) {
@@ -84,9 +87,41 @@ fun PlayerScreen(
                 }
             })
             playWhenReady = autoPlay
-            setMediaItem(MediaItem.fromUri("https://anystream.dev/api/stream/$mediaRefId/direct"))
+            setMediaItem(ExoMediaItem.fromUri("https://anystream.dev/api/stream/$mediaRefId/direct"))
             prepare()
             seekTo(window, position)
+        }
+    }
+    val mediaItem = produceState<MediaItem?>(null) {
+        value = try {
+            client.lookupMediaByRefId(mediaRefId).let {
+                it.movie?.toMediaItem() ?: it.episode?.toMediaItem()
+            }
+        } catch (e: Throwable) {
+            null
+        }
+    }
+    val playbackState by produceState<PlaybackState?>(null) {
+        var initialState: PlaybackState? = null
+        sessionHandle = client.playbackSession(mediaRefId) { state ->
+            println("[player] $state")
+            value = state
+            if (initialState == null) {
+                initialState = state
+                player.seekTo((state.position * 1000).toLong())
+            }
+        }
+        awaitDispose {
+            sessionHandle?.cancel?.invoke()
+            sessionHandle = null
+        }
+    }
+    LaunchedEffect(playbackState?.id, player) {
+        playbackState?.also { state ->
+            val url = client.createHlsStreamUrl(mediaRefId, state.id)
+            println("[player] $url")
+            player.setMediaItem(ExoMediaItem.fromUri(url))
+            player.play()
         }
     }
 
@@ -124,12 +159,12 @@ fun PlayerScreen(
 
     LaunchedEffect(mediaRefId) {
         val handle = client.playbackSession(mediaRefId) { initialState ->
-            player.seekTo(initialState.position * 1000)
+            player.seekTo((initialState.position * 1000).toLong())
         }
 
         while (true) {
             if (player.playWhenReady && player.playbackState == Player.STATE_READY) {
-                handle.update((player.currentPosition / 1000).coerceAtLeast(0L))
+                handle.update.tryEmit((player.currentPosition / 1000.0).coerceAtLeast(0.0))
             }
             delay(PLAYER_STATE_REMOTE_UPDATE_INTERVAL)
         }

@@ -46,7 +46,7 @@ kotlin {
         }
         named("jsMain") {
             dependencies {
-                implementation(projects.client)
+                implementation(projects.anystreamClientCore)
                 implementation(libs.coroutines.core)
                 implementation(libs.ktor.client.js)
 

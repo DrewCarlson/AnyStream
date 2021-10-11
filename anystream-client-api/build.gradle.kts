@@ -25,7 +25,7 @@ kotlin {
         val commonMain by getting {
             kotlin.srcDirs("src")
             dependencies {
-                implementation(projects.dataModels)
+                implementation(projects.anystreamDataModels)
                 implementation(libs.coroutines.core)
                 implementation(libs.serialization.core)
                 implementation(libs.serialization.json)
@@ -46,7 +46,6 @@ kotlin {
 
         val jvmMain by getting {
             dependencies {
-                implementation(project(":data-models"))
                 implementation(libs.ktor.client.okhttp)
             }
         }
@@ -61,7 +60,6 @@ kotlin {
 
         val jsMain by getting {
             dependencies {
-                implementation(project(":data-models"))
                 implementation(libs.ktor.client.js)
             }
         }

@@ -182,7 +182,7 @@ private fun WatchingCard(
             }
 
             LinearProgressIndicator(
-                progress = playbackState.position / (movie.runtime * 60f),
+                progress = (playbackState.position / (movie.runtime * 60f)).toFloat(),
                 modifier = Modifier
                     .fillMaxWidth()
             )

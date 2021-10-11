@@ -24,16 +24,16 @@ A self-hosted streaming service for your media collection.
  
 AnyStream consists of a self-hosted server instance and various client applications that connect to it.
  
-- [server](server) - Web server for managing and streaming media built with [Ktor](https://github.com/ktorio/ktor)
-- [client](client) - Multiplatform infrastructure for AnyStream client applications built with [Mobius.kt](https://github.com/DrewCarlson/mobius.kt)
-- [client-android](client-android) - Android client implementation built with [Jetpack Compose](https://developer.android.com/jetpack/compose)
-- [client-web](client-web) - Web client implementation built with [Jetbrains Compose](https://github.com/JetBrains/compose-jb/)
-- [data-models](data-models) - Data models shared between the server and clients
-- [api-client](api-client) - Multiplatform API client for interacting with the server built with [Ktor-client](https://github.com/ktorio/ktor)
+- [server](anystream-server) - Web server for managing and streaming media built with [Ktor](https://github.com/ktorio/ktor)
+- [data-models](anystream-data-models) - Data models shared between the server and clients
+- [client-core](anystream-client) - Multiplatform infrastructure for AnyStream client applications built with [Mobius.kt](https://github.com/DrewCarlson/mobius.kt)
+- [client-android](anystream-client-android) - Android client implementation built with [Jetpack Compose](https://developer.android.com/jetpack/compose)
+- [client-web](anystream-client-web) - Web client implementation built with [Jetbrains Compose](https://github.com/JetBrains/compose-jb/)
+- [client-api](anystream-client-api) - Multiplatform API client for interacting with the server built with [Ktor-client](https://github.com/ktorio/ktor)
 
 ### Development
 
-*Note: Because of the use of Jetpack Compose, only [Android Studio 2020.3.1 Arctic Fox](https://developer.android.com/studio/preview) is supported!*
+*Note: Because of the use of Jetpack Compose, only [Android Studio 2020.3.1 Arctic Fox](https://developer.android.com/studio/)+ is supported!*
 
 - Install [Intellij IDEA](https://www.jetbrains.com/idea/) (preferred) or [Android Studio](https://developer.android.com/studio/)
 - Clone this repo `git clone https://github.com/DrewCarlson/AnyStream.git`

@@ -1,14 +1,16 @@
 rootProject.name = "anystream"
 
-include(":server")
-include(":api-client")
-include(":data-models")
-include(":client")
-include(":client-web")
-include(":client-android")
-include(":preferences")
-include(":ktor-permissions")
-include(":torrent-search")
+include(
+    ":anystream-client-android",
+    ":anystream-client-api",
+    ":anystream-client-core",
+    ":anystream-client-web",
+    ":anystream-data-models",
+    ":anystream-server",
+    ":libs:preferences",
+    ":libs:ktor-permissions",
+    ":libs:torrent-search",
+)
 
 enableFeaturePreview("VERSION_CATALOGS")
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
@@ -16,13 +18,14 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 pluginManagement {
     repositories {
         gradlePluginPortal()
+        google()
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     }
 }
 
-includeBuild("external/routing-compose") {
+includeBuild("libs/routing-compose") {
     dependencySubstitution {
         substitute(module("app.softwork:routing-compose"))
-            .with(project(":"))
+            .using(project(":"))
     }
 }
