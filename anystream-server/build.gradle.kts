@@ -62,6 +62,8 @@ kotlin {
             kotlin.srcDir("src/test/kotlin")
             dependencies {
                 implementation(libs.ktor.server.tests)
+                implementation(kotlin("test"))
+                implementation(kotlin("test-junit"))
             }
         }
     }

@@ -24,6 +24,7 @@ import anystream.models.api.*
 import anystream.models.api.CreateSessionError.*
 import anystream.models.api.CreateUserError.PasswordError
 import anystream.models.api.CreateUserError.UsernameError
+import anystream.util.UserAuthenticator
 import anystream.util.logger
 import anystream.util.withAnyPermission
 import com.mongodb.MongoQueryException
@@ -44,7 +45,6 @@ import io.ktor.sessions.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.delay
 import kotlinx.serialization.encodeToString
-import org.bouncycastle.crypto.generators.BCrypt
 import org.bouncycastle.util.encoders.Hex
 import org.bson.types.ObjectId
 import org.litote.kmongo.coroutine.*
@@ -54,8 +54,6 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.random.Random
 import kotlin.time.Duration
 
-private const val SALT_BYTES = 128 / 8
-private const val BCRYPT_COST = 10
 private const val PAIRING_SESSION_SECONDS = 60
 
 private val pairingCodes = ConcurrentHashMap<String, PairingMessage>()
@@ -117,14 +115,11 @@ fun Route.addUserRoutes(mongodb: CoroutineDatabase) {
                 displayName = body.username
             )
 
-            val salt = Random.nextBytes(SALT_BYTES)
-            val passwordBytes = body.password.toByteArray()
-            val hashedPassword = BCrypt.generate(passwordBytes, salt, BCRYPT_COST)
-
+            val (hashedPassword, salt) = UserAuthenticator.hashPassword(body.password)
             val credentials = UserCredentials(
                 id = user.id,
-                password = hashedPassword.toUtf8Hex(),
-                salt = salt.toUtf8Hex(),
+                password = hashedPassword,
+                salt = salt,
                 permissions = permissions
             )
             try {
@@ -236,12 +231,7 @@ fun Route.addUserRoutes(mongodb: CoroutineDatabase) {
                     val auth = credentialsDb.findOne(UserCredentials::id eq user.id)
                         ?: return@post call.respond(InternalServerError)
 
-                    val saltBytes = auth.salt.utf8HexToBytes()
-                    val passwordBytes = body.password.toByteArray()
-                    val hashedPassword =
-                        BCrypt.generate(passwordBytes, saltBytes, BCRYPT_COST).toUtf8Hex()
-
-                    if (hashedPassword == auth.password) {
+                    if (UserAuthenticator.verifyPassword(body.password, auth.password)) {
                         call.sessions.set(UserSession(user.id, auth.permissions))
                         call.respond(CreateSessionResponse.success(user, auth.permissions))
                     } else {
@@ -362,9 +352,6 @@ fun Route.addUserWsRoutes(
         close()
     }
 }
-
-private fun String.utf8HexToBytes(): ByteArray =
-    toByteArray().run(Hex::decode)
 
 private fun ByteArray.toUtf8Hex(): String =
     run(Hex::encode).toString(Charsets.UTF_8)
