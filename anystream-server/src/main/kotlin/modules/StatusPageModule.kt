@@ -29,7 +29,7 @@ import io.ktor.response.respondText
 @Suppress("unused") // Referenced in application.conf
 fun Application.module() {
     install(StatusPages) {
-        if (environment.config.property("development").getString().toBoolean()) {
+        if (environment.config.property("ktor.deployment.development").getString().toBoolean()) {
             exception<Throwable> { error ->
                 call.respondText(
                     status = HttpStatusCode.InternalServerError,

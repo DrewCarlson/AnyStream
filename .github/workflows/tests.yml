@@ -1,0 +1,58 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  gradle:
+    strategy:
+      matrix:
+        os: [macos-latest] #windows-latest, ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v1
+        with:
+          submodules: 'recursive'
+      - uses: actions/setup-java@v1
+        with:
+          java-version: 11
+      - name: Cache Build files
+        uses: actions/cache@v2
+        if: ${{ !startsWith(matrix.os, 'windows') }}
+        with:
+          path: |
+            ~/.konan
+            ~/.gradle
+          key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}
+      - name: Start MongoDB
+        uses: supercharge/mongodb-github-action@1.6.0
+        with:
+          mongodb-version: 4.4
+      - uses: eskatos/gradle-command-action@v1
+        name: All Tests
+        if: ${{ startsWith(matrix.os, 'macos') }}
+        with:
+          arguments: allTest
+      - uses: reactivecircus/android-emulator-runner@v2
+        name: Test Android Targets
+        if: ${{ startsWith(matrix.os, 'macos') }}
+        with:
+          api-level: 30
+          target: google_apis
+          arch: x86_64
+          profile: Nexus 6
+          script: ./gradlew connectedCheck
+      - name: Archive Reports
+        uses: actions/upload-artifact@v2
+        if: ${{ always() }}
+        with:
+          name: reports
+          path: library/build/reports/
+      - name: Publish Unit Test Results
+        uses: mikepenz/action-junit-report@v2
+        if: always()
+        with:
+          report_paths: '**/TEST-*.xml'

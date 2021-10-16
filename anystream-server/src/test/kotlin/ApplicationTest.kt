@@ -17,19 +17,25 @@
  */
 package anystream
 
+import com.typesafe.config.ConfigFactory
+import io.ktor.config.*
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.handleRequest
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.testing.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class ApplicationTest {
+    private val testEnv = createTestEnvironment {
+        config = HoconApplicationConfig(ConfigFactory.load("application.conf"))
+    }
+
     @Test
-    fun testRoot() {
-        withTestApplication({ module(testing = true) }) {
-            handleRequest(HttpMethod.Get, "/").apply {
-                assertEquals(HttpStatusCode.OK, response.status())
+    fun testApiRootRedirectsToFrontEnd() {
+        withApplication(testEnv) {
+            handleRequest(HttpMethod.Get, "/api").apply {
+                assertEquals(HttpStatusCode.Found, response.status())
+                assertEquals("/", response.headers["location"])
             }
         }
     }

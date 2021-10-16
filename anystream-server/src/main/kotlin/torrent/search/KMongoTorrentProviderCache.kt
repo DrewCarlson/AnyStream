@@ -68,7 +68,11 @@ class KMongoTorrentProviderCache(
 
     override fun saveToken(provider: TorrentProvider, token: String) {
         runBlocking {
-            tokenCollection.updateOneById(provider.name, token, UpdateOptions().upsert(true))
+            tokenCollection.updateOneById(
+                provider.name,
+                Token(token),
+                UpdateOptions().upsert(true)
+            )
         }
     }
 
