@@ -24,6 +24,7 @@ import anystream.models.*
 import anystream.models.api.MediaLookupResponse
 import anystream.models.api.PlaybackSessionsResponse
 import anystream.stream.StreamManager
+import anystream.util.extractUserSession
 import anystream.util.withPermission
 import com.github.kokorin.jaffree.ffmpeg.*
 import com.mongodb.MongoException
@@ -99,32 +100,34 @@ fun Route.addStreamRoutes(
         }
 
         route("/{mediaRefId}") {
-            route("/state") {
-                get {
-                    val session = call.principal<UserSession>()!!
-                    val mediaRefId = call.parameters["mediaRefId"]!!
-                    val state = playbackStateDb.findOne(
-                        PlaybackState::userId eq session.userId,
-                        PlaybackState::mediaReferenceId eq mediaRefId
-                    )
-                    call.respond(state ?: NotFound)
-                }
-                put {
-                    val session = call.principal<UserSession>()!!
-                    val mediaRefId = call.parameters["mediaRefId"]!!
-                    val state = call.receiveOrNull<PlaybackState>()
-                        ?: return@put call.respond(UnprocessableEntity)
+            authenticate {
+                route("/state") {
+                    get {
+                        val session = call.principal<UserSession>()!!
+                        val mediaRefId = call.parameters["mediaRefId"]!!
+                        val state = playbackStateDb.findOne(
+                            PlaybackState::userId eq session.userId,
+                            PlaybackState::mediaReferenceId eq mediaRefId
+                        )
+                        call.respond(state ?: NotFound)
+                    }
+                    put {
+                        val session = call.principal<UserSession>()!!
+                        val mediaRefId = call.parameters["mediaRefId"]!!
+                        val state = call.receiveOrNull<PlaybackState>()
+                            ?: return@put call.respond(UnprocessableEntity)
 
-                    playbackStateDb.deleteOne(
-                        PlaybackState::userId eq session.userId,
-                        PlaybackState::mediaReferenceId eq mediaRefId
-                    )
-                    playbackStateDb.insertOne(state)
-                    call.respond(OK)
+                        playbackStateDb.deleteOne(
+                            PlaybackState::userId eq session.userId,
+                            PlaybackState::mediaReferenceId eq mediaRefId
+                        )
+                        playbackStateDb.insertOne(state)
+                        call.respond(OK)
+                    }
                 }
             }
 
-            val videoFileCache = ConcurrentHashMap<String, File>()
+            /*val videoFileCache = ConcurrentHashMap<String, File>()
             get("/direct") {
                 val mediaRefId = call.parameters["mediaRefId"]!!
                 val file = if (videoFileCache.containsKey(mediaRefId)) {
@@ -153,7 +156,7 @@ fun Route.addStreamRoutes(
                     videoFileCache.putIfAbsent(mediaRefId, outfile)
                     call.respond(LocalFileContent(outfile))
                 }
-            }
+            }*/
 
             route("/hls") {
                 get("/playlist.m3u8") {
@@ -229,7 +232,8 @@ fun Route.addStreamWsRoutes(
     val transcodePath = application.environment.config.property("app.transcodePath").getString()
 
     webSocket("/ws/stream/{mediaRefId}/state") {
-        val userId = (incoming.receive() as Frame.Text).readText()
+        val userSession = checkNotNull(extractUserSession())
+        val userId = userSession.userId
         val mediaRefId = call.parameters["mediaRefId"]!!
         val mediaRef = mediaRefs.findOneById(mediaRefId)!!
         val file = when (mediaRef) {

@@ -17,6 +17,8 @@
  */
 package anystream.util
 
+import anystream.data.UserSession
+import anystream.json
 import com.mongodb.MongoQueryException
 import com.mongodb.client.model.UpdateOptions
 import io.ktor.sessions.*
@@ -24,6 +26,8 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import org.litote.kmongo.coroutine.CoroutineDatabase
 import org.litote.kmongo.eq
 import org.slf4j.Logger
@@ -48,6 +52,16 @@ class MongoSessionStorage(
     private val sessions = ConcurrentHashMap<String, ByteArray>()
     private val sessionCollection = mongodb.getCollection<SessionData>()
     private val updateOptions = UpdateOptions().upsert(true)
+
+    object Serializer : SessionSerializer<UserSession> {
+        override fun serialize(session: UserSession): String {
+            return json.encodeToString(session)
+        }
+
+        override fun deserialize(text: String): UserSession {
+            return json.decodeFromString(text)
+        }
+    }
 
     override suspend fun write(id: String, data: ByteArray?) {
         if (data == null) {
@@ -74,6 +88,10 @@ class MongoSessionStorage(
         return (sessions[id] ?: sessionCollection.findOne(SessionData::id eq id)?.data).also {
             logger.debug(marker, "Found session $id")
         }
+    }
+
+    suspend fun readSession(id: String): UserSession? {
+        return read(id)?.decodeToString()?.run(Serializer::deserialize)
     }
 }
 

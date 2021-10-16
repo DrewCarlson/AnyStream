@@ -132,6 +132,7 @@ class AnyStreamClient(
         }
         client.onError { close(it) }
         client.onClose { close() }
+        client.send(sessionManager.fetchToken()!!)
         awaitClose { client.close() }
     }
 
@@ -144,6 +145,7 @@ class AnyStreamClient(
         }
         client.onError { close(it) }
         client.onClose { close() }
+        client.send(sessionManager.fetchToken()!!)
         awaitClose { client.close() }
     }
 
@@ -268,7 +270,6 @@ class AnyStreamClient(
         )
         var open = false
         val client = wsClient("/api/ws/stream/$mediaRefId/state")
-        client.send(sessionManager.fetchUser()!!.id)
         client.onStringMessage { msg ->
             currentState.value = json.decodeFromString(msg)
             init(currentState.value!!)
@@ -276,6 +277,7 @@ class AnyStreamClient(
         }
         client.onError { open = false }
         client.onClose { open = false }
+        client.send(sessionManager.fetchToken()!!)
         progressFlow
             .sample(5000)
             .distinctUntilChanged()
@@ -416,6 +418,7 @@ class AnyStreamClient(
         client.onStringMessage { msg -> trySend(msg) }
         client.onError { close(it) }
         client.onClose { close() }
+        client.send(sessionManager.fetchToken()!!)
         awaitClose { client.close() }
     }
 

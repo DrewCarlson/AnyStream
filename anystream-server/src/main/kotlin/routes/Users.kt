@@ -25,6 +25,7 @@ import anystream.models.api.CreateSessionError.*
 import anystream.models.api.CreateUserError.PasswordError
 import anystream.models.api.CreateUserError.UsernameError
 import anystream.util.UserAuthenticator
+import anystream.util.extractUserSession
 import anystream.util.logger
 import anystream.util.withAnyPermission
 import com.mongodb.MongoQueryException
@@ -296,11 +297,27 @@ fun Route.addUserRoutes(mongodb: CoroutineDatabase) {
                     if (userId == session.userId) {
                         val user = users.findOneById(userId)
                             ?: return@put call.respond(NotFound)
+                        val credentials = credentialsDb.findOneById(userId)
+                            ?: return@put call.respond(NotFound)
                         val updatedUser = user.copy(
                             displayName = body.displayName
                         )
                         users.updateOneById(userId, updatedUser)
-                        // TODO: Update password
+
+                        val currentPassword = body.currentPassword
+                        val newPassword = body.password
+                        if (!newPassword.isNullOrBlank() && !currentPassword.isNullOrBlank()) {
+                            if (UserAuthenticator.verifyPassword(currentPassword, credentials.password)) {
+                                val (newHashedPassword, salt) = UserAuthenticator.hashPassword(newPassword)
+                                val newCredentials = credentials.copy(
+                                    salt = salt,
+                                    password = newHashedPassword,
+                                )
+                                credentialsDb.replaceOne(newCredentials)
+                            } else {
+                                return@put call.respond(Unauthorized)
+                            }
+                        }
                         call.respond(OK)
                     } else {
                         call.respond(InternalServerError)

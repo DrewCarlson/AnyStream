@@ -56,8 +56,9 @@ kotlin {
                 implementation("app.softwork:routing-compose")
 
                 implementation(libs.kotlinjs.extensions)
-                implementation(devNpm("bootstrap", "5.1.0"))
+                implementation(devNpm("bootstrap", "5.1.3"))
                 implementation(devNpm("bootstrap-icons", "1.5.0"))
+                implementation(devNpm("@popperjs/core", "2.10.2"))
                 implementation(devNpm("video.js", "7.14.3"))
                 implementation(devNpm("webworkify-webpack-dropin", "1.1.9"))
                 implementation(devNpm("file-loader", "6.2.0"))

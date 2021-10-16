@@ -29,13 +29,14 @@ import io.ktor.response.respondText
 @Suppress("unused") // Referenced in application.conf
 fun Application.module() {
     install(StatusPages) {
-        // TODO: Enable only in development mode
-        exception<Throwable> { error ->
-            call.respondText(
-                status = HttpStatusCode.InternalServerError,
-                contentType = ContentType.Text.Plain,
-                text = error.stackTraceToString()
-            )
+        if (environment.config.property("development").getString().toBoolean()) {
+            exception<Throwable> { error ->
+                call.respondText(
+                    status = HttpStatusCode.InternalServerError,
+                    contentType = ContentType.Text.Plain,
+                    text = error.stackTraceToString()
+                )
+            }
         }
     }
 }

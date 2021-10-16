@@ -17,6 +17,7 @@
  */
 package anystream.routes
 
+import anystream.util.extractUserSession
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.LoggerContext
 import ch.qos.logback.classic.spi.ILoggingEvent
@@ -36,6 +37,7 @@ fun Route.addAdminRoutes() {
 
 fun Route.addAdminWsRoutes() {
     webSocket("/ws/admin/logs") {
+        checkNotNull(extractUserSession())
         val context = LoggerFactory.getILoggerFactory() as LoggerContext
         val appender = createAppender { message ->
             if (isActive) outgoing.trySend(Frame.Text(message))

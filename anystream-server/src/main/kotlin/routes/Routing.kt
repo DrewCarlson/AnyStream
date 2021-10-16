@@ -103,7 +103,6 @@ fun Application.installRouting(mongodb: CoroutineDatabase) {
                 }
             }
 
-            // TODO: WS endpoint Authentication and permissions
             addStreamRoutes(streamManager, queries, mongodb, ffmpeg)
             addStreamWsRoutes(streamManager, mongodb)
             addTorrentWsRoutes(qbClient)

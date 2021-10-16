@@ -101,7 +101,7 @@ private fun ImportMediaArea(
             CheckboxInput(importAll.value) {
                 id("import-all-check")
                 classes("form-check-input")
-                onChange { event ->
+                onInput { event ->
                     importAll.value = event.value
                 }
             }

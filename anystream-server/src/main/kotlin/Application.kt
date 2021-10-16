@@ -18,9 +18,9 @@
 package anystream
 
 import anystream.data.UserSession
+import anystream.models.Permissions
 import anystream.routes.installRouting
-import anystream.util.MongoSessionStorage
-import anystream.util.PermissionAuthorization
+import anystream.util.*
 import com.mongodb.ConnectionString
 import io.ktor.application.*
 import io.ktor.auth.*
@@ -29,14 +29,20 @@ import io.ktor.http.*
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.http.cio.websocket.*
 import io.ktor.http.content.CachingOptions
+import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.serialization.*
 import io.ktor.sessions.*
+import io.ktor.util.*
 import io.ktor.util.date.GMTDate
+import io.ktor.util.pipeline.*
 import io.ktor.websocket.*
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.bouncycastle.util.encoders.Hex
 import org.litote.kmongo.coroutine.coroutine
+import org.litote.kmongo.eq
 import org.litote.kmongo.reactivestreams.KMongo
 import org.slf4j.event.Level
 import java.time.Duration
@@ -62,6 +68,7 @@ fun Application.module(testing: Boolean = false) {
 
     val kmongo = KMongo.createClient(ConnectionString(mongoUrl))
     val mongodb = kmongo.getDatabase(databaseName).coroutine
+    val sessionStorage = MongoSessionStorage(mongodb, log)
 
     install(DefaultHeaders) {}
     install(ContentNegotiation) { json(json) }
@@ -118,9 +125,13 @@ fun Application.module(testing: Boolean = false) {
         }
     }
     install(Sessions) {
-        header<UserSession>(UserSession.KEY, MongoSessionStorage(mongodb, log)) {
+        header<UserSession>(UserSession.KEY, sessionStorage) {
             identity { Hex.toHexString(Random.nextBytes(48)) }
+            serializer = MongoSessionStorage.Serializer
         }
+    }
+    install(WebsocketAuthorization) {
+        extractUserSession(sessionStorage::readSession)
     }
     install(PermissionAuthorization) {
         extract { (it as UserSession).permissions }

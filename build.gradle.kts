@@ -37,7 +37,6 @@ tasks.create("shutdownSimulator") {
 
 subprojects {
     afterEvaluate {
-        tasks.findByName("allTests")?.dependsOn(rootIosTestTask)
         val kotlin = extensions.findByType<org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension>()
 
         // Silence release sourceset warning for every module that targets Android
@@ -45,6 +44,8 @@ subprojects {
 
         // Setup alternative test iOS test configurations
         kotlin?.targets
+            ?.takeIf { org.gradle.internal.os.OperatingSystem.current().isMacOsX }
+            ?.also { tasks.findByName("allTests")?.dependsOn(rootIosTestTask) }
             ?.withType<org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget>()
             ?.filter { it.name == "iosX64" && it.publishable }
             ?.forEach { target ->

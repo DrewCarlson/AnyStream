@@ -23,6 +23,7 @@ import anystream.models.DownloadMediaReference
 import anystream.models.MediaReference
 import anystream.models.MediaKind
 import anystream.torrent.search.TorrentDescription2
+import anystream.util.extractUserSession
 import drewcarlson.qbittorrent.QBittorrentClient
 import drewcarlson.qbittorrent.models.Torrent
 import drewcarlson.qbittorrent.models.TorrentFile
@@ -168,6 +169,7 @@ fun Route.addTorrentRoutes(qbClient: QBittorrentClient, mongodb: CoroutineDataba
 
 fun Route.addTorrentWsRoutes(qbClient: QBittorrentClient) {
     webSocket("/ws/torrents/observe") {
+        checkNotNull(extractUserSession())
         qbClient.syncMainData()
             .takeWhile { !outgoing.isClosedForSend }
             .collect { data ->
@@ -182,6 +184,7 @@ fun Route.addTorrentWsRoutes(qbClient: QBittorrentClient) {
             }
     }
     webSocket("/ws/torrents/global") {
+        checkNotNull(extractUserSession())
         qbClient.syncMainData()
             .takeWhile { !outgoing.isClosedForSend }
             .collect { data ->
