@@ -29,7 +29,7 @@ import org.w3c.dom.get
 import kotlin.random.Random
 
 private const val ITEM_BUFFER_COUNT = 1
-private const val MAX_CACHED_ITEMS = 15
+private const val MAX_CACHED_ITEMS = 80
 
 private data class CompositionStateHolder<T>(
     val composition: Composition,
