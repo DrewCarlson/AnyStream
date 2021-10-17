@@ -1,6 +1,7 @@
 AnyStream
 ===
 
+![](https://github.com/DrewCarlson/AnyStream/workflows/Tests/badge.svg)
 ![License](https://img.shields.io/github/license/drewcarlson/anystream)
 ![](https://img.shields.io/static/v1?label=status&message=wip&color=red)
 
@@ -26,7 +27,7 @@ AnyStream consists of a self-hosted server instance and various client applicati
  
 - [server](anystream-server) - Web server for managing and streaming media built with [Ktor](https://github.com/ktorio/ktor)
 - [data-models](anystream-data-models) - Data models shared between the server and clients
-- [client-core](anystream-client) - Multiplatform infrastructure for AnyStream client applications built with [Mobius.kt](https://github.com/DrewCarlson/mobius.kt)
+- [client-core](anystream-client-core) - Multiplatform infrastructure for AnyStream client applications built with [Mobius.kt](https://github.com/DrewCarlson/mobius.kt)
 - [client-android](anystream-client-android) - Android client implementation built with [Jetpack Compose](https://developer.android.com/jetpack/compose)
 - [client-web](anystream-client-web) - Web client implementation built with [Jetbrains Compose](https://github.com/JetBrains/compose-jb/)
 - [client-api](anystream-client-api) - Multiplatform API client for interacting with the server built with [Ktor-client](https://github.com/ktorio/ktor)
