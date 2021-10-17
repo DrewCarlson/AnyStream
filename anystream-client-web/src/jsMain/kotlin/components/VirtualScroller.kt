@@ -93,8 +93,9 @@ fun <T> VirtualScroller(
         id(containerId)
         classes("h-100", "w-100")
         style {
-            overflow("scroll")
             position(Position.Relative)
+            overflowY("scroll")
+            overflowX("none")
         }
         onScroll { event ->
             val newOffset = (event.target as HTMLDivElement).run {
@@ -222,7 +223,7 @@ private fun <T> createHolder(
                 top(itemTop.value.px)
                 left(itemLeft.value.px)
                 position(Position.Absolute)
-
+                attr("will-change", "left, top")
                 // Hide cached item
                 if (itemState.value == null) {
                     opacity(0)
