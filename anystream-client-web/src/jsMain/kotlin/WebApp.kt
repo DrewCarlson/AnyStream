@@ -20,9 +20,7 @@ package anystream.frontend
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
 import anystream.client.SessionManager
-import anystream.frontend.components.SearchResultsList
 import anystream.frontend.screens.*
-import anystream.models.api.SearchResponse
 import app.softwork.routingcompose.BrowserRouter
 import kotlinx.browser.window
 import kotlinx.coroutines.flow.*
@@ -34,10 +32,12 @@ import org.w3c.dom.HashChangeEvent
 private val urlHashFlow = MutableStateFlow(window.location.hash)
 
 fun webApp() = renderComposable(rootElementId = "root") {
-    val client = AnyStreamClient(
-        serverUrl = window.location.run { "$protocol//$host" },
-        sessionManager = SessionManager(JsSessionDataStore)
-    )
+    val client = remember {
+        AnyStreamClient(
+            serverUrl = window.location.run { "$protocol//$host" },
+            sessionManager = SessionManager(JsSessionDataStore)
+        )
+    }
     Div(
         attrs = {
             id("main-panel")
@@ -54,14 +54,10 @@ fun webApp() = renderComposable(rootElementId = "root") {
                 true
             }
             window.onhashchange = listener
-            onDispose { window.onhashchange = null }
+            onDispose {
+                window.onhashchange = null
+            }
         }
-        val queryState by searchQuery
-            .debounce(500)
-            .collectAsState(null)
-        val isDisplayingSearch = searchQuery
-            .map { it != null }
-            .collectAsState(queryState != null)
         val hashValue by urlHashFlow
             .map { hash ->
                 if (hash.contains("close")) {
@@ -95,22 +91,6 @@ fun webApp() = renderComposable(rootElementId = "root") {
 
         hashValue?.run {
             PlayerScreen(client, this)
-        }
-
-        val searchResponse by produceState<SearchResponse?>(null, queryState) {
-            value = queryState?.let { query ->
-                try {
-                    client.search(query)
-                } catch (e: Throwable) {
-                    null
-                }
-            }
-        }
-
-        if (isDisplayingSearch.value) {
-            searchResponse?.also { response ->
-                SearchResultsList(response)
-            }
         }
     }
 }

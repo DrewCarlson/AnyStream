@@ -28,7 +28,7 @@ typealias PasswordString = String
 typealias SaltString = String
 
 object UserAuthenticator {
-    private const val SALT_BYTES = 128 / 8
+    private const val SALT_BYTES = 16
     private const val BCRYPT_COST = 10
 
     fun hashPassword(password: String): Pair<PasswordString, SaltString> {
@@ -37,13 +37,10 @@ object UserAuthenticator {
         }
         val salt = Random.nextBytes(SALT_BYTES)
         val hashedBytes = OpenBSDBCrypt.generate(password.encodeToByteArray(), salt, BCRYPT_COST)
-        return hashedBytes to salt.toUtf8Hex()
+        return hashedBytes to Hex.encode(salt).decodeToString()
     }
 
     fun verifyPassword(checkPassword: String, hashedPassword: String): Boolean {
         return OpenBSDBCrypt.checkPassword(hashedPassword, checkPassword.toCharArray())
     }
 }
-
-private fun ByteArray.toUtf8Hex(): String =
-    run(Hex::encode).toString(Charsets.UTF_8)

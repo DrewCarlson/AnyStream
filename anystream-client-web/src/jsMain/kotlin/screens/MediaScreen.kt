@@ -19,6 +19,8 @@ package anystream.frontend.screens
 
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
+import anystream.frontend.GlobalClickHandler
+import anystream.frontend.PopperElement
 import anystream.frontend.components.*
 import anystream.frontend.models.MediaItem
 import anystream.frontend.models.toMediaItem
@@ -29,6 +31,7 @@ import kotlinx.browser.window
 import kotlinx.coroutines.flow.*
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
+import org.w3c.dom.HTMLElement
 import kotlin.time.Duration
 
 val backdropImageUrl = MutableStateFlow<String?>(null)
@@ -76,7 +79,8 @@ fun MediaScreen(
             BaseDetailsView(
                 mediaItem = response.toMediaItem().also { mediaItem ->
                     // TODO: Support tv show backdrops, requests extra images api call on media import
-                    backdropImageUrl.value = "https://image.tmdb.org/t/p/w1280/${mediaItem.backdropPath}"
+                    backdropImageUrl.value =
+                        "https://image.tmdb.org/t/p/w1280/${mediaItem.backdropPath}"
                 },
                 refreshMetadata = refreshMetadata,
                 client = client,
@@ -261,27 +265,40 @@ private fun BaseDetailsView(
                     flexDirection(FlexDirection.Column)
                 }
             }) {
-                videoStreams.take(1).forEach { details ->
-                    EncodingDetailsItem(
-                        title = { Text("Video") },
-                        value = { Text("${details.width}x${details.height} (${details.codecName})") },
-                    )
-                }
+                val selectedVideoStream = remember { mutableStateOf(videoStreams.firstOrNull()) }
+                val selectedAudioStream = remember { mutableStateOf(audioStreams.firstOrNull()) }
+                val selectedSubsStream = remember { mutableStateOf(subtitlesStreams.firstOrNull()) }
 
-                audioStreams.take(1).forEach { details ->
-                    EncodingDetailsItem(
-                        title = { Text("Audio") },
-                        // TODO: Display language when possible
-                        value = { Text("Unknown (${details.codecName})") },
-                    )
-                }
+                @Suppress("UNCHECKED_CAST")
+                EncodingDetailsItem(
+                    selectedItem = selectedVideoStream as MutableState<StreamEncodingDetails?>,
+                    title = { Text("Video") },
+                    value = { stream ->
+                        check(stream is StreamEncodingDetails.Video)
+                        Text("${stream.width}x${stream.height} (${stream.codecName})")
+                    },
+                    items = videoStreams,
+                )
 
-                subtitlesStreams.take(1).forEach { details ->
-                    EncodingDetailsItem(
-                        title = { Text("Subtitles") },
-                        value = { Text(details.codecName) },
-                    )
-                }
+                @Suppress("UNCHECKED_CAST")
+                EncodingDetailsItem(
+                    selectedItem = selectedAudioStream as MutableState<StreamEncodingDetails?>,
+                    title = { Text("Audio") },
+                    value = { stream ->
+                        Text("${stream.languageName} (${stream.codecName})")
+                    },
+                    items = audioStreams,
+                )
+
+                @Suppress("UNCHECKED_CAST")
+                EncodingDetailsItem(
+                    selectedItem = selectedSubsStream as MutableState<StreamEncodingDetails?>,
+                    title = { Text("Subtitles") },
+                    value = { stream ->
+                        Text("${stream.languageName} (${stream.codecName})")
+                    },
+                    items = subtitlesStreams,
+                )
             }
         }
     }
@@ -289,18 +306,110 @@ private fun BaseDetailsView(
 
 @Composable
 private fun EncodingDetailsItem(
-    title: @Composable () -> Unit,
-    value: @Composable () -> Unit,
+    selectedItem: MutableState<StreamEncodingDetails?>,
+    title: @Composable (stream: StreamEncodingDetails) -> Unit,
+    value: @Composable (stream: StreamEncodingDetails) -> Unit,
+    items: List<StreamEncodingDetails>,
 ) {
+    var isListVisible by remember { mutableStateOf(false) }
+    val element = remember { mutableStateOf<HTMLElement?>(null) }
+    var globalClickHandler by remember { mutableStateOf<GlobalClickHandler?>(null) }
     Div({
+        classes("py-1")
         style {
             display(DisplayStyle.Flex)
             flexDirection(FlexDirection.Row)
-            gap(15.px)
+            alignItems(AlignItems.Center)
         }
     }) {
-        Div { H5 { title() } }
-        Div { value() }
+        val item = selectedItem.value
+        if (item != null) {
+            Div({
+                classes("pe-2")
+                style {
+                    fontSize(20.px)
+                }
+            }) { title(item) }
+            Div({
+                onClick { event ->
+                    event.stopImmediatePropagation()
+                    isListVisible = !isListVisible
+                    if (isListVisible) globalClickHandler?.attachListener()
+                }
+                style {
+                    if (items.size > 1) {
+                        cursor("pointer")
+                    }
+                    display(DisplayStyle.Flex)
+                    flexDirection(FlexDirection.Row)
+                    alignItems(AlignItems.Center)
+                }
+            }) {
+                DomSideEffect {
+                    element.value = it
+                    onDispose { element.value = null }
+                }
+                Span { value(item) }
+                if (items.size > 1) {
+                    I({
+                        val menuIconDirection = if (isListVisible) "up" else "down"
+                        classes("px-1", "bi", "bi-caret-$menuIconDirection-fill")
+                        style {
+                            fontSize(10.px)
+                        }
+                    })
+                }
+            }
+        }
+
+        if (items.size > 1) {
+            PopperElement(
+                element,
+                attrs = {
+                    style {
+                        property("z-index", if (isListVisible) 100 else -100)
+                        if (!isListVisible) {
+                            opacity(0)
+                            property("pointer-events", "none")
+                        }
+                    }
+                }
+            ) {
+                Div({
+                    classes("p-2", "rounded")
+                    style {
+                        display(DisplayStyle.Flex)
+                        flexDirection(FlexDirection.Column)
+                        gap(8.px)
+                        backgroundColor(rgb(35, 36, 38))
+                    }
+                }) {
+                    DomSideEffect { el ->
+                        globalClickHandler = GlobalClickHandler(el) { remove ->
+                            isListVisible = false
+                            remove()
+                        }
+                        onDispose {
+                            globalClickHandler?.dispose()
+                            globalClickHandler = null
+                        }
+                    }
+                    (items - selectedItem.value).forEach { stream ->
+                        Div({
+                            onClick {
+                                selectedItem.value = stream
+                                isListVisible = false
+                            }
+                            style {
+                                cursor("pointer")
+                            }
+                        }) {
+                            value(stream!!)
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

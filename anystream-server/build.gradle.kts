@@ -12,9 +12,25 @@ application {
     mainClass.set("io.ktor.server.netty.EngineMain")
 }
 
+val testGenSrcPath = "build/generated-kotlin"
+
 kotlin {
     jvm {
         withJava()
+        compilations.getByName("test") {
+            compileKotlinTask.doFirst {
+                file(testGenSrcPath).also { if (!it.exists()) it.mkdirs() }
+                val configFile = file("$testGenSrcPath/config.kt")
+                if (!configFile.exists()) {
+                    val resources = file("src/test/resources").absolutePath
+                    configFile.createNewFile()
+                    configFile.writeText(buildString {
+                        appendLine("package anystream.test")
+                        appendLine("const val RESOURCES = \"${resources.replace('\\', '/')}\"")
+                    })
+                }
+            }
+        }
     }
     sourceSets {
         named("jvmMain") {
@@ -59,7 +75,8 @@ kotlin {
         }
 
         named("jvmTest") {
-            kotlin.srcDir("src/test/kotlin")
+            kotlin.srcDirs("src/test/kotlin", testGenSrcPath)
+            resources.srcDir("src/test/resources")
             dependencies {
                 implementation(libs.ktor.server.tests)
                 implementation(kotlin("test"))

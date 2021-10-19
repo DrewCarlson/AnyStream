@@ -19,17 +19,22 @@ package anystream.frontend
 
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
+import anystream.frontend.components.SearchResultsList
+import anystream.frontend.libs.GlobalClickHandler
+import anystream.frontend.libs.PopperElement
 import anystream.models.Permissions
+import anystream.models.api.SearchResponse
 import app.softwork.routingcompose.BrowserRouter
 import kotlinx.browser.localStorage
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.jetbrains.compose.web.attributes.AttrsBuilder
 import org.jetbrains.compose.web.attributes.onSubmit
-import org.jetbrains.compose.web.attributes.value
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 import org.w3c.dom.HTMLElement
@@ -37,7 +42,6 @@ import org.w3c.dom.HTMLInputElement
 
 private const val MENU_EXPANDED_KEY = "menu_expanded"
 val searchQuery = MutableStateFlow<String?>(null)
-val searchWindowPosition = MutableStateFlow(Triple(0, 0, 0))
 
 @Composable
 fun Navbar(client: AnyStreamClient) {
@@ -64,7 +68,7 @@ fun Navbar(client: AnyStreamClient) {
             Div({ classes("collapse", "navbar-collapse") }) {
                 val permissionsState = client.permissions.collectAsState(null)
                 if (isAuthenticated.value) {
-                    SearchBar()
+                    SearchBar(client)
                     SecondaryMenu(client, permissionsState.value ?: emptySet())
                 }
             }
@@ -139,11 +143,28 @@ private fun SecondaryMenu(client: AnyStreamClient, permissions: Set<String>) {
 }
 
 @Composable
-private fun SearchBar() {
+private fun SearchBar(client: AnyStreamClient) {
     var focused by remember { mutableStateOf(false) }
     var elementValue by remember { mutableStateOf<String?>(null) }
+    val formRef = mutableStateOf<HTMLElement?>(null)
     val inputRef = mutableStateOf<HTMLInputElement?>(null)
-    val scope = rememberCoroutineScope()
+    val queryState by searchQuery
+        .debounce(500)
+        .collectAsState(null)
+    val isDisplayingSearch = searchQuery
+        .map { it != null }
+        .collectAsState(queryState != null)
+
+    val searchResponse by produceState<SearchResponse?>(null, queryState) {
+        value = queryState?.let { query ->
+            try {
+                client.search(query)
+            } catch (e: Throwable) {
+                null
+            }
+        }
+    }
+
     Form(null, {
         onSubmit { it.preventDefault() }
         classes("mx-4", "p-1", "rounded-pill")
@@ -157,16 +178,9 @@ private fun SearchBar() {
         }
     }) {
         DomSideEffect { element ->
-            scope.launch {
-                delay(100)// fixme: Delay to ensure correct position is provided
-                val rect = element.getBoundingClientRect()
-                val searchTop = rect.bottom.toInt()
-                val searchLeft = rect.left.toInt()
-                val searchWidth = element.clientWidth
-                searchWindowPosition.value = Triple(searchTop, searchLeft, searchWidth)
-            }
+            formRef.value = element
             onDispose {
-                searchWindowPosition.value = Triple(0, 0, 0)
+                formRef.value = null
             }
         }
         I({
@@ -193,12 +207,6 @@ private fun SearchBar() {
             }
             onFocusOut {
                 focused = false
-
-                scope.launch {
-                    // TODO: Improve search result clear behavior
-                    delay(100)
-                    searchQuery.value = null
-                }
             }
             onInput { event ->
                 searchQuery.value = event.value.takeUnless(String::isNullOrBlank)
@@ -239,6 +247,35 @@ private fun SearchBar() {
                 }
             }
         })
+        if (isDisplayingSearch.value) {
+            searchResponse?.also { response ->
+                var globalClickHandler by remember { mutableStateOf<GlobalClickHandler?>(null) }
+                PopperElement(
+                    formRef,
+                    attrs = {
+                        style {
+                            property("z-index", 100)
+                        }
+                    }
+                ) {
+                    DomSideEffect { el ->
+                        globalClickHandler = GlobalClickHandler(el) { remove ->
+                            // Hide search only if we're also unfocusing input
+                            if (!focused) {
+                                searchQuery.value = null
+                                remove()
+                            }
+                        }
+                        globalClickHandler?.attachListener()
+                        onDispose {
+                            globalClickHandler?.dispose()
+                            globalClickHandler = null
+                        }
+                    }
+                    SearchResultsList(response)
+                }
+            }
+        }
     }
 }
 

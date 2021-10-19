@@ -19,7 +19,6 @@ package anystream.frontend.components
 
 import androidx.compose.runtime.Composable
 import anystream.frontend.searchQuery
-import anystream.frontend.searchWindowPosition
 import anystream.models.api.SearchResponse
 import app.softwork.routingcompose.BrowserRouter
 import org.jetbrains.compose.web.css.*
@@ -33,7 +32,6 @@ import org.jetbrains.compose.web.dom.Text
 fun SearchResultsList(
     searchResponse: SearchResponse,
 ) {
-    val (top, left, width) = searchWindowPosition.value
     Div({
         classes("rounded", "shadow", "py-3")
         style {
@@ -43,12 +41,7 @@ fun SearchResultsList(
             backgroundColor(rgb(28, 28, 28))
             backgroundImage("url('../images/noise.webp')")
             backgroundRepeat("repeat")
-            position(Position.Absolute)
-            left(left.px)
-            top(top.px)
-            width(width.px)
-            maxHeight(70.vh)
-            property("z-index", 1)
+            width(320.px)
         }
     }) {
         if (searchResponse.movies.isNotEmpty()) {
@@ -163,8 +156,8 @@ private fun SearchResultItem(
             alignItems(AlignItems.Center)
         }
         onClick {
-            searchQuery.value = null
             BrowserRouter.navigate("/media/${mediaId}")
+            searchQuery.value = null
         }
     }) {
         Div({

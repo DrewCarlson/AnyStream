@@ -9,7 +9,7 @@ services:
     command: >
       ./install/server-shadow/bin/server
       -P:app.ffmpegPath=/usr/bin
-      -P:app.frontEndPath=/app/client-web
+      -P:app.webClientPath=/app/client-web
       -P:app.mongoUrl=mongodb://root:password@mongo
       -P:app.qbittorrentUrl=http://qbittorrent:9090
       -port=8888

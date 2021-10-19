@@ -24,12 +24,14 @@ sealed class StreamEncodingDetails {
     abstract val codecName: String
     abstract val rawProbeData: String
     abstract val index: Int
+    abstract val language: String?
 
     @Serializable
     data class Audio(
         override val index: Int,
         override val codecName: String,
         override val rawProbeData: String,
+        override val language: String?,
         val profile: String?,
         val bitRate: Int?,
         val channels: Int,
@@ -40,6 +42,7 @@ sealed class StreamEncodingDetails {
         override val index: Int,
         override val codecName: String,
         override val rawProbeData: String,
+        override val language: String?,
         val profile: String?,
         val bitRate: Int?,
         val level: Int,
@@ -52,5 +55,15 @@ sealed class StreamEncodingDetails {
         override val index: Int,
         override val codecName: String,
         override val rawProbeData: String,
+        override val language: String?,
     ) : StreamEncodingDetails()
+
+    val languageName: String
+        get() {
+            return language
+                ?.let(IsoLanguageCodes::by639_2)
+                ?.name
+                ?.replaceFirstChar(Char::titlecaseChar)
+                ?: "Unknown"
+        }
 }

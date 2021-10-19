@@ -64,5 +64,12 @@ class UserAuthenticatorTest {
             UserAuthenticator.verifyPassword(password, bcryptString),
             "Valid password should verify"
         )
+
+        assertTrue(
+            UserAuthenticator.verifyPassword(
+                checkPassword = password,
+                hashedPassword = UserAuthenticator.hashPassword(password).first
+            )
+        )
     }
 }

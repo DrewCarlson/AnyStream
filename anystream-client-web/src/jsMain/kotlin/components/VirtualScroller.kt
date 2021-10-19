@@ -26,10 +26,11 @@ import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.renderComposable
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.get
+import kotlin.math.absoluteValue
 import kotlin.random.Random
 
-private const val ITEM_BUFFER_COUNT = 1
-private const val MAX_CACHED_ITEMS = 80
+private const val ITEM_BUFFER = 1
+private const val MAX_CACHED_ITEMS = 60
 
 private data class CompositionStateHolder<T>(
     val composition: Composition,
@@ -44,7 +45,7 @@ fun <T> VirtualScroller(
     attrs: AttrBuilderContext<HTMLDivElement>? = null,
     buildItem: @Composable (T) -> Unit,
 ) {
-    val containerId = remember { "vs-container-${Random.nextLong()}" }
+    val containerId = remember { "vs-container-${Random.nextLong().absoluteValue}" }
     val itemCount = derivedStateOf { items.size }
     val scope = rememberCoroutineScope()
     val itemSizeWH = remember { mutableStateOf(0 to 0) }
@@ -78,9 +79,10 @@ fun <T> VirtualScroller(
         val itemsPerRow = (containerVpWidth / itemWidth)
         val totalYCount = containerVpHeight / itemHeight.toFloat()
         val remainder = if (totalYCount % 1 > 0) 1 else 0
-        val count = itemsPerRow * (totalYCount.toInt() + remainder + ITEM_BUFFER_COUNT)
-        val startIndex = renderItemStartIndex.coerceAtMost(items.lastIndex)
-        val finalIndex = (renderItemStartIndex + count).coerceAtMost(items.lastIndex)
+        val count = itemsPerRow * (totalYCount.toInt() + remainder)
+        val buffer = ITEM_BUFFER * itemsPerRow
+        val startIndex = renderItemStartIndex.coerceIn(0..items.lastIndex)
+        val finalIndex = (renderItemStartIndex + count + buffer).coerceAtMost(items.lastIndex)
 
         items
             .subList(startIndex, finalIndex)
@@ -90,12 +92,11 @@ fun <T> VirtualScroller(
     }
     Div({
         attrs?.invoke(this)
-        id(containerId)
         classes("h-100", "w-100")
         style {
             position(Position.Relative)
             overflowY("scroll")
-            overflowX("none")
+            overflowX("hidden")
         }
         onScroll { event ->
             val newOffset = (event.target as HTMLDivElement).run {
@@ -155,6 +156,7 @@ fun <T> VirtualScroller(
             }
         }
         Div({
+            id(containerId)
             style {
                 val (w, h) = containerSizeWH.value
                 width(w.px)
@@ -172,6 +174,10 @@ fun <T> VirtualScroller(
                 (activeHolders.keys - itemSlice.flatten())
                     .mapNotNull(activeHolders::remove)
                     .take(MAX_CACHED_ITEMS - cachedHolders.size)
+                    .onEach { holder ->
+                        holder.itemLeft.value = -500
+                        holder.itemTop.value = -500
+                    }
                     .onEach(cachedHolders::add)
             }
 
@@ -220,10 +226,9 @@ private fun <T> createHolder(
     val composition = renderComposable(containerId) {
         Div({
             style {
-                top(itemTop.value.px)
-                left(itemLeft.value.px)
                 position(Position.Absolute)
-                attr("will-change", "left, top")
+                property("transform", "translate(${itemLeft.value.px}, ${itemTop.value.px})")
+                property("will-change", "transform")
                 // Hide cached item
                 if (itemState.value == null) {
                     opacity(0)

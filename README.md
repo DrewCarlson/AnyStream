@@ -1,11 +1,13 @@
-AnyStream
-===
+<h1 align="center">AnyStream</h1>
+<h3 align="center">A self-hosted streaming service for your media collection.</h3>
 
-![](https://github.com/DrewCarlson/AnyStream/workflows/Tests/badge.svg)
-![License](https://img.shields.io/github/license/drewcarlson/anystream)
-![](https://img.shields.io/static/v1?label=status&message=wip&color=red)
+---
 
-A self-hosted streaming service for your media collection.
+<p align="center">
+<img alt="Tests" src="https://github.com/DrewCarlson/AnyStream/workflows/Tests/badge.svg"/>
+<img alt="AGPL 3.0 License" src="https://img.shields.io/github/license/drewcarlson/anystream"/>
+<img alt="Status" src="https://img.shields.io/static/v1?label=status&message=wip&color=red"/>
+</p>
 
 ### Features
 

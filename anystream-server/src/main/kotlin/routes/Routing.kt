@@ -40,10 +40,11 @@ import io.ktor.auth.*
 import io.ktor.routing.*
 import kotlinx.coroutines.*
 import org.litote.kmongo.coroutine.CoroutineDatabase
+import java.io.File
 import java.nio.file.Path
 
 fun Application.installRouting(mongodb: CoroutineDatabase) {
-    val frontEndPath = environment.config.property("app.frontEndPath").getString()
+    val webClientPath = environment.config.propertyOrNull("app.webClientPath")?.getString()
     val ffmpegPath = environment.config.property("app.ffmpegPath").getString()
     val tmdbApiKey = environment.config.property("app.tmdbApiKey").getString()
     val qbittorrentUrl = environment.config.property("app.qbittorrentUrl").getString()
@@ -111,8 +112,16 @@ fun Application.installRouting(mongodb: CoroutineDatabase) {
         }
     }
 
-    install(SinglePageApp) {
-        ignoreBasePath = "/api"
-        staticFilePath = frontEndPath
+    if (webClientPath.isNullOrBlank()) {
+        log.debug("No web client path provided, this instance will serve the API only.")
+    } else {
+        check(File(webClientPath).exists()) {
+            "Web client path does not exist, ensure it does or unset the `app.clientPath` setting.\n$webClientPath"
+        }
+        log.debug("This instance will serve the web client from '$webClientPath'.")
+        install(SinglePageApp) {
+            ignoreBasePath = "/api"
+            staticFilePath = webClientPath
+        }
     }
 }

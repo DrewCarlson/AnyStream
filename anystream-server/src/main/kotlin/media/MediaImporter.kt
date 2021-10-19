@@ -35,9 +35,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.*
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
+import kotlinx.serialization.json.*
 import org.litote.kmongo.*
 import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.coroutine.projection
@@ -245,7 +243,8 @@ class MediaImporter(
     }
 
     private fun Stream.toStreamEncodingDetails(): StreamEncodingDetails? {
-        val rawData = Json.encodeToString(buildJsonObject {
+        val language = getTag("language")
+        val rawData = buildJsonObject {
             put("id", id)
             put("index", index)
             put("codecName", codecName)
@@ -265,7 +264,9 @@ class MediaImporter(
             put("duration", duration)
             put("durationTs", durationTs)
             put("fieldOrder", fieldOrder)
-        })
+            put("language", language)
+        }
+        val rawDataString = Json.encodeToString(rawData)
         return when (codecType) {
             StreamType.VIDEO -> StreamEncodingDetails.Video(
                 index = index,
@@ -275,7 +276,8 @@ class MediaImporter(
                 level = level,
                 height = height,
                 width = width,
-                rawProbeData = rawData,
+                language = language,
+                rawProbeData = rawDataString,
             )
             StreamType.AUDIO -> StreamEncodingDetails.Audio(
                 index = index,
@@ -283,12 +285,14 @@ class MediaImporter(
                 profile = profile,
                 bitRate = bitRate,
                 channels = channels,
-                rawProbeData = rawData,
+                language = language,
+                rawProbeData = rawDataString,
             )
             StreamType.SUBTITLE -> StreamEncodingDetails.Subtitle(
                 index = index,
                 codecName = codecName,
-                rawProbeData = rawData,
+                language = language,
+                rawProbeData = rawDataString,
             )
             StreamType.VIDEO_NOT_PICTURE,
             StreamType.DATA,
