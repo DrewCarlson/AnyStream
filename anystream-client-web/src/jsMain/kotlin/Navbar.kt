@@ -26,7 +26,6 @@ import anystream.models.Permissions
 import anystream.models.api.SearchResponse
 import app.softwork.routingcompose.BrowserRouter
 import kotlinx.browser.localStorage
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.map
@@ -84,7 +83,7 @@ private fun NavLink(
     expanded: Boolean,
 ) {
     val currentPath = BrowserRouter.getPath("/")
-    var hovering by mutableStateOf(false)
+    var hovering by remember { mutableStateOf(false) }
     A(attrs = {
         classes("nav-link")
         style {
@@ -113,7 +112,7 @@ private fun NavLink(
 @Composable
 private fun SecondaryMenu(client: AnyStreamClient, permissions: Set<String>) {
     val scope = rememberCoroutineScope()
-    val authMutex = Mutex()
+    val authMutex = remember { Mutex() }
     Div({ classes("navbar-nav", "ms-auto") }) {
         if (Permissions.check(Permissions.CONFIGURE_SYSTEM, permissions)) {
             A(attrs = {
@@ -146,8 +145,8 @@ private fun SecondaryMenu(client: AnyStreamClient, permissions: Set<String>) {
 private fun SearchBar(client: AnyStreamClient) {
     var focused by remember { mutableStateOf(false) }
     var elementValue by remember { mutableStateOf<String?>(null) }
-    val formRef = mutableStateOf<HTMLElement?>(null)
-    val inputRef = mutableStateOf<HTMLInputElement?>(null)
+    val formRef = remember { mutableStateOf<HTMLElement?>(null) }
+    val inputRef = remember { mutableStateOf<HTMLInputElement?>(null) }
     val queryState by searchQuery
         .debounce(500)
         .collectAsState(null)
@@ -294,10 +293,11 @@ private fun ButtonIcon(
 
 @Composable
 fun SideMenu(
-    client: AnyStreamClient,
     permissions: Set<String>,
 ) {
-    var expanded by mutableStateOf(localStorage.getItem(MENU_EXPANDED_KEY)?.toBoolean() ?: false)
+    var expanded by remember {
+        mutableStateOf(localStorage.getItem(MENU_EXPANDED_KEY)?.toBoolean() ?: false)
+    }
     Div({
         classes("mx-2", "py-2")
         style {

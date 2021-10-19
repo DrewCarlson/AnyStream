@@ -118,7 +118,6 @@ private fun ContentContainer(
 
         if (isAuthenticated) {
             SideMenu(
-                client = client,
                 permissions = permissions.orEmpty(),
             )
         }

@@ -19,9 +19,9 @@ package anystream.frontend.screens
 
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
-import anystream.frontend.GlobalClickHandler
-import anystream.frontend.PopperElement
 import anystream.frontend.components.*
+import anystream.frontend.libs.GlobalClickHandler
+import anystream.frontend.libs.PopperElement
 import anystream.frontend.models.MediaItem
 import anystream.frontend.models.toMediaItem
 import anystream.models.*
@@ -42,7 +42,9 @@ fun MediaScreen(
     mediaId: String,
 ) {
     val lookupIdFlow = remember(mediaId) { MutableStateFlow<Int?>(null) }
-    val refreshMetadata: () -> Unit = { lookupIdFlow.update { (it ?: 0) + 1 } }
+    val refreshMetadata: () -> Unit = remember {
+        { lookupIdFlow.update { (it ?: 0) + 1 } }
+    }
     var mediaResponse by remember(mediaId) { mutableStateOf<MediaLookupResponse?>(null) }
     LaunchedEffect(mediaId) {
         mediaResponse = try {

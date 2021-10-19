@@ -26,12 +26,12 @@ import org.w3c.dom.HTMLVideoElement
 external object VideoJs {
     fun default(
         elementId: String,
-        options: VjsOptions,
+        options: VjsOptions = definedExternally,
     ): VjsPlayer
 
     fun default(
         element: HTMLVideoElement,
-        options: VjsOptions,
+        options: VjsOptions = definedExternally,
     ): VjsPlayer
 }
 

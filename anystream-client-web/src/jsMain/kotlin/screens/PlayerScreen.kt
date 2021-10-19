@@ -19,13 +19,12 @@ package anystream.frontend.screens
 
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
+import anystream.frontend.libs.VideoJs
+import anystream.frontend.libs.VjsPlayer
 import anystream.frontend.models.MediaItem
 import anystream.frontend.models.toMediaItem
 import anystream.models.PlaybackState
 import app.softwork.routingcompose.BrowserRouter
-import com.videojs.VideoJs
-import com.videojs.VjsOptions
-import com.videojs.VjsPlayer
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.channels.BufferOverflow
@@ -187,7 +186,7 @@ fun PlayerScreen(
                             mouseMoveFlow.tryEmit(Unit)
                         }
                     }
-                    player = VideoJs.default(element, VjsOptions())
+                    player = VideoJs.default(element)
                     element.onprogress = {
                         val timeSpans = List(element.buffered.length) { i ->
                             element.buffered.start(i)..element.buffered.end(i)
