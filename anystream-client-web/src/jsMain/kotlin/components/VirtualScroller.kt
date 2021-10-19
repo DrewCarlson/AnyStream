@@ -116,7 +116,7 @@ fun <T> VirtualScroller(
                     if (containerViewportWH.value != newSize) {
                         containerViewportWH.value = newSize
                     }
-                    delay(60)
+                    delay(25)
                 }
             }
             onDispose {
