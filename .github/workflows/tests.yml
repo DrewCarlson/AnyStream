@@ -52,9 +52,9 @@ jobs:
         if: ${{ always() }}
         with:
           name: reports
-          path: library/build/reports/
+          path: '**/build/reports/*'
       - name: Publish Unit Test Results
         uses: mikepenz/action-junit-report@v2
-        if: always()
+        if: ${{ always() }}
         with:
           report_paths: '**/TEST-*.xml'

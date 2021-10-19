@@ -17,7 +17,9 @@
  */
 package anystream
 
+import anystream.test.RESOURCES
 import com.typesafe.config.ConfigFactory
+import com.typesafe.config.ConfigValueFactory
 import io.ktor.config.*
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -27,7 +29,10 @@ import kotlin.test.assertEquals
 
 class ApplicationTest {
     private val testEnv = createTestEnvironment {
-        config = HoconApplicationConfig(ConfigFactory.load("application.conf"))
+        config = HoconApplicationConfig(
+            ConfigFactory.load("application.conf")
+                .withValue("app.webClientPath", ConfigValueFactory.fromAnyRef("$RESOURCES/static"))
+        )
     }
 
     @Test

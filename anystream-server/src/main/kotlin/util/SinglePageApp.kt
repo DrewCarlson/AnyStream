@@ -53,7 +53,9 @@ class SinglePageApp(
             }
 
             pipeline.intercept(ApplicationCallPipeline.Features) {
-                if (!call.request.uri.startsWith(configuration.ignoreBasePath)) {
+                val hasIgnoreBasePath = configuration.ignoreBasePath.isNotBlank()
+                val handleRequestPath = !call.request.uri.startsWith(configuration.ignoreBasePath)
+                if (!hasIgnoreBasePath || (hasIgnoreBasePath && handleRequestPath)) {
                     val path = call.request.uri.split("/")
                     if (path.last().contains(".")) {
                         try {

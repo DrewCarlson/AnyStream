@@ -20,10 +20,14 @@ package anystream.util
 import anystream.test.RESOURCES
 import io.ktor.application.*
 import io.ktor.http.*
+import io.ktor.response.*
+import io.ktor.routing.*
 import io.ktor.server.testing.*
+import org.junit.Ignore
 import org.junit.Test
 import java.io.File
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 class SinglePageAppTests {
 
@@ -44,7 +48,7 @@ class SinglePageAppTests {
     }
 
     @Test
-    fun testExistingFileReturnContents() {
+    fun testExistingFileReturnsContents() {
         testWithConfiguration({
             defaultFile = "index.html"
             staticFilePath = "$RESOURCES/static"
@@ -60,14 +64,32 @@ class SinglePageAppTests {
     }
 
     @Test
-    fun testNonExistentFileRedirectsToIndex() {
+    fun testNonExistentFileReturnsIndex() {
         testWithConfiguration({
             defaultFile = "index.html"
             staticFilePath = "$RESOURCES/static"
         }) {
             handleRequest(HttpMethod.Get, "/not-real").apply {
-                assertEquals(HttpStatusCode.Found, response.status())
-                assertEquals("/", response.headers["location"])
+                assertEquals(HttpStatusCode.OK, response.status())
+                assertEquals(
+                    File("$RESOURCES/static/index.html").readText(),
+                    response.content
+                )
+            }
+        }
+    }
+
+    @Ignore("Doesn't work unless a handler is defined for the target path, should be fixed.")
+    @Test
+    fun testFileInIgnorePathIsNotReturned() {
+        testWithConfiguration({
+            defaultFile = "index.html"
+            staticFilePath = RESOURCES
+            ignoreBasePath = "/static"
+        }) {
+            handleRequest(HttpMethod.Get, "/static/test.json").apply {
+                assertEquals(HttpStatusCode.OK, response.status())
+                assertNull(response.content)
             }
         }
     }
@@ -76,6 +98,13 @@ class SinglePageAppTests {
         configure: SinglePageApp.() -> Unit,
         test: TestApplicationEngine.() -> Unit
     ) {
-        withTestApplication({ install(SinglePageApp, configure) }, test)
+        withTestApplication({
+            install(SinglePageApp, configure)
+            /*routing {
+                get("/static/test.json") {
+                    call.respond(HttpStatusCode.NoContent)
+                }
+            }*/
+        }, test)
     }
 }
