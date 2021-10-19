@@ -63,6 +63,7 @@ kotlin {
                 implementation(devNpm("webworkify-webpack-dropin", "1.1.9"))
                 implementation(devNpm("file-loader", "6.2.0"))
                 implementation(devNpm("webpack-bundle-analyzer", "4.4.2"))
+                implementation(devNpm("qrcode", "1.4.4"))
             }
         }
     }

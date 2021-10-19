@@ -19,8 +19,12 @@ package anystream.frontend.screens
 
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
+import anystream.frontend.libs.QRCodeImage
 import anystream.models.api.CreateSessionError
+import anystream.models.api.PairingMessage
 import app.softwork.routingcompose.BrowserRouter
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -30,13 +34,27 @@ import org.jetbrains.compose.web.dom.*
 
 @Composable
 fun LoginScreen(client: AnyStreamClient) {
-    val authMutex = Mutex()
+    val authMutex = remember { Mutex() }
     val scope = rememberCoroutineScope()
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
     var isLocked by remember { mutableStateOf(false) }
 
+    val pairingMessage by produceState<PairingMessage?>(null) {
+        client.createPairingSession()
+            .onEach { message ->
+                if (message is PairingMessage.Authorized) {
+                    client.createPairedSession(
+                        (value as PairingMessage.Started).pairingCode,
+                        message.secret,
+                    )
+                    BrowserRouter.navigate("/home")
+                }
+                value = message
+            }
+            .collect()
+    }
     suspend fun login() {
         isLocked = true
         error = null
@@ -114,6 +132,16 @@ fun LoginScreen(client: AnyStreamClient) {
                 }
             ) {
                 Text("Go to Signup")
+            }
+        }
+        Div {
+            if (pairingMessage is PairingMessage.Started) {
+                QRCodeImage((pairingMessage as PairingMessage.Started).pairingCode) {
+                    style {
+                        width(300.px)
+                        height(300.px)
+                    }
+                }
             }
         }
     }
