@@ -20,8 +20,9 @@ package anystream.frontend
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
 import anystream.frontend.components.SearchResultsList
-import anystream.frontend.libs.GlobalClickHandler
 import anystream.frontend.libs.PopperElement
+import anystream.frontend.util.ExternalClickMask
+import anystream.frontend.util.rememberDomElement
 import anystream.models.Permissions
 import anystream.models.api.SearchResponse
 import app.softwork.routingcompose.BrowserRouter
@@ -145,7 +146,6 @@ private fun SecondaryMenu(client: AnyStreamClient, permissions: Set<String>) {
 private fun SearchBar(client: AnyStreamClient) {
     var focused by remember { mutableStateOf(false) }
     var elementValue by remember { mutableStateOf<String?>(null) }
-    val formRef = remember { mutableStateOf<HTMLElement?>(null) }
     val inputRef = remember { mutableStateOf<HTMLInputElement?>(null) }
     val queryState by searchQuery
         .debounce(500)
@@ -176,12 +176,7 @@ private fun SearchBar(client: AnyStreamClient) {
             property("transition", "background-color .2s")
         }
     }) {
-        DomSideEffect { element ->
-            formRef.value = element
-            onDispose {
-                formRef.value = null
-            }
-        }
+        val formRef by rememberDomElement()
         I({
             classes("bi", "bi-search", "p-1")
             style {
@@ -248,33 +243,48 @@ private fun SearchBar(client: AnyStreamClient) {
         })
         if (isDisplayingSearch.value) {
             searchResponse?.also { response ->
-                var globalClickHandler by remember { mutableStateOf<GlobalClickHandler?>(null) }
-                PopperElement(
-                    formRef,
-                    attrs = {
-                        style {
-                            property("z-index", 100)
-                        }
-                    }
-                ) {
-                    DomSideEffect { el ->
-                        globalClickHandler = GlobalClickHandler(el) { remove ->
-                            // Hide search only if we're also unfocusing input
-                            if (!focused) {
-                                searchQuery.value = null
-                                remove()
-                            }
-                        }
-                        globalClickHandler?.attachListener()
-                        onDispose {
-                            globalClickHandler?.dispose()
-                            globalClickHandler = null
-                        }
-                    }
-                    SearchResultsList(response)
+                formRef?.also { element ->
+                    SearchResultPopper(
+                        formRef = element,
+                        focused = focused,
+                        response = response,
+                    )
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun SearchResultPopper(
+    formRef: HTMLElement,
+    focused: Boolean,
+    response: SearchResponse,
+) {
+    var globalClickHandler by remember { mutableStateOf<ExternalClickMask?>(null) }
+    PopperElement(
+        formRef,
+        attrs = {
+            style {
+                property("z-index", 100)
+            }
+        }
+    ) {
+        DomSideEffect { el ->
+            globalClickHandler = ExternalClickMask(el) { remove ->
+                // Hide search only if we're also unfocusing input
+                if (!focused) {
+                    searchQuery.value = null
+                    remove()
+                }
+            }
+            globalClickHandler?.attachListener()
+            onDispose {
+                globalClickHandler?.dispose()
+                globalClickHandler = null
+            }
+        }
+        SearchResultsList(response)
     }
 }
 

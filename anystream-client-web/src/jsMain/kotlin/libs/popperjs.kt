@@ -19,40 +19,32 @@ package anystream.frontend.libs
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.NoLiveLiterals
-import androidx.compose.runtime.State
 import kotlinext.js.js
-import kotlinx.browser.window
 import org.jetbrains.compose.web.dom.AttrBuilderContext
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.ElementScope
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
-import org.w3c.dom.events.Event
-import org.w3c.dom.events.EventListener
-import org.w3c.dom.events.MouseEvent
 
 // https://popper.js.org/docs/v2/
 // https://github.com/popperjs/popper-core/blob/2e909c71b2d09582a373aaa697152012016735ad/src/types.js
 @Composable
 fun PopperElement(
-    targetState: State<HTMLElement?>,
+    target: HTMLElement,
     popperOptions: PopperOptions? = null,
     attrs: AttrBuilderContext<HTMLDivElement>? = null,
     body: @Composable ElementScope<HTMLDivElement>.() -> Unit,
 ) {
-    val target = targetState.value
     Div(attrs = attrs) {
         Div {
             body()
-            DomSideEffect(targetState.value) { element ->
-                if (target != null) {
-                    val popper = if (popperOptions == null) {
-                        Popper.createPopper(target, element)
-                    } else {
-                        Popper.createPopper(target, element, popperOptions)
-                    }
-                    onDispose { popper.destroy() }
+            DomSideEffect(target) { element ->
+                val popper = if (popperOptions == null) {
+                    Popper.createPopper(target, element)
+                } else {
+                    Popper.createPopper(target, element, popperOptions)
                 }
+                onDispose { popper.destroy() }
             }
         }
     }
@@ -127,7 +119,10 @@ external interface PopperVirtualElement {
     fun getBoundingClientRect(): dynamic
 }
 
-fun virtualElement(x: Int, y: Int): PopperVirtualElement {
+/**
+ * A fixed position element for static placement of the popper.
+ */
+fun popperFixedPosition(x: Int, y: Int): PopperVirtualElement {
     return object : PopperVirtualElement {
         override fun getBoundingClientRect(): dynamic {
             return js @NoLiveLiterals {
@@ -152,37 +147,3 @@ data class PopperOptions(
     val modifier: MutableList<PopperModifier> = mutableListOf(),
 )
 
-class GlobalClickHandler(
-    private val target: HTMLElement,
-    private val onClickOutside: (remove: () -> Unit) -> Unit,
-) {
-    @Suppress("JoinDeclarationAndAssignment")
-    private var listener: EventListener? = null
-    init {
-        listener = EventListener { event: Event ->
-            if (event.currentTarget == target) return@EventListener
-            check(event is MouseEvent)
-            val rect = target.getBoundingClientRect()
-            if (event.x !in rect.x..(rect.x + rect.width) ||
-                event.y !in rect.y..(rect.y + rect.height)
-            ) {
-                onClickOutside {
-                    window.removeEventListener("click", listener!!)
-                }
-            }
-        }
-    }
-
-    fun attachListener() {
-        window.addEventListener("click", listener)
-    }
-
-    fun detachListener() {
-        window.removeEventListener("click", listener)
-    }
-
-    fun dispose() {
-        detachListener()
-        listener = null
-    }
-}

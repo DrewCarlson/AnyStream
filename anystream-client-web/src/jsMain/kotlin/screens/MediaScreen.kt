@@ -20,10 +20,10 @@ package anystream.frontend.screens
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
 import anystream.frontend.components.*
-import anystream.frontend.libs.GlobalClickHandler
 import anystream.frontend.libs.PopperElement
 import anystream.frontend.models.MediaItem
 import anystream.frontend.models.toMediaItem
+import anystream.frontend.util.ExternalClickMask
 import anystream.models.*
 import anystream.models.api.*
 import app.softwork.routingcompose.BrowserRouter
@@ -313,8 +313,8 @@ private fun EncodingDetailsItem(
     items: List<StreamEncodingDetails>,
 ) {
     var isListVisible by remember { mutableStateOf(false) }
-    val element = remember { mutableStateOf<HTMLElement?>(null) }
-    var globalClickHandler by remember { mutableStateOf<GlobalClickHandler?>(null) }
+    var element by remember { mutableStateOf<HTMLElement?>(null) }
+    val menuClickMask = remember { mutableStateOf<ExternalClickMask?>(null) }
     Div({
         classes("py-1")
         style {
@@ -335,7 +335,7 @@ private fun EncodingDetailsItem(
                 onClick { event ->
                     event.stopImmediatePropagation()
                     isListVisible = !isListVisible
-                    if (isListVisible) globalClickHandler?.attachListener()
+                    if (isListVisible) menuClickMask.value?.attachListener()
                 }
                 style {
                     if (items.size > 1) {
@@ -347,8 +347,8 @@ private fun EncodingDetailsItem(
                 }
             }) {
                 DomSideEffect {
-                    element.value = it
-                    onDispose { element.value = null }
+                    element = it
+                    onDispose { element = null }
                 }
                 Span { value(item) }
                 if (items.size > 1) {
@@ -364,50 +364,72 @@ private fun EncodingDetailsItem(
         }
 
         if (items.size > 1) {
-            PopperElement(
-                element,
-                attrs = {
-                    style {
-                        property("z-index", if (isListVisible) 100 else -100)
-                        if (!isListVisible) {
-                            opacity(0)
-                            property("pointer-events", "none")
-                        }
-                    }
+            element?.let { element ->
+                StreamSelectionMenu(
+                    element = element,
+                    isVisible = isListVisible,
+                    closeMenu = { isListVisible = false },
+                    setSelectedItem = { selectedItem.value = it },
+                    menuClickMask = menuClickMask,
+                    items = (items - selectedItem.value).filterNotNull(),
+                    value = value,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun StreamSelectionMenu(
+    element: HTMLElement,
+    isVisible: Boolean,
+    closeMenu: () -> Unit,
+    setSelectedItem: (StreamEncodingDetails) -> Unit,
+    menuClickMask: MutableState<ExternalClickMask?>,
+    items: List<StreamEncodingDetails>,
+    value: @Composable (stream: StreamEncodingDetails) -> Unit,
+) {
+    PopperElement(
+        element,
+        attrs = {
+            style {
+                if (isVisible) {
+                    property("z-index", 100)
+                } else {
+                    property("z-index", -100)
+                    opacity(0)
+                    property("pointer-events", "none")
                 }
-            ) {
+            }
+        }
+    ) {
+        Div({
+            classes("p-2", "rounded")
+            style {
+                display(DisplayStyle.Flex)
+                flexDirection(FlexDirection.Column)
+                gap(8.px)
+                backgroundColor(rgb(35, 36, 38))
+            }
+        }) {
+            DomSideEffect { el ->
+                menuClickMask.value = ExternalClickMask(el) { remove ->
+                    closeMenu()
+                    remove()
+                }
+                onDispose {
+                    menuClickMask.value?.dispose()
+                    menuClickMask.value = null
+                }
+            }
+            items.forEach { stream ->
                 Div({
-                    classes("p-2", "rounded")
+                    onClick { setSelectedItem(stream) }
                     style {
-                        display(DisplayStyle.Flex)
-                        flexDirection(FlexDirection.Column)
-                        gap(8.px)
-                        backgroundColor(rgb(35, 36, 38))
+                        cursor("pointer")
                     }
                 }) {
-                    DomSideEffect { el ->
-                        globalClickHandler = GlobalClickHandler(el) { remove ->
-                            isListVisible = false
-                            remove()
-                        }
-                        onDispose {
-                            globalClickHandler?.dispose()
-                            globalClickHandler = null
-                        }
-                    }
-                    (items - selectedItem.value).forEach { stream ->
-                        Div({
-                            onClick {
-                                selectedItem.value = stream
-                                isListVisible = false
-                            }
-                            style {
-                                cursor("pointer")
-                            }
-                        }) {
-                            value(stream!!)
-                        }
-                    }
+                    value(stream)
                 }
             }
         }

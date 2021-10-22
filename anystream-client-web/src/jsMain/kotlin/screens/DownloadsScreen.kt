@@ -20,6 +20,7 @@ package anystream.frontend.screens
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
 import anystream.frontend.libs.*
+import anystream.frontend.util.ExternalClickMask
 import drewcarlson.qbittorrent.models.ConnectionStatus
 import drewcarlson.qbittorrent.models.Torrent
 import kotlinx.coroutines.CoroutineScope
@@ -116,7 +117,7 @@ private fun TorrentRow(
     var isMenuVisible by remember { mutableStateOf(false) }
     val rowElement = remember { mutableStateOf<HTMLElement?>(null) }
     var mouseContextPosition by remember { mutableStateOf(0 to 0) }
-    var globalClickHandler by remember { mutableStateOf<GlobalClickHandler?>(null) }
+    var globalClickHandler by remember { mutableStateOf<ExternalClickMask?>(null) }
     Tr({
         ref { element ->
             rowElement.value = element
@@ -137,7 +138,7 @@ private fun TorrentRow(
             if (isMenuVisible) {
                 val virtualElement = remember(mouseContextPosition) {
                     val (x, y) = mouseContextPosition
-                    virtualElement(x, y)
+                    popperFixedPosition(x, y)
                 }
                 PopperElement(
                     virtualElement,
@@ -146,7 +147,7 @@ private fun TorrentRow(
                             property("z-index", 100)
                         }
                         ref { el ->
-                            globalClickHandler = GlobalClickHandler(el) { remove ->
+                            globalClickHandler = ExternalClickMask(el) { remove ->
                                 isMenuVisible = false
                                 remove()
                             }
@@ -212,7 +213,7 @@ private fun TorrentContextMenu(
                 classes("dropdown-header")
                 style {
                     overflow("hidden")
-                    property("text-overflow", "hidden")
+                    property("text-overflow", "ellipsis")
                 }
             }) {
                 Text(torrent.name)
