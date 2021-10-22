@@ -18,7 +18,9 @@
 package anystream.frontend.libs
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.NoLiveLiterals
 import androidx.compose.runtime.State
+import kotlinext.js.js
 import kotlinx.browser.window
 import org.jetbrains.compose.web.dom.AttrBuilderContext
 import org.jetbrains.compose.web.dom.Div
@@ -56,11 +58,39 @@ fun PopperElement(
     }
 }
 
+@Composable
+fun PopperElement(
+    virtualElement: PopperVirtualElement,
+    popperOptions: PopperOptions? = null,
+    attrs: AttrBuilderContext<HTMLDivElement>? = null,
+    body: @Composable ElementScope<HTMLDivElement>.() -> Unit,
+) {
+    Div(attrs = attrs) {
+        Div {
+            body()
+            DomSideEffect(virtualElement) { element ->
+                val popper = if (popperOptions == null) {
+                    Popper.createPopper(virtualElement, element)
+                } else {
+                    Popper.createPopper(virtualElement, element, popperOptions)
+                }
+                onDispose { popper.destroy() }
+            }
+        }
+    }
+}
+
 @JsModule("@popperjs/core")
 @JsNonModule
 external object Popper {
     fun createPopper(
         target: HTMLElement,
+        tooltip: HTMLElement,
+        options: PopperOptions = definedExternally,
+    ): PopperInstance
+
+    fun createPopper(
+        target: PopperVirtualElement,
         tooltip: HTMLElement,
         options: PopperOptions = definedExternally,
     ): PopperInstance
@@ -93,8 +123,33 @@ external class PopperStateRects {
     var popper: PopperRect
 }
 
+external interface PopperVirtualElement {
+    fun getBoundingClientRect(): dynamic
+}
+
+fun virtualElement(x: Int, y: Int): PopperVirtualElement {
+    return object : PopperVirtualElement {
+        override fun getBoundingClientRect(): dynamic {
+            return js @NoLiveLiterals {
+                width = 0
+                height = 0
+                top = y
+                bottom = y
+                right = x
+                left = x
+            }
+        }
+    }
+}
+
+data class PopperModifier(
+    var name: String,
+    var options: dynamic,
+)
+
 data class PopperOptions(
-    val placement: String,
+    var placement: String = "auto",
+    val modifier: MutableList<PopperModifier> = mutableListOf(),
 )
 
 class GlobalClickHandler(

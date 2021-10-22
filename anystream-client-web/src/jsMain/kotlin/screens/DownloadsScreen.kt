@@ -19,6 +19,7 @@ package anystream.frontend.screens
 
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
+import anystream.frontend.libs.*
 import drewcarlson.qbittorrent.models.ConnectionStatus
 import drewcarlson.qbittorrent.models.Torrent
 import kotlinx.coroutines.CoroutineScope
@@ -30,6 +31,7 @@ import org.jetbrains.compose.web.attributes.Scope
 import org.jetbrains.compose.web.attributes.scope
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
+import org.w3c.dom.HTMLElement
 import kotlin.math.roundToInt
 
 @Composable
@@ -41,6 +43,7 @@ fun DownloadsScreen(client: AnyStreamClient) {
         .onStart { emit(client.getTorrents()) }
         .collectAsState(emptyList())
     Div({
+        classes("pt-2")
         style {
             display(DisplayStyle.Flex)
             flexDirection(FlexDirection.Column)
@@ -48,7 +51,7 @@ fun DownloadsScreen(client: AnyStreamClient) {
     }) {
         Div({
             style {
-                classes("p-2", "bg-dark")
+                classes("px-2", "pt-2", "rounded-top", "bg-dark")
                 display(DisplayStyle.Flex)
                 flexDirection(FlexDirection.Row)
                 alignItems(AlignItems.Center)
@@ -70,10 +73,6 @@ fun DownloadsScreen(client: AnyStreamClient) {
             }
         }
 
-        val menuScope = rememberCoroutineScope()
-        val contextMenuPosition = mutableStateOf<Triple<Torrent, Double, Double>?>(null)
-        TorrentContextMenu(menuScope, client, contextMenuPosition)
-
         Div({
             classes("table-responsive")
         }) {
@@ -83,9 +82,7 @@ fun DownloadsScreen(client: AnyStreamClient) {
                 Thead { TorrentHeader() }
                 Tbody {
                     torrents.value.forEach { torrent ->
-                        TorrentRow(torrent) { pos ->
-                            contextMenuPosition.value = pos
-                        }
+                        TorrentRow(client, torrent)
                     }
                 }
             }
@@ -112,21 +109,72 @@ private fun TorrentHeader() {
 
 @Composable
 private fun TorrentRow(
+    client: AnyStreamClient,
     torrent: Torrent,
-    setContextPos: (Triple<Torrent, Double, Double>) -> Unit,
 ) {
+    val menuScope = rememberCoroutineScope()
+    var isMenuVisible by remember { mutableStateOf(false) }
+    val rowElement = remember { mutableStateOf<HTMLElement?>(null) }
+    var mouseContextPosition by remember { mutableStateOf(0 to 0) }
+    var globalClickHandler by remember { mutableStateOf<GlobalClickHandler?>(null) }
     Tr({
+        ref { element ->
+            rowElement.value = element
+            onDispose { rowElement.value = null }
+        }
         onContextMenu { event ->
+            if (isMenuVisible) return@onContextMenu
+            mouseContextPosition = event.clientX to event.clientY
+            isMenuVisible = true
+            globalClickHandler?.attachListener()
             event.preventDefault()
-            setContextPos(Triple(torrent, event.x, event.y))
         }
         style {
             cursor("pointer")
         }
     }) {
         Td {
-            I({ classes("bi", stateIcon(torrent)) })
-            Span { Text(torrent.name) }
+            if (isMenuVisible) {
+                val virtualElement = remember(mouseContextPosition) {
+                    val (x, y) = mouseContextPosition
+                    virtualElement(x, y)
+                }
+                PopperElement(
+                    virtualElement,
+                    attrs = {
+                        style {
+                            property("z-index", 100)
+                        }
+                        ref { el ->
+                            globalClickHandler = GlobalClickHandler(el) { remove ->
+                                isMenuVisible = false
+                                remove()
+                            }
+                            globalClickHandler?.attachListener()
+                            onDispose {
+                                globalClickHandler?.dispose()
+                                globalClickHandler = null
+                            }
+                        }
+                    }) {
+                    TorrentContextMenu(menuScope, client, torrent)
+                }
+            }
+            Div({
+                style {
+                    display(DisplayStyle.Flex)
+                    flexDirection(FlexDirection.Row)
+                }
+            }) {
+                I({ classes("bi", stateIcon(torrent)) })
+                Span({
+                    style {
+                        overflow("hidden")
+                        whiteSpace("nowrap")
+                        property("text-overflow", "ellipsis")
+                    }
+                }) { Text(torrent.name) }
+            }
         }
         Td { Text(torrent.size.toString()) }
         Td { Text("${(torrent.progress * 100).roundToInt()}%") }
@@ -141,66 +189,68 @@ private fun TorrentRow(
     }
 }
 
-private const val MENU_OFFSET = 18.0
 @Composable
 private fun TorrentContextMenu(
     scope: CoroutineScope,
     client: AnyStreamClient,
-    contextMenuPosition: MutableState<Triple<Torrent, Double, Double>?>,
+    torrent: Torrent,
 ) {
-    val pos = contextMenuPosition.value
-    if (pos != null) {
-        val (torrent, _, _) = pos
-        val isPaused = when (torrent.state) {
-            Torrent.State.PAUSED_DL,
-            Torrent.State.PAUSED_UP -> true
-            else -> false
+    val isPaused = when (torrent.state) {
+        Torrent.State.PAUSED_DL,
+        Torrent.State.PAUSED_UP -> true
+        else -> false
+    }
+    Ul({
+        classes("dropdown-menu", "position-absolute")
+        style {
+            display(DisplayStyle.Block)
+            width(200.px)
         }
-        Ul({
-            classes("dropdown-menu", "position-absolute")
-            style {
-                val (_, x, y) = pos
-                property("left", (x - MENU_OFFSET).px)
-                property("top", (y - MENU_OFFSET).px)
-                display(DisplayStyle.Block)
+    }) {
+        Li {
+            H5({
+                classes("dropdown-header")
+                style {
+                    overflow("hidden")
+                    property("text-overflow", "hidden")
+                }
+            }) {
+                Text(torrent.name)
             }
-            onMouseLeave { contextMenuPosition.value = null }
-        }) {
-            Li { H5({ classes("dropdown-header") }) { Text(torrent.name) } }
-            Li {
-                A(attrs = {
-                    classes("dropdown-item")
-                    if (isPaused) classes("disabled")
-                    onClick {
-                        scope.launch { client.pauseTorrent(torrent.hash) }
-                    }
-                }) { Text("Pause") }
-            }
-            Li {
-                A(attrs = {
-                    classes("dropdown-item")
-                    if (!isPaused) classes("disabled")
-                    onClick {
-                        scope.launch { client.resumeTorrent(torrent.hash) }
-                    }
-                }) { Text("Resume") }
-            }
-            Li {
-                A(attrs = {
-                    classes("dropdown-item")
-                    onClick {
-                        scope.launch { client.deleteTorrent(torrent.hash) }
-                    }
-                }) { Text("Delete") }
-            }
-            Li {
-                A(attrs = {
-                    classes("dropdown-item")
-                    onClick {
-                        scope.launch { client.deleteTorrent(torrent.hash, true) }
-                    }
-                }) { Text("Delete, Remove Files") }
-            }
+        }
+        Li {
+            A(attrs = {
+                classes("dropdown-item")
+                if (isPaused) classes("disabled")
+                onClick {
+                    scope.launch { client.pauseTorrent(torrent.hash) }
+                }
+            }) { Text("Pause") }
+        }
+        Li {
+            A(attrs = {
+                classes("dropdown-item")
+                if (!isPaused) classes("disabled")
+                onClick {
+                    scope.launch { client.resumeTorrent(torrent.hash) }
+                }
+            }) { Text("Resume") }
+        }
+        Li {
+            A(attrs = {
+                classes("dropdown-item")
+                onClick {
+                    scope.launch { client.deleteTorrent(torrent.hash) }
+                }
+            }) { Text("Delete") }
+        }
+        Li {
+            A(attrs = {
+                classes("dropdown-item")
+                onClick {
+                    scope.launch { client.deleteTorrent(torrent.hash, true) }
+                }
+            }) { Text("Delete, Remove Files") }
         }
     }
 }
