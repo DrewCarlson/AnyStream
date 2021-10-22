@@ -45,9 +45,8 @@ fun MediaScreen(
     val refreshMetadata: () -> Unit = remember {
         { lookupIdFlow.update { (it ?: 0) + 1 } }
     }
-    var mediaResponse by remember(mediaId) { mutableStateOf<MediaLookupResponse?>(null) }
-    LaunchedEffect(mediaId) {
-        mediaResponse = try {
+    val mediaResponse by produceState<MediaLookupResponse?>(null, mediaId) {
+        value = try {
             client.lookupMedia(mediaId)
         } catch (e: Throwable) {
             null
@@ -58,7 +57,7 @@ fun MediaScreen(
             .collect {
                 try {
                     client.refreshStreamDetails(mediaId)
-                    mediaResponse = client.refreshMetadata(mediaId)
+                    value = client.refreshMetadata(mediaId)
                 } catch (_: Throwable) {
                 }
             }
