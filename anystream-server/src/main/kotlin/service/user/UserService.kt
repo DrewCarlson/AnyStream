@@ -190,7 +190,7 @@ class UserService(
             val user = queries.fetchUserByUsername(username) ?: return null
             return if (session.userId == user.id) {
                 pairingCodes[body.password] = PairingMessage.Authorized(
-                    secret = Random.nextBytes(28).toUtf8Hex(),
+                    secret = Hex.toHexString(Random.nextBytes(28)),
                     userId = session.userId
                 )
                 CreateSessionResponse.success(user, session.permissions)
@@ -227,6 +227,3 @@ class UserService(
         return OpenBSDBCrypt.checkPassword(hashString, checkPassword.toCharArray())
     }
 }
-
-private fun ByteArray.toUtf8Hex(): String =
-    run(Hex::encode).toString(Charsets.UTF_8)
