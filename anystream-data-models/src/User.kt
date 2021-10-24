@@ -38,7 +38,6 @@ data class UserCredentials(
     @SerialName("_id")
     val id: String,
     val password: String,
-    val salt: String,
     val permissions: Set<String>
 )
 

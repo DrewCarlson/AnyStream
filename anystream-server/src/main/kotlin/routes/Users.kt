@@ -22,7 +22,7 @@ import anystream.json
 import anystream.models.*
 import anystream.models.api.*
 import anystream.models.api.CreateSessionError.*
-import anystream.service.UserService
+import anystream.service.user.UserService
 import anystream.util.withAnyPermission
 import io.ktor.application.call
 import io.ktor.auth.*
@@ -77,11 +77,11 @@ fun Route.addUserRoutes(userService: UserService) {
                     get {
                         val session = call.sessions.get<UserSession>()!!
                         call.respond(
-                            if (session.permissions.contains(Permissions.GLOBAL)) {
-                                userService.getInvites()
-                            } else {
-                                userService.getInvites(session.userId)
-                            }
+                            userService.getInvites(
+                                session.userId.takeIf {
+                                    session.permissions.contains(Permissions.GLOBAL)
+                                }
+                            )
                         )
                     }
 
@@ -98,16 +98,19 @@ fun Route.addUserRoutes(userService: UserService) {
                         }
                     }
 
-                    delete("/{invite_code}") {
+                    delete("/{inviteCode}") {
                         val session = call.sessions.get<UserSession>()!!
-                        val inviteCode = call.parameters["invite_code"]
+                        val inviteCode = call.parameters["inviteCode"]
                             ?: return@delete call.respond(BadRequest)
 
-                        val result = if (session.permissions.contains(Permissions.GLOBAL)) {
-                            userService.deleteInvite(inviteCode)
-                        } else {
-                            userService.deleteInvite(inviteCode, session.userId)
-                        }
+                        // Only allow user's without global permission to delete
+                        // their own InviteCodes.
+                        val result = userService.deleteInvite(
+                            inviteCode = inviteCode,
+                            byUserId = session.userId.takeIf {
+                                session.permissions.contains(Permissions.GLOBAL)
+                            }
+                        )
                         call.respond(if (result) NotFound else OK)
                     }
                 }
@@ -209,9 +212,7 @@ fun Route.addUserRoutes(userService: UserService) {
     }
 }
 
-fun Route.addUserWsRoutes(
-    userService: UserService,
-) {
+fun Route.addUserWsRoutes(userService: UserService) {
     webSocket("/ws/users/pair") {
         val pairingCode = UUID.randomUUID().toString().lowercase()
         val startingJson = json.encodeToString<PairingMessage>(PairingMessage.Started(pairingCode))

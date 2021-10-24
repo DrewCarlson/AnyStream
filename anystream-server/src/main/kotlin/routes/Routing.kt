@@ -25,7 +25,8 @@ import anystream.metadata.MetadataManager
 import anystream.metadata.MetadataProvider
 import anystream.metadata.providers.TmdbMetadataProvider
 import anystream.models.*
-import anystream.service.UserService
+import anystream.service.user.UserService
+import anystream.service.user.UserServiceQueriesMongo
 import anystream.stream.StreamManager
 import anystream.torrent.search.KMongoTorrentProviderCache
 import anystream.util.SinglePageApp
@@ -83,7 +84,7 @@ fun Application.installRouting(mongodb: CoroutineDatabase) {
 
     val streamManager = StreamManager(ffmpeg, ffprobe, log)
 
-    val userService = UserService.create(mongodb)
+    val userService = UserService(UserServiceQueriesMongo(mongodb))
 
     routing {
         route("/api") {
