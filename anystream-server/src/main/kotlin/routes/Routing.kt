@@ -25,6 +25,7 @@ import anystream.metadata.MetadataManager
 import anystream.metadata.MetadataProvider
 import anystream.metadata.providers.TmdbMetadataProvider
 import anystream.models.*
+import anystream.service.UserService
 import anystream.stream.StreamManager
 import anystream.torrent.search.KMongoTorrentProviderCache
 import anystream.util.SinglePageApp
@@ -82,9 +83,11 @@ fun Application.installRouting(mongodb: CoroutineDatabase) {
 
     val streamManager = StreamManager(ffmpeg, ffprobe, log)
 
+    val userService = UserService.create(mongodb)
+
     routing {
         route("/api") {
-            addUserRoutes(mongodb)
+            addUserRoutes(userService)
             authenticate {
                 addHomeRoutes(tmdb, queries)
                 withAnyPermission(Permissions.VIEW_COLLECTION) {
@@ -107,7 +110,7 @@ fun Application.installRouting(mongodb: CoroutineDatabase) {
             addStreamRoutes(streamManager, queries, mongodb, ffmpeg)
             addStreamWsRoutes(streamManager, mongodb)
             addTorrentWsRoutes(qbClient)
-            addUserWsRoutes(mongodb)
+            addUserWsRoutes(userService)
             addAdminWsRoutes()
         }
     }

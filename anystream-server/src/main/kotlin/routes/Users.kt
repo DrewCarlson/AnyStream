@@ -22,13 +22,8 @@ import anystream.json
 import anystream.models.*
 import anystream.models.api.*
 import anystream.models.api.CreateSessionError.*
-import anystream.models.api.CreateUserError.PasswordError
-import anystream.models.api.CreateUserError.UsernameError
-import anystream.util.UserAuthenticator
-import anystream.util.extractUserSession
-import anystream.util.logger
+import anystream.service.UserService
 import anystream.util.withAnyPermission
-import com.mongodb.MongoQueryException
 import io.ktor.application.call
 import io.ktor.auth.*
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
@@ -36,7 +31,6 @@ import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
-import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.http.HttpStatusCode.Companion.UnprocessableEntity
 import io.ktor.http.cio.websocket.*
 import io.ktor.request.receiveOrNull
@@ -46,100 +40,34 @@ import io.ktor.sessions.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.delay
 import kotlinx.serialization.encodeToString
-import org.bouncycastle.util.encoders.Hex
 import org.bson.types.ObjectId
 import org.litote.kmongo.coroutine.*
-import org.litote.kmongo.eq
 import java.util.*
-import java.util.concurrent.ConcurrentHashMap
-import kotlin.random.Random
 import kotlin.time.Duration
 
 private const val PAIRING_SESSION_SECONDS = 60
 
-private val pairingCodes = ConcurrentHashMap<String, PairingMessage>()
-
-fun Route.addUserRoutes(mongodb: CoroutineDatabase) {
-    val users = mongodb.getCollection<User>()
-    val credentialsDb = mongodb.getCollection<UserCredentials>()
-    val inviteCodeDb = mongodb.getCollection<InviteCode>()
+fun Route.addUserRoutes(userService: UserService) {
     route("/users") {
-
         post {
             val body = call.receiveOrNull<CreateUserBody>()
                 ?: return@post call.respond(UnprocessableEntity)
             val createSession = call.parameters["createSession"]?.toBoolean() ?: true
 
-            val usernameError = when {
-                body.username.isBlank() -> UsernameError.BLANK
-                body.username.length < USERNAME_LENGTH_MIN -> UsernameError.TOO_SHORT
-                body.username.length > USERNAME_LENGTH_MAX -> UsernameError.TOO_LONG
-                else -> null
-            }
-            val passwordError = when {
-                body.password.isBlank() -> PasswordError.BLANK
-                body.password.length < PASSWORD_LENGTH_MIN -> PasswordError.TOO_SHORT
-                body.password.length > PASSWORD_LENGTH_MAX -> PasswordError.TOO_LONG
-                else -> null
-            }
-
-            if (usernameError != null || passwordError != null) {
-                return@post call.respond(CreateUserResponse.error(usernameError, passwordError))
-            }
-
-            val username = body.username.lowercase()
-            if (users.findOne(User::username eq username) != null) {
-                return@post call.respond(
-                    CreateUserResponse.error(
-                        UsernameError.ALREADY_EXISTS,
-                        null
-                    )
-                )
-            }
-
-            val id = body.inviteCode
-            val inviteCode = if (id.isNullOrBlank()) {
-                null
+            val result = userService.createUser(body)
+            if (result == null) {
+                call.respond(Forbidden)
             } else {
-                inviteCodeDb.findOneById(id)
-            }
-
-            if (inviteCode == null && users.countDocuments() > 0L) {
-                return@post call.respond(Forbidden)
-            }
-
-            val permissions = inviteCode?.permissions ?: setOf(Permissions.GLOBAL)
-
-            val user = User(
-                id = ObjectId.get().toString(),
-                username = username,
-                displayName = body.username
-            )
-
-            val (hashedPassword, salt) = UserAuthenticator.hashPassword(body.password)
-            val credentials = UserCredentials(
-                id = user.id,
-                password = hashedPassword,
-                salt = salt,
-                permissions = permissions
-            )
-            try {
-                // TODO: Ensure all or clear completed
-                users.insertOne(user)
-                credentialsDb.insertOne(credentials)
-                if (inviteCode != null) {
-                    inviteCodeDb.deleteOneById(inviteCode.value)
-                }
-                if (createSession) {
+                val success = result.success
+                if (createSession && success != null) {
                     call.sessions.getOrSet {
-                        UserSession(userId = user.id, credentials.permissions)
+                        UserSession(
+                            userId = success.user.id,
+                            permissions = success.permissions,
+                        )
                     }
                 }
-
-                call.respond(CreateUserResponse.success(user, credentials.permissions))
-            } catch (e: MongoQueryException) {
-                logger.error("Failed to insert new user", e)
-                call.respond(InternalServerError)
+                call.respond(result)
             }
         }
 
@@ -148,15 +76,13 @@ fun Route.addUserRoutes(mongodb: CoroutineDatabase) {
                 route("/invite") {
                     get {
                         val session = call.sessions.get<UserSession>()!!
-
-                        val codes = if (session.permissions.contains(Permissions.GLOBAL)) {
-                            inviteCodeDb.find().toList()
-                        } else {
-                            inviteCodeDb
-                                .find(InviteCode::createdByUserId eq session.userId)
-                                .toList()
-                        }
-                        call.respond(codes)
+                        call.respond(
+                            if (session.permissions.contains(Permissions.GLOBAL)) {
+                                userService.getInvites()
+                            } else {
+                                userService.getInvites(session.userId)
+                            }
+                        )
                     }
 
                     post {
@@ -164,30 +90,25 @@ fun Route.addUserRoutes(mongodb: CoroutineDatabase) {
                         val permissions = call.receiveOrNull()
                             ?: setOf(Permissions.VIEW_COLLECTION)
 
-                        val inviteCode = InviteCode(
-                            value = Hex.toHexString(Random.nextBytes(InviteCode.SIZE)),
-                            permissions = permissions,
-                            createdByUserId = session.userId
-                        )
-
-                        inviteCodeDb.insertOne(inviteCode)
-                        call.respond(inviteCode)
+                        val inviteCode = userService.createInviteCode(session.userId, permissions)
+                        if (inviteCode == null) {
+                            call.respond(InternalServerError)
+                        } else {
+                            call.respond(inviteCode)
+                        }
                     }
 
                     delete("/{invite_code}") {
                         val session = call.sessions.get<UserSession>()!!
-                        val inviteCodeId = call.parameters["invite_code"]
+                        val inviteCode = call.parameters["invite_code"]
                             ?: return@delete call.respond(BadRequest)
 
                         val result = if (session.permissions.contains(Permissions.GLOBAL)) {
-                            inviteCodeDb.deleteOneById(inviteCodeId)
+                            userService.deleteInvite(inviteCode)
                         } else {
-                            inviteCodeDb.deleteOne(
-                                InviteCode::value eq inviteCodeId,
-                                InviteCode::createdByUserId eq session.userId
-                            )
+                            userService.deleteInvite(inviteCode, session.userId)
                         }
-                        call.respond(if (result.deletedCount == 0L) NotFound else OK)
+                        call.respond(if (result) NotFound else OK)
                     }
                 }
             }
@@ -199,44 +120,15 @@ fun Route.addUserRoutes(mongodb: CoroutineDatabase) {
                     val body = call.receiveOrNull<CreateSessionBody>()
                         ?: return@post call.respond(UnprocessableEntity)
 
-                    if (body.username.run { isBlank() || length !in USERNAME_LENGTH_MIN..USERNAME_LENGTH_MAX }) {
-                        return@post call.respond(CreateSessionResponse.error(USERNAME_INVALID))
+                    val result = userService.createSession(body, call.principal())
+                    val success = result?.success
+                    if (success is CreateSessionSuccess) {
+                        call.sessions.set(UserSession(success.user.id, success.permissions))
                     }
-
-                    val username = body.username.lowercase()
-                    if (pairingCodes.containsKey(body.password)) {
-                        val session = call.principal<UserSession>()
-                            ?: return@post call.respond(CreateSessionResponse.error(USERNAME_INVALID))
-
-                        val user = users
-                            .findOne(User::username eq username)
-                            ?: return@post call.respond(NotFound)
-                        return@post if (session.userId == user.id) {
-                            pairingCodes[body.password] = PairingMessage.Authorized(
-                                secret = Random.nextBytes(28).toUtf8Hex(),
-                                userId = session.userId
-                            )
-                            call.respond(CreateSessionResponse.success(user, session.permissions))
-                        } else {
-                            pairingCodes[body.password] = PairingMessage.Failed
-                            call.respond(CreateSessionResponse.error(PASSWORD_INCORRECT))
-                        }
-                    }
-
-                    if (body.password.run { isBlank() || length !in PASSWORD_LENGTH_MIN..PASSWORD_LENGTH_MAX }) {
-                        return@post call.respond(CreateSessionResponse.error(PASSWORD_INVALID))
-                    }
-
-                    val user = users.findOne(User::username eq username)
-                        ?: return@post call.respond(CreateSessionResponse.error(USERNAME_NOT_FOUND))
-                    val auth = credentialsDb.findOne(UserCredentials::id eq user.id)
-                        ?: return@post call.respond(InternalServerError)
-
-                    if (UserAuthenticator.verifyPassword(body.password, auth.password)) {
-                        call.sessions.set(UserSession(user.id, auth.permissions))
-                        call.respond(CreateSessionResponse.success(user, auth.permissions))
+                    if (result == null) {
+                        call.respond(Forbidden)
                     } else {
-                        call.respond(CreateSessionResponse.error(PASSWORD_INCORRECT))
+                        call.respond(result)
                     }
                 }
             }
@@ -245,23 +137,21 @@ fun Route.addUserRoutes(mongodb: CoroutineDatabase) {
                 val pairingCode = call.parameters["pairingCode"]!!
                 val secret = call.parameters["secret"]!!
 
-                val pairingMessage = pairingCodes.remove(pairingCode)
-                if (pairingMessage == null || pairingMessage !is PairingMessage.Authorized) {
-                    return@post call.respond(NotFound)
-                } else {
-                    if (pairingMessage.secret == secret) {
-                        val user = users.findOneById(pairingMessage.userId)!!
-                        val userCredentials = credentialsDb.findOneById(pairingMessage.userId)!!
-                        call.sessions.set(UserSession(user.id, userCredentials.permissions))
-                        call.respond(
-                            CreateSessionResponse.success(
-                                user,
-                                userCredentials.permissions
-                            )
+                val result = userService.verifyPairingSecret(pairingCode, secret)
+                val success = result?.success
+                if (success is CreateSessionSuccess) {
+                    call.sessions.set(
+                        UserSession(
+                            userId = success.user.id,
+                            permissions = success.permissions,
                         )
-                    } else {
-                        call.respond(Unauthorized)
-                    }
+                    )
+                }
+
+                if (result == null) {
+                    call.respond(Forbidden)
+                } else {
+                    call.respond(result)
                 }
             }
 
@@ -276,7 +166,7 @@ fun Route.addUserRoutes(mongodb: CoroutineDatabase) {
         authenticate {
             withAnyPermission(Permissions.GLOBAL) {
                 get {
-                    call.respond(users.find().toList())
+                    call.respond(userService.getUsers())
                 }
             }
 
@@ -284,7 +174,7 @@ fun Route.addUserRoutes(mongodb: CoroutineDatabase) {
                 withAnyPermission(Permissions.GLOBAL) {
                     get {
                         val userId = call.parameters["user_id"]!!
-                        call.respond(users.findOneById(userId) ?: NotFound)
+                        call.respond(userService.getUser(userId) ?: NotFound)
                     }
                 }
 
@@ -295,32 +185,10 @@ fun Route.addUserRoutes(mongodb: CoroutineDatabase) {
                         ?: return@put call.respond(UnprocessableEntity)
 
                     if (userId == session.userId) {
-                        val user = users.findOneById(userId)
-                            ?: return@put call.respond(NotFound)
-                        val credentials = credentialsDb.findOneById(userId)
-                            ?: return@put call.respond(NotFound)
-                        val updatedUser = user.copy(
-                            displayName = body.displayName
-                        )
-                        users.updateOneById(userId, updatedUser)
-
-                        val currentPassword = body.currentPassword
-                        val newPassword = body.password
-                        if (!newPassword.isNullOrBlank() && !currentPassword.isNullOrBlank()) {
-                            if (UserAuthenticator.verifyPassword(currentPassword, credentials.password)) {
-                                val (newHashedPassword, salt) = UserAuthenticator.hashPassword(newPassword)
-                                val newCredentials = credentials.copy(
-                                    salt = salt,
-                                    password = newHashedPassword,
-                                )
-                                credentialsDb.replaceOne(newCredentials)
-                            } else {
-                                return@put call.respond(Unauthorized)
-                            }
-                        }
-                        call.respond(OK)
+                        val success = userService.updateUser(userId, body)
+                        call.respond(if (success) OK else InternalServerError)
                     } else {
-                        call.respond(InternalServerError)
+                        call.respond(Forbidden)
                     }
                 }
 
@@ -329,9 +197,8 @@ fun Route.addUserRoutes(mongodb: CoroutineDatabase) {
                         val userId = call.parameters["user_id"]!!
 
                         if (ObjectId.isValid(userId)) {
-                            val result = users.deleteOneById(userId)
-                            credentialsDb.deleteOneById(userId)
-                            call.respond(if (result.deletedCount == 0L) NotFound else OK)
+                            val result = userService.deleteUser(userId)
+                            call.respond(if (result) OK else NotFound)
                         } else {
                             call.respond(BadRequest)
                         }
@@ -343,21 +210,19 @@ fun Route.addUserRoutes(mongodb: CoroutineDatabase) {
 }
 
 fun Route.addUserWsRoutes(
-    mongodb: CoroutineDatabase,
+    userService: UserService,
 ) {
     webSocket("/ws/users/pair") {
         val pairingCode = UUID.randomUUID().toString().lowercase()
         val startingJson = json.encodeToString<PairingMessage>(PairingMessage.Started(pairingCode))
         send(Frame.Text(startingJson))
 
-        pairingCodes[pairingCode] = PairingMessage.Idle
-
         var tick = 0
-        var finalMessage: PairingMessage = PairingMessage.Idle
+        var finalMessage = userService.getPairingMessage(pairingCode, true)!!
         while (finalMessage == PairingMessage.Idle) {
             delay(Duration.seconds(1))
             tick++
-            finalMessage = pairingCodes[pairingCode] ?: return@webSocket close()
+            finalMessage = userService.getPairingMessage(pairingCode, false) ?: finalMessage
             if (tick >= PAIRING_SESSION_SECONDS) {
                 send(Frame.Text(json.encodeToString<PairingMessage>(PairingMessage.Failed)))
                 return@webSocket close()
@@ -369,7 +234,4 @@ fun Route.addUserWsRoutes(
         close()
     }
 }
-
-private fun ByteArray.toUtf8Hex(): String =
-    run(Hex::encode).toString(Charsets.UTF_8)
 

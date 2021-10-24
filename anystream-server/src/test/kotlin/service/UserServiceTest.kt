@@ -15,20 +15,28 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.util
+package anystream.service
 
 import anystream.models.PASSWORD_LENGTH_MAX
 import anystream.models.PASSWORD_LENGTH_MIN
+import org.junit.Before
 import org.junit.Test
 import kotlin.test.*
 
-class UserAuthenticatorTest {
+class UserServiceTest {
+
+    private lateinit var userService: UserService
+
+    @Before
+    fun setup() {
+        userService = UserService.createForTest()
+    }
 
     @Test
     fun testHashPasswordMinimumLength() {
         val password = CharArray(PASSWORD_LENGTH_MIN - 1) { '0' }.concatToString()
         assertFailsWith<IllegalArgumentException> {
-            UserAuthenticator.hashPassword(password)
+            userService.hashPassword(password)
         }
     }
 
@@ -36,14 +44,14 @@ class UserAuthenticatorTest {
     fun testHashPasswordMaximumLength() {
         val password = CharArray(PASSWORD_LENGTH_MAX + 1) { '0' }.concatToString()
         assertFailsWith<IllegalArgumentException> {
-            UserAuthenticator.hashPassword(password)
+            userService.hashPassword(password)
         }
     }
 
     @Test
     fun testHashPassword() {
         val password = "test123"
-        val (hashedPassword, _) = UserAuthenticator.hashPassword(password)
+        val (hashedPassword, _) = userService.hashPassword(password)
         assertNotEquals(password, hashedPassword)
         assertTrue(
             hashedPassword.startsWith("\$2y\$10\$"),
@@ -57,18 +65,18 @@ class UserAuthenticatorTest {
         val bcryptString = "\$2y\$10\$uHBdQFb5YgpLrrJzFmPXteBgDxQn6zEoCzcYO1qfVOjYOvCUr.9Qq"
 
         assertFalse(
-            UserAuthenticator.verifyPassword("wrong", bcryptString),
+            userService.verifyPassword("wrong", bcryptString),
             "Invalid password should not verify"
         )
         assertTrue(
-            UserAuthenticator.verifyPassword(password, bcryptString),
+            userService.verifyPassword(password, bcryptString),
             "Valid password should verify"
         )
 
         assertTrue(
-            UserAuthenticator.verifyPassword(
+            userService.verifyPassword(
                 checkPassword = password,
-                hashedPassword = UserAuthenticator.hashPassword(password).first
+                hashedPassword = userService.hashPassword(password).first
             )
         )
     }
