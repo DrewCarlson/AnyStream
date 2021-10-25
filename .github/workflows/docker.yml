@@ -21,6 +21,23 @@ jobs:
         with:
           submodules: 'recursive'
 
+      - uses: actions/setup-java@v1
+        with:
+          java-version: 11
+
+      - name: Cache Build files
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.konan
+            ~/.gradle
+          key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}
+
+      - uses: eskatos/gradle-command-action@v1
+        name: Build Server and Web Client
+        with:
+          arguments: :anystream-server:installShadowDist :anystream-client-web:jsBrowserProductionWebpack
+
       - name: Container registry Log in
         uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
         with:
@@ -38,6 +55,7 @@ jobs:
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
           context: .
+          file: Dockerfile-local
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
