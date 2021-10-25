@@ -25,9 +25,10 @@ import anystream.metadata.MetadataManager
 import anystream.metadata.MetadataProvider
 import anystream.metadata.providers.TmdbMetadataProvider
 import anystream.models.*
+import anystream.service.stream.StreamService
+import anystream.service.stream.StreamServiceQueriesMongo
 import anystream.service.user.UserService
 import anystream.service.user.UserServiceQueriesMongo
-import anystream.stream.StreamManager
 import anystream.torrent.search.KMongoTorrentProviderCache
 import anystream.util.SinglePageApp
 import anystream.util.withAnyPermission
@@ -82,9 +83,11 @@ fun Application.installRouting(mongodb: CoroutineDatabase) {
     )
     val importer = MediaImporter(ffprobe, processors, mediaRefs, importScope, log)
 
-    val streamManager = StreamManager(ffmpeg, ffprobe, log)
-
     val userService = UserService(UserServiceQueriesMongo(mongodb))
+
+    val transcodePath = environment.config.property("app.transcodePath").getString()
+    val streamService =
+        StreamService(StreamServiceQueriesMongo(mongodb), ffmpeg, ffprobe, transcodePath)
 
     routing {
         route("/api") {
@@ -108,8 +111,8 @@ fun Application.installRouting(mongodb: CoroutineDatabase) {
                 }
             }
 
-            addStreamRoutes(streamManager, queries, mongodb, ffmpeg)
-            addStreamWsRoutes(streamManager, mongodb)
+            addStreamRoutes(streamService)
+            addStreamWsRoutes(streamService)
             addTorrentWsRoutes(qbClient)
             addUserWsRoutes(userService)
             addAdminWsRoutes()

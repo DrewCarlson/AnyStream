@@ -32,7 +32,6 @@ class MediaDbQueries(
     private val moviesDb = mongodb.getCollection<Movie>()
     private val tvShowDb = mongodb.getCollection<TvShow>()
     private val episodeDb = mongodb.getCollection<Episode>()
-    private val usersDb = mongodb.getCollection<User>()
     private val mediaRefsDb = mongodb.getCollection<MediaReference>()
     private val playbackStatesDb = mongodb.getCollection<PlaybackState>()
 
@@ -195,10 +194,6 @@ class MediaDbQueries(
         )
     }
 
-    suspend fun findPlaybackStateByIds(id: String): PlaybackState? {
-        return playbackStatesDb.findOneById(id)
-    }
-
     suspend fun findPlaybackStateByUserId(userId: String, mediaId: String?): PlaybackState? {
         return if (mediaId == null) {
             playbackStatesDb.findOne(PlaybackState::userId eq userId)
@@ -208,14 +203,6 @@ class MediaDbQueries(
                 PlaybackState::mediaId eq mediaId,
             )
         }
-    }
-
-    suspend fun findPlaybackStatesByIds(ids: List<String>): List<PlaybackState> {
-        return playbackStatesDb.find(PlaybackState::id `in` ids).toList()
-    }
-
-    suspend fun findUsersByIds(ids: List<String>): List<User> {
-        return usersDb.find(User::id `in` ids).toList()
     }
 
     suspend fun findCurrentlyWatching(userId: String, limit: Int): CurrentlyWatchingQueryResults {

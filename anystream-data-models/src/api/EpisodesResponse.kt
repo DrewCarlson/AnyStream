@@ -33,6 +33,6 @@ data class EpisodesResponse(
 data class EpisodeResponse(
     val episode: Episode,
     val show: TvShow,
-    val mediaRefs: List<MediaReference>,
+    val mediaRefs: List<MediaReference> = emptyList(),
     val playbackState: PlaybackState? = null,
 )
