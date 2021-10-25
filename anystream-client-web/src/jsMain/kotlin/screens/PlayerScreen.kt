@@ -49,13 +49,15 @@ fun PlayerScreen(
     client: AnyStreamClient,
     mediaRefId: String,
 ) {
-    var player: VjsPlayer? by mutableStateOf(null)
-    var playerIsPlaying by mutableStateOf(false)
-    val isInMiniMode = mutableStateOf(false)
-    val mouseMoveFlow = MutableSharedFlow<Unit>(
-        replay = 1,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST
-    )
+    var player: VjsPlayer? by remember { mutableStateOf(null) }
+    var playerIsPlaying by remember { mutableStateOf(false) }
+    val isInMiniMode = remember { mutableStateOf(false) }
+    val mouseMoveFlow = remember {
+        MutableSharedFlow<Unit>(
+            replay = 1,
+            onBufferOverflow = BufferOverflow.DROP_OLDEST
+        )
+    }
     val isMouseOnPlayer by mouseMoveFlow
         .transformLatest {
             emit(true)
@@ -67,7 +69,7 @@ fun PlayerScreen(
     val areControlsVisible by derivedStateOf {
         isMouseOnPlayer || !playerIsPlaying
     }
-    var sessionHandle by mutableStateOf<AnyStreamClient.PlaybackSessionHandle?>(null)
+    var sessionHandle by remember { mutableStateOf<AnyStreamClient.PlaybackSessionHandle?>(null) }
     val mediaItem = produceState<MediaItem?>(null) {
         value = try {
             client.lookupMediaByRefId(mediaRefId).run {
@@ -92,12 +94,12 @@ fun PlayerScreen(
             sessionHandle = null
         }
     }
-    val isFullscreen = mutableStateOf(document.fullscreenElement != null)
-    val setFullscreen = mutableStateOf<((Boolean) -> Unit)?>(null)
-    var duration by mutableStateOf(1.0)
-    var progress by mutableStateOf(0.0)
+    val isFullscreen = remember { mutableStateOf(document.fullscreenElement != null) }
+    val setFullscreen = remember { mutableStateOf<((Boolean) -> Unit)?>(null) }
+    var duration by remember { mutableStateOf(1.0) }
+    var progress by remember { mutableStateOf(0.0) }
     val progressScale = derivedStateOf { progress / duration }
-    val bufferedProgress = mutableStateOf(0.0)
+    val bufferedProgress = remember { mutableStateOf(0.0) }
     Div({
         style {
             classes("w-100")
@@ -136,7 +138,7 @@ fun PlayerScreen(
             }
         }
 
-        val miniPlayerHeight = mutableStateOf(120)
+        val miniPlayerHeight = remember { mutableStateOf(120) }
         val miniPlayerWidth = derivedStateOf { (miniPlayerHeight.value * 1.7777f).toInt() }
         Div({
             if (isInMiniMode.value) {
@@ -295,7 +297,7 @@ private fun MiniModeOverlay(
     miniPlayerHeight: State<Int>,
     miniPlayerWidth: State<Int>,
 ) {
-    var isVisible by mutableStateOf(false)
+    var isVisible by remember { mutableStateOf(false) }
     Div({
         style {
             position(Position.Absolute)
@@ -425,8 +427,8 @@ private fun PlaybackControls(
                 flexBasis(33.percent)
             }
         }) {
+            var hovering by remember { mutableStateOf(false) }
             Div({
-                var hovering by mutableStateOf(false)
                 onMouseEnter { hovering = true }
                 onMouseLeave { hovering = false }
                 onClick {
@@ -499,7 +501,7 @@ private fun PlaybackControls(
                 })
             }
 
-            var isPlaying by mutableStateOf(!player.paused())
+            var isPlaying by remember { mutableStateOf(!player.paused()) }
             Div({
                 style {
                     cursor("pointer")
@@ -557,8 +559,8 @@ private fun PlaybackControls(
             }
         }
 
-        var isPipAvailable by mutableStateOf(false)
-        var isInPipMode by mutableStateOf(false)
+        var isPipAvailable by remember { mutableStateOf(false) }
+        var isInPipMode by remember { mutableStateOf(false) }
         Div({
             style {
                 flexBasis(33.percent)
@@ -607,8 +609,8 @@ private fun PlaybackControls(
                 }
             }
 
-            var muted by mutableStateOf(player.muted())
-            var volume by mutableStateOf(player.volume())
+            var muted by remember { mutableStateOf(player.muted()) }
+            var volume by remember { mutableStateOf(player.volume()) }
             val volumeScale by derivedStateOf { if (muted) 0f else volume }
             Div({
                 style {
@@ -719,7 +721,8 @@ private fun SeekBar(
     progressScale: State<Double>,
     bufferedPercent: State<Double>,
 ) {
-    var isThumbVisible by mutableStateOf(false)
+    var isThumbVisible by remember { mutableStateOf(false) }
+    var isMouseDown by remember { mutableStateOf(false) }
     Div({
         classes("w-100")
         style {
@@ -733,7 +736,6 @@ private fun SeekBar(
             player.currentTime(player.duration() * percent.toFloat())
         }
 
-        var isMouseDown by mutableStateOf(false)
         onMouseEnter { isThumbVisible = true }
         onMouseLeave {
             isThumbVisible = false
