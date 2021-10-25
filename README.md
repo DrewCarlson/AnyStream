@@ -5,8 +5,16 @@
 
 <p align="center">
 <img alt="Tests" src="https://github.com/DrewCarlson/AnyStream/workflows/Tests/badge.svg"/>
+<a href="https://github.com/DrewCarlson/AnyStream/pkgs/container/anystream">
+<img alt="Docker Push" src="https://img.shields.io/github/workflow/status/drewcarlson/anystream/Publish%20Docker%20image?label=Docker">
+</a>
+<a href="https://raw.githubusercontent.com/DrewCarlson/AnyStream/main/LICENSE">
 <img alt="AGPL 3.0 License" src="https://img.shields.io/github/license/drewcarlson/anystream"/>
+</a>
 <img alt="Status" src="https://img.shields.io/static/v1?label=status&message=wip&color=red"/>
+<a href="https://github.com/drewcarlson/AnyStream/releases/lagest">
+<img alt="Latest Release" src="https://img.shields.io/github/v/tag/drewcarlson/anystream?label=release&sort=semver">
+</a>
 </p>
 
 ### Features
