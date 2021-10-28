@@ -72,9 +72,12 @@ class TvImportProcessor(
             val year = match?.value?.trim('(', ')')?.toInt() ?: 0
             logger.debug(marker, "Found content year: $year")
 
-            val query = contentFile.nameWithoutExtension
-                .replace(yearRegex, "")
-                .trim()
+            val mediaName = if (contentFile.isDirectory) {
+                contentFile.name
+            } else {
+                contentFile.nameWithoutExtension
+            }
+            val query = mediaName.replace(yearRegex, "").trim()
             logger.debug(marker, "Querying provider for '$query'")
 
             val queryResults = metadataManager.search(

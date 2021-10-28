@@ -63,6 +63,11 @@ class MovieImportProcessor(
             logger.debug(marker, "Content file not found")
             return ImportMediaResult.ErrorMediaRefNotFound
         }
+        val mediaName = if (movieFile.isDirectory) {
+            contentFile.name
+        } else {
+            contentFile.nameWithoutExtension
+        }
 
         val existingRef = try {
             queries.findMediaRefByFilePath(movieFile.absolutePath)
@@ -74,15 +79,13 @@ class MovieImportProcessor(
             return ImportMediaResult.ErrorMediaRefAlreadyExists(existingRef.id)
         }
 
-        val match = yearRegex.find(movieFile.nameWithoutExtension)
+        val match = yearRegex.find(mediaName)
         val year = match?.value?.trim('(', ')')?.toInt() ?: 0
 
         logger.debug(marker, "Found content year: $year")
 
         // TODO: Improve query capabilities
-        val query = movieFile.nameWithoutExtension
-            .replace(yearRegex, "")
-            .trim()
+        val query = mediaName.replace(yearRegex, "").trim()
 
         logger.debug(marker, "Querying provider for '$query'")
         val results = metadataManager.search(
