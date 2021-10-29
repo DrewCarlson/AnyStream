@@ -5,14 +5,14 @@
 
 <p align="center">
 <img alt="Tests" src="https://github.com/DrewCarlson/AnyStream/workflows/Tests/badge.svg"/>
-<a href="https://github.com/DrewCarlson/AnyStream/pkgs/container/anystream">
+<a href="https://github.com/DrewCarlson/AnyStream/pkgs/container/anystream" style="text-decoration: none !important;">
 <img alt="Docker Push" src="https://img.shields.io/github/workflow/status/drewcarlson/anystream/Publish%20Docker%20image?label=Docker">
 </a>
-<a href="https://raw.githubusercontent.com/DrewCarlson/AnyStream/main/LICENSE">
+<a href="https://raw.githubusercontent.com/DrewCarlson/AnyStream/main/LICENSE" style="text-decoration: none !important;">
 <img alt="AGPL 3.0 License" src="https://img.shields.io/github/license/drewcarlson/anystream"/>
 </a>
 <img alt="Status" src="https://img.shields.io/static/v1?label=status&message=wip&color=red"/>
-<a href="https://github.com/drewcarlson/AnyStream/releases/lagest">
+<a href="https://github.com/drewcarlson/AnyStream/releases/lagest" style="text-decoration: none !important;">
 <img alt="Latest Release" src="https://img.shields.io/github/v/tag/drewcarlson/anystream?label=release&sort=semver">
 </a>
 </p>
@@ -32,15 +32,13 @@
 </details>
 
 ### Structure
- 
-AnyStream consists of a self-hosted server instance and various client applications that connect to it.
- 
-- [server](anystream-server) - Web server for managing and streaming media built with [Ktor](https://github.com/ktorio/ktor)
-- [data-models](anystream-data-models) - Data models shared between the server and clients
-- [client-core](anystream-client-core) - Multiplatform infrastructure for AnyStream client applications built with [Mobius.kt](https://github.com/DrewCarlson/mobius.kt)
-- [client-android](anystream-client-android) - Android client implementation built with [Jetpack Compose](https://developer.android.com/jetpack/compose)
-- [client-web](anystream-client-web) - Web client implementation built with [Jetbrains Compose](https://github.com/JetBrains/compose-jb/)
-- [client-api](anystream-client-api) - Multiplatform API client for interacting with the server built with [Ktor-client](https://github.com/ktorio/ktor)
+
+- [anystream-server](anystream-server) &mdash; Web server for managing and streaming media built with [Ktor](https://github.com/ktorio/ktor)
+- [anystream-data-models](anystream-data-models) &mdash; Data models shared between the server and clients
+- [anystream-client-core](anystream-client-core) &mdash; Multiplatform infrastructure for AnyStream client applications built with [Mobius.kt](https://github.com/DrewCarlson/mobius.kt)
+- [anystream-client-api](anystream-client-api) &mdash; Multiplatform API client for interacting with the server built with [Ktor-client](https://github.com/ktorio/ktor)
+- [anystream-client-android](anystream-client-android) &mdash; Android client implementation built with [Jetpack Compose](https://developer.android.com/jetpack/compose)
+- [anystream-client-web](anystream-client-web) &mdash; Web client implementation built with [Jetbrains Compose](https://github.com/JetBrains/compose-jb/)
 
 ### Development
 
@@ -54,7 +52,7 @@ AnyStream consists of a self-hosted server instance and various client applicati
 
 1. Build server `./gradlew installShadowDist`
 
-2. Build client-web `./gradlew jsBrowserReleaseExecutableDistribution`
+2. Build client-web `./gradlew jsBrowserDistribution`
 
 3. Start docker stack `docker-compose up -d`
 
@@ -87,12 +85,12 @@ Webpack's dev server proxies API requests to `localhost:8888`.
 
 ### Other useful tasks
 
-Build server bundle into `server/build/install/server-shadow`:
+Build server bundle into `anystream-server/build/install/server-shadow`:
 ```bash
 ./gradlew installShadowDist
 ```
 
-Build production client-web source into `client-web/build/distributions`:
+Build production client-web source into `anystream-client-web/build/distributions`:
 ```bash
 ./gradlew jsBrowserDistribution
 ```
