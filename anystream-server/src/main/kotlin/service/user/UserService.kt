@@ -118,7 +118,7 @@ class UserService(
         return try {
             // TODO: Ensure all or clear completed
             queries.insertUser(user)
-            queries.updateCredentials(credentials)
+            queries.insertCredentials(credentials)
             if (inviteCode != null) {
                 queries.deleteInviteCode(inviteCode.value, null)
             }
