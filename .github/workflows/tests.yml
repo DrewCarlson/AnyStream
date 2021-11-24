@@ -41,7 +41,7 @@ jobs:
         name: All Tests
         if: ${{ startsWith(matrix.os, 'macos') }}
         with:
-          arguments: allTest
+          arguments: allTest --stacktrace
 
       - uses: reactivecircus/android-emulator-runner@v2
         name: Test Android Targets
