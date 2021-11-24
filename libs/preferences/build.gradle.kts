@@ -8,10 +8,10 @@ plugins {
 if (hasAndroidSdk) {
     apply(plugin = "com.android.library")
     configure<LibraryExtension> {
-        compileSdk = 29
+        compileSdk = 30
         defaultConfig {
             minSdk = 23
-            targetSdk = 29
+            targetSdk = 30
         }
         sourceSets {
             named("main") {
