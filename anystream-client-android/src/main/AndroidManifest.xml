@@ -34,7 +34,8 @@
         <activity
             android:name=".MainActivity"
             android:label="AnyStream"
-            android:theme="@style/Theme.AppCompat.NoActionBar">
+            android:theme="@style/Theme.AppCompat.NoActionBar"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -43,7 +44,8 @@
         <activity
             android:name=".LeanbackActivity"
             android:label="AnyStream"
-            android:theme="@style/Theme.AppCompat.Leanback">
+            android:theme="@style/Theme.AppCompat.Leanback"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />

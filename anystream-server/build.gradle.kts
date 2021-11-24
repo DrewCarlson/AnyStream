@@ -70,7 +70,7 @@ kotlin {
                 implementation(libs.tmdbapi)
 
                 implementation(libs.qbittorrent.client)
-                implementation(projects.libs.torrentSearch)
+                implementation(libs.torrentSearch)
             }
         }
 

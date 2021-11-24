@@ -8,10 +8,10 @@ plugins {
 if (hasAndroidSdk) {
     apply(plugin = "com.android.library")
     configure<LibraryExtension> {
-        compileSdk = 30
+        compileSdk = 31
         defaultConfig {
             minSdk = 23
-            targetSdk = 30
+            targetSdk = 31
         }
         sourceSets {
             named("main") {
@@ -67,7 +67,7 @@ kotlin {
         if (hasAndroidSdk) {
             val androidMain by getting {
                 dependencies {
-                    implementation("androidx.core:core-ktx:1.6.0-rc01")
+                    implementation("androidx.core:core-ktx:1.7.0")
                 }
             }
         }

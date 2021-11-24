@@ -8,7 +8,6 @@ include(
     ":anystream-data-models",
     ":anystream-server",
     ":libs:preferences",
-    ":libs:torrent-search",
 )
 
 enableFeaturePreview("VERSION_CATALOGS")
