@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.jvm) apply false
     alias(libs.plugins.serialization) apply false
     alias(libs.plugins.composejb) apply false
+    alias(libs.plugins.shadowjar) apply false
 }
 
 buildscript {
