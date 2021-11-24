@@ -51,6 +51,7 @@ kotlin {
                 implementation(libs.ktor.server.authJwt)
                 implementation(libs.ktor.server.serialization)
                 implementation(libs.ktor.server.websockets)
+                implementation(libs.ktor.server.permissions)
 
                 implementation(libs.ktor.client.core)
                 implementation(libs.ktor.client.okhttp)
@@ -70,7 +71,6 @@ kotlin {
 
                 implementation(libs.qbittorrent.client)
                 implementation(projects.libs.torrentSearch)
-                implementation(projects.libs.ktorPermissions)
             }
         }
 

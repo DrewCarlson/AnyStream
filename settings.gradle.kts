@@ -8,7 +8,6 @@ include(
     ":anystream-data-models",
     ":anystream-server",
     ":libs:preferences",
-    ":libs:ktor-permissions",
     ":libs:torrent-search",
 )
 

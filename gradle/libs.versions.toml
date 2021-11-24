@@ -1,28 +1,28 @@
 [versions]
 kotlin = "1.5.31"
 coroutines = "1.5.2-native-mt"
-serialization = "1.3.0"
-ktorio = "1.6.4"
-composejb = "1.0.0-beta5"
+serialization = "1.3.1"
+ktorio = "1.6.5"
+composejb = "1.0.0-rc3"
 kotlinjs_ext = "1.0.1-pre.262-kotlin-1.5.31"
 
 qbittorrent = "0.2.0"
 torrent_search = "0.0.3"
 mobiuskt = "0.1.9"
-ktor_perm = "0.1.0"
+ktor_perm = "0.1.3"
 
 korlibs_korio = "2.2.1"
-kmongo = "4.3.0"
+kmongo = "4.4.0"
 bouncy_castle = "1.67"
 tmdb = "1.10"
-jaffree = "2021.10.19"
+jaffree = "2021.11.06"
 logback = "1.2.1"
-shadowjar = "7.0.0"
+shadowjar = "7.1.0"
 
 zxing = "3.3.0"
 anr_watchdog = "1.4.0"
-compose = "1.0.4"
-exoplayer = "2.15.1"
+compose = "1.0.5"
+exoplayer = "2.16.1"
 
 [plugins]
 multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
@@ -57,7 +57,7 @@ ktor-server-auth = { module = "io.ktor:ktor-auth", version.ref = "ktorio" }
 ktor-server-authJwt = { module = "io.ktor:ktor-auth-jwt", version.ref = "ktorio" }
 ktor-server-serialization = { module = "io.ktor:ktor-serialization", version.ref = "ktorio" }
 ktor-server-websockets = { module = "io.ktor:ktor-websockets", version.ref = "ktorio" }
-ktor-server-permissions = { module = "drewcarlson.ktor:ktor-permissions", version.ref = "ktor_perm" } # TODO: { module = "org.drewcarlson:ktor-permissions", version.ref = "ktor_perm" }
+ktor-server-permissions = { module = "org.drewcarlson:ktor-permissions", version.ref = "ktor_perm" }
 
 korio = { module = "com.soywiz.korlibs.korio:korio", version.ref = "korlibs_korio" }
 
