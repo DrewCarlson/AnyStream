@@ -1,6 +1,3 @@
 .gradle
 .idea
-**/build/**
 /qbittorrent/
-!/anystream-server/build/install/
-!/anystream-client-web/build/distributions/
