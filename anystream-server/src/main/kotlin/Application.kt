@@ -85,7 +85,6 @@ fun Application.module(testing: Boolean = false) {
 
     install(CORS) {
         methods.addAll(HttpMethod.DefaultMethods)
-        allowCredentials = true
         allowNonSimpleContentTypes = true
         allowHeaders { true }
         exposeHeader(UserSession.KEY)
