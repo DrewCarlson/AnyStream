@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     application
-    kotlin("multiplatform")
+    kotlin("jvm")
     kotlin("plugin.serialization")
     id("com.github.johnrengelman.shadow")
 }
@@ -14,9 +14,32 @@ application {
 
 val testGenSrcPath = "build/generated-kotlin"
 
+tasks.withType<KotlinCompile>().all {
+    sourceCompatibility = "11"
+    targetCompatibility = "11"
+}
+
+tasks.withType<ShadowJar> {
+    manifest {
+        archiveFileName.set("server.jar")
+        attributes(mapOf("Main-Class" to application.mainClass.get()))
+    }
+}
+
 kotlin {
-    jvm {
-        withJava()
+    sourceSets["test"].kotlin.srcDirs(testGenSrcPath)
+    target {
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = "11"
+                freeCompilerArgs = freeCompilerArgs + listOf(
+                    "-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
+                    "-Xopt-in=kotlinx.coroutines.FlowPreview",
+                    "-Xopt-in=kotlin.time.ExperimentalTime",
+                    "-Xopt-in=kotlin.RequiresOptIn",
+                )
+            }
+        }
         compilations.getByName("test") {
             compileKotlinTask.doFirst {
                 file(testGenSrcPath).also { if (!it.exists()) it.mkdirs() }
@@ -32,79 +55,44 @@ kotlin {
             }
         }
     }
-    sourceSets {
-        named("jvmMain") {
-            kotlin.srcDir("src/main/kotlin")
-            resources.srcDir("src/main/resources")
-            dependencies {
-                implementation(projects.anystreamDataModels)
-
-                implementation(libs.serialization.json)
-                implementation(libs.coroutines.core)
-                implementation(libs.coroutines.jdk8)
-
-                implementation(libs.ktor.server.core)
-                implementation(libs.ktor.server.netty)
-                implementation(libs.ktor.server.sessions)
-                implementation(libs.ktor.server.metrics)
-                implementation(libs.ktor.server.auth)
-                implementation(libs.ktor.server.authJwt)
-                implementation(libs.ktor.server.serialization)
-                implementation(libs.ktor.server.websockets)
-                implementation(libs.ktor.server.permissions)
-
-                implementation(libs.ktor.client.core)
-                implementation(libs.ktor.client.okhttp)
-                implementation(libs.ktor.client.logging)
-                implementation(libs.ktor.client.json)
-                implementation(libs.ktor.client.serialization)
-
-                implementation(libs.bouncyCastle)
-
-                implementation(libs.logback)
-
-                implementation(libs.kmongo.coroutine.serialization)
-
-                implementation(libs.jaffree)
-
-                implementation(libs.tmdbapi)
-
-                implementation(libs.qbittorrent.client)
-                implementation(libs.torrentSearch)
-            }
-        }
-
-        named("jvmTest") {
-            kotlin.srcDirs("src/test/kotlin", testGenSrcPath)
-            resources.srcDir("src/test/resources")
-            dependencies {
-                implementation(libs.ktor.server.tests)
-                implementation(kotlin("test"))
-                implementation(kotlin("test-junit"))
-            }
-        }
-    }
 }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        freeCompilerArgs += listOf(
-            "-XXLanguage:+InlineClasses",
-            "-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
-            "-Xopt-in=kotlinx.coroutines.FlowPreview",
-            "-Xopt-in=kotlin.time.ExperimentalTime",
-            "-Xopt-in=kotlin.RequiresOptIn"
-        )
-    }
-}
+dependencies {
+    implementation(projects.anystreamDataModels)
 
-tasks.withType<ShadowJar> {
-    manifest {
-        archiveFileName.set("server.jar")
-        attributes(
-            mapOf(
-                "Main-Class" to application.mainClass.get()
-            )
-        )
-    }
+    implementation(libs.serialization.json)
+    implementation(libs.coroutines.core)
+    implementation(libs.coroutines.jdk8)
+
+    implementation(libs.ktor.server.core)
+    implementation(libs.ktor.server.netty)
+    implementation(libs.ktor.server.sessions)
+    implementation(libs.ktor.server.metrics)
+    implementation(libs.ktor.server.auth)
+    implementation(libs.ktor.server.authJwt)
+    implementation(libs.ktor.server.serialization)
+    implementation(libs.ktor.server.websockets)
+    implementation(libs.ktor.server.permissions)
+
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.okhttp)
+    implementation(libs.ktor.client.logging)
+    implementation(libs.ktor.client.json)
+    implementation(libs.ktor.client.serialization)
+
+    implementation(libs.bouncyCastle)
+
+    implementation(libs.logback)
+
+    implementation(libs.kmongo.coroutine.serialization)
+
+    implementation(libs.jaffree)
+
+    implementation(libs.tmdbapi)
+
+    implementation(libs.qbittorrent.client)
+    implementation(libs.torrentSearch)
+    testImplementation(libs.ktor.server.tests)
+    testImplementation(kotlin("test"))
+    testImplementation(kotlin("test-junit"))
 }
