@@ -57,13 +57,13 @@ kotlin {
 
                 implementation(libs.kotlinjs.extensions)
                 implementation(devNpm("bootstrap", "5.1.3"))
-                implementation(devNpm("bootstrap-icons", "1.6.1"))
+                implementation(devNpm("bootstrap-icons", "1.7.1"))
                 implementation(devNpm("@popperjs/core", "2.10.2"))
-                implementation(devNpm("video.js", "7.14.3"))
+                implementation(devNpm("video.js", "7.17.0"))
                 implementation(devNpm("webworkify-webpack-dropin", "1.1.9"))
                 implementation(devNpm("file-loader", "6.2.0"))
                 implementation(devNpm("webpack-bundle-analyzer", "4.4.2"))
-                implementation(devNpm("qrcode", "1.4.4"))
+                implementation(devNpm("qrcode", "1.5.0"))
             }
         }
     }

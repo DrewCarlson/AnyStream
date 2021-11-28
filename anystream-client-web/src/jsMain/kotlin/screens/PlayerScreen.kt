@@ -101,16 +101,13 @@ fun PlayerScreen(
     val progressScale = derivedStateOf { progress / duration }
     val bufferedProgress = remember { mutableStateOf(0.0) }
     Div({
+        classes("w-100")
+        if (isInMiniMode.value) {
+            classes("d-flex", "flex-row")
+        } else {
+            classes("position-absolute", "h-100", "overflow-hidden")
+        }
         style {
-            classes("w-100")
-            if (isInMiniMode.value) {
-                display(DisplayStyle.Flex)
-                flexDirection(FlexDirection.Row)
-            } else {
-                overflow("hidden")
-                classes("h-100")
-                position(Position.Absolute)
-            }
             property("z-index", 100)
             backgroundColor(playerControlsColor)
         }
@@ -126,9 +123,8 @@ fun PlayerScreen(
     }) {
         if (isInMiniMode.value) {
             Div({
-                classes("w-100")
+                classes("position-absolute", "w-100")
                 style {
-                    position(Position.Absolute)
                     left(0.px)
                 }
             }) {
@@ -142,12 +138,11 @@ fun PlayerScreen(
         val miniPlayerWidth = derivedStateOf { (miniPlayerHeight.value * 1.7777f).toInt() }
         Div({
             if (isInMiniMode.value) {
-                classes("shadow")
+                classes("flex-shrink-0", "shadow")
                 style {
                     width(miniPlayerWidth.value.px)
                     height(miniPlayerHeight.value.px)
                     margin(12.px)
-                    flexShrink(0)
                 }
             } else {
                 classes("h-100", "w-100")
@@ -251,11 +246,9 @@ fun PlayerScreen(
             if (!playerIsPlaying) {
                 I({
                     classes("bi", "bi-play-circle-fill", "user-select-none")
+                    classes("position-absolute","left-50", "top-50")
                     onClick { if (player?.paused() == true) player?.play() else player?.pause() }
                     style {
-                        position(Position.Absolute)
-                        left(50.percent)
-                        top(50.percent)
                         fontSize(82.px)
                         cursor("pointer")
                         property("transform", "translate(-50%, -50%)")
@@ -264,11 +257,9 @@ fun PlayerScreen(
                 })
                 I({
                     classes("bi", "bi-play-circle", "user-select-none")
+                    classes("position-absolute", "left-50", "top-50")
                     onClick { if (player?.paused() == true) player?.play() else player?.pause() }
                     style {
-                        position(Position.Absolute)
-                        left(50.percent)
-                        top(50.percent)
                         fontSize(82.px)
                         color(Color.white)
                         cursor("pointer")
@@ -299,14 +290,11 @@ private fun MiniModeOverlay(
 ) {
     var isVisible by remember { mutableStateOf(false) }
     Div({
+        classes("position-absolute", "d-flex", "flex-row", "justify-content-center", "align-items-center")
         style {
-            position(Position.Absolute)
             property("z-index", "1")
             width(miniPlayerWidth.value.px)
             height(miniPlayerHeight.value.px)
-            display(DisplayStyle.Flex)
-            justifyContent(JustifyContent.Center)
-            alignItems(AlignItems.Center)
             backgroundColor(rgba(0, 0, 0, .6))
             cursor("pointer")
             opacity(if (isVisible) 100 else 0)
@@ -329,15 +317,11 @@ private fun MaxPlayerTopBar(
     setFullscreen: State<((Boolean) -> Unit)?>,
 ) {
     Div({
+        classes("position-absolute", "d-flex", "flex-row", "justify-content-between", "align-items-center")
         style {
-            position(Position.Absolute)
-            display(DisplayStyle.Flex)
             classes("w-100", "p-3")
             height(60.px)
             top(0.px)
-            flexDirection(FlexDirection.Row)
-            justifyContent(JustifyContent.SpaceBetween)
-            alignItems(AlignItems.Center)
             backgroundColor(playerControlsColor)
             fontSize(20.px)
             property("transition", "transform .2s,background .2s")
@@ -400,12 +384,8 @@ private fun PlaybackControls(
     overlayMode: Boolean,
 ) {
     Div({
+        classes("d-flex", "flex-row", "justify-content-between", "align-items-center", "w-100", "p-3")
         style {
-            display(DisplayStyle.Flex)
-            classes("w-100", "p-3")
-            flexDirection(FlexDirection.Row)
-            justifyContent(JustifyContent.SpaceBetween)
-            alignItems(AlignItems.Center)
             if (overlayMode) {
                 position(Position.Absolute)
                 height(100.px)
@@ -421,9 +401,8 @@ private fun PlaybackControls(
         }
     }) {
         Div({
+            classes("d-flex", "flex-column")
             style {
-                display(DisplayStyle.Flex)
-                flexDirection(FlexDirection.Column)
                 flexBasis(33.percent)
             }
         }) {
@@ -446,11 +425,8 @@ private fun PlaybackControls(
                 }
             }
             Div({
+                classes("d-flex", "flex-row", "justify-content-start", "align-items-start")
                 style {
-                    display(DisplayStyle.Flex)
-                    flexDirection(FlexDirection.Row)
-                    justifyContent(JustifyContent.Start)
-                    alignItems(AlignItems.Start)
                     gap(10.px)
                 }
             }) {
@@ -477,10 +453,8 @@ private fun PlaybackControls(
         }
 
         Div({
+            classes("d-flex", "flex-row", "justify-content-center")
             style {
-                display(DisplayStyle.Flex)
-                flexDirection(FlexDirection.Row)
-                justifyContent(JustifyContent.Center)
                 flexBasis(33.percent)
                 fontSize(24.px)
                 gap(6.px)
@@ -562,11 +536,9 @@ private fun PlaybackControls(
         var isPipAvailable by remember { mutableStateOf(false) }
         var isInPipMode by remember { mutableStateOf(false) }
         Div({
+            classes("d-flex", "flex-row-reverse", "align-items-center")
             style {
                 flexBasis(33.percent)
-                display(DisplayStyle.Flex)
-                flexDirection(FlexDirection.RowReverse)
-                alignItems(AlignItems.Center)
                 fontSize(20.px)
                 padding(12.px)
                 gap(6.px)
@@ -640,18 +612,18 @@ private fun PlaybackControls(
                 }
             }) {
                 Div({
+                    classes("position-absolute")
                     style {
                         height(50.px)
-                        position(Position.Absolute)
                         backgroundColor(Color.white)
                         width(2.px)
                         property("pointer-events", "none")
                     }
                 })
                 Div({
+                    classes("position-absolute")
                     style {
                         height(50.px)
-                        position(Position.Absolute)
                         backgroundColor(rgb(199, 8, 28))
                         width(2.px)
                         property("transform", "scaleY(${volumeScale})")
@@ -694,12 +666,8 @@ private fun PlaybackControls(
 
         if (overlayMode) {
             Div({
-                classes("w-100")
+                classes("position-absolute", "w-100", "h-auto", "top-0", "left-0")
                 style {
-                    position(Position.Absolute)
-                    height(auto)
-                    left(0.px)
-                    top(0.px)
                     if (!areControlsVisible) {
                         property("transform", "translateY(100%)")
                     }
@@ -751,10 +719,9 @@ private fun SeekBar(
         }
     }) {
         I({
-            classes("bi", "bi-circle-fill", "user-select-none")
+            classes("position-absolute", "bi", "bi-circle-fill", "user-select-none")
             style {
                 opacity(if (isThumbVisible) 1 else 0)
-                position(Position.Absolute)
                 color(Color.white)
                 marginLeft((progressScale.value * 100).percent)
                 fontSize(12.px)
@@ -773,9 +740,8 @@ private fun SeekBar(
             }
         }) {
             Div({
-                classes("w-100", "h-100")
+                classes("position-absolute", "w-100", "h-100")
                 style {
-                    position(Position.Absolute)
                     backgroundColor(Color("#C7081C"))
                     opacity(.5)
                     property("pointer-events", "none")
@@ -785,9 +751,8 @@ private fun SeekBar(
                 }
             })
             Div({
-                classes("w-100", "h-100")
+                classes("position-absolute", "w-100", "h-100")
                 style {
-                    position(Position.Absolute)
                     backgroundColor(Color("#C7081C"))
                     property("pointer-events", "none")
                     property("transform", "scaleX(${progressScale.value})")

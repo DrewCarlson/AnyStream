@@ -33,10 +33,8 @@ fun SearchResultsList(
     searchResponse: SearchResponse,
 ) {
     Div({
-        classes("rounded", "shadow", "py-3")
+        classes("d-flex", "flex-column", "rounded", "shadow", "py-3")
         style {
-            display(DisplayStyle.Flex)
-            flexDirection(FlexDirection.Column)
             overflowY("scroll")
             backgroundColor(rgb(28, 28, 28))
             backgroundImage("url('../images/noise.webp')")
@@ -47,14 +45,7 @@ fun SearchResultsList(
         if (searchResponse.movies.isNotEmpty()) {
             SectionTitle("Movies")
         }
-        Div({
-            classes("w-100")
-            style {
-                display(DisplayStyle.Flex)
-                flexDirection(FlexDirection.Column)
-                flexWrap(FlexWrap.Wrap)
-            }
-        }) {
+        Div({ classes("d-flex", "flex-column", "flex-wrap", "w-100") }) {
             searchResponse.movies.forEach { movie ->
                 SearchResultItem(
                     mediaId = movie.id,
@@ -70,14 +61,7 @@ fun SearchResultsList(
         if (searchResponse.tvShows.isNotEmpty()) {
             SectionTitle("TV Shows")
         }
-        Div({
-            classes("w-100")
-            style {
-                display(DisplayStyle.Flex)
-                flexDirection(FlexDirection.Column)
-                flexWrap(FlexWrap.Wrap)
-            }
-        }) {
+        Div({ classes("d-flex", "flex-column", "flex-wrap", "w-100") }) {
             searchResponse.tvShows.forEach { show ->
                 SearchResultItem(
                     mediaId = show.id,
@@ -98,14 +82,7 @@ fun SearchResultsList(
         if (searchResponse.episodes.isNotEmpty()) {
             SectionTitle("Episodes")
         }
-        Div({
-            classes("w-100")
-            style {
-                display(DisplayStyle.Flex)
-                flexDirection(FlexDirection.Column)
-                flexWrap(FlexWrap.Wrap)
-            }
-        }) {
+        Div({ classes("d-flex", "flex-column", "flex-wrap", "w-100") }) {
             searchResponse.episodes.forEach { episode ->
                 SearchResultItem(
                     mediaId = episode.id,
@@ -118,10 +95,7 @@ fun SearchResultsList(
         }
 
         if (!searchResponse.hasResult()) {
-            Div({
-                classes("w-100")
-                style { textAlign("center") }
-            }) {
+            Div({ classes("text-center", "w-100") }) {
                 H5 { Text("No results") }
             }
         }
@@ -148,12 +122,9 @@ private fun SearchResultItem(
     val (posterHeight, posterWidth) = if (wide) 28.px to 42.px else 42.px to 28.px
 
     Div({
-        classes("px-3", "py-1")
+        classes("d-flex", "flex-row", "align-items-center", "px-3", "py-1")
         style {
             cursor("pointer")
-            display(DisplayStyle.Flex)
-            flexDirection(FlexDirection.Row)
-            alignItems(AlignItems.Center)
         }
         onClick {
             BrowserRouter.navigate("/media/${mediaId}")
@@ -176,13 +147,7 @@ private fun SearchResultItem(
             )
         }
 
-        Div({
-            classes("px-2")
-            style {
-                display(DisplayStyle.Flex)
-                flexDirection(FlexDirection.Column)
-            }
-        }) {
+        Div({ classes("d-flex", "flex-column", "px-2") }) {
             Div {
                 Text(title)
             }

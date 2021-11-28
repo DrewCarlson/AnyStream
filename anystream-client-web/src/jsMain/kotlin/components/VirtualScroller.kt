@@ -141,7 +141,7 @@ fun <T> VirtualScroller(
                         while (true) {
                             val newSize = ref.children[0]
                                 ?.run { clientWidth to clientHeight }
-                                ?: 0 to 0
+                                ?: (0 to 0)
                             if (itemSizeWH.value != newSize) {
                                 itemSizeWH.value = newSize
                             }
@@ -171,7 +171,7 @@ fun <T> VirtualScroller(
             LaunchedEffect(itemSlice) {
                 // When the list of items to display changes, unbind any unused holders,
                 // returning them to the cache up to the max cache size.
-                (activeHolders.keys - itemSlice.flatten())
+                (activeHolders.keys - itemSlice.flatten().toSet())
                     .mapNotNull(activeHolders::remove)
                     .take(MAX_CACHED_ITEMS - cachedHolders.size)
                     .onEach { holder ->

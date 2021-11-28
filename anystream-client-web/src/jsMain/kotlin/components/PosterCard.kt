@@ -43,14 +43,11 @@ fun PosterCard(
     val isMouseOver = remember { mutableStateOf(false) }
     val isMenuVisible = remember { mutableStateOf(false) }
     Div({
+        classes("d-flex", "flex-column")
         if (classes == null) {
             classes("p-3")
         } else {
             classes(*classes.toTypedArray())
-        }
-        style {
-            display(DisplayStyle.Flex)
-            flexDirection(FlexDirection.Column)
         }
     }) {
         val (posterHeight, posterWidth) = heightAndWidth ?: if (wide) {
@@ -91,9 +88,8 @@ fun PosterCard(
             if (completedPercent != null) {
                 val progressBarHeight = 5.px
                 Div({
-                    classes("w-100", "rounded-bottom")
+                    classes("position-absolute", "w-100", "rounded-bottom")
                     style {
-                        position(Position.Absolute)
                         height(progressBarHeight)
                         bottom(0.px)
                         backgroundColor(rgba(0, 0, 0, .6))
@@ -104,8 +100,8 @@ fun PosterCard(
                     }
                 }) {
                     Div({
+                        classes("position-absolute")
                         style {
-                            position(Position.Absolute)
                             height(progressBarHeight)
                             backgroundColor(rgb(255, 8, 28))
                             width((completedPercent * 100).toInt().percent)
@@ -133,9 +129,8 @@ fun PosterCard(
         }
 
         Div({
+            classes("d-flex", "flex-column")
             style {
-                display(DisplayStyle.Flex)
-                flexDirection(FlexDirection.Column)
                 width(posterWidth)
                 overflow("hidden")
                 whiteSpace("nowrap")
@@ -157,9 +152,8 @@ private fun CardOverlay(
     onMenuClicked: (() -> Unit)? = null,
 ) {
     Div({
-        classes("rounded", "h-100", "w-100")
+        classes("position-absolute", "h-100", "w-100", "rounded")
         style {
-            position(Position.Absolute)
             property("cursor", "pointer")
             property("z-index", 1)
             opacity(if (isOverlayVisible) 1 else 0)
@@ -171,23 +165,24 @@ private fun CardOverlay(
         }
     }) {
         Div({
-            classes("rounded", "border", "h-100", "w-100", "p-3", "border-white")
+            classes(
+                "d-flex",
+                "flex-column",
+                "justify-content-between",
+                "align-items-center",
+                "position-absolute",
+                "h-100", "w-100", "p-3"
+            )
+            classes("rounded", "border", "border-white")
             style {
-                display(DisplayStyle.Flex)
-                justifyContent(JustifyContent.SpaceBetween)
-                alignItems(AlignItems.Center)
-                flexDirection(FlexDirection.Column)
                 property("z-index", 3)
-                position(Position.Absolute)
             }
         }) {
             val isPlaySelected = remember { mutableStateOf(onPlayClicked == null) }
             I({
-                classes("bi", "bi-three-dots-vertical")
+                classes("d-flex", "align-self-end", "bi", "bi-three-dots-vertical")
                 style {
                     fontSize(22.px)
-                    display(DisplayStyle.Flex)
-                    alignSelf(AlignSelf.FlexEnd)
                     color(rgb(255, 255, 255))
                     if (onMenuClicked == null) {
                         opacity(0)
@@ -200,9 +195,7 @@ private fun CardOverlay(
                 }
             })
             Div({
-                style {
-                    display(DisplayStyle.Flex)
-                }
+                classes("d-flex")
                 if (onPlayClicked != null) {
                     onMouseEnter {
                         isPlaySelected.value = true
@@ -227,12 +220,7 @@ private fun CardOverlay(
                     }
                 })
             }
-            Div({
-                style {
-                    display(DisplayStyle.Flex)
-                    alignSelf(AlignSelf.FlexEnd)
-                }
-            }) {
+            Div({ classes("d-flex", "align-self-end") }) {
                 I({
                     classes("bi", if (isAdded == true) "bi-check-lg" else "bi-plus-lg")
                     style {
@@ -246,10 +234,10 @@ private fun CardOverlay(
         }
 
         Div({
+            classes("position-absolute")
             classes("rounded", "h-100", "w-100")
             style {
                 backgroundColor(rgb(0, 0, 0))
-                position(Position.Absolute)
                 property("z-index", 2)
                 opacity(.7)
             }

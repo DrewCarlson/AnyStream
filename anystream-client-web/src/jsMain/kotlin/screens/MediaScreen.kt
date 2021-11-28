@@ -31,6 +31,7 @@ import kotlinx.browser.window
 import kotlinx.coroutines.flow.*
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
+import org.jetbrains.compose.web.ui.Styles.style
 import org.w3c.dom.HTMLElement
 import kotlin.time.Duration
 
@@ -66,13 +67,7 @@ fun MediaScreen(
         onDispose { backdropImageUrl.value = null }
     }
 
-    Div({
-        classes("h-100")
-        style {
-            display(DisplayStyle.Flex)
-            flexDirection(FlexDirection.Column)
-        }
-    }) {
+    Div({ classes("d-flex", "flex-column", "h-100") }) {
         if (mediaResponse == null) {
             FullSizeCenteredLoader()
         }
@@ -131,20 +126,8 @@ private fun BaseDetailsView(
     refreshMetadata: () -> Unit,
     client: AnyStreamClient,
 ) {
-    Div({
-        style {
-            display(DisplayStyle.Flex)
-            flexDirection(FlexDirection.Row)
-        }
-    }) {
-        Div({
-            style {
-                display(DisplayStyle.Flex)
-                flexDirection(FlexDirection.Column)
-                flexShrink(0)
-                alignItems(AlignItems.Center)
-            }
-        }) {
+    Div({ classes("d-flex", "flex-row") }) {
+        Div({ classes("d-flex", "flex-column", "align-items-center", "flex-shrink-0") }) {
             PosterCard(
                 title = null,
                 posterPath = mediaItem.posterPath,
@@ -178,21 +161,8 @@ private fun BaseDetailsView(
                 }
             }
         }
-        Div({
-            classes("p-4")
-            style {
-                display(DisplayStyle.Flex)
-                flexDirection(FlexDirection.Column)
-                flexGrow(1)
-            }
-        }) {
-            Div({
-                style {
-                    display(DisplayStyle.Flex)
-                    flexDirection(FlexDirection.Row)
-                    alignItems(AlignItems.Center)
-                }
-            }) {
+        Div({ classes("d-flex", "flex-column", "flex-grow-1", "p-4") }) {
+            Div({ classes("d-flex", "flex-row", "align-items-center") }) {
                 H3 { Text(mediaItem.contentTitle) }
                 if (client.hasPermission(Permissions.MANAGE_COLLECTION)) {
                     I({
@@ -217,13 +187,7 @@ private fun BaseDetailsView(
                 }
             }
 
-            Div({
-                classes("py-2")
-                style {
-                    display(DisplayStyle.Flex)
-                    flexDirection(FlexDirection.Row)
-                }
-            }) {
+            Div({ classes("d-flex", "flex-row", "py-2") }) {
                 // TODO: Allow user mediaRef selection, order refs on server
                 val mediaRef = mediaItem.mediaRefs.firstOrNull()
                 if (mediaRef != null) {
@@ -260,12 +224,7 @@ private fun BaseDetailsView(
                 it.streams.filterIsInstance<StreamEncodingDetails.Subtitle>()
             }
 
-            Div({
-                style {
-                    display(DisplayStyle.Flex)
-                    flexDirection(FlexDirection.Column)
-                }
-            }) {
+            Div({ classes("d-flex", "flex-column") }) {
                 val selectedVideoStream = remember { mutableStateOf(videoStreams.firstOrNull()) }
                 val selectedAudioStream = remember { mutableStateOf(audioStreams.firstOrNull()) }
                 val selectedSubsStream = remember { mutableStateOf(subtitlesStreams.firstOrNull()) }
@@ -315,14 +274,7 @@ private fun EncodingDetailsItem(
     var isListVisible by remember { mutableStateOf(false) }
     var element by remember { mutableStateOf<HTMLElement?>(null) }
     val menuClickMask = remember { mutableStateOf<ExternalClickMask?>(null) }
-    Div({
-        classes("py-1")
-        style {
-            display(DisplayStyle.Flex)
-            flexDirection(FlexDirection.Row)
-            alignItems(AlignItems.Center)
-        }
-    }) {
+    Div({ classes("d-flex", "flex-row", "align-items-center", "py-1") }) {
         val item = selectedItem.value
         if (item != null) {
             Div({
@@ -332,6 +284,7 @@ private fun EncodingDetailsItem(
                 }
             }) { title(item) }
             Div({
+                classes("d-flex", "flex-row", "align-items-center")
                 onClick { event ->
                     event.stopImmediatePropagation()
                     isListVisible = !isListVisible
@@ -341,9 +294,6 @@ private fun EncodingDetailsItem(
                     if (items.size > 1) {
                         cursor("pointer")
                     }
-                    display(DisplayStyle.Flex)
-                    flexDirection(FlexDirection.Row)
-                    alignItems(AlignItems.Center)
                 }
             }) {
                 DomSideEffect {
@@ -404,10 +354,8 @@ private fun StreamSelectionMenu(
         }
     ) {
         Div({
-            classes("p-2", "rounded")
+            classes("d-flex", "flex-column", "p-2", "rounded")
             style {
-                display(DisplayStyle.Flex)
-                flexDirection(FlexDirection.Column)
                 gap(8.px)
                 backgroundColor(rgb(35, 36, 38))
             }
@@ -509,9 +457,8 @@ private fun BaseRow(
         }
     }
     Div({
+        classes("d-flex", "flex-row")
         style {
-            display(DisplayStyle.Flex)
-            flexDirection(FlexDirection.Row)
             if (wrap) {
                 flexWrap(FlexWrap.Wrap)
             } else {

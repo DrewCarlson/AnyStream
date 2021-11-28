@@ -43,19 +43,10 @@ fun DownloadsScreen(client: AnyStreamClient) {
         .mapLatest { client.getTorrents() }
         .onStart { emit(client.getTorrents()) }
         .collectAsState(emptyList())
-    Div({
-        classes("pt-2")
-        style {
-            display(DisplayStyle.Flex)
-            flexDirection(FlexDirection.Column)
-        }
-    }) {
+    Div({ classes("d-flex", "flex-column", "pt-2") }) {
         Div({
+            classes("d-flex", "flex-row", "align-items-center", "px-2", "pt-2", "rounded-top", "bg-dark")
             style {
-                classes("px-2", "pt-2", "rounded-top", "bg-dark")
-                display(DisplayStyle.Flex)
-                flexDirection(FlexDirection.Row)
-                alignItems(AlignItems.Center)
                 property("gap", 12.px)
             }
         }) {
@@ -161,12 +152,7 @@ private fun TorrentRow(
                     TorrentContextMenu(menuScope, client, torrent)
                 }
             }
-            Div({
-                style {
-                    display(DisplayStyle.Flex)
-                    flexDirection(FlexDirection.Row)
-                }
-            }) {
+            Div({ classes("d-flex", "flex-row") }) {
                 I({ classes("bi", stateIcon(torrent)) })
                 Span({
                     style {
@@ -202,9 +188,8 @@ private fun TorrentContextMenu(
         else -> false
     }
     Ul({
-        classes("dropdown-menu", "position-absolute")
+        classes("d-block", "dropdown-menu", "position-absolute")
         style {
-            display(DisplayStyle.Block)
             width(200.px)
         }
     }) {

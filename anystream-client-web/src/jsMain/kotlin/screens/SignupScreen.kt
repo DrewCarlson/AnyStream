@@ -68,11 +68,7 @@ fun SignupScreen(client: AnyStreamClient) {
 
     Div({
         style {
-            classes("py-4")
-            display(DisplayStyle.Flex)
-            flexDirection(FlexDirection.Column)
-            justifyContent(JustifyContent.Center)
-            alignItems(AlignItems.Center)
+            classes("d-flex", "flex-column", "justify-content-center", "align-items-center", "py-4")
             property("gap", 12.px)
         }
     }) {

@@ -40,20 +40,11 @@ fun UserManagerScreen(
     val usersState = produceState(emptyList<User>()) {
         value = client.getUsers()
     }
-    Div({
-        classes("pt-2", "ps-2")
-        style {
-            display(DisplayStyle.Flex)
-            flexDirection(FlexDirection.Column)
-        }
-    }) {
+    Div({ classes("d-flex", "flex-column", "pt-2", "ps-2") }) {
         Div { H4 { Text("Users") } }
         Div({
-            classes("pb-2")
+            classes("d-flex", "flex-row", "align-items-center", "pb-2")
             style {
-                display(DisplayStyle.Flex)
-                flexDirection(FlexDirection.Row)
-                alignItems(AlignItems.Center)
                 gap(12.px)
             }
         }) {
@@ -67,10 +58,8 @@ fun UserManagerScreen(
             }
         }
         Div({
-            classes("py-1")
+            classes("d-flex", "flex-column", "py-1")
             style {
-                display(DisplayStyle.Flex)
-                flexDirection(FlexDirection.Column)
                 gap(10.px)
             }
         }) {
@@ -85,10 +74,8 @@ fun UserManagerScreen(
 @Composable
 private fun UserRow(user: User) {
     Div({
-        classes("p-3", "rounded")
+        classes("d-flex", "flex-column", "p-3", "rounded")
         style {
-            display(DisplayStyle.Flex)
-            flexDirection(FlexDirection.Column)
             backgroundColor(rgba(0, 0, 0, 0.2))
             width(300.px)
         }
@@ -146,12 +133,7 @@ private fun InviteCodeDialog(
                 attr("aria-label", "Close")
             })
         }
-        Div({
-            style {
-                display(DisplayStyle.Flex)
-                flexDirection(FlexDirection.Column)
-            }
-        }) {
+        Div({ classes("d-flex", "flex-column") }) {
             CreateInviteCodeGroup(createInviteCode)
             InviteCodeTable(inviteCodeMap, deleteInviteCode)
         }

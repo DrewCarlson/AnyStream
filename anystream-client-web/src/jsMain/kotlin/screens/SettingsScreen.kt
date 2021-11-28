@@ -38,10 +38,8 @@ fun SettingsScreen(
 ) {
     val scope = rememberCoroutineScope()
     Div({
-        classes("p-2")
+        classes("d-flex", "flex-column", "p-2")
         style {
-            display(DisplayStyle.Flex)
-            flexDirection(FlexDirection.Column)
             gap(1.cssRem)
         }
     }) {
@@ -146,9 +144,8 @@ private fun ActiveStreamsList(
     }
 
     Div({
+        classes("d-flex", "flex-row")
         style {
-            display(DisplayStyle.Flex)
-            flexDirection(FlexDirection.Row)
             gap(10.px)
         }
     }) {
@@ -160,20 +157,17 @@ private fun ActiveStreamsList(
                     mediaLookup.run { movie?.toMediaItem() ?: episode?.toMediaItem() }
                 )
                 Div({
-                    classes("p-3", "rounded")
+                    classes("d-flex", "flex-column", "p-3", "rounded")
                     style {
-                        display(DisplayStyle.Flex)
-                        flexDirection(FlexDirection.Column)
                         backgroundColor(rgba(0, 0, 0, 0.2))
                         width(300.px)
                     }
                 }) {
                     Div { Text(mediaItem.contentTitle) }
                     Div({
+                        classes("overflow-hidden", "text-nowrap")
                         style {
                             property("text-overflow", "ellipsis")
-                            overflow("hidden")
-                            whiteSpace("nowrap")
                         }
                     }) {
                         mediaItem.subtitle1?.let { subtitle1 ->

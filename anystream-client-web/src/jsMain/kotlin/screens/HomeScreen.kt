@@ -45,7 +45,7 @@ fun HomeScreen(client: AnyStreamClient) {
             ) {
                 playbackStates.forEach { state ->
                     val movie = currentlyWatchingMovies[state.id]
-                    val (episode, show) = currentlyWatchingTv[state.id] ?: null to null
+                    val (episode, show) = currentlyWatchingTv[state.id] ?: (null to null)
                     PosterCard(
                         title = (movie?.title ?: show?.name)?.let { title ->
                             {
@@ -68,12 +68,7 @@ fun HomeScreen(client: AnyStreamClient) {
                         subtitle2 = {
                             episode?.run {
                                 "S$seasonNumber"
-                                Div({
-                                    style {
-                                        display(DisplayStyle.Flex)
-                                        flexDirection(FlexDirection.Row)
-                                    }
-                                }) {
+                                Div({ classes("d-flex", "flex-row") }) {
                                     LinkedText(
                                         checkNotNull(show)
                                             .seasons
@@ -215,9 +210,8 @@ private fun MovieRow(
         }
     }
     Div({
+        classes("d-flex", "flex-row")
         style {
-            display(DisplayStyle.Flex)
-            flexDirection(FlexDirection.Row)
             property("overflow-x", "auto")
             property("scrollbar-width", "none")
         }

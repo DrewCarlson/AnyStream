@@ -41,11 +41,7 @@ fun webApp() = renderComposable(rootElementId = "root") {
     Div(
         attrs = {
             id("main-panel")
-            classes("h-100", "w-100")
-            style {
-                display(DisplayStyle.Flex)
-                flexDirection(FlexDirection.Column)
-            }
+            classes("d-flex", "flex-column", "h-100", "w-100")
         },
     ) {
         DomSideEffect {
@@ -73,9 +69,8 @@ fun webApp() = renderComposable(rootElementId = "root") {
 
         if (backgroundUrl != null) {
             Div({
-                classes("h-100", "w-100")
+                classes("position-absolute", "h-100", "w-100")
                 style {
-                    position(Position.Absolute)
                     opacity(0.1)
                     backgroundImage("url('$backgroundUrl')")
                     backgroundPosition("center center")
@@ -100,15 +95,18 @@ private fun ContentContainer(
     client: AnyStreamClient,
 ) {
     Div({
-        classes("container-fluid", "px-0")
+        classes(
+            "container-fluid",
+            "d-flex",
+            "flex-row",
+            "flex-grow-1",
+            "flex-shrink-1",
+            "px-0",
+        )
         style {
-            flexGrow(1)
-            flexShrink(1)
             flexBasis("auto")
             overflowY("auto")
             property("z-index", "1")
-            display(DisplayStyle.Flex)
-            flexDirection(FlexDirection.Row)
         }
     }) {
         val authRoutes = listOf("/signup", "/login")

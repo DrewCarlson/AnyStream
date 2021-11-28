@@ -50,14 +50,7 @@ fun LoadingIndicator(
 
 @Composable
 fun FullSizeCenteredLoader() {
-    Div({
-        classes("h-100", "h-100")
-        style {
-            display(DisplayStyle.Flex)
-            justifyContent(JustifyContent.Center)
-            alignItems(AlignItems.Center)
-        }
-    }) {
+    Div({ classes("d-flex", "justify-content-center", "align-items-center", "h-100", "h-100") }) {
         LoadingIndicator()
     }
 }
