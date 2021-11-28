@@ -41,6 +41,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.bouncycastle.util.encoders.Hex
+import org.drewcarlson.ktor.permissions.PermissionAuthorization
 import org.litote.kmongo.coroutine.coroutine
 import org.litote.kmongo.eq
 import org.litote.kmongo.reactivestreams.KMongo
@@ -134,6 +135,7 @@ fun Application.module(testing: Boolean = false) {
         extractUserSession(sessionStorage::readSession)
     }
     install(PermissionAuthorization) {
+        global(Permissions.GLOBAL)
         extract { (it as UserSession).permissions }
     }
     installRouting(mongodb)
