@@ -4,10 +4,10 @@ services:
 
   app:
     container_name: app
-    image: index.docker.io/drewcarlson/anystream:latest
+    image: ghcr.io/drewcarlson/anystream:main
     restart: unless-stopped
     command: >
-      ./install/server-shadow/bin/server
+      ./install/anystream-server-shadow/bin/anystream-server
       -P:app.ffmpegPath=/usr/bin
       -P:app.webClientPath=/app/client-web
       -P:app.mongoUrl=mongodb://root:password@mongo

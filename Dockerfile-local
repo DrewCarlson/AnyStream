@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/java/jdk:11-zulu-alpine
+FROM mcr.microsoft.com/java/jre:11-zulu-alpine
 
 RUN apk add --update --no-cache bash ffmpeg
 
