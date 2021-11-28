@@ -29,21 +29,15 @@ import io.ktor.http.*
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.http.cio.websocket.*
 import io.ktor.http.content.CachingOptions
-import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.serialization.*
 import io.ktor.sessions.*
-import io.ktor.util.*
 import io.ktor.util.date.GMTDate
-import io.ktor.util.pipeline.*
 import io.ktor.websocket.*
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.bouncycastle.util.encoders.Hex
 import org.drewcarlson.ktor.permissions.PermissionAuthorization
 import org.litote.kmongo.coroutine.coroutine
-import org.litote.kmongo.eq
 import org.litote.kmongo.reactivestreams.KMongo
 import org.slf4j.event.Level
 import java.time.Duration
@@ -60,7 +54,7 @@ val json = Json {
 }
 
 @Suppress("unused") // Referenced in application.conf
-@kotlin.jvm.JvmOverloads
+@JvmOverloads
 fun Application.module(testing: Boolean = false) {
 
     val mongoUrl = environment.config.property("app.mongoUrl").getString()
