@@ -14,7 +14,7 @@ services:
       -P:app.qbittorrentUrl=http://qbittorrent:9090
       -port=8888
     ports:
-      - 8888:8888
+      - "8888:8888"
     volumes:
       - ./qbittorrent/content:/content
       - ./qbittorrent/downloads:/downloads
@@ -33,7 +33,7 @@ services:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: password
     ports:
-      - 27017:27017
+      - "27017:27017"
 
   qbittorrent:
     image: drewcarlson/docker-qbittorrentvpn
@@ -55,7 +55,7 @@ services:
       - TZ=America/Los_Angeles
       - UMASK_SET=022
     ports:
-      - 9090:9090
+      - "9090:9090"
     volumes:
       - ./qbittorrent/config:/config
       - ./qbittorrent/downloads:/downloads
@@ -68,4 +68,4 @@ services:
       ME_CONFIG_MONGODB_ADMINUSERNAME: root
       ME_CONFIG_MONGODB_ADMINPASSWORD: password
     ports:
-      - 8081:8081
+      - "8081:8081"

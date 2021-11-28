@@ -4,7 +4,7 @@ RUN apk add --update --no-cache bash ffmpeg
 
 WORKDIR /app
 
-COPY anystream-server/build/install ./install
-COPY anystream-client-web/build/distributions ./client-web
+COPY anystream-server/build/install ./install/
+COPY anystream-client-web/build/distributions ./client-web/
 
 ENTRYPOINT ["./install/anystream-server-shadow/bin/anystream-server"]
