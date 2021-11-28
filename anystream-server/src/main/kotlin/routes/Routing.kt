@@ -31,8 +31,8 @@ import anystream.service.user.UserService
 import anystream.service.user.UserServiceQueriesMongo
 import anystream.torrent.search.KMongoTorrentProviderCache
 import anystream.util.SinglePageApp
-import anystream.util.withAnyPermission
-import anystream.util.withPermission
+import org.drewcarlson.ktor.permissions.withAnyPermission
+import org.drewcarlson.ktor.permissions.withPermission
 import com.github.kokorin.jaffree.ffmpeg.FFmpeg
 import com.github.kokorin.jaffree.ffprobe.FFprobe
 import drewcarlson.qbittorrent.QBittorrentClient

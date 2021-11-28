@@ -21,7 +21,7 @@ import anystream.data.MediaDbQueries
 import anystream.models.*
 import anystream.models.Permissions.MANAGE_COLLECTION
 import anystream.models.api.*
-import anystream.util.withAnyPermission
+import org.drewcarlson.ktor.permissions.withAnyPermission
 import com.mongodb.MongoException
 import io.ktor.application.*
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError

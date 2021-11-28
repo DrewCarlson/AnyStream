@@ -23,7 +23,7 @@ import anystream.models.*
 import anystream.models.api.*
 import anystream.models.api.CreateSessionError.*
 import anystream.service.user.UserService
-import anystream.util.withAnyPermission
+import org.drewcarlson.ktor.permissions.withAnyPermission
 import io.ktor.application.call
 import io.ktor.auth.*
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
@@ -41,7 +41,6 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.delay
 import kotlinx.serialization.encodeToString
 import org.bson.types.ObjectId
-import org.litote.kmongo.coroutine.*
 import java.util.*
 import kotlin.time.Duration
 

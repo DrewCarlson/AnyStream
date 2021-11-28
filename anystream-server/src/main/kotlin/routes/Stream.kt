@@ -22,8 +22,7 @@ import anystream.json
 import anystream.models.*
 import anystream.service.stream.StreamService
 import anystream.util.extractUserSession
-import anystream.util.withPermission
-import com.github.kokorin.jaffree.ffmpeg.*
+import org.drewcarlson.ktor.permissions.withPermission
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.http.*
@@ -38,15 +37,11 @@ import io.ktor.http.content.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
-import io.ktor.sessions.*
 import io.ktor.websocket.*
-import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import java.io.File
-import java.nio.file.StandardOpenOption.*
-import java.util.*
 import kotlin.math.roundToInt
 
 private const val PLAYBACK_COMPLETE_PERCENT = 90

@@ -17,7 +17,6 @@
  */
 package anystream.data
 
-import anystream.util.Permission
 import io.ktor.auth.*
 import kotlinx.serialization.Serializable
 import java.time.Instant
@@ -25,7 +24,7 @@ import java.time.Instant
 @Serializable
 data class UserSession(
     val userId: String,
-    val permissions: Set<Permission>,
+    val permissions: Set<String>,
     val sessionStarted: Long = Instant.now().toEpochMilli()
 ) : Principal {
     companion object {

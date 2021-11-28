@@ -19,19 +19,12 @@ package anystream.routes
 
 import anystream.data.*
 import anystream.models.Permissions.MANAGE_COLLECTION
-import anystream.util.withAnyPermission
+import org.drewcarlson.ktor.permissions.withAnyPermission
 import io.ktor.application.call
-import io.ktor.auth.*
-import io.ktor.http.*
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
-import io.ktor.http.cio.websocket.*
-import io.ktor.request.*
 import io.ktor.response.respond
 import io.ktor.routing.*
-import io.ktor.websocket.*
-import kotlinx.coroutines.flow.*
-import org.litote.kmongo.*
 
 fun Route.addMovieRoutes(
     queries: MediaDbQueries,
