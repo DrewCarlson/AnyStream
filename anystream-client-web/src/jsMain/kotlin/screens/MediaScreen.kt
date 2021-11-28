@@ -31,7 +31,6 @@ import kotlinx.browser.window
 import kotlinx.coroutines.flow.*
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
-import org.jetbrains.compose.web.ui.Styles.style
 import org.w3c.dom.HTMLElement
 import kotlin.time.Duration
 

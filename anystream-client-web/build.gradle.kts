@@ -51,7 +51,6 @@ kotlin {
                 implementation(libs.ktor.client.js)
 
                 implementation(compose.web.core)
-                implementation(compose.web.widgets)
                 implementation(compose.runtime)
                 implementation("app.softwork:routing-compose")
 
