@@ -67,3 +67,9 @@ kotlin {
         }
     }
 }
+
+// Override webpack version to fix dev-server error: https://youtrack.jetbrains.com/issue/KT-49124
+rootProject.extensions
+    .configure<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension> {
+        versions.webpackCli.version = "4.9.1"
+    }
