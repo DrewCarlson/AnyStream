@@ -166,12 +166,10 @@ private fun SearchBar(client: AnyStreamClient) {
 
     Form(null, {
         onSubmit { it.preventDefault() }
-        classes("mx-4", "p-1", "rounded-pill")
+        classes("d-flex", "flex-row", "mx-4", "p-1", "rounded-pill")
         style {
             width(320.px)
             maxWidth(320.px)
-            display(DisplayStyle.Flex)
-            flexDirection(FlexDirection.Row)
             backgroundColor(if (focused) Color.white else hsla(0, 0, 100, .08))
             property("transition", "background-color .2s")
         }
@@ -309,9 +307,8 @@ fun SideMenu(
         mutableStateOf(localStorage.getItem(MENU_EXPANDED_KEY)?.toBoolean() ?: false)
     }
     Div({
-        classes("mx-2", "py-2")
+        classes("d-inline-block", "mx-2", "py-2")
         style {
-            display(DisplayStyle.InlineBlock)
             property("transition", "width .2s ease-in-out 0s")
             if (expanded) {
                 width(250.px)

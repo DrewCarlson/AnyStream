@@ -245,8 +245,14 @@ fun PlayerScreen(
 
             if (!playerIsPlaying) {
                 I({
-                    classes("bi", "bi-play-circle-fill", "user-select-none")
-                    classes("position-absolute","left-50", "top-50")
+                    classes(
+                        "bi",
+                        "bi-play-circle-fill",
+                        "user-select-none",
+                        "position-absolute",
+                        "start-50",
+                        "top-50",
+                    )
                     onClick { if (player?.paused() == true) player?.play() else player?.pause() }
                     style {
                         fontSize(82.px)
@@ -257,7 +263,7 @@ fun PlayerScreen(
                 })
                 I({
                     classes("bi", "bi-play-circle", "user-select-none")
-                    classes("position-absolute", "left-50", "top-50")
+                    classes("position-absolute", "start-50", "top-50")
                     onClick { if (player?.paused() == true) player?.play() else player?.pause() }
                     style {
                         fontSize(82.px)
@@ -317,11 +323,18 @@ private fun MaxPlayerTopBar(
     setFullscreen: State<((Boolean) -> Unit)?>,
 ) {
     Div({
-        classes("position-absolute", "d-flex", "flex-row", "justify-content-between", "align-items-center")
+        classes(
+            "position-absolute",
+            "d-flex",
+            "flex-row",
+            "justify-content-between",
+            "align-items-center",
+            "w-100",
+            "p-3",
+            "top-0",
+        )
         style {
-            classes("w-100", "p-3")
             height(60.px)
-            top(0.px)
             backgroundColor(playerControlsColor)
             fontSize(20.px)
             property("transition", "transform .2s,background .2s")
@@ -666,7 +679,7 @@ private fun PlaybackControls(
 
         if (overlayMode) {
             Div({
-                classes("position-absolute", "w-100", "h-auto", "top-0", "left-0")
+                classes("position-absolute", "w-100", "h-auto", "top-0", "start-0")
                 style {
                     if (!areControlsVisible) {
                         property("transform", "translateY(100%)")
