@@ -57,6 +57,7 @@ kotlin {
                 implementation(libs.kotlinjs.extensions)
                 implementation(devNpm("bootstrap", "5.1.3"))
                 implementation(devNpm("bootstrap-icons", "1.7.1"))
+                implementation(devNpm("@fontsource/open-sans", "4.5.0"))
                 implementation(devNpm("@popperjs/core", "2.10.2"))
                 implementation(devNpm("video.js", "7.17.0"))
                 implementation(devNpm("webworkify-webpack-dropin", "1.1.9"))
