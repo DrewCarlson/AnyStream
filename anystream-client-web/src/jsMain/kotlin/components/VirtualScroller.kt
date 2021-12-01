@@ -27,6 +27,7 @@ import org.jetbrains.compose.web.renderComposable
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.get
 import kotlin.math.absoluteValue
+import kotlin.math.ceil
 import kotlin.random.Random
 
 private const val ITEM_BUFFER = 1
@@ -58,7 +59,7 @@ fun <T> VirtualScroller(
             val (itemWidth, itemHeight) = itemSizeWH.value
 
             val visibleXCount = (containerVpWidth / itemWidth)
-            val totalYCount = (itemCount.value / visibleXCount)
+            val totalYCount = ceil((itemCount.value / visibleXCount.toFloat())).toInt()
 
             (visibleXCount * itemWidth to totalYCount * itemHeight)
         }
