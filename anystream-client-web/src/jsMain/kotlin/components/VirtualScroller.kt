@@ -204,11 +204,12 @@ fun <T> VirtualScroller(
 
             // Determine where each item should be and bind a holder
             // to that item and position based on scroll offset.
+            val (_, scrollOffsetY) = scrollOffsetXY.value
+            val (itemWidth, itemHeight) = itemSizeWH.value
+            val sliceYOffset = ((scrollOffsetY / itemHeight) * itemHeight)
             itemSlice.forEachIndexed { rowI, row ->
-                val (_, scrollOffsetY) = scrollOffsetXY.value
-                val (itemWidth, itemHeight) = itemSizeWH.value
+                val itemTop = (rowI * itemHeight) + sliceYOffset
                 row.forEachIndexed { columnI, item ->
-                    val itemTop = (rowI * itemHeight) + ((scrollOffsetY / itemHeight) * itemHeight)
                     val itemLeft = (columnI * itemWidth)
                     bindHolder(item, itemTop, itemLeft)
                 }
@@ -241,10 +242,5 @@ private fun <T> createHolder(
             itemState.value?.also { item -> buildItem(item) }
         }
     }
-    return CompositionStateHolder(
-        composition = composition,
-        itemTop = itemTop,
-        itemLeft = itemLeft,
-        itemState = itemState
-    )
+    return CompositionStateHolder(composition, itemTop, itemLeft, itemState)
 }
