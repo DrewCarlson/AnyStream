@@ -18,7 +18,7 @@ android {
         }
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = libs.versions.compose.get()
+        kotlinCompilerExtensionVersion = libs.versions.composeCompiler.get()
     }
     signingConfigs {
         named("debug") {
@@ -40,8 +40,7 @@ android {
         "-Xopt-in=kotlin.time.ExperimentalTime",
         "-Xopt-in=kotlin.RequiresOptIn",
         "-Xopt-in=coil.annotation.ExperimentalCoilApi",
-        "-P",
-        "plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=true"
+        //"-P", "plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=true"
     )
 }
 

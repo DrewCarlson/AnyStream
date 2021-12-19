@@ -196,6 +196,7 @@ private fun DisplayPairingCode(
                         is PairingMessage.Failed -> {
                             value = null
                         }
+                        is PairingMessage.Idle -> Unit
                     }
                 }
             }

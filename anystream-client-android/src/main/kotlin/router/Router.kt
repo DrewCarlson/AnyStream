@@ -44,6 +44,7 @@ fun <T> Router(
     children: @Composable (BackStack<T>) -> Unit
 ) {
     val route = LocalRouting.current
+    @Suppress("UNCHECKED_CAST")
     val routingFromAmbient = route.firstOrNull() as? T
     val downStreamRoute = if (route.size > 1) route.takeLast(route.size - 1) else emptyList()
 

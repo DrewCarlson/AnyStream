@@ -38,8 +38,10 @@ import java.io.File
 import java.text.DecimalFormat
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.time.DurationUnit.SECONDS
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.DurationUnit.SECONDS
+import kotlin.time.Duration.Companion.seconds
 
 private const val DEFAULT_WAIT_FOR_SEGMENTS = 8
 
@@ -93,7 +95,7 @@ class StreamService(
                 is DownloadMediaReference -> mediaRef.filePath
             }?.run(::File) ?: return null
 
-            val runtime = Duration.seconds(getFileDuration(file))
+            val runtime = getFileDuration(file).seconds
             val newState = PlaybackState(
                 id = ObjectId.get().toString(),
                 mediaReferenceId = mediaRefId,
@@ -136,7 +138,7 @@ class StreamService(
             is DownloadMediaReference -> mediaRef.filePath
         }?.run(::File) ?: return null
 
-        val runtime = Duration.seconds(getFileDuration(file))
+        val runtime = getFileDuration(file).seconds
         if (!sessionMap.containsKey(token)) {
             val output = File("$transcodePath/$mediaRefId/$token")
             startTranscode(
@@ -226,13 +228,13 @@ class StreamService(
         val segmentLength = 6
         val requestedStartTime = (startAt - segmentLength)
             .coerceAtLeast(0.0)
-            .run(Duration::seconds)
+            .seconds
         val requestedStartSegment = (requestedStartTime.inWholeSeconds / segmentLength)
             .toInt()
             .coerceAtLeast(0)
         val (segmentCount, lastSegmentDuration) = getSegmentCountAndFinalLength(
             runtime,
-            Duration.seconds(segmentLength),
+            segmentLength.seconds,
         )
         val startSegment = if (transcodedSegments.contains(requestedStartSegment)) {
             var nextRequiredSegment = requestedStartSegment + 1
@@ -248,8 +250,8 @@ class StreamService(
         } else {
             (startSegment * segmentLength)
                 .toDouble()
-                .coerceAtMost(runtime.toDouble(SECONDS) - lastSegmentDuration)
-                .run(Duration::seconds)
+                .coerceAtMost(runtime.inWholeSeconds - lastSegmentDuration)
+                .seconds
         }
         val command = ffmpeg().apply {
             addInput(
@@ -302,7 +304,7 @@ class StreamService(
             transcodeProgress
                 .filter { event -> event.timeMillis > 0 }
                 .map { event ->
-                    val progress = Duration.milliseconds(event.timeMillis)
+                    val progress = event.timeMillis.milliseconds
                     if (progress == runtime) {
                         segmentCount
                     } else {
@@ -347,11 +349,11 @@ class StreamService(
 
         val session = sessionMap[token] ?: return
         val segmentTime = session.segmentLength * segment
-        val runtime = Duration.seconds(session.runtime)
+        val runtime = session.runtime.seconds
         if (transcodeJobs[token]?.isActive == true) {
             val (segmentCount, _) = getSegmentCountAndFinalLength(
                 runtime,
-                Duration.seconds(session.segmentLength),
+                session.segmentLength.seconds,
             )
             val maxEndSegment = (session.endSegment + DEFAULT_WAIT_FOR_SEGMENTS * 2)
                 .coerceAtMost(segmentCount)
@@ -392,7 +394,7 @@ class StreamService(
         val isHlsInFmp4 = segmentContainer.equals("mp4", ignoreCase = true)
         val hlsVersion = if (isHlsInFmp4) "7" else "3"
 
-        val segmentLength = Duration.seconds(6)
+        val segmentLength = 6.seconds
         val (segmentsCount, finalSegLength) = getSegmentCountAndFinalLength(runtime, segmentLength)
 
         val segmentExtension = segmentContainer
@@ -439,9 +441,7 @@ class StreamService(
         segmentLength: Duration,
     ): Pair<Int, Double> {
         val wholeSegments = (runtime / segmentLength).toInt()
-        val lastSegmentLength = Duration.milliseconds(
-            runtime.inWholeMilliseconds % segmentLength.inWholeMilliseconds
-        )
+        val lastSegmentLength = (runtime.inWholeMilliseconds % segmentLength.inWholeMilliseconds).milliseconds
         return if (lastSegmentLength == Duration.ZERO) {
             wholeSegments to segmentLength.toDouble(SECONDS)
         } else {

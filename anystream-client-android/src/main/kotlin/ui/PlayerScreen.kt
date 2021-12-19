@@ -29,18 +29,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleObserver
-import androidx.lifecycle.OnLifecycleEvent
+import androidx.lifecycle.*
 import anystream.client.AnyStreamClient
 import anystream.frontend.models.MediaItem
 import anystream.frontend.models.toMediaItem
 import anystream.models.MediaReference
 import anystream.models.Movie
 import anystream.models.PlaybackState
+import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem as ExoMediaItem
 import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.ui.PlayerView
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -67,7 +65,7 @@ fun PlayerScreen(
     var position by rememberSaveable { mutableStateOf(0L) }
     var sessionHandle by remember { mutableStateOf<AnyStreamClient.PlaybackSessionHandle?>(null) }
     val player = remember {
-        SimpleExoPlayer.Builder(context).build().apply {
+        ExoPlayer.Builder(context).build().apply {
             var updateStateJob: Job? = null
             addListener(object : Player.Listener {
                 override fun onPlaybackStateChanged(state: Int) {
@@ -76,7 +74,7 @@ fun PlayerScreen(
                         Player.STATE_READY -> {
                             scope.launch {
                                 while (true) {
-                                    window = currentWindowIndex
+                                    window = currentMediaItemIndex
                                     position = contentPosition.coerceAtLeast(0L)
                                     delay(PLAYER_STATE_UPDATE_INTERVAL)
                                 }
@@ -127,21 +125,21 @@ fun PlayerScreen(
 
     fun updateState() {
         autoPlay = player.playWhenReady
-        window = player.currentWindowIndex
+        window = player.currentMediaItemIndex
         position = player.contentPosition.coerceAtLeast(0L)
     }
 
     val playerView = remember {
         PlayerView(context).apply {
-            lifecycle.addObserver(object : LifecycleObserver {
-                @OnLifecycleEvent(Lifecycle.Event.ON_START)
-                fun onStart() {
+            lifecycle.addObserver(object : DefaultLifecycleObserver {
+                override fun onStart(owner: LifecycleOwner) {
+                    super.onStart(owner)
                     onResume()
                     player.playWhenReady = autoPlay
                 }
 
-                @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
-                fun onStop() {
+                override fun onStop(owner: LifecycleOwner) {
+                    super.onStop(owner)
                     updateState()
                     onPause()
                     player.playWhenReady = false

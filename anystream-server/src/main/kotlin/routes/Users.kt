@@ -21,7 +21,6 @@ import anystream.data.UserSession
 import anystream.json
 import anystream.models.*
 import anystream.models.api.*
-import anystream.models.api.CreateSessionError.*
 import anystream.service.user.UserService
 import org.drewcarlson.ktor.permissions.withAnyPermission
 import io.ktor.application.call
@@ -42,7 +41,7 @@ import kotlinx.coroutines.delay
 import kotlinx.serialization.encodeToString
 import org.bson.types.ObjectId
 import java.util.*
-import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 private const val PAIRING_SESSION_SECONDS = 60
 
@@ -220,7 +219,7 @@ fun Route.addUserWsRoutes(userService: UserService) {
         var tick = 0
         var finalMessage = userService.getPairingMessage(pairingCode, true)!!
         while (finalMessage == PairingMessage.Idle) {
-            delay(Duration.seconds(1))
+            delay(1.seconds)
             tick++
             finalMessage = userService.getPairingMessage(pairingCode, false) ?: finalMessage
             if (tick >= PAIRING_SESSION_SECONDS) {

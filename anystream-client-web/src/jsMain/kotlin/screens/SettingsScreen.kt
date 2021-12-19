@@ -30,7 +30,7 @@ import org.jetbrains.compose.web.attributes.InputType
 import org.jetbrains.compose.web.attributes.placeholder
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
-import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun SettingsScreen(
@@ -179,8 +179,8 @@ private fun ActiveStreamsList(
                     }
                     Div { Text("User: ${user.displayName}") }
                     Div {
-                        val progress = Duration.Companion.seconds(playbackState.position)
-                        val runtime = Duration.Companion.seconds(playbackState.runtime)
+                        val progress = playbackState.position.seconds
+                        val runtime = playbackState.runtime.seconds
                         Text(formatProgressAndRuntime(progress, runtime))
                     }
                 }

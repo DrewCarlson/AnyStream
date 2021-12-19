@@ -49,6 +49,7 @@ kotlin {
                 api(libs.coroutines.core)
                 api(libs.mobiuskt.core)
                 api(libs.mobiuskt.extras)
+                api(libs.mobiuskt.coroutines)
                 implementation(libs.serialization.core)
                 implementation(libs.serialization.json)
 
@@ -67,7 +68,7 @@ kotlin {
         if (hasAndroidSdk) {
             val androidMain by getting {
                 dependencies {
-                    implementation("androidx.core:core-ktx:1.7.0")
+                    implementation(libs.androidx.core.ktx)
                 }
             }
         }

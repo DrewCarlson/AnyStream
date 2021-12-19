@@ -31,7 +31,6 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import org.jetbrains.compose.web.css.*
-import org.jetbrains.compose.web.css.keywords.auto
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.I
 import org.jetbrains.compose.web.dom.Text
@@ -39,6 +38,7 @@ import org.jetbrains.compose.web.dom.Video
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.get
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 private val playerControlsColor = rgba(35, 36, 38, .45)
 
@@ -456,8 +456,8 @@ private fun PlaybackControls(
                 if (player.currentTime().isNaN() || player.duration().isNaN()) {
                     return@remember ""
                 }
-                val currentTime = Duration.seconds(player.currentTime())
-                val duration = Duration.seconds(player.duration())
+                val currentTime = player.currentTime().seconds
+                val duration = player.duration().seconds
                 formatProgressAndRuntime(currentTime, duration)
             }
             Div {

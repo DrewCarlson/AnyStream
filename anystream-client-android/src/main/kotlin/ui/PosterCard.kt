@@ -98,6 +98,8 @@ fun PosterCard(
                                 Text("No Backdrop")
                             }
                         }
+                        is ImagePainter.State.Success -> Unit
+                        is ImagePainter.State.Error -> Unit
                     }
                 }
             }

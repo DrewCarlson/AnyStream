@@ -32,7 +32,7 @@ import kotlinx.coroutines.flow.*
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 import org.w3c.dom.HTMLElement
-import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 val backdropImageUrl = MutableStateFlow<String?>(null)
 
@@ -139,13 +139,13 @@ private fun BaseDetailsView(
                 completedPercent = mediaItem.playbackState?.completedPercent,
                 onPlayClicked = {
                     window.location.hash = "!play:${mediaItem.mediaRefs.firstOrNull()?.id}"
-                }.takeIf { !mediaItem.mediaRefs.isNullOrEmpty() }
+                }.takeIf { mediaItem.mediaRefs.isNotEmpty() }
             )
 
             mediaItem.playbackState?.run {
                 Div {
                     Text(buildString {
-                        val remaining = Duration.seconds(runtime - position)
+                        val remaining = (runtime - position).seconds
                         if (remaining.inWholeHours >= 1) {
                             append(remaining.inWholeHours)
                             append(" hr ")

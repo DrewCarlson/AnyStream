@@ -72,16 +72,18 @@ open class MainActivity : AppCompatActivity() {
                             else -> Routes.Home
                         }
                         Router(defaultRouting = defaultRoute) { stack ->
-                            client?.authenticated
-                                ?.onEach { authed ->
-                                    val isLoginRoute = stack.last() == Routes.Login
-                                    if (authed && isLoginRoute) {
-                                        stack.replace(Routes.Home)
-                                    } else if (!authed && !isLoginRoute) {
-                                        stack.replace(Routes.Login)
+                            remember {
+                                client?.authenticated
+                                    ?.onEach { authed ->
+                                        val isLoginRoute = stack.last() == Routes.Login
+                                        if (authed && isLoginRoute) {
+                                            stack.replace(Routes.Home)
+                                        } else if (!authed && !isLoginRoute) {
+                                            stack.replace(Routes.Login)
+                                        }
                                     }
-                                }
-                                ?.launchIn(scope)
+                                    ?.launchIn(scope)
+                            }
                             when (val route = stack.last()) {
                                 Routes.Login -> LoginScreen(
                                     sessionManager = sessionManager,
