@@ -1,3 +1,0 @@
-[submodule "libs/routing-compose"]
-	path = libs/routing-compose
-	url = https://github.com/DrewCarlson/routing-compose.git

@@ -8,6 +8,7 @@ include(
     ":anystream-data-models",
     ":anystream-server",
     ":libs:preferences",
+    ":libs:routing-compose",
 )
 
 enableFeaturePreview("VERSION_CATALOGS")
@@ -18,12 +19,5 @@ pluginManagement {
         gradlePluginPortal()
         google()
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
-    }
-}
-
-includeBuild("libs/routing-compose") {
-    dependencySubstitution {
-        substitute(module("app.softwork:routing-compose"))
-            .using(project(":"))
     }
 }

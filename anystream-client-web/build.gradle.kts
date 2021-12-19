@@ -52,7 +52,7 @@ kotlin {
 
                 implementation(compose.web.core)
                 implementation(compose.runtime)
-                implementation("app.softwork:routing-compose")
+                implementation(projects.libs.routingCompose)
 
                 implementation(libs.kotlinjs.extensions)
                 implementation(devNpm("bootstrap", "5.1.3"))
