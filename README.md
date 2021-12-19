@@ -58,7 +58,6 @@ The following services will be running:
 
 - anystream (app): http://localhost:8888
 - mongo: localhost:27017
-- mongo-express: http://localhost:8081
 - docker-qbittorrentvpn: http://localhost:9090
 
 
