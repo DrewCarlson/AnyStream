@@ -34,7 +34,7 @@ private val urlHashFlow = MutableStateFlow(window.location.hash)
 fun webApp() = renderComposable(rootElementId = "root") {
     val client = remember {
         AnyStreamClient(
-            serverUrl = "https://mmm.anystream.dev",//window.location.run { "$protocol//$host" },
+            serverUrl = window.location.run { "$protocol//$host" },
             sessionManager = SessionManager(JsSessionDataStore)
         )
     }
