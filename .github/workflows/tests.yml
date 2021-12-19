@@ -31,7 +31,7 @@ jobs:
           path: |
             ~/.konan
             ~/.gradle
-          key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v1
+          key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
 
       - name: Start MongoDB
         if: ${{ startsWith(matrix.os, 'macos') }}
