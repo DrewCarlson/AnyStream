@@ -33,7 +33,6 @@ kotlin {
                 implementation(libs.ktor.client.core)
                 implementation(libs.ktor.client.json)
                 implementation(libs.ktor.client.serialization)
-                implementation(libs.korio)
             }
         }
         val commonTest by getting {

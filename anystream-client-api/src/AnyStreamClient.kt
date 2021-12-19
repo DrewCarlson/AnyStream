@@ -20,7 +20,6 @@ package anystream.client
 import anystream.models.*
 import anystream.models.api.*
 import anystream.torrent.search.TorrentDescription2
-import com.soywiz.korio.net.ws.WebSocketClient
 import drewcarlson.qbittorrent.models.GlobalTransferInfo
 import drewcarlson.qbittorrent.models.Torrent
 import drewcarlson.qbittorrent.models.TorrentFile
@@ -35,10 +34,8 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
+import io.ktor.http.cio.websocket.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
@@ -70,23 +67,23 @@ class AnyStreamClient(
     val permissions: Flow<Set<String>?> = sessionManager.permissionsFlow
     val user: Flow<User?> = sessionManager.userFlow
 
-    private val wsProto = if (serverUrl.startsWith("https")) "wss" else "ws"
-    private val wsServerUrl = "$wsProto://${serverUrl.substringAfter("://")}"
     private val http = http.config {
         install(HttpCookies) {
             storage = AcceptAllCookiesStorage()
         }
-        WebSockets { }
         Json {
             serializer = KotlinxSerializer(json)
         }
         defaultRequest {
+            val configuredProtocol = URLProtocol.createOrDefault(serverUrl.substringBefore("://"))
+            val configuredWssProtocol = if (configuredProtocol.isSecure()) URLProtocol.WSS else URLProtocol.WS
             url {
                 host = serverUrl.substringAfter("://").substringBefore(':')
                 port = serverUrl.substringAfterLast(':').takeWhile { it != '/' }.toIntOrNull() ?: 0
-                protocol = URLProtocol.createOrDefault(serverUrl.substringBefore("://"))
+                protocol = if (protocol.isWebsocket()) configuredWssProtocol else configuredProtocol
             }
         }
+        WebSockets { }
         install("TokenHandler") {
             requestPipeline.intercept(HttpRequestPipeline.Before) {
                 sessionManager.fetchToken()?.let { token ->
@@ -124,29 +121,45 @@ class AnyStreamClient(
     }
 
     fun torrentListChanges(): Flow<List<String>> = callbackFlow {
-        val client = wsClient("/api/ws/torrents/observe")
-        client.onStringMessage { msg ->
-            if (msg.isNotBlank()) {
-                trySend(msg.split(","))
-            }
+        http.wss("/api/ws/torrents/observe") {
+            incoming.consumeAsFlow()
+                .onEach { frame ->
+                    when (frame) {
+                        is Frame.Text -> {
+                            val message = frame.readText()
+                            if (message.isNotBlank()) {
+                                trySend(message.split(","))
+                            }
+                        }
+                        is Frame.Close -> close()
+                        else -> Unit
+                    }
+                }
+                .onStart { send(Frame.Text(sessionManager.fetchToken()!!)) }
+                .collect()
         }
-        client.onError { close(it) }
-        client.onClose { close() }
-        client.send(sessionManager.fetchToken()!!)
-        awaitClose { client.close() }
+        awaitClose()
     }
 
     fun globalInfoChanges(): Flow<GlobalTransferInfo> = callbackFlow {
-        val client = wsClient("/api/ws/torrents/global")
-        client.onStringMessage { msg ->
-            if (msg.isNotBlank()) {
-                trySend(json.decodeFromString(msg))
-            }
+        http.wss("/api/ws/torrents/global") {
+            incoming.consumeAsFlow()
+                .onEach { frame ->
+                    when (frame) {
+                        is Frame.Text -> {
+                            val message = frame.readText()
+                            if (message.isNotBlank()) {
+                                trySend(json.decodeFromString(message))
+                            }
+                        }
+                        is Frame.Close -> close()
+                        else -> Unit
+                    }
+                }
+                .onStart { send(Frame.Text(sessionManager.fetchToken()!!)) }
+                .collect()
         }
-        client.onError { close(it) }
-        client.onClose { close() }
-        client.send(sessionManager.fetchToken()!!)
-        awaitClose { client.close() }
+        awaitClose()
     }
 
     suspend fun getHomeData() = http.get<HomeResponse>("/api/home")
@@ -269,33 +282,41 @@ class AnyStreamClient(
             onBufferOverflow = BufferOverflow.DROP_OLDEST
         )
         var open = false
-        val client = wsClient("/api/ws/stream/$mediaRefId/state")
-        client.onStringMessage { msg ->
-            currentState.value = json.decodeFromString(msg)
-            init(currentState.value!!)
-            open = true
-        }
-        client.onError { open = false }
-        client.onClose { open = false }
-        client.send(sessionManager.fetchToken()!!)
-        progressFlow
-            .sample(5000)
-            .distinctUntilChanged()
-            .onEach { progress ->
-                if (open) {
-                    currentState.update { currentState ->
-                        currentState?.copy(position = progress)
+        scope.launch {
+            http.wss("/api/ws/stream/$mediaRefId/state") {
+                incoming.consumeAsFlow()
+                    .onEach { frame ->
+                        when (frame) {
+                            is Frame.Text -> {
+                                val message = frame.readText()
+                                currentState.value = json.decodeFromString<PlaybackState>(message).also(init)
+                                open = true
+                            }
+                            is Frame.Close -> {
+                                open = false
+                            }
+                            else -> Unit
+                        }
                     }
-                    client.send(json.encodeToString(currentState.value))
-                }
+                    .onStart { send(Frame.Text(sessionManager.fetchToken()!!)) }
+                    .collect()
+                progressFlow
+                    .sample(5000)
+                    .distinctUntilChanged()
+                    .onEach { progress ->
+                        if (open) {
+                            currentState.update { currentState ->
+                                currentState?.copy(position = progress)
+                            }
+                            send(Frame.Text(json.encodeToString(currentState.value)))
+                        }
+                    }
+                    .launchIn(scope)
             }
-            .launchIn(scope)
+        }
         return PlaybackSessionHandle(
             update = progressFlow,
-            cancel = {
-                scope.cancel()
-                client.close()
-            }
+            cancel = { scope.cancel() }
         )
     }
 
@@ -378,7 +399,7 @@ class AnyStreamClient(
     }
 
     suspend fun createPairedSession(pairingCode: String, secret: String): CreateSessionResponse {
-        val response =  http.post<CreateSessionResponse>("/api/users/session/paired") {
+        val response = http.post<CreateSessionResponse>("/api/users/session/paired") {
             parameter("pairingCode", pairingCode)
             parameter("secret", secret)
         }
@@ -392,15 +413,18 @@ class AnyStreamClient(
     }
 
     suspend fun createPairingSession(): Flow<PairingMessage> = callbackFlow {
-        val client = wsClient("/api/ws/users/pair")
-        client.onStringMessage { msg ->
-            if (msg.isNotBlank()) {
-                trySend(json.decodeFromString(msg))
-            }
+        http.wss("/api/ws/users/pair") {
+            incoming.consumeAsFlow()
+                .onEach { frame ->
+                    when (frame) {
+                        is Frame.Text -> trySend(json.decodeFromString(frame.readText()))
+                        is Frame.Close -> close()
+                        else -> Unit
+                    }
+                }
+                .collect()
         }
-        client.onError { close(it) }
-        client.onClose { close() }
-        awaitClose { client.close() }
+        awaitClose()
     }
 
     suspend fun search(query: String, limit: Int? = null): SearchResponse =
@@ -414,12 +438,19 @@ class AnyStreamClient(
     }
 
     fun observeLogs(): Flow<String> = callbackFlow {
-        val client = wsClient("/api/ws/admin/logs")
-        client.onStringMessage { msg -> trySend(msg) }
-        client.onError { close(it) }
-        client.onClose { close() }
-        client.send(sessionManager.fetchToken()!!)
-        awaitClose { client.close() }
+        http.wss("/api/ws/admin/logs") {
+            incoming.consumeAsFlow()
+                .onEach { frame ->
+                    when (frame) {
+                        is Frame.Text -> trySend(frame.readText())
+                        is Frame.Close -> close()
+                        else -> Unit
+                    }
+                }
+                .onStart { outgoing.trySend(Frame.Text(sessionManager.fetchToken()!!)) }
+                .collect()
+        }
+        awaitClose()
     }
 
     suspend fun getStreams(): PlaybackSessionsResponse =
@@ -427,10 +458,6 @@ class AnyStreamClient(
 
     fun createHlsStreamUrl(mediaRefId: String, token: String): String {
         return "${serverUrl}/api/stream/${mediaRefId}/hls/playlist.m3u8?token=$token"
-    }
-
-    private suspend fun wsClient(path: String): WebSocketClient {
-        return WebSocketClient(url = "$wsServerUrl$path")
     }
 
     data class PlaybackSessionHandle(

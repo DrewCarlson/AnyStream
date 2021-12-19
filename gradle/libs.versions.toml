@@ -11,7 +11,6 @@ torrent_search = "0.1.1"
 mobiuskt = "0.3.1"
 ktor_perm = "0.1.4"
 
-korlibs_korio = "2.2.1"
 kmongo = "4.4.0"
 bouncy_castle = "1.67"
 tmdb = "1.12"
@@ -46,6 +45,7 @@ ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktorio"
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktorio" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktorio" }
 ktor-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktorio" }
+ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktorio" }
 ktor-client-json = { module = "io.ktor:ktor-client-json", version.ref = "ktorio" }
 ktor-client-serialization = { module = "io.ktor:ktor-client-serialization", version.ref = "ktorio" }
 
@@ -59,8 +59,6 @@ ktor-server-authJwt = { module = "io.ktor:ktor-auth-jwt", version.ref = "ktorio"
 ktor-server-serialization = { module = "io.ktor:ktor-serialization", version.ref = "ktorio" }
 ktor-server-websockets = { module = "io.ktor:ktor-websockets", version.ref = "ktorio" }
 ktor-server-permissions = { module = "org.drewcarlson:ktor-permissions", version.ref = "ktor_perm" }
-
-korio = { module = "com.soywiz.korlibs.korio:korio", version.ref = "korlibs_korio" }
 
 qbittorrent-models = { module = "org.drewcarlson:qbittorrent-models", version.ref = "qbittorrent" }
 qbittorrent-client = { module = "org.drewcarlson:qbittorrent-client", version.ref = "qbittorrent" }
