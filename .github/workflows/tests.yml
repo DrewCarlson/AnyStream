@@ -16,12 +16,13 @@ jobs:
         os: [macos-latest] #windows-latest, ubuntu-latest
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
         with:
           submodules: 'recursive'
 
-      - uses: actions/setup-java@v1
+      - uses: actions/setup-java@v2
         with:
+          distribution: 'zulu'
           java-version: 11
 
       - name: Cache Build files
@@ -37,7 +38,7 @@ jobs:
         if: ${{ startsWith(matrix.os, 'macos') }}
         run: brew tap mongodb/brew && brew install mongodb-community@5.0 && brew services start mongodb-community@5.0
 
-      - uses: eskatos/gradle-command-action@v1
+      - uses: gradle/gradle-build-action@v2
         name: All Tests
         if: ${{ startsWith(matrix.os, 'macos') }}
         with:
