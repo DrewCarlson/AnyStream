@@ -42,8 +42,6 @@
 
 ### Development
 
-*Note: Because of the use of Jetpack Compose, only [Android Studio 2020.3.1 Arctic Fox](https://developer.android.com/studio/)+ is supported!*
-
 - Install [Intellij IDEA](https://www.jetbrains.com/idea/) (preferred) or [Android Studio](https://developer.android.com/studio/)
 - Clone this repo `git clone https://github.com/DrewCarlson/AnyStream.git`
 - Open the `AnyStream` folder in your IDE
