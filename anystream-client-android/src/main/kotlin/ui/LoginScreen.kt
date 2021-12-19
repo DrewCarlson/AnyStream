@@ -22,6 +22,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Scaffold
@@ -29,9 +30,21 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.autofill.Autofill
+import androidx.compose.ui.autofill.AutofillNode
+import androidx.compose.ui.autofill.AutofillType
+import androidx.compose.ui.focus.FocusState
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalAutofill
+import androidx.compose.ui.platform.LocalAutofillTree
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -43,8 +56,12 @@ import anystream.models.api.PairingMessage
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
 import io.ktor.client.features.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.net.InetAddress
 
 
 @Composable
@@ -62,6 +79,7 @@ fun LoginScreen(
 }
 
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun FormBody(
     sessionManager: SessionManager,
@@ -69,11 +87,24 @@ private fun FormBody(
     paddingValues: PaddingValues
 ) {
     val scope = rememberCoroutineScope()
-    var serverUrl by remember { mutableStateOf(TextFieldValue("https://anystream.dev")) }
+    var serverUrl by remember { mutableStateOf(TextFieldValue("")) }
     var username by remember { mutableStateOf(TextFieldValue()) }
     var password by remember { mutableStateOf(TextFieldValue()) }
-    var errorMessage by rememberSaveable{ mutableStateOf<String?>(null) }
+    var errorMessage by rememberSaveable { mutableStateOf<String?>(null) }
     val showStacked = LocalConfiguration.current.screenWidthDp < 800
+    val isServerUrlValid by produceState(false, serverUrl.text) {
+        delay(400)
+        value = if (serverUrl.text.run { isNotBlank() && length > 5 }) {
+            withContext(Dispatchers.IO) {
+                try {
+                    // TODO: Check if server is AnyStream instance
+                    InetAddress.getByName(serverUrl.text.substringAfter("://")).isReachable(10)
+                } catch (e: Throwable) {
+                    false
+                }
+            }
+        } else false
+    }
     StackedOrSideBySide(stacked = showStacked) {
         Column(
             verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
@@ -86,21 +117,55 @@ private fun FormBody(
                 value = serverUrl,
                 placeholder = { Text(text = "Server Url") },
                 onValueChange = { serverUrl = it },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Uri,
+                    imeAction = ImeAction.Next
+                ),
                 singleLine = true,
             )
-            OutlinedTextField(
-                value = username,
-                placeholder = { Text(text = "Username") },
-                onValueChange = { username = it },
-                singleLine = true,
-            )
-            OutlinedTextField(
-                value = password,
-                placeholder = { Text(text = "Password") },
-                visualTransformation = PasswordVisualTransformation(),
-                onValueChange = { password = it },
-                singleLine = true,
-            )
+            Autofill(
+                autofillTypes = listOf(AutofillType.EmailAddress, AutofillType.Username),
+                onFill = { username = TextFieldValue(it) }
+            ) { node ->
+                val autofill = LocalAutofill.current
+                OutlinedTextField(
+                    value = username,
+                    placeholder = { Text(text = "Username") },
+                    onValueChange = { username = it },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.Next
+                    ),
+                    modifier = Modifier.onGloballyPositioned {
+                        node.boundingBox = it.boundsInWindow()
+                    }.onFocusChanged {
+                        autofill?.onFocusStateChanged(it, node)
+                    },
+                )
+            }
+            Autofill(
+                autofillTypes = listOf(AutofillType.Password),
+                onFill = { password = TextFieldValue(it) }
+            ) { node ->
+                val autofill = LocalAutofill.current
+                OutlinedTextField(
+                    value = password,
+                    placeholder = { Text(text = "Password") },
+                    visualTransformation = PasswordVisualTransformation(),
+                    onValueChange = { password = it },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Password,
+                        imeAction = ImeAction.Go
+                    ),
+                    modifier = Modifier.onGloballyPositioned {
+                        node.boundingBox = it.boundsInWindow()
+                    }.onFocusChanged {
+                        autofill?.onFocusStateChanged(it, node)
+                    },
+                )
+            }
 
             errorMessage?.let { error ->
                 Text(text = error)
@@ -125,7 +190,7 @@ private fun FormBody(
             }
         }
 
-        if (serverUrl.text.run { contains("://") && contains(".") }) {
+        if (isServerUrlValid) {
             DisplayPairingCode(serverUrl.text, sessionManager, onLoginCompleted)
         }
     }
@@ -249,4 +314,31 @@ fun QrImage(
             contentDescription = null
         )
     }
+}
+
+
+@ExperimentalComposeUiApi
+@Composable
+private fun Autofill(
+    autofillTypes: List<AutofillType>,
+    onFill: ((String) -> Unit),
+    content: @Composable (AutofillNode) -> Unit
+) {
+    val autofillNode = AutofillNode(onFill = onFill, autofillTypes = autofillTypes)
+
+    val autofillTree = LocalAutofillTree.current
+    autofillTree += autofillNode
+
+    Box(
+        Modifier.onGloballyPositioned {
+            autofillNode.boundingBox = it.boundsInWindow()
+        }
+    ) {
+        content(autofillNode)
+    }
+}
+
+@ExperimentalComposeUiApi
+private fun Autofill.onFocusStateChanged(focusState: FocusState, node: AutofillNode) {
+    if (focusState.isFocused) requestAutofillForNode(node) else cancelAutofillForNode(node)
 }
