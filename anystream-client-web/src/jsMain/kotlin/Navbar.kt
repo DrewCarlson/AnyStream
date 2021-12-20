@@ -347,7 +347,7 @@ fun SideMenu(
                     NavLink("Downloads", "bi-cloud-arrow-down", "/downloads", expanded)
                 }
             }
-            Li {
+            Li({ classes("mt-auto") }) {
                 A(attrs = {
                     classes("nav-link")
                     style {
