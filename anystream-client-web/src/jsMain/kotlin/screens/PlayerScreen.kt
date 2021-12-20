@@ -20,6 +20,7 @@ package anystream.frontend.screens
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
 import anystream.frontend.libs.VideoJs
+import anystream.frontend.libs.VjsOptions
 import anystream.frontend.libs.VjsPlayer
 import anystream.frontend.models.MediaItem
 import anystream.frontend.models.toMediaItem
@@ -183,7 +184,11 @@ fun PlayerScreen(
                             mouseMoveFlow.tryEmit(Unit)
                         }
                     }
-                    player = VideoJs.default(element)
+                    player = VideoJs.default(element, VjsOptions {
+                        errorDisplay = false
+                        controlBar = false
+                        loadingSpinner = false
+                    })
                     element.onprogress = {
                         val timeSpans = List(element.buffered.length) { i ->
                             element.buffered.start(i)..element.buffered.end(i)
@@ -191,8 +196,7 @@ fun PlayerScreen(
 
                         val closestBufferProgress = timeSpans
                             .filter { span -> element.currentTime in span }
-                            .map { span -> span.endInclusive }
-                            .maxByOrNull { it }
+                            .maxOfOrNull { span -> span.endInclusive }
                             ?.div(element.duration)
 
                         bufferedProgress.value = closestBufferProgress ?: 0.0
