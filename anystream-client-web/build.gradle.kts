@@ -53,7 +53,7 @@ kotlin {
                 implementation(devNpm("bootstrap-icons", "1.7.2"))
                 implementation(devNpm("@fontsource/open-sans", "4.5.0"))
                 implementation(devNpm("@popperjs/core", "2.11.0"))
-                implementation(devNpm("video.js", "7.17.0"))
+                implementation(devNpm("video.js", "7.17.3"))
                 implementation(devNpm("webworkify-webpack-dropin", "1.1.9"))
                 implementation(devNpm("file-loader", "6.2.0"))
                 implementation(devNpm("webpack-bundle-analyzer", "4.4.2"))
