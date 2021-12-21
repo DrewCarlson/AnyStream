@@ -120,7 +120,7 @@ class AnyStreamClient(
         return sessionManager.fetchUser()
     }
 
-    fun torrentListChanges(): Flow<List<String>> = callbackFlow {
+    fun torrentListChanges(): Flow<List<String>> = flow {
         http.wss("/api/ws/torrents/observe") {
             incoming.consumeAsFlow()
                 .onEach { frame ->
@@ -128,7 +128,7 @@ class AnyStreamClient(
                         is Frame.Text -> {
                             val message = frame.readText()
                             if (message.isNotBlank()) {
-                                trySend(message.split(","))
+                                emit(message.split(","))
                             }
                         }
                         is Frame.Close -> close()
@@ -138,10 +138,9 @@ class AnyStreamClient(
                 .onStart { send(Frame.Text(sessionManager.fetchToken()!!)) }
                 .collect()
         }
-        awaitClose()
     }
 
-    fun globalInfoChanges(): Flow<GlobalTransferInfo> = callbackFlow {
+    fun globalInfoChanges(): Flow<GlobalTransferInfo> = flow {
         http.wss("/api/ws/torrents/global") {
             incoming.consumeAsFlow()
                 .onEach { frame ->
@@ -149,7 +148,7 @@ class AnyStreamClient(
                         is Frame.Text -> {
                             val message = frame.readText()
                             if (message.isNotBlank()) {
-                                trySend(json.decodeFromString(message))
+                                emit(json.decodeFromString(message))
                             }
                         }
                         is Frame.Close -> close()
@@ -159,7 +158,6 @@ class AnyStreamClient(
                 .onStart { send(Frame.Text(sessionManager.fetchToken()!!)) }
                 .collect()
         }
-        awaitClose()
     }
 
     suspend fun getHomeData() = http.get<HomeResponse>("/api/home")
@@ -404,19 +402,18 @@ class AnyStreamClient(
         return response
     }
 
-    suspend fun createPairingSession(): Flow<PairingMessage> = callbackFlow {
+    suspend fun createPairingSession(): Flow<PairingMessage> = flow {
         http.wss("/api/ws/users/pair") {
             incoming.consumeAsFlow()
                 .onEach { frame ->
                     when (frame) {
-                        is Frame.Text -> trySend(json.decodeFromString(frame.readText()))
+                        is Frame.Text -> emit(json.decodeFromString(frame.readText()))
                         is Frame.Close -> close()
                         else -> Unit
                     }
                 }
                 .collect()
         }
-        awaitClose()
     }
 
     suspend fun search(query: String, limit: Int? = null): SearchResponse =
@@ -429,12 +426,12 @@ class AnyStreamClient(
 
     }
 
-    fun observeLogs(): Flow<String> = callbackFlow {
+    fun observeLogs(): Flow<String> = flow {
         http.wss("/api/ws/admin/logs") {
             incoming.consumeAsFlow()
                 .onEach { frame ->
                     when (frame) {
-                        is Frame.Text -> trySend(frame.readText())
+                        is Frame.Text -> emit(frame.readText())
                         is Frame.Close -> close()
                         else -> Unit
                     }
@@ -442,7 +439,6 @@ class AnyStreamClient(
                 .onStart { outgoing.trySend(Frame.Text(sessionManager.fetchToken()!!)) }
                 .collect()
         }
-        awaitClose()
     }
 
     suspend fun getStreams(): PlaybackSessionsResponse =
