@@ -277,41 +277,33 @@ class AnyStreamClient(
     ): PlaybackSessionHandle {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
         val currentState = MutableStateFlow<PlaybackState?>(null)
-        val progressFlow = MutableSharedFlow<Double>(
-            extraBufferCapacity = 1,
-            onBufferOverflow = BufferOverflow.DROP_OLDEST
-        )
-        var open = false
+        val progressFlow = MutableSharedFlow<Double>(0, 1, BufferOverflow.DROP_OLDEST)
         scope.launch {
             http.wss("/api/ws/stream/$mediaRefId/state") {
-                incoming.consumeAsFlow()
-                    .onEach { frame ->
-                        when (frame) {
-                            is Frame.Text -> {
-                                val message = frame.readText()
-                                currentState.value = json.decodeFromString<PlaybackState>(message).also(init)
-                                open = true
-                            }
-                            is Frame.Close -> {
-                                open = false
-                            }
-                            else -> Unit
-                        }
-                    }
-                    .onStart { send(Frame.Text(sessionManager.fetchToken()!!)) }
-                    .collect()
                 progressFlow
                     .sample(5000)
                     .distinctUntilChanged()
                     .onEach { progress ->
-                        if (open) {
+                        if (currentState.value != null) {
                             currentState.update { currentState ->
                                 currentState?.copy(position = progress)
                             }
                             send(Frame.Text(json.encodeToString(currentState.value)))
                         }
                     }
-                    .launchIn(scope)
+                    .launchIn(this)
+                incoming.consumeAsFlow()
+                    .onEach { frame ->
+                        when (frame) {
+                            is Frame.Text -> {
+                                val message = frame.readText()
+                                currentState.value = json.decodeFromString<PlaybackState>(message).also(init)
+                            }
+                            else -> Unit
+                        }
+                    }
+                    .onStart { send(Frame.Text(sessionManager.fetchToken()!!)) }
+                    .collect()
             }
         }
         return PlaybackSessionHandle(
