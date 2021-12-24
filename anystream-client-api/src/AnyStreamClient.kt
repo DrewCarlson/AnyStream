@@ -136,7 +136,9 @@ class AnyStreamClient(
         http.wss("$serverUrlWs/api/ws/torrents/global") {
             send(sessionManager.fetchToken()!!)
             for (frame in incoming) {
-                emit(receiveDeserialized())
+                if (frame is Frame.Text) {
+                    emit(receiveDeserialized())
+                }
             }
         }
     }
@@ -261,9 +263,21 @@ class AnyStreamClient(
         scope.launch {
             http.wss("$serverUrlWs/api/ws/stream/$mediaRefId/state") {
                 send(sessionManager.fetchToken()!!)
-                val playbackState = receiveDeserialized<PlaybackState>()
-                currentState.value = playbackState
-                init(playbackState)
+                for (frame in incoming) {
+                    when (frame) {
+                        is Frame.Text -> {
+                            val playbackState = receiveDeserialized<PlaybackState>()
+                            currentState.value = playbackState
+                            init(playbackState)
+                            continue
+                        }
+                        is Frame.Close -> {
+                            scope.cancel()
+                            close()
+                        }
+                        else -> Unit
+                    }
+                }
                 progressFlow
                     .sample(5000)
                     .distinctUntilChanged()
@@ -384,7 +398,11 @@ class AnyStreamClient(
 
     suspend fun createPairingSession(): Flow<PairingMessage> = flow {
         http.wss("$serverUrlWs/api/ws/users/pair") {
-            for (frame in incoming) emit(receiveDeserialized())
+            for (frame in incoming) {
+                if (frame is Frame.Text) {
+                    emit(receiveDeserialized())
+                }
+            }
         }
     }
 
