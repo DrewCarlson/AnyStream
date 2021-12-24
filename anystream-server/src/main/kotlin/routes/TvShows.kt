@@ -19,9 +19,7 @@ package anystream.routes
 
 import anystream.data.MediaDbQueries
 import anystream.models.*
-import anystream.models.Permissions.MANAGE_COLLECTION
 import anystream.models.api.*
-import com.mongodb.MongoException
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
@@ -29,6 +27,7 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.drewcarlson.ktor.permissions.withAnyPermission
+import org.jdbi.v3.core.JdbiException
 
 fun Route.addTvShowRoutes(
     queries: MediaDbQueries,
@@ -69,14 +68,14 @@ fun Route.addTvShowRoutes(
                 )
             }
 
-            withAnyPermission(MANAGE_COLLECTION) {
+            withAnyPermission(Permission.ManageCollection) {
                 delete {
                     val result = call.parameters["show_id"]?.let { showId ->
                         try {
                             queries.deleteTvShow(showId)
                             queries.deleteRefsByRootContentId(showId)
                             OK
-                        } catch (e: MongoException) {
+                        } catch (e: JdbiException) {
                             InternalServerError
                         }
                     }

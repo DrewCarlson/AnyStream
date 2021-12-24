@@ -38,7 +38,6 @@ import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.delay
 import kotlinx.serialization.encodeToString
-import org.bson.types.ObjectId
 import org.drewcarlson.ktor.permissions.withAnyPermission
 import java.util.*
 import kotlin.time.Duration.Companion.seconds
@@ -56,12 +55,11 @@ fun Route.addUserRoutes(userService: UserService) {
             if (result == null) {
                 call.respond(Forbidden)
             } else {
-                val success = result.success
-                if (createSession && success != null) {
+                if (createSession && result is CreateUserResponse.Success) {
                     call.sessions.getOrSet {
                         UserSession(
-                            userId = success.user.id,
-                            permissions = success.permissions,
+                            userId = result.user.id,
+                            permissions = result.permissions,
                         )
                     }
                 }
@@ -70,14 +68,14 @@ fun Route.addUserRoutes(userService: UserService) {
         }
 
         authenticate {
-            withAnyPermission(Permissions.GLOBAL) {
+            withAnyPermission(Permission.Global) {
                 route("/invite") {
                     get {
                         val session = call.sessions.get<UserSession>()!!
                         call.respond(
                             userService.getInvites(
                                 session.userId.takeIf {
-                                    session.permissions.contains(Permissions.GLOBAL)
+                                    session.permissions.contains(Permission.Global)
                                 }
                             )
                         )
@@ -85,8 +83,8 @@ fun Route.addUserRoutes(userService: UserService) {
 
                     post {
                         val session = call.sessions.get<UserSession>()!!
-                        val permissions = call.receiveOrNull()
-                            ?: setOf(Permissions.VIEW_COLLECTION)
+                        val permissions = call.receiveOrNull<Set<Permission>>()
+                            ?: setOf(Permission.ViewCollection)
 
                         val inviteCode = userService.createInviteCode(session.userId, permissions)
                         if (inviteCode == null) {
@@ -106,7 +104,7 @@ fun Route.addUserRoutes(userService: UserService) {
                         val result = userService.deleteInvite(
                             inviteCode = inviteCode,
                             byUserId = session.userId.takeIf {
-                                session.permissions.contains(Permissions.GLOBAL)
+                                session.permissions.contains(Permission.Global)
                             }
                         )
                         call.respond(if (result) NotFound else OK)
@@ -163,23 +161,23 @@ fun Route.addUserRoutes(userService: UserService) {
         }
 
         authenticate {
-            withAnyPermission(Permissions.GLOBAL) {
+            withAnyPermission(Permission.Global) {
                 get {
                     call.respond(userService.getUsers())
                 }
             }
 
             route("/{user_id}") {
-                withAnyPermission(Permissions.GLOBAL) {
+                withAnyPermission(Permission.Global) {
                     get {
-                        val userId = call.parameters["user_id"]!!
+                        val userId = call.parameters["user_id"]?.toIntOrNull()!!
                         call.respond(userService.getUser(userId) ?: NotFound)
                     }
                 }
 
                 put {
                     val session = call.sessions.get<UserSession>()!!
-                    val userId = call.parameters["user_id"]!!
+                    val userId = call.parameters["user_id"]?.toIntOrNull()!!
                     val body = call.receiveOrNull<UpdateUserBody>()
                         ?: return@put call.respond(UnprocessableEntity)
 
@@ -191,16 +189,11 @@ fun Route.addUserRoutes(userService: UserService) {
                     }
                 }
 
-                withAnyPermission(Permissions.GLOBAL) {
+                withAnyPermission(Permission.Global) {
                     delete {
-                        val userId = call.parameters["user_id"]!!
-
-                        if (ObjectId.isValid(userId)) {
-                            val result = userService.deleteUser(userId)
-                            call.respond(if (result) OK else NotFound)
-                        } else {
-                            call.respond(BadRequest)
-                        }
+                        val userId = call.parameters["user_id"]?.toIntOrNull()!!
+                        val result = userService.deleteUser(userId)
+                        call.respond(if (result) OK else NotFound)
                     }
                 }
             }

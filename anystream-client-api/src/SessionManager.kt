@@ -17,6 +17,7 @@
  */
 package anystream.client
 
+import anystream.models.Permission
 import anystream.models.User
 import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.flow.Flow
@@ -62,11 +63,11 @@ interface SessionDataStore {
 class SessionManager(private val dataStore: SessionDataStore) {
     private val user = MutableSharedFlow<User?>(1, 0, DROP_OLDEST)
     private val token = MutableSharedFlow<String?>(1, 0, DROP_OLDEST)
-    private val permissions = MutableSharedFlow<Set<String>?>(1, 0, DROP_OLDEST)
+    private val permissions = MutableSharedFlow<Set<Permission>?>(1, 0, DROP_OLDEST)
 
     val userFlow: Flow<User?> = user
     val tokenFlow: Flow<String?> = token
-    val permissionsFlow: Flow<Set<String>?> = permissions
+    val permissionsFlow: Flow<Set<Permission>?> = permissions
 
     init {
         fetchUser()
@@ -88,8 +89,8 @@ class SessionManager(private val dataStore: SessionDataStore) {
         this.token.tryEmit(token)
     }
 
-    fun writePermissions(permissions: Set<String>) {
-        dataStore.write(PERMISSIONS_KEY, permissions.joinToString(","))
+    fun writePermissions(permissions: Set<Permission>) {
+        dataStore.write(PERMISSIONS_KEY, json.encodeToString(permissions))
         this.permissions.tryEmit(permissions)
     }
 
@@ -110,10 +111,10 @@ class SessionManager(private val dataStore: SessionDataStore) {
             ?: dataStore.read(STORAGE_KEY).also(token::tryEmit)
     }
 
-    fun fetchPermissions(): Set<String>? {
+    fun fetchPermissions(): Set<Permission>? {
         return permissions.replayCache.singleOrNull()
             ?: dataStore.read(PERMISSIONS_KEY)
-                ?.split(",")
+                ?.let { json.decodeFromString<List<Permission>>(it) }
                 ?.toSet()
                 ?.also(permissions::tryEmit)
     }

@@ -1,0 +1,25 @@
+CREATE TABLE IF NOT EXISTS media
+(
+    id               INTEGER PRIMARY KEY NOT NULL,
+    gid              VARCHAR(24)         NOT NULL,
+    rootId           INT,
+    rootGid          TEXT,
+    parentId         INT,
+    parentGid        TEXT,
+    parentIndex      INT,
+    title            TEXT,
+    overview         TEXT,
+    tmdbId           INT,
+    imdbId           TEXT,
+    runtime          INT,
+    'index'          INT,
+    contentRating    VARCHAR(30),
+    posterPath       TEXT,
+    backdropPath     TEXT,
+    firstAvailableAt TEXT,
+    createdAt        TEXT                NOT NULL,
+    updatedAt        TEXT                NOT NULL,
+    addedByUserId    VARCHAR(24)         NOT NULL,
+    mediaKind        VARCHAR             NOT NULL,
+    mediaType        VARCHAR             NOT NULL
+);

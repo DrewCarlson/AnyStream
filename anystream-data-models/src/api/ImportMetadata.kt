@@ -19,6 +19,7 @@ package anystream.models.api
 
 import anystream.models.MediaKind
 import anystream.models.Movie
+import anystream.models.TvSeason
 import anystream.models.TvShow
 import kotlinx.serialization.Serializable
 
@@ -58,6 +59,7 @@ sealed class MetadataMatch {
         override val remoteId: String,
         override val exists: Boolean,
         val tvShow: TvShow,
+        val seasons: List<TvSeason>,
     ) : MetadataMatch()
 }
 

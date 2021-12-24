@@ -89,8 +89,8 @@ fun MediaScreen(
                 client = client,
             )
 
-            if (response.tvShow.seasons.isNotEmpty()) {
-                SeasonRow(response.tvShow.seasons)
+            if (response.seasons.isNotEmpty()) {
+                SeasonRow(response.seasons)
             }
         }
 
@@ -165,7 +165,7 @@ private fun BaseDetailsView(
         Div({ classes("d-flex", "flex-column", "flex-grow-1", "p-4") }) {
             Div({ classes("d-flex", "flex-row", "align-items-center") }) {
                 H3 { Text(mediaItem.contentTitle) }
-                if (client.hasPermission(Permissions.MANAGE_COLLECTION)) {
+                if (client.hasPermission(Permission.ManageCollection)) {
                     I({
                         classes("bi", "bi-arrow-repeat", "p-1")
                         style {

@@ -22,13 +22,12 @@ import anystream.media.MediaImportProcessor
 import anystream.metadata.MetadataManager
 import anystream.models.*
 import anystream.models.api.*
+import anystream.util.ObjectId
 import anystream.util.concurrentMap
-import com.mongodb.MongoException
-import com.mongodb.MongoQueryException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.toList
-import org.bson.types.ObjectId
+import org.jdbi.v3.core.JdbiException
 import org.slf4j.Logger
 import org.slf4j.Marker
 import java.io.File
@@ -48,7 +47,7 @@ class TvImportProcessor(
 
     override suspend fun process(
         contentFile: File,
-        userId: String,
+        userId: Int,
         marker: Marker,
     ): ImportMediaResult {
         if (contentFile.isFile) {
@@ -62,7 +61,7 @@ class TvImportProcessor(
 
         val existingRef = try {
             queries.findMediaRefByFilePath(contentFile.absolutePath)
-        } catch (e: MongoQueryException) {
+        } catch (e: JdbiException) {
             return ImportMediaResult.ErrorDatabaseException(e.stackTraceToString())
         }
 
@@ -150,12 +149,13 @@ class TvImportProcessor(
         ).also { mediaRef ->
             try {
                 queries.insertMediaReference(mediaRef)
-            } catch (e: MongoException) {
+            } catch (e: JdbiException) {
                 logger.debug(marker, "Failed to create media reference", e)
                 return ImportMediaResult.ErrorDatabaseException(e.stackTraceToString())
             }
         }
 
+        val seasonsMap = queries.findTvSeasonsByTvShowId(tvShow.id).associateBy(TvSeason::seasonNumber)
         val subFolders = contentFile.listFiles()?.toList().orEmpty()
         val seasonDirectories = subFolders
             .filter { it.isDirectory && it.name.startsWith("season", true) }
@@ -164,12 +164,12 @@ class TvImportProcessor(
                     .split(" ")
                     .lastOrNull()
                     ?.toIntOrNull()
-                    ?.let { num -> tvShow.seasons.firstOrNull { it.seasonNumber == num } }
+                    ?.let { num -> seasonsMap[num] }
                     ?.let { it to file }
             }
 
         val seasonResults = seasonDirectories.asFlow()
-            .concurrentMap(scope, 5) { (season, folder) ->
+            .concurrentMap(scope, 1) { (season, folder) ->
                 folder.importSeason(userId, season, episodes, marker)
             }
             .toList()
@@ -182,7 +182,7 @@ class TvImportProcessor(
     }
 
     private suspend fun File.importSeason(
-        userId: String,
+        userId: Int,
         season: TvSeason,
         episodes: List<Episode>,
         marker: Marker,
@@ -199,7 +199,7 @@ class TvImportProcessor(
         ).also { mediaRef ->
             try {
                 queries.insertMediaReference(mediaRef)
-            } catch (e: MongoException) {
+            } catch (e: JdbiException) {
                 logger.debug(marker, "Failed to create season media ref", e)
                 return ImportMediaResult.ErrorDatabaseException(e.stackTraceToString())
             }
@@ -246,7 +246,7 @@ class TvImportProcessor(
                     )
                 }
             } else emptyList()
-        } catch (e: MongoException) {
+        } catch (e: JdbiException) {
             logger.debug(marker, "Error creating episode references", e)
             listOf(ImportMediaResult.ErrorDatabaseException(e.stackTraceToString()))
         }

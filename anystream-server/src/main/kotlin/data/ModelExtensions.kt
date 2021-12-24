@@ -18,11 +18,11 @@
 package anystream.data
 
 import anystream.models.*
+import anystream.util.ObjectId
 import info.movito.themoviedbapi.model.ArtworkType
 import info.movito.themoviedbapi.model.MovieDb
 import info.movito.themoviedbapi.model.tv.TvEpisode
 import info.movito.themoviedbapi.model.tv.TvSeries
-import org.bson.types.ObjectId
 import java.time.Instant
 import info.movito.themoviedbapi.model.tv.TvSeason as TvSeasonDb
 
@@ -30,7 +30,7 @@ private const val MAX_CACHED_POSTERS = 5
 
 fun MovieDb.asMovie(
     id: String,
-    userId: String = "",
+    userId: Int = 1,
 ) = Movie(
     id = id,
     tmdbId = this.id,
@@ -59,23 +59,24 @@ fun MovieDb.asMovie(
 fun TvSeries.asTvShow(
     tmdbSeasons: List<TvSeasonDb>,
     id: String,
-    userId: String,
+    userId: Int,
     createId: (id: Int) -> String = { ObjectId.get().toString() },
-): Pair<TvShow, List<Episode>> {
+): Triple<TvShow, List<TvSeason>, List<Episode>> {
     val episodes = tmdbSeasons.flatMap { season ->
         season.episodes.map { episode ->
-            episode.asTvEpisode(createId(episode.id), id, userId)
+            episode.asTvEpisode(createId(episode.id), id, createId(season.id))
         }
     }
     val seasons = tmdbSeasons.map { season ->
-        season.asTvSeason(createId(season.id), userId)
+        season.asTvSeason(createId(season.id))
     }
-    return asTvShow(seasons, id, userId) to episodes
+    return Triple(asTvShow(id, userId), seasons, episodes)
 }
 
-fun TvEpisode.asTvEpisode(id: String, showId: String, userId: String): Episode {
+fun TvEpisode.asTvEpisode(id: String, showId: String, seasonId: String): Episode {
     return Episode(
         id = id,
+        seasonId = seasonId,
         tmdbId = this.id,
         name = name,
         overview = overview,
@@ -87,7 +88,7 @@ fun TvEpisode.asTvEpisode(id: String, showId: String, userId: String): Episode {
     )
 }
 
-fun TvSeasonDb.asTvSeason(id: String, userId: String): TvSeason {
+fun TvSeasonDb.asTvSeason(id: String): TvSeason {
     return TvSeason(
         id = id,
         tmdbId = this.id,
@@ -99,7 +100,7 @@ fun TvSeasonDb.asTvSeason(id: String, userId: String): TvSeason {
     )
 }
 
-fun TvSeries.asTvShow(seasons: List<TvSeason>, id: String, userId: String = ""): TvShow {
+fun TvSeries.asTvShow(id: String, userId: Int = 1): TvShow {
     return TvShow(
         id = id,
         name = name,
@@ -110,6 +111,6 @@ fun TvSeries.asTvShow(seasons: List<TvSeason>, id: String, userId: String = ""):
         numberOfEpisodes = numberOfEpisodes,
         posterPath = posterPath ?: "",
         added = Instant.now().toEpochMilli(),
-        seasons = seasons
+        addedByUserId = userId,
     )
 }

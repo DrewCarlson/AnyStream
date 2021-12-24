@@ -21,6 +21,7 @@ import anystream.data.MediaDbQueries
 import anystream.data.UserSession
 import anystream.data.asMovie
 import anystream.data.asTvShow
+import anystream.db.model.MediaDb
 import anystream.models.*
 import anystream.models.api.HomeResponse
 import anystream.util.toRemoteId
@@ -67,9 +68,11 @@ fun Route.addHomeRoutes(
 
             // Popular movies
             val tmdbPopular = popularMoviesFlow.filterNotNull().first()
-            val existingMovies = queries
-                .findMoviesByTmdbId(tmdbPopular.map(MovieDb::getId))
-                .toMutableList()
+            val existingMovies = if (tmdbPopular.results.isNotEmpty()) {
+                queries
+                    .findMoviesByTmdbId(tmdbPopular.map(MovieDb::getId))
+                    .toMutableList()
+            } else mutableListOf()
             val popularMovies = tmdbPopular.results
                 .map { dbMovie ->
                     val existingIndex = existingMovies.indexOfFirst { it.tmdbId == dbMovie.id }
@@ -92,11 +95,14 @@ fun Route.addHomeRoutes(
                 .map { series ->
                     val existingIndex = existingShows.indexOfFirst { it.tmdbId == series.id }
                     if (existingIndex == -1) {
-                        series.asTvShow(emptyList(), series.toRemoteId())
+                        series.asTvShow(series.toRemoteId())
                     } else {
                         existingShows.removeAt(existingIndex)
                     }
                 }
+
+            val tvSeasonIds = playbackStateTv.values.map { (episode, _) -> episode.seasonId }.distinct()
+            val tvSeasons = queries.findTvSeasonsByIds(tvSeasonIds).map(MediaDb::toTvSeasonModel)
 
             call.respond(
                 HomeResponse(
@@ -107,6 +113,7 @@ fun Route.addHomeRoutes(
                     popularMovies = popularMoviesMap,
                     popularTvShows = popularTvShows,
                     recentlyAddedTv = recentlyAddedTvShows,
+                    tvSeasons = tvSeasons,
                 )
             )
         }

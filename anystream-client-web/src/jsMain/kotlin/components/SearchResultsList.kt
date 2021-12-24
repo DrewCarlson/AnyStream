@@ -52,7 +52,7 @@ fun SearchResultsList(
                     title = movie.title,
                     subtitle = movie.releaseDate
                         ?.split("-")
-                        ?.first() ?: "TBD",
+                        ?.first() ?: "",
                 )
             }
         }

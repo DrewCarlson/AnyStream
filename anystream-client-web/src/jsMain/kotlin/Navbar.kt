@@ -23,7 +23,7 @@ import anystream.frontend.components.SearchResultsList
 import anystream.frontend.libs.PopperElement
 import anystream.frontend.util.ExternalClickMask
 import anystream.frontend.util.rememberDomElement
-import anystream.models.Permissions
+import anystream.models.Permission
 import anystream.models.api.SearchResponse
 import app.softwork.routingcompose.BrowserRouter
 import kotlinx.browser.localStorage
@@ -111,11 +111,11 @@ private fun NavLink(
 }
 
 @Composable
-private fun SecondaryMenu(client: AnyStreamClient, permissions: Set<String>) {
+private fun SecondaryMenu(client: AnyStreamClient, permissions: Set<Permission>) {
     val scope = rememberCoroutineScope()
     val authMutex = remember { Mutex() }
     Div({ classes("navbar-nav", "ms-auto") }) {
-        if (Permissions.check(Permissions.CONFIGURE_SYSTEM, permissions)) {
+        if (Permission.check(Permission.ConfigureSystem, permissions)) {
             A(attrs = {
                 classes("nav-link")
                 onClick { BrowserRouter.navigate("/usermanager") }
@@ -301,7 +301,7 @@ private fun ButtonIcon(
 
 @Composable
 fun SideMenu(
-    permissions: Set<String>,
+    permissions: Set<Permission>,
 ) {
     var expanded by remember {
         mutableStateOf(localStorage.getItem(MENU_EXPANDED_KEY)?.toBoolean() ?: false)
@@ -334,7 +334,7 @@ fun SideMenu(
             Li {
                 NavLink("Home", "bi-house", "/home", expanded)
             }
-            if (Permissions.check(Permissions.VIEW_COLLECTION, permissions)) {
+            if (Permission.check(Permission.ViewCollection, permissions)) {
                 Li {
                     NavLink("Movies", "bi-film", "/movies", expanded)
                 }
@@ -342,7 +342,7 @@ fun SideMenu(
                     NavLink("TV", "bi-tv", "/tv", expanded)
                 }
             }
-            if (Permissions.check(Permissions.TORRENT_MANAGEMENT, permissions)) {
+            if (Permission.check(Permission.ManageTorrents, permissions)) {
                 Li {
                     NavLink("Downloads", "bi-cloud-arrow-down", "/downloads", expanded)
                 }

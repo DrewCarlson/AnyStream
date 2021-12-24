@@ -23,8 +23,8 @@ import anystream.metadata.MetadataManager
 import anystream.models.LocalMediaReference
 import anystream.models.MediaKind
 import anystream.models.api.*
-import com.mongodb.MongoException
-import org.bson.types.ObjectId
+import anystream.util.ObjectId
+import org.jdbi.v3.core.JdbiException
 import org.slf4j.Logger
 import org.slf4j.Marker
 import java.io.File
@@ -42,7 +42,7 @@ class MovieImportProcessor(
 
     override suspend fun process(
         contentFile: File,
-        userId: String,
+        userId: Int,
         marker: Marker
     ): ImportMediaResult {
         val movieFile = if (contentFile.isFile) {
@@ -71,7 +71,7 @@ class MovieImportProcessor(
 
         val existingRef = try {
             queries.findMediaRefByFilePath(movieFile.absolutePath)
-        } catch (e: MongoException) {
+        } catch (e: JdbiException) {
             return ImportMediaResult.ErrorDatabaseException(e.stackTraceToString())
         }
         if (existingRef != null) {
@@ -152,7 +152,7 @@ class MovieImportProcessor(
         return try {
             queries.insertMediaReference(reference)
             ImportMediaResult.Success(movie.id, reference)
-        } catch (e: MongoException) {
+        } catch (e: JdbiException) {
             logger.debug(marker, "Failed to create media reference", e)
             ImportMediaResult.ErrorDatabaseException(e.stackTraceToString())
         }

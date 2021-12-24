@@ -17,6 +17,7 @@
  */
 package anystream.models.api
 
+import anystream.models.Permission
 import anystream.models.User
 import kotlinx.serialization.Serializable
 
@@ -28,32 +29,20 @@ data class CreateUserBody(
 )
 
 @Serializable
-data class CreateUserResponse(
-    val success: CreateUserSuccess? = null,
-    val error: CreateUserError? = null,
-) {
-    companion object {
-        fun success(user: User, permissions: Set<String>) =
-            CreateUserResponse(success = CreateUserSuccess(user, permissions))
+sealed class CreateUserResponse {
 
-        fun error(
-            usernameError: CreateUserError.UsernameError?,
-            passwordError: CreateUserError.PasswordError?
-        ) = CreateUserResponse(error = CreateUserError(usernameError, passwordError))
-    }
-}
+    @Serializable
+    data class Success(
+        val user: User,
+        val permissions: Set<Permission>,
+    ) : CreateUserResponse()
 
-@Serializable
-data class CreateUserSuccess(
-    val user: User,
-    val permissions: Set<String>,
-)
+    @Serializable
+    data class Error(
+        val usernameError: UsernameError?,
+        val passwordError: PasswordError?,
+    ) : CreateUserResponse()
 
-@Serializable
-data class CreateUserError(
-    val usernameError: UsernameError?,
-    val passwordError: PasswordError?,
-) {
     enum class PasswordError {
         TOO_SHORT, TOO_LONG, BLANK
     }

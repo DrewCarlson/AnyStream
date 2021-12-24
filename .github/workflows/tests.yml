@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 env:
-  MONGO_URL: mongodb://localhost
+  DATABASE_URL: "sqlite::memory:"
 
 jobs:
 
@@ -198,11 +198,6 @@ jobs:
             ~/.konan
             ~/.gradle
           key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
-
-      - name: Start MongoDB
-        uses: supercharge/mongodb-github-action@1.7.0
-        with:
-          mongodb-version: 5.0
 
       - uses: gradle/gradle-build-action@v2
         name: Run Server Tests

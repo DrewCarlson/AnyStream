@@ -16,19 +16,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package anystream.models
-
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class Episode(
-    @SerialName("_id")
     val id: String,
     val showId: String,
+    val seasonId: String,
     val name: String,
     val tmdbId: Int,
     val overview: String,
-    val airDate: String,
+    val airDate: String?,
     val number: Int,
     val seasonNumber: Int,
     val stillPath: String,

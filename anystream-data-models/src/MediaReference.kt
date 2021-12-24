@@ -17,29 +17,26 @@
  */
 package anystream.models
 
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
 sealed class MediaReference {
-    @SerialName("_id")
     abstract val id: String
     abstract val contentId: String
     abstract val rootContentId: String?
     abstract val added: Long
-    abstract val addedByUserId: String
+    abstract val addedByUserId: Int
     abstract val mediaKind: MediaKind
     abstract val streams: List<StreamEncodingDetails>
 }
 
 @Serializable
 data class LocalMediaReference(
-    @SerialName("_id")
     override val id: String,
     override val contentId: String,
     override val rootContentId: String? = null,
     override val added: Long,
-    override val addedByUserId: String,
+    override val addedByUserId: Int,
     override val mediaKind: MediaKind,
     override val streams: List<StreamEncodingDetails> = emptyList(),
     val filePath: String,
@@ -48,12 +45,11 @@ data class LocalMediaReference(
 
 @Serializable
 data class DownloadMediaReference(
-    @SerialName("_id")
     override val id: String,
     override val contentId: String,
     override val rootContentId: String? = null,
     override val added: Long,
-    override val addedByUserId: String,
+    override val addedByUserId: Int,
     override val mediaKind: MediaKind,
     override val streams: List<StreamEncodingDetails> = emptyList(),
     val hash: String,

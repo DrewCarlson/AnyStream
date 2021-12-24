@@ -9,7 +9,7 @@
     </root>
     <logger name="org.eclipse.jetty" level="INFO"/>
     <logger name="io.netty" level="INFO"/>
-    <logger name="org.mongodb" level="INFO"/>
+    <logger name="org.jdbi.sql" level="DEBUG"/>
     <logger name="info.movito.themoviedbapi" level="INFO"/>
     <logger name="com.github.kokorin.jaffree" level="ERROR"/>
 </configuration>

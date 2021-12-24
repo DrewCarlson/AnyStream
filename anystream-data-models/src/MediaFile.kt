@@ -17,12 +17,10 @@
  */
 package anystream.models
 
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class MediaFile(
-    @SerialName("_id")
     val id: String,
     val contentId: String,
     val filePath: String

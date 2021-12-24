@@ -54,7 +54,6 @@ private val json = Json {
     isLenient = true
     encodeDefaults = true
     ignoreUnknownKeys = true
-    classDiscriminator = "__type"
     allowStructuredMapKeys = true
     useAlternativeNames = false
 }
@@ -68,7 +67,7 @@ class AnyStreamClient(
     private val sessionManager: SessionManager = SessionManager(SessionDataStore)
 ) {
     val authenticated: Flow<Boolean> = sessionManager.tokenFlow.map { it != null }
-    val permissions: Flow<Set<String>?> = sessionManager.permissionsFlow
+    val permissions: Flow<Set<Permission>?> = sessionManager.permissionsFlow
     val user: Flow<User?> = sessionManager.userFlow
 
     private val _serverUrl = atomic("")
@@ -134,12 +133,12 @@ class AnyStreamClient(
         return sessionManager.fetchToken() != null
     }
 
-    fun userPermissions(): Set<String> {
+    fun userPermissions(): Set<Permission> {
         return sessionManager.fetchPermissions() ?: emptySet()
     }
 
-    fun hasPermission(permission: String): Boolean {
-        return userPermissions().run { contains(Permissions.GLOBAL) || contains(permission) }
+    fun hasPermission(permission: Permission): Boolean {
+        return userPermissions().run { contains(Permission.Global) || contains(permission) }
     }
 
     fun authedUser(): User? {
@@ -325,10 +324,10 @@ class AnyStreamClient(
         contentType(ContentType.Application.Json)
         parameter("createSession", rememberUser)
         setBody(CreateUserBody(username, password, inviteCode))
-    }.body<CreateUserResponse>().also { (success, _) ->
-        if (rememberUser && success != null) {
-            sessionManager.writeUser(success.user)
-            sessionManager.writePermissions(success.permissions)
+    }.body<CreateUserResponse>().also { response ->
+        if (rememberUser && response is CreateUserResponse.Success) {
+            sessionManager.writeUser(response.user)
+            sessionManager.writePermissions(response.permissions)
         }
     }
 
@@ -341,7 +340,7 @@ class AnyStreamClient(
     }
 
     suspend fun updateUser(
-        userId: String,
+        userId: Int,
         displayName: String,
         password: String?,
         currentPassword: String?
@@ -386,7 +385,7 @@ class AnyStreamClient(
         return http.get("$serverUrl/api/users/invite").body()
     }
 
-    suspend fun createInvite(permissions: Set<String>): InviteCode {
+    suspend fun createInvite(permissions: Set<Permission>): InviteCode {
         return http.post("$serverUrl/api/users/invite") {
             contentType(ContentType.Application.Json)
             setBody(permissions)

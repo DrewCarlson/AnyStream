@@ -26,5 +26,5 @@ interface MediaImportProcessor {
 
     val mediaKinds: List<MediaKind>
 
-    suspend fun process(contentFile: File, userId: String, marker: Marker): ImportMediaResult
+    suspend fun process(contentFile: File, userId: Int, marker: Marker): ImportMediaResult
 }

@@ -60,6 +60,7 @@ kotlin {
 dependencies {
     implementation(projects.anystreamDataModels)
 
+    implementation(libs.datetime)
     implementation(libs.serialization.json)
     implementation(libs.coroutines.core)
     implementation(libs.coroutines.jdk8)
@@ -93,7 +94,12 @@ dependencies {
 
     implementation(libs.logback)
 
-    implementation(libs.kmongo.coroutine.serialization)
+    implementation(libs.jdbc.sqlite)
+    implementation(libs.jdbi.core)
+    implementation(libs.jdbi.sqlite)
+    implementation(libs.jdbi.sqlobject)
+    implementation(libs.jdbi.kotlin)
+    implementation(libs.jdbi.kotlin.sqlobject)
 
     implementation(libs.jaffree)
 

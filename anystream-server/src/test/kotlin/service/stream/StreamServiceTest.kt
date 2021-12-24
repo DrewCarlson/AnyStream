@@ -26,12 +26,12 @@ class StreamServiceTest {
 
     @Before
     fun setup() {
-        streamService = StreamService(
-            TestStreamServiceQueries(),
+        /*streamService = StreamService(
+            StreamServiceQueriesJdbi(),
             { TODO() },
             { TODO() },
             "",
-        )
+        )*/
     }
 
     @Test

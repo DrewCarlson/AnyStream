@@ -17,16 +17,14 @@
  */
 package anystream.models
 
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class PlaybackState(
-    @SerialName("_id")
     val id: String,
     val mediaReferenceId: String,
     val mediaId: String,
-    val userId: String,
+    val userId: Int,
     val position: Double,
     val runtime: Double,
     val updatedAt: Long = 0L,

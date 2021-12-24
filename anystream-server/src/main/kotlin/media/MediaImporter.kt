@@ -17,6 +17,7 @@
  */
 package anystream.media
 
+import anystream.db.MediaReferencesDao
 import anystream.models.LocalMediaReference
 import anystream.models.MediaReference
 import anystream.models.StreamEncodingDetails
@@ -28,7 +29,6 @@ import com.github.kokorin.jaffree.JaffreeException
 import com.github.kokorin.jaffree.StreamType
 import com.github.kokorin.jaffree.ffprobe.FFprobe
 import com.github.kokorin.jaffree.ffprobe.Stream
-import com.mongodb.MongoException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
@@ -36,9 +36,6 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
-import org.litote.kmongo.*
-import org.litote.kmongo.coroutine.CoroutineCollection
-import org.litote.kmongo.coroutine.projection
 import org.slf4j.Logger
 import org.slf4j.Marker
 import org.slf4j.MarkerFactory
@@ -56,39 +53,32 @@ private val FFMPEG_EXTENSIONS = listOf(
 class MediaImporter(
     private val ffprobe: () -> FFprobe,
     private val processors: List<MediaImportProcessor>,
-    private val mediaRefs: CoroutineCollection<MediaReference>,
+    private val mediaRefsDao: MediaReferencesDao,
     private val scope: CoroutineScope,
     private val logger: Logger,
 ) {
     private val classMarker = MarkerFactory.getMarker(this::class.simpleName)
 
     // Within a specified content directory, find all content unknown to anystream
-    suspend fun findUnmappedFiles(userId: String, request: ImportMedia): List<String> {
+    fun findUnmappedFiles(userId: Int, request: ImportMedia): List<String> {
         val contentFile = File(request.contentPath)
         if (!contentFile.exists()) {
             return emptyList()
         }
 
-        val mediaRefPaths = mediaRefs
-            .withDocumentClass<LocalMediaReference>()
-            .projection(
-                LocalMediaReference::filePath,
-                LocalMediaReference::filePath.exists()
-            )
-            .toList()
-
+        val mediaRefPaths = mediaRefsDao.findAllFilePaths()
         return contentFile.listFiles()
             ?.toList()
             .orEmpty()
-            .filter { file ->
+            .map(File::getAbsolutePath)
+            .filter { filePath ->
                 mediaRefPaths.none { ref ->
-                    ref.startsWith(file.absolutePath)
+                    ref.startsWith(filePath)
                 }
             }
-            .map(File::getAbsolutePath)
     }
 
-    suspend fun importAll(userId: String, request: ImportMedia): Flow<ImportMediaResult> {
+    suspend fun importAll(userId: Int, request: ImportMedia): Flow<ImportMediaResult> {
         val marker = marker()
         logger.debug(marker, "Recursive import requested by '$userId': $request")
         val contentFile = File(request.contentPath)
@@ -99,7 +89,7 @@ class MediaImporter(
 
         return contentFile.listFiles()
             ?.asFlow()
-            ?.concurrentMap(scope, 10) { file ->
+            ?.concurrentMap(scope, 1) { file ->
                 internalImport(
                     userId,
                     request.copy(contentPath = file.absolutePath),
@@ -115,7 +105,7 @@ class MediaImporter(
             } ?: emptyFlow()
     }
 
-    suspend fun import(userId: String, request: ImportMedia): ImportMediaResult {
+    suspend fun import(userId: Int, request: ImportMedia): ImportMediaResult {
         val marker = marker()
         logger.debug(marker, "Import requested by '$userId': $request")
 
@@ -131,7 +121,9 @@ class MediaImporter(
     suspend fun importStreamDetails(mediaRefIds: List<String>): List<ImportStreamDetailsResult> {
         val marker = marker()
         logger.debug(marker, "Importing stream details for ${mediaRefIds.size} item(s)")
-        val mediaFilePaths = mediaRefs
+        return emptyList()
+        // TODO
+        /*val mediaFilePaths = mediaRefs
             .projection(
                 LocalMediaReference::id,
                 LocalMediaReference::filePath,
@@ -194,12 +186,12 @@ class MediaImporter(
         } catch (e: MongoException) {
             logger.error(marker, "Failed to update stream data", e)
             listOf(ImportStreamDetailsResult.ErrorDatabaseException(e.stackTraceToString()))
-        }
+        }*/
     }
 
     // Process a single media file and attempt to import missing data and references
     private suspend fun internalImport(
-        userId: String,
+        userId: Int,
         request: ImportMedia,
         marker: Marker,
     ): ImportMediaResult {
@@ -210,14 +202,11 @@ class MediaImporter(
             return ImportMediaResult.ErrorFileNotFound
         }
 
-        val result = processors
-            .mapNotNull { processor ->
-                if (processor.mediaKinds.contains(request.mediaKind)) {
-                    processor.process(contentFile, userId, marker)
-                } else null
-            }
-            .firstOrNull()
-            ?: ImportMediaResult.ErrorNothingToImport
+        val result = processors.firstNotNullOfOrNull { processor ->
+            if (processor.mediaKinds.contains(request.mediaKind)) {
+                processor.process(contentFile, userId, marker)
+            } else null
+        } ?: ImportMediaResult.ErrorNothingToImport
 
         return result
     }

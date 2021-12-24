@@ -22,6 +22,7 @@ import anystream.models.api.EpisodeResponse
 import anystream.models.api.MediaLookupResponse
 import anystream.models.api.MovieResponse
 import anystream.models.api.PlaybackSessionsResponse
+import anystream.util.ObjectId
 import com.github.kokorin.jaffree.LogLevel
 import com.github.kokorin.jaffree.StreamType
 import com.github.kokorin.jaffree.ffmpeg.*
@@ -32,7 +33,6 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.bson.types.ObjectId
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.text.DecimalFormat
@@ -84,7 +84,7 @@ class StreamService(
 
     suspend fun getPlaybackState(
         mediaRefId: String,
-        userId: String,
+        userId: Int,
         create: Boolean
     ): PlaybackState? {
         val state = queries.fetchPlaybackState(mediaRefId, userId)
@@ -127,8 +127,8 @@ class StreamService(
         return queries.deletePlaybackState(playbackStateId)
     }
 
-    suspend fun updateStatePosition(mediaRefId: String, userId: String, position: Double): Boolean {
-        return queries.updatePlaybackState(mediaRefId, userId, position)
+    suspend fun updateStatePosition(stateId: String, position: Double): Boolean {
+        return queries.updatePlaybackState(stateId, position)
     }
 
     suspend fun getPlaylist(mediaRefId: String, token: String): String? {

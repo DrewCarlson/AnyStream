@@ -17,23 +17,22 @@
  */
 package anystream.service.user
 
+import anystream.db.model.PermissionDb
+import anystream.db.model.UserDb
 import anystream.models.*
 
 interface UserServiceQueries {
     suspend fun countUsers(): Long
-    suspend fun fetchUser(userId: String): User?
-    suspend fun fetchUserByUsername(username: String): User?
-    suspend fun fetchUsers(): List<User>
-    suspend fun insertUser(user: User): Boolean
-    suspend fun updateUser(user: User): Boolean
-    suspend fun deleteUser(userId: String): Boolean
+    suspend fun fetchUser(userId: Int): UserDb?
+    suspend fun fetchUserByUsername(username: String): UserDb?
+    suspend fun fetchPermissions(userId: Int): Set<PermissionDb>
+    suspend fun fetchUsers(): List<UserDb>
+    suspend fun createUser(user: User, passwordHash: String, permissions: Set<Permission>): UserDb?
+    suspend fun updateUser(userId: Int, user: User?, passwordHash: String?): Boolean
+    suspend fun deleteUser(userId: Int): Boolean
 
-    suspend fun fetchCredentials(userId: String): UserCredentials?
-    suspend fun insertCredentials(credentials: UserCredentials): Boolean
-    suspend fun updateCredentials(credentials: UserCredentials): Boolean
-
-    suspend fun fetchInviteCode(inviteCode: String, byUserId: String?): InviteCode?
-    suspend fun fetchInviteCodes(byUserId: String?): List<InviteCode>
-    suspend fun insertInviteCode(inviteCode: InviteCode): Boolean
-    suspend fun deleteInviteCode(inviteCode: String, byUserId: String?): Boolean
+    suspend fun fetchInviteCode(secret: String, byUserId: Int?): InviteCode?
+    suspend fun fetchInviteCodes(byUserId: Int?): List<InviteCode>
+    suspend fun createInviteCode(secret: String, permissions: Set<Permission>, userId: Int): InviteCode?
+    suspend fun deleteInviteCode(secret: String, byUserId: Int?): Boolean
 }

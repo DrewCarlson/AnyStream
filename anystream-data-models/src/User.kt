@@ -17,7 +17,6 @@
  */
 package anystream.models
 
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 const val USERNAME_LENGTH_MIN = 4
@@ -27,37 +26,44 @@ const val PASSWORD_LENGTH_MAX = 64
 
 @Serializable
 data class User(
-    @SerialName("_id")
-    val id: String,
+    val id: Int,
     val username: String,
     val displayName: String,
 )
 
 @Serializable
-data class UserCredentials(
-    @SerialName("_id")
-    val id: String,
-    val password: String,
-    val permissions: Set<String>
-)
+sealed class Permission {
+    @Serializable
+    object Global : Permission() {
+        override fun toString(): String = "Global"
+    }
 
-object Permissions {
-    const val GLOBAL = "*"
-    const val VIEW_COLLECTION = "view_collection"
-    const val MANAGE_COLLECTION = "manage_collection"
-    const val TORRENT_MANAGEMENT = "torrent_management"
-    const val CONFIGURE_SYSTEM = "configure_system"
+    @Serializable
+    object ViewCollection : Permission() {
+        override fun toString(): String = "ViewCollection"
+    }
 
-    val all = listOf(
-        GLOBAL,
-        VIEW_COLLECTION,
-        MANAGE_COLLECTION,
-        TORRENT_MANAGEMENT,
-        CONFIGURE_SYSTEM,
-    )
+    @Serializable
+    object ManageCollection : Permission() {
+        override fun toString(): String = "ManageCollection"
+    }
 
-    fun check(permission: String, permissions: Set<String>): Boolean {
-        return permissions.contains(permission) || permissions.contains(GLOBAL)
+    @Serializable
+    object ManageTorrents : Permission() {
+        override fun toString(): String = "ManageTorrents"
+    }
+
+    @Serializable
+    object ConfigureSystem : Permission() {
+        override fun toString(): String = "ConfigureSystem"
+    }
+
+    companion object {
+        val all: List<Permission> = listOf(Global, ViewCollection, ManageCollection, ManageTorrents, ConfigureSystem)
+
+        fun check(permission: Permission, permissions: Set<Permission>): Boolean {
+            return permissions.contains(permission) || permissions.contains(Global)
+        }
     }
 }
 
