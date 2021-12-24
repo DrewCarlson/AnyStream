@@ -20,9 +20,9 @@ package anystream
 import anystream.test.RESOURCES
 import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigValueFactory
-import io.ktor.config.*
-import io.ktor.http.HttpMethod
+import io.ktor.client.request.*
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.config.*
 import io.ktor.server.testing.*
 import kotlin.test.Ignore
 import kotlin.test.Test
@@ -39,11 +39,10 @@ class ApplicationTest {
     @Ignore("server configuration error")
     @Test
     fun testApiRootRedirectsToFrontEnd() {
-        withApplication(testEnv) {
-            handleRequest(HttpMethod.Get, "/api").apply {
-                assertEquals(HttpStatusCode.Found, response.status())
-                assertEquals("/", response.headers["location"])
-            }
+        testApplication {
+            val response = client.get("/api")
+            assertEquals(HttpStatusCode.Found, response.status)
+            assertEquals("/", response.headers["location"])
         }
     }
 }

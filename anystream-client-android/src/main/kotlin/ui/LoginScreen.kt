@@ -55,7 +55,7 @@ import anystream.client.SessionManager
 import anystream.models.api.PairingMessage
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
-import io.ktor.client.features.*
+import io.ktor.client.plugins.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect

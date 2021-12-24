@@ -64,21 +64,30 @@ dependencies {
     implementation(libs.coroutines.core)
     implementation(libs.coroutines.jdk8)
 
+    implementation(libs.ktor.serialization)
+
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.netty)
     implementation(libs.ktor.server.sessions)
     implementation(libs.ktor.server.metrics)
+    implementation(libs.ktor.server.partialContent)
+    implementation(libs.ktor.server.defaultHeaders)
+    implementation(libs.ktor.server.cachingHeaders)
+    implementation(libs.ktor.server.contentNegotiation)
+    implementation(libs.ktor.server.autoHeadResponse)
+    implementation(libs.ktor.server.compression)
+    implementation(libs.ktor.server.callLogging)
+    implementation(libs.ktor.server.statusPages)
+    implementation(libs.ktor.server.cors)
     implementation(libs.ktor.server.auth)
     implementation(libs.ktor.server.authJwt)
-    implementation(libs.ktor.server.serialization)
     implementation(libs.ktor.server.websockets)
     implementation(libs.ktor.server.permissions)
 
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.okhttp)
     implementation(libs.ktor.client.logging)
-    implementation(libs.ktor.client.json)
-    implementation(libs.ktor.client.serialization)
+    implementation(libs.ktor.client.contentNegotiation)
 
     implementation(libs.bouncyCastle)
 

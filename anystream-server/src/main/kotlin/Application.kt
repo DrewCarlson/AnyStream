@@ -22,16 +22,18 @@ import anystream.models.Permissions
 import anystream.routes.installRouting
 import anystream.util.*
 import com.mongodb.ConnectionString
-import io.ktor.application.*
-import io.ktor.auth.*
-import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
-import io.ktor.http.cio.websocket.*
 import io.ktor.http.content.CachingOptions
-import io.ktor.response.*
 import io.ktor.serialization.*
-import io.ktor.sessions.*
+import io.ktor.serialization.kotlinx.*
+import io.ktor.serialization.kotlinx.json.*
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.plugins.*
+import io.ktor.server.response.*
+import io.ktor.server.sessions.*
+import io.ktor.server.websocket.WebSockets
 import io.ktor.util.date.GMTDate
 import io.ktor.websocket.*
 import kotlinx.serialization.json.Json
@@ -66,7 +68,9 @@ fun Application.module(testing: Boolean = false) {
     val sessionStorage = MongoSessionStorage(mongodb, log)
 
     install(DefaultHeaders) {}
-    install(ContentNegotiation) { json(json) }
+    install(ContentNegotiation) {
+        json(json)
+    }
     install(AutoHeadResponse)
     install(ConditionalHeaders)
     install(PartialContent)
@@ -110,6 +114,7 @@ fun Application.module(testing: Boolean = false) {
     install(WebSockets) {
         pingPeriod = Duration.ofSeconds(60)
         timeout = Duration.ofSeconds(15)
+        contentConverter = KotlinxWebsocketSerializationConverter(json)
     }
 
     install(Authentication) {

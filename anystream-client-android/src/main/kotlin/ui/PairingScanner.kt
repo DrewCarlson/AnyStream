@@ -28,7 +28,7 @@ import anystream.android.router.BackStack
 import anystream.client.AnyStreamClient
 import io.github.g00fy2.quickie.QRResult
 import io.github.g00fy2.quickie.ScanQRCode
-import io.ktor.client.features.*
+import io.ktor.client.plugins.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first

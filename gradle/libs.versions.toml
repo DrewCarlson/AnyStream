@@ -1,15 +1,15 @@
 [versions]
 kotlin = "1.6.10"
 coroutines = "1.5.2-native-mt"
-serialization = "1.3.1"
-ktorio = "1.6.7"
-composejb = "1.0.1-rc2"
+serialization = "1.3.2"
+ktorio = "2.0.0-beta-1"
+composejb = "1.0.1"
 kotlinjs_ext = "1.0.1-pre.276-kotlin-1.6.0"
 
-qbittorrent = "0.3.0"
-torrent_search = "0.1.1"
+qbittorrent = "0.4.0"
+torrent_search = "0.2.0"
 mobiuskt = "0.3.1"
-ktor_perm = "0.1.4"
+ktor_perm = "0.2.0"
 
 kmongo = "4.4.0"
 bouncy_castle = "1.67"
@@ -41,23 +41,33 @@ serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-jso
 
 kotlinjs-extensions = { module = "org.jetbrains.kotlin-wrappers:kotlin-extensions", version.ref = "kotlinjs_ext" }
 
+ktor-serialization = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktorio" }
+
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktorio" }
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktorio" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktorio" }
 ktor-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktorio" }
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktorio" }
-ktor-client-json = { module = "io.ktor:ktor-client-json", version.ref = "ktorio" }
-ktor-client-serialization = { module = "io.ktor:ktor-client-serialization", version.ref = "ktorio" }
+ktor-client-contentNegotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktorio" }
+ktor-client-websockets = { module = "io.ktor:ktor-client-websockets", version.ref = "ktorio" }
 
 ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktorio" }
 ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktorio" }
 ktor-server-sessions = { module = "io.ktor:ktor-server-sessions", version.ref = "ktorio" }
 ktor-server-tests = { module = "io.ktor:ktor-server-tests", version.ref = "ktorio" }
-ktor-server-metrics = { module = "io.ktor:ktor-metrics", version.ref = "ktorio" }
-ktor-server-auth = { module = "io.ktor:ktor-auth", version.ref = "ktorio" }
-ktor-server-authJwt = { module = "io.ktor:ktor-auth-jwt", version.ref = "ktorio" }
-ktor-server-serialization = { module = "io.ktor:ktor-serialization", version.ref = "ktorio" }
-ktor-server-websockets = { module = "io.ktor:ktor-websockets", version.ref = "ktorio" }
+ktor-server-metrics = { module = "io.ktor:ktor-server-metrics", version.ref = "ktorio" }
+ktor-server-partialContent = { module = "io.ktor:ktor-server-partial-content", version.ref = "ktorio" }
+ktor-server-contentNegotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktorio" }
+ktor-server-autoHeadResponse = { module = "io.ktor:ktor-server-auto-head-response", version.ref = "ktorio" }
+ktor-server-defaultHeaders = { module = "io.ktor:ktor-server-default-headers", version.ref = "ktorio" }
+ktor-server-cachingHeaders = { module = "io.ktor:ktor-server-caching-headers", version.ref = "ktorio" }
+ktor-server-callLogging = { module = "io.ktor:ktor-server-call-logging", version.ref = "ktorio" }
+ktor-server-statusPages = { module = "io.ktor:ktor-server-status-pages", version.ref = "ktorio" }
+ktor-server-compression = { module = "io.ktor:ktor-server-compression", version.ref = "ktorio" }
+ktor-server-cors = { module = "io.ktor:ktor-server-cors", version.ref = "ktorio" }
+ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktorio" }
+ktor-server-authJwt = { module = "io.ktor:ktor-server-auth-jwt", version.ref = "ktorio" }
+ktor-server-websockets = { module = "io.ktor:ktor-server-websockets", version.ref = "ktorio" }
 ktor-server-permissions = { module = "org.drewcarlson:ktor-permissions", version.ref = "ktor_perm" }
 
 qbittorrent-models = { module = "org.drewcarlson:qbittorrent-models", version.ref = "qbittorrent" }

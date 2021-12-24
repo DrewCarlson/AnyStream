@@ -38,9 +38,9 @@ import com.github.kokorin.jaffree.ffprobe.FFprobe
 import drewcarlson.qbittorrent.QBittorrentClient
 import drewcarlson.torrentsearch.TorrentSearch
 import info.movito.themoviedbapi.TmdbApi
-import io.ktor.application.*
-import io.ktor.auth.*
-import io.ktor.routing.*
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.routing.*
 import kotlinx.coroutines.*
 import org.litote.kmongo.coroutine.CoroutineDatabase
 import java.io.File

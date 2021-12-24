@@ -23,8 +23,8 @@ import ch.qos.logback.classic.LoggerContext
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.Appender
 import ch.qos.logback.core.AppenderBase
-import io.ktor.http.cio.websocket.*
-import io.ktor.routing.*
+import io.ktor.server.websocket.*
+import io.ktor.server.routing.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive

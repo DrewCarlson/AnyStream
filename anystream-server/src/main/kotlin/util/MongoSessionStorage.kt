@@ -21,7 +21,7 @@ import anystream.data.UserSession
 import anystream.json
 import com.mongodb.MongoQueryException
 import com.mongodb.client.model.UpdateOptions
-import io.ktor.sessions.*
+import io.ktor.server.sessions.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.coroutineScope

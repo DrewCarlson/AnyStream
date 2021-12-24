@@ -17,9 +17,7 @@
  */
 package anystream.util
 
-import io.ktor.application.ApplicationCall
-import io.ktor.application.call
-import io.ktor.application.log
+import io.ktor.server.application.*
 import io.ktor.util.pipeline.PipelineContext
 
 val PipelineContext<Unit, ApplicationCall>.logger

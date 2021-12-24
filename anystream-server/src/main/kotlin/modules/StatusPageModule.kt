@@ -17,20 +17,18 @@
  */
 package anystream.modules
 
-import io.ktor.application.Application
-import io.ktor.application.call
-import io.ktor.application.install
-import io.ktor.features.StatusPages
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
-import io.ktor.response.respondText
+import io.ktor.server.application.*
+import io.ktor.server.plugins.*
+import io.ktor.server.response.*
 
 
 @Suppress("unused") // Referenced in application.conf
 fun Application.module() {
     install(StatusPages) {
-        if (environment.config.property("ktor.deployment.development").getString().toBoolean()) {
-            exception<Throwable> { error ->
+        if (environment.config.property("ktor.development").getString().toBoolean()) {
+            exception<Throwable> { call, error ->
                 call.respondText(
                     status = HttpStatusCode.InternalServerError,
                     contentType = ContentType.Text.Plain,

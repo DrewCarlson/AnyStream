@@ -17,7 +17,7 @@
  */
 package anystream.data
 
-import io.ktor.auth.*
+import io.ktor.server.auth.*
 import kotlinx.serialization.Serializable
 import java.time.Instant
 

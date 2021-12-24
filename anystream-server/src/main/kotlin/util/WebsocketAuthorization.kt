@@ -18,8 +18,8 @@
 package anystream.util
 
 import anystream.data.UserSession
-import io.ktor.application.*
-import io.ktor.http.cio.websocket.*
+import io.ktor.server.application.*
+import io.ktor.server.websocket.*
 import io.ktor.util.*
 import io.ktor.websocket.*
 
@@ -37,7 +37,7 @@ class WebsocketAuthorization {
     }
 
     companion object Feature :
-        ApplicationFeature<ApplicationCallPipeline, WebsocketAuthorization, WebsocketAuthorization> {
+        ApplicationPlugin<ApplicationCallPipeline, WebsocketAuthorization, WebsocketAuthorization> {
         override val key = AttributeKey<WebsocketAuthorization>("WebsocketAuthorization")
 
         override fun install(
@@ -54,5 +54,5 @@ suspend fun DefaultWebSocketServerSession.extractUserSession(): UserSession? {
     if (token.isNullOrBlank()) {
         return null
     }
-    return application.feature(WebsocketAuthorization).userSessionFor(token)
+    return application.plugin(WebsocketAuthorization).userSessionFor(token)
 }

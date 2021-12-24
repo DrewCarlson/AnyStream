@@ -24,23 +24,23 @@ import drewcarlson.qbittorrent.models.GlobalTransferInfo
 import drewcarlson.qbittorrent.models.Torrent
 import drewcarlson.qbittorrent.models.TorrentFile
 import io.ktor.client.HttpClient
-import io.ktor.client.features.*
-import io.ktor.client.features.cookies.*
-import io.ktor.client.features.json.*
-import io.ktor.client.features.json.serializer.KotlinxSerializer
-import io.ktor.client.features.websocket.*
+import io.ktor.client.call.*
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.cookies.*
+import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
-import io.ktor.http.cio.websocket.*
+import io.ktor.serialization.kotlinx.*
+import io.ktor.serialization.kotlinx.json.*
+import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
 
 private const val PAGE = "page"
@@ -59,7 +59,7 @@ private const val SESSION_HEADER = "as_user_session"
 
 class AnyStreamClient(
     /** The AnyStream server URL, ex. `http://localhost:3000`. */
-    private val serverUrl: String,
+    serverUrl: String,
     http: HttpClient = HttpClient(),
     private val sessionManager: SessionManager = SessionManager(SessionDataStore)
 ) {
@@ -67,23 +67,21 @@ class AnyStreamClient(
     val permissions: Flow<Set<String>?> = sessionManager.permissionsFlow
     val user: Flow<User?> = sessionManager.userFlow
 
+    private val serverUrl = serverUrl.trimEnd('/')
+    private val serverUrlWs = this.serverUrl
+        .replace("https://", "wss://")
+        .replace("http://", "ws://")
+
     private val http = http.config {
         install(HttpCookies) {
             storage = AcceptAllCookiesStorage()
         }
-        Json {
-            serializer = KotlinxSerializer(json)
+        install(ContentNegotiation) {
+            json(json)
         }
-        defaultRequest {
-            val configuredProtocol = URLProtocol.createOrDefault(serverUrl.substringBefore("://"))
-            val configuredWssProtocol = if (configuredProtocol.isSecure()) URLProtocol.WSS else URLProtocol.WS
-            url {
-                host = serverUrl.substringAfter("://").substringBefore(':')
-                port = serverUrl.substringAfterLast(':').takeWhile { it != '/' }.toIntOrNull() ?: 0
-                protocol = if (protocol.isWebsocket()) configuredWssProtocol else configuredProtocol
-            }
+        WebSockets {
+            contentConverter = KotlinxWebsocketSerializationConverter(json)
         }
-        WebSockets { }
         install("TokenHandler") {
             requestPipeline.intercept(HttpRequestPipeline.Before) {
                 sessionManager.fetchToken()?.let { token ->
@@ -121,149 +119,132 @@ class AnyStreamClient(
     }
 
     fun torrentListChanges(): Flow<List<String>> = flow {
-        http.wss("/api/ws/torrents/observe") {
-            incoming.consumeAsFlow()
-                .onEach { frame ->
-                    when (frame) {
-                        is Frame.Text -> {
-                            val message = frame.readText()
-                            if (message.isNotBlank()) {
-                                emit(message.split(","))
-                            }
-                        }
-                        is Frame.Close -> close()
-                        else -> Unit
+        http.wss("$serverUrlWs/api/ws/torrents/observe") {
+            send(sessionManager.fetchToken()!!)
+            for (frame in incoming) {
+                if (frame is Frame.Text) {
+                    val message = frame.readText()
+                    if (message.isNotBlank()) {
+                        emit(message.split(","))
                     }
                 }
-                .onStart { send(Frame.Text(sessionManager.fetchToken()!!)) }
-                .collect()
+            }
         }
     }
 
     fun globalInfoChanges(): Flow<GlobalTransferInfo> = flow {
-        http.wss("/api/ws/torrents/global") {
-            incoming.consumeAsFlow()
-                .onEach { frame ->
-                    when (frame) {
-                        is Frame.Text -> {
-                            val message = frame.readText()
-                            if (message.isNotBlank()) {
-                                emit(json.decodeFromString(message))
-                            }
-                        }
-                        is Frame.Close -> close()
-                        else -> Unit
-                    }
-                }
-                .onStart { send(Frame.Text(sessionManager.fetchToken()!!)) }
-                .collect()
+        http.wss("$serverUrlWs/api/ws/torrents/global") {
+            send(sessionManager.fetchToken()!!)
+            for (frame in incoming) {
+                emit(receiveDeserialized())
+            }
         }
     }
 
-    suspend fun getHomeData() = http.get<HomeResponse>("/api/home")
+    suspend fun getHomeData(): HomeResponse = http.get("$serverUrl/api/home").body()
 
-    suspend fun getMovies(page: Int = 1) =
-        http.get<MoviesResponse>("/api/movies") {
-            pageParam(page)
-        }
+    suspend fun getMovies(page: Int = 1): MoviesResponse =
+        http.get("$serverUrl/api/movies") { pageParam(page) }.body()
 
-    suspend fun getMovieSources(id: String) =
-        http.get<List<TorrentDescription2>>("/api/media/movies/$id/sources")
+    suspend fun getMovieSources(id: String): List<TorrentDescription2> =
+        http.get("$serverUrl/api/media/movies/$id/sources").body()
 
-    suspend fun getTvShowSources(id: String) =
-        http.get<List<TorrentDescription2>>("/api/media/tv/$id/sources")
+    suspend fun getTvShowSources(id: String): List<TorrentDescription2> =
+        http.get("$serverUrl/api/media/tv/$id/sources").body()
 
-    suspend fun getTvShows(page: Int = 1) =
-        http.get<TvShowsResponse>("/api/tv") {
-            pageParam(page)
-        }
+    suspend fun getTvShows(page: Int = 1): TvShowsResponse =
+        http.get("$serverUrl/api/tv") { pageParam(page) }.body()
 
-    suspend fun getMovie(id: String) =
-        http.get<MovieResponse>("/api/movies/$id")
+    suspend fun getMovie(id: String): MovieResponse =
+        http.get("$serverUrl/api/movies/$id").body()
 
-    suspend fun deleteMovie(id: String) =
-        http.delete<Unit>("/api/movies/$id")
+    suspend fun deleteMovie(id: String) {
+        http.delete("$serverUrl/api/movies/$id")
+    }
 
-    suspend fun getMediaRefs() =
-        http.get<List<MediaReference>>("/api/media/refs")
+    suspend fun getMediaRefs(): List<MediaReference> =
+        http.get("$serverUrl/api/media/refs").body()
 
-    suspend fun getMediaRef(refId: String) =
-        http.get<MediaReference>("/api/media/refs/$refId")
+    suspend fun getMediaRef(refId: String): MediaReference =
+        http.get("$serverUrl/api/media/refs/$refId").body()
 
-    suspend fun getMediaRefsForMovie(movieId: String) =
-        http.get<List<MediaReference>>("/api/movies/$movieId/refs")
+    suspend fun getMediaRefsForMovie(movieId: String): List<MediaReference> =
+        http.get("$serverUrl/api/movies/$movieId/refs").body()
 
-    suspend fun getMediaRefsForShow(showId: String) =
-        http.get<List<MediaReference>>("/api/tv/$showId/refs")
+    suspend fun getMediaRefsForShow(showId: String): List<MediaReference> =
+        http.get("$serverUrl/api/tv/$showId/refs").body()
 
     suspend fun importMedia(importMedia: ImportMedia, importAll: Boolean) {
-        http.post<Unit>("/api/media/import") {
+        http.post("$serverUrl/api/media/import") {
             contentType(ContentType.Application.Json)
             parameter("importAll", importAll)
-            body = importMedia
+            setBody(importMedia)
         }
     }
 
     suspend fun unmappedMedia(importMedia: ImportMedia): List<String> {
-        return http.post("/api/media/unmapped") {
+        return http.post("$serverUrl/api/media/unmapped") {
             contentType(ContentType.Application.Json)
-            body = importMedia
-        }
+            setBody(importMedia)
+        }.body()
     }
 
     suspend fun refreshMetadata(mediaId: String): MediaLookupResponse {
-        return http.get("/api/media/$mediaId/refresh-metadata")
+        return http.get("$serverUrl/api/media/$mediaId/refresh-metadata").body()
     }
 
     suspend fun refreshStreamDetails(mediaId: String): List<ImportStreamDetailsResult> {
-        return http.get("/api/media/$mediaId/refresh-stream-details")
+        return http.get("$serverUrl/api/media/$mediaId/refresh-stream-details").body()
     }
 
-    suspend fun getTvShow(id: String) =
-        http.get<TvShowResponse>("/api/tv/$id")
+    suspend fun getTvShow(id: String): TvShowResponse =
+        http.get("$serverUrl/api/tv/$id").body()
 
-    suspend fun getEpisodes(showId: String) =
-        http.get<EpisodesResponse>("/api/tv/$showId/episodes")
+    suspend fun getEpisodes(showId: String): EpisodesResponse =
+        http.get("$serverUrl/api/tv/$showId/episodes").body()
 
-    suspend fun getEpisode(id: String) =
-        http.get<EpisodeResponse>("/api/tv/episode/$id")
+    suspend fun getEpisode(id: String): EpisodeResponse =
+        http.get("$serverUrl/api/tv/episode/$id").body()
 
-    suspend fun getSeason(seasonId: String) =
-        http.get<SeasonResponse>("/api/tv/season/$seasonId")
+    suspend fun getSeason(seasonId: String): SeasonResponse =
+        http.get("$serverUrl/api/tv/season/$seasonId").body()
 
     suspend fun lookupMedia(mediaId: String): MediaLookupResponse =
-        http.get("/api/media/$mediaId")
+        http.get("$serverUrl/api/media/$mediaId").body()
 
     suspend fun lookupMediaByRefId(refId: String): MediaLookupResponse =
-        http.get("/api/media/by-ref/$refId")
+        http.get("$serverUrl/api/media/by-ref/$refId").body()
 
-    suspend fun getTmdbSources(tmdbId: Int) =
-        http.get<List<TorrentDescription2>>("/api/media/tmdb/$tmdbId/sources")
+    suspend fun getTmdbSources(tmdbId: Int): List<TorrentDescription2> =
+        http.get("$serverUrl/api/media/tmdb/$tmdbId/sources").body()
 
-    suspend fun getGlobalTransferInfo() =
-        http.get<GlobalTransferInfo>("/api/torrents/global")
+    suspend fun getGlobalTransferInfo(): GlobalTransferInfo =
+        http.get("$serverUrl/api/torrents/global").body()
 
-    suspend fun getTorrents() =
-        http.get<List<Torrent>>("/api/torrents")
+    suspend fun getTorrents(): List<Torrent> =
+        http.get("$serverUrl/api/torrents").body()
 
-    suspend fun getTorrentFiles(hash: String) =
-        http.get<List<TorrentFile>>("/api/torrents/$hash/files")
+    suspend fun getTorrentFiles(hash: String): List<TorrentFile> =
+        http.get("$serverUrl/api/torrents/$hash/files").body()
 
-    suspend fun resumeTorrent(hash: String) =
-        http.get<Unit>("/api/torrents/$hash/resume")
+    suspend fun resumeTorrent(hash: String) {
+        http.get("$serverUrl/api/torrents/$hash/resume")
+    }
 
-    suspend fun pauseTorrent(hash: String) =
-        http.get<Unit>("/api/torrents/$hash/pause")
+    suspend fun pauseTorrent(hash: String) {
+        http.get("$serverUrl/api/torrents/$hash/pause")
+    }
 
-    suspend fun deleteTorrent(hash: String, deleteFiles: Boolean = false) =
-        http.delete<Unit>("/api/torrents/$hash") {
+    suspend fun deleteTorrent(hash: String, deleteFiles: Boolean = false) {
+        http.delete("$serverUrl/api/torrents/$hash") {
             parameter("deleteFiles", deleteFiles)
         }
+    }
 
     suspend fun downloadTorrent(description: TorrentDescription2, movieId: String?) {
-        http.post<Unit>("/api/torrents") {
+        http.post("$serverUrl/api/torrents") {
             contentType(ContentType.Application.Json)
-            body = description
+            setBody(description)
 
             movieId?.let { parameter("movieId", it) }
         }
@@ -276,37 +257,28 @@ class AnyStreamClient(
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
         val currentState = MutableStateFlow<PlaybackState?>(null)
         val progressFlow = MutableSharedFlow<Double>(0, 1, BufferOverflow.DROP_OLDEST)
+        val mutex = Mutex(locked = true)
         scope.launch {
-            http.wss("/api/ws/stream/$mediaRefId/state") {
+            http.wss("$serverUrlWs/api/ws/stream/$mediaRefId/state") {
+                send(sessionManager.fetchToken()!!)
+                val playbackState = receiveDeserialized<PlaybackState>()
+                currentState.value = playbackState
+                init(playbackState)
                 progressFlow
                     .sample(5000)
                     .distinctUntilChanged()
                     .onEach { progress ->
-                        if (currentState.value != null) {
-                            currentState.update { currentState ->
-                                currentState?.copy(position = progress)
-                            }
-                            send(Frame.Text(json.encodeToString(currentState.value)))
-                        }
+                        currentState.update { it?.copy(position = progress) }
+                        sendSerialized(currentState.value!!)
                     }
                     .launchIn(this)
-                incoming.consumeAsFlow()
-                    .onEach { frame ->
-                        when (frame) {
-                            is Frame.Text -> {
-                                val message = frame.readText()
-                                currentState.value = json.decodeFromString<PlaybackState>(message).also(init)
-                            }
-                            else -> Unit
-                        }
-                    }
-                    .onStart { send(Frame.Text(sessionManager.fetchToken()!!)) }
-                    .collect()
+                mutex.withLock { close() }
             }
+            scope.cancel()
         }
         return PlaybackSessionHandle(
             update = progressFlow,
-            cancel = { scope.cancel() }
+            cancel = { mutex.unlock() }
         )
     }
 
@@ -315,45 +287,52 @@ class AnyStreamClient(
         password: String,
         inviteCode: String?,
         rememberUser: Boolean = true,
-    ) = http.post<CreateUserResponse>("/api/users") {
+    ): CreateUserResponse = http.post("$serverUrl/api/users") {
         contentType(ContentType.Application.Json)
         parameter("createSession", rememberUser)
-        body = CreateUserBody(username, password, inviteCode)
-    }.also { (success, _) ->
+        setBody(CreateUserBody(username, password, inviteCode))
+    }.body<CreateUserResponse>().also { (success, _) ->
         if (rememberUser && success != null) {
             sessionManager.writeUser(success.user)
             sessionManager.writePermissions(success.permissions)
         }
     }
 
-    suspend fun getUser(id: String) =
-        http.get<User>("/api/users/$id")
+    suspend fun getUser(id: String): User {
+        return http.get("$serverUrl/api/users/$id").body()
+    }
 
-    suspend fun getUsers(): List<User> =
-        http.get("/api/users")
+    suspend fun getUsers(): List<User> {
+        return http.get("$serverUrl/api/users").body()
+    }
 
     suspend fun updateUser(
         userId: String,
         displayName: String,
         password: String?,
         currentPassword: String?
-    ) = http.put<Unit>("/api/users/${userId}") {
-        contentType(ContentType.Application.Json)
-        body = UpdateUserBody(
-            displayName = displayName,
-            password = password,
-            currentPassword = currentPassword
-        )
+    ) {
+        http.put("$serverUrl/api/users/${userId}") {
+            contentType(ContentType.Application.Json)
+            setBody(
+                UpdateUserBody(
+                    displayName = displayName,
+                    password = password,
+                    currentPassword = currentPassword
+                )
+            )
+        }
     }
 
-    suspend fun deleteUser(id: String) =
-        http.delete<HttpResponse>("/api/users/$id")
+    suspend fun deleteUser(id: String): HttpResponse {
+        return http.delete("$serverUrl/api/users/$id")
+    }
 
     suspend fun login(username: String, password: String, pairing: Boolean = false): CreateSessionResponse {
-        return http.post<CreateSessionResponse>("/api/users/session") {
+        return http.post("$serverUrl/api/users/session") {
             contentType(ContentType.Application.Json)
-            body = CreateSessionBody(username, password)
-        }.also { (success, _) ->
+            setBody(CreateSessionBody(username, password))
+        }.body<CreateSessionResponse>().also { (success, _) ->
             if (!pairing && success != null) {
                 sessionManager.writeUser(success.user)
                 sessionManager.writePermissions(success.permissions)
@@ -364,24 +343,25 @@ class AnyStreamClient(
     suspend fun logout() {
         val token = sessionManager.fetchToken() ?: return
         sessionManager.clear()
-        http.delete<Unit>("/api/users/session") {
+        http.delete("$serverUrl/api/users/session") {
             header(SESSION_HEADER, token)
         }
     }
 
-    suspend fun getInvites(): List<InviteCode> =
-        http.get("/api/users/invite")
+    suspend fun getInvites(): List<InviteCode> {
+        return http.get("$serverUrl/api/users/invite").body()
+    }
 
     suspend fun createInvite(permissions: Set<String>): InviteCode {
-        return http.post("/api/users/invite") {
+        return http.post("$serverUrl/api/users/invite") {
             contentType(ContentType.Application.Json)
-            body = permissions
-        }
+            setBody(permissions)
+        }.body()
     }
 
     suspend fun deleteInvite(id: String): Boolean {
         return try {
-            http.delete<Unit>("/api/users/invite/$id")
+            http.delete("$serverUrl/api/users/invite/$id")
             true
         } catch (e: ClientRequestException) {
             if (e.response.status == NotFound) false else throw e
@@ -389,10 +369,10 @@ class AnyStreamClient(
     }
 
     suspend fun createPairedSession(pairingCode: String, secret: String): CreateSessionResponse {
-        val response = http.post<CreateSessionResponse>("/api/users/session/paired") {
+        val response = http.post("$serverUrl/api/users/session/paired") {
             parameter("pairingCode", pairingCode)
             parameter("secret", secret)
-        }
+        }.body<CreateSessionResponse>()
 
         response.success?.run {
             sessionManager.writeUser(user)
@@ -403,46 +383,34 @@ class AnyStreamClient(
     }
 
     suspend fun createPairingSession(): Flow<PairingMessage> = flow {
-        http.wss("/api/ws/users/pair") {
-            incoming.consumeAsFlow()
-                .onEach { frame ->
-                    when (frame) {
-                        is Frame.Text -> emit(json.decodeFromString(frame.readText()))
-                        is Frame.Close -> close()
-                        else -> Unit
-                    }
-                }
-                .collect()
+        http.wss("$serverUrlWs/api/ws/users/pair") {
+            for (frame in incoming) emit(receiveDeserialized())
         }
     }
 
-    suspend fun search(query: String, limit: Int? = null): SearchResponse =
-        http.get("/api/search") {
+    suspend fun search(query: String, limit: Int? = null): SearchResponse {
+        return http.get("$serverUrl/api/search") {
             parameter("query", query)
             parameter("limit", limit)
-        }
+        }.body()
+    }
 
     suspend fun closeStream(token: String) {
 
     }
 
     fun observeLogs(): Flow<String> = flow {
-        http.wss("/api/ws/admin/logs") {
-            incoming.consumeAsFlow()
-                .onEach { frame ->
-                    when (frame) {
-                        is Frame.Text -> emit(frame.readText())
-                        is Frame.Close -> close()
-                        else -> Unit
-                    }
-                }
-                .onStart { outgoing.trySend(Frame.Text(sessionManager.fetchToken()!!)) }
-                .collect()
+        http.wss("$serverUrlWs/api/ws/admin/logs") {
+            send(sessionManager.fetchToken()!!)
+            for (frame in incoming) {
+                if (frame is Frame.Text) emit(frame.readText())
+            }
         }
     }
 
-    suspend fun getStreams(): PlaybackSessionsResponse =
-        http.get("/api/stream")
+    suspend fun getStreams(): PlaybackSessionsResponse {
+        return http.get("$serverUrl/api/stream").body()
+    }
 
     fun createHlsStreamUrl(mediaRefId: String, token: String): String {
         return "${serverUrl}/api/stream/${mediaRefId}/hls/playlist.m3u8?token=$token"

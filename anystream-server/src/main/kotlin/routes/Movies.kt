@@ -20,11 +20,11 @@ package anystream.routes
 import anystream.data.*
 import anystream.models.Permissions.MANAGE_COLLECTION
 import org.drewcarlson.ktor.permissions.withAnyPermission
-import io.ktor.application.call
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
-import io.ktor.response.respond
-import io.ktor.routing.*
+import io.ktor.server.application.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 
 fun Route.addMovieRoutes(
     queries: MediaDbQueries,

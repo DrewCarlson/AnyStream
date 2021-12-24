@@ -23,9 +23,9 @@ import com.mongodb.MongoException
 import com.mongodb.client.model.Projections
 import com.mongodb.client.model.Sorts
 import info.movito.themoviedbapi.TmdbApi
-import io.ktor.application.*
-import io.ktor.response.*
-import io.ktor.routing.*
+import io.ktor.server.application.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import org.litote.kmongo.*
 import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.coroutine.CoroutineDatabase

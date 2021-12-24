@@ -18,16 +18,14 @@
 package anystream.util
 
 import anystream.test.RESOURCES
-import io.ktor.application.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.response.*
-import io.ktor.routing.*
 import io.ktor.server.testing.*
 import org.junit.Ignore
 import org.junit.Test
 import java.io.File
 import kotlin.test.assertEquals
-import kotlin.test.assertNull
 
 class SinglePageAppTests {
 
@@ -37,13 +35,9 @@ class SinglePageAppTests {
             defaultFile = "index.html"
             staticFilePath = "$RESOURCES/static"
         }) {
-            handleRequest(HttpMethod.Get, "/").apply {
-                assertEquals(HttpStatusCode.OK, response.status())
-                assertEquals(
-                    File("$RESOURCES/static/index.html").readText(),
-                    response.content
-                )
-            }
+            val response = client.get("/")
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals(File("$RESOURCES/static/index.html").readText(), response.bodyAsText())
         }
     }
 
@@ -53,13 +47,9 @@ class SinglePageAppTests {
             defaultFile = "index.html"
             staticFilePath = "$RESOURCES/static"
         }) {
-            handleRequest(HttpMethod.Get, "/test.json").apply {
-                assertEquals(HttpStatusCode.OK, response.status())
-                assertEquals(
-                    File("$RESOURCES/static/test.json").readText(),
-                    response.content
-                )
-            }
+            val response = client.get("/test.json")
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals(File("$RESOURCES/static/test.json").readText(), response.bodyAsText())
         }
     }
 
@@ -69,13 +59,9 @@ class SinglePageAppTests {
             defaultFile = "index.html"
             staticFilePath = "$RESOURCES/static"
         }) {
-            handleRequest(HttpMethod.Get, "/not-real").apply {
-                assertEquals(HttpStatusCode.OK, response.status())
-                assertEquals(
-                    File("$RESOURCES/static/index.html").readText(),
-                    response.content
-                )
-            }
+            val response = client.get("/not-real")
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals(File("$RESOURCES/static/index.html").readText(), response.bodyAsText())
         }
     }
 
@@ -87,24 +73,24 @@ class SinglePageAppTests {
             staticFilePath = RESOURCES
             ignoreBasePath = "/static"
         }) {
-            handleRequest(HttpMethod.Get, "/static/test.json").apply {
-                assertEquals(HttpStatusCode.OK, response.status())
-                assertNull(response.content)
-            }
+            val response = client.get("/test.json")
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals(0, response.bodyAsChannel().totalBytesRead)
         }
     }
 
     private fun testWithConfiguration(
         configure: SinglePageApp.() -> Unit,
-        test: TestApplicationEngine.() -> Unit
+        test: suspend ApplicationTestBuilder.() -> Unit
     ) {
-        withTestApplication({
+        testApplication {
             install(SinglePageApp, configure)
             /*routing {
                 get("/static/test.json") {
                     call.respond(HttpStatusCode.NoContent)
                 }
             }*/
-        }, test)
+            test()
+        }
     }
 }

@@ -17,11 +17,11 @@
  */
 package anystream.util
 
-import io.ktor.application.*
-import io.ktor.http.content.*
-import io.ktor.request.*
-import io.ktor.response.*
-import io.ktor.routing.*
+import io.ktor.server.application.*
+import io.ktor.server.http.content.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.ktor.util.*
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
@@ -32,7 +32,7 @@ class SinglePageApp(
     var ignoreBasePath: String = ""
 ) {
 
-    companion object Feature : ApplicationFeature<Application, SinglePageApp, SinglePageApp> {
+    companion object Plugin : ApplicationPlugin<Application, SinglePageApp, SinglePageApp> {
         override val key = AttributeKey<SinglePageApp>("SinglePageApp")
 
         override fun install(pipeline: Application, configure: SinglePageApp.() -> Unit): SinglePageApp {
@@ -52,7 +52,7 @@ class SinglePageApp(
                 }
             }
 
-            pipeline.intercept(ApplicationCallPipeline.Features) {
+            pipeline.intercept(ApplicationCallPipeline.Plugins) {
                 val hasIgnoreBasePath = configuration.ignoreBasePath.isNotBlank()
                 val handleRequestPath = !call.request.uri.startsWith(configuration.ignoreBasePath)
                 if (!hasIgnoreBasePath || (hasIgnoreBasePath && handleRequestPath)) {

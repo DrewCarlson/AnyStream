@@ -31,8 +31,9 @@ kotlin {
                 implementation(libs.serialization.json)
 
                 implementation(libs.ktor.client.core)
-                implementation(libs.ktor.client.json)
-                implementation(libs.ktor.client.serialization)
+                implementation(libs.ktor.client.contentNegotiation)
+                implementation(libs.ktor.client.websockets)
+                implementation(libs.ktor.serialization)
             }
         }
         val commonTest by getting {

@@ -22,7 +22,7 @@ import anystream.client.AnyStreamClient
 import anystream.models.*
 import anystream.models.api.CreateUserError
 import app.softwork.routingcompose.BrowserRouter
-import io.ktor.client.features.*
+import io.ktor.client.plugins.*
 import io.ktor.http.*
 import kotlinx.browser.window
 import kotlinx.coroutines.launch

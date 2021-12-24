@@ -11,5 +11,5 @@
     <logger name="io.netty" level="INFO"/>
     <logger name="org.mongodb" level="INFO"/>
     <logger name="info.movito.themoviedbapi" level="INFO"/>
-    <logger name="com.github.kokorin.jaffree" level="INFO"/>
+    <logger name="com.github.kokorin.jaffree" level="ERROR"/>
 </configuration>
