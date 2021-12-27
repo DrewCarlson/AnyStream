@@ -119,16 +119,17 @@ fun Application.installRouting(mongodb: CoroutineDatabase) {
         }
     }
 
-    if (webClientPath.isNullOrBlank()) {
-        log.debug("No web client path provided, this instance will serve the API only.")
-    } else {
-        check(File(webClientPath).exists()) {
-            "Web client path does not exist, ensure it does or unset the `app.clientPath` setting.\n$webClientPath"
-        }
-        log.debug("This instance will serve the web client from '$webClientPath'.")
-        install(SinglePageApp) {
-            ignoreBasePath = "/api"
-            staticFilePath = webClientPath
+    when {
+        webClientPath.isNullOrBlank() ->
+            log.debug("No web client path provided, this instance will serve the API only.")
+        !File(webClientPath).exists() ->
+            log.error("Specified web client path is empty: $webClientPath")
+        else -> {
+            log.debug("This instance will serve the web client from '$webClientPath'.")
+            install(SinglePageApp) {
+                ignoreBasePath = "/api"
+                staticFilePath = webClientPath
+            }
         }
     }
 }
