@@ -80,36 +80,44 @@ internal class JsWebSocketSession(
         )
 
         @OptIn(DelicateCoroutinesApi::class)
-        GlobalScope.launch { // Note: Ensure close frame is dispatched
-            @OptIn(ExperimentalCoroutinesApi::class)
-            _outgoing.consumeEach {
-                when (it.frameType) {
-                    FrameType.TEXT -> {
-                        val text = it.data
-                        websocket.send(String(text))
+        launch {
+            // Note: To ensure close frame is dispatched outgoing messages
+            // will always be consumed, if the parent scope is cancelled
+            // only the close frame can be dispatched.
+            withContext(NonCancellable) {
+                @OptIn(ExperimentalCoroutinesApi::class)
+                _outgoing.consumeEach {
+                    if (!this@launch.isActive && it !is Frame.Close) {
+                        return@consumeEach
                     }
-                    FrameType.BINARY -> {
-                        val source = it.data as Int8Array
-                        val frameData = source.buffer.slice(
-                            source.byteOffset,
-                            source.byteOffset + source.byteLength
-                        )
-
-                        websocket.send(frameData)
-                    }
-                    FrameType.CLOSE -> {
-                        val data = buildPacket { writeFully(it.data) }
-                        val code = data.readShort()
-                        val reason = data.readText()
-                        _closeReason.complete(CloseReason(code, reason))
-                        if (code.isReservedStatusCode()) {
-                            websocket.close()
-                        } else {
-                            websocket.close(code, reason)
+                    when (it.frameType) {
+                        FrameType.TEXT -> {
+                            val text = it.data
+                            websocket.send(String(text))
                         }
-                    }
-                    FrameType.PING, FrameType.PONG -> {
-                        // ignore
+                        FrameType.BINARY -> {
+                            val source = it.data as Int8Array
+                            val frameData = source.buffer.slice(
+                                source.byteOffset,
+                                source.byteOffset + source.byteLength
+                            )
+
+                            websocket.send(frameData)
+                        }
+                        FrameType.CLOSE -> {
+                            val data = buildPacket { writeFully(it.data) }
+                            val code = data.readShort()
+                            val reason = data.readText()
+                            _closeReason.complete(CloseReason(code, reason))
+                            if (code.isReservedStatusCode()) {
+                                websocket.close()
+                            } else {
+                                websocket.close(code, reason)
+                            }
+                        }
+                        FrameType.PING, FrameType.PONG -> {
+                            // ignore
+                        }
                     }
                 }
             }

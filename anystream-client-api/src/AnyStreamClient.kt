@@ -33,11 +33,13 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
+import io.ktor.serialization.*
 import io.ktor.serialization.kotlinx.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -118,28 +120,32 @@ class AnyStreamClient(
         return sessionManager.fetchUser()
     }
 
-    fun torrentListChanges(): Flow<List<String>> = flow {
+    fun torrentListChanges(): Flow<List<String>> = callbackFlow {
         http.wss("$serverUrlWs/api/ws/torrents/observe") {
             send(sessionManager.fetchToken()!!)
             for (frame in incoming) {
                 if (frame is Frame.Text) {
                     val message = frame.readText()
                     if (message.isNotBlank()) {
-                        emit(message.split(","))
+                        trySend(message.split(","))
                     }
                 }
             }
+            awaitClose()
         }
     }
 
-    fun globalInfoChanges(): Flow<GlobalTransferInfo> = flow {
+    fun globalInfoChanges(): Flow<GlobalTransferInfo> = callbackFlow {
         http.wss("$serverUrlWs/api/ws/torrents/global") {
             send(sessionManager.fetchToken()!!)
-            for (frame in incoming) {
-                if (frame is Frame.Text) {
-                    emit(receiveDeserialized())
+            while (!incoming.isClosedForReceive) {
+                try {
+                    trySend(receiveDeserialized())
+                } catch (e: WebsocketDeserializeException) {
+                    // ignored
                 }
             }
+            awaitClose()
         }
     }
 
@@ -263,21 +269,9 @@ class AnyStreamClient(
         scope.launch {
             http.wss("$serverUrlWs/api/ws/stream/$mediaRefId/state") {
                 send(sessionManager.fetchToken()!!)
-                for (frame in incoming) {
-                    when (frame) {
-                        is Frame.Text -> {
-                            val playbackState = receiveDeserialized<PlaybackState>()
-                            currentState.value = playbackState
-                            init(playbackState)
-                            continue
-                        }
-                        is Frame.Close -> {
-                            scope.cancel()
-                            close()
-                        }
-                        else -> Unit
-                    }
-                }
+                val playbackState = receiveDeserialized<PlaybackState>()
+                currentState.value = playbackState
+                init(playbackState)
                 progressFlow
                     .sample(5000)
                     .distinctUntilChanged()
@@ -396,13 +390,16 @@ class AnyStreamClient(
         return response
     }
 
-    suspend fun createPairingSession(): Flow<PairingMessage> = flow {
+    suspend fun createPairingSession(): Flow<PairingMessage> = channelFlow {
         http.wss("$serverUrlWs/api/ws/users/pair") {
-            for (frame in incoming) {
-                if (frame is Frame.Text) {
-                    emit(receiveDeserialized())
+            while (!incoming.isClosedForReceive) {
+                try {
+                    trySend(receiveDeserialized())
+                } catch (e: WebsocketDeserializeException) {
+                    // ignored
                 }
             }
+            awaitClose()
         }
     }
 
@@ -417,12 +414,13 @@ class AnyStreamClient(
 
     }
 
-    fun observeLogs(): Flow<String> = flow {
+    fun observeLogs(): Flow<String> = callbackFlow {
         http.wss("$serverUrlWs/api/ws/admin/logs") {
             send(sessionManager.fetchToken()!!)
             for (frame in incoming) {
-                if (frame is Frame.Text) emit(frame.readText())
+                if (frame is Frame.Text) trySend(frame.readText())
             }
+            awaitClose()
         }
     }
 
