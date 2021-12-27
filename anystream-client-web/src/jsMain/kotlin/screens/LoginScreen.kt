@@ -23,8 +23,7 @@ import anystream.frontend.libs.QRCodeImage
 import anystream.models.api.CreateSessionError
 import anystream.models.api.PairingMessage
 import app.softwork.routingcompose.BrowserRouter
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -53,7 +52,7 @@ fun LoginScreen(client: AnyStreamClient) {
                 }
                 value = message
             }
-            .collect()
+            .launchIn(this)
     }
     suspend fun login() {
         isLocked = true

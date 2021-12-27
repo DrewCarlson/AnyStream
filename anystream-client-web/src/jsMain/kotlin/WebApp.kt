@@ -21,7 +21,9 @@ import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
 import anystream.client.SessionManager
 import anystream.frontend.screens.*
+import anystream.frontend.util.Js
 import app.softwork.routingcompose.BrowserRouter
+import io.ktor.client.*
 import kotlinx.browser.window
 import kotlinx.coroutines.flow.*
 import org.jetbrains.compose.web.css.*
@@ -35,7 +37,8 @@ fun webApp() = renderComposable(rootElementId = "root") {
     val client = remember {
         AnyStreamClient(
             serverUrl = window.location.run { "$protocol//$host" },
-            sessionManager = SessionManager(JsSessionDataStore)
+            sessionManager = SessionManager(JsSessionDataStore),
+            http = HttpClient(Js),
         )
     }
     Div(
