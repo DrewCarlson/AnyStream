@@ -57,4 +57,5 @@ dependencies {
     implementation(libs.zxing.core)
     implementation(libs.quickie.bundled)
     implementation(libs.anrWatchdog)
+    implementation(libs.okhttp)
 }
