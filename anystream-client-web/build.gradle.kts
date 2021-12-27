@@ -19,6 +19,12 @@ kotlin {
                 devServer = DevServer(
                     open = false,
                     port = 3000,
+                    proxy = mutableMapOf(
+                        "/api/*" to mapOf<String, Any>(
+                            "target" to "http://localhost:8888",
+                            "ws" to true
+                        )
+                    ),
                     static = mutableListOf("$buildDir/processedResources/js/main")
                 )
             }
