@@ -33,7 +33,6 @@ internal class JsWebSocketSession(
 
     init {
         websocket.binaryType = BinaryType.ARRAYBUFFER
-        console.log(websocket)
 
         websocket.addEventListener(
             "message",
