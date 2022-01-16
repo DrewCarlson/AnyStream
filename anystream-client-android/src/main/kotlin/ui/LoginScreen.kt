@@ -22,6 +22,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.OutlinedTextField
@@ -30,7 +31,6 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.autofill.Autofill
 import androidx.compose.ui.autofill.AutofillNode
@@ -58,7 +58,6 @@ import com.google.zxing.qrcode.QRCodeWriter
 import io.ktor.client.plugins.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.net.InetAddress
@@ -78,8 +77,6 @@ fun LoginScreen(
     }
 }
 
-
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun FormBody(
     sessionManager: SessionManager,
@@ -316,8 +313,6 @@ fun QrImage(
     }
 }
 
-
-@ExperimentalComposeUiApi
 @Composable
 private fun Autofill(
     autofillTypes: List<AutofillType>,
@@ -338,7 +333,6 @@ private fun Autofill(
     }
 }
 
-@ExperimentalComposeUiApi
 private fun Autofill.onFocusStateChanged(focusState: FocusState, node: AutofillNode) {
     if (focusState.isFocused) requestAutofillForNode(node) else cancelAutofillForNode(node)
 }
