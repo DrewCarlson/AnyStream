@@ -13,6 +13,7 @@ if (hasAndroidSdk) {
         defaultConfig {
             minSdk = 23
             targetSdk = 31
+            testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         }
         sourceSets {
             named("main") {
@@ -83,6 +84,14 @@ kotlin {
             val androidMain by getting {
                 dependencies {
                     implementation(libs.androidx.core.ktx)
+                }
+            }
+
+            val androidTest by getting {
+                dependencies {
+                    implementation(libs.androidx.test.runner)
+                    implementation(kotlin("test"))
+                    implementation(kotlin("test-junit"))
                 }
             }
         }
