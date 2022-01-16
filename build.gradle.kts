@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.serialization) apply false
     alias(libs.plugins.composejb) apply false
     alias(libs.plugins.shadowjar) apply false
+    alias(libs.plugins.ksp) apply false
 }
 
 buildscript {

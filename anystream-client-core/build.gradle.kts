@@ -3,6 +3,7 @@ import com.android.build.gradle.LibraryExtension
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization")
+    id("com.google.devtools.ksp")
 }
 
 if (hasAndroidSdk) {
@@ -18,6 +19,16 @@ if (hasAndroidSdk) {
                 manifest.srcFile("src/androidMain/AndroidManifest.xml")
             }
         }
+    }
+}
+
+dependencies {
+    add("kspMetadata", libs.mobiuskt.updateSpec)
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>>().all {
+    if (name != "kspKotlinMetadata") {
+        dependsOn("kspKotlinMetadata")
     }
 }
 
@@ -43,6 +54,7 @@ kotlin {
             }
         }
         val commonMain by getting {
+            kotlin.srcDir("build/generated/ksp/$name/kotlin")
             dependencies {
                 api(projects.anystreamDataModels)
                 api(projects.anystreamClientApi)
@@ -50,6 +62,7 @@ kotlin {
                 api(libs.mobiuskt.core)
                 api(libs.mobiuskt.extras)
                 api(libs.mobiuskt.coroutines)
+                implementation(libs.mobiuskt.updateSpec.api)
                 implementation(libs.serialization.core)
                 implementation(libs.serialization.json)
 
@@ -60,6 +73,7 @@ kotlin {
         }
         val commonTest by getting {
             dependencies {
+                implementation(libs.mobiuskt.test)
                 implementation(kotlin("test-common"))
                 implementation(kotlin("test-annotations-common"))
             }
