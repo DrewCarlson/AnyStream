@@ -19,12 +19,14 @@ package anystream.android
 
 import android.app.Application
 import com.github.anrwatchdog.ANRWatchDog
-
+import helper.FlipperProvider
 
 class App : Application() {
 
     override fun onCreate() {
         super.onCreate()
         ANRWatchDog().start()
+
+        FlipperProvider.init(this)
     }
 }

@@ -39,9 +39,13 @@ import anystream.android.ui.*
 import anystream.client.AnyStreamClient
 import anystream.client.SessionManager
 import anystream.core.AndroidSessionDataStore
+import helper.FlipperProvider
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.okhttp.*
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import okhttp3.OkHttpClient
 
 private const val PREFS_NAME = "prefs"
 private const val PREF_SERVER_URL = "serverUrl"
@@ -49,6 +53,18 @@ private const val PREF_SERVER_URL = "serverUrl"
 class LeanbackActivity : MainActivity()
 open class MainActivity : AppCompatActivity() {
     private val backPressHandler = BackPressHandler()
+
+    private val httpClient by lazy{
+        HttpClient(OkHttp) {
+            engine {
+                preconfigured = OkHttpClient.Builder().apply {
+                    FlipperProvider.getFlipperOkhttpInterceptor()?.let {
+                        addInterceptor(it)
+                    }
+                }.build()
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,7 +75,7 @@ open class MainActivity : AppCompatActivity() {
             var client = remember {
                 if (prefs.contains(PREF_SERVER_URL)) {
                     val serverUrl = prefs.getString(PREF_SERVER_URL, null)!!
-                    AnyStreamClient(serverUrl, sessionManager = sessionManager)
+                    AnyStreamClient(serverUrl, httpClient, sessionManager)
                 } else null
             }
             CompositionLocalProvider(LocalBackPressHandler provides backPressHandler) {
