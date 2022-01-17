@@ -33,7 +33,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
-import androidx.core.content.edit
 import anystream.android.router.*
 import anystream.android.ui.*
 import anystream.client.AnyStreamClient
@@ -48,13 +47,12 @@ import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 
 private const val PREFS_NAME = "prefs"
-private const val PREF_SERVER_URL = "serverUrl"
 
 class LeanbackActivity : MainActivity()
 open class MainActivity : AppCompatActivity() {
     private val backPressHandler = BackPressHandler()
 
-    private val httpClient by lazy{
+    private val httpClient by lazy {
         HttpClient(OkHttp) {
             engine {
                 preconfigured = OkHttpClient.Builder().apply {
@@ -72,25 +70,18 @@ open class MainActivity : AppCompatActivity() {
         val sessionManager = SessionManager(AndroidSessionDataStore(prefs))
         setContent {
             val scope = rememberCoroutineScope()
-            var client = remember {
-                if (prefs.contains(PREF_SERVER_URL)) {
-                    val serverUrl = prefs.getString(PREF_SERVER_URL, null)!!
-                    AnyStreamClient(serverUrl, httpClient, sessionManager)
-                } else null
-            }
+            val client = remember { AnyStreamClient(null, httpClient, sessionManager) }
             CompositionLocalProvider(LocalBackPressHandler provides backPressHandler) {
                 AppTheme {
                     BundleScope(savedInstanceState) {
-                        val currentClient = client
                         val defaultRoute = when {
-                            currentClient == null || !currentClient.isAuthenticated() ->
-                                Routes.Login
+                            !client.isAuthenticated() -> Routes.Login
                             else -> Routes.Home
                         }
                         Router(defaultRouting = defaultRoute) { stack ->
                             remember {
-                                client?.authenticated
-                                    ?.onEach { authed ->
+                                client.authenticated
+                                    .onEach { authed ->
                                         val isLoginRoute = stack.last() == Routes.Login
                                         if (authed && isLoginRoute) {
                                             stack.replace(Routes.Home)
@@ -98,19 +89,12 @@ open class MainActivity : AppCompatActivity() {
                                             stack.replace(Routes.Login)
                                         }
                                     }
-                                    ?.launchIn(scope)
+                                    .launchIn(scope)
                             }
                             when (val route = stack.last()) {
-                                Routes.Login -> LoginScreen(
-                                    sessionManager = sessionManager,
-                                    onLoginCompleted = { newClient, serverUrl ->
-                                        client = newClient
-                                        prefs.edit { putString(PREF_SERVER_URL, serverUrl) }
-                                        stack.replace(Routes.Home)
-                                    }
-                                )
+                                Routes.Login -> LoginScreen(client, { stack.replace(Routes.Home) })
                                 Routes.Home -> HomeScreen(
-                                    client = client!!,
+                                    client = client,
                                     backStack = stack,
                                     onMediaClick = { mediaRefId ->
                                         if (mediaRefId != null) {
@@ -122,7 +106,7 @@ open class MainActivity : AppCompatActivity() {
                                     }
                                 )
                                 Routes.Movies -> MoviesScreen(
-                                    client = client!!,
+                                    client = client,
                                     onMediaClick = { mediaRefId ->
                                         if (mediaRefId != null) {
                                             stack.replace(Routes.Player(mediaRefId))
@@ -131,11 +115,11 @@ open class MainActivity : AppCompatActivity() {
                                     backStack = stack
                                 )
                                 Routes.PairingScanner -> PairingScanner(
-                                    client = client!!,
+                                    client = client,
                                     backStack = stack
                                 )
                                 is Routes.Player -> PlayerScreen(
-                                    client = client!!,
+                                    client = client,
                                     mediaRefId = route.mediaRefId
                                 )
                             }
@@ -155,6 +139,11 @@ open class MainActivity : AppCompatActivity() {
         if (!backPressHandler.handle()) {
             super.onBackPressed()
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        httpClient.close()
     }
 }
 

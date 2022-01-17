@@ -3,6 +3,8 @@ plugins {
     kotlin("plugin.serialization")
 }
 
+apply(plugin = "kotlinx-atomicfu")
+
 kotlin {
     jvm()
     js(IR) {
@@ -26,6 +28,7 @@ kotlin {
             kotlin.srcDirs("src")
             dependencies {
                 implementation(projects.anystreamDataModels)
+                implementation(libs.atomicfu)
                 implementation(libs.coroutines.core)
                 implementation(libs.serialization.core)
                 implementation(libs.serialization.json)

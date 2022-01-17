@@ -1,11 +1,26 @@
+/**
+ * AnyStream
+ * Copyright (C) 2022 Drew Carlson
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package anystream.ui.login
 
 import anystream.client.AnyStreamClient
 import anystream.models.api.CreateSessionResponse
 import anystream.models.api.PairingMessage
 import anystream.ui.login.LoginScreenModel.ServerValidation
-import io.ktor.client.*
-import io.ktor.client.request.*
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.mapNotNull
 import kt.mobius.flow.FlowTransformer
@@ -15,41 +30,30 @@ object LoginScreenHandler {
 
     // Future improvements:
     // - Setup CommonRouter interface and connect to routing effects
-    // - Cache AnyStreamClient for a given Server Url, remove when new Url is validated
     // - Add anystream verification url to server and validate Server Url points to real instance
     fun create(
-        httpClient: HttpClient,
+        client: AnyStreamClient,
+        routeToHome: () -> Unit,
     ): FlowTransformer<LoginScreenEffect, LoginScreenEvent> = subtypeEffectHandler {
-        addAction<LoginScreenEffect.NavigateToHome> {
-            // router.replaceTop(Routes.Home)
+        addAction<LoginScreenEffect.NavigateToHome> { routeToHome() }
+
+        addFunction<LoginScreenEffect.Login> { effect ->
+            client.login(effect.username, effect.password).toLoginScreenEvent()
         }
-        addFunction<LoginScreenEffect.ValidateServerUrl> { effect ->
+
+        addLatestValueCollector<LoginScreenEffect.ValidateServerUrl> { effect ->
             val result = try {
-                httpClient.get(effect.serverUrl)
+                check(client.verifyAndSetServerUrl(effect.serverUrl))
                 ServerValidation.VALID
             } catch (e: Throwable) {
                 ServerValidation.INVALID
             }
 
-            LoginScreenEvent.OnServerValidated(effect.serverUrl, result)
-        }
-
-        addFunction<LoginScreenEffect.Login> { effect ->
-            val client = AnyStreamClient(
-                serverUrl = effect.serverUrl,
-                http = httpClient,
-            )
-
-            client.login(effect.username, effect.password).toLoginScreenEvent()
+            emit(LoginScreenEvent.OnServerValidated(effect.serverUrl, result))
         }
 
         addLatestValueCollector<LoginScreenEffect.PairingSession> { effect ->
             if (effect.cancel) return@addLatestValueCollector
-
-            val client = AnyStreamClient(
-                serverUrl = effect.serverUrl,
-                http = httpClient,
-            )
 
             lateinit var pairingCode: String
             val pairingFlow = client.createPairingSession().mapNotNull { message ->
