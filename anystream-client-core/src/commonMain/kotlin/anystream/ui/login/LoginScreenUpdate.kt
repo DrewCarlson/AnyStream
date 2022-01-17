@@ -94,8 +94,8 @@ object LoginScreenUpdate : LoginScreenUpdateSpec {
         model: LoginScreenModel,
         event: LoginScreenEvent.OnLoginSuccess
     ): Next<LoginScreenModel, LoginScreenEffect> {
-        return when (model.state) {
-            State.AUTHENTICATING -> {
+        return when {
+            model.state == State.AUTHENTICATING || !model.pairingCode.isNullOrBlank() -> {
                 next(
                     model.copy(state = State.AUTHENTICATED),
                     LoginScreenEffect.NavigateToHome,
