@@ -29,6 +29,7 @@ import kotlin.native.concurrent.SharedImmutable
 private const val STORAGE_KEY = "SESSION_TOKEN"
 private const val PERMISSIONS_KEY = "PERMISSIONS_KEY"
 private const val USER_KEY = "USER_KEY"
+private const val SERVER_URL_KEY = "SERVER_URL_KEY"
 
 @SharedImmutable
 private val json = Json {
@@ -73,6 +74,10 @@ class SessionManager(private val dataStore: SessionDataStore) {
         fetchPermissions()
     }
 
+    fun writeServerUrl(serverUrl: String) {
+        dataStore.write(SERVER_URL_KEY, serverUrl)
+    }
+
     fun writeUser(user: User) {
         dataStore.write(USER_KEY, json.encodeToString(user))
         this.user.tryEmit(user)
@@ -86,6 +91,10 @@ class SessionManager(private val dataStore: SessionDataStore) {
     fun writePermissions(permissions: Set<String>) {
         dataStore.write(PERMISSIONS_KEY, permissions.joinToString(","))
         this.permissions.tryEmit(permissions)
+    }
+
+    fun fetchServerUrl(): String? {
+        return dataStore.read(SERVER_URL_KEY)
     }
 
     fun fetchUser(): User? {

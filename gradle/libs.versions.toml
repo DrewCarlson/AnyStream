@@ -6,10 +6,11 @@ ktorio = "2.0.0-beta-1"
 composejb = "1.0.1"
 kotlinjs_ext = "1.0.1-pre.276-kotlin-1.6.0"
 ksp = "1.6.10-1.0.2"
+atomicfu = "0.17.0"
 
 qbittorrent = "0.4.0"
 torrent_search = "0.2.0"
-mobiuskt = "0.5.0"
+mobiuskt = "0.5.1"
 ktor_perm = "0.2.0"
 
 kmongo = "4.4.0"
@@ -25,6 +26,7 @@ compose = "1.1.0-rc01"
 composeCompiler = "1.1.0-rc02"
 exoplayer = "2.16.1"
 ax_runner = "1.4.0"
+agp = "7.0.4"
 
 okhttp = "4.9.3"
 
@@ -45,6 +47,11 @@ coroutines-jdk8 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8", ve
 
 serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "serialization" }
 serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
+
+atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu" }
+atomicfu-plugin = { module = "org.jetbrains.kotlinx:atomicfu-gradle-plugin", version.ref = "atomicfu" }
+
+agp = { module = "com.android.tools.build:gradle", version.ref = "agp" }
 
 kotlinjs-extensions = { module = "org.jetbrains.kotlin-wrappers:kotlin-extensions", version.ref = "kotlinjs_ext" }
 
@@ -126,7 +133,6 @@ flipperSo = { module = "com.facebook.soloader:soloader", version = "0.10.1" }
 mobiuskt-core = { module = "org.drewcarlson:mobiuskt-core", version.ref = "mobiuskt" }
 mobiuskt-test = { module = "org.drewcarlson:mobiuskt-test", version.ref = "mobiuskt" }
 mobiuskt-extras = { module = "org.drewcarlson:mobiuskt-extras", version.ref = "mobiuskt" }
-mobiuskt-android = { module = "org.drewcarlson:mobiuskt-android", version.ref = "mobiuskt" }
 mobiuskt-coroutines = { module = "org.drewcarlson:mobiuskt-coroutines", version.ref = "mobiuskt" }
 mobiuskt-updateSpec = { module = "org.drewcarlson:mobiuskt-update-spec", version.ref = "mobiuskt" }
 mobiuskt-updateSpec-api = { module = "org.drewcarlson:mobiuskt-update-spec-api", version.ref = "mobiuskt" }

@@ -17,7 +17,8 @@ buildscript {
         google()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:7.0.4")
+        classpath(libs.agp)
+        classpath(libs.atomicfu.plugin)
     }
 }
 

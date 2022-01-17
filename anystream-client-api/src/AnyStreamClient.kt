@@ -37,8 +37,10 @@ import io.ktor.serialization.*
 import io.ktor.serialization.kotlinx.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.websocket.*
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.sync.Mutex
@@ -61,7 +63,7 @@ private const val SESSION_HEADER = "as_user_session"
 
 class AnyStreamClient(
     /** The AnyStream server URL, ex. `http://localhost:3000`. */
-    serverUrl: String,
+    serverUrl: String?,
     http: HttpClient = HttpClient(),
     private val sessionManager: SessionManager = SessionManager(SessionDataStore)
 ) {
@@ -69,10 +71,23 @@ class AnyStreamClient(
     val permissions: Flow<Set<String>?> = sessionManager.permissionsFlow
     val user: Flow<User?> = sessionManager.userFlow
 
-    private val serverUrl = serverUrl.trimEnd('/')
-    private val serverUrlWs = this.serverUrl
-        .replace("https://", "wss://")
-        .replace("http://", "ws://")
+    private val _serverUrl = atomic("")
+    private val _serverUrlWss = atomic("")
+    var serverUrl: String
+        get() = _serverUrl.value
+        private set(value) {
+            val trimmedUrl = value.trimEnd('/')
+            _serverUrl.value = trimmedUrl
+            _serverUrlWss.value = trimmedUrl
+                .replace("https://", "wss://")
+                .replace("http://", "ws://")
+        }
+    private val serverUrlWs: String
+        get() = _serverUrlWss.value
+
+    init {
+        this.serverUrl = serverUrl ?: sessionManager.fetchServerUrl() ?: ""
+    }
 
     private val http = http.config {
         install(HttpCookies) {
@@ -101,6 +116,17 @@ class AnyStreamClient(
                     sessionManager.clear()
                 }
             }
+        }
+    }
+
+    suspend fun verifyAndSetServerUrl(serverUrl: String): Boolean {
+        return try {
+            check(http.get(serverUrl).status == HttpStatusCode.OK)
+            this.serverUrl = serverUrl
+            sessionManager.writeServerUrl(this.serverUrl)
+            true
+        } catch (e: Throwable) {
+            false
         }
     }
 
@@ -390,16 +416,17 @@ class AnyStreamClient(
         return response
     }
 
-    suspend fun createPairingSession(): Flow<PairingMessage> = channelFlow {
+    suspend fun createPairingSession(): Flow<PairingMessage> = flow {
         http.wss("$serverUrlWs/api/ws/users/pair") {
             while (!incoming.isClosedForReceive) {
                 try {
-                    trySend(receiveDeserialized())
+                    emit(receiveDeserialized())
                 } catch (e: WebsocketDeserializeException) {
+                    // ignored
+                } catch (e: ClosedReceiveChannelException) {
                     // ignored
                 }
             }
-            awaitClose()
         }
     }
 

@@ -20,58 +20,28 @@ package anystream.frontend.screens
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
 import anystream.frontend.libs.QRCodeImage
-import anystream.models.api.CreateSessionError
-import anystream.models.api.PairingMessage
+import anystream.frontend.util.createLoopController
+import anystream.ui.login.*
 import app.softwork.routingcompose.BrowserRouter
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import kt.mobius.Mobius
+import kt.mobius.SimpleLogger
+import kt.mobius.flow.FlowMobius
 import org.jetbrains.compose.web.attributes.*
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 
 @Composable
 fun LoginScreen(client: AnyStreamClient) {
-    val authMutex = remember { Mutex() }
-    val scope = rememberCoroutineScope()
-    var username by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var error by remember { mutableStateOf<String?>(null) }
-    var isLocked by remember { mutableStateOf(false) }
+    val (modelState, eventConsumerState) = createLoopController {
+        val factory = FlowMobius.loop(
+            LoginScreenUpdate,
+            LoginScreenHandler.create(client) { BrowserRouter.navigate("/home") }
+        ).logger(SimpleLogger("Login"))
+        Mobius.controller(factory, LoginScreenModel.create(client.serverUrl), LoginScreenInit)
+    }
 
-    val pairingMessage by produceState<PairingMessage?>(null) {
-        client.createPairingSession()
-            .onEach { message ->
-                if (message is PairingMessage.Authorized) {
-                    client.createPairedSession(
-                        (value as PairingMessage.Started).pairingCode,
-                        message.secret,
-                    )
-                    BrowserRouter.navigate("/home")
-                }
-                value = message
-            }
-            .launchIn(this)
-    }
-    suspend fun login() {
-        isLocked = true
-        error = null
-        val response = client.login(username, password)
-        when {
-            response.success != null -> BrowserRouter.navigate("/home")
-            response.error != null -> {
-                error = when (response.error) {
-                    CreateSessionError.USERNAME_INVALID -> "Invalid username"
-                    CreateSessionError.USERNAME_NOT_FOUND -> "Username not found"
-                    CreateSessionError.PASSWORD_INVALID -> "Invalid password"
-                    CreateSessionError.PASSWORD_INCORRECT -> "Incorrect password"
-                    null -> null
-                }
-                isLocked = false
-            }
-        }
-    }
+    val model by remember { modelState }
+    val eventConsumer by remember { eventConsumerState }
 
     Div({
         style {
@@ -82,35 +52,31 @@ fun LoginScreen(client: AnyStreamClient) {
         Div { H3 { Text("Login") } }
         Div {
             Input(InputType.Text) {
-                onInput { username = it.value }
+                onInput { eventConsumer.accept(LoginScreenEvent.OnUsernameChanged(it.value)) }
                 classes("form-control")
                 placeholder("Username")
                 type(InputType.Text)
-                if (isLocked) disabled()
+                if (model.isInputLocked()) disabled()
             }
         }
         Div {
             Input(InputType.Text) {
-                onInput { password = it.value }
+                onInput { eventConsumer.accept(LoginScreenEvent.OnPasswordChanged(it.value)) }
                 classes("form-control")
                 placeholder("Password")
                 type(InputType.Password)
-                if (isLocked) disabled()
+                if (model.isInputLocked()) disabled()
             }
         }
         Div {
-            error?.run { Text(this) }
+            model.loginError?.run { Text(toString()) }
         }
         Div {
             Button({
                 classes("btn", "btn-primary")
                 type(ButtonType.Button)
-                if (isLocked) disabled()
-                onClick {
-                    scope.launch {
-                        authMutex.withLock { login() }
-                    }
-                }
+                if (model.isInputLocked()) disabled()
+                onClick { eventConsumer.accept(LoginScreenEvent.OnLoginSubmit) }
             }) {
                 Text("Confirm")
             }
@@ -122,7 +88,9 @@ fun LoginScreen(client: AnyStreamClient) {
                         property("cursor", "pointer")
                     }
                     onClick {
-                        if (!isLocked) BrowserRouter.navigate("/signup")
+                        if (model.state == LoginScreenModel.State.IDLE) {
+                            BrowserRouter.navigate("/signup")
+                        }
                     }
                 }
             ) {
@@ -130,8 +98,9 @@ fun LoginScreen(client: AnyStreamClient) {
             }
         }
         Div {
-            if (pairingMessage is PairingMessage.Started) {
-                QRCodeImage((pairingMessage as PairingMessage.Started).pairingCode) {
+            val pairingCode = model.pairingCode
+            if (pairingCode != null) {
+                QRCodeImage(pairingCode) {
                     style {
                         width(300.px)
                         height(300.px)

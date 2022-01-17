@@ -1,3 +1,20 @@
+/**
+ * AnyStream
+ * Copyright (C) 2022 Drew Carlson
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package anystream.ui.login
 
 import anystream.models.api.CreateSessionError
@@ -14,7 +31,7 @@ data class LoginScreenModel(
     val supportsPairing: Boolean = true,
     val pairingCode: String? = null,
     val state: State = State.IDLE,
-    val serverValidation: ServerValidation = ServerValidation.CHECKING,
+    val serverValidation: ServerValidation = ServerValidation.VALIDATING,
     val loginError: CreateSessionError? = null,
 ) {
     enum class State {
@@ -22,7 +39,7 @@ data class LoginScreenModel(
     }
 
     enum class ServerValidation {
-        VALID, INVALID, CHECKING,
+        VALID, INVALID, VALIDATING,
     }
 
     fun credentialsAreSet(): Boolean {
@@ -33,13 +50,20 @@ data class LoginScreenModel(
         return serverValidation == ServerValidation.VALID
     }
 
+    fun isInputLocked(): Boolean {
+        return state != State.IDLE
+    }
+
     companion object {
         fun create(): LoginScreenModel {
             return LoginScreenModel()
         }
 
         fun create(serverUrl: String): LoginScreenModel {
-            return LoginScreenModel(serverUrl = serverUrl)
+            return LoginScreenModel(
+                serverUrl = serverUrl,
+                serverValidation = ServerValidation.VALID
+            )
         }
     }
 }
