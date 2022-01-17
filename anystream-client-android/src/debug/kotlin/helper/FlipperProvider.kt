@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2022 Amit Goel
+ * Copyright (C) 2022 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -49,4 +49,3 @@ object FlipperProvider {
         return FlipperOkhttpInterceptor(networkFlipperPlugin)
     }
 }
-

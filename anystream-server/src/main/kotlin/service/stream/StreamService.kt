@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2021 Drew Carlson
+ * Copyright (C) 2021 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -40,8 +40,8 @@ import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.DurationUnit.SECONDS
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.DurationUnit.SECONDS
 
 private const val DEFAULT_WAIT_FOR_SEGMENTS = 8
 

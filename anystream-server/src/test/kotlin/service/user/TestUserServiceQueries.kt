@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2021 Drew Carlson
+ * Copyright (C) 2021 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -56,7 +56,7 @@ class TestUserServiceQueries : UserServiceQueries {
 
     override suspend fun deleteUser(userId: String): Boolean {
         return users.remove(userId) != null &&
-                userCredentials.remove(userId) != null
+            userCredentials.remove(userId) != null
     }
 
     override suspend fun fetchCredentials(userId: String): UserCredentials? {

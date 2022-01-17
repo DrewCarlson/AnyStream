@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2021 Drew Carlson
+ * Copyright (C) 2021 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -38,7 +38,7 @@ class UserServiceValidationTest {
         userService = UserService(queries)
     }
 
-    //<editor-fold desc="Create User Tests">
+    // <editor-fold desc="Create User Tests">
     @Test
     fun testCreateUserBlankValidations(): Unit = runBlocking {
         val body = CreateUserBody(
@@ -127,7 +127,6 @@ class UserServiceValidationTest {
         assertNotNull(success, "Expected success but response was $response")
     }
 
-
     @Test
     fun testCreateSecondUserWithoutInviteCodeFails(): Unit = runBlocking {
         queries.users["test"] = User(
@@ -167,9 +166,9 @@ class UserServiceValidationTest {
 
         assertNotNull(success, "Expected success response but was $response")
     }
-    //</editor-fold>
+    // </editor-fold>
 
-    //<editor-fold desc="Create Session Tests">
+    // <editor-fold desc="Create Session Tests">
     @Test
     fun testCreateSessionUsernameInvalid(): Unit = runBlocking {
         val body = CreateSessionBody(
@@ -244,7 +243,7 @@ class UserServiceValidationTest {
 
         assertEquals(CreateSessionError.PASSWORD_INCORRECT, error)
     }
-    //</editor-fold>
+    // </editor-fold>
 
     // <editor-fold desc="Password Encryption Tests">
     @Test
@@ -295,5 +294,5 @@ class UserServiceValidationTest {
             )
         )
     }
-    //</editor-fold>
+    // </editor-fold>
 }

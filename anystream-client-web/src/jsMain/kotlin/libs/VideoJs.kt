@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2021 Drew Carlson
+ * Copyright (C) 2021 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -74,7 +74,6 @@ external class VjsPlayer {
     fun on(event: String, callback: () -> Unit)
 }
 
-
 @Suppress("UnsafeCastFromDynamic")
 fun VjsOptions(configure: VjsOptions.() -> Unit): VjsOptions {
     val options = js("{}")
@@ -99,7 +98,7 @@ external interface VjsOptions {
     var controlBar: Any? // videojs.ControlBarOptions
     var aspectRatio: String?
     var bigPlayButton: Boolean?
-    var textTrackSettings: Any? //videojs.TextTrackSettingsOptions
+    var textTrackSettings: Any? // videojs.TextTrackSettingsOptions
     var defaultVolume: Float?
     var fill: Boolean?
     var fluid: Boolean?
@@ -120,7 +119,7 @@ external interface VjsOptions {
     var sourceOrder: Boolean?
     // sources?: videojs.Tech.SourceObject[] | undefined;
     var techOrder: Array<String>?
-    //userActions?: videojs.UserActions | undefined;
+    // userActions?: videojs.UserActions | undefined;
     var width: Float?
 }
 

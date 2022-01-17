@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2021 Drew Carlson
+ * Copyright (C) 2021 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -346,7 +346,7 @@ class AnyStreamClient(
         password: String?,
         currentPassword: String?
     ) {
-        http.put("$serverUrl/api/users/${userId}") {
+        http.put("$serverUrl/api/users/$userId") {
             contentType(ContentType.Application.Json)
             setBody(
                 UpdateUserBody(
@@ -438,7 +438,6 @@ class AnyStreamClient(
     }
 
     suspend fun closeStream(token: String) {
-
     }
 
     fun observeLogs(): Flow<String> = callbackFlow {
@@ -456,7 +455,7 @@ class AnyStreamClient(
     }
 
     fun createHlsStreamUrl(mediaRefId: String, token: String): String {
-        return "${serverUrl}/api/stream/${mediaRefId}/hls/playlist.m3u8?token=$token"
+        return "$serverUrl/api/stream/$mediaRefId/hls/playlist.m3u8?token=$token"
     }
 
     data class PlaybackSessionHandle(

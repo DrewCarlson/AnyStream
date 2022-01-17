@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2021 Drew Carlson
+ * Copyright (C) 2021 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -20,7 +20,6 @@ package anystream.frontend
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
 import anystream.client.SessionManager
-import anystream.frontend.screens.*
 import anystream.frontend.util.Js
 import app.softwork.routingcompose.BrowserRouter
 import io.ktor.client.*

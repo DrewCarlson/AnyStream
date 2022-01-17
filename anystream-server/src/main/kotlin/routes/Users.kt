@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2021 Drew Carlson
+ * Copyright (C) 2021 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,7 +22,6 @@ import anystream.json
 import anystream.models.*
 import anystream.models.api.*
 import anystream.service.user.UserService
-import org.drewcarlson.ktor.permissions.withAnyPermission
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
@@ -40,6 +39,7 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.delay
 import kotlinx.serialization.encodeToString
 import org.bson.types.ObjectId
+import org.drewcarlson.ktor.permissions.withAnyPermission
 import java.util.*
 import kotlin.time.Duration.Companion.seconds
 
@@ -233,4 +233,3 @@ fun Route.addUserWsRoutes(userService: UserService) {
         close()
     }
 }
-

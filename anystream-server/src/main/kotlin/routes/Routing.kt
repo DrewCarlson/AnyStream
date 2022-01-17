@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2021 Drew Carlson
+ * Copyright (C) 2021 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,8 +31,6 @@ import anystream.service.user.UserService
 import anystream.service.user.UserServiceQueriesMongo
 import anystream.torrent.search.KMongoTorrentProviderCache
 import anystream.util.SinglePageApp
-import org.drewcarlson.ktor.permissions.withAnyPermission
-import org.drewcarlson.ktor.permissions.withPermission
 import com.github.kokorin.jaffree.ffmpeg.FFmpeg
 import com.github.kokorin.jaffree.ffprobe.FFprobe
 import drewcarlson.qbittorrent.QBittorrentClient
@@ -42,6 +40,8 @@ import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.*
+import org.drewcarlson.ktor.permissions.withAnyPermission
+import org.drewcarlson.ktor.permissions.withPermission
 import org.litote.kmongo.coroutine.CoroutineDatabase
 import java.io.File
 import java.nio.file.Path

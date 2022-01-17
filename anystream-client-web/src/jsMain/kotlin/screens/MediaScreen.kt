@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2021 Drew Carlson
+ * Copyright (C) 2021 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -144,19 +144,21 @@ private fun BaseDetailsView(
 
             mediaItem.playbackState?.run {
                 Div {
-                    Text(buildString {
-                        val remaining = (runtime - position).seconds
-                        if (remaining.inWholeHours >= 1) {
-                            append(remaining.inWholeHours)
-                            append(" hr ")
+                    Text(
+                        buildString {
+                            val remaining = (runtime - position).seconds
+                            if (remaining.inWholeHours >= 1) {
+                                append(remaining.inWholeHours)
+                                append(" hr ")
+                            }
+                            val minutes = remaining.inWholeMinutes % 60
+                            if (minutes > 0) {
+                                append(minutes)
+                                append(" min")
+                            }
+                            append(" left")
                         }
-                        val minutes = remaining.inWholeMinutes % 60
-                        if (minutes > 0) {
-                            append(minutes)
-                            append(" min")
-                        }
-                        append(" left")
-                    })
+                    )
                 }
             }
         }

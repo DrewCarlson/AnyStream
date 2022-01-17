@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2021 Drew Carlson
+ * Copyright (C) 2021 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,7 +22,6 @@ import anystream.json
 import anystream.models.*
 import anystream.service.stream.StreamService
 import anystream.util.extractUserSession
-import org.drewcarlson.ktor.permissions.withPermission
 import io.ktor.http.*
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
@@ -41,6 +40,7 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.flow.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
+import org.drewcarlson.ktor.permissions.withPermission
 import java.io.File
 import kotlin.math.roundToInt
 

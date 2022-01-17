@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2021 Drew Carlson
+ * Copyright (C) 2021 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,7 +23,6 @@ import org.jetbrains.compose.web.css.keywords.auto
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.I
 import org.jetbrains.compose.web.dom.Img
-
 
 @Composable
 fun PosterCard(
@@ -119,7 +118,7 @@ fun PosterCard(
 
             if (!posterPath.isNullOrBlank()) {
                 Img(
-                    src = "https://image.tmdb.org/t/p/w300${posterPath}",
+                    src = "https://image.tmdb.org/t/p/w300$posterPath",
                     attrs = {
                         classes("rounded", "h-100", "w-100")
                         attr("loading", "lazy")

@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2021 Drew Carlson
+ * Copyright (C) 2021 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,6 @@ import anystream.models.MediaKind
 import anystream.models.MediaReference
 import anystream.models.StreamEncodingDetails
 import kotlinx.serialization.Serializable
-
 
 @Serializable
 data class ImportMedia(
