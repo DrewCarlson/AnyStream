@@ -28,6 +28,8 @@ ax_runner = "1.4.0"
 
 okhttp = "4.9.3"
 
+flipperVersion = "0.100.0"
+
 [plugins]
 multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
@@ -116,6 +118,11 @@ routingCompose = { module = "app.softwork:routing-compose", version = "0.1.4" }
 
 quickie-bundled = { module = "io.github.g00fy2.quickie:quickie-bundled", version = "1.2.3" }
 
+# flipper
+flipper = { module = "com.facebook.flipper:flipper", version.ref = "flipperVersion" }
+flipperNetwork = { module = "com.facebook.flipper:flipper-network-plugin", version.ref = "flipperVersion" }
+flipperSo = { module = "com.facebook.soloader:soloader", version = "0.10.1" }
+
 mobiuskt-core = { module = "org.drewcarlson:mobiuskt-core", version.ref = "mobiuskt" }
 mobiuskt-test = { module = "org.drewcarlson:mobiuskt-test", version.ref = "mobiuskt" }
 mobiuskt-extras = { module = "org.drewcarlson:mobiuskt-extras", version.ref = "mobiuskt" }
@@ -127,3 +134,4 @@ mobiuskt-updateSpec-api = { module = "org.drewcarlson:mobiuskt-update-spec-api",
 [bundles]
 exoplayer = [ "exoplayer-core", "exoplayer-ui", "exoplayer-hls" ]
 compose = [ "compose-ui-ui", "compose-ui-tooling", "compose-foundation", "compose-material" ]
+flipper = [ "flipper", "flipperNetwork", "flipperSo" ]

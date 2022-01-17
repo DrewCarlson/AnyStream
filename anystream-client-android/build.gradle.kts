@@ -33,6 +33,9 @@ android {
             applicationIdSuffix = ".debug"
             signingConfig = signingConfigs.findByName("debug")
         }
+
+        named("release") {
+        }
     }
     kotlinOptions.freeCompilerArgs += listOf(
         "-Xopt-in=androidx.compose.ui.ExperimentalComposeUiApi",
@@ -59,4 +62,7 @@ dependencies {
     implementation(libs.quickie.bundled)
     implementation(libs.anrWatchdog)
     implementation(libs.okhttp)
+    implementation(libs.ktor.client.okhttp)
+
+    debugImplementation(libs.bundles.flipper)
 }
