@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2021 Drew Carlson
+ * Copyright (C) 2021 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -184,11 +184,14 @@ fun PlayerScreen(
                             mouseMoveFlow.tryEmit(Unit)
                         }
                     }
-                    player = VideoJs.default(element, VjsOptions {
-                        errorDisplay = false
-                        controlBar = false
-                        loadingSpinner = false
-                    })
+                    player = VideoJs.default(
+                        element,
+                        VjsOptions {
+                            errorDisplay = false
+                            controlBar = false
+                            loadingSpinner = false
+                        }
+                    )
                     element.onprogress = {
                         val timeSpans = List(element.buffered.length) { i ->
                             element.buffered.start(i)..element.buffered.end(i)
@@ -643,7 +646,7 @@ private fun PlaybackControls(
                         height(50.px)
                         backgroundColor(rgb(199, 8, 28))
                         width(2.px)
-                        property("transform", "scaleY(${volumeScale})")
+                        property("transform", "scaleY($volumeScale)")
                         property("transform-origin", "bottom")
                         property("pointer-events", "none")
                     }

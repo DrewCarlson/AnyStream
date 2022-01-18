@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2021 Drew Carlson
+ * Copyright (C) 2021 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -42,7 +42,6 @@ import anystream.models.*
 import anystream.models.api.HomeResponse
 import coil.compose.ImagePainter
 import coil.compose.rememberImagePainter
-import coil.request.ImageRequest
 
 private val CARD_SPACING = 12.dp
 
@@ -233,7 +232,7 @@ private fun TvRow(
                 PosterCard(
                     title = show.name,
                     imagePath = show.posterPath,
-                    onClick = {  },
+                    onClick = { },
                 )
             }
         }

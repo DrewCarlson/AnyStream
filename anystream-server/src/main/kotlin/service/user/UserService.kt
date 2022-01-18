@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2021 Drew Carlson
+ * Copyright (C) 2021 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -217,7 +217,7 @@ class UserService(
 
     fun hashPassword(password: String): String {
         require(password.length in PASSWORD_LENGTH_MIN..PASSWORD_LENGTH_MAX) {
-            "Expected password to be in ${PASSWORD_LENGTH_MIN}..${PASSWORD_LENGTH_MAX} but was ${password.length}"
+            "Expected password to be in $PASSWORD_LENGTH_MIN..$PASSWORD_LENGTH_MAX but was ${password.length}"
         }
         val salt = Random.nextBytes(SALT_BYTES)
         return OpenBSDBCrypt.generate(password.encodeToByteArray(), salt, BCRYPT_COST)

@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2021 Drew Carlson
+ * Copyright (C) 2021 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -50,7 +50,6 @@ private fun saveInt(key: String, value: Int) {
     val bundle = LocalSavedInstanceState.current
     bundle.putInt(key, value)
 }
-
 
 @Composable
 fun BundleScope(

@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2021 Drew Carlson
+ * Copyright (C) 2021 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -20,8 +20,8 @@ package anystream.routes
 import anystream.data.UserSession
 import anystream.json
 import anystream.models.DownloadMediaReference
-import anystream.models.MediaReference
 import anystream.models.MediaKind
+import anystream.models.MediaReference
 import anystream.torrent.search.TorrentDescription2
 import anystream.util.extractUserSession
 import drewcarlson.qbittorrent.QBittorrentClient
@@ -199,4 +199,3 @@ private val videoFile = { torrentFile: TorrentFile ->
         videoExtensions.any { endsWith(it) } && !contains("sample", true)
     }
 }
-

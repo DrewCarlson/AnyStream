@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2021 Drew Carlson
+ * Copyright (C) 2021 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,7 +23,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import org.jetbrains.compose.web.dom.ElementScope
 import org.w3c.dom.HTMLElement
-
 
 @Composable
 fun ElementScope<HTMLElement>.rememberDomElement(key: Any? = null): State<HTMLElement?> {

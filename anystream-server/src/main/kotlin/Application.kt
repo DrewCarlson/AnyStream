@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2021 Drew Carlson
+ * Copyright (C) 2021 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -20,7 +20,6 @@ package anystream
 import anystream.data.UserSession
 import anystream.models.Permissions
 import anystream.routes.installRouting
-import anystream.util.*
 import com.mongodb.ConnectionString
 import io.ktor.http.*
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
@@ -74,8 +73,8 @@ fun Application.module(testing: Boolean = false) {
     install(AutoHeadResponse)
     install(ConditionalHeaders)
     install(PartialContent)
-    //install(ForwardedHeaderSupport) WARNING: for security, do not include this if not behind a reverse proxy
-    //install(XForwardedHeaderSupport) WARNING: for security, do not include this if not behind a reverse proxy
+    // install(ForwardedHeaderSupport) WARNING: for security, do not include this if not behind a reverse proxy
+    // install(XForwardedHeaderSupport) WARNING: for security, do not include this if not behind a reverse proxy
     install(Compression) {
         gzip {
             priority = 1.0

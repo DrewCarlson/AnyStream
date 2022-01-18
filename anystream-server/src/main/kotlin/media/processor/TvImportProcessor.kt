@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2021 Drew Carlson
+ * Copyright (C) 2021 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -134,7 +134,7 @@ class TvImportProcessor(
             logger.debug(marker, "Content file reference already exists")
             // NOTE: only tv show folders can be imported, if already imported
             // we still need to find new episode files
-            //return ImportMediaResult.ErrorMediaRefAlreadyExists(existingRef.id)
+            // return ImportMediaResult.ErrorMediaRefAlreadyExists(existingRef.id)
             checkNotNull(queries.findTvShowById(existingRef.rootContentId ?: existingRef.contentId))
         }
         val episodes = queries.findEpisodesByShow(tvShow.id)
@@ -215,7 +215,7 @@ class TvImportProcessor(
 
             episodeFile to episodes.find { episode ->
                 episode.seasonNumber == seasonNumber.toIntOrNull() &&
-                        episode.number == episodeNumber.toIntOrNull()
+                    episode.number == episodeNumber.toIntOrNull()
             }
         }.filter { (file, _) ->
             queries.findMediaRefByFilePath(file.absolutePath) == null

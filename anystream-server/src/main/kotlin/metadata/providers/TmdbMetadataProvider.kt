@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2021 Drew Carlson
+ * Copyright (C) 2021 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,8 +22,6 @@ import anystream.data.asMovie
 import anystream.data.asTvShow
 import anystream.metadata.MetadataProvider
 import anystream.models.MediaKind
-import anystream.models.Movie
-import anystream.models.TvShow
 import anystream.models.api.*
 import anystream.util.toRemoteId
 import com.mongodb.MongoException
@@ -103,7 +101,7 @@ class TmdbMetadataProvider(
                                 .find { it.length == 4 }
                                 ?.toInt()
                         }
-                    // load series by tmdb id
+                        // load series by tmdb id
                         ?: request.contentId
                             ?.toIntOrNull()
                             ?.run(::fetchTvSeries)

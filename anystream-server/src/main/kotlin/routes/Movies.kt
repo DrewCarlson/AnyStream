@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2021 Drew Carlson
+ * Copyright (C) 2021 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -19,12 +19,12 @@ package anystream.routes
 
 import anystream.data.*
 import anystream.models.Permissions.MANAGE_COLLECTION
-import org.drewcarlson.ktor.permissions.withAnyPermission
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import org.drewcarlson.ktor.permissions.withAnyPermission
 
 fun Route.addMovieRoutes(
     queries: MediaDbQueries,

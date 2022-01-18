@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2022 Drew Carlson
+ * Copyright (C) 2022 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,7 +26,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
-
 
 @Composable
 fun QrImage(

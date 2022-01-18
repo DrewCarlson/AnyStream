@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2021 Drew Carlson
+ * Copyright (C) 2021 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,8 +23,8 @@ import ch.qos.logback.classic.LoggerContext
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.Appender
 import ch.qos.logback.core.AppenderBase
-import io.ktor.server.websocket.*
 import io.ktor.server.routing.*
+import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -57,21 +57,23 @@ fun Route.addAdminWsRoutes() {
 private fun createAppender(callback: (String) -> Unit): Appender<ILoggingEvent> {
     return object : AppenderBase<ILoggingEvent>() {
         override fun append(event: ILoggingEvent) {
-            callback(buildString {
-                append(event.level.levelStr)
-                append(" : ")
-                append(event.timeStamp)
-                append(" : ")
-                event.marker
-                    ?.iterator()
-                    ?.forEachRemaining { marker ->
-                        append("[")
-                        append(marker.name)
-                        append("]")
-                    }
-                    ?.also { append(" : ") }
-                append(event.message)
-            })
+            callback(
+                buildString {
+                    append(event.level.levelStr)
+                    append(" : ")
+                    append(event.timeStamp)
+                    append(" : ")
+                    event.marker
+                        ?.iterator()
+                        ?.forEachRemaining { marker ->
+                            append("[")
+                            append(marker.name)
+                            append("]")
+                        }
+                        ?.also { append(" : ") }
+                    append(event.message)
+                }
+            )
         }
     }
 }

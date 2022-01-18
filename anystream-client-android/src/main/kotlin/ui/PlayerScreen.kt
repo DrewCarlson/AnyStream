@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2021 Drew Carlson
+ * Copyright (C) 2021 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -37,13 +37,12 @@ import anystream.models.MediaReference
 import anystream.models.Movie
 import anystream.models.PlaybackState
 import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.MediaItem as ExoMediaItem
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.ui.PlayerView
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-
+import com.google.android.exoplayer2.MediaItem as ExoMediaItem
 
 private const val PLAYER_STATE_UPDATE_INTERVAL = 250L
 private const val PLAYER_STATE_REMOTE_UPDATE_INTERVAL = 5_000L

@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.composejb) apply false
     alias(libs.plugins.shadowjar) apply false
     alias(libs.plugins.ksp) apply false
+    alias(libs.plugins.spotless)
 }
 
 buildscript {
@@ -41,6 +42,16 @@ tasks.create("shutdownSimulator") {
 }
 
 subprojects {
+    apply(plugin = "com.diffplug.spotless")
+    configure<com.diffplug.gradle.spotless.SpotlessExtension> {
+        kotlin {
+            target("**/**.kt")
+            licenseHeaderFile(rootDir.resolve("licenseHeader.txt"))
+            ktlint(libs.versions.ktlint.get())
+                .userData(mapOf("disabled_rules" to "no-wildcard-imports"))
+        }
+    }
+
     afterEvaluate {
         val kotlin = extensions.findByType<org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension>()
 

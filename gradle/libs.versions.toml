@@ -31,6 +31,8 @@ agp = "7.0.4"
 okhttp = "4.9.3"
 
 flipperVersion = "0.100.0"
+spotless = "6.2.0"
+ktlint = "0.43.2"
 
 [plugins]
 multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
@@ -40,6 +42,7 @@ composejb = { id = "org.jetbrains.compose", version.ref = "composejb" }
 androidkt = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 shadowjar = { id = "com.github.johnrengelman.shadow", version.ref = "shadowjar" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 
 [libraries]
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }

@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2021 Drew Carlson
+ * Copyright (C) 2021 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,11 +31,13 @@ class MetadataManager(
     suspend fun findByRemoteId(remoteId: String): QueryMetadataResult {
         val (providerId, mediaKind, id) = remoteId.split(':')
 
-        return search(QueryMetadata(
-            providerId = providerId,
-            contentId = id,
-            mediaKind = MediaKind.valueOf(mediaKind.uppercase()),
-        )).firstOrNull() ?: QueryMetadataResult.ErrorProviderNotFound
+        return search(
+            QueryMetadata(
+                providerId = providerId,
+                contentId = id,
+                mediaKind = MediaKind.valueOf(mediaKind.uppercase()),
+            )
+        ).firstOrNull() ?: QueryMetadataResult.ErrorProviderNotFound
     }
 
     suspend fun search(request: QueryMetadata): List<QueryMetadataResult> {
