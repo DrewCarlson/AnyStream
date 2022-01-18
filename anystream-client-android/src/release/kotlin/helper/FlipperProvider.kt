@@ -18,9 +18,10 @@
 package helper
 
 import android.app.Application
+import okhttp3.Interceptor
 
 object FlipperProvider {
-    fun init(context: Application): Unit
+    fun init(context: Application): Unit = Unit
 
     fun getFlipperOkhttpInterceptor(): Interceptor? = null
 }

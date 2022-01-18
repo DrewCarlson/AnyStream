@@ -48,7 +48,7 @@ subprojects {
             target("**/**.kt")
             licenseHeaderFile(rootDir.resolve("licenseHeader.txt"))
             ktlint(libs.versions.ktlint.get())
-                .userData(mapOf("disabled_rules" to "no-wildcard-imports"))
+                .userData(mapOf("disabled_rules" to "no-wildcard-imports,no-unused-imports"))
         }
     }
 
