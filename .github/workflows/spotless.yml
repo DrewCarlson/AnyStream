@@ -7,11 +7,8 @@ on:
     branches: [ main ]
 
 jobs:
-  spotless:
-    strategy:
-      matrix:
-        os: [ ubuntu-latest ]
-    runs-on: ${{ matrix.os }}
+  client-android:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
         with:
@@ -24,7 +21,6 @@ jobs:
 
       - name: Cache Build files
         uses: actions/cache@v2
-        if: ${{ !startsWith(matrix.os, 'windows') }}
         with:
           path: |
             ~/.konan
@@ -34,4 +30,129 @@ jobs:
       - uses: gradle/gradle-build-action@v2
         name: Spotless Check
         with:
-          arguments: spotlessCheck
+          arguments: anystream-client-android:spotlessCheck
+
+  client-api:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+
+      - uses: actions/setup-java@v2
+        with:
+          distribution: 'zulu'
+          java-version: 11
+
+      - name: Cache Build files
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.konan
+            ~/.gradle
+          key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
+
+      - uses: gradle/gradle-build-action@v2
+        name: Spotless Check
+        with:
+          arguments: anystream-client-api:spotlessCheck
+
+  client-core:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+
+      - uses: actions/setup-java@v2
+        with:
+          distribution: 'zulu'
+          java-version: 11
+
+      - name: Cache Build files
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.konan
+            ~/.gradle
+          key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
+
+      - uses: gradle/gradle-build-action@v2
+        name: Spotless Check
+        with:
+          arguments: anystream-client-core:spotlessCheck
+
+  client-web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+
+      - uses: actions/setup-java@v2
+        with:
+          distribution: 'zulu'
+          java-version: 11
+
+      - name: Cache Build files
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.konan
+            ~/.gradle
+          key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
+
+      - uses: gradle/gradle-build-action@v2
+        name: Spotless Check
+        with:
+          arguments: anystream-client-web:spotlessCheck
+
+  data-models:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+
+      - uses: actions/setup-java@v2
+        with:
+          distribution: 'zulu'
+          java-version: 11
+
+      - name: Cache Build files
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.konan
+            ~/.gradle
+          key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
+
+      - uses: gradle/gradle-build-action@v2
+        name: Spotless Check
+        with:
+          arguments: anystream-data-models:spotlessCheck
+
+  server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+
+      - uses: actions/setup-java@v2
+        with:
+          distribution: 'zulu'
+          java-version: 11
+
+      - name: Cache Build files
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.konan
+            ~/.gradle
+          key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
+
+      - uses: gradle/gradle-build-action@v2
+        name: Spotless Check
+        with:
+          arguments: anystream-server:spotlessCheck
