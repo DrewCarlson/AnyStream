@@ -10,10 +10,11 @@ env:
   MONGO_URL: mongodb://localhost
 
 jobs:
-  gradle:
+
+  client-core-tests:
     strategy:
       matrix:
-        os: [macos-latest] #windows-latest, ubuntu-latest
+        os: [ ubuntu-latest ] #windows-latest, macos-latest
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
@@ -34,25 +35,137 @@ jobs:
             ~/.gradle
           key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
 
-      - name: Start MongoDB
-        if: ${{ startsWith(matrix.os, 'macos') }}
-        run: brew tap mongodb/brew && brew install mongodb-community@5.0 && brew services start mongodb-community@5.0
+      - uses: gradle/gradle-build-action@v2
+        name: All Tests
+        with:
+          arguments: anystream-client-core:allTests
+
+      - name: Archive Reports
+        uses: actions/upload-artifact@v2
+        if: ${{ always() }}
+        with:
+          name: reports
+          path: '**/build/reports/*'
+
+      - name: Publish Unit Test Results
+        uses: mikepenz/action-junit-report@v2
+        if: ${{ always() }}
+        with:
+          report_paths: '**/TEST-*.xml'
+
+  client-api-tests:
+    strategy:
+      matrix:
+        os: [ ubuntu-latest ] # macos-latest, windows-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+
+      - uses: actions/setup-java@v2
+        with:
+          distribution: 'zulu'
+          java-version: 11
+
+      - name: Cache Build files
+        uses: actions/cache@v2
+        if: ${{ !startsWith(matrix.os, 'windows') }}
+        with:
+          path: |
+            ~/.konan
+            ~/.gradle
+          key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
 
       - uses: gradle/gradle-build-action@v2
         name: All Tests
-        if: ${{ startsWith(matrix.os, 'macos') }}
         with:
-          arguments: allTest --stacktrace
+          arguments: anystream-client-api:allTests
+
+      - name: Archive Reports
+        uses: actions/upload-artifact@v2
+        if: ${{ always() }}
+        with:
+          name: reports
+          path: '**/build/reports/*'
+
+      - name: Publish Unit Test Results
+        uses: mikepenz/action-junit-report@v2
+        if: ${{ always() }}
+        with:
+          report_paths: '**/TEST-*.xml'
+
+  client-android-tests:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+
+      - uses: actions/setup-java@v2
+        with:
+          distribution: 'zulu'
+          java-version: 11
+
+      - name: Cache Build files
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.konan
+            ~/.gradle
+          key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
 
       - uses: reactivecircus/android-emulator-runner@v2
         name: Test Android Targets
-        if: ${{ startsWith(matrix.os, 'macos') }}
         with:
           api-level: 30
           target: google_apis
           arch: x86_64
           profile: Nexus 6
           script: ./gradlew connectedCheck
+
+      - name: Archive Reports
+        uses: actions/upload-artifact@v2
+        if: ${{ always() }}
+        with:
+          name: reports
+          path: '**/build/reports/*'
+
+      - name: Publish Unit Test Results
+        uses: mikepenz/action-junit-report@v2
+        if: ${{ always() }}
+        with:
+          report_paths: '**/TEST-*.xml'
+
+  server-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+
+      - uses: actions/setup-java@v2
+        with:
+          distribution: 'zulu'
+          java-version: 11
+
+      - name: Cache Build files
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.konan
+            ~/.gradle
+          key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
+
+      - name: Start MongoDB
+        uses: supercharge/mongodb-github-action@1.7.0
+        with:
+          mongodb-version: 5.0
+
+      - uses: gradle/gradle-build-action@v2
+        name: Run Server Tests
+        with:
+          arguments: anystream-server:test
 
       - name: Archive Reports
         uses: actions/upload-artifact@v2
