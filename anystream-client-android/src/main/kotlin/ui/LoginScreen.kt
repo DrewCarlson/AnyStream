@@ -37,6 +37,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import anystream.android.AppTopBar
 import anystream.android.AppTypography
@@ -82,6 +83,11 @@ private fun FormBody(
     val showStacked = LocalConfiguration.current.screenWidthDp < 800
     val model by remember { modelState }
     val eventConsumer by remember { eventConsumerState }
+
+    var serverUrlValue by remember { mutableStateOf(TextFieldValue(model.serverUrl)) }
+    var usernameValue by remember { mutableStateOf(TextFieldValue(model.username)) }
+    var passwordValue by remember { mutableStateOf(TextFieldValue(model.password)) }
+
     StackedOrSideBySide(stacked = showStacked) {
         Column(
             verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
@@ -91,9 +97,12 @@ private fun FormBody(
                 .padding(paddingValues)
         ) {
             OutlinedTextField(
-                value = model.serverUrl,
+                value = serverUrlValue,
                 placeholder = { Text(text = "Server Url") },
-                onValueChange = { eventConsumer.accept(LoginScreenEvent.OnServerUrlChanged(it)) },
+                onValueChange = {
+                    serverUrlValue = it
+                    eventConsumer.accept(LoginScreenEvent.OnServerUrlChanged(it.text))
+                },
                 readOnly = model.isInputLocked(),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Uri,
@@ -107,9 +116,12 @@ private fun FormBody(
             ) { node ->
                 val autofill = LocalAutofill.current
                 OutlinedTextField(
-                    value = model.username,
+                    value = usernameValue,
                     placeholder = { Text(text = "Username") },
-                    onValueChange = { eventConsumer.accept(LoginScreenEvent.OnUsernameChanged(it)) },
+                    onValueChange = {
+                        usernameValue = it
+                        eventConsumer.accept(LoginScreenEvent.OnUsernameChanged(it.text))
+                    },
                     singleLine = true,
                     readOnly = model.isInputLocked(),
                     keyboardOptions = KeyboardOptions(
@@ -129,10 +141,13 @@ private fun FormBody(
             ) { node ->
                 val autofill = LocalAutofill.current
                 OutlinedTextField(
-                    value = model.password,
+                    value = passwordValue,
                     placeholder = { Text(text = "Password") },
                     visualTransformation = PasswordVisualTransformation(),
-                    onValueChange = { eventConsumer.accept(LoginScreenEvent.OnPasswordChanged(it)) },
+                    onValueChange = {
+                        passwordValue = it
+                        eventConsumer.accept(LoginScreenEvent.OnPasswordChanged(it.text))
+                    },
                     singleLine = true,
                     readOnly = model.isInputLocked(),
                     keyboardOptions = KeyboardOptions(
