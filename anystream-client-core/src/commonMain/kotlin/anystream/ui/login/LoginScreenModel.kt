@@ -17,7 +17,7 @@
  */
 package anystream.ui.login
 
-import anystream.models.api.CreateSessionError
+import anystream.models.api.CreateSessionResponse
 import kt.mobius.gen.UpdateSpec
 
 @UpdateSpec(
@@ -32,7 +32,7 @@ data class LoginScreenModel(
     val pairingCode: String? = null,
     val state: State = State.IDLE,
     val serverValidation: ServerValidation = ServerValidation.VALIDATING,
-    val loginError: CreateSessionError? = null,
+    val loginError: CreateSessionResponse.Error? = null,
 ) {
     enum class State {
         IDLE, AUTHENTICATING, AUTHENTICATED,

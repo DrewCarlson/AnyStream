@@ -18,7 +18,7 @@
 package anystream.ui.login
 
 import anystream.models.User
-import anystream.models.api.CreateSessionError
+import anystream.models.api.CreateSessionResponse
 
 sealed class LoginScreenEvent {
     data class OnServerUrlChanged(
@@ -48,7 +48,7 @@ sealed class LoginScreenEvent {
     ) : LoginScreenEvent()
 
     data class OnLoginError(
-        val error: CreateSessionError,
+        val error: CreateSessionResponse.Error,
     ) : LoginScreenEvent()
 
     data class OnServerValidated(

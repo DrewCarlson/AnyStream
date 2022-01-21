@@ -74,10 +74,9 @@ object LoginScreenHandler {
     }
 
     private fun CreateSessionResponse.toLoginScreenEvent(): LoginScreenEvent {
-        return let { (success, error) ->
-            success?.user?.run(LoginScreenEvent::OnLoginSuccess)
-                ?: error?.run(LoginScreenEvent::OnLoginError)
-                ?: error("Unexpected server response")
+        return when (this) {
+            is CreateSessionResponse.Success -> LoginScreenEvent.OnLoginSuccess(user)
+            is CreateSessionResponse.Error -> LoginScreenEvent.OnLoginError(this)
         }
     }
 }

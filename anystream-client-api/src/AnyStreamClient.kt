@@ -366,10 +366,10 @@ class AnyStreamClient(
         return http.post("$serverUrl/api/users/session") {
             contentType(ContentType.Application.Json)
             setBody(CreateSessionBody(username, password))
-        }.body<CreateSessionResponse>().also { (success, _) ->
-            if (!pairing && success != null) {
-                sessionManager.writeUser(success.user)
-                sessionManager.writePermissions(success.permissions)
+        }.body<CreateSessionResponse>().also { response ->
+            if (!pairing && response is CreateSessionResponse.Success) {
+                sessionManager.writeUser(response.user)
+                sessionManager.writePermissions(response.permissions)
             }
         }
     }
@@ -408,7 +408,7 @@ class AnyStreamClient(
             parameter("secret", secret)
         }.body<CreateSessionResponse>()
 
-        response.success?.run {
+        (response as? CreateSessionResponse.Success)?.run {
             sessionManager.writeUser(user)
             sessionManager.writePermissions(permissions)
         }

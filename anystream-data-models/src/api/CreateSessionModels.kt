@@ -27,27 +27,19 @@ data class CreateSessionBody(
 )
 
 @Serializable
-data class CreateSessionResponse(
-    val success: CreateSessionSuccess? = null,
-    val error: CreateSessionError? = null
-) {
-    companion object {
-        fun success(user: User, permissions: Set<String>) =
-            CreateSessionResponse(CreateSessionSuccess(user, permissions))
-        fun error(error: CreateSessionError) =
-            CreateSessionResponse(error = error)
+sealed class CreateSessionResponse {
+
+    @Serializable
+    data class Success(
+        val user: User,
+        val permissions: Set<String>,
+    ) : CreateSessionResponse()
+
+    @Serializable
+    sealed class Error : CreateSessionResponse() {
+        object UsernameInvalid : Error()
+        object UsernameNotFound : Error()
+        object PasswordInvalid : Error()
+        object PasswordIncorrect : Error()
     }
-}
-
-@Serializable
-data class CreateSessionSuccess(
-    val user: User,
-    val permissions: Set<String>,
-)
-
-enum class CreateSessionError {
-    USERNAME_INVALID,
-    USERNAME_NOT_FOUND,
-    PASSWORD_INVALID,
-    PASSWORD_INCORRECT
 }

@@ -122,9 +122,8 @@ fun Route.addUserRoutes(userService: UserService) {
                         ?: return@post call.respond(UnprocessableEntity)
 
                     val result = userService.createSession(body, call.principal())
-                    val success = result?.success
-                    if (success is CreateSessionSuccess) {
-                        call.sessions.set(UserSession(success.user.id, success.permissions))
+                    if (result is CreateSessionResponse.Success) {
+                        call.sessions.set(UserSession(result.user.id, result.permissions))
                     }
                     if (result == null) {
                         call.respond(Forbidden)
@@ -139,12 +138,11 @@ fun Route.addUserRoutes(userService: UserService) {
                 val secret = call.parameters["secret"]!!
 
                 val result = userService.verifyPairingSecret(pairingCode, secret)
-                val success = result?.success
-                if (success is CreateSessionSuccess) {
+                if (result is CreateSessionResponse.Success) {
                     call.sessions.set(
                         UserSession(
-                            userId = success.user.id,
-                            permissions = success.permissions,
+                            userId = result.user.id,
+                            permissions = result.permissions,
                         )
                     )
                 }

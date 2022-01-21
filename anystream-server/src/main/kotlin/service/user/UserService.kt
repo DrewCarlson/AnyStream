@@ -170,7 +170,7 @@ class UserService(
         return if (pairingSecret == secret) {
             val user = queries.fetchUser(pairingMessage.userId) ?: return null
             val userCredentials = queries.fetchCredentials(pairingMessage.userId) ?: return null
-            CreateSessionResponse.success(user, userCredentials.permissions)
+            CreateSessionResponse.Success(user, userCredentials.permissions)
         } else null
     }
 
@@ -179,13 +179,13 @@ class UserService(
         parent: UserSession?
     ): CreateSessionResponse? {
         if (body.username.run { isBlank() || length !in USERNAME_LENGTH_MIN..USERNAME_LENGTH_MAX }) {
-            return CreateSessionResponse.error(CreateSessionError.USERNAME_INVALID)
+            return CreateSessionResponse.Error.UsernameInvalid
         }
 
         val username = body.username.lowercase()
         if (pairingCodes.containsKey(body.password)) {
             val session =
-                parent ?: return CreateSessionResponse.error(CreateSessionError.USERNAME_INVALID)
+                parent ?: return CreateSessionResponse.Error.UsernameInvalid
 
             val user = queries.fetchUserByUsername(username) ?: return null
             return if (session.userId == user.id) {
@@ -193,25 +193,25 @@ class UserService(
                     secret = Hex.toHexString(Random.nextBytes(28)),
                     userId = session.userId
                 )
-                CreateSessionResponse.success(user, session.permissions)
+                CreateSessionResponse.Success(user, session.permissions)
             } else {
                 pairingCodes[body.password] = PairingMessage.Failed
-                CreateSessionResponse.error(CreateSessionError.PASSWORD_INCORRECT)
+                CreateSessionResponse.Error.PasswordIncorrect
             }
         }
 
         if (body.password.run { isBlank() || length !in PASSWORD_LENGTH_MIN..PASSWORD_LENGTH_MAX }) {
-            return CreateSessionResponse.error(CreateSessionError.PASSWORD_INVALID)
+            return CreateSessionResponse.Error.PasswordInvalid
         }
 
         val user = queries.fetchUserByUsername(username)
-            ?: return CreateSessionResponse.error(CreateSessionError.USERNAME_NOT_FOUND)
+            ?: return CreateSessionResponse.Error.UsernameNotFound
         val auth = queries.fetchCredentials(user.id) ?: return null
 
         return if (verifyPassword(body.password, auth.password)) {
-            CreateSessionResponse.success(user, auth.permissions)
+            CreateSessionResponse.Success(user, auth.permissions)
         } else {
-            CreateSessionResponse.error(CreateSessionError.PASSWORD_INCORRECT)
+            CreateSessionResponse.Error.PasswordIncorrect
         }
     }
 

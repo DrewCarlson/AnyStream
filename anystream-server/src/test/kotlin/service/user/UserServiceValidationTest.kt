@@ -18,10 +18,7 @@
 package anystream.service.user
 
 import anystream.models.*
-import anystream.models.api.CreateSessionBody
-import anystream.models.api.CreateSessionError
-import anystream.models.api.CreateUserBody
-import anystream.models.api.CreateUserError
+import anystream.models.api.*
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Test
@@ -177,11 +174,7 @@ class UserServiceValidationTest {
         )
 
         val result = userService.createSession(body, null)
-        val error = result?.error
-
-        assertNotNull(error, "Expected result to be error but was $result")
-
-        assertEquals(CreateSessionError.USERNAME_INVALID, error)
+        assertIs<CreateSessionResponse.Error.UsernameInvalid>(result)
     }
 
     @Test
@@ -192,11 +185,7 @@ class UserServiceValidationTest {
         )
 
         val result = userService.createSession(body, null)
-        val error = result?.error
-
-        assertNotNull(error, "Expected result to be error but was $result")
-
-        assertEquals(CreateSessionError.PASSWORD_INVALID, error)
+        assertIs<CreateSessionResponse.Error.PasswordInvalid>(result)
     }
 
     @Test
@@ -212,11 +201,8 @@ class UserServiceValidationTest {
         )
 
         val result = userService.createSession(body, null)
-        val error = result?.error
 
-        assertNotNull(error, "Expected result to be error but was $result")
-
-        assertEquals(CreateSessionError.USERNAME_NOT_FOUND, error)
+        assertIs<CreateSessionResponse.Error.UsernameNotFound>(result)
     }
 
     @Test
@@ -237,11 +223,7 @@ class UserServiceValidationTest {
         )
 
         val result = userService.createSession(body, null)
-        val error = result?.error
-
-        assertNotNull(error, "Expected result to be error but was $result")
-
-        assertEquals(CreateSessionError.PASSWORD_INCORRECT, error)
+        assertIs<CreateSessionResponse.Error.PasswordIncorrect>(result)
     }
     // </editor-fold>
 
