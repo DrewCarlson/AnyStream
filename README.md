@@ -12,6 +12,9 @@
 <img alt="Matrix" src="https://img.shields.io/matrix/anystream-general:matrix.drews.website">
 </a>
 <img alt="Tests" src="https://github.com/DrewCarlson/AnyStream/workflows/Tests/badge.svg"/>
+<a href="https://codecov.io/gh/DrewCarlson/AnyStream">
+  <img alt="Codecov" src="https://img.shields.io/codecov/c/github/drewcarlson/anystream?token=X4G9RL8QZF">
+</a>
 <a href="https://github.com/DrewCarlson/AnyStream/pkgs/container/anystream" style="text-decoration: none !important;">
 <img alt="Docker Push" src="https://img.shields.io/github/workflow/status/drewcarlson/anystream/Publish%20Docker%20image?label=Docker">
 </a>
