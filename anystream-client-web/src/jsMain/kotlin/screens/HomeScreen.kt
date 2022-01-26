@@ -180,7 +180,7 @@ fun HomeScreen(client: AnyStreamClient) {
                                 Text(tvShow.name)
                             }
                         },
-                        subtitle1 = tvShow.firstAirDate.run {
+                        subtitle1 = tvShow.firstAirDate?.run {
                             { Text(substringBefore("-")) }
                         },
                         posterPath = tvShow.posterPath,
