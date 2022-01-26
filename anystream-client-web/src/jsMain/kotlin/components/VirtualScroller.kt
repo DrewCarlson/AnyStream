@@ -83,7 +83,7 @@ fun <T> VirtualScroller(
         val count = itemsPerRow * (totalYCount.toInt() + remainder)
         val buffer = ITEM_BUFFER * itemsPerRow
         val startIndex = renderItemStartIndex.coerceIn(0..items.lastIndex)
-        val finalIndex = (renderItemStartIndex + count + buffer).coerceAtMost(items.lastIndex)
+        val finalIndex = (renderItemStartIndex + count + buffer).coerceAtMost(items.size)
 
         items
             .subList(startIndex, finalIndex)
