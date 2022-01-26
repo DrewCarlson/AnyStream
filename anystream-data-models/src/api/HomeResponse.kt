@@ -29,4 +29,5 @@ data class HomeResponse(
     val popularMovies: Map<Movie, MediaReference?>,
     val popularTvShows: List<TvShow>,
     val recentlyAddedTv: List<TvShow>,
+    val tvSeasons: List<TvSeason>,
 )

@@ -69,9 +69,9 @@ fun HomeScreen(client: AnyStreamClient) {
                             episode?.run {
                                 "S$seasonNumber"
                                 Div({ classes("d-flex", "flex-row") }) {
+                                    tvSeasons
                                     LinkedText(
-                                        checkNotNull(show)
-                                            .seasons
+                                        tvSeasons
                                             .first { it.seasonNumber == seasonNumber }
                                             .run { "/media/$id" }
                                     ) { Text("S$seasonNumber") }

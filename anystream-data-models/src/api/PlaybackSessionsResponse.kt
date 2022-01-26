@@ -26,6 +26,6 @@ import kotlinx.serialization.Serializable
 data class PlaybackSessionsResponse(
     val playbackStates: List<PlaybackState>,
     val transcodeSessions: Map<String, TranscodeSession>,
-    val users: Map<String, User>,
+    val users: Map<Int, User>,
     val mediaLookups: Map<String, MediaLookupResponse>,
 )

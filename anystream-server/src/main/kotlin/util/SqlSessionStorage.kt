@@ -18,40 +18,27 @@
 package anystream.util
 
 import anystream.data.UserSession
+import anystream.db.SessionsDao
 import anystream.json
-import com.mongodb.MongoQueryException
-import com.mongodb.client.model.UpdateOptions
 import io.ktor.server.sessions.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.coroutineScope
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
-import org.litote.kmongo.coroutine.CoroutineDatabase
-import org.litote.kmongo.eq
-import org.slf4j.Logger
-import org.slf4j.MarkerFactory
+import org.jdbi.v3.core.JdbiException
+import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.NoSuchElementException
 import kotlin.text.Charsets.UTF_8
 
-@Serializable
-private class SessionData(
-    val id: String,
-    val data: ByteArray,
-)
-
-class MongoSessionStorage(
-    mongodb: CoroutineDatabase,
-    private val logger: Logger,
+class SqlSessionStorage(
+    private val sessionsDao: SessionsDao,
 ) : SimplifiedSessionStorage() {
 
-    private val marker = MarkerFactory.getMarker(this::class.simpleName)
+    private val logger = LoggerFactory.getLogger(this::class.java)
 
-    private val sessions = ConcurrentHashMap<String, ByteArray>()
-    private val sessionCollection = mongodb.getCollection<SessionData>()
-    private val updateOptions = UpdateOptions().upsert(true)
+    private val sessionsCache = ConcurrentHashMap<String, ByteArray>()
 
     object Serializer : SessionSerializer<UserSession> {
         override fun serialize(session: UserSession): String {
@@ -65,28 +52,37 @@ class MongoSessionStorage(
 
     override suspend fun write(id: String, data: ByteArray?) {
         if (data == null) {
-            logger.trace(marker, "Deleting session $id")
-            sessions.remove(id)
-            sessionCollection.deleteOne(SessionData::id eq id)
-        } else {
-            logger.debug(marker, "Writing session $id, ${data.toString(UTF_8)}")
-            sessions[id] = data
+            logger.trace("Deleting session '$id'")
+            sessionsCache.remove(id)
             try {
-                sessionCollection.updateOne(
-                    SessionData::id eq id,
-                    SessionData(id, data),
-                    updateOptions
-                )
-            } catch (e: MongoQueryException) {
-                logger.trace(marker, "Failed to write session data", e)
+                sessionsDao.delete(id)
+            } catch (e: JdbiException) {
+                logger.error("Failed to delete session '$id' from database", e)
+            }
+        } else {
+            logger.debug("Writing session '$id', ${data.toString(UTF_8)}")
+            sessionsCache[id] = data
+            try {
+                sessionsDao.insertOrUpdate(id, data.toString(UTF_8))
+            } catch (e: JdbiException) {
+                logger.trace("Failed to write session data", e)
             }
         }
     }
 
     override suspend fun read(id: String): ByteArray? {
-        logger.debug(marker, "Looking for session $id")
-        return (sessions[id] ?: sessionCollection.findOne(SessionData::id eq id)?.data).also {
-            logger.debug(marker, "Found session $id")
+        logger.debug("Looking for session '$id'")
+        return (sessionsCache[id] ?: findSession(id)).also {
+            logger.debug("Found session $id")
+        }
+    }
+
+    private fun findSession(id: String): ByteArray? {
+        return try {
+            sessionsDao.find(id)?.toByteArray()
+        } catch (e: JdbiException) {
+            logger.trace("Failed to find session data", e)
+            null
         }
     }
 

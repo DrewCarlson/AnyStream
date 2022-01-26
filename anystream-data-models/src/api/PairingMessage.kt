@@ -31,7 +31,7 @@ sealed class PairingMessage {
     @Serializable
     data class Authorized(
         val secret: String,
-        val userId: String,
+        val userId: Int,
     ) : PairingMessage()
 
     @Serializable

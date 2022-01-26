@@ -17,15 +17,16 @@
  */
 package anystream.data
 
+import anystream.models.Permission
 import io.ktor.server.auth.*
+import kotlinx.datetime.Clock
 import kotlinx.serialization.Serializable
-import java.time.Instant
 
 @Serializable
 data class UserSession(
-    val userId: String,
-    val permissions: Set<String>,
-    val sessionStarted: Long = Instant.now().toEpochMilli()
+    val userId: Int,
+    val permissions: Set<Permission>,
+    val sessionStarted: Long = Clock.System.now().epochSeconds
 ) : Principal {
     companion object {
         const val KEY = "as_user_session"

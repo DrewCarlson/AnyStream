@@ -17,406 +17,417 @@
  */
 package anystream.data
 
+import anystream.db.MediaDao
+import anystream.db.MediaReferencesDao
+import anystream.db.PlaybackStatesDao
+import anystream.db.SearchableContentDao
+import anystream.db.model.MediaDb
+import anystream.db.model.MediaReferenceDb
+import anystream.db.model.PlaybackStateDb
 import anystream.models.*
 import anystream.models.api.*
-import com.mongodb.MongoException
-import org.litote.kmongo.*
-import org.litote.kmongo.coroutine.CoroutineDatabase
-import org.litote.kmongo.coroutine.projection
-import org.litote.kmongo.coroutine.updateOne
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class MediaDbQueries(
-    mongodb: CoroutineDatabase
+    private val searchableContentDao: SearchableContentDao,
+    private val mediaDao: MediaDao,
+    private val mediaReferencesDao: MediaReferencesDao,
+    private val playbackStatesDao: PlaybackStatesDao,
 ) {
 
-    private val moviesDb = mongodb.getCollection<Movie>()
-    private val tvShowDb = mongodb.getCollection<TvShow>()
-    private val episodeDb = mongodb.getCollection<Episode>()
-    private val mediaRefsDb = mongodb.getCollection<MediaReference>()
-    private val playbackStatesDb = mongodb.getCollection<PlaybackState>()
+    private val mediaInsertLock = Mutex()
+    private val mediaRefInsertLock = Mutex()
+    private val searchableContentInsertLock = Mutex()
 
-    suspend fun createIndexes() {
-        try {
-            moviesDb.ensureIndex(Movie::title.textIndex())
-            moviesDb.ensureIndex(Movie::tmdbId)
-            tvShowDb.ensureIndex(TvShow::name.textIndex())
-            tvShowDb.ensureIndex(TvShow::tmdbId)
-            episodeDb.ensureIndex(Episode::name.textIndex())
-            episodeDb.ensureIndex(Episode::showId)
-            mediaRefsDb.ensureIndex(MediaReference::contentId)
-            playbackStatesDb.ensureIndex(PlaybackState::userId)
-        } catch (e: MongoException) {
-            println("Failed to create search indexes")
-            e.printStackTrace()
-        }
-    }
-
-    suspend fun findMovies(includeRefs: Boolean = false): MoviesResponse {
-        val movies = moviesDb.find()
-            .ascendingSort(Movie::title)
-            .toList()
-        val mediaRefs = if (includeRefs) {
-            val movieIds = movies.map(Movie::id)
-            mediaRefsDb.find(MediaReference::contentId `in` movieIds).toList()
+    fun findMovies(includeRefs: Boolean = false): MoviesResponse {
+        val mediaRecords = mediaDao.findAllByTypeSortedByTitle(MediaDb.Type.MOVIE)
+        val mediaRefRecords = if (includeRefs && mediaRecords.isNotEmpty()) {
+            mediaReferencesDao.findByContentGids(mediaRecords.map(MediaDb::gid))
         } else emptyList()
 
         return MoviesResponse(
-            movies = movies,
-            mediaReferences = mediaRefs,
+            movies = mediaRecords.map(MediaDb::toMovieModel),
+            mediaReferences = mediaRefRecords.map(MediaReferenceDb::toMediaRefModel),
         )
     }
 
-    suspend fun findMovieById(
+    fun findMediaById(
+        mediaId: String,
+        includeRefs: Boolean = false,
+        includePlaybackStateForUser: Int? = null,
+    ): MediaLookupResponse {
+        return when (mediaDao.findTypeByGid(mediaId)) {
+            MediaDb.Type.MOVIE -> MediaLookupResponse(
+                movie = findMovieById(mediaId, includeRefs, includePlaybackStateForUser)
+            )
+            MediaDb.Type.TV_SHOW -> MediaLookupResponse(
+                tvShow = findShowById(mediaId, includeRefs, includePlaybackStateForUser)
+            )
+            MediaDb.Type.TV_EPISODE -> MediaLookupResponse(
+                episode = findEpisodeById(mediaId, includeRefs, includePlaybackStateForUser)
+            )
+            MediaDb.Type.TV_SEASON -> MediaLookupResponse(
+                season = findSeasonById(mediaId, includeRefs, includePlaybackStateForUser)
+            )
+            else -> MediaLookupResponse()
+        }
+    }
+
+    fun findMovieById(
         movieId: String,
         includeRefs: Boolean = false,
-        includePlaybackStateForUser: String? = null,
+        includePlaybackStateForUser: Int? = null,
     ): MovieResponse? {
-        val movie = moviesDb.findOneById(movieId) ?: return null
+        val mediaRecord = mediaDao.findByGidAndType(movieId, MediaDb.Type.MOVIE) ?: return null
         val mediaRefs = if (includeRefs) {
-            mediaRefsDb.find(MediaReference::contentId eq movieId).toList()
+            mediaReferencesDao.findByContentGid(mediaRecord.gid)
         } else emptyList()
-        val playbackState = includePlaybackStateForUser?.let {
-            findPlaybackStateByUserId(it, movieId)
+        val playbackState = includePlaybackStateForUser?.let { userId ->
+            playbackStatesDao.findByUserIdAndMediaGid(userId, movieId)
         }
 
         return MovieResponse(
-            movie = movie,
-            mediaRefs = mediaRefs,
-            playbackState = playbackState,
+            movie = mediaRecord.toMovieModel(),
+            mediaRefs = mediaRefs.map(MediaReferenceDb::toMediaRefModel),
+            playbackState = playbackState?.toStateModel(),
         )
     }
 
-    suspend fun findShows(includeRefs: Boolean = false): TvShowsResponse {
-        val tvShows = tvShowDb.find()
-            .ascendingSort(TvShow::name)
-            .toList()
-        val mediaRefs = if (includeRefs) {
-            val tvShowIds = tvShows.map(TvShow::id)
-            mediaRefsDb.find(MediaReference::rootContentId `in` tvShowIds).toList()
+    fun findShows(includeRefs: Boolean = false): TvShowsResponse {
+        val mediaRecords = mediaDao.findAllByTypeSortedByTitle(MediaDb.Type.TV_SHOW)
+        val mediaRefs = if (includeRefs && mediaRecords.isNotEmpty()) {
+            val showIds = mediaRecords.map(MediaDb::gid)
+            mediaReferencesDao.findByRootContentGids(showIds)
         } else emptyList()
 
         return TvShowsResponse(
-            tvShows = tvShows,
-            mediaRefs = mediaRefs,
+            tvShows = mediaRecords.map(MediaDb::toTvShowModel),
+            mediaRefs = mediaRefs.map(MediaReferenceDb::toMediaRefModel),
         )
     }
 
-    suspend fun findShowById(
+    fun findShowById(
         showId: String,
         includeRefs: Boolean = false,
-        includePlaybackStateForUser: String? = null,
+        includePlaybackStateForUser: Int? = null,
     ): TvShowResponse? {
-        val show = tvShowDb.findOneById(showId) ?: return null
-        val mediaRefs = if (includeRefs) {
-            val seasonIds = show.seasons.map(TvSeason::id)
-            mediaRefsDb.find(MediaReference::contentId `in` seasonIds + showId).toList()
+        val show = mediaDao.findByGidAndType(showId, MediaDb.Type.TV_SHOW) ?: return null
+        val seasons = mediaDao.findAllByParentGidAndType(showId, MediaDb.Type.TV_SEASON)
+        val mediaRefs = if (includeRefs && seasons.isNotEmpty()) {
+            val seasonGids = seasons.map(MediaDb::gid)
+            mediaReferencesDao.findByContentGids(seasonGids + show.gid)
         } else emptyList()
-        val playbackState = includePlaybackStateForUser?.let {
-            val mediaRefIds = mediaRefsDb.projection(
-                MediaReference::id,
-                MediaReference::rootContentId eq showId,
-            ).toList()
-            playbackStatesDb.find(
-                PlaybackState::userId eq it,
-                PlaybackState::mediaReferenceId `in` mediaRefIds,
-            ).descendingSort(PlaybackState::updatedAt)
-                .first()
-        }
+        val playbackState = includePlaybackStateForUser
+            ?.takeIf { mediaRefs.isNotEmpty() }
+            ?.let { userId ->
+                playbackStatesDao.findByUserIdAndMediaGids(userId, mediaRefs.map(MediaReferenceDb::gid))
+                    .maxByOrNull(PlaybackStateDb::updatedAt)
+            }
         return TvShowResponse(
-            tvShow = show,
-            mediaRefs = mediaRefs,
-            playbackState = playbackState,
+            tvShow = show.toTvShowModel(),
+            mediaRefs = mediaRefs.map(MediaReferenceDb::toMediaRefModel),
+            seasons = seasons.map(MediaDb::toTvSeasonModel),
+            playbackState = playbackState?.toStateModel(),
         )
     }
 
-    suspend fun findSeasonById(
+    fun findSeasonById(
         seasonId: String,
         includeRefs: Boolean = false,
-        includePlaybackStateForUser: String? = null,
+        includePlaybackStateForUser: Int? = null,
     ): SeasonResponse? {
-        val tvShow = tvShowDb.findOne(TvShow::seasons elemMatch (TvSeason::id eq seasonId))
-            ?: return null
-        val season = tvShow.seasons.find { it.id == seasonId }
-            ?: return null
-        val episodes = episodeDb
-            .find(
-                and(
-                    Episode::showId eq tvShow.id,
-                    Episode::seasonNumber eq season.seasonNumber,
-                )
-            )
-            .toList()
-        val episodeIds = episodes.map(Episode::id)
+        val seasonRecord = mediaDao.findByGidAndType(seasonId, MediaDb.Type.TV_SEASON) ?: return null
+        val tvShowGid = checkNotNull(seasonRecord.parentGid)
+        val tvShowRecord = mediaDao.findByGidAndType(tvShowGid, MediaDb.Type.TV_SHOW) ?: return null
+        val episodeRecords = mediaDao.findAllByParentGidAndType(seasonId, MediaDb.Type.TV_EPISODE)
         val mediaRefs = if (includeRefs) {
-            mediaRefsDb
-                .find(MediaReference::contentId `in` episodeIds)
-                .toList()
+            val searchIds = episodeRecords.map(MediaDb::gid) + tvShowGid + seasonId
+            mediaReferencesDao.findByContentGids(searchIds)
         } else emptyList()
-        val playbackState = includePlaybackStateForUser?.let {
-            playbackStatesDb.find(
-                PlaybackState::userId eq it,
-                PlaybackState::mediaId `in` episodeIds,
-            ).descendingSort(PlaybackState::updatedAt)
-                .first()
-        }
+        val playbackStateRecord = includePlaybackStateForUser
+            ?.takeIf { episodeRecords.isNotEmpty() }
+            ?.let { userId ->
+                playbackStatesDao.findByUserIdAndMediaGids(userId, episodeRecords.map(MediaDb::gid))
+                    .maxByOrNull(PlaybackStateDb::updatedAt)
+            }
         return SeasonResponse(
-            show = tvShow,
-            season = season,
-            episodes = episodes,
-            mediaRefs = mediaRefs.associateBy(MediaReference::contentId),
-            playbackState = playbackState,
+            season = seasonRecord.toTvSeasonModel(),
+            show = tvShowRecord.toTvShowModel(),
+            episodes = episodeRecords.map(MediaDb::toTvEpisodeModel),
+            mediaRefs = mediaRefs.map(MediaReferenceDb::toMediaRefModel).associateBy(MediaReference::contentId),
+            playbackState = playbackStateRecord?.toStateModel(),
         )
     }
 
-    suspend fun findEpisodeById(
+    fun findEpisodeById(
         episodeId: String,
         includeRefs: Boolean = false,
-        includePlaybackStateForUser: String? = null,
+        includePlaybackStateForUser: Int? = null,
     ): EpisodeResponse? {
-        val episode = episodeDb.findOneById(episodeId) ?: return null
-        val show = tvShowDb.findOneById(episode.showId) ?: return null
+        val episodeRecord = mediaDao.findByGidAndType(episodeId, MediaDb.Type.TV_EPISODE) ?: return null
+        val showRecord = mediaDao.findByGid(checkNotNull(episodeRecord.rootGid)) ?: return null
         val mediaRefs = if (includeRefs) {
-            mediaRefsDb
-                .find(MediaReference::contentId eq episode.id)
-                .toList()
+            mediaReferencesDao.findByContentGid(episodeId)
         } else emptyList()
         val playbackState = includePlaybackStateForUser?.let { userId ->
-            playbackStatesDb.findOne(
-                PlaybackState::userId eq userId,
-                PlaybackState::mediaId eq episodeId,
-            )
+            playbackStatesDao.findByUserIdAndMediaGid(userId, episodeId)
         }
         return EpisodeResponse(
-            episode = episode,
-            show = show,
-            mediaRefs = mediaRefs,
-            playbackState = playbackState,
+            episode = episodeRecord.toTvEpisodeModel(),
+            show = showRecord.toTvShowModel(),
+            mediaRefs = mediaRefs.map(MediaReferenceDb::toMediaRefModel),
+            playbackState = playbackState?.toStateModel(),
         )
     }
 
-    suspend fun findPlaybackStateByUserId(userId: String, mediaId: String?): PlaybackState? {
-        return if (mediaId == null) {
-            playbackStatesDb.findOne(PlaybackState::userId eq userId)
-        } else {
-            playbackStatesDb.findOne(
-                PlaybackState::userId eq userId,
-                PlaybackState::mediaId eq mediaId,
-            )
+    fun findCurrentlyWatching(userId: Int, limit: Int): CurrentlyWatchingQueryResults {
+        val playbackStates = playbackStatesDao.findByUserId(userId, limit)
+            .map(PlaybackStateDb::toStateModel)
+            .associateBy(PlaybackState::mediaId)
+
+        if (playbackStates.isEmpty()) {
+            return CurrentlyWatchingQueryResults(emptyList(), emptyMap(), emptyMap())
         }
-    }
 
-    suspend fun findCurrentlyWatching(userId: String, limit: Int): CurrentlyWatchingQueryResults {
-        val allPlaybackStates = playbackStatesDb
-            .find(PlaybackState::userId eq userId)
-            .sort(descending(PlaybackState::updatedAt))
-            .limit(limit)
-            .toList()
+        val playbackMediaIds = playbackStates.keys.toList()
 
-        val playbackMediaIds = allPlaybackStates.map(PlaybackState::mediaId)
+        val movies = mediaDao.findAllByGidsAndType(playbackMediaIds, MediaDb.Type.MOVIE)
+            .map(MediaDb::toMovieModel)
 
-        val playbackStateMovies = moviesDb
-            .find(Movie::id `in` playbackMediaIds)
-            .toList()
-            .associateBy { movie ->
-                allPlaybackStates.first { it.mediaId == movie.id }.id
-            }
+        val episodes = mediaDao.findAllByGidsAndType(playbackMediaIds, MediaDb.Type.TV_EPISODE)
+            .map(MediaDb::toTvEpisodeModel)
 
-        val playbackStateEpisodes = episodeDb
-            .find(Episode::id `in` playbackMediaIds)
-            .toList()
-            .distinctBy(Episode::showId)
+        val tvShowIds = episodes.map(Episode::showId)
+        val tvShows = if (tvShowIds.isNotEmpty()) {
+            mediaDao.findAllByGidsAndType(tvShowIds, MediaDb.Type.TV_SHOW)
+                .map(MediaDb::toTvShowModel)
+        } else {
+            emptyList()
+        }
 
-        val playbackStateTv = tvShowDb
-            .find(TvShow::id `in` playbackStateEpisodes.map(Episode::showId))
-            .toList()
-            .associateBy { show ->
-                playbackStateEpisodes.first { it.showId == show.id }
-            }
-            .toList()
-            .associateBy { (episode, _) ->
-                allPlaybackStates.first { it.mediaId == episode.id }.id
-            }
+        val filteredPlaybackStates = playbackStates.values.filter { state ->
+            episodes.any { it.id == state.mediaId } || movies.any { it.id == state.mediaId }
+        }
 
-        val playbackStates = allPlaybackStates
-            .filter { state ->
-                playbackStateEpisodes.any { it.id == state.mediaId } ||
-                    playbackStateMovies.any { (_, movie) -> movie.id == state.mediaId }
-            }
+        val episodeAndShowPairs = episodes.map { episode ->
+            episode to tvShows.first { it.id == episode.showId }
+        }
 
         return CurrentlyWatchingQueryResults(
-            playbackStates = playbackStates,
-            currentlyWatchingMovies = playbackStateMovies,
-            currentlyWatchingTv = playbackStateTv,
+            playbackStates = filteredPlaybackStates,
+            currentlyWatchingMovies = movies.associateBy { playbackStates.getValue(it.id).id },
+            currentlyWatchingTv = episodeAndShowPairs.associateBy { (episode, _) ->
+                playbackStates.getValue(episode.id).id
+            },
         )
     }
 
-    suspend fun findRecentlyAddedMovies(limit: Int): Map<Movie, MediaReference?> {
-        val recentlyAddedMovies = moviesDb
-            .find()
-            .sort(descending(Movie::added))
-            .limit(limit)
-            .toList()
-        val recentlyAddedRefs = mediaRefsDb
-            .find(MediaReference::contentId `in` recentlyAddedMovies.map(Movie::id))
-            .toList()
-        return recentlyAddedMovies.associateWith { movie ->
-            recentlyAddedRefs.find { it.contentId == movie.id }
+    fun findRecentlyAddedMovies(limit: Int): Map<Movie, MediaReference?> {
+        val movies = mediaDao.findByType(MediaDb.Type.MOVIE, limit).map(MediaDb::toMovieModel)
+        val mediaReferences = if (movies.isNotEmpty()) {
+            mediaReferencesDao.findByContentGids(movies.map(Movie::id))
+                .map(MediaReferenceDb::toMediaRefModel)
+        } else emptyList()
+        return movies.associateWith { movie ->
+            mediaReferences.find { it.contentId == movie.id }
         }
     }
 
-    suspend fun findRecentlyAddedTv(limit: Int): List<TvShow> {
-        return tvShowDb
-            .find()
-            .sort(descending(TvShow::added))
-            .limit(limit)
-            .toList()
+    fun findRecentlyAddedTv(limit: Int): List<TvShow> {
+        return mediaDao.findByType(MediaDb.Type.TV_SHOW, limit).map(MediaDb::toTvShowModel)
     }
 
-    suspend fun findMediaRefByFilePath(path: String): MediaReference? {
-        return mediaRefsDb.findOne(LocalMediaReference::filePath eq path)
+    fun findMediaRefByFilePath(path: String): MediaReference? {
+        return mediaReferencesDao.findByFilePath(path)?.toMediaRefModel()
     }
 
-    suspend fun findMediaRefsByContentId(mediaId: String): List<MediaReference> {
-        return mediaRefsDb.find(MediaReference::contentId eq mediaId).toList()
+    fun findMediaRefsByContentId(mediaId: String): List<MediaReference> {
+        return mediaReferencesDao.findByContentGid(mediaId).map(MediaReferenceDb::toMediaRefModel)
     }
 
-    suspend fun findMediaRefsByContentIds(mediaIds: List<String>): List<MediaReference> {
-        return mediaRefsDb.find(MediaReference::contentId `in` mediaIds).toList()
+    fun findMediaRefsByContentIds(mediaIds: List<String>): List<MediaReference> {
+        if (mediaIds.isEmpty()) return emptyList()
+        return mediaReferencesDao.findByContentGids(mediaIds).map(MediaReferenceDb::toMediaRefModel)
     }
 
-    suspend fun findMediaRefsByRootContentId(rootMediaId: String): List<MediaReference> {
-        return mediaRefsDb.find(MediaReference::rootContentId eq rootMediaId).toList()
+    fun findMediaRefsByRootContentId(rootMediaId: String): List<MediaReference> {
+        return mediaReferencesDao.findByRootContentGid(rootMediaId).map(MediaReferenceDb::toMediaRefModel)
     }
 
-    suspend fun findMovieByTmdbId(tmdbId: Int): Movie? {
-        return moviesDb.findOne(Movie::tmdbId eq tmdbId)
+    fun findMovieByTmdbId(tmdbId: Int): Movie? {
+        return mediaDao.findByTmdbIdAndType(tmdbId, MediaDb.Type.MOVIE)?.toMovieModel()
     }
 
-    suspend fun findMoviesByTmdbId(tmdbIds: List<Int>): List<Movie> {
-        return moviesDb.find(Movie::tmdbId `in` tmdbIds).toList()
+    fun findMoviesByTmdbId(tmdbIds: List<Int>): List<Movie> {
+        return mediaDao.findAllByTmdbIdsAndType(tmdbIds, MediaDb.Type.MOVIE).map(MediaDb::toMovieModel)
     }
 
-    suspend fun findTvShowById(showId: String): TvShow? {
-        return tvShowDb.findOneById(showId)
+    fun findTvShowById(showId: String): TvShow? {
+        return mediaDao.findByGidAndType(showId, MediaDb.Type.TV_SHOW)?.toTvShowModel()
     }
 
-    suspend fun findTvShowBySeasonId(seasonId: String): TvShow? {
-        return tvShowDb.findOne(TvShow::seasons elemMatch (TvSeason::id eq seasonId))
+    fun findTvShowBySeasonId(seasonId: String): TvShow? {
+        return mediaDao.findByGidAndType(seasonId, MediaDb.Type.TV_SEASON)?.parentGid?.let { showId ->
+            mediaDao.findByGidAndType(showId, MediaDb.Type.TV_SHOW)?.toTvShowModel()
+        }
     }
 
-    suspend fun findTvShowByTmdbId(tmdbId: Int): TvShow? {
-        return tvShowDb.findOne(TvShow::tmdbId eq tmdbId)
+    fun findTvShowByTmdbId(tmdbId: Int): TvShow? {
+        return mediaDao.findByTmdbIdAndType(tmdbId, MediaDb.Type.TV_SHOW)?.toTvShowModel()
     }
 
-    suspend fun findTvShowsByTmdbId(tmdbIds: List<Int>): List<TvShow> {
-        return tvShowDb.find(TvShow::tmdbId `in` tmdbIds).toList()
+    fun findTvSeasonsByTvShowId(tvShowId: String): List<TvSeason> {
+        return mediaDao.findAllByParentGidAndType(tvShowId, MediaDb.Type.TV_SEASON).map(MediaDb::toTvSeasonModel)
     }
 
-    suspend fun findEpisodesByShow(showId: String, seasonNumber: Int? = null): List<Episode> {
+    fun findTvShowsByTmdbId(tmdbIds: List<Int>): List<TvShow> {
+        if (tmdbIds.isEmpty()) return emptyList()
+        return mediaDao.findAllByTmdbIdsAndType(tmdbIds, MediaDb.Type.TV_SHOW).map(MediaDb::toTvShowModel)
+    }
+
+    fun findEpisodesByShow(showId: String, seasonNumber: Int? = null): List<Episode> {
         return if (seasonNumber == null) {
-            episodeDb.find(Episode::showId eq showId).toList()
+            mediaDao.findAllByRootGidAndType(showId, MediaDb.Type.TV_EPISODE)
         } else {
-            episodeDb.find(
-                Episode::showId eq showId,
-                Episode::seasonNumber eq seasonNumber,
-            ).toList()
+            mediaDao.findAllByRootGidAndParentIndexAndType(showId, seasonNumber, MediaDb.Type.TV_EPISODE)
+        }.map(MediaDb::toTvEpisodeModel)
+    }
+
+    fun findEpisodesBySeason(seasonId: String): List<Episode> {
+        return mediaDao.findAllByParentGidAndType(seasonId, MediaDb.Type.TV_SEASON)
+            .map(MediaDb::toTvEpisodeModel)
+    }
+
+    fun findMediaById(mediaId: String): FindMediaResult {
+        val mediaRecord = mediaDao.findByGid(mediaId) ?: return FindMediaResult()
+        return when (mediaRecord.mediaType) {
+            MediaDb.Type.MOVIE -> FindMediaResult(movie = mediaRecord.toMovieModel())
+            MediaDb.Type.TV_SHOW -> FindMediaResult(tvShow = mediaRecord.toTvShowModel())
+            MediaDb.Type.TV_EPISODE -> FindMediaResult(episode = mediaRecord.toTvEpisodeModel())
+            MediaDb.Type.TV_SEASON -> FindMediaResult(season = mediaRecord.toTvSeasonModel())
         }
     }
 
-    suspend fun findEpisodesBySeason(seasonId: String): List<Episode> {
-        val show = findTvShowBySeasonId(seasonId) ?: return emptyList()
-        val seasonNumber = show.seasons.first { it.id == seasonId }.seasonNumber
-        return episodeDb.find(
-            Episode::showId eq show.id,
-            Episode::seasonNumber eq seasonNumber,
-        ).toList()
+    fun findMediaIdByRefId(refId: String): String? {
+        return mediaReferencesDao.findByGid(refId)?.contentGid
     }
 
-    suspend fun findMediaById(mediaId: String): FindMediaResult {
-        return FindMediaResult(
-            movie = moviesDb.findOneById(mediaId),
-            tvShow = tvShowDb.findOneById(mediaId),
-            episode = episodeDb.findOneById(mediaId),
-            season = tvShowDb.findOne(TvShow::seasons elemMatch (TvSeason::id eq mediaId))
-                ?.seasons
-                ?.firstOrNull { it.id == mediaId },
-        )
+    fun findAllMediaRefs(): List<MediaReference> {
+        return mediaReferencesDao.all().map(MediaReferenceDb::toMediaRefModel)
     }
 
-    suspend fun findMediaIdByRefId(refId: String): String? {
-        return mediaRefsDb
-            .projection(
-                MediaReference::contentId,
-                MediaReference::id eq refId,
-            )
-            .first()
+    fun findMediaRefById(refId: String): MediaReference? {
+        return mediaReferencesDao.findByGid(refId)?.toMediaRefModel()
     }
 
     suspend fun insertMediaReference(mediaReference: MediaReference) {
-        mediaRefsDb.insertOne(mediaReference)
-    }
-
-    suspend fun insertMediaReferences(mediaReferences: List<MediaReference>) {
-        mediaRefsDb.insertMany(mediaReferences)
-    }
-
-    suspend fun insertMovie(movie: Movie) {
-        moviesDb.insertOne(movie)
-    }
-
-    suspend fun insertTvShow(tvShow: TvShow, episodes: List<Episode> = emptyList()) {
-        tvShowDb.insertOne(tvShow)
-        if (episodes.isNotEmpty()) {
-            episodeDb.insertMany(episodes)
+        mediaRefInsertLock.withLock {
+            mediaReferencesDao.insertReference(MediaReferenceDb.fromRefModel(mediaReference))
         }
     }
 
-    suspend fun updateMovie(movie: Movie): Boolean {
-        return moviesDb.updateOne(movie).modifiedCount > 0
+    suspend fun insertMediaReferences(mediaReferences: List<MediaReference>) {
+        mediaRefInsertLock.withLock {
+            mediaReferences
+                .map(MediaReferenceDb::fromRefModel)
+                .forEach(mediaReferencesDao::insertReference)
+        }
     }
 
-    suspend fun updateTvShow(tvShow: TvShow): Boolean {
-        return tvShowDb.updateOne(tvShow).modifiedCount > 0
+    suspend fun insertMovie(movie: Movie): MediaDb {
+        val movieRecord = MediaDb.fromMovie(movie)
+        val id = mediaInsertLock.withLock {
+            mediaDao.insertMedia(movieRecord)
+        }
+        searchableContentInsertLock.withLock {
+            searchableContentDao.insert(movie.id, MediaDb.Type.MOVIE, movie.title)
+        }
+        return movieRecord.copy(id = id)
     }
 
-    suspend fun updateTvSeason(tvSeason: TvSeason): Boolean {
-        return tvShowDb.updateOne(
+    suspend fun insertTvShow(tvShow: TvShow, tvSeasons: List<TvSeason>, episodes: List<Episode>) {
+        mediaInsertLock.withLock {
+            val tvShowRecord = MediaDb.fromTvShow(tvShow).let { record ->
+                record.copy(id = mediaDao.insertMedia(record))
+            }
+            val tvSeasonRecords = tvSeasons.map { tvSeason ->
+                MediaDb.fromTvSeason(tvShowRecord, tvSeason).let { record ->
+                    record.copy(id = mediaDao.insertMedia(record))
+                }
+            }
+            val tvSeasonRecordMap = tvSeasonRecords.associateBy { checkNotNull(it.index) }
+            val tvEpisodeRecords = episodes.map { tvEpisode ->
+                val tvSeasonRecord = tvSeasonRecordMap.getValue(tvEpisode.seasonNumber)
+                MediaDb.fromTvEpisode(tvShowRecord, tvSeasonRecord, tvEpisode)
+            }
+            tvEpisodeRecords.forEach(mediaDao::insertMedia)
+        }
+
+        searchableContentInsertLock.withLock {
+            searchableContentDao.insert(tvShow.id, MediaDb.Type.TV_SHOW, tvShow.name)
+            episodes.forEach { episode ->
+                searchableContentDao.insert(episode.id, MediaDb.Type.TV_EPISODE, episode.name)
+            }
+        }
+    }
+
+    fun updateMovie(movie: Movie): Boolean {
+        TODO()
+        // return moviesDb.updateOne(movie).modifiedCount > 0
+    }
+
+    fun updateTvShow(tvShow: TvShow): Boolean {
+        TODO()
+        // return tvShowDb.updateOne(tvShow).modifiedCount > 0
+    }
+
+    fun updateTvSeason(tvSeason: TvSeason): Boolean {
+        TODO()
+        /*return tvShowDb.updateOne(
             TvShow::seasons elemMatch (TvSeason::id eq tvSeason.id),
             set(TvShow::seasons.posOp setTo tvSeason)
-        ).modifiedCount > 0
+        ).modifiedCount > 0*/
     }
 
-    suspend fun updateTvEpisode(episode: Episode): Boolean {
-        return episodeDb.updateOne(episode).modifiedCount > 0
+    fun updateTvEpisode(episode: Episode): Boolean {
+        TODO()
+        // return episodeDb.updateOne(episode).modifiedCount > 0
     }
 
-    suspend fun updateTvEpisodes(episodes: List<Episode>): Boolean {
-        val updates = episodes.map { episode ->
+    fun updateTvEpisodes(episodes: List<Episode>): Boolean {
+        TODO()
+        /*val updates = episodes.map { episode ->
             replaceOne(Episode::id eq episode.id, episode)
         }
         return episodeDb.bulkWrite(updates).run {
             modifiedCount > 0 || deletedCount > 0 || insertedCount > 0
-        }
+        }*/
     }
 
-    suspend fun deleteMovie(mediaId: String): Boolean {
-        return moviesDb.deleteOneById(mediaId).deletedCount > 0
+    fun deleteMovie(mediaId: String): Boolean {
+        mediaDao.deleteByGid(mediaId)
+        return true
     }
 
-    suspend fun deleteTvShow(mediaId: String): Boolean {
-        return if (tvShowDb.deleteOneById(mediaId).deletedCount > 0) {
-            episodeDb.deleteMany(Episode::showId eq mediaId)
-            mediaRefsDb.deleteMany(MediaReference::rootContentId eq mediaId)
-            true
-        } else false
+    fun deleteTvShow(mediaId: String): Boolean {
+        mediaReferencesDao.deleteByRootContentGid(mediaId)
+        mediaDao.deleteByRootGid(mediaId)
+        mediaDao.deleteByGid(mediaId)
+        return true
     }
 
-    suspend fun deleteRefsByContentId(mediaId: String) {
-        mediaRefsDb.deleteMany(MediaReference::contentId eq mediaId)
+    fun deleteRefsByContentId(mediaId: String) {
+        mediaReferencesDao.deleteByContentGid(mediaId)
     }
 
-    suspend fun deleteRefsByRootContentId(mediaId: String) {
-        mediaRefsDb.deleteMany(MediaReference::rootContentId eq mediaId)
+    fun deleteRefsByRootContentId(mediaId: String) {
+        mediaReferencesDao.deleteByRootContentGid(mediaId)
+    }
+
+    fun findTvSeasonsByIds(tvSeasonIds: List<String>): List<MediaDb> {
+        if (tvSeasonIds.isEmpty()) return emptyList()
+        return mediaDao.findAllByGidsAndType(tvSeasonIds, MediaDb.Type.TV_SEASON)
     }
 
     data class CurrentlyWatchingQueryResults(

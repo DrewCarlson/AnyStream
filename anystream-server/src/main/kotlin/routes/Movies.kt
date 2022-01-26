@@ -18,7 +18,7 @@
 package anystream.routes
 
 import anystream.data.*
-import anystream.models.Permissions.MANAGE_COLLECTION
+import anystream.models.Permission
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.server.application.*
@@ -54,7 +54,7 @@ fun Route.addMovieRoutes(
                 call.respond(queries.findMediaRefsByContentId(movieId))
             }
 
-            withAnyPermission(MANAGE_COLLECTION) {
+            withAnyPermission(Permission.ManageCollection) {
                 delete {
                     val movieId = call.parameters["movie_id"]
                         ?.takeUnless(String::isNullOrBlank)

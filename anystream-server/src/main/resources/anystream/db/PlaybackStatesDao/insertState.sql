@@ -1,0 +1,18 @@
+INSERT INTO playbackStates(id,
+                           gid,
+                           mediaReferenceId,
+                           mediaGid,
+                           userId,
+                           position,
+                           runtime,
+                           createdAt,
+                           updatedAt)
+VALUES (NULL,
+        :state.gid,
+        :state.mediaReferenceId,
+        :state.mediaGid,
+        :state.userId,
+        :state.position,
+        :state.runtime,
+        :createdAt,
+        :state.updatedAt)

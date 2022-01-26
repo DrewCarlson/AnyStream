@@ -20,11 +20,14 @@ package anystream.frontend.screens
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
 import anystream.models.InviteCode
-import anystream.models.Permissions
+import anystream.models.Permission
 import anystream.models.User
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.jetbrains.compose.web.attributes.*
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
@@ -93,13 +96,13 @@ private fun InviteCodeDialog(
         mutableStateOf<List<InviteCode>>(emptyList())
     }
     scope.launch { inviteCodesState = client.getInvites() }
-    val createInviteCode: (Set<String>) -> Unit = { permissions ->
+    val createInviteCode: (Set<Permission>) -> Unit = { permissions ->
         scope.launch {
             inviteCodesState = inviteCodesState + client.createInvite(permissions)
         }
     }
     val deleteInviteCode = { inviteCode: InviteCode ->
-        scope.launch { client.deleteInvite(inviteCode.value) }
+        scope.launch { client.deleteInvite(inviteCode.secret) }
         inviteCodesState = inviteCodesState - inviteCode
     }
     val inviteCodeMap by derivedStateOf {
@@ -140,8 +143,8 @@ private fun InviteCodeDialog(
 }
 
 @Composable
-private fun CreateInviteCodeGroup(createInviteCode: (Set<String>) -> Unit) {
-    var selectedPermissions by remember { mutableStateOf(emptySet<String>()) }
+private fun CreateInviteCodeGroup(createInviteCode: (Set<Permission>) -> Unit) {
+    var selectedPermissions by remember { mutableStateOf(emptySet<Permission>()) }
     Div({
         classes("input-group", "px-3")
     }) {
@@ -159,18 +162,18 @@ private fun CreateInviteCodeGroup(createInviteCode: (Set<String>) -> Unit) {
             onChange {
                 (it.nativeEvent.target as? HTMLSelectElement)?.run {
                     selectedPermissions = List(selectedOptions.length) { i ->
-                        (selectedOptions[i] as HTMLOptionElement).value
+                        Json.decodeFromString<Permission>((selectedOptions[i] as HTMLOptionElement).value)
                     }.toSet()
                 }
             }
         }) {
-            Permissions.all.forEach { permission ->
-                Option(permission, {
-                    if (permission == Permissions.VIEW_COLLECTION) {
+            Permission.all.forEach { permission ->
+                Option(Json.encodeToString(permission), {
+                    if (permission == Permission.ViewCollection) {
                         selected()
                     }
                 }) {
-                    Text(permission.lowercase().replace('_', ' '))
+                    Text(permission.toString())
                 }
             }
         }
@@ -237,13 +240,15 @@ private fun InviteCodeRow(
                 multiple()
             }) {
                 inviteCode.permissions.forEach { permission ->
-                    Option(permission) { Text(permission) }
+                    Option(Json.encodeToString(permission)) {
+                        Text(permission.toString())
+                    }
                 }
             }
         }
         Td {
             val base = "${window.location.protocol}//${window.location.host}"
-            val url = "$base/signup?inviteCode=${inviteCode.value}"
+            val url = "$base/signup?inviteCode=${inviteCode.secret}"
             Input(InputType.Text) {
                 value(url)
                 classes("visually-hidden")

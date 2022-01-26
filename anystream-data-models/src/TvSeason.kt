@@ -17,17 +17,15 @@
  */
 package anystream.models
 
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class TvSeason(
-    @SerialName("_id")
     val id: String,
     val name: String,
     val overview: String,
     val seasonNumber: Int,
-    val airDate: String,
+    val airDate: String?,
     val tmdbId: Int,
     val posterPath: String?,
 )

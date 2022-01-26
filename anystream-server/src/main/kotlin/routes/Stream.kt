@@ -28,7 +28,6 @@ import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.http.HttpStatusCode.Companion.UnprocessableEntity
-import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.http.content.*
@@ -51,7 +50,7 @@ fun Route.addStreamRoutes(
 ) {
     route("/stream") {
         authenticate {
-            withPermission(Permissions.CONFIGURE_SYSTEM) {
+            withPermission(Permission.ConfigureSystem) {
                 get {
                     call.respond(streamService.getPlaybackSessions())
                 }
@@ -78,12 +77,14 @@ fun Route.addStreamRoutes(
                         val state = call.receiveOrNull<PlaybackState>()
                             ?: return@put call.respond(UnprocessableEntity)
 
-                        val success = streamService.updateStatePosition(
-                            mediaRefId,
-                            session.userId,
-                            state.position
-                        )
-                        call.respond(if (success) OK else InternalServerError)
+                        val actualState = streamService.getPlaybackState(mediaRefId, session.userId, false)
+
+                        if (actualState == null) {
+                            call.respond(NotFound)
+                        } else {
+                            val success = streamService.updateStatePosition(actualState.id, state.position)
+                            call.respond(if (success) OK else InternalServerError)
+                        }
                     }
                 }
             }
@@ -111,12 +112,7 @@ fun Route.addStreamRoutes(
                     if (filePath == null) {
                         call.respond(NotFound)
                     } else {
-                        call.respond(
-                            LocalFileContent(
-                                File(filePath),
-                                ContentType.Application.OctetStream
-                            )
-                        )
+                        call.respond(LocalFileContent(File(filePath), ContentType.Application.OctetStream))
                     }
                 }
             }
@@ -149,7 +145,7 @@ fun Route.addStreamWsRoutes(
             .filterIsInstance<Frame.Text>()
             .map { frame ->
                 val newState = json.decodeFromString<PlaybackState>(frame.readText())
-                streamService.updateStatePosition(mediaRefId, userId, newState.position)
+                streamService.updateStatePosition(state.id, newState.position)
                 newState.position
             }
             .lastOrNull() ?: state.position

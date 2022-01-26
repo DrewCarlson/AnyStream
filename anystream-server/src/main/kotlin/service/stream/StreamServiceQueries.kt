@@ -21,13 +21,13 @@ import anystream.models.*
 
 interface StreamServiceQueries {
 
-    suspend fun fetchUsersByIds(ids: List<String>): List<User>
+    suspend fun fetchUsersByIds(ids: List<Int>): List<User>
     suspend fun fetchPlaybackStatesByIds(ids: List<String>): List<PlaybackState>
     suspend fun fetchMovieById(id: String): Movie?
     suspend fun fetchEpisodeById(id: String): Pair<Episode, TvShow>?
     suspend fun fetchMediaRef(mediaRefId: String): MediaReference?
-    suspend fun fetchPlaybackState(mediaRefId: String, userId: String): PlaybackState?
+    suspend fun fetchPlaybackState(mediaRefId: String, userId: Int): PlaybackState?
     suspend fun insertPlaybackState(playbackState: PlaybackState): Boolean
-    suspend fun updatePlaybackState(mediaRefId: String, userId: String, position: Double): Boolean
+    suspend fun updatePlaybackState(stateId: String, position: Double): Boolean
     suspend fun deletePlaybackState(playbackStateId: String): Boolean
 }

@@ -18,11 +18,14 @@
 package anystream.routes
 
 import anystream.data.UserSession
+import anystream.db.MediaReferencesDao
+import anystream.db.model.MediaReferenceDb
 import anystream.json
 import anystream.models.DownloadMediaReference
 import anystream.models.MediaKind
 import anystream.models.MediaReference
 import anystream.torrent.search.TorrentDescription2
+import anystream.util.ObjectId
 import anystream.util.extractUserSession
 import drewcarlson.qbittorrent.QBittorrentClient
 import drewcarlson.qbittorrent.models.Torrent
@@ -41,13 +44,12 @@ import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.flow.*
 import kotlinx.serialization.encodeToString
-import org.bson.types.ObjectId
-import org.litote.kmongo.coroutine.CoroutineDatabase
-import org.litote.kmongo.eq
 import java.time.Instant
 
-fun Route.addTorrentRoutes(qbClient: QBittorrentClient, mongodb: CoroutineDatabase) {
-    val mediaRefs = mongodb.getCollection<MediaReference>()
+fun Route.addTorrentRoutes(
+    qbClient: QBittorrentClient,
+    mediaReferencesDao: MediaReferencesDao,
+) {
     route("/torrents") {
         get {
             call.respond(qbClient.getTorrents())
@@ -74,16 +76,18 @@ fun Route.addTorrentRoutes(qbClient: QBittorrentClient, mongodb: CoroutineDataba
 
             val movieId = call.parameters["movieId"] ?: return@post
             val downloadId = ObjectId.get().toString()
-            mediaRefs.insertOne(
-                DownloadMediaReference(
-                    id = downloadId,
-                    contentId = movieId,
-                    hash = description.hash,
-                    addedByUserId = session.userId,
-                    added = Instant.now().toEpochMilli(),
-                    fileIndex = null,
-                    filePath = null,
-                    mediaKind = MediaKind.MOVIE,
+            mediaReferencesDao.insertReference(
+                MediaReferenceDb.fromRefModel(
+                    DownloadMediaReference(
+                        id = downloadId,
+                        contentId = movieId,
+                        hash = description.hash,
+                        addedByUserId = session.userId,
+                        added = Instant.now().toEpochMilli(),
+                        fileIndex = null,
+                        filePath = null,
+                        mediaKind = MediaKind.MOVIE,
+                    )
                 )
             )
             qbClient.torrentFlow(description.hash)
@@ -96,14 +100,15 @@ fun Route.addTorrentRoutes(qbClient: QBittorrentClient, mongodb: CoroutineDataba
                 }
                 .take(1)
                 .onEach { (file, torrent) ->
-                    val download = mediaRefs.findOneById(downloadId) as DownloadMediaReference
+                    // TODO: Update download reference details
+                    /*val download = mediaRefs.findOneById(downloadId) as DownloadMediaReference
                     mediaRefs.updateOneById(
                         downloadId,
                         download.copy(
                             fileIndex = file.id,
                             filePath = "${torrent.savePath}/${file.name}"
                         )
-                    )
+                    )*/
                 }
                 .launchIn(application)
         }
@@ -136,7 +141,7 @@ fun Route.addTorrentRoutes(qbClient: QBittorrentClient, mongodb: CoroutineDataba
                 val hash = call.parameters["hash"]!!
                 val deleteFiles = call.request.queryParameters["deleteFiles"]!!.toBoolean()
                 qbClient.deleteTorrents(listOf(hash), deleteFiles = deleteFiles)
-                mediaRefs.deleteOne(DownloadMediaReference::hash eq hash)
+                mediaReferencesDao.deleteDownloadByHash(hash)
                 call.respond(OK)
             }
         }

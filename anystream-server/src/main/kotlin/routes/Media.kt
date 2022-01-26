@@ -30,7 +30,6 @@ import info.movito.themoviedbapi.TmdbApi
 import info.movito.themoviedbapi.TmdbMovies
 import info.movito.themoviedbapi.TmdbTV
 import info.movito.themoviedbapi.TmdbTvSeasons
-import io.ktor.http.*
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.UnprocessableEntity
@@ -39,34 +38,28 @@ import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.websocket.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import org.litote.kmongo.*
-import org.litote.kmongo.coroutine.CoroutineDatabase
-import org.litote.kmongo.coroutine.projection
 
 fun Route.addMediaManageRoutes(
     tmdb: TmdbApi,
-    mongodb: CoroutineDatabase,
     torrentSearch: TorrentSearch,
     importer: MediaImporter,
     queries: MediaDbQueries,
 ) {
-    val moviesDb = mongodb.getCollection<Movie>()
-    val mediaRefsDb = mongodb.getCollection<MediaReference>()
     route("/media") {
         route("/{mediaId}") {
             get("/refresh-stream-details") {
                 val mediaId = call.parameters["mediaId"] ?: ""
-                val mediaRefIds = mediaRefsDb.projection(
+                /*val mediaRefIds = mediaRefsDb.projection(
                     MediaReference::id,
                     or(
                         MediaReference::contentId eq mediaId,
                         MediaReference::rootContentId eq mediaId,
                     )
                 ).toList()
-                call.respond(importer.importStreamDetails(mediaRefIds))
+                call.respond(importer.importStreamDetails(mediaRefIds))*/
+                TODO()
             }
             get("/refresh-metadata") {
                 val mediaId = call.parameters["mediaId"] ?: ""
@@ -115,7 +108,7 @@ fun Route.addMediaManageRoutes(
                             logger.error("Extended provider data query failed", e)
                             return@get call.respond(InternalServerError)
                         }
-                        val tvShow = tmdbSeries.asTvShow(result.tvShow.seasons, mediaId, "")
+                        val tvShow = tmdbSeries.asTvShow(mediaId, 1)
                         queries.updateTvShow(tvShow.copy(added = result.tvShow.added))
                         return@get call.respond(
                             MediaLookupResponse(
@@ -132,7 +125,7 @@ fun Route.addMediaManageRoutes(
                                 result.season.seasonNumber,
                                 null,
                                 TmdbTvSeasons.SeasonMethod.images,
-                            ).asTvSeason(result.season.id, "")
+                            ).asTvSeason(result.season.id)
                         } catch (e: Throwable) {
                             logger.error("Extended provider data query failed", e)
                             return@get call.respond(InternalServerError)
@@ -157,7 +150,7 @@ fun Route.addMediaManageRoutes(
                                 result.episode.seasonNumber,
                                 result.episode.number,
                                 null,
-                            ).asTvEpisode(result.episode.id, show.id, "")
+                            ).asTvEpisode(result.episode.id, show.id, result.episode.seasonId)
                         } catch (e: Throwable) {
                             logger.error("Extended provider data query failed", e)
                             return@get call.respond(InternalServerError)
@@ -177,11 +170,11 @@ fun Route.addMediaManageRoutes(
 
         route("/refs") {
             get {
-                call.respond(mediaRefsDb.find().toList())
+                call.respond(queries.findAllMediaRefs())
             }
             get("/{ref_id}") {
                 val refId = call.parameters["ref_id"] ?: ""
-                val ref = mediaRefsDb.findOneById(refId)
+                val ref = queries.findMediaRefById(refId)
                 if (ref == null) {
                     call.respond(NotFound)
                 } else {
@@ -268,7 +261,7 @@ fun Route.addMediaManageRoutes(
             get("/sources") {
                 val movieId = call.parameters["movie_id"] ?: ""
 
-                val movie = moviesDb.findOneById(movieId)
+                /*val movie = moviesDb.findOneById(movieId)
                 if (movie == null) {
                     call.respond(NotFound)
                 } else {
@@ -277,7 +270,8 @@ fun Route.addMediaManageRoutes(
                             // TODO: API or client sort+filter
                             .sortedByDescending { it.seeds }
                     )
-                }
+                }*/
+                TODO()
             }
         }
     }
@@ -310,7 +304,7 @@ fun Route.addMediaViewRoutes(
                                     movie = (match as? MetadataMatch.MovieMatch)
                                         ?.run { MovieResponse(movie) },
                                     tvShow = (match as? MetadataMatch.TvShowMatch)
-                                        ?.run { TvShowResponse(tvShow) },
+                                        ?.run { TvShowResponse(tvShow, seasons) },
                                 )
                             )
                         }
@@ -318,27 +312,10 @@ fun Route.addMediaViewRoutes(
                     }
                 } else {
                     call.respond(
-                        MediaLookupResponse(
-                            movie = queries.findMovieById(
-                                mediaId,
-                                includeRefs = includeRefs,
-                                includePlaybackStateForUser = playbackStateUserId,
-                            ),
-                            tvShow = queries.findShowById(
-                                mediaId,
-                                includeRefs = includeRefs,
-                                includePlaybackStateForUser = playbackStateUserId,
-                            ),
-                            episode = queries.findEpisodeById(
-                                mediaId,
-                                includeRefs = includeRefs,
-                                includePlaybackStateForUser = playbackStateUserId,
-                            ),
-                            season = queries.findSeasonById(
-                                mediaId,
-                                includeRefs = includeRefs,
-                                includePlaybackStateForUser = playbackStateUserId,
-                            ),
+                        queries.findMediaById(
+                            mediaId,
+                            includeRefs = includeRefs,
+                            includePlaybackStateForUser = playbackStateUserId,
                         )
                     )
                 }

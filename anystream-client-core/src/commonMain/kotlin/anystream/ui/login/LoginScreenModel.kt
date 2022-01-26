@@ -28,7 +28,7 @@ data class LoginScreenModel(
     val serverUrl: String = "",
     val username: String = "",
     val password: String = "",
-    val supportsPairing: Boolean = true,
+    val supportsPairing: Boolean = false,
     val pairingCode: String? = null,
     val state: State = State.IDLE,
     val serverValidation: ServerValidation = ServerValidation.VALIDATING,

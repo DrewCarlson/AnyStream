@@ -20,7 +20,7 @@ package anystream.frontend.screens
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
 import anystream.models.*
-import anystream.models.api.CreateUserError
+import anystream.models.api.CreateUserResponse
 import app.softwork.routingcompose.BrowserRouter
 import io.ktor.client.plugins.*
 import io.ktor.http.*
@@ -47,12 +47,11 @@ fun SignupScreen(client: AnyStreamClient) {
 
     suspend fun signup() {
         try {
-            val (success, error) = client.createUser(username, password, inviteCode)
-            when {
-                success != null -> BrowserRouter.navigate("/home")
-                error != null -> {
+            when (val response = client.createUser(username, password, inviteCode)) {
+                is CreateUserResponse.Success -> BrowserRouter.navigate("/home")
+                is CreateUserResponse.Error -> {
                     isLocked = false
-                    errorMessage = error.usernameError?.name ?: error.passwordError?.name
+                    errorMessage = response.usernameError?.name ?: response.passwordError?.name
                 }
             }
         } catch (e: ResponseException) {
@@ -141,19 +140,19 @@ fun SignupScreen(client: AnyStreamClient) {
     }
 }
 
-private val CreateUserError.PasswordError?.message: String?
+private val CreateUserResponse.PasswordError?.message: String?
     get() = when (this) {
-        CreateUserError.PasswordError.BLANK -> "Password cannot be blank"
-        CreateUserError.PasswordError.TOO_SHORT -> "Password must be at least $PASSWORD_LENGTH_MIN characters."
-        CreateUserError.PasswordError.TOO_LONG -> "Password must be $PASSWORD_LENGTH_MAX or fewer characters."
+        CreateUserResponse.PasswordError.BLANK -> "Password cannot be blank"
+        CreateUserResponse.PasswordError.TOO_SHORT -> "Password must be at least $PASSWORD_LENGTH_MIN characters."
+        CreateUserResponse.PasswordError.TOO_LONG -> "Password must be $PASSWORD_LENGTH_MAX or fewer characters."
         null -> null
     }
 
-private val CreateUserError.UsernameError?.message: String?
+private val CreateUserResponse.UsernameError?.message: String?
     get() = when (this) {
-        CreateUserError.UsernameError.BLANK -> "Username cannot be blank"
-        CreateUserError.UsernameError.TOO_SHORT -> "Username must be at least $USERNAME_LENGTH_MIN characters."
-        CreateUserError.UsernameError.TOO_LONG -> "Username must be $USERNAME_LENGTH_MAX or fewer characters."
-        CreateUserError.UsernameError.ALREADY_EXISTS -> "Username already exists."
+        CreateUserResponse.UsernameError.BLANK -> "Username cannot be blank"
+        CreateUserResponse.UsernameError.TOO_SHORT -> "Username must be at least $USERNAME_LENGTH_MIN characters."
+        CreateUserResponse.UsernameError.TOO_LONG -> "Username must be $USERNAME_LENGTH_MAX or fewer characters."
+        CreateUserResponse.UsernameError.ALREADY_EXISTS -> "Username already exists."
         null -> null
     }

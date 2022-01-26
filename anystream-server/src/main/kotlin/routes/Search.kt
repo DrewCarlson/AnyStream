@@ -17,19 +17,18 @@
  */
 package anystream.routes
 
+import anystream.db.MediaDao
+import anystream.db.MediaReferencesDao
+import anystream.db.SearchableContentDao
+import anystream.db.model.MediaDb
+import anystream.db.model.MediaReferenceDb
 import anystream.models.*
 import anystream.models.api.SearchResponse
-import com.mongodb.MongoException
-import com.mongodb.client.model.Projections
-import com.mongodb.client.model.Sorts
 import info.movito.themoviedbapi.TmdbApi
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import org.litote.kmongo.*
-import org.litote.kmongo.coroutine.CoroutineCollection
-import org.litote.kmongo.coroutine.CoroutineDatabase
-import org.litote.kmongo.coroutine.CoroutineFindPublisher
+import org.jdbi.v3.core.Handle
 
 private const val DEFAULT_SEARCH_RESULT_LIMIT = 3
 private const val MAX_SEARCH_RESULT_LIMIT = 3
@@ -38,56 +37,36 @@ private const val LIMIT = "limit"
 private const val MEDIA_KIND = "mediaKind"
 
 fun Route.addSearchRoutes(
-    tmdb: TmdbApi,
-    mongodb: CoroutineDatabase,
+    searchableContentDao: SearchableContentDao,
+    mediaDao: MediaDao,
+    mediaReferencesDao: MediaReferencesDao,
 ) {
-    val moviesDb = mongodb.getCollection<Movie>()
-    val tvShowDb = mongodb.getCollection<TvShow>()
-    val episodeDb = mongodb.getCollection<Episode>()
-    val mediaRefsDb = mongodb.getCollection<MediaReference>()
     route("/search") {
         get {
-            val query = call.parameters[QUERY] ?: return@get call.respond(SearchResponse())
+            val query = call.parameters[QUERY]?.trim() ?: return@get call.respond(SearchResponse())
             val limit = (call.parameters[LIMIT]?.toIntOrNull() ?: DEFAULT_SEARCH_RESULT_LIMIT)
                 .coerceIn(1, MAX_SEARCH_RESULT_LIMIT)
-            val mediaKind = call.parameters[MEDIA_KIND]?.uppercase()?.run(MediaKind::valueOf)
+            // val mediaKind = call.parameters[MEDIA_KIND]?.uppercase()?.run(MediaKind::valueOf)
 
-            fun <T : Any> CoroutineCollection<T>.textSearch(): CoroutineFindPublisher<T> =
-                find(text(query))
-                    .limit(limit)
-                    .projection(Projections.metaTextScore("score"))
-                    .sort(Sorts.metaTextScore("score"))
-                    .projection(Projections.exclude("score"))
-
-            val movies = try {
-                moviesDb
-                    .textSearch()
-                    .toList()
-            } catch (e: MongoException) {
-                e.printStackTrace()
-                emptyList()
-            }
-
-            val tvShows = try {
-                tvShowDb.textSearch().toList()
-            } catch (e: MongoException) {
-                e.printStackTrace()
-                emptyList()
-            }
-
-            val episodes = try {
-                episodeDb.textSearch().toList()
-            } catch (e: MongoException) {
-                e.printStackTrace()
-                emptyList()
-            }
+            val movieIds = searchableContentDao.search(query, MediaDb.Type.MOVIE, limit)
+            val tvShowIds = searchableContentDao.search(query, MediaDb.Type.TV_SHOW, limit)
+            val episodeIds = searchableContentDao.search(query, MediaDb.Type.TV_EPISODE, limit)
+            val movies = if (movieIds.isNotEmpty()) {
+                mediaDao.findAllByGidsAndType(movieIds, MediaDb.Type.MOVIE).map(MediaDb::toMovieModel)
+            } else emptyList()
+            val tvShows = if (tvShowIds.isNotEmpty()) {
+                mediaDao.findAllByGidsAndType(tvShowIds, MediaDb.Type.TV_SHOW).map(MediaDb::toTvShowModel)
+            } else emptyList()
+            val episodes = if (episodeIds.isNotEmpty()) {
+                mediaDao.findAllByGidsAndType(episodeIds, MediaDb.Type.TV_EPISODE).map(MediaDb::toTvEpisodeModel)
+            } else emptyList()
 
             val searchIds = movies.map(Movie::id) + episodes.map(Episode::id)
-
-            val mediaRefs = mediaRefsDb
-                .find(MediaReference::contentId `in` searchIds)
-                .toList()
-                .associateBy(MediaReference::contentId)
+            val mediaRefs = if (searchIds.isNotEmpty()) {
+                mediaReferencesDao.findByContentGids(searchIds)
+                    .map(MediaReferenceDb::toMediaRefModel)
+                    .associateBy(MediaReference::contentId)
+            } else emptyMap()
 
             call.respond(
                 SearchResponse(

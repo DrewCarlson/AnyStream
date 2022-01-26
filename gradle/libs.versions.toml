@@ -8,13 +8,16 @@ kotlinjs_ext = "1.0.1-pre.276-kotlin-1.6.0"
 ksp = "1.6.10-1.0.2"
 atomicfu = "0.17.0"
 kover = "0.5.0-RC2"
+datetime = "0.3.2"
 
 qbittorrent = "0.4.0"
 torrent_search = "0.2.0"
 mobiuskt = "0.5.1"
 ktor_perm = "0.2.0"
 
-kmongo = "4.4.0"
+jdbi = "3.26.0"
+jdbc_sqlite = "3.36.0.3"
+
 bouncy_castle = "1.67"
 tmdb = "1.12"
 jaffree = "2021.11.06"
@@ -53,6 +56,8 @@ coroutines-jdk8 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8", ve
 serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "serialization" }
 serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
 
+datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "datetime" }
+
 atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu" }
 atomicfu-plugin = { module = "org.jetbrains.kotlinx:atomicfu-gradle-plugin", version.ref = "atomicfu" }
 
@@ -61,6 +66,13 @@ agp = { module = "com.android.tools.build:gradle", version.ref = "agp" }
 kotlinjs-extensions = { module = "org.jetbrains.kotlin-wrappers:kotlin-extensions", version.ref = "kotlinjs_ext" }
 
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
+
+jdbi-core = { module = "org.jdbi:jdbi3-core", version.ref = "jdbi" }
+jdbi-sqlite = { module = "org.jdbi:jdbi3-sqlite", version.ref = "jdbi" }
+jdbi-sqlobject = { module = "org.jdbi:jdbi3-sqlobject", version.ref = "jdbi" }
+jdbi-kotlin = { module = "org.jdbi:jdbi3-kotlin", version.ref = "jdbi" }
+jdbi-kotlin-sqlobject = { module = "org.jdbi:jdbi3-kotlin-sqlobject", version.ref = "jdbi" }
+jdbc-sqlite = { module = "org.xerial:sqlite-jdbc", version.ref = "jdbc_sqlite" }
 
 ktor-serialization = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktorio" }
 
@@ -115,8 +127,6 @@ bouncyCastle = { module = "org.bouncycastle:bcprov-jdk15on", version.ref = "boun
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 
 tmdbapi = { module = "com.github.holgerbrandl:themoviedbapi", version.ref = "tmdb" }
-
-kmongo-coroutine-serialization = { module = "org.litote.kmongo:kmongo-coroutine-serialization", version.ref = "kmongo" }
 
 androidx-core-ktx = { module = "androidx.core:core-ktx", version = "1.7.0" }
 androidx-appcompat-core = { module = "androidx.appcompat:appcompat", version = "1.4.0" }

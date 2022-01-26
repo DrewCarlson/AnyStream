@@ -17,22 +17,52 @@
  */
 package anystream.service.user
 
+import anystream.db.InvitesDao
+import anystream.db.PermissionsDao
+import anystream.db.UsersDao
+import anystream.db.mappers.registerMappers
 import anystream.models.*
 import anystream.models.api.*
 import kotlinx.coroutines.runBlocking
-import org.junit.Before
-import org.junit.Test
+import org.bouncycastle.asn1.cmc.CMCStatus.success
+import org.jdbi.v3.core.Handle
+import org.jdbi.v3.core.Jdbi
+import org.jdbi.v3.core.kotlin.KotlinPlugin
+import org.jdbi.v3.core.statement.Slf4JSqlLogger
+import org.jdbi.v3.sqlite3.SQLitePlugin
+import org.jdbi.v3.sqlobject.SqlObjectPlugin
+import org.jdbi.v3.sqlobject.kotlin.KotlinSqlObjectPlugin
+import org.jdbi.v3.sqlobject.kotlin.attach
 import kotlin.test.*
 
 class UserServiceValidationTest {
 
-    private lateinit var queries: TestUserServiceQueries
+    private lateinit var dbHandle: Handle
+    private lateinit var queries: UserServiceQueries
     private lateinit var userService: UserService
 
-    @Before
+    @BeforeTest
     fun setup() {
-        queries = TestUserServiceQueries()
+        val jdbi = Jdbi.create("jdbc:sqlite::memory:").apply {
+            setSqlLogger(Slf4JSqlLogger())
+            installPlugin(SQLitePlugin())
+            installPlugin(SqlObjectPlugin())
+            installPlugin(KotlinSqlObjectPlugin())
+            installPlugin(KotlinPlugin())
+            registerMappers()
+        }
+        dbHandle = jdbi.open()
+        queries = UserServiceQueriesJdbi(
+            usersDao = dbHandle.attach<UsersDao>().apply { createTable() },
+            permissionsDao = dbHandle.attach<PermissionsDao>().apply { createTable() },
+            invitesDao = dbHandle.attach<InvitesDao>().apply { createTable() }
+        )
         userService = UserService(queries)
+    }
+
+    @AfterTest
+    fun tearDown() {
+        dbHandle.close()
     }
 
     // <editor-fold desc="Create User Tests">
@@ -45,12 +75,11 @@ class UserServiceValidationTest {
         )
 
         val response = userService.createUser(body)
-        val error = response?.error
 
-        assertNotNull(error, "Expected error but response was $response")
+        assertIs<CreateUserResponse.Error>(response, "Expected error but response was $response")
 
-        assertEquals(CreateUserError.UsernameError.BLANK, error.usernameError)
-        assertEquals(CreateUserError.PasswordError.BLANK, error.passwordError)
+        assertEquals(CreateUserResponse.UsernameError.BLANK, response.usernameError)
+        assertEquals(CreateUserResponse.PasswordError.BLANK, response.passwordError)
     }
 
     @Test
@@ -62,13 +91,12 @@ class UserServiceValidationTest {
             inviteCode = null,
         )
 
-        val tooShortResponse = userService.createUser(tooShortBody)
-        val tooShortError = tooShortResponse?.error
+        val response1 = userService.createUser(tooShortBody)
 
-        assertNotNull(tooShortError, "Expected error but response was $tooShortResponse")
+        assertIs<CreateUserResponse.Error>(response1, "Expected error but response was $response1")
 
-        assertEquals(CreateUserError.UsernameError.TOO_SHORT, tooShortError.usernameError)
-        assertEquals(CreateUserError.PasswordError.TOO_SHORT, tooShortError.passwordError)
+        assertEquals(CreateUserResponse.UsernameError.TOO_SHORT, response1.usernameError)
+        assertEquals(CreateUserResponse.PasswordError.TOO_SHORT, response1.passwordError)
 
         // too long
         val tooLongBody = CreateUserBody(
@@ -77,23 +105,22 @@ class UserServiceValidationTest {
             inviteCode = null,
         )
 
-        val tooLongResponse = userService.createUser(tooLongBody)
-        val tooLongError = tooLongResponse?.error
+        val response2 = userService.createUser(tooLongBody)
 
-        assertNotNull(tooLongError, "Expected error but response was $tooLongError")
+        assertIs<CreateUserResponse.Error>(response2, "Expected error but response was $response2")
 
-        assertEquals(CreateUserError.UsernameError.TOO_LONG, tooLongError.usernameError)
-        assertEquals(CreateUserError.PasswordError.TOO_LONG, tooLongError.passwordError)
+        assertEquals(CreateUserResponse.UsernameError.TOO_LONG, response2.usernameError)
+        assertEquals(CreateUserResponse.PasswordError.TOO_LONG, response2.passwordError)
     }
 
     @Test
     fun testCreateUserDuplicateUsernameValidations(): Unit = runBlocking {
         val existingUser = User(
-            id = "test",
+            id = 1,
             username = "test",
             displayName = "test",
         )
-        queries.users["test"] = existingUser
+        queries.createUser(existingUser, "", emptySet())
 
         val body = CreateUserBody(
             username = existingUser.username,
@@ -102,12 +129,10 @@ class UserServiceValidationTest {
         )
 
         val response = userService.createUser(body)
-        val error = response?.error
 
-        assertNotNull(error, "Expected error but response was $response")
-
-        assertEquals(CreateUserError.UsernameError.ALREADY_EXISTS, error.usernameError)
-        assertNull(error.passwordError)
+        assertIs<CreateUserResponse.Error>(response, "Expected error but response was $response")
+        assertEquals(CreateUserResponse.UsernameError.ALREADY_EXISTS, response.usernameError)
+        assertNull(response.passwordError)
     }
 
     @Test
@@ -119,18 +144,18 @@ class UserServiceValidationTest {
         )
 
         val response = userService.createUser(body)
-        val success = response?.success
 
-        assertNotNull(success, "Expected success but response was $response")
+        assertIs<CreateUserResponse.Success>(response, "Expected success but response was $response")
     }
 
     @Test
     fun testCreateSecondUserWithoutInviteCodeFails(): Unit = runBlocking {
-        queries.users["test"] = User(
-            id = "test",
+        val existingUser = User(
+            id = 1,
             username = "test",
             displayName = "test",
         )
+        queries.createUser(existingUser, "", emptySet())
 
         val body = CreateUserBody(
             username = "seconduser",
@@ -145,12 +170,13 @@ class UserServiceValidationTest {
 
     @Test
     fun testCreateSecondUserWithInviteCodeSucceeds(): Unit = runBlocking {
-        queries.inviteCodes["test"] = InviteCode("test", emptySet(), "test")
-        queries.users["test"] = User(
-            id = "test",
+        val existingUser = User(
+            id = 1,
             username = "test",
             displayName = "test",
         )
+        queries.createUser(existingUser, "", emptySet())
+        queries.createInviteCode("test", emptySet(), 1)
 
         val body = CreateUserBody(
             username = "seconduser",
@@ -159,9 +185,8 @@ class UserServiceValidationTest {
         )
 
         val response = userService.createUser(body)
-        val success = response?.success
 
-        assertNotNull(success, "Expected success response but was $response")
+        assertIs<CreateUserResponse.Success>(response, "Expected success response but was $response")
     }
     // </editor-fold>
 
@@ -174,7 +199,8 @@ class UserServiceValidationTest {
         )
 
         val result = userService.createSession(body, null)
-        assertIs<CreateSessionResponse.Error.UsernameInvalid>(result)
+        assertIs<CreateSessionResponse.Error>(result)
+        assertEquals(CreateSessionResponse.UsernameError.INVALID, result.usernameError)
     }
 
     @Test
@@ -185,16 +211,18 @@ class UserServiceValidationTest {
         )
 
         val result = userService.createSession(body, null)
-        assertIs<CreateSessionResponse.Error.PasswordInvalid>(result)
+        assertIs<CreateSessionResponse.Error>(result)
+        assertEquals(CreateSessionResponse.PasswordError.INVALID, result.passwordError)
     }
 
     @Test
     fun testCreateSessionUsernameNotFound(): Unit = runBlocking {
-        queries.users["test"] = User(
-            id = "test",
+        val existingUser = User(
+            id = 1,
             username = "test",
             displayName = "test",
         )
+        queries.createUser(existingUser, "", emptySet())
         val body = CreateSessionBody(
             username = "test1",
             password = "123456",
@@ -202,28 +230,26 @@ class UserServiceValidationTest {
 
         val result = userService.createSession(body, null)
 
-        assertIs<CreateSessionResponse.Error.UsernameNotFound>(result)
+        assertIs<CreateSessionResponse.Error>(result)
+        assertEquals(CreateSessionResponse.UsernameError.NOT_FOUND, result.usernameError)
     }
 
     @Test
     fun testCreateSessionPasswordIncorrect(): Unit = runBlocking {
-        queries.users["test"] = User(
-            id = "test",
+        val existingUser = User(
+            id = 1,
             username = "test",
             displayName = "test",
         )
-        queries.userCredentials["test"] = UserCredentials(
-            id = "test",
-            password = userService.hashPassword("123456"),
-            permissions = emptySet(),
-        )
+        queries.createUser(existingUser, userService.hashPassword("123456"), emptySet())
         val body = CreateSessionBody(
             username = "test",
             password = "1234567",
         )
 
         val result = userService.createSession(body, null)
-        assertIs<CreateSessionResponse.Error.PasswordIncorrect>(result)
+        assertIs<CreateSessionResponse.Error>(result)
+        assertEquals(CreateSessionResponse.PasswordError.INCORRECT, result.passwordError)
     }
     // </editor-fold>
 

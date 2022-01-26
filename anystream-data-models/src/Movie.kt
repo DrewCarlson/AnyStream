@@ -17,12 +17,10 @@
  */
 package anystream.models
 
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class Movie(
-    @SerialName("_id")
     val id: String,
     val title: String,
     val overview: String,
@@ -34,7 +32,7 @@ data class Movie(
     val backdropPath: String?,
     val releaseDate: String?,
     val added: Long,
-    val addedByUserId: String,
+    val addedByUserId: Int,
 ) {
     val isAdded: Boolean
         get() = !id.contains(':')

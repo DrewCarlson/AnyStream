@@ -2,38 +2,27 @@ version: '3.1'
 
 services:
 
-  app:
-    container_name: app
+  anystream:
+    container_name: anystream
     image: ghcr.io/drewcarlson/anystream:main
     restart: unless-stopped
     command: >
       ./install/anystream-server-shadow/bin/anystream-server
       -P:app.ffmpegPath=/usr/bin
       -P:app.webClientPath=/app/client-web
-      -P:app.mongoUrl=mongodb://root:password@mongo
+      -P:app.databaseUrl=sqlite:/app/config/anystream.db
       -P:app.qbittorrentUrl=http://qbittorrent:9090
       -port=8888
     ports:
       - "8888:8888"
     volumes:
+      - ./anystream-config:/config
       - ./qbittorrent/content:/content
       - ./qbittorrent/downloads:/downloads
     links:
-      - mongo
       - qbittorrent
     depends_on:
-      - mongo
       - qbittorrent
-
-  mongo:
-    container_name: mongo
-    image: mongo
-    restart: unless-stopped
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: password
-    ports:
-      - "27017:27017"
 
   qbittorrent:
     image: drewcarlson/docker-qbittorrentvpn

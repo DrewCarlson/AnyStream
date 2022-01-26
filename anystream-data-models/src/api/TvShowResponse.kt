@@ -19,12 +19,14 @@ package anystream.models.api
 
 import anystream.models.MediaReference
 import anystream.models.PlaybackState
+import anystream.models.TvSeason
 import anystream.models.TvShow
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class TvShowResponse(
     val tvShow: TvShow,
+    val seasons: List<TvSeason>,
     val mediaRefs: List<MediaReference> = emptyList(),
     val playbackState: PlaybackState? = null,
 )
