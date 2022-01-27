@@ -43,7 +43,7 @@ fun Route.addSearchRoutes(
 ) {
     route("/search") {
         get {
-            val query = call.parameters[QUERY]?.trim() ?: return@get call.respond(SearchResponse())
+            val query = call.parameters[QUERY]?.trim()?.plus("*") ?: return@get call.respond(SearchResponse())
             val limit = (call.parameters[LIMIT]?.toIntOrNull() ?: DEFAULT_SEARCH_RESULT_LIMIT)
                 .coerceIn(1, MAX_SEARCH_RESULT_LIMIT)
             // val mediaKind = call.parameters[MEDIA_KIND]?.uppercase()?.run(MediaKind::valueOf)
