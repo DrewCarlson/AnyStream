@@ -17,7 +17,6 @@
  */
 package anystream.db.model
 
-import anystream.db.model.MediaDb.Companion.tmdbDateToInstant
 import anystream.models.*
 import kotlinx.datetime.*
 
@@ -66,9 +65,7 @@ data class MediaDb(
             posters = emptyList(),
             posterPath = posterPath,
             backdropPath = backdropPath,
-            releaseDate = firstAvailableAt?.toLocalDateTime(TimeZone.UTC)?.run {
-                "$year-$monthNumber-$dayOfMonth"
-            },
+            releaseDate = firstAvailableAt?.instantToTmdbDate(),
             added = createdAt.epochSeconds,
             addedByUserId = addedByUserId,
         )
@@ -83,9 +80,7 @@ data class MediaDb(
             name = checkNotNull(title),
             tmdbId = tmdbId ?: -1,
             overview = overview.orEmpty(),
-            firstAirDate = firstAvailableAt?.toLocalDateTime(TimeZone.UTC)?.run {
-                "$year-$monthNumber-$dayOfMonth"
-            }.orEmpty(),
+            firstAirDate = firstAvailableAt?.instantToTmdbDate(),
             numberOfEpisodes = 0,
             numberOfSeasons = 0,
             posterPath = posterPath.orEmpty(),
@@ -105,9 +100,7 @@ data class MediaDb(
             name = checkNotNull(title),
             tmdbId = tmdbId ?: -1,
             overview = overview.orEmpty(),
-            airDate = firstAvailableAt?.toLocalDateTime(TimeZone.UTC)?.run {
-                "$year-$monthNumber-$dayOfMonth"
-            }.orEmpty(),
+            airDate = firstAvailableAt?.instantToTmdbDate(),
             number = checkNotNull(index),
             seasonNumber = checkNotNull(parentIndex),
             stillPath = posterPath.orEmpty(),
@@ -123,9 +116,7 @@ data class MediaDb(
             name = checkNotNull(title),
             overview = overview.orEmpty(),
             seasonNumber = checkNotNull(index),
-            airDate = firstAvailableAt?.toLocalDateTime(TimeZone.UTC)?.run {
-                "$year-$monthNumber-$dayOfMonth"
-            }.orEmpty(),
+            airDate = firstAvailableAt?.instantToTmdbDate(),
             tmdbId = tmdbId ?: -1,
             posterPath = posterPath,
         )
@@ -243,6 +234,11 @@ data class MediaDb(
                 mediaType = Type.TV_EPISODE,
             )
         }
+
+        private fun Instant.instantToTmdbDate(): String {
+            return toLocalDateTime(TimeZone.UTC).run { "$year-$monthNumber-$dayOfMonth" }
+        }
+
         private fun String.tmdbDateToInstant(): Instant? {
             return split('-')
                 .takeIf { it.size == 3 }
