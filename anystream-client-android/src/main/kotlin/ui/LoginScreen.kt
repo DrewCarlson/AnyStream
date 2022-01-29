@@ -48,7 +48,6 @@ import anystream.android.util.createLoopController
 import anystream.client.AnyStreamClient
 import anystream.ui.login.*
 import kt.mobius.android.AndroidLogger
-import kt.mobius.android.MobiusAndroid
 import kt.mobius.flow.FlowMobius
 import kt.mobius.functions.Consumer
 
@@ -58,31 +57,31 @@ fun LoginScreen(
     routeToHome: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val (modelState, eventConsumerState) = createLoopController {
-        val factory = FlowMobius.loop(
+    val (modelState, eventConsumer) = createLoopController(
+        LoginScreenModel.create(),
+        LoginScreenInit
+    ) {
+        FlowMobius.loop(
             LoginScreenUpdate,
             LoginScreenHandler.create(client, routeToHome)
-        )
-            .logger(AndroidLogger.tag("Login"))
-        MobiusAndroid.controller(factory, LoginScreenModel.create(), LoginScreenInit)
+        ).logger(AndroidLogger.tag("Login"))
     }
     Scaffold(
         topBar = { AppTopBar(client = null, backStack = null) },
         modifier = modifier
     ) { padding ->
-        FormBody(modelState, eventConsumerState, padding)
+        FormBody(modelState, eventConsumer, padding)
     }
 }
 
 @Composable
 private fun FormBody(
-    modelState: MutableState<LoginScreenModel>,
-    eventConsumerState: MutableState<Consumer<LoginScreenEvent>>,
+    modelState: State<LoginScreenModel>,
+    eventConsumer: Consumer<LoginScreenEvent>,
     paddingValues: PaddingValues
 ) {
     val showStacked = LocalConfiguration.current.screenWidthDp < 800
     val model by remember { modelState }
-    val eventConsumer by remember { eventConsumerState }
 
     var serverUrlValue by remember { mutableStateOf(TextFieldValue(model.serverUrl)) }
     var usernameValue by remember { mutableStateOf(TextFieldValue(model.username)) }

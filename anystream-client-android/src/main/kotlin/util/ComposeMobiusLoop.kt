@@ -17,64 +17,36 @@
  */
 package anystream.android.util
 
-import android.content.ContextWrapper
-import androidx.activity.ComponentActivity
 import androidx.compose.runtime.*
-import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.DefaultLifecycleObserver
-import androidx.lifecycle.LifecycleOwner
-import kt.mobius.Connection
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
+import kt.mobius.Init
 import kt.mobius.MobiusLoop
-import kt.mobius.extras.QueuedConsumer
+import kt.mobius.android.MobiusLoopViewModel
 import kt.mobius.functions.Consumer
 
 @Composable
-fun <M, E> createLoopController(
-    loopBuilder: () -> MobiusLoop.Controller<M, E>
-): Pair<MutableState<M>, MutableState<Consumer<E>>> {
-    val controller = remember { loopBuilder() }
-    val modelState = remember { mutableStateOf(controller.model) }
-    val eventConsumer = remember { mutableStateOf<Consumer<E>>(QueuedConsumer()) }
-
-    val currentContext = LocalContext.current
-    val activity = remember(currentContext) {
-        val activity = (currentContext as? ComponentActivity)
-            ?: ((currentContext as? ContextWrapper)?.baseContext as? ComponentActivity)
-        checkNotNull(activity)
-    }
-    DisposableEffect(controller) {
-        controller.connect { output ->
-            (eventConsumer.value as? QueuedConsumer<E>)?.dequeueAll(output)
-            eventConsumer.value = output
-            object : Connection<M> {
-                override fun accept(value: M) {
-                    modelState.value = value
-                }
-
-                override fun dispose() {
-                    eventConsumer.value = QueuedConsumer()
-                }
+fun <M, E, F> createLoopController(
+    initialModel: M,
+    init: Init<M, F>,
+    loopBuilder: () -> MobiusLoop.Factory<M, E, F>,
+): Pair<State<M>, Consumer<E>> {
+    val factory = remember {
+        object : ViewModelProvider.Factory {
+            override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+                @Suppress("UNCHECKED_CAST")
+                return MobiusLoopViewModel.create<M, E, F, Nothing>({ _, _ -> loopBuilder() }, initialModel, init) as T
             }
-        }
-        val observer = object : DefaultLifecycleObserver {
-            override fun onResume(owner: LifecycleOwner) {
-                if (!controller.isRunning) controller.start()
-                modelState.value = controller.model
-            }
-
-            override fun onPause(owner: LifecycleOwner) {
-                if (controller.isRunning) controller.stop()
-            }
-        }
-        activity.lifecycle.addObserver(observer)
-
-        onDispose {
-            activity.lifecycle.removeObserver(observer)
-            if (controller.isRunning) {
-                controller.stop()
-            }
-            controller.disconnect()
         }
     }
-    return Pair(modelState, eventConsumer)
+    val loopVm = viewModel<MobiusLoopViewModel<M, E, F, Nothing>>(factory = factory)
+
+    return remember(loopVm) {
+        Pair(
+            loopVm.models.observeAsState(loopVm.model),
+            Consumer(loopVm::dispatchEvent)
+        )
+    }
 }

@@ -55,6 +55,7 @@ dependencies {
     implementation(libs.androidx.leanback.core)
     implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.bundles.compose)
     implementation(libs.coil)
     implementation(libs.bundles.exoplayer)
