@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2021 AnyStream Maintainers
+ * Copyright (C) 2022 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -15,14 +15,14 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.android
+package anystream.frontend
 
-sealed class Routes {
-    object Login : Routes()
-    object Home : Routes()
-    object PairingScanner : Routes()
-    object Movies : Routes()
-    data class Player(
-        val mediaRefId: String
-    ) : Routes()
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.darwin.Darwin
+
+object DarwinHttpClient {
+
+    fun create(): HttpClient {
+        return HttpClient(Darwin)
+    }
 }

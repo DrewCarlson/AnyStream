@@ -127,12 +127,12 @@ object LoginScreenUpdate : LoginScreenUpdateSpec {
         return when (model.state) {
             State.IDLE -> {
                 if (model.serverUrl == event.serverUrl) {
+                    val effects = mutableSetOf<LoginScreenEffect>()
                     val newModel = model.copy(serverValidation = event.result)
-                    if (event.result == ServerValidation.VALID) {
-                        next(newModel, LoginScreenEffect.PairingSession(event.serverUrl))
-                    } else {
-                        next(newModel)
+                    if (event.result == ServerValidation.VALID && newModel.supportsPairing) {
+                        effects.add(LoginScreenEffect.PairingSession(event.serverUrl))
                     }
+                    next(newModel, effects)
                 } else noChange()
             }
             else -> noChange()

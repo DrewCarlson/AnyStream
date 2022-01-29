@@ -35,11 +35,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import anystream.android.AppTopBar
 import anystream.android.AppTypography
-import anystream.android.Routes
 import anystream.android.router.BackStack
 import anystream.client.AnyStreamClient
 import anystream.models.*
 import anystream.models.api.HomeResponse
+import anystream.routing.Routes
 import coil.compose.ImagePainter
 import coil.compose.rememberImagePainter
 

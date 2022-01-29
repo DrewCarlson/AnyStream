@@ -51,8 +51,21 @@ kotlin {
         iosArm64(),
         iosSimulatorArm64(),
     ).forEach { target ->
-        target.binaries.framework {
-            baseName = "AnyStreamCore"
+        target.binaries {
+            framework {
+                baseName = "AnyStreamCore"
+                export(projects.anystreamDataModels)
+                export(projects.anystreamClientApi)
+                export(libs.mobiuskt.core)
+                export(libs.mobiuskt.coroutines)
+
+                binaryOptions["freezing"] = "disabled"
+                binaryOptions["memoryModel"] = "experimental"
+            }
+            getTest("DEBUG").apply {
+                binaryOptions["freezing"] = "disabled"
+                binaryOptions["memoryModel"] = "experimental"
+            }
         }
     }
 

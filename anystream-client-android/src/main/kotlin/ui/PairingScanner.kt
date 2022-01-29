@@ -23,9 +23,9 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
-import anystream.android.Routes
 import anystream.android.router.BackStack
 import anystream.client.AnyStreamClient
+import anystream.routing.Routes
 import io.github.g00fy2.quickie.QRResult
 import io.github.g00fy2.quickie.ScanQRCode
 import io.ktor.client.plugins.*

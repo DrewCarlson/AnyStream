@@ -30,12 +30,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import anystream.android.AppTopBar
-import anystream.android.Routes
 import anystream.android.router.BackStack
 import anystream.client.AnyStreamClient
 import anystream.models.MediaReference
 import anystream.models.Movie
 import anystream.models.api.MoviesResponse
+import anystream.routing.Routes
 
 @Composable
 fun MoviesScreen(
