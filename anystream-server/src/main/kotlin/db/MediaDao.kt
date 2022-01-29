@@ -90,6 +90,9 @@ interface MediaDao {
     @SqlQuery("SELECT COUNT(id) FROM media")
     fun count(): Long
 
+    @SqlQuery("SELECT COUNT(id) FROM media WHERE parentGid = ? AND 'index' > 0")
+    fun countSeasonsForTvShow(showId: String): Int
+
     @SqlUpdate
     @GetGeneratedKeys("id")
     @UseClasspathSqlLocator

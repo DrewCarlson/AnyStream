@@ -24,11 +24,9 @@ import anystream.db.model.MediaDb
 import anystream.db.model.MediaReferenceDb
 import anystream.models.*
 import anystream.models.api.SearchResponse
-import info.movito.themoviedbapi.TmdbApi
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import org.jdbi.v3.core.Handle
 
 private const val DEFAULT_SEARCH_RESULT_LIMIT = 3
 private const val MAX_SEARCH_RESULT_LIMIT = 3
@@ -55,13 +53,29 @@ fun Route.addSearchRoutes(
                 mediaDao.findAllByGidsAndType(movieIds, MediaDb.Type.MOVIE).map(MediaDb::toMovieModel)
             } else emptyList()
             val tvShows = if (tvShowIds.isNotEmpty()) {
-                mediaDao.findAllByGidsAndType(tvShowIds, MediaDb.Type.TV_SHOW).map(MediaDb::toTvShowModel)
+                mediaDao.findAllByGidsAndType(tvShowIds, MediaDb.Type.TV_SHOW).map { showRecord ->
+                    SearchResponse.TvShowResult(
+                        tvShow = showRecord.toTvShowModel(),
+                        seasonCount = mediaDao.countSeasonsForTvShow(showRecord.gid)
+                    )
+                }
             } else emptyList()
             val episodes = if (episodeIds.isNotEmpty()) {
-                mediaDao.findAllByGidsAndType(episodeIds, MediaDb.Type.TV_EPISODE).map(MediaDb::toTvEpisodeModel)
+                val episodes = mediaDao.findAllByGidsAndType(episodeIds, MediaDb.Type.TV_EPISODE)
+                    .map(MediaDb::toTvEpisodeModel)
+                val episodeShowIds = episodes.map(Episode::showId).distinct()
+                val episodeShows = mediaDao.findAllByGidsAndType(episodeShowIds, MediaDb.Type.TV_SHOW)
+                    .map(MediaDb::toTvShowModel)
+                    .associateBy(TvShow::id)
+                episodes.map { episode ->
+                    SearchResponse.EpisodeResult(
+                        episode = episode,
+                        tvShow = episodeShows.getValue(episode.showId)
+                    )
+                }
             } else emptyList()
 
-            val searchIds = movies.map(Movie::id) + episodes.map(Episode::id)
+            val searchIds = movies.map(Movie::id) + episodes.map { it.episode.id }
             val mediaRefs = if (searchIds.isNotEmpty()) {
                 mediaReferencesDao.findByContentGids(searchIds)
                     .map(MediaReferenceDb::toMediaRefModel)

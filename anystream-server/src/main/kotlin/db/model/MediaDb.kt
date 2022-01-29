@@ -81,8 +81,6 @@ data class MediaDb(
             tmdbId = tmdbId ?: -1,
             overview = overview.orEmpty(),
             firstAirDate = firstAvailableAt?.instantToTmdbDate(),
-            numberOfEpisodes = 0,
-            numberOfSeasons = 0,
             posterPath = posterPath.orEmpty(),
             added = createdAt.epochSeconds,
             addedByUserId = addedByUserId,

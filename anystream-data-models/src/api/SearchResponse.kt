@@ -26,10 +26,22 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class SearchResponse(
     val movies: List<Movie> = emptyList(),
-    val tvShows: List<TvShow> = emptyList(),
-    val episodes: List<Episode> = emptyList(),
+    val tvShows: List<TvShowResult> = emptyList(),
+    val episodes: List<EpisodeResult> = emptyList(),
     val mediaReferences: Map<String, MediaReference> = emptyMap(),
 ) {
     fun hasResult(): Boolean =
         movies.isNotEmpty() || tvShows.isNotEmpty() || episodes.isNotEmpty()
+
+    @Serializable
+    data class TvShowResult(
+        val tvShow: TvShow,
+        val seasonCount: Int,
+    )
+
+    @Serializable
+    data class EpisodeResult(
+        val episode: Episode,
+        val tvShow: TvShow,
+    )
 }

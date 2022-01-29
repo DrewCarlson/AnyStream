@@ -26,8 +26,6 @@ data class TvShow(
     val tmdbId: Int,
     val overview: String,
     val firstAirDate: String?,
-    val numberOfSeasons: Int,
-    val numberOfEpisodes: Int,
     val posterPath: String,
     val added: Long,
     val addedByUserId: Int,
