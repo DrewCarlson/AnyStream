@@ -43,10 +43,10 @@ data class LoginScreenModel(
     }
 
     fun credentialsAreSet(): Boolean {
-        return username.isNotBlank() && username.isNotBlank()
+        return username.isNotBlank() && password.isNotBlank()
     }
 
-    fun serverUrlIsValid(): Boolean {
+    fun isServerUrlValid(): Boolean {
         return serverValidation == ServerValidation.VALID
     }
 
@@ -57,6 +57,10 @@ data class LoginScreenModel(
     companion object {
         fun create(): LoginScreenModel {
             return LoginScreenModel()
+        }
+
+        fun create(supportsPairing: Boolean): LoginScreenModel {
+            return LoginScreenModel(supportsPairing = supportsPairing)
         }
 
         fun create(serverUrl: String, supportsPairing: Boolean): LoginScreenModel {

@@ -27,7 +27,7 @@ object LoginScreenUpdate : LoginScreenUpdateSpec {
     override fun onLoginSubmit(model: LoginScreenModel): Next<LoginScreenModel, LoginScreenEffect> {
         return when (model.state) {
             State.IDLE -> {
-                if (model.serverUrlIsValid() && model.credentialsAreSet()) {
+                if (model.isServerUrlValid() && model.credentialsAreSet()) {
                     next(
                         model.copy(state = State.AUTHENTICATING),
                         LoginScreenEffect.Login(model.username, model.password, model.serverUrl)
