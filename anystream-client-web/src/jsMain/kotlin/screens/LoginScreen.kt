@@ -37,7 +37,8 @@ fun LoginScreen(client: AnyStreamClient) {
             LoginScreenUpdate,
             LoginScreenHandler.create(client) { BrowserRouter.navigate("/home") }
         ).logger(SimpleLogger("Login"))
-        Mobius.controller(factory, LoginScreenModel.create(client.serverUrl), LoginScreenInit)
+        val startModel = LoginScreenModel.create(client.serverUrl, supportsPairing = true)
+        Mobius.controller(factory, startModel, LoginScreenInit)
     }
 
     val model by remember { modelState }

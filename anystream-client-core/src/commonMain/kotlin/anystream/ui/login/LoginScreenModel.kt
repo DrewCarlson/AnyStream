@@ -59,10 +59,11 @@ data class LoginScreenModel(
             return LoginScreenModel()
         }
 
-        fun create(serverUrl: String): LoginScreenModel {
+        fun create(serverUrl: String, supportsPairing: Boolean): LoginScreenModel {
             return LoginScreenModel(
                 serverUrl = serverUrl,
-                serverValidation = ServerValidation.VALID
+                supportsPairing = supportsPairing,
+                serverValidation = ServerValidation.VALID,
             )
         }
     }
