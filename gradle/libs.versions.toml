@@ -20,7 +20,7 @@ jdbc_sqlite = "3.36.0.3"
 
 bouncy_castle = "1.67"
 tmdb = "1.12"
-jaffree = "2021.11.06"
+jaffree = "2021.12.30"
 logback = "1.2.1"
 shadowjar = "7.1.0"
 
