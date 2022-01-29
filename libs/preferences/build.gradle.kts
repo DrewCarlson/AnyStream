@@ -26,7 +26,9 @@ kotlin {
         android()
     }
     jvm()
-    ios()
+    iosX64()
+    iosArm64()
+    iosSimulatorArm64()
     js(IR) {
         browser()
     }
@@ -37,9 +39,33 @@ kotlin {
                 optIn("kotlin.RequiresOptIn")
             }
         }
-        named("commonMain") {
+        val commonMain by getting {
             dependencies {
                 implementation(kotlin("stdlib-common"))
+            }
+        }
+
+        val commonTest by getting
+
+        val iosMain by creating {
+            dependsOn(commonMain)
+        }
+
+        val iosTest by creating {
+            dependsOn(commonTest)
+        }
+
+        sourceSets.filter { sourceSet ->
+            sourceSet.name.run {
+                startsWith("iosX64") ||
+                    startsWith("iosArm") ||
+                    startsWith("iosSimulator")
+            }
+        }.forEach { sourceSet ->
+            if (sourceSet.name.endsWith("Main")) {
+                sourceSet.dependsOn(iosMain)
+            } else {
+                sourceSet.dependsOn(iosTest)
             }
         }
     }

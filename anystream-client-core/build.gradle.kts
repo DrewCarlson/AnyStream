@@ -46,6 +46,15 @@ kotlin {
     if (hasAndroidSdk) {
         android()
     }
+    listOf(
+        iosX64(),
+        iosArm64(),
+        iosSimulatorArm64(),
+    ).forEach { target ->
+        target.binaries.framework {
+            baseName = "AnyStreamCore"
+        }
+    }
 
     sourceSets {
         all {
@@ -105,6 +114,28 @@ kotlin {
         val jsTest by getting {
             dependencies {
                 implementation(kotlin("test-js"))
+            }
+        }
+
+        val iosMain by creating {
+            dependsOn(commonMain)
+        }
+
+        val iosTest by creating {
+            dependsOn(commonTest)
+        }
+
+        sourceSets.filter { sourceSet ->
+            sourceSet.name.run {
+                startsWith("iosX64") ||
+                    startsWith("iosArm") ||
+                    startsWith("iosSimulator")
+            }
+        }.forEach { sourceSet ->
+            if (sourceSet.name.endsWith("Main")) {
+                sourceSet.dependsOn(iosMain)
+            } else {
+                sourceSet.dependsOn(iosTest)
             }
         }
     }

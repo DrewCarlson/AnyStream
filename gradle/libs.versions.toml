@@ -52,6 +52,7 @@ spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 [libraries]
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 coroutines-jdk8 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8", version.ref = "coroutines" }
+coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 
 serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "serialization" }
 serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
@@ -83,6 +84,7 @@ ktor-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktorio" }
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktorio" }
 ktor-client-contentNegotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktorio" }
 ktor-client-websockets = { module = "io.ktor:ktor-client-websockets", version.ref = "ktorio" }
+ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktorio" }
 
 ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktorio" }
 ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktorio" }

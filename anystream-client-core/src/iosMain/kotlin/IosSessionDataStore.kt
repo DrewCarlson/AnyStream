@@ -15,9 +15,24 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.client
+package anystream.frontend
 
-import kotlinx.coroutines.runBlocking
+import anystream.client.SessionDataStore
+import platform.Foundation.NSUserDefaults
+import platform.Foundation.setValue
 
-actual fun runTest(body: suspend () -> Unit) =
-    runBlocking { body() }
+class IosSessionDataStore(
+    private val defaults: NSUserDefaults
+) : SessionDataStore {
+    override fun write(key: String, value: String) {
+        defaults.setValue(value = value, forKey = key)
+    }
+
+    override fun read(key: String): String? {
+        return defaults.stringForKey(key)
+    }
+
+    override fun remove(key: String) {
+        defaults.removeObjectForKey(key)
+    }
+}

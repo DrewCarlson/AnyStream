@@ -16,6 +16,9 @@ kotlin {
             }
         }
     }
+    iosX64()
+    iosArm64()
+    iosSimulatorArm64()
 
     sourceSets {
         all {
@@ -39,9 +42,10 @@ kotlin {
                 implementation(libs.ktor.serialization)
             }
         }
+
         val commonTest by getting {
-            kotlin.srcDirs("test")
             dependencies {
+                implementation(libs.coroutines.test)
                 implementation(kotlin("test-common"))
                 implementation(kotlin("test-annotations-common"))
             }
@@ -54,7 +58,6 @@ kotlin {
         }
 
         val jvmTest by getting {
-            kotlin.srcDirs("testJvm")
             dependencies {
                 implementation(kotlin("test"))
                 implementation(kotlin("test-junit"))
@@ -68,9 +71,33 @@ kotlin {
         }
 
         val jsTest by getting {
-            kotlin.srcDirs("testJs")
             dependencies {
                 implementation(kotlin("test-js"))
+            }
+        }
+
+        val iosMain by creating {
+            dependsOn(commonMain)
+            dependencies {
+                implementation(libs.ktor.client.darwin)
+            }
+        }
+
+        val iosTest by creating {
+            dependsOn(commonTest)
+        }
+
+        sourceSets.filter { sourceSet ->
+            sourceSet.name.run {
+                startsWith("iosX64") ||
+                        startsWith("iosArm") ||
+                        startsWith("iosSimulator")
+            }
+        }.forEach { sourceSet ->
+            if (sourceSet.name.endsWith("Main")) {
+                sourceSet.dependsOn(iosMain)
+            } else {
+                sourceSet.dependsOn(iosTest)
             }
         }
     }
