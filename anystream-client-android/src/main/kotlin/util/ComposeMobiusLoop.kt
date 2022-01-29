@@ -42,11 +42,9 @@ fun <M, E, F> createLoopController(
         }
     }
     val loopVm = viewModel<MobiusLoopViewModel<M, E, F, Nothing>>(factory = factory)
+    val modelState = loopVm.models.observeAsState(loopVm.model)
 
     return remember(loopVm) {
-        Pair(
-            loopVm.models.observeAsState(loopVm.model),
-            Consumer(loopVm::dispatchEvent)
-        )
+        Pair(modelState, Consumer(loopVm::dispatchEvent))
     }
 }
