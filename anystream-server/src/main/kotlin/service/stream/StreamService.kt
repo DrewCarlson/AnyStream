@@ -407,7 +407,7 @@ class StreamService(
             append("#EXT-X-VERSION:")
             appendLine(hlsVersion)
             append("#EXT-X-TARGETDURATION:")
-            appendLine(segmentLength)
+            appendLine(segmentLength.toDouble(SECONDS))
             appendLine("#EXT-X-MEDIA-SEQUENCE:0")
 
             if (isHlsInFmp4) {
