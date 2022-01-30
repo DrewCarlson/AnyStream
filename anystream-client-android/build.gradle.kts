@@ -39,6 +39,7 @@ android {
     }
     kotlinOptions.freeCompilerArgs += listOf(
         "-Xopt-in=androidx.compose.ui.ExperimentalComposeUiApi",
+        "-Xopt-in=androidx.compose.foundation.ExperimentalFoundationApi",
         "-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
         "-Xopt-in=kotlinx.coroutines.FlowPreview",
         "-Xopt-in=kotlin.time.ExperimentalTime",
