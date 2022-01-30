@@ -37,6 +37,7 @@ import anystream.android.AppTopBar
 import anystream.android.AppTypography
 import anystream.android.router.BackStack
 import anystream.client.AnyStreamClient
+import anystream.frontend.models.*
 import anystream.models.*
 import anystream.models.api.HomeResponse
 import anystream.routing.Routes
@@ -69,11 +70,17 @@ fun HomeScreen(
 
                 homeData.value?.run {
                     Spacer(modifier = Modifier.size(4.dp))
-                    /*if (currentlyWatching.isNotEmpty()) {
+
+                    if (playbackStates.isNotEmpty()) {
                         RowTitle(text = "Continue Watching")
-                        ContinueWatchingRow(currentlyWatching, onClick = onMediaClick)
+                        ContinueWatchingRow(
+                            playbackStates = playbackStates,
+                            currentlyWatchingMovies = currentlyWatchingMovies,
+                            currentlyWatchingTv = currentlyWatchingTv,
+                            onClick = onMediaClick
+                        )
                         RowSpace()
-                    }*/
+                    }
 
                     Row(
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -112,7 +119,9 @@ fun HomeScreen(
 
 @Composable
 private fun ContinueWatchingRow(
-    currentlyWatching: Map<Movie, PlaybackState>,
+    playbackStates: List<PlaybackState>,
+    currentlyWatchingMovies: Map<String, Movie>,
+    currentlyWatchingTv: Map<String, Pair<Episode, TvShow>>,
     onClick: (mediaRefId: String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -120,8 +129,34 @@ private fun ContinueWatchingRow(
         horizontalArrangement = Arrangement.spacedBy(CARD_SPACING),
         modifier = modifier,
         content = {
-            items(currentlyWatching.toList()) { (movie, playbackState) ->
-                WatchingCard(movie, playbackState, onClick)
+            items(playbackStates) { playbackState ->
+                currentlyWatchingMovies[playbackState.id]?.also { movie ->
+                    val mediaItem = MediaItem(
+                        mediaId = movie.id,
+                        contentTitle = movie.title,
+                        backdropPath = movie.backdropPath,
+                        posterPath = movie.posterPath,
+                        mediaRefs = emptyList(),
+                        releaseDate = movie.releaseDate,
+                        subtitle1 = movie.releaseDate?.split("-")?.first(),
+                        overview = "",
+                    )
+                    WatchingCard(mediaItem, playbackState, onClick)
+                }
+                currentlyWatchingTv[playbackState.id]?.also { (episode, show) ->
+                    val mediaItem = MediaItem(
+                        mediaId = episode.id,
+                        contentTitle = show.name,
+                        backdropPath = episode.stillPath,
+                        posterPath = show.posterPath,
+                        mediaRefs = emptyList(),
+                        releaseDate = episode.airDate,
+                        subtitle1 = episode.name,
+                        subtitle2 = "S${episode.seasonNumber} · E${episode.number}",
+                        overview = "",
+                    )
+                    WatchingCard(mediaItem, playbackState, onClick)
+                }
             }
         }
     )
@@ -129,7 +164,7 @@ private fun ContinueWatchingRow(
 
 @Composable
 private fun WatchingCard(
-    movie: Movie,
+    mediaItem: MediaItem,
     playbackState: PlaybackState,
     onClick: (mediaRefId: String) -> Unit,
 ) {
@@ -141,7 +176,7 @@ private fun WatchingCard(
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             val painter = rememberImagePainter(
-                data = "https://image.tmdb.org/t/p/w300${movie.backdropPath}",
+                data = "https://image.tmdb.org/t/p/w300${mediaItem.backdropPath}",
                 builder = {
                     crossfade(true)
                 }
@@ -181,18 +216,27 @@ private fun WatchingCard(
             }
 
             LinearProgressIndicator(
-                progress = (playbackState.position / (movie.runtime * 60f)).toFloat(),
-                modifier = Modifier
-                    .fillMaxWidth()
+                progress = (playbackState.position / playbackState.runtime).toFloat(),
+                modifier = Modifier.fillMaxWidth()
             )
 
-            Box(
+            Column(
                 modifier = Modifier
                     .padding(all = 4.dp)
                     .fillMaxWidth()
             ) {
                 Text(
-                    text = movie.title,
+                    text = mediaItem.contentTitle,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = mediaItem.subtitle1 ?: " ",
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = mediaItem.subtitle2 ?: " ",
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
