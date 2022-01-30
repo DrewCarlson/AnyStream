@@ -15,11 +15,7 @@ if (hasAndroidSdk) {
             targetSdk = 31
             testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         }
-        sourceSets {
-            named("main") {
-                manifest.srcFile("src/androidMain/AndroidManifest.xml")
-            }
-        }
+        namespace = "anystream.client"
     }
 }
 
@@ -141,8 +137,8 @@ kotlin {
         sourceSets.filter { sourceSet ->
             sourceSet.name.run {
                 startsWith("iosX64") ||
-                    startsWith("iosArm") ||
-                    startsWith("iosSimulator")
+                        startsWith("iosArm") ||
+                        startsWith("iosSimulator")
             }
         }.forEach { sourceSet ->
             if (sourceSet.name.endsWith("Main")) {

@@ -13,11 +13,7 @@ if (hasAndroidSdk) {
             minSdk = 23
             targetSdk = 31
         }
-        sourceSets {
-            named("main") {
-                manifest.srcFile("src/androidMain/AndroidManifest.xml")
-            }
-        }
+        namespace = "anystream.prefs"
     }
 }
 

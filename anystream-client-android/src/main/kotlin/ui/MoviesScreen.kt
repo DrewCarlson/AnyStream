@@ -17,7 +17,6 @@
  */
 package anystream.android.ui
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.material.CircularProgressIndicator
@@ -74,7 +73,6 @@ private fun LoadingScreen(paddingValues: PaddingValues) {
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun MovieGrid(
     movies: List<Movie>,
