@@ -111,3 +111,18 @@ dependencies {
     testImplementation(kotlin("test"))
     testImplementation(kotlin("test-junit"))
 }
+
+tasks.getByName<JavaExec>("run") {
+    val clientWeb = projects.anystreamClientWeb.dependencyProject
+    dependsOn(clientWeb.tasks.getByName("jsBrowserDevelopmentExecutableDistribution"))
+    environment(
+        "WEB_CLIENT_PATH",
+        properties["webClientPath"] ?: environment["WEB_CLIENT_PATH"]
+        ?: clientWeb.buildDir.resolve("developmentExecutable").absolutePath
+    )
+    environment(
+        "DATABASE_URL",
+        properties["databaseUrl"] ?: environment["DATABASE_URL"]
+        ?: "sqlite:${rootDir.resolve("anystream.db")}"
+    )
+}
