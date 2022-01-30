@@ -31,6 +31,7 @@ composeCompiler = "1.1.0-rc02"
 exoplayer = "2.16.1"
 ax_runner = "1.4.0"
 agp = "7.1.0"
+leakcanary = "2.8.1"
 
 okhttp = "4.9.3"
 
@@ -149,6 +150,8 @@ quickie-bundled = { module = "io.github.g00fy2.quickie:quickie-bundled", version
 flipper = { module = "com.facebook.flipper:flipper", version.ref = "flipperVersion" }
 flipperNetwork = { module = "com.facebook.flipper:flipper-network-plugin", version.ref = "flipperVersion" }
 flipperSo = { module = "com.facebook.soloader:soloader", version = "0.10.1" }
+
+leakcanary = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
 
 mobiuskt-core = { module = "org.drewcarlson:mobiuskt-core", version.ref = "mobiuskt" }
 mobiuskt-test = { module = "org.drewcarlson:mobiuskt-test", version.ref = "mobiuskt" }

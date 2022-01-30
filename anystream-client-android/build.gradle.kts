@@ -67,4 +67,5 @@ dependencies {
     implementation(libs.ktor.client.okhttp)
 
     debugImplementation(libs.bundles.flipper)
+    debugImplementation(libs.leakcanary)
 }
