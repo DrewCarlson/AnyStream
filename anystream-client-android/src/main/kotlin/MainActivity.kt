@@ -57,13 +57,14 @@ open class MainActivity : AppCompatActivity() {
         HttpClient(OkHttp) {
             engine {
                 preconfigured = OkHttpClient.Builder().apply {
-                    FlipperProvider.getFlipperOkhttpInterceptor()?.let {
-                        addInterceptor(it)
-                    }
+                    FlipperProvider.getFlipperOkhttpInterceptor()?.let(::addInterceptor)
                 }.build()
             }
         }
     }
+
+    private val androidRouter: AndroidRouter
+        get() = (applicationContext as App).androidRouter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -80,6 +81,9 @@ open class MainActivity : AppCompatActivity() {
                             else -> Routes.Home
                         }
                         Router(defaultRouting = defaultRoute) { stack ->
+                            val androidRouter = remember(stack) {
+                                androidRouter.apply { setBackStack(stack) }
+                            }
                             remember {
                                 client.authenticated
                                     .onEach { authed ->
@@ -93,7 +97,7 @@ open class MainActivity : AppCompatActivity() {
                                     .launchIn(scope)
                             }
                             when (val route = stack.last()) {
-                                Routes.Login -> LoginScreen(client, { stack.replace(Routes.Home) })
+                                Routes.Login -> LoginScreen(client, androidRouter)
                                 Routes.Home -> HomeScreen(
                                     client = client,
                                     backStack = stack,
@@ -115,6 +119,7 @@ open class MainActivity : AppCompatActivity() {
                                     },
                                     backStack = stack
                                 )
+                                Routes.Tv -> TODO("Tv route not implemented")
                                 Routes.PairingScanner -> PairingScanner(
                                     client = client,
                                     backStack = stack
@@ -144,6 +149,7 @@ open class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        androidRouter.setBackStack(null)
         httpClient.close()
     }
 }

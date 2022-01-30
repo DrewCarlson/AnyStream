@@ -15,34 +15,37 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.routing
+package anystream.android.router
 
-sealed class Routes {
-    abstract val path: String
+import anystream.routing.CommonRouter
+import anystream.routing.Routes
 
-    object Login : Routes() {
-        override val path: String = "login"
+class AndroidRouter : CommonRouter {
+
+    private var backStack: BackStack<Routes>? = null
+
+    fun setBackStack(backStack: BackStack<Routes>?) {
+        this.backStack = backStack
     }
 
-    object Home : Routes() {
-        override val path: String = "home"
+    override fun popCurrentRoute() {
+        backStack?.pop()
     }
 
-    object PairingScanner : Routes() {
-        override val path: String = "pairing-scanner"
+    override fun pushRoute(route: Routes) {
+        backStack?.push(route)
     }
 
-    object Movies : Routes() {
-        override val path: String = "movies"
+    override fun replaceStack(routes: List<Routes>) {
+        backStack?.apply {
+            newRoot(routes.first())
+            if (routes.size > 1) {
+                routes.drop(1).forEach(::push)
+            }
+        }
     }
 
-    object Tv : Routes() {
-        override val path: String = "tv"
-    }
-
-    data class Player(
-        val mediaRefId: String
-    ) : Routes() {
-        override val path: String = "player/$mediaRefId"
+    override fun replaceTop(route: Routes) {
+        backStack?.replace(route)
     }
 }

@@ -20,6 +20,7 @@ package anystream.frontend.screens
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
 import anystream.frontend.libs.QRCodeImage
+import anystream.frontend.routing.WebRouter
 import anystream.frontend.util.createLoopController
 import anystream.ui.login.*
 import app.softwork.routingcompose.BrowserRouter
@@ -35,7 +36,7 @@ fun LoginScreen(client: AnyStreamClient) {
     val (modelState, eventConsumerState) = createLoopController {
         val factory = FlowMobius.loop(
             LoginScreenUpdate,
-            LoginScreenHandler.create(client) { BrowserRouter.navigate("/home") }
+            LoginScreenHandler.create(client, WebRouter())
         ).logger(SimpleLogger("Login"))
         val startModel = LoginScreenModel.create(client.serverUrl, supportsPairing = true)
         Mobius.controller(factory, startModel, LoginScreenInit)

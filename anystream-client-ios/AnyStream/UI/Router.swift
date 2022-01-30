@@ -3,7 +3,7 @@ import Combine
 import AnyStreamCore
 import SwiftUI
 
-class Router: ObservableObject {
+class Router: ObservableObject, CommonRouter {
 
     @Published private(set) var stack: [Routes] = [Routes.Login.shared]
 
