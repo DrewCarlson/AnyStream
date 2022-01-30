@@ -17,13 +17,8 @@
  */
 package anystream.routes
 
-import anystream.db.MediaDao
-import anystream.db.MediaReferencesDao
-import anystream.db.SearchableContentDao
-import anystream.db.model.MediaDb
-import anystream.db.model.MediaReferenceDb
-import anystream.models.*
 import anystream.models.api.SearchResponse
+import anystream.service.search.SearchService
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -35,61 +30,16 @@ private const val LIMIT = "limit"
 private const val MEDIA_KIND = "mediaKind"
 
 fun Route.addSearchRoutes(
-    searchableContentDao: SearchableContentDao,
-    mediaDao: MediaDao,
-    mediaReferencesDao: MediaReferencesDao,
+    searchService: SearchService
 ) {
     route("/search") {
         get {
-            val query = call.parameters[QUERY]?.trim()?.plus("*") ?: return@get call.respond(SearchResponse())
+            val query = call.parameters[QUERY] ?: return@get call.respond(SearchResponse())
             val limit = (call.parameters[LIMIT]?.toIntOrNull() ?: DEFAULT_SEARCH_RESULT_LIMIT)
                 .coerceIn(1, MAX_SEARCH_RESULT_LIMIT)
             // val mediaKind = call.parameters[MEDIA_KIND]?.uppercase()?.run(MediaKind::valueOf)
 
-            val movieIds = searchableContentDao.search(query, MediaDb.Type.MOVIE, limit)
-            val tvShowIds = searchableContentDao.search(query, MediaDb.Type.TV_SHOW, limit)
-            val episodeIds = searchableContentDao.search(query, MediaDb.Type.TV_EPISODE, limit)
-            val movies = if (movieIds.isNotEmpty()) {
-                mediaDao.findAllByGidsAndType(movieIds, MediaDb.Type.MOVIE).map(MediaDb::toMovieModel)
-            } else emptyList()
-            val tvShows = if (tvShowIds.isNotEmpty()) {
-                mediaDao.findAllByGidsAndType(tvShowIds, MediaDb.Type.TV_SHOW).map { showRecord ->
-                    SearchResponse.TvShowResult(
-                        tvShow = showRecord.toTvShowModel(),
-                        seasonCount = mediaDao.countSeasonsForTvShow(showRecord.gid)
-                    )
-                }
-            } else emptyList()
-            val episodes = if (episodeIds.isNotEmpty()) {
-                val episodes = mediaDao.findAllByGidsAndType(episodeIds, MediaDb.Type.TV_EPISODE)
-                    .map(MediaDb::toTvEpisodeModel)
-                val episodeShowIds = episodes.map(Episode::showId).distinct()
-                val episodeShows = mediaDao.findAllByGidsAndType(episodeShowIds, MediaDb.Type.TV_SHOW)
-                    .map(MediaDb::toTvShowModel)
-                    .associateBy(TvShow::id)
-                episodes.map { episode ->
-                    SearchResponse.EpisodeResult(
-                        episode = episode,
-                        tvShow = episodeShows.getValue(episode.showId)
-                    )
-                }
-            } else emptyList()
-
-            val searchIds = movies.map(Movie::id) + episodes.map { it.episode.id }
-            val mediaRefs = if (searchIds.isNotEmpty()) {
-                mediaReferencesDao.findByContentGids(searchIds)
-                    .map(MediaReferenceDb::toMediaRefModel)
-                    .associateBy(MediaReference::contentId)
-            } else emptyMap()
-
-            call.respond(
-                SearchResponse(
-                    movies = movies,
-                    tvShows = tvShows,
-                    episodes = episodes,
-                    mediaReferences = mediaRefs,
-                )
-            )
+            call.respond(searchService.search(query, limit))
         }
     }
 }

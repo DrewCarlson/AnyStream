@@ -26,6 +26,7 @@ import anystream.metadata.MetadataManager
 import anystream.metadata.MetadataProvider
 import anystream.metadata.providers.TmdbMetadataProvider
 import anystream.models.*
+import anystream.service.search.SearchService
 import anystream.service.stream.StreamService
 import anystream.service.stream.StreamServiceQueriesJdbi
 import anystream.service.user.UserService
@@ -95,6 +96,7 @@ fun Application.installRouting(dbHandle: Handle) {
     val transcodePath = environment.config.property("app.transcodePath").getString()
     val streamQueries = StreamServiceQueriesJdbi(usersDao, mediaDao, mediaReferencesDao, playbackStatesDao)
     val streamService = StreamService(streamQueries, ffmpeg, ffprobe, transcodePath)
+    val searchService = SearchService(log, searchableContentDao, mediaDao, mediaReferencesDao)
 
     routing {
         route("/api") {
@@ -104,7 +106,7 @@ fun Application.installRouting(dbHandle: Handle) {
                 withAnyPermission(Permission.ViewCollection) {
                     addTvShowRoutes(queries)
                     addMovieRoutes(queries)
-                    addSearchRoutes(searchableContentDao, mediaDao, mediaReferencesDao)
+                    addSearchRoutes(searchService)
                     addMediaViewRoutes(metadataManager, queries)
                 }
                 withAnyPermission(Permission.ManageTorrents) {
