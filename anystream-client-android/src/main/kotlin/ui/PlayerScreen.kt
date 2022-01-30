@@ -31,14 +31,11 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.*
 import anystream.client.AnyStreamClient
-import anystream.frontend.models.MediaItem
-import anystream.frontend.models.toMediaItem
-import anystream.models.MediaReference
-import anystream.models.Movie
 import anystream.models.PlaybackState
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.ui.PlayerView
+import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -52,8 +49,6 @@ fun PlayerScreen(
     client: AnyStreamClient,
     mediaRefId: String,
     modifier: Modifier = Modifier,
-    mediaReference: MediaReference? = null,
-    movie: Movie? = null,
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -84,29 +79,18 @@ fun PlayerScreen(
                 }
             })
             playWhenReady = autoPlay
-            setMediaItem(ExoMediaItem.fromUri("https://anystream.dev/api/stream/$mediaRefId/direct"))
             prepare()
-            seekTo(window, position)
-        }
-    }
-    val mediaItem = produceState<MediaItem?>(null) {
-        value = try {
-            client.lookupMediaByRefId(mediaRefId).let {
-                it.movie?.toMediaItem() ?: it.episode?.toMediaItem()
-            }
-        } catch (e: Throwable) {
-            null
         }
     }
     val playbackState by produceState<PlaybackState?>(null) {
         var initialState: PlaybackState? = null
         sessionHandle = client.playbackSession(mediaRefId) { state ->
             println("[player] $state")
-            value = state
             if (initialState == null) {
                 initialState = state
-                player.seekTo((state.position * 1000).toLong())
+                position = (state.position * 1000).toLong()
             }
+            value = state
         }
         awaitDispose {
             sessionHandle?.cancel?.invoke()
@@ -115,10 +99,13 @@ fun PlayerScreen(
     }
     LaunchedEffect(playbackState?.id, player) {
         playbackState?.also { state ->
-            val url = client.createHlsStreamUrl(mediaRefId, state.id)
-            println("[player] $url")
-            player.setMediaItem(ExoMediaItem.fromUri(url))
-            player.play()
+            scope.launch(Main) {
+                val url = client.createHlsStreamUrl(mediaRefId, state.id)
+                println("[player] $url")
+                player.setMediaItem(ExoMediaItem.fromUri(url))
+                player.seekTo(window, position)
+                player.play()
+            }
         }
     }
 
@@ -156,7 +143,9 @@ fun PlayerScreen(
 
     LaunchedEffect(mediaRefId) {
         val handle = client.playbackSession(mediaRefId) { initialState ->
-            player.seekTo((initialState.position * 1000).toLong())
+            scope.launch(Main) {
+                player.seekTo((initialState.position * 1000).toLong())
+            }
         }
 
         while (true) {
@@ -167,7 +156,7 @@ fun PlayerScreen(
         }
     }
 
-    Scaffold {
+    Scaffold(modifier = modifier) {
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
