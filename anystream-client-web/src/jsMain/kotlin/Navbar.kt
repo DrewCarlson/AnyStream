@@ -204,7 +204,6 @@ private fun SearchBar(client: AnyStreamClient) {
                 searchQuery.value = event.value.takeUnless(String::isNullOrBlank)
                 elementValue = event.value
             }
-            value(elementValue ?: "")
             classes("w-100")
             style {
                 backgroundColor(Color.transparent)
