@@ -18,10 +18,13 @@
 package anystream.android
 
 import android.app.Application
+import anystream.android.router.AndroidRouter
 import com.github.anrwatchdog.ANRWatchDog
 import helper.FlipperProvider
 
 class App : Application() {
+
+    val androidRouter = AndroidRouter()
 
     override fun onCreate() {
         super.onCreate()

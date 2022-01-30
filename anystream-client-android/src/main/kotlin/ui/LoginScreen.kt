@@ -41,6 +41,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import anystream.android.AppTopBar
 import anystream.android.AppTypography
+import anystream.android.router.AndroidRouter
 import anystream.android.ui.components.AutofillInput
 import anystream.android.ui.components.QrImage
 import anystream.android.ui.components.onFocusStateChanged
@@ -54,7 +55,7 @@ import kt.mobius.functions.Consumer
 @Composable
 fun LoginScreen(
     client: AnyStreamClient,
-    routeToHome: () -> Unit,
+    router: AndroidRouter,
     modifier: Modifier = Modifier,
 ) {
     val (modelState, eventConsumer) = createLoopController(
@@ -63,7 +64,7 @@ fun LoginScreen(
     ) {
         FlowMobius.loop(
             LoginScreenUpdate,
-            LoginScreenHandler.create(client, routeToHome)
+            LoginScreenHandler.create(client, router)
         ).logger(AndroidLogger.tag("Login"))
     }
     Scaffold(

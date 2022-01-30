@@ -13,9 +13,7 @@ struct LoginScreen: View {
     init(router: Router, anystreamClient: AnyStreamClient) {
         let startModel = LoginScreenModel.companion.create()
         model = startModel
-        let handler = LoginScreenHandler.shared.create(client: anystreamClient) {
-            router.replaceTop(route: Routes.Home.shared)
-        }
+        let handler = LoginScreenHandler.shared.create(client: anystreamClient, router: router)
         let loopFactory = FlowMobius.shared.loop(update: LoginScreenUpdate.shared, effectHandler: handler)
                 .logger(logger: SimpleLogger<AnyObject, AnyObject, AnyObject>(tag: "LoginScreen"))
         loopController = Mobius.shared.controller(

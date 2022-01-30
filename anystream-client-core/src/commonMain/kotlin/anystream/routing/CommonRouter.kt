@@ -17,32 +17,13 @@
  */
 package anystream.routing
 
-sealed class Routes {
-    abstract val path: String
+interface CommonRouter {
 
-    object Login : Routes() {
-        override val path: String = "login"
-    }
+    fun replaceTop(route: Routes)
 
-    object Home : Routes() {
-        override val path: String = "home"
-    }
+    fun pushRoute(route: Routes)
 
-    object PairingScanner : Routes() {
-        override val path: String = "pairing-scanner"
-    }
+    fun replaceStack(routes: List<Routes>)
 
-    object Movies : Routes() {
-        override val path: String = "movies"
-    }
-
-    object Tv : Routes() {
-        override val path: String = "tv"
-    }
-
-    data class Player(
-        val mediaRefId: String
-    ) : Routes() {
-        override val path: String = "player/$mediaRefId"
-    }
+    fun popCurrentRoute()
 }

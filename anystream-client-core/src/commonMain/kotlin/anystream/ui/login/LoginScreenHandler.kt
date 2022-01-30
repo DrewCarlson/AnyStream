@@ -20,6 +20,8 @@ package anystream.ui.login
 import anystream.client.AnyStreamClient
 import anystream.models.api.CreateSessionResponse
 import anystream.models.api.PairingMessage
+import anystream.routing.CommonRouter
+import anystream.routing.Routes
 import anystream.ui.login.LoginScreenModel.ServerValidation
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.mapNotNull
@@ -29,13 +31,12 @@ import kt.mobius.flow.subtypeEffectHandler
 object LoginScreenHandler {
 
     // Future improvements:
-    // - Setup CommonRouter interface and connect to routing effects
     // - Add anystream verification url to server and validate Server Url points to real instance
     fun create(
         client: AnyStreamClient,
-        routeToHome: () -> Unit,
+        router: CommonRouter,
     ): FlowTransformer<LoginScreenEffect, LoginScreenEvent> = subtypeEffectHandler {
-        addAction<LoginScreenEffect.NavigateToHome> { routeToHome() }
+        addAction<LoginScreenEffect.NavigateToHome> { router.pushRoute(Routes.Home) }
 
         addFunction<LoginScreenEffect.Login> { effect ->
             client.login(effect.username, effect.password).toLoginScreenEvent()
