@@ -38,10 +38,8 @@ class SearchService(
     private val mediaReferencesDao: MediaReferencesDao,
 ) {
 
-    private val specialChars = "[-()_=+*&^%\$#@!~`:;'\",.<>\\\\/?{}|]".toRegex()
-
     fun search(inputQuery: String, limit: Int): SearchResponse {
-        val query = "\"$inputQuery*\"".replace(specialChars, " ").trim()
+        val query = "\"${inputQuery.trim()}*\"".trim()
         return try {
             val movieIds = searchableContentDao.search(query, Type.MOVIE, limit)
             val tvShowIds = searchableContentDao.search(query, Type.TV_SHOW, limit)
