@@ -27,7 +27,7 @@ object LoginScreenInit : Init<LoginScreenModel, LoginScreenEffect> {
     override fun init(model: LoginScreenModel): First<LoginScreenModel, LoginScreenEffect> {
         val effects = mutableSetOf<LoginScreenEffect>()
 
-        if (model.serverUrlIsValid() && model.supportsPairing) {
+        if (model.isServerUrlValid() && model.supportsPairing) {
             effects.add(LoginScreenEffect.PairingSession(model.serverUrl))
         }
 
