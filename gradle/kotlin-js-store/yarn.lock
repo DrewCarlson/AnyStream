@@ -19,6 +19,11 @@
   resolved "https://registry.yarnpkg.com/@fontsource/open-sans/-/open-sans-4.5.0.tgz#e6d05dfdfe74580001010302f9c418067b45a6a9"
   integrity sha512-49+A0IkTTv3cpS1YecrZNCqvlVTThUt/qioiAIZsXfgC3TqavgRqwXXvroXmhVeP/f0sqZw5CRDMS1Hj4aSTbQ==
 
+"@js-joda/core@3.2.0":
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/@js-joda/core/-/core-3.2.0.tgz#3e61e21b7b2b8a6be746df1335cf91d70db2a273"
+  integrity sha512-PMqgJ0sw5B7FKb2d5bWYIoxjri+QlW/Pys7+Rw82jSH0QN3rB05jZ/VrrsUdh1w4+i2kw9JOejXGq/KhDOX7Kg==
+
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"
   resolved "https://registry.yarnpkg.com/@nodelib/fs.scandir/-/fs.scandir-2.1.5.tgz#7619c2eb21b25483f6d167548b4cfd5a7488c3d5"

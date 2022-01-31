@@ -40,7 +40,7 @@ data class PlaybackStateDb(
                 userId = state.userId,
                 position = state.position,
                 runtime = state.runtime,
-                updatedAt = Instant.fromEpochSeconds(state.updatedAt),
+                updatedAt = state.updatedAt,
             )
         }
     }
@@ -53,7 +53,7 @@ data class PlaybackStateDb(
             userId = userId,
             position = position,
             runtime = runtime,
-            updatedAt = updatedAt.epochSeconds,
+            updatedAt = updatedAt,
         )
     }
 }
