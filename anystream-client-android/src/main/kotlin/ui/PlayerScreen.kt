@@ -38,7 +38,11 @@ import com.google.android.exoplayer2.ui.PlayerView
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.google.android.exoplayer2.MediaItem as ExoMediaItem
 
 private const val PLAYER_STATE_UPDATE_INTERVAL = 250L
@@ -57,24 +61,20 @@ fun PlayerScreen(
     var autoPlay by rememberSaveable { mutableStateOf(true) }
     var window by rememberSaveable { mutableStateOf(0) }
     var position by rememberSaveable { mutableStateOf(0L) }
-    var sessionHandle by remember { mutableStateOf<AnyStreamClient.PlaybackSessionHandle?>(null) }
     val player = remember {
         ExoPlayer.Builder(context).build().apply {
             var updateStateJob: Job? = null
             addListener(object : Player.Listener {
                 override fun onPlaybackStateChanged(state: Int) {
                     updateStateJob?.cancel()
-                    updateStateJob = when (state) {
-                        Player.STATE_READY -> {
-                            scope.launch {
-                                while (true) {
-                                    window = currentMediaItemIndex
-                                    position = contentPosition.coerceAtLeast(0L)
-                                    delay(PLAYER_STATE_UPDATE_INTERVAL)
-                                }
+                    if (state == Player.STATE_READY) {
+                        updateStateJob = scope.launch {
+                            while (true) {
+                                window = currentMediaItemIndex
+                                position = contentPosition.coerceAtLeast(0L)
+                                delay(PLAYER_STATE_UPDATE_INTERVAL)
                             }
                         }
-                        else -> null
                     }
                 }
             })
@@ -82,30 +82,32 @@ fun PlayerScreen(
             prepare()
         }
     }
-    val playbackState by produceState<PlaybackState?>(null) {
-        var initialState: PlaybackState? = null
-        sessionHandle = client.playbackSession(mediaRefId) { state ->
+    produceState<PlaybackState?>(null) {
+        val initialState = MutableStateFlow<PlaybackState?>(null)
+        val handle = client.playbackSession(mediaRefId) { state ->
             println("[player] $state")
-            if (initialState == null) {
-                initialState = state
-                position = (state.position * 1000).toLong()
-            }
+            initialState.value = state
+            position = (state.position * 1000).toLong()
             value = state
         }
-        awaitDispose {
-            sessionHandle?.cancel?.invoke()
-            sessionHandle = null
+        val state = initialState.filterNotNull().first()
+        withContext(Main) {
+            val url = client.createHlsStreamUrl(mediaRefId, state.id)
+            println("[player] $url")
+            player.setMediaItem(ExoMediaItem.fromUri(url))
+            player.seekTo(window, position)
+            player.play()
         }
-    }
-    LaunchedEffect(playbackState?.id, player) {
-        playbackState?.also { state ->
-            scope.launch(Main) {
-                val url = client.createHlsStreamUrl(mediaRefId, state.id)
-                println("[player] $url")
-                player.setMediaItem(ExoMediaItem.fromUri(url))
-                player.seekTo(window, position)
-                player.play()
+        launch {
+            while (true) {
+                if (player.playWhenReady && player.playbackState == Player.STATE_READY) {
+                    handle.update.tryEmit((player.currentPosition / 1000.0).coerceAtLeast(0.0))
+                }
+                delay(PLAYER_STATE_REMOTE_UPDATE_INTERVAL)
             }
+        }
+        awaitDispose {
+            handle.cancel()
         }
     }
 
@@ -138,21 +140,6 @@ fun PlayerScreen(
         onDispose {
             updateState()
             player.release()
-        }
-    }
-
-    LaunchedEffect(mediaRefId) {
-        val handle = client.playbackSession(mediaRefId) { initialState ->
-            scope.launch(Main) {
-                player.seekTo((initialState.position * 1000).toLong())
-            }
-        }
-
-        while (true) {
-            if (player.playWhenReady && player.playbackState == Player.STATE_READY) {
-                handle.update.tryEmit((player.currentPosition / 1000.0).coerceAtLeast(0.0))
-            }
-            delay(PLAYER_STATE_REMOTE_UPDATE_INTERVAL)
         }
     }
 
