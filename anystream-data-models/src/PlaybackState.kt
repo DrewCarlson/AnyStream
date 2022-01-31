@@ -17,6 +17,7 @@
  */
 package anystream.models
 
+import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -27,7 +28,7 @@ data class PlaybackState(
     val userId: Int,
     val position: Double,
     val runtime: Double,
-    val updatedAt: Long = 0L,
+    val updatedAt: Instant,
 ) {
     val completedPercent: Float
         get() {

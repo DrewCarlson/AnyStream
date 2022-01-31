@@ -33,10 +33,10 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.datetime.Clock
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.text.DecimalFormat
-import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -103,7 +103,7 @@ class StreamService(
                 userId = userId,
                 mediaId = mediaRef.contentId,
                 runtime = runtime.toDouble(SECONDS),
-                updatedAt = Instant.now().toEpochMilli(),
+                updatedAt = Clock.System.now(),
             )
             if (queries.insertPlaybackState(newState)) {
                 if (!sessionMap.containsKey(newState.id)) {
