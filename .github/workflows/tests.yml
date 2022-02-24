@@ -10,8 +10,95 @@ env:
   DATABASE_URL: "sqlite::memory:"
 
 jobs:
+  file-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      android: ${{ steps.android.outputs.any_changed }}
+      client-core: ${{ steps.client-core.outputs.any_changed }}
+      client-api: ${{ steps.client-api.outputs.any_changed }}
+      data-models: ${{ steps.data-models.outputs.any_changed }}
+      ios: ${{ steps.ios.outputs.any_changed }}
+      web: ${{ steps.web.outputs.any_changed }}
+      server: ${{ steps.server.outputs.any_changed }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+          fetch-depth: 0
+      - name: Get changed files
+        id: android
+        uses: tj-actions/changed-files@v17
+        with:
+          files: |
+            build.gradle.kts
+            gradle/libs.versions.toml
+            gradle/kotlin-js-store/**
+            **/anystream-client-android/**
+            **/anystream-client-api/**
+            **/anystream-client-core/**/*Main/**
+            **/anystream-data-models/**
+      - name: Get changed files
+        id: client-core
+        uses: tj-actions/changed-files@v17
+        with:
+          files: |
+            gradle/libs.versions.toml
+            gradle/kotlin-js-store/**
+            **/anystream-client-api/**
+            **/anystream-client-core/**/*Main/**
+            **/anystream-data-models/**
+      - name: Get changed files
+        id: client-api
+        uses: tj-actions/changed-files@v17
+        with:
+          files: |
+            gradle/libs.versions.toml
+            gradle/kotlin-js-store/**
+            **/anystream-client-api/**
+            **/anystream-data-models/**
+      - name: Get changed files
+        id: data-models
+        uses: tj-actions/changed-files@v17
+        with:
+          files: |
+            gradle/libs.versions.toml
+            gradle/kotlin-js-store/**
+            **/anystream-data-models/**
+      - name: Get changed files
+        id: server
+        uses: tj-actions/changed-files@v17
+        with:
+          files: |
+            gradle/libs.versions.toml
+            gradle/kotlin-js-store/**
+            **/anystream-data-models/**
+            **/anystream-server/**
+      - name: Get changed files
+        id: ios
+        uses: tj-actions/changed-files@v17
+        with:
+          files: |
+            gradle/libs.versions.toml
+            gradle/kotlin-js-store/**
+            **/anystream-client-ios/**
+            **/anystream-client-api/**
+            **/anystream-client-core/**/*Main/**
+            **/anystream-data-models/**
+      - name: Get changed files
+        id: web
+        uses: tj-actions/changed-files@v17
+        with:
+          files: |
+            gradle/libs.versions.toml
+            gradle/kotlin-js-store/**
+            **/anystream-client-web/**
+            **/anystream-client-api/**
+            **/anystream-client-core/**/*Main/**
+            **/anystream-data-models/**
 
   client-core-tests:
+    needs: [ file-changes ]
+    if: needs.file-changes.outputs.core == 'true' || github.ref_name == 'main'
     strategy:
       matrix:
         os: [ ubuntu-latest, macos-latest ] #windows-latest
@@ -54,6 +141,8 @@ jobs:
           report_paths: '**/TEST-*.xml'
 
   client-api-tests:
+    needs: [ file-changes ]
+    if: needs.file-changes.outputs.core-api == 'true' || github.ref_name == 'main'
     strategy:
       matrix:
         os: [ ubuntu-latest, macos-latest ] # windows-latest
@@ -96,6 +185,8 @@ jobs:
           report_paths: '**/TEST-*.xml'
 
   client-android-tests:
+    needs: [ file-changes ]
+    if: needs.file-changes.outputs.android == 'true' || github.ref_name == 'main'
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
@@ -138,6 +229,8 @@ jobs:
           report_paths: '**/TEST-*.xml'
 
   client-web-tests:
+    needs: [ file-changes ]
+    if: needs.file-changes.outputs.web == 'true' || github.ref_name == 'main'
     strategy:
       matrix:
         os: [ ubuntu-latest ] # macos-latest, windows-latest
