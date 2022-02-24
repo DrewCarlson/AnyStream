@@ -19,7 +19,7 @@ jdbi = "3.27.2"
 jdbc_sqlite = "3.36.0.3"
 
 bouncy_castle = "1.70"
-tmdb = "1.12"
+tmdb = "0.7.0"
 jaffree = "2021.12.30"
 logback = "1.2.10"
 shadowjar = "7.1.2"
@@ -30,7 +30,7 @@ compose = "1.1.1"
 composeCompiler = "1.1.0-rc02"
 exoplayer = "2.17.0"
 ax_runner = "1.4.0"
-agp = "7.1.2"
+agp = "7.0.4"
 leakcanary = "2.8.1"
 
 okhttp = "4.9.3"
@@ -131,7 +131,7 @@ bouncyCastle = { module = "org.bouncycastle:bcprov-jdk15on", version.ref = "boun
 
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 
-tmdbapi = { module = "com.github.holgerbrandl:themoviedbapi", version.ref = "tmdb" }
+tmdbapi = { module = "org.drewcarlson:tmdb-api", version.ref = "tmdb" }
 
 androidx-core-ktx = { module = "androidx.core:core-ktx", version = "1.7.0" }
 androidx-appcompat-core = { module = "androidx.appcompat:appcompat", version = "1.4.1" }

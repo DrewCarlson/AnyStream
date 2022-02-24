@@ -17,10 +17,7 @@
  */
 package anystream.data
 
-import anystream.db.MediaDao
-import anystream.db.MediaReferencesDao
-import anystream.db.PlaybackStatesDao
-import anystream.db.SearchableContentDao
+import anystream.db.*
 import anystream.db.model.MediaDb
 import anystream.db.model.MediaReferenceDb
 import anystream.db.model.PlaybackStateDb
@@ -32,6 +29,7 @@ import kotlinx.coroutines.sync.withLock
 class MediaDbQueries(
     private val searchableContentDao: SearchableContentDao,
     private val mediaDao: MediaDao,
+    private val tagsDao: TagsDao,
     private val mediaReferencesDao: MediaReferencesDao,
     private val playbackStatesDao: PlaybackStatesDao,
 ) {
@@ -337,13 +335,26 @@ class MediaDbQueries(
 
     suspend fun insertMovie(movie: Movie): MediaDb {
         val movieRecord = MediaDb.fromMovie(movie)
-        val id = mediaInsertLock.withLock {
-            mediaDao.insertMedia(movieRecord)
+        val finalRecord = mediaInsertLock.withLock {
+            val id = mediaDao.insertMedia(movieRecord)
+            val companies = movie.companies.map { company ->
+                if (company.id == -1) {
+                    company.tmdbId?.run(tagsDao::findCompanyByTmdbId)
+                        ?: company.copy(id = tagsDao.insertTag(company.name, company.tmdbId))
+                } else company
+            }.onEach { company -> tagsDao.insertMediaCompanyLink(id, company.id) }
+            val genres = movie.genres.map { genre ->
+                if (genre.id == -1) {
+                    genre.tmdbId?.run(tagsDao::findGenreByTmdbId)
+                        ?: genre.copy(id = tagsDao.insertTag(genre.name, genre.tmdbId))
+                } else genre
+            }.onEach { genre -> tagsDao.insertMediaGenreLink(id, genre.id) }
+            movieRecord.copy(id = id, genres = genres, companies = companies)
         }
         searchableContentInsertLock.withLock {
             searchableContentDao.insert(movie.id, MediaDb.Type.MOVIE, movie.title)
         }
-        return movieRecord.copy(id = id)
+        return finalRecord
     }
 
     suspend fun insertTvShow(tvShow: TvShow, tvSeasons: List<TvSeason>, episodes: List<Episode>) {

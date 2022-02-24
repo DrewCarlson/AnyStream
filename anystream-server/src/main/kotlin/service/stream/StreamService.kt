@@ -319,7 +319,9 @@ class StreamService(
                         val completedSegments = if (completedSegmentCount > 1) {
                             // in that case, add all the missing segments
                             List(completedSegmentCount) { completedSegment - it }
-                        } else listOf(completedSegment)
+                        } else {
+                            listOf(completedSegment)
+                        }.sorted()
                         logger.debug("segment completed $completedSegments : $token")
                         sessionMap[session.token] = session.copy(
                             endSegment = completedSegment,

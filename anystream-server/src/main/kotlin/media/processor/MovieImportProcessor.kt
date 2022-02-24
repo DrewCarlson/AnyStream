@@ -94,6 +94,7 @@ class MovieImportProcessor(
                 query = query,
                 mediaKind = MediaKind.MOVIE,
                 year = year,
+                extras = null,
             )
         )
         val result = results.firstOrNull { result ->

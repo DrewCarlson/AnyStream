@@ -17,10 +17,7 @@
  */
 package anystream.db.model
 
-import anystream.models.DownloadMediaReference
-import anystream.models.LocalMediaReference
-import anystream.models.MediaKind
-import anystream.models.MediaReference
+import anystream.models.*
 import kotlinx.datetime.Instant
 
 data class MediaReferenceDb(
@@ -37,13 +34,13 @@ data class MediaReferenceDb(
     val directory: Boolean,
     val fileIndex: Int?,
     val hash: String?,
+    val streams: List<StreamEncodingDetailsDb> = emptyList(),
 ) {
     enum class Type {
         DOWNLOAD, LOCAL,
     }
 
     fun toMediaRefModel(): MediaReference {
-        // TODO: Restore streams details
         return when (type) {
             Type.DOWNLOAD -> DownloadMediaReference(
                 id = gid,
@@ -52,7 +49,7 @@ data class MediaReferenceDb(
                 added = addedAt.epochSeconds,
                 addedByUserId = addedByUserId,
                 mediaKind = mediaKind,
-                streams = emptyList(),
+                streams = streams.map(StreamEncodingDetailsDb::toModel),
                 hash = checkNotNull(hash),
                 fileIndex = fileIndex,
                 filePath = filePath,
@@ -64,7 +61,7 @@ data class MediaReferenceDb(
                 added = addedAt.epochSeconds,
                 addedByUserId = addedByUserId,
                 mediaKind = mediaKind,
-                streams = emptyList(),
+                streams = streams.map(StreamEncodingDetailsDb::toModel),
                 filePath = checkNotNull(filePath),
                 directory = directory
             )
@@ -73,7 +70,6 @@ data class MediaReferenceDb(
 
     companion object {
         fun fromRefModel(mediaReference: MediaReference): MediaReferenceDb {
-            // TODO: Store stream details
             return when (mediaReference) {
                 is DownloadMediaReference -> MediaReferenceDb(
                     id = -1,
@@ -89,6 +85,7 @@ data class MediaReferenceDb(
                     filePath = mediaReference.filePath,
                     fileIndex = mediaReference.fileIndex,
                     hash = mediaReference.hash,
+                    streams = mediaReference.streams.map(StreamEncodingDetailsDb::fromModel),
                 )
                 is LocalMediaReference -> MediaReferenceDb(
                     id = -1,
@@ -104,6 +101,7 @@ data class MediaReferenceDb(
                     filePath = mediaReference.filePath,
                     fileIndex = null,
                     hash = null,
+                    streams = mediaReference.streams.map(StreamEncodingDetailsDb::fromModel),
                 )
             }
         }

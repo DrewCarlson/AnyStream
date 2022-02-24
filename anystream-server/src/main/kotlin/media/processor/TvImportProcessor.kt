@@ -85,6 +85,7 @@ class TvImportProcessor(
                     query = query,
                     mediaKind = MediaKind.TV,
                     year = year,
+                    extras = null,
                 )
             )
             val result = queryResults.firstOrNull { result ->

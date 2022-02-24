@@ -18,8 +18,7 @@
 package anystream.media
 
 import anystream.db.MediaReferencesDao
-import anystream.models.LocalMediaReference
-import anystream.models.MediaReference
+import anystream.db.model.StreamEncodingDetailsDb
 import anystream.models.StreamEncodingDetails
 import anystream.models.api.ImportMedia
 import anystream.models.api.ImportMediaResult
@@ -36,6 +35,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
+import org.jdbi.v3.core.JdbiException
 import org.slf4j.Logger
 import org.slf4j.Marker
 import org.slf4j.MarkerFactory
@@ -121,44 +121,31 @@ class MediaImporter(
     suspend fun importStreamDetails(mediaRefIds: List<String>): List<ImportStreamDetailsResult> {
         val marker = marker()
         logger.debug(marker, "Importing stream details for ${mediaRefIds.size} item(s)")
-        return emptyList()
-        // TODO
-        /*val mediaFilePaths = mediaRefs
-            .projection(
-                LocalMediaReference::id,
-                LocalMediaReference::filePath,
-                and(
-                    MediaReference::id `in` mediaRefIds,
-                    LocalMediaReference::directory eq false,
-                )
-            )
-            .toList()
-            .toMap()
-        logger.debug(marker, "Removed ${mediaRefIds.size - mediaFilePaths.size} invalid item(s)")
 
-        val results = mediaFilePaths
-            .filterValues { path ->
-                val extension = path?.substringAfterLast('.')?.lowercase().orEmpty()
+        val mediaRefs = mediaRefsDao.findByGids(mediaRefIds)
+        logger.debug(marker, "Removed ${mediaRefIds.size - mediaRefs.size} invalid item(s)")
+
+        val results = mediaRefs
+            .filter { mediaRef ->
+                val extension = mediaRef.filePath.orEmpty().substringAfterLast('.').lowercase()
                 FFMPEG_EXTENSIONS.contains(extension)
-            }
-            .map { (refId, filePath) ->
-                checkNotNull(refId)
-                checkNotNull(filePath)
+            }.associate { mediaRef ->
+                val filePath = mediaRef.filePath.orEmpty()
                 if (File(filePath).exists()) {
                     try {
                         val streams = awaitAll(
-                            ffprobe().processStreamsAsync(filePath, StreamType.VIDEO),
+                            ffprobe().processStreamsAsync(filePath, StreamType.VIDEO_NOT_PICTURE),
                             ffprobe().processStreamsAsync(filePath, StreamType.AUDIO),
                             ffprobe().processStreamsAsync(filePath, StreamType.SUBTITLE),
                         ).flatten()
-                        ImportStreamDetailsResult.Success(refId, streams)
+                        mediaRef to ImportStreamDetailsResult.Success(mediaRef.gid, streams)
                     } catch (e: JaffreeException) {
                         logger.error(marker, "FFProbe error, failed to extract stream details", e)
-                        ImportStreamDetailsResult.ProcessError(e.stackTraceToString())
+                        mediaRef to ImportStreamDetailsResult.ProcessError(e.stackTraceToString())
                     }
                 } else {
-                    logger.error(marker, "Media file reference path does not exist: $refId $filePath")
-                    ImportStreamDetailsResult.ErrorFileNotFound
+                    logger.error(marker, "Media file reference path does not exist: ${mediaRef.gid} $filePath")
+                    mediaRef to ImportStreamDetailsResult.ErrorFileNotFound
                 }
             }
 
@@ -168,25 +155,22 @@ class MediaImporter(
             return listOf(ImportStreamDetailsResult.ErrorNothingToImport)
         }
 
-        val successResults = results.filterIsInstance<ImportStreamDetailsResult.Success>()
+        val successResults = results.filterValues { it is ImportStreamDetailsResult.Success }
         if (successResults.isEmpty()) {
-            return results
+            return results.values.toList()
         }
 
-        val updates = successResults
-            .map { (refId, streams) ->
-                updateOne<MediaReference>(
-                    MediaReference::id eq refId,
-                    setValue(MediaReference::streams, streams)
-                )
-            }
         return try {
-            mediaRefs.bulkWrite(updates)
-            results
-        } catch (e: MongoException) {
+            successResults.forEach { (mediaRef, result) ->
+                (result as ImportStreamDetailsResult.Success).streams
+                    .map { stream -> mediaRefsDao.insertStreamDetails(StreamEncodingDetailsDb.fromModel(stream)) }
+                    .map { streamId -> mediaRefsDao.insertStreamLink(mediaRef.id, streamId) }
+            }
+            results.values.toList()
+        } catch (e: JdbiException) {
             logger.error(marker, "Failed to update stream data", e)
             listOf(ImportStreamDetailsResult.ErrorDatabaseException(e.stackTraceToString()))
-        }*/
+        }
     }
 
     // Process a single media file and attempt to import missing data and references
@@ -257,7 +241,9 @@ class MediaImporter(
         }
         val rawDataString = Json.encodeToString(rawData)
         return when (codecType) {
-            StreamType.VIDEO -> StreamEncodingDetails.Video(
+            StreamType.VIDEO,
+            StreamType.VIDEO_NOT_PICTURE -> StreamEncodingDetails.Video(
+                id = -1,
                 index = index,
                 codecName = codecName,
                 profile = profile,
@@ -269,6 +255,7 @@ class MediaImporter(
                 rawProbeData = rawDataString,
             )
             StreamType.AUDIO -> StreamEncodingDetails.Audio(
+                id = -1,
                 index = index,
                 codecName = codecName,
                 profile = profile,
@@ -278,12 +265,12 @@ class MediaImporter(
                 rawProbeData = rawDataString,
             )
             StreamType.SUBTITLE -> StreamEncodingDetails.Subtitle(
+                id = -1,
                 index = index,
                 codecName = codecName,
                 language = language,
                 rawProbeData = rawDataString,
             )
-            StreamType.VIDEO_NOT_PICTURE,
             StreamType.DATA,
             StreamType.ATTACHMENT,
             null -> null

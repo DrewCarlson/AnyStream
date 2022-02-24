@@ -25,10 +25,14 @@ data class TvShow(
     val name: String,
     val tmdbId: Int,
     val overview: String,
+    val tagline: String? = null,
     val firstAirDate: String?,
     val posterPath: String,
     val added: Long,
     val addedByUserId: Int,
+    val tmdbRating: Int? = null,
+    val genres: List<Genre> = emptyList(),
+    val companies: List<ProductionCompany> = emptyList(),
 ) {
     val isAdded: Boolean
         get() = !id.contains(':')

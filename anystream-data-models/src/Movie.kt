@@ -24,6 +24,7 @@ data class Movie(
     val id: String,
     val title: String,
     val overview: String,
+    val tagline: String? = null,
     val tmdbId: Int,
     val imdbId: String?,
     val runtime: Int,
@@ -33,6 +34,9 @@ data class Movie(
     val releaseDate: String?,
     val added: Long,
     val addedByUserId: Int,
+    val tmdbRating: Int? = null,
+    val genres: List<Genre>,
+    val companies: List<ProductionCompany>,
 ) {
     val isAdded: Boolean
         get() = !id.contains(':')
