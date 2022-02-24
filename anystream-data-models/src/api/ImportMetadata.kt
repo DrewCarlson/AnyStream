@@ -17,10 +17,7 @@
  */
 package anystream.models.api
 
-import anystream.models.MediaKind
-import anystream.models.Movie
-import anystream.models.TvSeason
-import anystream.models.TvShow
+import anystream.models.*
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -39,7 +36,21 @@ data class QueryMetadata(
     val query: String? = null,
     val contentId: String? = null,
     val year: Int? = null,
-)
+    val extras: Extras? = null,
+) {
+    @Serializable
+    sealed class Extras {
+        @Serializable
+        data class TvShowExtras(
+            val seasonNumber: Int? = null,
+            val episodeNumber: Int? = null,
+        ) : Extras()
+
+        fun asTvShowExtras(): TvShowExtras? {
+            return this as? TvShowExtras
+        }
+    }
+}
 
 @Serializable
 sealed class MetadataMatch {
@@ -47,6 +58,7 @@ sealed class MetadataMatch {
     abstract val remoteId: String
     abstract val exists: Boolean
 
+    @Serializable
     data class MovieMatch(
         override val contentId: String,
         override val remoteId: String,
@@ -54,12 +66,14 @@ sealed class MetadataMatch {
         val movie: Movie,
     ) : MetadataMatch()
 
+    @Serializable
     data class TvShowMatch(
         override val contentId: String,
         override val remoteId: String,
         override val exists: Boolean,
         val tvShow: TvShow,
         val seasons: List<TvSeason>,
+        val episodes: List<Episode>,
     ) : MetadataMatch()
 }
 
@@ -95,7 +109,8 @@ sealed class QueryMetadataResult {
     @Serializable
     data class Success(
         val providerId: String,
-        val results: List<MetadataMatch>
+        val results: List<MetadataMatch>,
+        val extras: QueryMetadata.Extras?,
     ) : QueryMetadataResult()
 
     @Serializable

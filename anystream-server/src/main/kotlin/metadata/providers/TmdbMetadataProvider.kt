@@ -17,25 +17,20 @@
  */
 package anystream.metadata.providers
 
-import anystream.data.MediaDbQueries
-import anystream.data.asMovie
-import anystream.data.asTvShow
+import anystream.data.*
 import anystream.metadata.MetadataProvider
 import anystream.models.MediaKind
 import anystream.models.api.*
 import anystream.util.ObjectId
 import anystream.util.toRemoteId
-import info.movito.themoviedbapi.TmdbApi
-import info.movito.themoviedbapi.TmdbMovies
-import info.movito.themoviedbapi.TmdbTV
-import info.movito.themoviedbapi.TmdbTvSeasons
-import info.movito.themoviedbapi.model.MovieDb
-import info.movito.themoviedbapi.model.tv.TvSeason
-import info.movito.themoviedbapi.model.tv.TvSeries
+import app.moviebase.tmdb.Tmdb3
+import app.moviebase.tmdb.model.*
+import io.ktor.client.plugins.*
+import io.ktor.http.*
 import org.jdbi.v3.core.JdbiException
 
 class TmdbMetadataProvider(
-    private val tmdbApi: TmdbApi,
+    private val tmdbApi: Tmdb3,
     private val queries: MediaDbQueries,
 ) : MetadataProvider {
 
@@ -57,86 +52,8 @@ class TmdbMetadataProvider(
 
     override suspend fun search(request: QueryMetadata): QueryMetadataResult {
         return when (request.mediaKind) {
-            MediaKind.MOVIE -> {
-                val tmdbMovies = try {
-                    when {
-                        request.query != null ->
-                            queryMovies(request.query!!, request.year)
-                        request.contentId != null ->
-                            listOfNotNull(fetchMovie(request.contentId!!.toInt()))
-                        else -> error("No content")
-                    }
-                } catch (e: Throwable) {
-                    return QueryMetadataResult.ErrorDataProviderException(e.stackTraceToString())
-                }
-                val tmdbMovieIds = tmdbMovies.map(MovieDb::getId)
-                val existingMovies = try {
-                    if (tmdbMovieIds.isNotEmpty()) {
-                        queries.findMoviesByTmdbId(tmdbMovieIds)
-                    } else {
-                        emptyList()
-                    }
-                } catch (e: JdbiException) {
-                    return QueryMetadataResult.ErrorDatabaseException(e.stackTraceToString())
-                }
-                val matches = tmdbMovies.map { movieDb ->
-                    val existingMovie = existingMovies.find { it.tmdbId == movieDb.id }
-                    val remoteId = movieDb.toRemoteId()
-                    MetadataMatch.MovieMatch(
-                        contentId = movieDb.id.toString(),
-                        remoteId = remoteId,
-                        exists = existingMovie != null,
-                        movie = movieDb.asMovie(
-                            id = existingMovie?.id ?: remoteId,
-                            userId = 1,
-                        )
-                    )
-                }
-                QueryMetadataResult.Success(providerId = id, results = matches)
-            }
-            MediaKind.TV -> {
-                val tmdbSeries = try {
-                    // search for tv show, sort by optional year
-                    request.query
-                        ?.run(::queryTvSeries)
-                        ?.sortedBy { series ->
-                            request.year == series.firstAirDate
-                                ?.split('-')
-                                ?.find { it.length == 4 }
-                                ?.toInt()
-                        }
-                        // load series by tmdb id
-                        ?: request.contentId
-                            ?.toIntOrNull()
-                            ?.run(::fetchTvSeries)
-                            ?.run(::listOf)
-                        ?: error("No query or content id")
-                } catch (e: Throwable) {
-                    return QueryMetadataResult.ErrorDataProviderException(e.stackTraceToString())
-                }
-                val tmdbSeriesIds = tmdbSeries.map(TvSeries::getId)
-                val existingShows = try {
-                    queries.findTvShowsByTmdbId(tmdbSeriesIds)
-                } catch (e: JdbiException) {
-                    return QueryMetadataResult.ErrorDatabaseException(e.stackTraceToString())
-                }
-
-                val matches = tmdbSeries.map { tvSeries ->
-                    val existingShow = existingShows.find { it.tmdbId == tvSeries.id }
-                    val remoteId = tvSeries.toRemoteId()
-                    val existingSeasons = existingShow?.run {
-                        queries.findTvSeasonsByTvShowId(id)
-                    }.orEmpty()
-                    MetadataMatch.TvShowMatch(
-                        contentId = tvSeries.id.toString(),
-                        remoteId = remoteId,
-                        exists = existingShow != null,
-                        tvShow = tvSeries.asTvShow(existingShow?.id ?: remoteId),
-                        seasons = existingSeasons,
-                    )
-                }
-                QueryMetadataResult.Success(providerId = id, results = matches)
-            }
+            MediaKind.MOVIE -> searchMovie(request)
+            MediaKind.TV -> searchTv(request)
             else -> error("Unsupported MediaKind: ${request.mediaKind}")
         }
     }
@@ -154,13 +71,13 @@ class TmdbMetadataProvider(
             }
             val movie = movieDb.asMovie(movieId, userId)
             try {
-                queries.insertMovie(movie)
+                val finalMovie = queries.insertMovie(movie).toMovieModel()
                 ImportMetadataResult.Success(
                     match = MetadataMatch.MovieMatch(
-                        contentId = movieDb.id.toString(),
+                        contentId = finalMovie.id,
                         remoteId = movie.id,
                         exists = true,
-                        movie = movie,
+                        movie = finalMovie,
                     ),
                     subresults = emptyList(),
                 )
@@ -208,6 +125,7 @@ class TmdbMetadataProvider(
             val (tvShow, tvSeasons, episodes) = tmdbSeries.asTvShow(tmdbSeasons, tvShowId, userId)
 
             try {
+                // TODO: Return processed show models
                 queries.insertTvShow(tvShow, tvSeasons, episodes)
                 ImportMetadataResult.Success(
                     match = MetadataMatch.TvShowMatch(
@@ -216,6 +134,7 @@ class TmdbMetadataProvider(
                         exists = true,
                         tvShow = tvShow,
                         seasons = tvSeasons,
+                        episodes = emptyList(),
                     )
                 )
             } catch (e: JdbiException) {
@@ -230,60 +149,193 @@ class TmdbMetadataProvider(
                     exists = true,
                     tvShow = existingTvShow,
                     seasons = existingSeasons,
+                    episodes = emptyList(),
                 )
             )
         }
     }
 
-    private fun queryTvSeries(query: String): List<TvSeries> {
-        val results = tmdbApi.search.searchTv(query, null, 1).results
+    private suspend fun queryTvSeries(query: String): List<TmdbShowDetail> {
+        val results = tmdbApi.search.findShows(query, 1, null).results
         return results.mapNotNull { fetchTvSeries(it.id) }
     }
 
-    private fun queryMovies(query: String, year: Int?): List<MovieDb> {
-        val results = tmdbApi.search.searchMovie(query, year ?: 0, null, false, 1).results
-        return results.mapNotNull { fetchMovie(it.id) }
+    private suspend fun queryMovies(query: String, year: Int?): List<TmdbMovieDetail> {
+        return tmdbApi.search.findMovies(
+            query = query,
+            page = 1,
+            year = year ?: 0,
+            language = null,
+            includeAdult = false
+        ).results.mapNotNull { fetchMovie(it.id) }
     }
 
-    private fun fetchTvSeries(seriesId: Int): TvSeries? {
-        return tmdbApi.tvSeries.getSeries(
-            seriesId,
-            null,
-            TmdbTV.TvMethod.content_ratings,
-            TmdbTV.TvMethod.credits,
-            TmdbTV.TvMethod.external_ids,
-            TmdbTV.TvMethod.images,
-            TmdbTV.TvMethod.keywords,
-            TmdbTV.TvMethod.videos,
-            TmdbTV.TvMethod.recommendations,
-        )
+    private suspend fun fetchTvSeries(seriesId: Int): TmdbShowDetail? {
+        return try {
+            tmdbApi.show.getDetails(
+                seriesId,
+                null,
+                listOf(
+                    AppendResponse.TV_CREDITS,
+                    AppendResponse.CONTENT_RATING,
+                    AppendResponse.IMAGES,
+                    AppendResponse.EXTERNAL_IDS,
+                    AppendResponse.WATCH_PROVIDERS,
+                    AppendResponse.RELEASES_DATES,
+                )
+            )
+        } catch (e: ResponseException) {
+            if (e.response.status == HttpStatusCode.NotFound) null else throw e
+        }
     }
 
-    private fun fetchSeason(seriesId: Int, seasonNumber: Int): TvSeason? {
-        return tmdbApi.tvSeasons.getSeason(
-            seriesId,
-            seasonNumber,
-            null,
-            TmdbTvSeasons.SeasonMethod.images,
-            TmdbTvSeasons.SeasonMethod.credits,
-            TmdbTvSeasons.SeasonMethod.external_ids,
-            TmdbTvSeasons.SeasonMethod.videos,
-        )
+    private suspend fun fetchSeason(seriesId: Int, seasonNumber: Int): TmdbSeason? {
+        return try {
+            tmdbApi.showSeasons.getDetails(
+                seriesId,
+                seasonNumber,
+                null,
+                listOf(
+                    AppendResponse.RELEASES_DATES,
+                    AppendResponse.IMAGES,
+                    AppendResponse.CREDITS,
+                    AppendResponse.TV_CREDITS,
+                    AppendResponse.EXTERNAL_IDS,
+                ),
+                ""
+            )
+        } catch (e: ResponseException) {
+            if (e.response.status == HttpStatusCode.NotFound) null else throw e
+        }
     }
 
-    private fun fetchMovie(movieId: Int): MovieDb? {
-        return tmdbApi.movies.getMovie(
-            movieId,
-            null,
-            TmdbMovies.MovieMethod.alternative_titles,
-            TmdbMovies.MovieMethod.credits,
-            TmdbMovies.MovieMethod.images,
-            TmdbMovies.MovieMethod.videos,
-            TmdbMovies.MovieMethod.keywords,
-            TmdbMovies.MovieMethod.releases,
-            TmdbMovies.MovieMethod.reviews,
-            TmdbMovies.MovieMethod.similar,
-            TmdbMovies.MovieMethod.release_dates,
-        )
+    private suspend fun fetchMovie(movieId: Int): TmdbMovieDetail? {
+        return try {
+            tmdbApi.movies.getDetails(
+                movieId,
+                null,
+                listOf(
+                    AppendResponse.EXTERNAL_IDS,
+                    AppendResponse.CREDITS,
+                    AppendResponse.RELEASES_DATES,
+                    AppendResponse.IMAGES,
+                    AppendResponse.MOVIE_CREDITS,
+                )
+            )
+        } catch (e: ResponseException) {
+            if (e.response.status == HttpStatusCode.NotFound) null else throw e
+        }
+    }
+
+    private suspend fun searchMovie(request: QueryMetadata): QueryMetadataResult {
+        val tmdbMovies = try {
+            when {
+                request.query != null -> queryMovies(request.query!!, request.year)
+                request.contentId != null -> listOfNotNull(fetchMovie(request.contentId!!.toInt()))
+                else -> error("No content")
+            }
+        } catch (e: Throwable) {
+            return QueryMetadataResult.ErrorDataProviderException(e.stackTraceToString())
+        }
+        val tmdbMovieIds = tmdbMovies.map(TmdbMovieDetail::id)
+        val existingMovies = try {
+            if (tmdbMovieIds.isNotEmpty()) {
+                queries.findMoviesByTmdbId(tmdbMovieIds)
+            } else {
+                emptyList()
+            }
+        } catch (e: JdbiException) {
+            return QueryMetadataResult.ErrorDatabaseException(e.stackTraceToString())
+        }
+        val matches = tmdbMovies.map { movieDb ->
+            val existingMovie = existingMovies.find { it.tmdbId == movieDb.id }
+            val remoteId = movieDb.toRemoteId()
+            MetadataMatch.MovieMatch(
+                contentId = movieDb.id.toString(),
+                remoteId = remoteId,
+                exists = existingMovie != null,
+                movie = movieDb.asMovie(
+                    id = existingMovie?.id ?: remoteId,
+                    userId = 1,
+                )
+            )
+        }
+        return QueryMetadataResult.Success(id, matches, request.extras)
+    }
+
+    private suspend fun searchTv(request: QueryMetadata): QueryMetadataResult {
+        val tvShowExtras = request.extras?.asTvShowExtras()
+        val tmdbSeries = try {
+            // search for tv show, sort by optional year
+            request.query
+                ?.let { queryTvSeries(it) }
+                ?.sortedBy { series -> request.year == series.firstAirDate?.year }
+                // load series by tmdb id
+                ?: request.contentId
+                    ?.toIntOrNull()
+                    ?.let { fetchTvSeries(it) }
+                    ?.run(::listOf)
+                ?: error("No query or content id")
+        } catch (e: Throwable) {
+            return QueryMetadataResult.ErrorDataProviderException(e.stackTraceToString())
+        }
+        val tmdbSeriesIds = tmdbSeries.map(TmdbShowDetail::id)
+        val existingShows = try {
+            queries.findTvShowsByTmdbId(tmdbSeriesIds)
+        } catch (e: JdbiException) {
+            return QueryMetadataResult.ErrorDatabaseException(e.stackTraceToString())
+        }
+
+        val matches = tmdbSeries.map { tvSeries ->
+            val existingShow = existingShows.find { it.tmdbId == tvSeries.id }
+            val remoteId = tvSeries.toRemoteId()
+            val existingSeasons = if (tvShowExtras?.seasonNumber == null) {
+                existingShow?.run { queries.findTvSeasonsByTvShowId(id) }
+                    ?: tvSeries.seasons.map { it.asTvSeason(it.toRemoteId(tvSeries.id)) }
+            } else {
+                tvSeries.seasons
+                    .filter { it.seasonNumber == tvShowExtras.seasonNumber }
+                    .map { it.asTvSeason(it.toRemoteId(tvSeries.id)) }
+            }
+            val existingEpisodes = when {
+                tvShowExtras?.seasonNumber != null -> {
+                    val seasonNumber = checkNotNull(tvShowExtras.seasonNumber)
+                    val episodeNumber = tvShowExtras.episodeNumber
+                    try {
+                        val seasonResponse = tmdbApi.showSeasons
+                            .getDetails(tvSeries.id, seasonNumber, null)
+                        seasonResponse.episodes
+                            .orEmpty()
+                            .run {
+                                if (episodeNumber == null) this else {
+                                    filter { episode ->
+                                        episode.episodeNumber == episodeNumber
+                                    }
+                                }
+                            }
+                            .map { tmdbEpisode ->
+                                tmdbEpisode.asTvEpisode(
+                                    tmdbEpisode.toRemoteId(tvSeries.id),
+                                    tvSeries.toRemoteId(),
+                                    seasonResponse.toRemoteId(tvSeries.id)
+                                )
+                            }
+                    } catch (e: Throwable) {
+                        return QueryMetadataResult.ErrorDataProviderException(e.stackTraceToString())
+                    }
+                }
+                else -> emptyList()
+            }
+
+            MetadataMatch.TvShowMatch(
+                contentId = tvSeries.id.toString(),
+                remoteId = remoteId,
+                exists = existingShow != null,
+                tvShow = tvSeries.asTvShow(existingShow?.id ?: remoteId),
+                seasons = existingSeasons,
+                episodes = existingEpisodes,
+            )
+        }
+        return QueryMetadataResult.Success(id, matches, request.extras)
     }
 }

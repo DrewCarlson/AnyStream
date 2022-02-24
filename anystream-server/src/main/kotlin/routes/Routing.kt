@@ -32,11 +32,11 @@ import anystream.service.stream.StreamServiceQueriesJdbi
 import anystream.service.user.UserService
 import anystream.service.user.UserServiceQueriesJdbi
 import anystream.util.SinglePageApp
+import app.moviebase.tmdb.Tmdb3
 import com.github.kokorin.jaffree.ffmpeg.FFmpeg
 import com.github.kokorin.jaffree.ffprobe.FFprobe
 import drewcarlson.qbittorrent.QBittorrentClient
 import drewcarlson.torrentsearch.TorrentSearch
-import info.movito.themoviedbapi.TmdbApi
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.routing.*
@@ -44,7 +44,6 @@ import kotlinx.coroutines.*
 import org.drewcarlson.ktor.permissions.withAnyPermission
 import org.drewcarlson.ktor.permissions.withPermission
 import org.jdbi.v3.core.Handle
-import org.jdbi.v3.core.transaction.TransactionException
 import org.jdbi.v3.sqlobject.kotlin.attach
 import java.io.File
 import java.nio.file.Path
@@ -57,7 +56,7 @@ fun Application.installRouting(dbHandle: Handle) {
     val qbittorrentUser = environment.config.property("app.qbittorrentUser").getString()
     val qbittorrentPass = environment.config.property("app.qbittorrentPassword").getString()
 
-    val tmdb by lazy { TmdbApi(tmdbApiKey) }
+    val tmdb by lazy { Tmdb3(tmdbApiKey) }
 
     val torrentSearch = TorrentSearch()
 
@@ -70,14 +69,23 @@ fun Application.installRouting(dbHandle: Handle) {
     val ffprobe = { FFprobe.atPath(Path.of(ffmpegPath)) }
 
     val mediaDao = dbHandle.attach<MediaDao>().apply { createTable() }
+    val tagsDao = dbHandle.attach<TagsDao>().apply {
+        createTable()
+        createMediaCompanyLinkTable()
+        createMediaGenreLinkTable()
+    }
     val playbackStatesDao = dbHandle.attach<PlaybackStatesDao>().apply { createTable() }
-    val mediaReferencesDao = dbHandle.attach<MediaReferencesDao>().apply { createTable() }
+    val mediaReferencesDao = dbHandle.attach<MediaReferencesDao>().apply {
+        createTable()
+        createStreamTable()
+        createStreamLinkTable()
+    }
     val usersDao = dbHandle.attach<UsersDao>().apply { createTable() }
     val invitesDao = dbHandle.attach<InvitesDao>().apply { createTable() }
     val permissionsDao = dbHandle.attach<PermissionsDao>().apply { createTable() }
     val searchableContentDao = dbHandle.attach<SearchableContentDao>().apply { createTable() }
 
-    val queries = MediaDbQueries(searchableContentDao, mediaDao, mediaReferencesDao, playbackStatesDao)
+    val queries = MediaDbQueries(searchableContentDao, mediaDao, tagsDao, mediaReferencesDao, playbackStatesDao)
 
     val providers = listOf<MetadataProvider>(
         TmdbMetadataProvider(tmdb, queries)

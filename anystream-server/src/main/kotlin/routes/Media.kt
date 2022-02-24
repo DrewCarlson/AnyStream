@@ -24,12 +24,10 @@ import anystream.models.*
 import anystream.models.api.*
 import anystream.util.isRemoteId
 import anystream.util.logger
+import app.moviebase.tmdb.Tmdb3
+import app.moviebase.tmdb.model.AppendResponse
 import drewcarlson.torrentsearch.Category
 import drewcarlson.torrentsearch.TorrentSearch
-import info.movito.themoviedbapi.TmdbApi
-import info.movito.themoviedbapi.TmdbMovies
-import info.movito.themoviedbapi.TmdbTV
-import info.movito.themoviedbapi.TmdbTvSeasons
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.UnprocessableEntity
@@ -42,7 +40,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 fun Route.addMediaManageRoutes(
-    tmdb: TmdbApi,
+    tmdb: Tmdb3,
     torrentSearch: TorrentSearch,
     importer: MediaImporter,
     queries: MediaDbQueries,
@@ -73,13 +71,16 @@ fun Route.addMediaManageRoutes(
                 when {
                     result.movie != null -> {
                         val movie = try {
-                            tmdb.movies.getMovie(
+                            tmdb.movies.getDetails(
                                 result.movie.tmdbId,
                                 null,
-                                TmdbMovies.MovieMethod.images,
-                                TmdbMovies.MovieMethod.release_dates,
-                                TmdbMovies.MovieMethod.alternative_titles,
-                                TmdbMovies.MovieMethod.keywords
+                                listOf(
+                                    AppendResponse.EXTERNAL_IDS,
+                                    AppendResponse.CREDITS,
+                                    AppendResponse.RELEASES_DATES,
+                                    AppendResponse.IMAGES,
+                                    AppendResponse.MOVIE_CREDITS,
+                                )
                             )
                         } catch (e: Throwable) {
                             logger.error("Extended provider data query failed", e)
@@ -95,14 +96,16 @@ fun Route.addMediaManageRoutes(
                     }
                     result.tvShow != null -> {
                         val tmdbSeries = try {
-                            tmdb.tvSeries.getSeries(
+                            tmdb.show.getDetails(
                                 result.tvShow.tmdbId,
                                 "en",
-                                TmdbTV.TvMethod.keywords,
-                                TmdbTV.TvMethod.external_ids,
-                                TmdbTV.TvMethod.images,
-                                TmdbTV.TvMethod.content_ratings,
-                                TmdbTV.TvMethod.credits,
+                                listOf(
+                                    AppendResponse.EXTERNAL_IDS,
+                                    AppendResponse.CREDITS,
+                                    AppendResponse.RELEASES_DATES,
+                                    AppendResponse.IMAGES,
+                                    AppendResponse.TV_CREDITS,
+                                )
                             )
                         } catch (e: Throwable) {
                             logger.error("Extended provider data query failed", e)
@@ -120,11 +123,11 @@ fun Route.addMediaManageRoutes(
                         val tvShow =
                             checkNotNull(queries.findTvShowBySeasonId(result.season.id))
                         val season = try {
-                            tmdb.tvSeasons.getSeason(
+                            tmdb.showSeasons.getDetails(
                                 tvShow.tmdbId,
                                 result.season.seasonNumber,
                                 null,
-                                TmdbTvSeasons.SeasonMethod.images,
+                                listOf(AppendResponse.IMAGES),
                             ).asTvSeason(result.season.id)
                         } catch (e: Throwable) {
                             logger.error("Extended provider data query failed", e)
@@ -145,12 +148,15 @@ fun Route.addMediaManageRoutes(
                     result.episode != null -> {
                         val show = checkNotNull(queries.findTvShowById(result.episode.showId))
                         val episode = try {
-                            tmdb.tvEpisodes.getEpisode(
+                            tmdb.showEpisodes.getDetails(
                                 show.tmdbId,
                                 result.episode.seasonNumber,
                                 result.episode.number,
                                 null,
-                            ).asTvEpisode(result.episode.id, show.id, result.episode.seasonId)
+                            ).episodes
+                                .orEmpty()
+                                .first()
+                                .asTvEpisode(result.episode.id, show.id, result.episode.seasonId)
                         } catch (e: Throwable) {
                             logger.error("Extended provider data query failed", e)
                             return@get call.respond(InternalServerError)
@@ -241,7 +247,7 @@ fun Route.addMediaManageRoutes(
                         call.respond(NotFound)
                     } else {
                         runCatching {
-                            tmdb.movies.getMovie(tmdbId, null)
+                            tmdb.movies.getDetails(tmdbId, null)
                         }.onSuccess { tmdbMovie ->
                             call.respond(
                                 torrentSearch.search(tmdbMovie.title, Category.MOVIES, 100)
@@ -298,15 +304,26 @@ fun Route.addMediaViewRoutes(
                             if (queryResult.results.isEmpty()) {
                                 return@get call.respond(MediaLookupResponse())
                             }
-                            val match = queryResult.results.first()
-                            call.respond(
-                                MediaLookupResponse(
-                                    movie = (match as? MetadataMatch.MovieMatch)
-                                        ?.run { MovieResponse(movie) },
-                                    tvShow = (match as? MetadataMatch.TvShowMatch)
-                                        ?.run { TvShowResponse(tvShow, seasons) },
-                                )
-                            )
+                            val response = when (val match = queryResult.results.first()) {
+                                is MetadataMatch.MovieMatch -> {
+                                    MediaLookupResponse(movie = MovieResponse(match.movie))
+                                }
+                                is MetadataMatch.TvShowMatch -> {
+                                    val tvExtras = queryResult.extras?.asTvShowExtras()
+                                    when {
+                                        tvExtras?.episodeNumber != null -> MediaLookupResponse(
+                                            episode = EpisodeResponse(match.episodes.first(), match.tvShow)
+                                        )
+                                        tvExtras?.seasonNumber != null -> MediaLookupResponse(
+                                            season = SeasonResponse(match.tvShow, match.seasons.first(), match.episodes)
+                                        )
+                                        else -> MediaLookupResponse(
+                                            tvShow = TvShowResponse(match.tvShow, match.seasons)
+                                        )
+                                    }
+                                }
+                            }
+                            call.respond(response)
                         }
                         else -> call.respond(MediaLookupResponse())
                     }

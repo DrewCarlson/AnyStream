@@ -19,7 +19,8 @@ INSERT INTO media(id,
                   updatedAt,
                   addedByUserId,
                   mediaKind,
-                  mediaType)
+                  mediaType,
+                  tmdbRating)
 VALUES (NULL,
         :media.gid,
         :media.rootId,
@@ -41,4 +42,5 @@ VALUES (NULL,
         :media.updatedAt,
         :media.addedByUserId,
         :media.mediaKind,
-        :media.mediaType)
+        :media.mediaType,
+        :media.tmdbRating)

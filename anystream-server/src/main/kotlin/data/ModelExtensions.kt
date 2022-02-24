@@ -19,16 +19,13 @@ package anystream.data
 
 import anystream.models.*
 import anystream.util.ObjectId
-import info.movito.themoviedbapi.model.ArtworkType
-import info.movito.themoviedbapi.model.MovieDb
-import info.movito.themoviedbapi.model.tv.TvEpisode
-import info.movito.themoviedbapi.model.tv.TvSeries
+import app.moviebase.tmdb.model.*
 import java.time.Instant
-import info.movito.themoviedbapi.model.tv.TvSeason as TvSeasonDb
+import kotlin.math.roundToInt
 
 private const val MAX_CACHED_POSTERS = 5
 
-fun MovieDb.asMovie(
+fun TmdbMovieDetail.asMovie(
     id: String,
     userId: Int = 1,
 ) = Movie(
@@ -37,33 +34,31 @@ fun MovieDb.asMovie(
     title = title,
     overview = overview,
     posterPath = posterPath,
-    releaseDate = releaseDate,
+    releaseDate = releaseDate?.run { "$year-$monthNumber-$dayOfMonth" },
     backdropPath = backdropPath,
-    imdbId = imdbID,
-    runtime = runtime,
-    posters = runCatching { getImages(ArtworkType.POSTER) }
-        .getOrNull()
-        .orEmpty()
-        .filter { "en".equals(it.language, true) }
+    imdbId = imdbId,
+    runtime = runtime ?: -1,
+    posters = images?.posters.orEmpty()
         .take(MAX_CACHED_POSTERS)
-        .map { img ->
-            Image(
-                filePath = img.filePath,
-                language = img.language ?: ""
-            )
-        },
+        .map { img -> Image(filePath = img.filePath, language = "") },
     added = Instant.now().toEpochMilli(),
-    addedByUserId = userId
+    addedByUserId = userId,
+    tmdbRating = (voteAverage * 10).roundToInt(),
+    tagline = tagline,
+    genres = genres.map { Genre(-1, it.name, it.id) },
+    companies = productionCompanies.orEmpty().map { tmdbCompany ->
+        ProductionCompany(-1, tmdbCompany.name.orEmpty(), tmdbCompany.id)
+    },
 )
 
-fun TvSeries.asTvShow(
-    tmdbSeasons: List<TvSeasonDb>,
+fun TmdbShowDetail.asTvShow(
+    tmdbSeasons: List<TmdbSeason>,
     id: String,
     userId: Int,
     createId: (id: Int) -> String = { ObjectId.get().toString() },
 ): Triple<TvShow, List<TvSeason>, List<Episode>> {
     val episodes = tmdbSeasons.flatMap { season ->
-        season.episodes.map { episode ->
+        season.episodes.orEmpty().map { episode ->
             episode.asTvEpisode(createId(episode.id), id, createId(season.id))
         }
     }
@@ -73,42 +68,49 @@ fun TvSeries.asTvShow(
     return Triple(asTvShow(id, userId), seasons, episodes)
 }
 
-fun TvEpisode.asTvEpisode(id: String, showId: String, seasonId: String): Episode {
+fun TmdbEpisode.asTvEpisode(id: String, showId: String, seasonId: String): Episode {
     return Episode(
         id = id,
         seasonId = seasonId,
         tmdbId = this.id,
-        name = name,
-        overview = overview,
-        airDate = airDate ?: "",
+        name = name ?: "",
+        overview = "", // TODO: Only TmdbEpisodeDetails has overview,
+        airDate = airDate?.run { "$year-$monthNumber-$dayOfMonth" },
         number = episodeNumber,
         seasonNumber = seasonNumber,
         showId = showId,
-        stillPath = stillPath ?: ""
+        stillPath = stillPath ?: "",
+        tmdbRating = voteAverage?.run { times(10).roundToInt() },
     )
 }
 
-fun TvSeasonDb.asTvSeason(id: String): TvSeason {
+fun TmdbSeason.asTvSeason(id: String): TvSeason {
     return TvSeason(
         id = id,
         tmdbId = this.id,
         name = name,
-        overview = overview,
+        overview = "", // TODO: Only TmdbSeasonDetail has overview,
         seasonNumber = seasonNumber,
-        airDate = airDate ?: "",
+        airDate = airDate?.run { "$year-$monthNumber-$dayOfMonth" },
         posterPath = posterPath ?: "",
     )
 }
 
-fun TvSeries.asTvShow(id: String, userId: Int = 1): TvShow {
+fun TmdbShowDetail.asTvShow(id: String, userId: Int = 1): TvShow {
     return TvShow(
         id = id,
         name = name,
         tmdbId = this.id,
         overview = overview,
-        firstAirDate = firstAirDate,
+        firstAirDate = firstAirDate?.run { "$year-$monthNumber-$dayOfMonth" },
         posterPath = posterPath ?: "",
         added = Instant.now().toEpochMilli(),
         addedByUserId = userId,
+        tmdbRating = (voteAverage * 10).roundToInt(),
+        tagline = null,
+        genres = genres.map { Genre(-1, it.name, it.id) },
+        companies = productionCompanies.orEmpty().map { tmdbCompany ->
+            ProductionCompany(-1, tmdbCompany.name.orEmpty(), tmdbCompany.id)
+        },
     )
 }

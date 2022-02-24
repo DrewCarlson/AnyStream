@@ -32,7 +32,10 @@ import kotlinx.coroutines.flow.*
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 import org.w3c.dom.HTMLElement
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 val backdropImageUrl = MutableStateFlow<String?>(null)
 
@@ -144,27 +147,17 @@ private fun BaseDetailsView(
 
             mediaItem.playbackState?.run {
                 Div {
-                    Text(
-                        buildString {
-                            val remaining = (runtime - position).seconds
-                            if (remaining.inWholeHours >= 1) {
-                                append(remaining.inWholeHours)
-                                append(" hr ")
-                            }
-                            val minutes = remaining.inWholeMinutes % 60
-                            if (minutes > 0) {
-                                append(minutes)
-                                append(" min")
-                            }
-                            append(" left")
-                        }
-                    )
+                    val remaining = remember(runtime, position) {
+                        val remaining = (runtime - position).seconds
+                        "${remaining.asFriendlyString()} left"
+                    }
+                    Text(remaining)
                 }
             }
         }
         Div({ classes("d-flex", "flex-column", "flex-grow-1", "p-4") }) {
             Div({ classes("d-flex", "flex-row", "align-items-center") }) {
-                H3 { Text(mediaItem.contentTitle) }
+                Div({ classes("fs-3") }) { Text(mediaItem.contentTitle) }
                 if (client.hasPermission(Permission.ManageCollection)) {
                     I({
                         classes("bi", "bi-arrow-repeat", "p-1")
@@ -176,19 +169,44 @@ private fun BaseDetailsView(
                 }
             }
             mediaItem.subtitle1?.also { subtitle1 ->
-                Div { H5 { Text(subtitle1) } }
+                Div({ classes("fs-5") }) { Text(subtitle1) }
             }
             mediaItem.subtitle2?.also { subtitle2 ->
-                Div { H5 { Text(subtitle2) } }
+                Div({ classes("fs-5") }) { Text(subtitle2) }
             }
-            mediaItem.releaseDate?.also { releaseDate ->
-                val year = releaseDate.split("-").firstOrNull { it.length == 4 }
-                if (year != null) {
-                    Div { H6 { Text(year) } }
+
+            Div({ classes("d-flex", "flex-row", "align-items-center", "gap-3", "py-1") }) {
+                mediaItem.releaseDate?.also { releaseDate ->
+                    val year = releaseDate.split("-").firstOrNull { it.length == 4 }
+                    if (year != null) {
+                        Div({ classes("fs-6") }) { Text(year) }
+                    }
+                }
+                mediaItem.runtime?.also { runtime ->
+                    val runtimeString = remember(runtime) {
+                        runtime.toDouble().toDuration(DurationUnit.MINUTES).asFriendlyString()
+                    }
+                    Div({ style { fontSize(13.px) } }) { Text(runtimeString) }
                 }
             }
 
-            Div({ classes("d-flex", "flex-row", "py-2") }) {
+            Div({ classes("d-flex", "flex-row", "gap-2") }) {
+                mediaItem.tmdbRating?.also { tmdbRating ->
+                    Div({
+                        classes("d-flex", "flex-row", "align-items-center", "gap-2")
+                        style {
+                            fontSize(14.px)
+                        }
+                    }) {
+                        Img("/images/tmdb-small.svg") {
+                            style { width(38.px); height(38.px) }
+                        }
+                        Div { Text("$tmdbRating%") }
+                    }
+                }
+            }
+
+            Div({ classes("d-flex", "flex-row", "py-3") }) {
                 // TODO: Allow user mediaRef selection, order refs on server
                 val mediaRef = mediaItem.mediaRefs.firstOrNull()
                 if (mediaRef != null) {
@@ -214,6 +232,20 @@ private fun BaseDetailsView(
             Div({
                 classes("pt-2", "pb-4")
             }) { Text(mediaItem.overview) }
+
+            Div({ classes("d-flex", "flex-row", "gap-2") }) {
+                mediaItem.genres.forEach { genre ->
+                    Div({
+                        classes("rounded-2", "p-2")
+                        style {
+                            fontSize(14.px)
+                            backgroundColor(rgba(0, 0, 0, 0.3))
+                        }
+                    }) {
+                        Text(genre.name)
+                    }
+                }
+            }
 
             val videoStreams = mediaItem.mediaRefs.flatMap {
                 it.streams.filterIsInstance<StreamEncodingDetails.Video>()
@@ -469,5 +501,21 @@ private fun BaseRow(
         }
     }) {
         buildItems()
+    }
+}
+
+fun Duration.asFriendlyString(): String {
+    return buildString {
+        val hasHours = inWholeHours > 0
+        val minutes = inWholeMinutes % 60
+        if (hasHours) {
+            append(inWholeHours)
+            append(" hr")
+        }
+        if (minutes > 0) {
+            if (hasHours) append(' ')
+            append(minutes)
+            append(" min")
+        }
     }
 }

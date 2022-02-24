@@ -29,6 +29,7 @@ data class MediaDb(
     val parentGid: String?,
     val title: String?,
     val overview: String?,
+    val tagline: String?,
     val tmdbId: Int?,
     val imdbId: String?,
     val runtime: Int?,
@@ -43,6 +44,9 @@ data class MediaDb(
     val addedByUserId: Int,
     val mediaKind: MediaKind,
     val mediaType: Type,
+    val tmdbRating: Int?,
+    val genres: List<Genre> = emptyList(),
+    val companies: List<ProductionCompany> = emptyList(),
 ) {
     enum class Type {
         MOVIE,
@@ -68,6 +72,10 @@ data class MediaDb(
             releaseDate = firstAvailableAt?.instantToTmdbDate(),
             added = createdAt.epochSeconds,
             addedByUserId = addedByUserId,
+            tagline = tagline,
+            tmdbRating = tmdbRating,
+            genres = genres,
+            companies = companies,
         )
     }
 
@@ -84,6 +92,8 @@ data class MediaDb(
             posterPath = posterPath.orEmpty(),
             added = createdAt.epochSeconds,
             addedByUserId = addedByUserId,
+            tagline = tagline,
+            tmdbRating = tmdbRating,
         )
     }
 
@@ -102,6 +112,7 @@ data class MediaDb(
             number = checkNotNull(index),
             seasonNumber = checkNotNull(parentIndex),
             stillPath = posterPath.orEmpty(),
+            tmdbRating = tmdbRating,
         )
     }
 
@@ -146,6 +157,9 @@ data class MediaDb(
                 addedByUserId = movie.addedByUserId,
                 mediaKind = MediaKind.MOVIE,
                 mediaType = Type.MOVIE,
+                tagline = movie.tagline,
+                tmdbRating = movie.tmdbRating,
+                genres = emptyList(),
             )
         }
 
@@ -174,6 +188,9 @@ data class MediaDb(
                 addedByUserId = tvShow.addedByUserId,
                 mediaKind = MediaKind.TV,
                 mediaType = Type.TV_SHOW,
+                tagline = tvShow.tagline,
+                tmdbRating = tvShow.tmdbRating,
+                genres = emptyList(),
             )
         }
 
@@ -202,6 +219,9 @@ data class MediaDb(
                 addedByUserId = tvShowRecord.addedByUserId,
                 mediaKind = MediaKind.TV,
                 mediaType = Type.TV_SEASON,
+                tmdbRating = null,
+                tagline = null,
+                genres = emptyList(),
             )
         }
 
@@ -230,6 +250,9 @@ data class MediaDb(
                 addedByUserId = tvShowRecord.addedByUserId,
                 mediaKind = MediaKind.TV,
                 mediaType = Type.TV_EPISODE,
+                tagline = null,
+                tmdbRating = tvShowRecord.tmdbRating,
+                genres = emptyList(),
             )
         }
 

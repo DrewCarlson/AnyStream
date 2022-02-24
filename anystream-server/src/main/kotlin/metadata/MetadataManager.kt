@@ -29,13 +29,29 @@ class MetadataManager(
     private val classMarker = MarkerFactory.getMarker(this::class.simpleName)
 
     suspend fun findByRemoteId(remoteId: String): QueryMetadataResult {
-        val (providerId, mediaKind, id) = remoteId.split(':')
+        val (providerId, mediaKindString, rawId) = remoteId.split(':')
+        val mediaKind = MediaKind.valueOf(mediaKindString.uppercase())
+        var parsedId = rawId
+        val extras = when (mediaKind) {
+            MediaKind.TV -> {
+                if (rawId.contains('-')) {
+                    val parts = rawId.split('-')
+                    parsedId = parts[0]
+                    QueryMetadata.Extras.TvShowExtras(
+                        seasonNumber = parts.getOrNull(1)?.toIntOrNull(),
+                        episodeNumber = parts.getOrNull(2)?.toIntOrNull(),
+                    )
+                } else null
+            }
+            else -> null
+        }
 
         return search(
             QueryMetadata(
                 providerId = providerId,
-                contentId = id,
-                mediaKind = MediaKind.valueOf(mediaKind.uppercase()),
+                contentId = parsedId,
+                mediaKind = mediaKind,
+                extras = extras
             )
         ).firstOrNull() ?: QueryMetadataResult.ErrorProviderNotFound
     }

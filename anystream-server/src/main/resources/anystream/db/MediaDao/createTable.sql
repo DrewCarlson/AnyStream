@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS media
     createdAt        TEXT                NOT NULL,
     updatedAt        TEXT                NOT NULL,
     addedByUserId    VARCHAR(24)         NOT NULL,
-    mediaKind        VARCHAR             NOT NULL,
-    mediaType        VARCHAR             NOT NULL
+    mediaKind        INTEGER             NOT NULL,
+    mediaType        INTEGER             NOT NULL,
+    tmdbRating       INTEGER
 );

@@ -24,7 +24,7 @@ import kotlinx.serialization.Serializable
 data class SeasonResponse(
     val show: TvShow,
     val season: TvSeason,
-    val episodes: List<Episode>,
-    val mediaRefs: Map<String, MediaReference>,
+    val episodes: List<Episode> = emptyList(),
+    val mediaRefs: Map<String, MediaReference> = emptyMap(),
     val playbackState: PlaybackState? = null,
 )

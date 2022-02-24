@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS mediaGenres
+(
+    mediaId INTEGER NOT NULL,
+    genreId INTEGER NOT NULL,
+    FOREIGN KEY (mediaId) REFERENCES media (id) ON DELETE CASCADE,
+    FOREIGN KEY (genreId) REFERENCES tags (id)  ON DELETE CASCADE
+);

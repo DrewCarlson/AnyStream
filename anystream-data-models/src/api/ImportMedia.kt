@@ -68,7 +68,7 @@ sealed class ImportStreamDetailsResult {
     @Serializable
     data class Success(
         val mediaRefId: String,
-        val streamDetails: List<StreamEncodingDetails>,
+        val streams: List<StreamEncodingDetails>,
     ) : ImportStreamDetailsResult()
 
     @Serializable

@@ -191,6 +191,7 @@ private fun SearchBar(client: AnyStreamClient) {
                     inputRef.value = null
                 }
             }
+            value(elementValue.orEmpty())
             onFocus {
                 focused = true
                 searchQuery.value = (it.target as? HTMLInputElement)

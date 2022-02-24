@@ -39,7 +39,7 @@ class SearchService(
 ) {
 
     fun search(inputQuery: String, limit: Int): SearchResponse {
-        val query = "\"${inputQuery.trim()}*\"".trim()
+        val query = "${inputQuery.trim()}*".trim()
         return try {
             val movieIds = searchableContentDao.search(query, Type.MOVIE, limit)
             val tvShowIds = searchableContentDao.search(query, Type.TV_SHOW, limit)
