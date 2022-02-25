@@ -17,18 +17,15 @@
  */
 package anystream.frontend.util
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import org.jetbrains.compose.web.dom.ElementScope
 import org.w3c.dom.HTMLElement
 
 @Composable
 fun ElementScope<HTMLElement>.rememberDomElement(key: Any? = null): State<HTMLElement?> {
     val state = remember { mutableStateOf<HTMLElement?>(null) }
-    DomSideEffect(key) { element ->
-        state.value = element
+    DisposableEffect(key) {
+        state.value = scopeElement
         onDispose {
             state.value = null
         }

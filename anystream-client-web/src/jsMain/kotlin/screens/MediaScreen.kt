@@ -297,8 +297,8 @@ private fun EncodingDetailsItem(
                     }
                 }
             }) {
-                DomSideEffect {
-                    element = it
+                DisposableEffect(Unit) {
+                    element = scopeElement
                     onDispose { element = null }
                 }
                 Span { value(item) }
@@ -361,8 +361,8 @@ private fun StreamSelectionMenu(
                 backgroundColor(rgb(35, 36, 38))
             }
         }) {
-            DomSideEffect { el ->
-                menuClickMask.value = ExternalClickMask(el) { remove ->
+            DisposableEffect(Unit) {
+                menuClickMask.value = ExternalClickMask(scopeElement) { remove ->
                     closeMenu()
                     remove()
                 }

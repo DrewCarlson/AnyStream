@@ -33,7 +33,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.jetbrains.compose.web.attributes.AttrsBuilder
+import org.jetbrains.compose.web.attributes.AttrsScope
 import org.jetbrains.compose.web.attributes.onSubmit
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
@@ -267,8 +267,8 @@ private fun SearchResultPopper(
             }
         }
     ) {
-        DomSideEffect { el ->
-            globalClickHandler = ExternalClickMask(el) { remove ->
+        DisposableEffect(Unit) {
+            globalClickHandler = ExternalClickMask(scopeElement) { remove ->
                 // Hide search only if we're also unfocusing input
                 if (!focused) {
                     searchQuery.value = null
@@ -288,8 +288,8 @@ private fun SearchResultPopper(
 @Composable
 private fun ButtonIcon(
     icon: String,
-    attrs: AttrsBuilder<HTMLElement>.() -> Unit = {},
-    style: (StyleBuilder.() -> Unit) = {},
+    attrs: AttrsScope<HTMLElement>.() -> Unit = {},
+    style: (StyleScope.() -> Unit) = {},
 ) {
     I({
         classes("bi", icon)

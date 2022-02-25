@@ -108,12 +108,12 @@ fun <T> VirtualScroller(
             }
         }
     }) {
-        DomSideEffect { ref ->
+        DisposableEffect(Unit) {
             // Frequently check and update the scroll offset to determine
             // item rendering positions.
             val job = scope.launch {
                 while (true) {
-                    val newSize = ref.clientWidth to ref.offsetHeight
+                    val newSize = scopeElement.clientWidth to scopeElement.offsetHeight
                     if (containerViewportWH.value != newSize) {
                         containerViewportWH.value = newSize
                     }
@@ -137,10 +137,10 @@ fun <T> VirtualScroller(
                 }
             }) {
                 buildItem(item)
-                DomSideEffect { ref ->
+                DisposableEffect(Unit) {
                     val job = scope.launch {
                         while (true) {
-                            val newSize = ref.children[0]
+                            val newSize = scopeElement.children[0]
                                 ?.run { clientWidth to clientHeight }
                                 ?: (0 to 0)
                             if (itemSizeWH.value != newSize) {

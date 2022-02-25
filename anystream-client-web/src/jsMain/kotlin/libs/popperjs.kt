@@ -18,6 +18,7 @@
 package anystream.frontend.libs
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.NoLiveLiterals
 import kotlinext.js.js
 import org.jetbrains.compose.web.dom.AttrBuilderContext
@@ -38,11 +39,11 @@ fun PopperElement(
     Div(attrs = attrs) {
         Div {
             body()
-            DomSideEffect(target) { element ->
+            DisposableEffect(target) {
                 val popper = if (popperOptions == null) {
-                    Popper.createPopper(target, element)
+                    Popper.createPopper(target, scopeElement)
                 } else {
-                    Popper.createPopper(target, element, popperOptions)
+                    Popper.createPopper(target, scopeElement, popperOptions)
                 }
                 onDispose { popper.destroy() }
             }
@@ -60,11 +61,11 @@ fun PopperElement(
     Div(attrs = attrs) {
         Div {
             body()
-            DomSideEffect(virtualElement) { element ->
+            DisposableEffect(virtualElement) {
                 val popper = if (popperOptions == null) {
-                    Popper.createPopper(virtualElement, element)
+                    Popper.createPopper(virtualElement, scopeElement)
                 } else {
-                    Popper.createPopper(virtualElement, element, popperOptions)
+                    Popper.createPopper(virtualElement, scopeElement, popperOptions)
                 }
                 onDispose { popper.destroy() }
             }

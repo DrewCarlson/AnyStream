@@ -47,7 +47,7 @@ fun webApp() = renderComposable(rootElementId = "root") {
             classes("d-flex", "flex-column", "h-100", "w-100")
         },
     ) {
-        DomSideEffect {
+        DisposableEffect(Unit) {
             val listener = { event: HashChangeEvent ->
                 urlHashFlow.value = event.newURL.substringAfter("!")
                 true

@@ -18,9 +18,10 @@
 package anystream.frontend.libs
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import org.jetbrains.compose.web.ExperimentalComposeWebApi
-import org.jetbrains.compose.web.attributes.AttrsBuilder
-import org.jetbrains.compose.web.dom.TagElement
+import org.jetbrains.compose.web.attributes.AttrsScope
+import org.jetbrains.compose.web.dom.Canvas
 import org.w3c.dom.HTMLCanvasElement
 
 // https://www.npmjs.com/package/qrcode#browser-api
@@ -39,16 +40,14 @@ external object QRCode {
 @Composable
 fun QRCodeImage(
     text: String?,
-    attrs: AttrsBuilder<HTMLCanvasElement>.() -> Unit,
+    attrs: AttrsScope<HTMLCanvasElement>.() -> Unit,
 ) {
-    TagElement(
-        tagName = "canvas",
-        applyAttrs = attrs,
-    ) {
-        DomSideEffect(text) { canvas ->
+    Canvas(attrs) {
+        DisposableEffect(text) {
             if (!text.isNullOrBlank()) {
-                QRCode.toCanvas(canvas, text)
+                QRCode.toCanvas(scopeElement, text)
             }
+            onDispose {  }
         }
     }
 }
