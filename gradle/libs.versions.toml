@@ -24,7 +24,7 @@ jaffree = "2021.12.30"
 logback = "1.2.10"
 shadowjar = "7.1.2"
 
-zxing = "3.3.0"
+zxing = "3.4.1"
 anr_watchdog = "1.4.0"
 compose = "1.1.1"
 composeCompiler = "1.1.0-rc02"
