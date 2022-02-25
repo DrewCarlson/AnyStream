@@ -6,7 +6,7 @@ ktorio = "2.0.0-beta-1"
 composejb = "1.0.1"
 kotlinjs_ext = "1.0.1-pre.306-kotlin-1.6.10"
 ksp = "1.6.10-1.0.4"
-atomicfu = "0.17.0"
+atomicfu = "0.17.1"
 kover = "0.5.0"
 datetime = "0.3.2"
 
@@ -21,7 +21,7 @@ jdbc_sqlite = "3.36.0.3"
 bouncy_castle = "1.70"
 tmdb = "1.12"
 jaffree = "2021.12.30"
-logback = "1.2.1"
+logback = "1.2.10"
 shadowjar = "7.1.2"
 
 zxing = "3.3.0"
@@ -30,12 +30,12 @@ compose = "1.1.1"
 composeCompiler = "1.1.0-rc02"
 exoplayer = "2.16.1"
 ax_runner = "1.4.0"
-agp = "7.1.0"
+agp = "7.1.2"
 leakcanary = "2.8.1"
 
 okhttp = "4.9.3"
 
-flipperVersion = "0.100.0"
+flipperVersion = "0.136.0"
 spotless = "6.3.0"
 ktlint = "0.43.2"
 
@@ -134,7 +134,7 @@ logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 tmdbapi = { module = "com.github.holgerbrandl:themoviedbapi", version.ref = "tmdb" }
 
 androidx-core-ktx = { module = "androidx.core:core-ktx", version = "1.7.0" }
-androidx-appcompat-core = { module = "androidx.appcompat:appcompat", version = "1.4.0" }
+androidx-appcompat-core = { module = "androidx.appcompat:appcompat", version = "1.4.1" }
 androidx-leanback-core = { module = "androidx.leanback:leanback", version = "1.1.0-rc02" }
 androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version = "1.4.0" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version = "1.4.0" }
@@ -144,12 +144,12 @@ androidx-test-runner = { module = "androidx.test:runner", version.ref = "ax_runn
 coil = { module = "io.coil-kt:coil-compose", version = "1.4.0" }
 routingCompose = { module = "app.softwork:routing-compose", version = "0.1.8" }
 
-quickie-bundled = { module = "io.github.g00fy2.quickie:quickie-bundled", version = "1.2.3" }
+quickie-bundled = { module = "io.github.g00fy2.quickie:quickie-bundled", version = "1.4.0" }
 
 # flipper
 flipper = { module = "com.facebook.flipper:flipper", version.ref = "flipperVersion" }
 flipperNetwork = { module = "com.facebook.flipper:flipper-network-plugin", version.ref = "flipperVersion" }
-flipperSo = { module = "com.facebook.soloader:soloader", version = "0.10.1" }
+flipperSo = { module = "com.facebook.soloader:soloader", version = "0.10.3" }
 
 leakcanary = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
 
