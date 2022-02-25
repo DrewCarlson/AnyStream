@@ -47,7 +47,7 @@ fun QRCodeImage(
             if (!text.isNullOrBlank()) {
                 QRCode.toCanvas(scopeElement, text)
             }
-            onDispose {  }
+            onDispose { }
         }
     }
 }
