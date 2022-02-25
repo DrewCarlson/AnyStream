@@ -24,7 +24,6 @@ import anystream.db.mappers.registerMappers
 import anystream.models.*
 import anystream.models.api.*
 import kotlinx.coroutines.runBlocking
-import org.bouncycastle.asn1.cmc.CMCStatus.success
 import org.jdbi.v3.core.Handle
 import org.jdbi.v3.core.Jdbi
 import org.jdbi.v3.core.kotlin.KotlinPlugin
