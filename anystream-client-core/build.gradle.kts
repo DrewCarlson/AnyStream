@@ -73,7 +73,7 @@ kotlin {
             }
         }
         val commonMain by getting {
-            kotlin.srcDir("build/generated/ksp/$name/kotlin")
+            kotlin.srcDir("build/generated/ksp/metadata/$name/kotlin")
             dependencies {
                 api(projects.anystreamDataModels)
                 api(projects.anystreamClientApi)
