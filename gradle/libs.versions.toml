@@ -22,7 +22,7 @@ bouncy_castle = "1.67"
 tmdb = "1.12"
 jaffree = "2021.12.30"
 logback = "1.2.1"
-shadowjar = "7.1.0"
+shadowjar = "7.1.2"
 
 zxing = "3.3.0"
 anr_watchdog = "1.4.0"
