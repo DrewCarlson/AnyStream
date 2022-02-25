@@ -108,7 +108,7 @@ jobs:
         with:
           submodules: 'recursive'
 
-      - uses: actions/setup-java@v2
+      - uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
           java-version: 11
@@ -152,7 +152,7 @@ jobs:
         with:
           submodules: 'recursive'
 
-      - uses: actions/setup-java@v2
+      - uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
           java-version: 11
@@ -193,7 +193,7 @@ jobs:
         with:
           submodules: 'recursive'
 
-      - uses: actions/setup-java@v2
+      - uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
           java-version: 11
@@ -240,7 +240,7 @@ jobs:
         with:
           submodules: 'recursive'
 
-      - uses: actions/setup-java@v2
+      - uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
           java-version: 11
@@ -279,7 +279,7 @@ jobs:
         with:
           submodules: 'recursive'
 
-      - uses: actions/setup-java@v2
+      - uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
           java-version: 11
