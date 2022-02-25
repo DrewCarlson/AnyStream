@@ -1,5 +1,9 @@
 {
   "extends": [
     "config:base"
+  ],
+  "ignoreDeps": [
+    "mcr.microsoft.com/java/jdk",
+    "mcr.microsoft.com/java/jre"
   ]
 }
