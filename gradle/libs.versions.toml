@@ -138,7 +138,7 @@ androidx-appcompat-core = { module = "androidx.appcompat:appcompat", version = "
 androidx-leanback-core = { module = "androidx.leanback:leanback", version = "1.1.0-rc02" }
 androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version = "1.4.0" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version = "1.4.0" }
-androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version = "2.4.0" }
+androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version = "2.4.1" }
 androidx-test-runner = { module = "androidx.test:runner", version.ref = "ax_runner" }
 
 coil = { module = "io.coil-kt:coil-compose", version = "1.4.0" }
