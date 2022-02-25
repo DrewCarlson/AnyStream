@@ -18,7 +18,7 @@ ktor_perm = "0.2.0"
 jdbi = "3.27.2"
 jdbc_sqlite = "3.36.0.3"
 
-bouncy_castle = "1.67"
+bouncy_castle = "1.70"
 tmdb = "1.12"
 jaffree = "2021.12.30"
 logback = "1.2.1"
