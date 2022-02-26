@@ -42,7 +42,7 @@ jobs:
           files: |
             gradle/libs.versions.toml
             gradle/kotlin-js-store/**
-            **/anystream-client-core/**/*Main/**
+            **/anystream-client-core/**/**Main/**
             **/anystream-data-models/**
       - name: Get changed files
         id: data-models
