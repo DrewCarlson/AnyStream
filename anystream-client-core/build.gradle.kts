@@ -6,6 +6,8 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
+apply(plugin = "kotlinx-atomicfu")
+
 if (hasAndroidSdk) {
     apply(plugin = "com.android.library")
     configure<LibraryExtension> {
@@ -51,7 +53,6 @@ kotlin {
             framework {
                 baseName = "AnyStreamCore"
                 export(projects.anystreamDataModels)
-                export(projects.anystreamClientApi)
                 export(libs.mobiuskt.core)
                 export(libs.mobiuskt.coroutines)
 
@@ -75,15 +76,22 @@ kotlin {
         val commonMain by getting {
             kotlin.srcDir("build/generated/ksp/metadata/$name/kotlin")
             dependencies {
-                api(projects.anystreamDataModels)
-                api(projects.anystreamClientApi)
+                implementation(projects.anystreamDataModels)
+                implementation(libs.atomicfu)
+                implementation(libs.coroutines.core)
+                implementation(libs.serialization.core)
+                implementation(libs.serialization.json)
+
+                implementation(libs.ktor.client.core)
+                implementation(libs.ktor.client.contentNegotiation)
+                implementation(libs.ktor.client.websockets)
+                implementation(libs.ktor.serialization)
+
                 api(libs.coroutines.core)
                 api(libs.mobiuskt.core)
                 api(libs.mobiuskt.extras)
                 api(libs.mobiuskt.coroutines)
                 implementation(libs.mobiuskt.updateSpec.api)
-                implementation(libs.serialization.core)
-                implementation(libs.serialization.json)
 
                 api(libs.ktor.client.core)
                 api(libs.ktor.client.websockets)
@@ -102,6 +110,7 @@ kotlin {
             val androidMain by getting {
                 dependencies {
                     implementation(libs.androidx.core.ktx)
+                    implementation(libs.ktor.client.okhttp)
                 }
             }
 
@@ -128,6 +137,9 @@ kotlin {
 
         val iosMain by creating {
             dependsOn(commonMain)
+            dependencies {
+                implementation(libs.ktor.client.darwin)
+            }
         }
 
         val iosTest by creating {

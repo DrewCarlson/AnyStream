@@ -31,7 +31,6 @@ jobs:
             gradle/libs.versions.toml
             gradle/kotlin-js-store/**
             **/anystream-client-android/**
-            **/anystream-client-api/**
             **/anystream-client-core/**/*Main/**
             **/anystream-data-models/**
       - name: Get changed files
@@ -41,7 +40,6 @@ jobs:
           files: |
             gradle/libs.versions.toml
             gradle/kotlin-js-store/**
-            **/anystream-client-api/**
             **/anystream-client-core/**/*Main/**
             **/anystream-data-models/**
       - name: Get changed files
@@ -51,7 +49,6 @@ jobs:
           files: |
             gradle/libs.versions.toml
             gradle/kotlin-js-store/**
-            **/anystream-client-api/**
             **/anystream-data-models/**
       - name: Get changed files
         id: data-models
@@ -78,7 +75,6 @@ jobs:
             gradle/libs.versions.toml
             gradle/kotlin-js-store/**
             **/anystream-client-ios/**
-            **/anystream-client-api/**
             **/anystream-client-core/**/*Main/**
             **/anystream-data-models/**
       - name: Get changed files
@@ -89,7 +85,6 @@ jobs:
             gradle/libs.versions.toml
             gradle/kotlin-js-store/**
             **/anystream-client-web/**
-            **/anystream-client-api/**
             **/anystream-client-core/**/*Main/**
             **/anystream-data-models/**
 
@@ -119,33 +114,6 @@ jobs:
         name: Spotless Check
         with:
           arguments: anystream-client-android:spotlessCheck
-
-  client-api:
-    runs-on: ubuntu-latest
-    needs: [ file-changes ]
-    if: needs.file-changes.outputs.client-api == 'true' || github.ref_name == 'main'
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: 'recursive'
-
-      - uses: actions/setup-java@v3
-        with:
-          distribution: 'zulu'
-          java-version: 11
-
-      - name: Cache Build files
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.konan
-            ~/.gradle
-          key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
-
-      - uses: gradle/gradle-build-action@v2
-        name: Spotless Check
-        with:
-          arguments: anystream-client-api:spotlessCheck
 
   client-core:
     runs-on: ubuntu-latest

@@ -28,7 +28,6 @@ jobs:
             gradle/kotlin-js-store/**
             **/*.kt
             **/*.kts
-            **/anystream-client-api/**
             **/anystream-client-web/**
             **/anystream-data-models/**
             **/anystream-data-core/**
