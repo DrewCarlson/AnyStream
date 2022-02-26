@@ -76,7 +76,7 @@ kotlin {
         val commonMain by getting {
             kotlin.srcDir("build/generated/ksp/metadata/$name/kotlin")
             dependencies {
-                implementation(projects.anystreamDataModels)
+                api(projects.anystreamDataModels)
                 implementation(libs.atomicfu)
                 implementation(libs.coroutines.core)
                 implementation(libs.serialization.core)
