@@ -27,71 +27,47 @@ jobs:
         uses: tj-actions/changed-files@v17
         with:
           files: |
-            build.gradle.kts
-            gradle/libs.versions.toml
-            gradle/kotlin-js-store/**
-            **/anystream-client-android/**
-            **/anystream-client-api/**
-            **/anystream-client-core/**/*Main/**
-            **/anystream-data-models/**
+            **/anystream-client-android/**/*.kt
+            **/anystream-client-android/**/*.kts
       - name: Get changed files
         id: client-core
         uses: tj-actions/changed-files@v17
         with:
           files: |
-            gradle/libs.versions.toml
-            gradle/kotlin-js-store/**
-            **/anystream-client-api/**
-            **/anystream-client-core/**/*Main/**
-            **/anystream-data-models/**
-      - name: Get changed files
-        id: client-api
-        uses: tj-actions/changed-files@v17
-        with:
-          files: |
-            gradle/libs.versions.toml
-            gradle/kotlin-js-store/**
-            **/anystream-client-api/**
-            **/anystream-data-models/**
+            **/anystream-client-core/**/*.kt
+            **/anystream-client-core/**/*.kts
       - name: Get changed files
         id: data-models
         uses: tj-actions/changed-files@v17
         with:
           files: |
             gradle/libs.versions.toml
-            gradle/kotlin-js-store/**
-            **/anystream-data-models/**
+            **/anystream-data-models/**/*.kt
+            **/anystream-data-models/**/*.kts
       - name: Get changed files
         id: server
         uses: tj-actions/changed-files@v17
         with:
           files: |
             gradle/libs.versions.toml
-            gradle/kotlin-js-store/**
-            **/anystream-data-models/**
-            **/anystream-server/**
+            **/anystream-server/**/*.kt
+            **/anystream-server/**/*.kts
       - name: Get changed files
         id: ios
         uses: tj-actions/changed-files@v17
         with:
           files: |
             gradle/libs.versions.toml
-            gradle/kotlin-js-store/**
-            **/anystream-client-ios/**
-            **/anystream-client-api/**
-            **/anystream-client-core/**/*Main/**
-            **/anystream-data-models/**
+            **/anystream-client-ios/**/*.kt
+            **/anystream-client-ios/**/*.kts
       - name: Get changed files
         id: web
         uses: tj-actions/changed-files@v17
         with:
           files: |
             gradle/libs.versions.toml
-            gradle/kotlin-js-store/**
-            **/anystream-client-web/**
-            **/anystream-client-api/**
-            **/anystream-client-core/**/*Main/**
-            **/anystream-data-models/**
+            **/anystream-client-web/**/*.kt
+            **/anystream-client-web/**/*.kts
 
   client-android:
     runs-on: ubuntu-latest
@@ -119,33 +95,6 @@ jobs:
         name: Spotless Check
         with:
           arguments: anystream-client-android:spotlessCheck
-
-  client-api:
-    runs-on: ubuntu-latest
-    needs: [ file-changes ]
-    if: needs.file-changes.outputs.client-api == 'true' || github.ref_name == 'main'
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: 'recursive'
-
-      - uses: actions/setup-java@v3
-        with:
-          distribution: 'zulu'
-          java-version: 11
-
-      - name: Cache Build files
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.konan
-            ~/.gradle
-          key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
-
-      - uses: gradle/gradle-build-action@v2
-        name: Spotless Check
-        with:
-          arguments: anystream-client-api:spotlessCheck
 
   client-core:
     runs-on: ubuntu-latest

@@ -26,12 +26,10 @@ jobs:
             build.gradle.kts
             gradle/libs.versions.toml
             gradle/kotlin-js-store/**
-            **/*.kt
-            **/*.kts
-            **/anystream-client-api/**
             **/anystream-client-web/**
             **/anystream-data-models/**
             **/anystream-data-core/**
+            **/anystream-server/**
 
   build-and-push-image:
     runs-on: ubuntu-latest

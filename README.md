@@ -42,7 +42,6 @@
 - [anystream-server](anystream-server) &mdash; Web server for managing and streaming media built with [Ktor](https://github.com/ktorio/ktor)
 - [anystream-data-models](anystream-data-models) &mdash; Data models shared between the server and clients
 - [anystream-client-core](anystream-client-core) &mdash; Multiplatform infrastructure for AnyStream client applications built with [Mobius.kt](https://github.com/DrewCarlson/mobius.kt)
-- [anystream-client-api](anystream-client-api) &mdash; Multiplatform API client for interacting with the server built with [Ktor-client](https://github.com/ktorio/ktor)
 - [anystream-client-android](anystream-client-android) &mdash; Android client implementation built with [Jetpack Compose](https://developer.android.com/jetpack/compose)
 - [anystream-client-ios](anystream-client-ios) &mdash; iOS client implementation built with [SwiftUI](https://developer.apple.com/xcode/swiftui/)
 - [anystream-client-web](anystream-client-web) &mdash; Web client implementation built with [Jetbrains Compose](https://github.com/JetBrains/compose-jb/)
