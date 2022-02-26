@@ -31,9 +31,10 @@ jobs:
           files: |
             build.gradle.kts
             gradle/libs.versions.toml
-            gradle/kotlin-js-store/**
             **/anystream-client-android/**
-            **/anystream-client-core/**/*Main/**
+            **/anystream-client-core/src/commonMain/**
+            **/anystream-client-core/src/commonTest/**
+            **/anystream-client-core/src/androidMain/**
             **/anystream-data-models/**
       - name: Get changed files
         id: client-core
@@ -41,8 +42,7 @@ jobs:
         with:
           files: |
             gradle/libs.versions.toml
-            gradle/kotlin-js-store/**
-            **/anystream-client-core/**/**Main/**
+            **/anystream-client-core/**
             **/anystream-data-models/**
       - name: Get changed files
         id: data-models
@@ -50,7 +50,6 @@ jobs:
         with:
           files: |
             gradle/libs.versions.toml
-            gradle/kotlin-js-store/**
             **/anystream-data-models/**
       - name: Get changed files
         id: server
@@ -58,7 +57,6 @@ jobs:
         with:
           files: |
             gradle/libs.versions.toml
-            gradle/kotlin-js-store/**
             **/anystream-data-models/**
             **/anystream-server/**
       - name: Get changed files
@@ -67,9 +65,10 @@ jobs:
         with:
           files: |
             gradle/libs.versions.toml
-            gradle/kotlin-js-store/**
             **/anystream-client-ios/**
-            **/anystream-client-core/**/*Main/**
+            **/anystream-client-core/src/commonMain/**
+            **/anystream-client-core/src/commonTest/**
+            **/anystream-client-core/src/iosMain/**
             **/anystream-data-models/**
       - name: Get changed files
         id: web
@@ -79,7 +78,9 @@ jobs:
             gradle/libs.versions.toml
             gradle/kotlin-js-store/**
             **/anystream-client-web/**
-            **/anystream-client-core/**/*Main/**
+            **/anystream-client-core/src/commonMain/**
+            **/anystream-client-core/src/commonTest/**
+            **/anystream-client-core/src/androidMain/**
             **/anystream-data-models/**
 
   client-core-tests:
