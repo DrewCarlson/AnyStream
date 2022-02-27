@@ -226,16 +226,9 @@ class StreamService(
             onBufferOverflow = BufferOverflow.DROP_OLDEST
         )
         val segmentLength = 6
-        val requestedStartTime = (startAt - segmentLength)
-            .coerceAtLeast(0.0)
-            .seconds
-        val requestedStartSegment = (requestedStartTime.inWholeSeconds / segmentLength)
-            .toInt()
-            .coerceAtLeast(0)
-        val (segmentCount, lastSegmentDuration) = getSegmentCountAndFinalLength(
-            runtime,
-            segmentLength.seconds,
-        )
+        val requestedStartTime = (startAt - segmentLength).coerceAtLeast(0.0).seconds
+        val requestedStartSegment = (requestedStartTime.inWholeSeconds / segmentLength).toInt().coerceAtLeast(0)
+        val (segmentCount, lastSegmentDuration) = getSegmentCountAndFinalLength(runtime, segmentLength.seconds)
         val startSegment = if (transcodedSegments.contains(requestedStartSegment)) {
             var nextRequiredSegment = requestedStartSegment + 1
             while (transcodedSegments.contains(nextRequiredSegment)) {
@@ -284,7 +277,8 @@ class StreamService(
                 transcodeProgress.tryEmit(event)
             }
         }
-        val session = sessionMap[token]?.copy(
+        val lastSegmentIndex = segmentCount - 1
+        val startSession = sessionMap[token]?.copy(
             startSegment = startSegment,
             endSegment = startSegment,
             ffmpegCommand = command.toString(),
@@ -300,37 +294,35 @@ class StreamService(
             endSegment = startSegment,
             transcodedSegments = transcodedSegments,
         )
+        sessionMap[startSession.token] = startSession
         transcodeJobs[token] = scope.launch {
             transcodeProgress
-                .filter { event -> event.timeMillis > 0 }
                 .map { event ->
                     val progress = event.timeMillis.milliseconds
-                    if (progress == runtime) {
-                        segmentCount
-                    } else {
-                        (progress.inWholeSeconds / segmentLength).toInt()
-                    }
+                    ((startTime + progress).inWholeSeconds / segmentLength).toInt()
                 }
                 .distinctUntilChanged()
                 .onEach { completedSegment ->
-                    sessionMap[token]?.also { session ->
-                        // Progress events may span multiple segments
-                        val completedSegmentCount = completedSegment - session.endSegment
-                        val completedSegments = if (completedSegmentCount > 1) {
-                            // in that case, add all the missing segments
-                            List(completedSegmentCount) { completedSegment - it }
-                        } else {
-                            listOf(completedSegment)
-                        }.sorted()
-                        logger.debug("segment completed $completedSegments : $token")
-                        sessionMap[session.token] = session.copy(
-                            endSegment = completedSegment,
-                            transcodedSegments = (session.transcodedSegments + completedSegments).sorted(),
-                        ).also { sessionUpdates.tryEmit(it) }
-                        if (mutex.isLocked) {
-                            if (completedSegment >= session.startSegment + waitForSegments) {
-                                runCatching { mutex.unlock() }
-                            }
+                    val session = sessionMap[token] ?: return@onEach
+                    // Progress events may span multiple segments
+                    val completedSegmentCount = completedSegment - session.endSegment
+                    val completedSegments = if (completedSegmentCount > 1) {
+                        // in that case, add all the missing segments
+                        List(completedSegmentCount) { completedSegment - it }.sorted()
+                    } else {
+                        listOf(completedSegment)
+                    }
+                    logger.debug("segment completed ${completedSegments.last()} (${completedSegments.size}) of $lastSegmentIndex, session=$token")
+                    val newSession = session.copy(
+                        endSegment = completedSegment,
+                        transcodedSegments = session.transcodedSegments + completedSegments,
+                    )
+                    sessionMap[session.token] = newSession
+                    sessionUpdates.tryEmit(newSession)
+                    if (mutex.isLocked) {
+                        val targetSegmentIndex = (session.startSegment + waitForSegments).coerceAtMost(lastSegmentIndex)
+                        if (newSession.transcodedSegments.contains(targetSegmentIndex)) {
+                            runCatching { mutex.unlock() }
                         }
                     }
                 }
@@ -338,9 +330,8 @@ class StreamService(
             command.executeAwait()
         }
 
-        sessionMap[session.token] = session
         mutex.withLock { /* Wait here for progress unlock */ }
-        return session
+        return startSession
     }
 
     private suspend fun setSegmentTarget(token: String, segment: Int) {
@@ -353,10 +344,7 @@ class StreamService(
         val segmentTime = session.segmentLength * segment
         val runtime = session.runtime.seconds
         if (transcodeJobs[token]?.isActive == true) {
-            val (segmentCount, _) = getSegmentCountAndFinalLength(
-                runtime,
-                session.segmentLength.seconds,
-            )
+            val (segmentCount, _) = getSegmentCountAndFinalLength(runtime, session.segmentLength.seconds)
             val maxEndSegment = (session.endSegment + DEFAULT_WAIT_FOR_SEGMENTS * 2)
                 .coerceAtMost(segmentCount)
 
