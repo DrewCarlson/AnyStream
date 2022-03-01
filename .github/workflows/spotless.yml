@@ -18,7 +18,7 @@ jobs:
       web: ${{ steps.web.outputs.any_changed }}
       server: ${{ steps.server.outputs.any_changed }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: 'recursive'
           fetch-depth: 0
@@ -74,7 +74,7 @@ jobs:
     needs: [ file-changes ]
     if: needs.file-changes.outputs.android == 'true' || github.ref_name == 'main'
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: 'recursive'
 
@@ -101,7 +101,7 @@ jobs:
     needs: [ file-changes ]
     if: needs.file-changes.outputs.client-core == 'true' || github.ref_name == 'main'
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: 'recursive'
 
@@ -128,7 +128,7 @@ jobs:
     needs: [ file-changes ]
     if: needs.file-changes.outputs.web == 'true' || github.ref_name == 'main'
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: 'recursive'
 
@@ -155,7 +155,7 @@ jobs:
     needs: [ file-changes ]
     if: needs.file-changes.outputs.data-models == 'true' || github.ref_name == 'main'
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: 'recursive'
 
@@ -182,7 +182,7 @@ jobs:
     needs: [ file-changes ]
     if: needs.file-changes.outputs.server == 'true' || github.ref_name == 'main'
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: 'recursive'
 
