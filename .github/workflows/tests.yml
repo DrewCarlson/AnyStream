@@ -115,7 +115,7 @@ jobs:
           arguments: anystream-client-core:allTests anystream-client-core:koverXmlReport
 
       - name: Archive Reports
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: ${{ always() }}
         with:
           name: reports
@@ -159,7 +159,7 @@ jobs:
           script: ./gradlew connectedCheck
 
       - name: Archive Reports
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: ${{ always() }}
         with:
           name: reports
@@ -203,7 +203,7 @@ jobs:
           arguments: anystream-client-web:jsBrowserTest anystream-client-web:koverXmlReport
 
       - name: Archive Reports
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: ${{ always() }}
         with:
           name: reports
@@ -241,7 +241,7 @@ jobs:
           arguments: anystream-server:test anystream-server:koverXmlReport
 
       - name: Archive Reports
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: ${{ always() }}
         with:
           name: reports
