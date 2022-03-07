@@ -83,7 +83,7 @@ class StreamServiceQueriesJdbi(
         }
     }
 
-    override suspend fun fetchMediaRef(mediaRefId: String): MediaReference? {
+    override fun fetchMediaRef(mediaRefId: String): MediaReference? {
         return try {
             mediaRefDao.findByGid(mediaRefId)?.toMediaRefModel()
         } catch (e: JdbiException) {

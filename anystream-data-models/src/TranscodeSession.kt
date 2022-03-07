@@ -27,8 +27,23 @@ data class TranscodeSession(
     val outputPath: String,
     val ffmpegCommand: String,
     val runtime: Double,
+    val segmentCount: Int,
     val segmentLength: Int,
     val startSegment: Int,
     val endSegment: Int,
+    val startTime: Double,
+    val endTime: Double,
+    val lastTranscodedSegment: Int,
+    val state: State,
     val transcodedSegments: List<Int>,
-)
+) {
+    enum class State {
+        IDLE, RUNNING, COMPLETE
+    }
+
+    fun isSegmentComplete(segment: Int): Boolean {
+        return transcodedSegments.contains(segment)
+    }
+
+    fun isRunning(): Boolean = state == State.RUNNING
+}

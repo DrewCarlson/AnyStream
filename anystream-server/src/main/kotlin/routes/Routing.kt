@@ -103,7 +103,7 @@ fun Application.installRouting(dbHandle: Handle) {
 
     val transcodePath = environment.config.property("app.transcodePath").getString()
     val streamQueries = StreamServiceQueriesJdbi(usersDao, mediaDao, mediaReferencesDao, playbackStatesDao)
-    val streamService = StreamService(streamQueries, ffmpeg, ffprobe, transcodePath)
+    val streamService = StreamService(this, streamQueries, ffmpeg, ffprobe, transcodePath)
     val searchService = SearchService(log, searchableContentDao, mediaDao, mediaReferencesDao)
 
     routing {
