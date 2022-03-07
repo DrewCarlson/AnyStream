@@ -298,7 +298,7 @@ class StreamService(
 
         val command = ffmpeg().apply {
             addArguments("-f", "hls")
-            //addArguments("-movflags", "+faststart")
+            // addArguments("-movflags", "+faststart")
             addArguments("-preset", "veryfast")
             addArguments("-b:a", "128000")
             addArguments("-ac:a", "2")
@@ -325,7 +325,7 @@ class StreamService(
                 }
             )
             addOutput(
-                UrlOutput.toPath(File(outputDir, "${name}.m3u8").toPath()).apply {
+                UrlOutput.toPath(File(outputDir, "$name.m3u8").toPath()).apply {
                     setCodec(StreamType.VIDEO, "libx264")
                     setCodec(StreamType.AUDIO, "aac")
                 }
