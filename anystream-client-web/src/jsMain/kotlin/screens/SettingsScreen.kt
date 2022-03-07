@@ -163,7 +163,20 @@ private fun ActiveStreamsList(
                         width(300.px)
                     }
                 }) {
-                    Div { Text(mediaItem.contentTitle) }
+                    Div({
+                        classes("d-flex", "flex-row", "align-items-center", "justify-content-between")
+                    }) {
+                        Div { Text(mediaItem.contentTitle) }
+                        Div {
+                            I({
+                                classes("bi", "bi-filetype-json")
+                                onClick {
+                                    console.log("playbackState", playbackState)
+                                    console.log("transcoding", transcodeSessions[playbackState.id])
+                                }
+                            })
+                        }
+                    }
                     Div({
                         classes("overflow-hidden", "text-nowrap")
                         style {
