@@ -22,7 +22,7 @@ import org.jetbrains.compose.web.dom.ElementScope
 import org.w3c.dom.HTMLElement
 
 @Composable
-fun ElementScope<HTMLElement>.rememberDomElement(key: Any? = null): State<HTMLElement?> {
+fun <T : HTMLElement> ElementScope<T>.rememberDomElement(key: Any? = null): State<HTMLElement?> {
     val state = remember { mutableStateOf<HTMLElement?>(null) }
     DisposableEffect(key) {
         state.value = scopeElement
