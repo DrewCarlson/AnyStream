@@ -84,11 +84,11 @@ fun PlayerScreen(
         var initialState: PlaybackState? = null
         sessionHandle = client.playbackSession(mediaRefId) { state ->
             println("[player] $state")
-            value = state
             if (initialState == null) {
                 initialState = state
                 player?.currentTime(state.position)
             }
+            value = state
         }
         awaitDispose {
             sessionHandle?.cancel?.invoke()
