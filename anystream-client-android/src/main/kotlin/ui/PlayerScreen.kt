@@ -34,7 +34,7 @@ import anystream.client.AnyStreamClient
 import anystream.models.PlaybackState
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.ui.PlayerView
+import com.google.android.exoplayer2.ui.StyledPlayerView
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -118,7 +118,7 @@ fun PlayerScreen(
     }
 
     val playerView = remember {
-        PlayerView(context).apply {
+        StyledPlayerView(context).apply {
             lifecycle.addObserver(object : DefaultLifecycleObserver {
                 override fun onStart(owner: LifecycleOwner) {
                     super.onStart(owner)
