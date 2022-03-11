@@ -24,6 +24,7 @@ import anystream.models.Permission
 import anystream.routes.installRouting
 import anystream.util.SqlSessionStorage
 import anystream.util.WebsocketAuthorization
+import anystream.util.headerOrQuery
 import io.ktor.http.*
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.http.content.CachingOptions
@@ -143,9 +144,8 @@ fun Application.module(testing: Boolean = false) {
         }
     }
     install(Sessions) {
-        header<UserSession>(UserSession.KEY, sessionStorage) {
-            identity { Hex.toHexString(Random.nextBytes(48)) }
-            serializer = SqlSessionStorage.Serializer
+        headerOrQuery(UserSession.KEY, sessionStorage, SqlSessionStorage.Serializer) {
+            Hex.toHexString(Random.nextBytes(48))
         }
     }
     install(WebsocketAuthorization) {
