@@ -55,7 +55,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit.SECONDS
 import kotlin.time.times
 
-private const val DEFAULT_BUFFER_PERCENT = 0.01
+private const val DEFAULT_BUFFER_PERCENT = 0.1
 private const val DEFAULT_WAIT_FOR_SEGMENTS = 3
 private val DEFAULT_SEGMENT_DURATION = 6.seconds
 
