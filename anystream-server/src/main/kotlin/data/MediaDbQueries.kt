@@ -180,6 +180,9 @@ class MediaDbQueries(
     }
 
     fun findCurrentlyWatching(userId: Int, limit: Int): CurrentlyWatchingQueryResults {
+        // TODO: Limit is not correctly applied as playbackStates for different episodes
+        //  of the same tv show are returned by the query and filtered later.
+        //  The find query should select playbackStates with a unique root id.
         val playbackStates = playbackStatesDao.findByUserId(userId, limit)
             .map(PlaybackStateDb::toStateModel)
             .associateBy(PlaybackState::mediaId)
@@ -195,6 +198,8 @@ class MediaDbQueries(
 
         val episodes = mediaDao.findAllByGidsAndType(playbackMediaIds, MediaDb.Type.TV_EPISODE)
             .map(MediaDb::toTvEpisodeModel)
+            .sortedByDescending { playbackStates.getValue(it.id).updatedAt }
+            .distinctBy(Episode::showId)
 
         val tvShowIds = episodes.map(Episode::showId)
         val tvShows = if (tvShowIds.isNotEmpty()) {
