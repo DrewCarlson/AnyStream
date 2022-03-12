@@ -19,25 +19,26 @@ package anystream.frontend.screens
 
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
-import anystream.frontend.libs.VideoJs
-import anystream.frontend.libs.VjsOptions
-import anystream.frontend.libs.VjsPlayer
+import anystream.frontend.libs.*
 import anystream.frontend.models.MediaItem
 import anystream.frontend.models.toMediaItem
 import anystream.models.PlaybackState
+import anystream.util.formatProgressAndRuntime
+import anystream.util.formatted
 import app.softwork.routingcompose.BrowserRouter
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.transformLatest
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.I
 import org.jetbrains.compose.web.dom.Text
 import org.jetbrains.compose.web.dom.Video
-import org.w3c.dom.HTMLDivElement
-import org.w3c.dom.get
+import org.w3c.dom.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -711,6 +712,8 @@ private fun SeekBar(
 ) {
     var isThumbVisible by remember { mutableStateOf(false) }
     var isMouseDown by remember { mutableStateOf(false) }
+    var mouseHoverX by remember { mutableStateOf(0) }
+    var mouseHoverProgress by remember { mutableStateOf(Duration.ZERO) }
     Div({
         classes("w-100")
         style {
@@ -724,6 +727,11 @@ private fun SeekBar(
             player.currentTime(player.duration() * percent.toFloat())
         }
 
+        onMouseMove { event ->
+            val percent = event.offsetX / (event.target as HTMLDivElement).clientWidth
+            mouseHoverProgress = (player.duration() * percent).seconds
+            mouseHoverX = event.offsetX.toInt()
+        }
         onMouseEnter { isThumbVisible = true }
         onMouseLeave {
             isThumbVisible = false
@@ -781,32 +789,52 @@ private fun SeekBar(
                 }
             })
         }
-    }
-}
 
-fun formatProgressAndRuntime(progress: Duration, runtime: Duration): String {
-    fun Long.formatTime(): String = toString().padStart(2, '0')
-    return buildString {
-        val progressMinutes = progress.inWholeMinutes % 60
-        val runtimeMinutes = runtime.inWholeMinutes % 60
-        if (progress.inWholeHours >= 1) {
-            append(progress.inWholeHours)
-            append(':')
-            append(progressMinutes.formatTime())
-        } else {
-            append(progressMinutes)
+        var popperVirtualElement by remember {
+            mutableStateOf(popperFixedPosition(-100, -100))
         }
-        append(':')
-        append((progress.inWholeSeconds % 60).formatTime())
-        append(" / ")
-        if (runtime.inWholeHours >= 1) {
-            append(runtime.inWholeHours)
-            append(':')
-            append(runtimeMinutes.formatTime())
-        } else {
-            append(runtimeMinutes)
+        DisposableEffect(Unit) {
+            popperVirtualElement = object : PopperVirtualElement {
+                override val contextElement: HTMLElement = scopeElement
+                override fun getBoundingClientRect(): dynamic {
+                    return kotlinext.js.js @NoLiveLiterals {
+                        this.right = mouseHoverX
+                        this.left = mouseHoverX
+                        width = 0
+                        height = 0
+                    }
+                }
+            }
+            onDispose {
+                popperVirtualElement = popperFixedPosition(-100, -100)
+            }
         }
-        append(':')
-        append((runtime.inWholeSeconds % 60).formatTime())
+        PopperElement(
+            popperVirtualElement,
+            popperOptions(placement = "top"),
+            attrs = {
+                style { property("pointer-events", "none") }
+            }
+        ) { popper ->
+            LaunchedEffect(mouseHoverX) { popper.update() }
+            Div({
+                classes("px-2", "py-1")
+                style {
+                    backgroundColor(playerControlsColor)
+                    property("pointer-events", "none")
+                    property("transform", "translateY(-100%)")
+                    if (isThumbVisible) {
+                        property("z-index", 100)
+                        opacity(1)
+                    } else {
+                        property("z-index", -100)
+                        opacity(0)
+                    }
+                }
+            }) {
+                val timestamp by derivedStateOf { mouseHoverProgress.formatted() }
+                Text(timestamp)
+            }
+        }
     }
 }

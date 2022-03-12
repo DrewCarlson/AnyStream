@@ -128,14 +128,16 @@ class StreamService(
         if (create && !sessionMap.containsKey(newState.id)) {
             val (file, _) = fileAndContentId ?: return null
             val output = File("$transcodePath/${newState.id}/$mediaRefId")
+            val runtimeSeconds = newState.runtime.seconds
+            val positionSeconds = newState.position.seconds
             startTranscode(
                 token = newState.id,
                 name = mediaRefId,
                 mediaFile = file,
                 outputDir = output,
-                runtime = newState.runtime.seconds,
-                startAt = newState.position.seconds,
-                stopAt = newState.position.seconds + (newState.runtime.seconds * DEFAULT_BUFFER_PERCENT),
+                runtime = runtimeSeconds,
+                startAt = positionSeconds,
+                stopAt = positionSeconds + (runtimeSeconds * DEFAULT_BUFFER_PERCENT),
                 segmentDuration = DEFAULT_SEGMENT_DURATION,
                 waitForSegments = 1,
             )

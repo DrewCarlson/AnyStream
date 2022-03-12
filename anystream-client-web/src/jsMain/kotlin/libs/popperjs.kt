@@ -17,9 +17,7 @@
  */
 package anystream.frontend.libs
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.NoLiveLiterals
+import androidx.compose.runtime.*
 import kotlinext.js.js
 import org.jetbrains.compose.web.dom.AttrBuilderContext
 import org.jetbrains.compose.web.dom.Div
@@ -34,20 +32,23 @@ fun PopperElement(
     target: HTMLElement,
     popperOptions: PopperOptions? = null,
     attrs: AttrBuilderContext<HTMLDivElement>? = null,
-    body: @Composable ElementScope<HTMLDivElement>.() -> Unit,
+    body: @Composable ElementScope<HTMLDivElement>.(popper: PopperInstance) -> Unit,
 ) {
     Div(attrs = attrs) {
-        Div {
-            body()
-            DisposableEffect(target) {
-                val popper = if (popperOptions == null) {
-                    Popper.createPopper(target, scopeElement)
-                } else {
-                    Popper.createPopper(target, scopeElement, popperOptions)
-                }
-                onDispose { popper.destroy() }
+        var popper: PopperInstance? by remember { mutableStateOf(null) }
+        DisposableEffect(target) {
+            val newPopper = if (popperOptions == null) {
+                Popper.createPopper(target, scopeElement)
+            } else {
+                Popper.createPopper(target, scopeElement, popperOptions)
+            }
+            popper = newPopper
+            onDispose {
+                popper = null
+                newPopper.destroy()
             }
         }
+        popper?.let { body(it) }
     }
 }
 
@@ -56,20 +57,23 @@ fun PopperElement(
     virtualElement: PopperVirtualElement,
     popperOptions: PopperOptions? = null,
     attrs: AttrBuilderContext<HTMLDivElement>? = null,
-    body: @Composable ElementScope<HTMLDivElement>.() -> Unit,
+    body: @Composable ElementScope<HTMLDivElement>.(popper: PopperInstance) -> Unit,
 ) {
     Div(attrs = attrs) {
-        Div {
-            body()
-            DisposableEffect(virtualElement) {
-                val popper = if (popperOptions == null) {
-                    Popper.createPopper(virtualElement, scopeElement)
-                } else {
-                    Popper.createPopper(virtualElement, scopeElement, popperOptions)
-                }
-                onDispose { popper.destroy() }
+        var popper: PopperInstance? by remember { mutableStateOf(null) }
+        DisposableEffect(virtualElement) {
+            val newPopper = if (popperOptions == null) {
+                Popper.createPopper(virtualElement, scopeElement)
+            } else {
+                Popper.createPopper(virtualElement, scopeElement, popperOptions)
+            }
+            popper = newPopper
+            onDispose {
+                popper = null
+                newPopper.destroy()
             }
         }
+        popper?.let { body(it) }
     }
 }
 
@@ -118,6 +122,7 @@ external class PopperStateRects {
 
 external interface PopperVirtualElement {
     fun getBoundingClientRect(): dynamic
+    val contextElement: HTMLElement?
 }
 
 /**
@@ -125,6 +130,7 @@ external interface PopperVirtualElement {
  */
 fun popperFixedPosition(x: Int, y: Int): PopperVirtualElement {
     return object : PopperVirtualElement {
+        override val contextElement: HTMLElement? = null
         override fun getBoundingClientRect(): dynamic {
             return js @NoLiveLiterals {
                 width = 0
@@ -138,12 +144,19 @@ fun popperFixedPosition(x: Int, y: Int): PopperVirtualElement {
     }
 }
 
-data class PopperModifier(
+/*data class PopperModifier(
     var name: String,
     var options: dynamic,
-)
+)*/
 
-data class PopperOptions(
-    var placement: String = "auto",
-    val modifier: MutableList<PopperModifier> = mutableListOf(),
-)
+fun popperOptions(
+    placement: String = "auto",
+    // modifier: MutableList<PopperModifier> = mutableListOf(),
+): PopperOptions {
+    @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
+    return js @NoLiveLiterals {
+        this.placement = placement
+    } as PopperOptions
+}
+
+external interface PopperOptions
