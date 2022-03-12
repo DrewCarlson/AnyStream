@@ -159,6 +159,7 @@ class StreamService(
         }?.run(::File) ?: return null
 
         val runtime = getFileDuration(file).seconds
+        val segmentDuration = DEFAULT_SEGMENT_DURATION
         if (!sessionMap.containsKey(token)) {
             val output = File("$transcodePath/$mediaRefId/$token")
             startTranscode(
@@ -167,7 +168,7 @@ class StreamService(
                 mediaFile = file,
                 outputDir = output,
                 runtime = runtime,
-                segmentDuration = DEFAULT_SEGMENT_DURATION,
+                segmentDuration = segmentDuration,
                 waitForSegments = 0,
             )
         }
@@ -177,6 +178,7 @@ class StreamService(
             mediaFile = file,
             token = token,
             runtime = runtime,
+            segmentDuration = segmentDuration,
         )
     }
 
@@ -304,7 +306,7 @@ class StreamService(
             addArguments("-preset", "veryfast")
             addArguments("-b:a", "128000")
             addArguments("-ac:a", "2")
-            addArguments("-force_key_frames", "expr:gte(t,${startSeconds}+n_forced*${segmentSeconds})")
+            addArguments("-force_key_frames", "expr:gte(t,$startSeconds+n_forced*$segmentSeconds)")
             addArguments("-start_number", startSegment.toString())
             addArguments("-hls_flags", "temp_file+independent_segments")
             addArguments("-hls_time", segmentSeconds)
@@ -481,6 +483,7 @@ class StreamService(
         mediaFile: File,
         token: String,
         runtime: Duration,
+        segmentDuration: Duration,
     ): String {
         logger.debug("Creating variant playlist for $mediaFile")
 
@@ -488,20 +491,19 @@ class StreamService(
         val isHlsInFmp4 = segmentContainer.equals("mp4", ignoreCase = true)
         val hlsVersion = if (isHlsInFmp4) "7" else "3"
 
-        val segmentLength = 6.seconds
-        val (segmentCount, finalSegLength) = getSegmentCountAndFinalLength(runtime, segmentLength)
+        val (segmentCount, finalSegLength) = getSegmentCountAndFinalLength(runtime, segmentDuration)
 
         val segmentExtension = segmentContainer
         val queryString = "?token=$token"
 
-        logger.debug("Creating $segmentCount segments at $segmentLength, final length $finalSegLength")
+        logger.debug("Creating $segmentCount segments at $segmentDuration, final length $finalSegLength")
 
         return buildString(128) {
             appendLine("#EXTM3U")
             append("#EXT-X-VERSION:")
             appendLine(hlsVersion)
             append("#EXT-X-TARGETDURATION:")
-            appendLine(segmentLength.toDouble(SECONDS))
+            appendLine(segmentDuration.toDouble(SECONDS))
             appendLine("#EXT-X-MEDIA-SEQUENCE:0")
 
             if (isHlsInFmp4) {
@@ -516,7 +518,7 @@ class StreamService(
                 if (i == segmentCount - 1) {
                     append(segLenFormatter.format(finalSegLength.toDouble(SECONDS)))
                 } else {
-                    append(segLenFormatter.format(segmentLength.toDouble(SECONDS)))
+                    append(segLenFormatter.format(segmentDuration.toDouble(SECONDS)))
                 }
                 appendLine(", nodesc")
                 append(name)
