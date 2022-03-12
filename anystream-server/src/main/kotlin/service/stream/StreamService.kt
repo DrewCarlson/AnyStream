@@ -297,28 +297,28 @@ class StreamService(
         }
 
         val command = ffmpeg().apply {
+            val startSeconds = startTime.toDouble(SECONDS).toString()
+            val segmentSeconds = segmentDuration.toDouble(SECONDS).toString()
             addArguments("-f", "hls")
             // addArguments("-movflags", "+faststart")
             addArguments("-preset", "veryfast")
             addArguments("-b:a", "128000")
             addArguments("-ac:a", "2")
-            addArguments("-force_key_frames:v", "expr:gte(t,n_forced*2)")
-            addArguments("-flush_packets", "1")
+            addArguments("-force_key_frames", "expr:gte(t,${startSeconds}+n_forced*${segmentSeconds})")
             addArguments("-start_number", startSegment.toString())
-            addArguments("-hls_flags", "temp_file+split_by_time")
-            addArguments("-hls_time", segmentDuration.toDouble(SECONDS).toString())
-            addArguments("-hls_init_time", segmentDuration.toDouble(SECONDS).toString())
+            addArguments("-hls_flags", "temp_file+independent_segments")
+            addArguments("-hls_time", segmentSeconds)
             addArguments("-hls_playlist_type", "vod")
             addArguments("-hls_list_size", "0")
             addArguments("-hls_segment_type", "mpegts")
             addArguments("-hls_segment_filename", "${outputDir.absolutePath}/$name-%01d.ts")
             addArguments("-avoid_negative_ts", "0")
-            addArguments("-individual_header_trailer", "0")
-            addArgument("-start_at_zero")
+            addArguments("-vsync", "-1")
             addArgument("-copyts")
+            addArgument("-start_at_zero")
             addInput(
                 UrlInput.fromPath(mediaFile.toPath()).apply {
-                    addArguments("-ss", startTime.toDouble(SECONDS).toString())
+                    addArguments("-ss", startSeconds)
                     if (endTime != null) {
                         addArguments("-to", endTime.toDouble(SECONDS).toString())
                     }
