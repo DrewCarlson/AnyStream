@@ -21,6 +21,7 @@ import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
 import anystream.frontend.components.SearchResultsList
 import anystream.frontend.libs.PopperElement
+import anystream.frontend.libs.popperOptions
 import anystream.frontend.util.ExternalClickMask
 import anystream.frontend.util.rememberDomElement
 import anystream.models.Permission
@@ -262,6 +263,7 @@ private fun SearchResultPopper(
     var globalClickHandler by remember { mutableStateOf<ExternalClickMask?>(null) }
     PopperElement(
         formRef,
+        popperOptions(placement = "bottom"),
         attrs = {
             style {
                 property("z-index", 100)
