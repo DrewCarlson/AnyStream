@@ -48,7 +48,10 @@ fun PopperElement(
                 newPopper.destroy()
             }
         }
-        popper?.let { body(it) }
+        popper?.let {
+            body(it)
+            LaunchedEffect(Unit) { it.update() }
+        }
     }
 }
 
@@ -73,7 +76,10 @@ fun PopperElement(
                 newPopper.destroy()
             }
         }
-        popper?.let { body(it) }
+        popper?.let {
+            body(it)
+            LaunchedEffect(Unit) { it.update() }
+        }
     }
 }
 
