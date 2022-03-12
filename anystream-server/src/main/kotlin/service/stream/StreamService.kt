@@ -245,7 +245,7 @@ class StreamService(
 
         val (segmentCount, lastSegmentDuration) = getSegmentCountAndFinalLength(runtime, segmentDuration)
         val transcodedSegments = findExistingSegments(outputDir, name)
-        val requestedStartTime = startAt.coerceIn(0.0.seconds, (runtime - segmentDuration))
+        val requestedStartTime = startAt.coerceIn(ZERO, (runtime - segmentDuration))
         val requestedStartSegment = floor(requestedStartTime / segmentDuration).toInt().coerceAtLeast(0)
         val lastSegmentIndex = segmentCount - 1
         val startSegment = if (transcodedSegments.contains(requestedStartSegment)) {
@@ -322,6 +322,7 @@ class StreamService(
             addArgument("-start_at_zero")
             addInput(
                 UrlInput.fromPath(mediaFile.toPath()).apply {
+                    addArgument("-noaccurate_seek")
                     addArguments("-ss", startSeconds)
                     if (endTime != null) {
                         addArguments("-to", endTime.toDouble(SECONDS).toString())
