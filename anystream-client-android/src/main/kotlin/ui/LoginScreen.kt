@@ -17,6 +17,8 @@
  */
 package anystream.android.ui
 
+import android.app.UiModeManager
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -34,11 +36,13 @@ import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalAutofill
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.core.content.getSystemService
 import anystream.android.AppTopBar
 import anystream.android.AppTypography
 import anystream.android.router.AndroidRouter
@@ -58,8 +62,14 @@ fun LoginScreen(
     router: AndroidRouter,
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
+    val supportsPairing = remember {
+        context.getSystemService<UiModeManager>()
+            ?.run { currentModeType == Configuration.UI_MODE_TYPE_TELEVISION }
+            ?: false
+    }
     val (modelState, eventConsumer) = createLoopController(
-        LoginScreenModel.create(),
+        LoginScreenModel.create(supportsPairing = supportsPairing),
         LoginScreenInit
     ) {
         FlowMobius.loop(
