@@ -20,7 +20,7 @@ jobs:
           fetch-depth: 0
       - name: Get changed files
         id: check
-        uses: tj-actions/changed-files@v17
+        uses: tj-actions/changed-files@v18
         with:
           files: |
             build.gradle.kts
