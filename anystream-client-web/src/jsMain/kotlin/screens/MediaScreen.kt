@@ -19,16 +19,22 @@ package anystream.frontend.screens
 
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
-import anystream.frontend.components.*
+import anystream.frontend.components.FullSizeCenteredLoader
+import anystream.frontend.components.LinkedText
+import anystream.frontend.components.PosterCard
 import anystream.frontend.libs.PopperElement
+import anystream.frontend.libs.popperOptions
 import anystream.frontend.models.MediaItem
 import anystream.frontend.models.toMediaItem
 import anystream.frontend.util.ExternalClickMask
 import anystream.models.*
-import anystream.models.api.*
+import anystream.models.api.MediaLookupResponse
 import app.softwork.routingcompose.BrowserRouter
 import kotlinx.browser.window
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.update
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 import org.w3c.dom.HTMLElement
@@ -321,7 +327,6 @@ private fun EncodingDetailsItem(
                 onClick { event ->
                     event.stopImmediatePropagation()
                     isListVisible = !isListVisible
-                    if (isListVisible) menuClickMask.value?.attachListener()
                 }
                 style {
                     if (items.size > 1) {
@@ -352,7 +357,10 @@ private fun EncodingDetailsItem(
                     element = element,
                     isVisible = isListVisible,
                     closeMenu = { isListVisible = false },
-                    setSelectedItem = { selectedItem.value = it },
+                    setSelectedItem = {
+                        selectedItem.value = it
+                        isListVisible = false
+                    },
                     menuClickMask = menuClickMask,
                     items = (items - selectedItem.value).filterNotNull(),
                     value = value,
@@ -372,45 +380,39 @@ private fun StreamSelectionMenu(
     items: List<StreamEncodingDetails>,
     value: @Composable (stream: StreamEncodingDetails) -> Unit,
 ) {
-    PopperElement(
-        element,
-        attrs = {
-            style {
-                if (isVisible) {
-                    property("z-index", 100)
-                } else {
-                    property("z-index", -100)
-                    opacity(0)
-                    property("pointer-events", "none")
+    if (isVisible) {
+        PopperElement(
+            element,
+            popperOptions("bottom"),
+            attrs = { style { property("z-index", 100) } }
+        ) { popper ->
+            Div({
+                classes("d-flex", "flex-column", "p-2", "rounded")
+                style {
+                    gap(8.px)
+                    backgroundColor(rgb(35, 36, 38))
                 }
-            }
-        }
-    ) {
-        Div({
-            classes("d-flex", "flex-column", "p-2", "rounded")
-            style {
-                gap(8.px)
-                backgroundColor(rgb(35, 36, 38))
-            }
-        }) {
-            DisposableEffect(Unit) {
-                menuClickMask.value = ExternalClickMask(scopeElement) { remove ->
-                    closeMenu()
-                    remove()
-                }
-                onDispose {
-                    menuClickMask.value?.dispose()
-                    menuClickMask.value = null
-                }
-            }
-            items.forEach { stream ->
-                Div({
-                    onClick { setSelectedItem(stream) }
-                    style {
-                        cursor("pointer")
+            }) {
+                DisposableEffect(isVisible) {
+                    popper.update()
+                    menuClickMask.value = ExternalClickMask(scopeElement) { remove ->
+                        closeMenu()
+                        remove()
+                    }.apply { attachListener() }
+                    onDispose {
+                        menuClickMask.value?.dispose()
+                        menuClickMask.value = null
                     }
-                }) {
-                    value(stream)
+                }
+                items.forEach { stream ->
+                    Div({
+                        onClick { setSelectedItem(stream) }
+                        style {
+                            cursor("pointer")
+                        }
+                    }) {
+                        value(stream)
+                    }
                 }
             }
         }
