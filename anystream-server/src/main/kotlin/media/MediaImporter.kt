@@ -207,7 +207,7 @@ class MediaImporter(
             setShowStreams(true)
                 .setShowFormat(true)
                 .setSelectStreams(streamType)
-                .setShowEntries("stream=index:stream_tags=language,title")
+                .setShowEntries("stream=index:stream_tags=language,LANGUAGE,title")
                 .setInput(filePath)
                 .execute()
                 .streams
@@ -216,7 +216,7 @@ class MediaImporter(
     }
 
     private fun Stream.toStreamEncodingDetails(): StreamEncodingDetails? {
-        val language = getTag("language")
+        val language = getTag("language") ?: getTag("LANGUAGE")
         val rawData = buildJsonObject {
             put("id", id)
             put("index", index)
