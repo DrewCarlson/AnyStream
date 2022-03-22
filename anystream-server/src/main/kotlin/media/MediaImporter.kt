@@ -216,6 +216,7 @@ class MediaImporter(
     }
 
     private fun Stream.toStreamEncodingDetails(): StreamEncodingDetails? {
+        val title = getTag("title")
         val language = getTag("language") ?: getTag("LANGUAGE")
         val rawData = buildJsonObject {
             put("id", id)
@@ -238,6 +239,7 @@ class MediaImporter(
             put("durationTs", durationTs)
             put("fieldOrder", fieldOrder)
             put("language", language)
+            put("title", language)
         }
         val rawDataString = Json.encodeToString(rawData)
         return when (codecType) {
@@ -253,6 +255,7 @@ class MediaImporter(
                 width = width,
                 language = language,
                 rawProbeData = rawDataString,
+                title = title,
             )
             StreamType.AUDIO -> StreamEncodingDetails.Audio(
                 id = -1,
@@ -263,6 +266,7 @@ class MediaImporter(
                 channels = channels,
                 language = language,
                 rawProbeData = rawDataString,
+                title = title,
             )
             StreamType.SUBTITLE -> StreamEncodingDetails.Subtitle(
                 id = -1,
@@ -270,6 +274,7 @@ class MediaImporter(
                 codecName = codecName,
                 language = language,
                 rawProbeData = rawDataString,
+                title = title,
             )
             StreamType.DATA,
             StreamType.ATTACHMENT,

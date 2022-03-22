@@ -32,6 +32,7 @@ data class StreamEncodingDetailsDb(
     val height: Int?,
     val width: Int?,
     val type: Type,
+    val title: String?,
 ) {
     enum class Type {
         AUDIO, VIDEO, SUBTITLE
@@ -48,6 +49,7 @@ data class StreamEncodingDetailsDb(
                 profile = profile,
                 bitRate = bitRate,
                 channels = checkNotNull(channels),
+                title = title,
             )
             Type.VIDEO -> StreamEncodingDetails.Video(
                 id = id,
@@ -60,6 +62,7 @@ data class StreamEncodingDetailsDb(
                 level = checkNotNull(level),
                 height = checkNotNull(height),
                 width = checkNotNull(width),
+                title = title,
             )
             Type.SUBTITLE -> StreamEncodingDetails.Subtitle(
                 id = id,
@@ -67,6 +70,7 @@ data class StreamEncodingDetailsDb(
                 rawProbeData = rawProbeData,
                 index = index,
                 language = language,
+                title = title,
             )
         }
     }
@@ -93,7 +97,8 @@ data class StreamEncodingDetailsDb(
                 video?.level,
                 video?.height,
                 video?.height,
-                type
+                type,
+                stream.title
             )
         }
     }

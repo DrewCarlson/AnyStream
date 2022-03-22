@@ -11,5 +11,6 @@ CREATE TABLE IF NOT EXISTS streamEncoding
     level        INTEGER,
     height       INTEGER,
     width        INTEGER,
-    type         INTEGER
+    type         INTEGER,
+    title        TEXT
 );

@@ -26,6 +26,7 @@ sealed class StreamEncodingDetails {
     abstract val rawProbeData: String
     abstract val index: Int
     abstract val language: String?
+    abstract val title: String?
 
     @Serializable
     data class Audio(
@@ -34,6 +35,7 @@ sealed class StreamEncodingDetails {
         override val codecName: String,
         override val rawProbeData: String,
         override val language: String?,
+        override val title: String?,
         val profile: String?,
         val bitRate: Int?,
         val channels: Int,
@@ -46,6 +48,7 @@ sealed class StreamEncodingDetails {
         override val codecName: String,
         override val rawProbeData: String,
         override val language: String?,
+        override val title: String?,
         val profile: String?,
         val bitRate: Int?,
         val level: Int,
@@ -60,6 +63,7 @@ sealed class StreamEncodingDetails {
         override val codecName: String,
         override val rawProbeData: String,
         override val language: String?,
+        override val title: String?,
     ) : StreamEncodingDetails()
 
     val languageName: String

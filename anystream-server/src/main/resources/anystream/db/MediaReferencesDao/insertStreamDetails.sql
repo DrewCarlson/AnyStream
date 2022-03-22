@@ -9,7 +9,8 @@ INSERT INTO streamEncoding(id,
                            level,
                            height,
                            width,
-                           type)
+                           type,
+                           title)
 VALUES (NULL,
         :stream.codecName,
         :stream.rawProbeData,
@@ -21,4 +22,5 @@ VALUES (NULL,
         :stream.level,
         :stream.height,
         :stream.width,
-        :stream.type)
+        :stream.type,
+        :stream.title)
