@@ -19,6 +19,7 @@ package anystream.frontend.screens
 
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
+import anystream.frontend.LocalAnyStreamClient
 import anystream.frontend.components.*
 import anystream.models.MediaReference
 import anystream.models.Movie
@@ -28,7 +29,8 @@ import kotlinx.browser.window
 import org.jetbrains.compose.web.dom.Text
 
 @Composable
-fun MoviesScreen(client: AnyStreamClient) {
+fun MoviesScreen() {
+    val client = LocalAnyStreamClient.current
     val moviesResponse by produceState(MoviesResponse(emptyList(), emptyList())) {
         value = client.getMovies()
     }

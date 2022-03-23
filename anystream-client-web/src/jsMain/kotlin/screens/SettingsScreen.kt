@@ -18,7 +18,7 @@
 package anystream.frontend.screens
 
 import androidx.compose.runtime.*
-import anystream.client.AnyStreamClient
+import anystream.frontend.LocalAnyStreamClient
 import anystream.frontend.models.toMediaItem
 import anystream.models.MediaKind
 import anystream.models.api.ImportMedia
@@ -34,9 +34,7 @@ import org.jetbrains.compose.web.dom.*
 import kotlin.time.Duration.Companion.seconds
 
 @Composable
-fun SettingsScreen(
-    client: AnyStreamClient,
-) {
+fun SettingsScreen() {
     val scope = rememberCoroutineScope()
     Div({
         classes("d-flex", "flex-column", "p-2")
@@ -50,7 +48,7 @@ fun SettingsScreen(
             }
         }
         Div {
-            ImportMediaArea(client, scope)
+            ImportMediaArea(scope)
         }
         Div {
             H3 {
@@ -58,16 +56,14 @@ fun SettingsScreen(
             }
         }
         Div {
-            ActiveStreamsList(client)
+            ActiveStreamsList()
         }
     }
 }
 
 @Composable
-private fun ImportMediaArea(
-    client: AnyStreamClient,
-    scope: CoroutineScope,
-) {
+private fun ImportMediaArea(scope: CoroutineScope) {
+    val client = LocalAnyStreamClient.current
     Div({
         classes("col-4")
     }) {
@@ -130,9 +126,8 @@ private fun ImportMediaArea(
 }
 
 @Composable
-private fun ActiveStreamsList(
-    client: AnyStreamClient,
-) {
+private fun ActiveStreamsList() {
+    val client = LocalAnyStreamClient.current
     val sessionsResponse by produceState<PlaybackSessionsResponse?>(null) {
         while (true) {
             value = try {

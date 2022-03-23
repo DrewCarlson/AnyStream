@@ -18,7 +18,7 @@
 package anystream.frontend.screens
 
 import androidx.compose.runtime.*
-import anystream.client.AnyStreamClient
+import anystream.frontend.LocalAnyStreamClient
 import anystream.frontend.libs.*
 import anystream.frontend.util.ExternalClickMask
 import drewcarlson.qbittorrent.models.ConnectionStatus
@@ -36,7 +36,8 @@ import org.w3c.dom.HTMLElement
 import kotlin.math.roundToInt
 
 @Composable
-fun DownloadsScreen(client: AnyStreamClient) {
+fun DownloadsScreen() {
+    val client = LocalAnyStreamClient.current
     val globalInfoState = client.globalInfoChanges().collectAsState(null)
     val torrents = client.torrentListChanges()
         .debounce(2000)
@@ -74,7 +75,7 @@ fun DownloadsScreen(client: AnyStreamClient) {
                 Thead { TorrentHeader() }
                 Tbody {
                     torrents.value.forEach { torrent ->
-                        TorrentRow(client, torrent)
+                        TorrentRow(torrent)
                     }
                 }
             }
@@ -100,10 +101,8 @@ private fun TorrentHeader() {
 }
 
 @Composable
-private fun TorrentRow(
-    client: AnyStreamClient,
-    torrent: Torrent,
-) {
+private fun TorrentRow(torrent: Torrent) {
+    val client = LocalAnyStreamClient.current
     val menuScope = rememberCoroutineScope()
     var isMenuVisible by remember { mutableStateOf(false) }
     val rowElement = remember { mutableStateOf<HTMLElement?>(null) }
@@ -150,7 +149,7 @@ private fun TorrentRow(
                         }
                     }
                 ) {
-                    TorrentContextMenu(menuScope, client, torrent)
+                    TorrentContextMenu(menuScope, torrent)
                 }
             }
             Div({ classes("d-flex", "flex-row") }) {
@@ -180,9 +179,9 @@ private fun TorrentRow(
 @Composable
 private fun TorrentContextMenu(
     scope: CoroutineScope,
-    client: AnyStreamClient,
     torrent: Torrent,
 ) {
+    val client = LocalAnyStreamClient.current
     val isPaused = when (torrent.state) {
         Torrent.State.PAUSED_DL,
         Torrent.State.PAUSED_UP -> true

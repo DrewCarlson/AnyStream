@@ -19,17 +19,18 @@ package anystream.frontend.screens
 
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
+import anystream.frontend.LocalAnyStreamClient
 import anystream.frontend.components.FullSizeCenteredLoader
 import anystream.frontend.components.LinkedText
 import anystream.frontend.components.PosterCard
 import anystream.models.api.HomeResponse
 import app.softwork.routingcompose.BrowserRouter
 import kotlinx.browser.window
-import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 
 @Composable
-fun HomeScreen(client: AnyStreamClient) {
+fun HomeScreen() {
+    val client = LocalAnyStreamClient.current
     val homeResponse by produceState<HomeResponse?>(null) {
         value = client.getHomeData()
     }

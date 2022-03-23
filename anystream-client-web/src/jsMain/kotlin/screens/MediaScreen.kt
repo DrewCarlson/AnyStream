@@ -18,7 +18,7 @@
 package anystream.frontend.screens
 
 import androidx.compose.runtime.*
-import anystream.client.AnyStreamClient
+import anystream.frontend.LocalAnyStreamClient
 import anystream.frontend.components.FullSizeCenteredLoader
 import anystream.frontend.components.LinkedText
 import anystream.frontend.components.PosterCard
@@ -46,10 +46,8 @@ import kotlin.time.toDuration
 val backdropImageUrl = MutableStateFlow<String?>(null)
 
 @Composable
-fun MediaScreen(
-    client: AnyStreamClient,
-    mediaId: String,
-) {
+fun MediaScreen(mediaId: String) {
+    val client = LocalAnyStreamClient.current
     val lookupIdFlow = remember(mediaId) { MutableStateFlow<Int?>(null) }
     val refreshMetadata: () -> Unit = remember {
         { lookupIdFlow.update { (it ?: 0) + 1 } }
@@ -87,7 +85,6 @@ fun MediaScreen(
                         "https://image.tmdb.org/t/p/w1280/${mediaItem.backdropPath}"
                 },
                 refreshMetadata = refreshMetadata,
-                client = client,
             )
         }
 
@@ -95,7 +92,6 @@ fun MediaScreen(
             BaseDetailsView(
                 mediaItem = response.toMediaItem(),
                 refreshMetadata = refreshMetadata,
-                client = client,
             )
 
             if (response.seasons.isNotEmpty()) {
@@ -107,7 +103,6 @@ fun MediaScreen(
             BaseDetailsView(
                 mediaItem = response.toMediaItem(),
                 refreshMetadata = refreshMetadata,
-                client = client,
             )
 
             if (response.episodes.isNotEmpty()) {
@@ -122,7 +117,6 @@ fun MediaScreen(
             BaseDetailsView(
                 mediaItem = response.toMediaItem(),
                 refreshMetadata = refreshMetadata,
-                client = client,
             )
         }
     }
@@ -132,8 +126,8 @@ fun MediaScreen(
 private fun BaseDetailsView(
     mediaItem: MediaItem,
     refreshMetadata: () -> Unit,
-    client: AnyStreamClient,
 ) {
+    val client = LocalAnyStreamClient.current
     Div({ classes("d-flex", "flex-row") }) {
         Div({ classes("d-flex", "flex-column", "align-items-center", "flex-shrink-0") }) {
             PosterCard(

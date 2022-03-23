@@ -89,20 +89,17 @@ fun webApp() = renderComposable(rootElementId = "root") {
                 })
             }
 
-            Div { Navbar(client) }
-            ContentContainer(client)
+            Div { Navbar() }
+            ContentContainer()
 
-            hashValue?.run {
-                PlayerScreen(this)
-            }
+            hashValue?.run { PlayerScreen(this) }
         }
     }
 }
 
 @Composable
-private fun ContentContainer(
-    client: AnyStreamClient,
-) {
+private fun ContentContainer() {
+    val client = LocalAnyStreamClient.current
     Div({
         classes(
             "container-fluid",
@@ -135,33 +132,31 @@ private fun ContentContainer(
         }) {
             BrowserRouter("/") {
                 route("home") {
-                    noMatch { HomeScreen(client) }
+                    noMatch { HomeScreen() }
                 }
                 route("login") {
-                    noMatch { LoginScreen(client) }
+                    noMatch { LoginScreen() }
                 }
                 route("signup") {
-                    noMatch { SignupScreen(client) }
+                    noMatch { SignupScreen() }
                 }
                 route("movies") {
-                    noMatch { MoviesScreen(client) }
+                    noMatch { MoviesScreen() }
                 }
                 route("tv") {
-                    noMatch { TvShowScreen(client) }
+                    noMatch { TvShowScreen() }
                 }
                 route("downloads") {
-                    noMatch { DownloadsScreen(client) }
+                    noMatch { DownloadsScreen() }
                 }
                 route("usermanager") {
-                    noMatch { UserManagerScreen(client) }
+                    noMatch { UserManagerScreen() }
                 }
                 route("settings") {
-                    noMatch { SettingsScreen(client) }
+                    noMatch { SettingsScreen() }
                 }
                 route("media") {
-                    string { id ->
-                        MediaScreen(client, id)
-                    }
+                    string { id -> MediaScreen(id) }
                     noMatch { BrowserRouter.navigate("/home") }
                 }
                 noMatch {

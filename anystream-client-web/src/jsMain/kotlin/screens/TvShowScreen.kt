@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import anystream.client.AnyStreamClient
+import anystream.frontend.LocalAnyStreamClient
 import anystream.frontend.components.*
 import anystream.models.MediaReference
 import anystream.models.TvShow
@@ -30,7 +31,8 @@ import kotlinx.browser.window
 import org.jetbrains.compose.web.dom.Text
 
 @Composable
-fun TvShowScreen(client: AnyStreamClient) {
+fun TvShowScreen() {
+    val client = LocalAnyStreamClient.current
     val showResponse by produceState(TvShowsResponse(emptyList(), emptyList())) {
         value = client.getTvShows()
     }

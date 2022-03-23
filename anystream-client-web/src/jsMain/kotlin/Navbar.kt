@@ -18,7 +18,6 @@
 package anystream.frontend
 
 import androidx.compose.runtime.*
-import anystream.client.AnyStreamClient
 import anystream.frontend.components.SearchResultsList
 import anystream.frontend.libs.PopperElement
 import anystream.frontend.libs.popperOptions
@@ -45,7 +44,8 @@ private const val MENU_EXPANDED_KEY = "menu_expanded"
 val searchQuery = MutableStateFlow<String?>(null)
 
 @Composable
-fun Navbar(client: AnyStreamClient) {
+fun Navbar() {
+    val client = LocalAnyStreamClient.current
     val isAuthenticated = client.authenticated.collectAsState(client.isAuthenticated())
     Nav({
         classes(
@@ -69,8 +69,8 @@ fun Navbar(client: AnyStreamClient) {
             Div({ classes("collapse", "navbar-collapse") }) {
                 val permissionsState = client.permissions.collectAsState(null)
                 if (isAuthenticated.value) {
-                    SearchBar(client)
-                    SecondaryMenu(client, permissionsState.value ?: emptySet())
+                    SearchBar()
+                    SecondaryMenu(permissionsState.value ?: emptySet())
                 }
             }
         }
@@ -112,7 +112,8 @@ private fun NavLink(
 }
 
 @Composable
-private fun SecondaryMenu(client: AnyStreamClient, permissions: Set<Permission>) {
+private fun SecondaryMenu(permissions: Set<Permission>) {
+    val client = LocalAnyStreamClient.current
     val scope = rememberCoroutineScope()
     val authMutex = remember { Mutex() }
     Div({ classes("navbar-nav", "ms-auto") }) {
@@ -144,7 +145,8 @@ private fun SecondaryMenu(client: AnyStreamClient, permissions: Set<Permission>)
 }
 
 @Composable
-private fun SearchBar(client: AnyStreamClient) {
+private fun SearchBar() {
+    val client = LocalAnyStreamClient.current
     var focused by remember { mutableStateOf(false) }
     var elementValue by remember { mutableStateOf<String?>(null) }
     val inputRef = remember { mutableStateOf<HTMLInputElement?>(null) }

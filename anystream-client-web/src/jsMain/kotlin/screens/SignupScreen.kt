@@ -19,6 +19,7 @@ package anystream.frontend.screens
 
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
+import anystream.frontend.LocalAnyStreamClient
 import anystream.models.*
 import anystream.models.api.CreateUserResponse
 import app.softwork.routingcompose.BrowserRouter
@@ -33,7 +34,8 @@ import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 
 @Composable
-fun SignupScreen(client: AnyStreamClient) {
+fun SignupScreen() {
+    val client = LocalAnyStreamClient.current
     val authMutex = Mutex()
     val scope = rememberCoroutineScope()
     var username by remember { mutableStateOf("") }
