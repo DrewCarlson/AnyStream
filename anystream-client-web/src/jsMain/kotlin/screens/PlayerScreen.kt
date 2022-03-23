@@ -19,6 +19,7 @@ package anystream.frontend.screens
 
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
+import anystream.frontend.LocalAnyStreamClient
 import anystream.frontend.libs.*
 import anystream.frontend.models.MediaItem
 import anystream.frontend.models.toMediaItem
@@ -26,20 +27,21 @@ import anystream.models.PlaybackState
 import anystream.util.formatProgressAndRuntime
 import anystream.util.formatted
 import app.softwork.routingcompose.BrowserRouter
+import io.ktor.client.fetch.*
 import kotlinx.browser.document
 import kotlinx.browser.window
+import kotlinx.coroutines.await
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.transformLatest
 import org.jetbrains.compose.web.css.*
-import org.jetbrains.compose.web.dom.Div
-import org.jetbrains.compose.web.dom.I
-import org.jetbrains.compose.web.dom.Text
-import org.jetbrains.compose.web.dom.Video
-import org.w3c.dom.*
-import kotlin.time.Duration
+import org.jetbrains.compose.web.dom.*
+import org.w3c.dom.HTMLDivElement
+import org.w3c.dom.HTMLElement
+import org.w3c.dom.get
+import kotlin.time.Duration.Companion.ZERO
 import kotlin.time.Duration.Companion.seconds
 
 private val playerControlsColor = rgba(35, 36, 38, .45)
@@ -47,10 +49,8 @@ private val playerControlsColor = rgba(35, 36, 38, .45)
 private const val CONTROL_HIDE_DELAY = 2_750L
 
 @Composable
-fun PlayerScreen(
-    client: AnyStreamClient,
-    mediaRefId: String,
-) {
+fun PlayerScreen(mediaRefId: String) {
+    val client = LocalAnyStreamClient.current
     var player: VjsPlayer? by remember { mutableStateOf(null) }
     var playerIsPlaying by remember { mutableStateOf(false) }
     val isInMiniMode = remember { mutableStateOf(false) }
@@ -131,7 +131,7 @@ fun PlayerScreen(
                 }
             }) {
                 player?.also { player ->
-                    SeekBar(player, progressScale, bufferedProgress)
+                    SeekBar(player, mediaRefId, progressScale, bufferedProgress)
                 }
             }
         }
@@ -287,6 +287,7 @@ fun PlayerScreen(
             PlaybackControls(
                 areControlsVisible = areControlsVisible,
                 player = currentPlayer,
+                mediaRefId = mediaRefId,
                 mediaItem = mediaItem,
                 progressScale = progressScale,
                 bufferedPercent = bufferedProgress,
@@ -399,6 +400,7 @@ private fun MaxPlayerTopBar(
 private fun PlaybackControls(
     areControlsVisible: Boolean,
     player: VjsPlayer,
+    mediaRefId: String,
     mediaItem: State<MediaItem?>,
     progressScale: State<Double>,
     bufferedPercent: State<Double>,
@@ -696,6 +698,7 @@ private fun PlaybackControls(
             }) {
                 SeekBar(
                     player = player,
+                    mediaRefId = mediaRefId,
                     progressScale = progressScale,
                     bufferedPercent = bufferedPercent,
                 )
@@ -707,13 +710,15 @@ private fun PlaybackControls(
 @Composable
 private fun SeekBar(
     player: VjsPlayer,
+    mediaRefId: String,
     progressScale: State<Double>,
     bufferedPercent: State<Double>,
 ) {
+    val client = LocalAnyStreamClient.current
     var isThumbVisible by remember { mutableStateOf(false) }
     var isMouseDown by remember { mutableStateOf(false) }
     var mouseHoverX by remember { mutableStateOf(0) }
-    var mouseHoverProgress by remember { mutableStateOf(Duration.ZERO) }
+    var mouseHoverProgress by remember { mutableStateOf(ZERO) }
     Div({
         classes("w-100")
         style {
@@ -729,7 +734,8 @@ private fun SeekBar(
 
         onMouseMove { event ->
             val percent = event.offsetX / (event.target as HTMLDivElement).clientWidth
-            mouseHoverProgress = (player.duration() * percent).seconds
+            val progress = player.duration() * percent
+            mouseHoverProgress = if (progress.isNaN()) ZERO else progress.seconds
             mouseHoverX = event.offsetX.toInt()
         }
         onMouseEnter { isThumbVisible = true }
@@ -817,24 +823,64 @@ private fun SeekBar(
             }
         ) { popper ->
             LaunchedEffect(mouseHoverX) { popper.update() }
+            val timestamp by derivedStateOf { mouseHoverProgress.formatted() }
+            val previewUrl by derivedStateOf {
+                val index = (mouseHoverProgress.inWholeSeconds / 5).coerceAtLeast(1)
+                "/api/image/previews/$mediaRefId/preview$index.jpg?${AnyStreamClient.SESSION_KEY}=${client.token}"
+            }
+            val hasPreview by produceState(false, mediaRefId) {
+                value = try {
+                    fetch(previewUrl).await().ok
+                } catch (e: Throwable) {
+                    false
+                }
+            }
             Div({
-                classes("px-2", "py-1")
                 style {
-                    backgroundColor(playerControlsColor)
                     property("pointer-events", "none")
-                    property("transform", "translateY(-100%)")
-                    if (isThumbVisible) {
-                        property("z-index", 100)
-                        opacity(1)
-                    } else {
-                        property("z-index", -100)
-                        opacity(0)
-                    }
+                    width(240.px)
+                    opacity(if (isThumbVisible) 1 else 0)
                 }
             }) {
-                val timestamp by derivedStateOf { mouseHoverProgress.formatted() }
-                Text(timestamp)
+                if (hasPreview) {
+                    var nextImageHasLoaded by remember { mutableStateOf(false) }
+                    val images by produceState(previewUrl to "", previewUrl, nextImageHasLoaded) {
+                        value = if (nextImageHasLoaded) {
+                            previewUrl to value.second
+                        } else {
+                            value.first to previewUrl
+                        }
+                    }
+                    PreviewImage(images.first, !nextImageHasLoaded) { nextImageHasLoaded = false }
+                    PreviewImage(images.second, nextImageHasLoaded) { nextImageHasLoaded = true }
+                }
+                Div({
+                    classes("position-absolute", "px-2", "py-1", "shadow")
+                    style {
+                        backgroundColor(playerControlsColor)
+                        left(50.percent)
+                        property("transform", "translate(-50%, -100%)")
+                    }
+                }) {
+                    Text(timestamp)
+                }
             }
         }
+    }
+}
+
+@Composable
+private fun PreviewImage(src: String, isVisible: Boolean, onLoad: () -> Unit) {
+    Div({
+        classes("position-absolute")
+        style {
+            property("transform", "translateY(-100%)")
+            opacity(if (isVisible) 1 else 0)
+        }
+    }) {
+        Img(src = src, attrs = {
+            style { width(240.px) }
+            addEventListener("load") { onLoad() }
+        })
     }
 }

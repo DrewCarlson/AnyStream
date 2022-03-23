@@ -33,6 +33,8 @@ import org.w3c.dom.HashChangeEvent
 
 private val urlHashFlow = MutableStateFlow(window.location.hash)
 
+val LocalAnyStreamClient = compositionLocalOf<AnyStreamClient> { error("Client not yet created.") }
+
 fun webApp() = renderComposable(rootElementId = "root") {
     val client = remember {
         AnyStreamClient(
@@ -41,54 +43,58 @@ fun webApp() = renderComposable(rootElementId = "root") {
             http = HttpClient(Js),
         )
     }
-    Div(
-        attrs = {
-            id("main-panel")
-            classes("d-flex", "flex-column", "h-100", "w-100")
-        },
+    CompositionLocalProvider(
+        LocalAnyStreamClient provides client
     ) {
-        DisposableEffect(Unit) {
-            val listener = { event: HashChangeEvent ->
-                urlHashFlow.value = event.newURL.substringAfter("!")
-                true
-            }
-            window.onhashchange = listener
-            onDispose {
-                window.onhashchange = null
-            }
-        }
-        val hashValue by urlHashFlow
-            .map { hash ->
-                if (hash.contains("close")) {
-                    null
-                } else {
-                    hash.substringAfter(":")
-                        .takeIf(String::isNotBlank)
+        Div(
+            attrs = {
+                id("main-panel")
+                classes("d-flex", "flex-column", "h-100", "w-100")
+            },
+        ) {
+            DisposableEffect(Unit) {
+                val listener = { event: HashChangeEvent ->
+                    urlHashFlow.value = event.newURL.substringAfter("!")
+                    true
+                }
+                window.onhashchange = listener
+                onDispose {
+                    window.onhashchange = null
                 }
             }
-            .collectAsState(null)
-
-        val backgroundUrl by backdropImageUrl.collectAsState(null)
-
-        if (backgroundUrl != null) {
-            Div({
-                classes("position-absolute", "h-100", "w-100")
-                style {
-                    opacity(0.1)
-                    backgroundImage("url('$backgroundUrl')")
-                    backgroundPosition("center center")
-                    backgroundSize("cover")
-                    backgroundRepeat("no-repeat")
-                    property("transition", "background 0.8s linear")
+            val hashValue by urlHashFlow
+                .map { hash ->
+                    if (hash.contains("close")) {
+                        null
+                    } else {
+                        hash.substringAfter(":")
+                            .takeIf(String::isNotBlank)
+                    }
                 }
-            })
-        }
+                .collectAsState(null)
 
-        Div { Navbar(client) }
-        ContentContainer(client)
+            val backgroundUrl by backdropImageUrl.collectAsState(null)
 
-        hashValue?.run {
-            PlayerScreen(client, this)
+            if (backgroundUrl != null) {
+                Div({
+                    classes("position-absolute", "h-100", "w-100")
+                    style {
+                        opacity(0.1)
+                        backgroundImage("url('$backgroundUrl')")
+                        backgroundPosition("center center")
+                        backgroundSize("cover")
+                        backgroundRepeat("no-repeat")
+                        property("transition", "background 0.8s linear")
+                    }
+                })
+            }
+
+            Div { Navbar(client) }
+            ContentContainer(client)
+
+            hashValue?.run {
+                PlayerScreen(this)
+            }
         }
     }
 }

@@ -58,17 +58,21 @@ private val json = Json {
     useAlternativeNames = false
 }
 
-private const val SESSION_HEADER = "as_user_session"
-
 class AnyStreamClient(
     /** The AnyStream server URL, ex. `http://localhost:3000`. */
     serverUrl: String?,
     http: HttpClient = HttpClient(),
     private val sessionManager: SessionManager = SessionManager(SessionDataStore)
 ) {
+    companion object {
+        const val SESSION_KEY = "as_user_session"
+    }
+
     val authenticated: Flow<Boolean> = sessionManager.tokenFlow.map { it != null }
     val permissions: Flow<Set<Permission>?> = sessionManager.permissionsFlow
     val user: Flow<User?> = sessionManager.userFlow
+    val token: String?
+        get() = sessionManager.fetchToken()
 
     private val _serverUrl = atomic("")
     private val _serverUrlWss = atomic("")
@@ -101,16 +105,16 @@ class AnyStreamClient(
         install("TokenHandler") {
             requestPipeline.intercept(HttpRequestPipeline.Before) {
                 sessionManager.fetchToken()?.let { token ->
-                    context.header(SESSION_HEADER, token)
+                    context.header(SESSION_KEY, token)
                 }
             }
             responsePipeline.intercept(HttpResponsePipeline.Receive) {
-                context.response.headers[SESSION_HEADER]?.let { token ->
+                context.response.headers[SESSION_KEY]?.let { token ->
                     if (token != sessionManager.fetchToken()) {
                         sessionManager.writeToken(token)
                     }
                 }
-                val sentToken = context.request.headers[SESSION_HEADER]
+                val sentToken = context.request.headers[SESSION_KEY]
                 if (context.response.status == Unauthorized && sentToken != null) {
                     sessionManager.clear()
                 }
@@ -377,7 +381,7 @@ class AnyStreamClient(
         val token = sessionManager.fetchToken() ?: return
         sessionManager.clear()
         http.delete("$serverUrl/api/users/session") {
-            header(SESSION_HEADER, token)
+            header(SESSION_KEY, token)
         }
     }
 
