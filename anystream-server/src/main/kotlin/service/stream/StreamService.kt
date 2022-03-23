@@ -575,10 +575,6 @@ class StreamService(
         }.distinctUntilChanged().flowOn(Dispatchers.IO)
     }
 
-    private suspend fun FFmpeg.executeAwait(): FFmpegResult {
-        return executeAsync().toCompletableFuture().await()
-    }
-
     private fun FFmpeg.buildCommandString(): String {
         val buildArguments = FFmpeg::class.java.getDeclaredMethod("buildArguments")
             .apply { isAccessible = true }
@@ -588,6 +584,10 @@ class StreamService(
             prefix = "ffmpeg ",
         ) { if (it.contains(' ')) "\"$it\"" else it }
     }
+}
+
+suspend fun FFmpeg.executeAwait(): FFmpegResult {
+    return executeAsync().toCompletableFuture().await()
 }
 
 private val segLenFormatter = DecimalFormat().apply {

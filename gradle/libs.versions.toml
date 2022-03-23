@@ -17,6 +17,7 @@ ktor_perm = "0.2.0"
 
 jdbi = "3.28.0"
 jdbc_sqlite = "3.36.0.3"
+kjob = "0.4.2"
 
 bouncy_castle = "1.70"
 tmdb = "0.7.1"
@@ -75,6 +76,9 @@ jdbi-sqlobject = { module = "org.jdbi:jdbi3-sqlobject", version.ref = "jdbi" }
 jdbi-kotlin = { module = "org.jdbi:jdbi3-kotlin", version.ref = "jdbi" }
 jdbi-kotlin-sqlobject = { module = "org.jdbi:jdbi3-kotlin-sqlobject", version.ref = "jdbi" }
 jdbc-sqlite = { module = "org.xerial:sqlite-jdbc", version.ref = "jdbc_sqlite" }
+
+kjob-core = { module = "org.drewcarlson:kjob-core", version.ref = "kjob" }
+kjob-jdbi = { module = "org.drewcarlson:kjob-jdbi", version.ref = "kjob" }
 
 ktor-serialization = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktorio" }
 

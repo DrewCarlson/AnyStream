@@ -101,6 +101,9 @@ dependencies {
     implementation(libs.jdbi.kotlin)
     implementation(libs.jdbi.kotlin.sqlobject)
 
+    implementation(libs.kjob.core)
+    implementation(libs.kjob.jdbi)
+
     implementation(libs.jaffree)
 
     implementation(libs.tmdbapi)

@@ -19,6 +19,7 @@ package anystream.media
 
 import anystream.db.MediaReferencesDao
 import anystream.db.model.StreamEncodingDetailsDb
+import anystream.jobs.GenerateVideoPreviewJob
 import anystream.models.StreamEncodingDetails
 import anystream.models.api.ImportMedia
 import anystream.models.api.ImportMediaResult
@@ -28,6 +29,7 @@ import com.github.kokorin.jaffree.JaffreeException
 import com.github.kokorin.jaffree.StreamType
 import com.github.kokorin.jaffree.ffprobe.FFprobe
 import com.github.kokorin.jaffree.ffprobe.Stream
+import kjob.core.KJob
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
@@ -51,6 +53,7 @@ private val FFMPEG_EXTENSIONS = listOf(
 )
 
 class MediaImporter(
+    private val kjob: KJob,
     private val ffprobe: () -> FFprobe,
     private val processors: List<MediaImportProcessor>,
     private val mediaRefsDao: MediaReferencesDao,
@@ -170,6 +173,12 @@ class MediaImporter(
         } catch (e: JdbiException) {
             logger.error(marker, "Failed to update stream data", e)
             listOf(ImportStreamDetailsResult.ErrorDatabaseException(e.stackTraceToString()))
+        }
+    }
+
+    suspend fun generatePreviews(mediaRefIds: List<String>) {
+        mediaRefIds.forEach { mediaRefId ->
+            GenerateVideoPreviewJob.schedule(kjob, mediaRefId)
         }
     }
 

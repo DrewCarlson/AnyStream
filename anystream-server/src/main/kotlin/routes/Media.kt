@@ -209,6 +209,7 @@ fun Route.addMediaManageRoutes(
                 }
                 if (mediaRefIds.isNotEmpty()) {
                     application.launch {
+                        importer.generatePreviews(mediaRefIds)
                         importer.importStreamDetails(mediaRefIds)
                     }
                 }
@@ -223,6 +224,7 @@ fun Route.addMediaManageRoutes(
                         .filterIsInstance<ImportMediaResult.Success>()
                         .map { it.mediaReference.id }
                     application.launch {
+                        importer.generatePreviews(mediaRefIds)
                         importer.importStreamDetails(mediaRefIds)
                     }
                 }

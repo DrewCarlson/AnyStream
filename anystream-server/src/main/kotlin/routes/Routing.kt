@@ -19,13 +19,14 @@ package anystream.routes
 
 import anystream.data.MediaDbQueries
 import anystream.db.*
+import anystream.jobs.GenerateVideoPreviewJob
 import anystream.media.MediaImporter
 import anystream.media.processor.MovieImportProcessor
 import anystream.media.processor.TvImportProcessor
 import anystream.metadata.MetadataManager
 import anystream.metadata.MetadataProvider
 import anystream.metadata.providers.TmdbMetadataProvider
-import anystream.models.*
+import anystream.models.Permission
 import anystream.service.search.SearchService
 import anystream.service.stream.StreamService
 import anystream.service.stream.StreamServiceQueriesJdbi
@@ -40,15 +41,30 @@ import drewcarlson.torrentsearch.TorrentSearch
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.routing.*
-import kotlinx.coroutines.*
+import kjob.core.job.JobExecutionType
+import kjob.core.kjob
+import kjob.jdbi.JdbiKJob
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import org.drewcarlson.ktor.permissions.withAnyPermission
 import org.drewcarlson.ktor.permissions.withPermission
 import org.jdbi.v3.core.Handle
 import org.jdbi.v3.sqlobject.kotlin.attach
 import java.io.File
 import java.nio.file.Path
+import kotlin.io.path.Path
+import kotlin.io.path.absolutePathString
+import kotlin.io.path.createDirectories
 
 fun Application.installRouting(dbHandle: Handle) {
+    val storagePath = environment.config.propertyOrNull("app.storagePath")?.getString().let { path ->
+        if (path.isNullOrBlank()) {
+            Path("${System.getProperty("user.home")}${File.separator}anystream")
+        } else {
+            Path(path)
+        }.createDirectories().absolutePathString()
+    }
     val webClientPath = environment.config.propertyOrNull("app.webClientPath")?.getString()
     val ffmpegPath = environment.config.property("app.ffmpegPath").getString()
     val tmdbApiKey = environment.config.property("app.tmdbApiKey").getString()
@@ -56,6 +72,11 @@ fun Application.installRouting(dbHandle: Handle) {
     val qbittorrentUser = environment.config.property("app.qbittorrentUser").getString()
     val qbittorrentPass = environment.config.property("app.qbittorrentPassword").getString()
 
+    val kjob = kjob(JdbiKJob) {
+        handle = dbHandle
+        defaultJobExecutor = JobExecutionType.NON_BLOCKING
+    }.start()
+    environment.monitor.subscribe(ApplicationStopped) { kjob.shutdown() }
     val tmdb by lazy { Tmdb3(tmdbApiKey) }
 
     val torrentSearch = TorrentSearch()
@@ -97,7 +118,7 @@ fun Application.installRouting(dbHandle: Handle) {
         MovieImportProcessor(metadataManager, queries, log),
         TvImportProcessor(metadataManager, queries, importScope, log),
     )
-    val importer = MediaImporter(ffprobe, processors, mediaReferencesDao, importScope, log)
+    val importer = MediaImporter(kjob, ffprobe, processors, mediaReferencesDao, importScope, log)
 
     val userService = UserService(UserServiceQueriesJdbi(usersDao, permissionsDao, invitesDao))
 
@@ -106,12 +127,15 @@ fun Application.installRouting(dbHandle: Handle) {
     val streamService = StreamService(this, streamQueries, ffmpeg, ffprobe, transcodePath)
     val searchService = SearchService(log, searchableContentDao, mediaDao, mediaReferencesDao)
 
+    GenerateVideoPreviewJob.register(kjob, ffmpeg, storagePath, queries)
+
     routing {
         route("/api") {
             addUserRoutes(userService)
             authenticate {
                 addHomeRoutes(tmdb, queries)
                 withAnyPermission(Permission.ViewCollection) {
+                    addImageRoutes(storagePath)
                     addTvShowRoutes(queries)
                     addMovieRoutes(queries)
                     addSearchRoutes(searchService)
