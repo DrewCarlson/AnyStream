@@ -60,7 +60,7 @@ class SqlSessionStorage(
                 logger.error("Failed to delete session '$id' from database", e)
             }
         } else {
-            logger.debug("Writing session '$id', ${data.toString(UTF_8)}")
+            logger.trace("Writing session '$id', ${data.toString(UTF_8)}")
             sessionsCache[id] = data
             try {
                 sessionsDao.insertOrUpdate(id, data.toString(UTF_8))
@@ -71,9 +71,9 @@ class SqlSessionStorage(
     }
 
     override suspend fun read(id: String): ByteArray? {
-        logger.debug("Looking for session '$id'")
+        logger.trace("Looking for session '$id'")
         return (sessionsCache[id] ?: findSession(id)).also {
-            logger.debug("Found session $id")
+            logger.trace("Found session $id")
         }
     }
 
