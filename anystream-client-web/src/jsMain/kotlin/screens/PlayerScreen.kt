@@ -105,7 +105,7 @@ fun PlayerScreen(mediaRefId: String) {
     Div({
         classes("w-100")
         if (isInMiniMode.value) {
-            classes("d-flex", "flex-row")
+            classes("d-flex")
         } else {
             classes("position-absolute", "h-100", "overflow-hidden")
         }
@@ -305,7 +305,7 @@ private fun MiniModeOverlay(
 ) {
     var isVisible by remember { mutableStateOf(false) }
     Div({
-        classes("position-absolute", "d-flex", "flex-row", "justify-content-center", "align-items-center")
+        classes("position-absolute", "d-flex", "justify-content-center", "align-items-center")
         style {
             property("z-index", "1")
             width(miniPlayerWidth.value.px)
@@ -407,7 +407,7 @@ private fun PlaybackControls(
     overlayMode: Boolean,
 ) {
     Div({
-        classes("d-flex", "flex-row", "justify-content-between", "align-items-center", "w-100", "p-3")
+        classes("d-flex", "justify-content-between", "align-items-center", "w-100", "p-3")
         style {
             if (overlayMode) {
                 position(Position.Absolute)
@@ -448,7 +448,7 @@ private fun PlaybackControls(
                 }
             }
             Div({
-                classes("d-flex", "flex-row", "justify-content-start", "align-items-start")
+                classes("d-flex", "justify-content-start", "align-items-start")
                 style {
                     gap(10.px)
                 }
@@ -476,13 +476,18 @@ private fun PlaybackControls(
         }
 
         Div({
-            classes("d-flex", "flex-row", "justify-content-center")
+            classes("d-flex", "justify-content-center", "fs-3")
             style {
                 flexBasis(33.percent)
-                fontSize(24.px)
                 gap(6.px)
             }
         }) {
+            Div({
+                style {
+                    property("pointer-events", "none")
+                    opacity(0)
+                }
+            }) { I({ classes("bi", "bi-skip-start-fill", "user-select-none") }) }
             Div({
                 style {
                     cursor("pointer")
@@ -679,7 +684,7 @@ private fun PlaybackControls(
                         volume < 0.5f -> "bi-volume-down-fill"
                         else -> "bi-volume-up-fill"
                     }
-                    classes("bi", icon, "user-select-none")
+                    classes("bi", icon, "user-select-none", "fs-4")
                     style {
                         property("pointer-events", "none")
                     }
@@ -737,8 +742,11 @@ private fun SeekBar(
             val progress = player.duration() * percent
             mouseHoverProgress = if (progress.isNaN()) ZERO else progress.seconds
             mouseHoverX = event.offsetX.toInt()
+            isThumbVisible = player.duration() > 0
         }
-        onMouseEnter { isThumbVisible = true }
+        onMouseEnter {
+            isThumbVisible = player.duration() > 0
+        }
         onMouseLeave {
             isThumbVisible = false
             isMouseDown = false
@@ -835,11 +843,16 @@ private fun SeekBar(
                     false
                 }
             }
+            var width by remember { mutableStateOf(0.px) }
             Div({
                 style {
                     property("pointer-events", "none")
-                    width(240.px)
                     opacity(if (isThumbVisible) 1 else 0)
+                    if (hasPreview) {
+                        width(240.px)
+                    } else {
+                        width(width)
+                    }
                 }
             }) {
                 if (hasPreview) {
@@ -855,13 +868,16 @@ private fun SeekBar(
                     PreviewImage(images.second, nextImageHasLoaded) { nextImageHasLoaded = true }
                 }
                 Div({
-                    classes("position-absolute", "px-2", "py-1", "shadow")
+                    classes("position-absolute", "px-2", "py-1", "shadow", "bg-dark")
                     style {
-                        backgroundColor(playerControlsColor)
                         left(50.percent)
                         property("transform", "translate(-50%, -100%)")
                     }
                 }) {
+                    DisposableEffect(timestamp) {
+                        width = scopeElement.clientWidth.px
+                        onDispose { }
+                    }
                     Text(timestamp)
                 }
             }
