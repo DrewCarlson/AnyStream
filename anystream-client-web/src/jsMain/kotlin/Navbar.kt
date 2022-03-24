@@ -202,7 +202,7 @@ private fun OverflowMenu(
 @Composable
 private fun SearchBar() {
     val client = LocalAnyStreamClient.current
-    var focused by remember { mutableStateOf(false) }
+    val focused = remember { mutableStateOf(false) }
     var elementValue by remember { mutableStateOf<String?>(null) }
     val inputRef = remember { mutableStateOf<HTMLInputElement?>(null) }
     val queryState by searchQuery
@@ -228,7 +228,7 @@ private fun SearchBar() {
         style {
             width(320.px)
             maxWidth(320.px)
-            backgroundColor(if (focused) Color.white else hsla(0, 0, 100, .08))
+            backgroundColor(if (focused.value) Color.white else hsla(0, 0, 100, .08))
             property("transition", "background-color .2s")
         }
     }) {
@@ -236,7 +236,7 @@ private fun SearchBar() {
         I({
             classes("bi", "bi-search", "p-1")
             style {
-                if (focused) {
+                if (focused.value) {
                     color(rgba(0, 0, 0, .8))
                 }
                 property("transition", "color .2s")
@@ -250,14 +250,14 @@ private fun SearchBar() {
                 }
             }
             value(elementValue.orEmpty())
-            onFocus {
-                focused = true
+            onFocusIn {
+                focused.value = true
                 searchQuery.value = (it.target as? HTMLInputElement)
                     ?.value
                     ?.takeUnless(String::isNullOrBlank)
             }
             onFocusOut {
-                focused = false
+                focused.value = false
             }
             onInput { event ->
                 searchQuery.value = event.value.takeUnless(String::isNullOrBlank)
@@ -269,7 +269,7 @@ private fun SearchBar() {
                 outline("0")
                 property("border", 0)
                 property("transition", "color .2s")
-                if (focused) {
+                if (focused.value) {
                     color(rgba(0, 0, 0, .8))
                 } else {
                     color(Color.white)
@@ -287,7 +287,7 @@ private fun SearchBar() {
             }
             style {
                 property("transition", "color .2s")
-                if (focused) {
+                if (focused.value) {
                     color(rgba(0, 0, 0, .8))
                 }
                 if (elementValue.isNullOrBlank()) {
@@ -314,7 +314,7 @@ private fun SearchBar() {
 @Composable
 private fun SearchResultPopper(
     formRef: HTMLElement,
-    focused: Boolean,
+    focused: MutableState<Boolean>,
     response: SearchResponse,
 ) {
     var globalClickHandler by remember { mutableStateOf<ExternalClickMask?>(null) }
@@ -330,7 +330,7 @@ private fun SearchResultPopper(
         DisposableEffect(Unit) {
             globalClickHandler = ExternalClickMask(scopeElement) { remove ->
                 // Hide search only if we're also unfocusing input
-                if (!focused) {
+                if (!focused.value) {
                     searchQuery.value = null
                     remove()
                 }
