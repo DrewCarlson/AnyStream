@@ -32,9 +32,6 @@ import anystream.models.api.MediaLookupResponse
 import app.softwork.routingcompose.BrowserRouter
 import kotlinx.browser.window
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.update
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 import org.w3c.dom.HTMLElement
@@ -48,26 +45,12 @@ val backdropImageUrl = MutableStateFlow<String?>(null)
 @Composable
 fun MediaScreen(mediaId: String) {
     val client = LocalAnyStreamClient.current
-    val lookupIdFlow = remember(mediaId) { MutableStateFlow<Int?>(null) }
-    val refreshMetadata: () -> Unit = remember {
-        { lookupIdFlow.update { (it ?: 0) + 1 } }
-    }
     val mediaResponse by produceState<MediaLookupResponse?>(null, mediaId) {
         value = try {
             client.lookupMedia(mediaId)
         } catch (e: Throwable) {
             null
         }
-        lookupIdFlow
-            .filterNotNull()
-            .debounce(1_000L)
-            .collect {
-                try {
-                    client.refreshStreamDetails(mediaId)
-                    value = client.refreshMetadata(mediaId)
-                } catch (_: Throwable) {
-                }
-            }
     }
     DisposableEffect(mediaId) {
         onDispose { backdropImageUrl.value = null }
@@ -84,14 +67,12 @@ fun MediaScreen(mediaId: String) {
                     backdropImageUrl.value =
                         "https://image.tmdb.org/t/p/w1280/${mediaItem.backdropPath}"
                 },
-                refreshMetadata = refreshMetadata,
             )
         }
 
         mediaResponse?.tvShow?.let { response ->
             BaseDetailsView(
                 mediaItem = response.toMediaItem(),
-                refreshMetadata = refreshMetadata,
             )
 
             if (response.seasons.isNotEmpty()) {
@@ -102,7 +83,6 @@ fun MediaScreen(mediaId: String) {
         mediaResponse?.season?.let { response ->
             BaseDetailsView(
                 mediaItem = response.toMediaItem(),
-                refreshMetadata = refreshMetadata,
             )
 
             if (response.episodes.isNotEmpty()) {
@@ -116,7 +96,6 @@ fun MediaScreen(mediaId: String) {
         mediaResponse?.episode?.let { response ->
             BaseDetailsView(
                 mediaItem = response.toMediaItem(),
-                refreshMetadata = refreshMetadata,
             )
         }
     }
@@ -125,10 +104,8 @@ fun MediaScreen(mediaId: String) {
 @Composable
 private fun BaseDetailsView(
     mediaItem: MediaItem,
-    refreshMetadata: () -> Unit,
 ) {
-    val client = LocalAnyStreamClient.current
-    Div({ classes("d-flex", "flex-row") }) {
+    Div({ classes("d-flex") }) {
         Div({ classes("d-flex", "flex-column", "align-items-center", "flex-shrink-0") }) {
             PosterCard(
                 title = null,
@@ -156,17 +133,8 @@ private fun BaseDetailsView(
             }
         }
         Div({ classes("d-flex", "flex-column", "flex-grow-1", "p-4") }) {
-            Div({ classes("d-flex", "flex-row", "align-items-center") }) {
+            Div({ classes("d-flex", "align-items-center") }) {
                 Div({ classes("fs-3") }) { Text(mediaItem.contentTitle) }
-                if (client.hasPermission(Permission.ManageCollection)) {
-                    I({
-                        classes("bi", "bi-arrow-repeat", "p-1")
-                        style {
-                            cursor("pointer")
-                            onClick { refreshMetadata() }
-                        }
-                    })
-                }
             }
             mediaItem.subtitle1?.also { subtitle1 ->
                 Div({ classes("fs-5") }) { Text(subtitle1) }
