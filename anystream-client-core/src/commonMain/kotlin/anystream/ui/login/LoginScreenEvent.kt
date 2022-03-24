@@ -31,7 +31,11 @@ sealed class LoginScreenEvent {
 
     data class OnPasswordChanged(
         val password: String
-    ) : LoginScreenEvent()
+    ) : LoginScreenEvent() {
+        override fun toString(): String {
+            return "OnPasswordChanged(password='***')"
+        }
+    }
 
     object OnLoginSubmit : LoginScreenEvent()
 

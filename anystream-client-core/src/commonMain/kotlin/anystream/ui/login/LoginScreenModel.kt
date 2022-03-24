@@ -54,6 +54,16 @@ data class LoginScreenModel(
         return state != State.IDLE
     }
 
+    override fun toString(): String {
+        return "LoginScreenModel(serverUrl='$serverUrl', " +
+                "username='$username', " +
+                "password='***', " +
+                "supportsPairing=$supportsPairing, " +
+                "pairingCode=$pairingCode, state=$state, " +
+                "serverValidation=$serverValidation, " +
+                "loginError=$loginError)"
+    }
+
     companion object {
         fun create(): LoginScreenModel {
             return LoginScreenModel()

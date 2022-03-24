@@ -22,7 +22,13 @@ sealed class LoginScreenEffect {
         val username: String,
         val password: String,
         val serverUrl: String,
-    ) : LoginScreenEffect()
+    ) : LoginScreenEffect() {
+        override fun toString(): String {
+            return "Login(username='$username', " +
+                    "password='***', " +
+                    "serverUrl='$serverUrl')"
+        }
+    }
 
     data class ValidateServerUrl(
         val serverUrl: String
