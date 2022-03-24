@@ -116,6 +116,7 @@ private fun SecondaryMenu(permissions: Set<Permission>) {
     val client = LocalAnyStreamClient.current
     val scope = rememberCoroutineScope()
     val authMutex = remember { Mutex() }
+    var isMenuVisible by remember { mutableStateOf(false) }
     Div({ classes("navbar-nav", "ms-auto") }) {
         if (Permission.check(Permission.ConfigureSystem, permissions)) {
             A(attrs = {
@@ -131,16 +132,70 @@ private fun SecondaryMenu(permissions: Set<Permission>) {
                 I({ classes("bi", "bi-gear") })
             }
         }
+        var overflowMenuButtonElement by remember { mutableStateOf<HTMLElement?>(null) }
         A(attrs = {
-            onClick {
-                scope.launch {
-                    authMutex.withLock { client.logout() }
-                }
-            }
+            onClick { isMenuVisible = !isMenuVisible }
             classes("nav-link")
         }) {
-            I({ classes("bi", "bi-box-arrow-right") }) { }
+            DisposableEffect(Unit) {
+                overflowMenuButtonElement = scopeElement
+                onDispose { overflowMenuButtonElement = null }
+            }
+            I({ classes("bi", "bi-three-dots-vertical") })
         }
+        if (isMenuVisible) {
+            overflowMenuButtonElement?.let { element ->
+                OverflowMenu(
+                    element,
+                    onLogout = {
+                        scope.launch {
+                            authMutex.withLock { client.logout() }
+                        }
+                    },
+                    onClose = { isMenuVisible = false }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun OverflowMenu(
+    element: HTMLElement,
+    onLogout: () -> Unit,
+    onClose: () -> Unit,
+) {
+    PopperElement(
+        element,
+        popperOptions(placement = "bottom-end"),
+        attrs = {
+            style { property("z-index", 100) }
+        }
+    ) { popper ->
+        Div({
+            classes("d-flex", "flex-column", "px-2", "bg-dark", "rounded", "shadow")
+        }) {
+            var globalClickHandler by remember { mutableStateOf<ExternalClickMask?>(null) }
+            DisposableEffect(Unit) {
+                globalClickHandler = ExternalClickMask(scopeElement) { remove ->
+                    onClose()
+                    remove()
+                }
+                globalClickHandler?.attachListener()
+                onDispose {
+                    globalClickHandler?.dispose()
+                    globalClickHandler = null
+                }
+            }
+            A(null, {
+                classes("nav-link", "fs-6")
+                onClick { onLogout() }
+            }) {
+                I({ classes("bi", "bi-box-arrow-right", "me-2") })
+                Text("Logout")
+            }
+        }
+        LaunchedEffect(Unit) { popper.update() }
     }
 }
 
