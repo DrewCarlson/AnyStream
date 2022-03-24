@@ -49,7 +49,7 @@ object GenerateVideoPreviewJob : Job("generate-video-preview") {
         mediaDbQueries: MediaDbQueries,
     ) {
         val previewStorage = "${rootStorageDir}${File.separator}previews"
-        kjob.register(GenerateVideoPreviewJob) {
+        /*kjob.register(GenerateVideoPreviewJob) {
             execute {
                 val mediaRefId = props[MEDIA_REF_ID]
                 when (val mediaRef = mediaDbQueries.findMediaRefById(mediaRefId)) {
@@ -59,14 +59,14 @@ object GenerateVideoPreviewJob : Job("generate-video-preview") {
                     is LocalMediaReference -> generatePreview(logger, ffmpeg(), previewStorage, mediaRef)
                 }
             }
-        }
+        }*/
     }
 
     suspend fun schedule(kjob: KJob, mediaRefId: String) {
-        kjob.schedule(GenerateVideoPreviewJob) {
+        /*kjob.schedule(GenerateVideoPreviewJob) {
             jobId = "$name-$mediaRefId"
             props[MEDIA_REF_ID] = mediaRefId
-        }
+        }*/
     }
 
     private suspend fun generatePreview(
