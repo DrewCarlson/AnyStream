@@ -20,9 +20,14 @@ tasks.withType<KotlinCompile>().all {
 }
 
 tasks.withType<ShadowJar> {
+    val clientWeb = projects.anystreamClientWeb.dependencyProject
+    dependsOn(clientWeb.tasks.getByName("jsBrowserDistribution"))
     manifest {
         archiveFileName.set("server.jar")
         attributes(mapOf("Main-Class" to application.mainClass.get()))
+    }
+    from(rootProject.file("anystream-client-web/build/distributions")) {
+        into("anystream-client-web")
     }
 }
 

@@ -19,7 +19,6 @@ package anystream.routes
 
 import anystream.data.MediaDbQueries
 import anystream.db.*
-import anystream.jobs.GenerateVideoPreviewJob
 import anystream.media.MediaImporter
 import anystream.media.processor.MovieImportProcessor
 import anystream.media.processor.TvImportProcessor
@@ -65,6 +64,7 @@ fun Application.installRouting(dbHandle: Handle) {
             Path(path)
         }.createDirectories().absolutePathString()
     }
+    val disableWebClient = environment.config.property("app.disableWebClient").getString().toBoolean()
     val webClientPath = environment.config.propertyOrNull("app.webClientPath")?.getString()
     val ffmpegPath = environment.config.property("app.ffmpegPath").getString()
     val tmdbApiKey = environment.config.property("app.tmdbApiKey").getString()
@@ -158,17 +158,26 @@ fun Application.installRouting(dbHandle: Handle) {
         }
     }
 
-    when {
-        webClientPath.isNullOrBlank() ->
-            log.debug("No web client path provided, this instance will serve the API only.")
-        !File(webClientPath).exists() ->
-            log.error("Specified web client path is empty: $webClientPath")
-        else -> {
-            log.debug("This instance will serve the web client from '$webClientPath'.")
-            install(SinglePageApp) {
-                ignoreBasePath = "/api"
-                staticFilePath = webClientPath
-            }
+    if (disableWebClient) {
+        log.debug("Web client disabled, this instance will serve the API only.")
+    } else if (
+        webClientPath.isNullOrBlank() ||
+        !File(webClientPath).exists() &&
+        checkNotNull(javaClass.classLoader).getResource("anystream-client-web") != null
+    ) {
+        log.debug("This instance will serve the web client from jar resources.")
+        install(SinglePageApp) {
+            ignoreBasePath = "/api"
+            staticFilePath = "anystream-client-web"
+            useResources = true
         }
+    } else if (File(webClientPath).exists()) {
+        log.debug("This instance will serve the web client from '$webClientPath'.")
+        install(SinglePageApp) {
+            ignoreBasePath = "/api"
+            staticFilePath = webClientPath
+        }
+    } else {
+        log.error("Failed to find web client, this instance will serve the API only.")
     }
 }

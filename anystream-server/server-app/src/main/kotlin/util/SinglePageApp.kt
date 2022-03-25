@@ -17,19 +17,24 @@
  */
 package anystream.util
 
+import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.http.content.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.util.*
 import io.ktor.util.*
 import java.io.File
+import java.net.URL
 import java.util.concurrent.ConcurrentHashMap
 
 class SinglePageApp(
     var defaultFile: String = "index.html",
     var staticFilePath: String = "",
-    var ignoreBasePath: String = ""
+    var ignoreBasePath: String = "",
+    var useResources: Boolean = false,
 ) {
 
     companion object Plugin : ApplicationPlugin<Application, SinglePageApp, SinglePageApp> {
@@ -59,19 +64,38 @@ class SinglePageApp(
                     val path = call.request.uri.split("/")
                     if (path.last().contains(".")) {
                         try {
-                            val file = staticFileMap.getOrPut(path.last()) {
+                            if (configuration.useResources) {
                                 val urlPathString = path.subList(1, path.lastIndex)
-                                    .fold(configuration.staticFilePath) { out, part -> "$out/$part" }
-                                File(urlPathString, path.last())
-                                    .apply { check(exists()) }
+                                    .plus(path.last())
+                                    .joinToString(File.separator)
+                                val content = call.resolveResource(urlPathString, configuration.staticFilePath)
+                                if (content == null) {
+                                    call.resolveResource(configuration.defaultFile, configuration.staticFilePath)?.let {
+                                        call.respond(it)
+                                    }
+                                } else {
+                                    call.respond(content)
+                                }
+                            } else {
+                                val file = staticFileMap.getOrPut(path.last()) {
+                                    val urlPathString = path.subList(1, path.lastIndex)
+                                        .fold(configuration.staticFilePath) { out, part -> "$out/$part" }
+                                    File(urlPathString, path.last()).apply { check(exists()) }
+                                }
+                                call.respondFile(file)
                             }
-                            call.respondFile(file)
                             return@intercept finish()
                         } catch (e: IllegalStateException) {
                             // No local resource, fall to other handlers
                         }
                     } else {
-                        call.respondFile(defaultFile)
+                        if (configuration.useResources) {
+                            call.resolveResource(configuration.defaultFile, configuration.staticFilePath)?.let {
+                                call.respond(it)
+                            }
+                        } else {
+                            call.respondFile(defaultFile)
+                        }
                         return@intercept finish()
                     }
                 }
@@ -80,4 +104,66 @@ class SinglePageApp(
             return configuration
         }
     }
+}
+
+private fun ApplicationCall.resolveResource(
+    path: String,
+    resourcePackage: String? = null,
+    classLoader: ClassLoader = application.environment.classLoader,
+    mimeResolve: (String) -> ContentType = { ContentType.defaultForFileExtension(it) }
+): OutgoingContent? {
+    if (path.endsWith("/") || path.endsWith("\\")) {
+        return null
+    }
+
+    val normalizedPath = (resourcePackage.orEmpty().split('.', '/', '\\') + path.split('/', '\\'))
+        .normalizePathComponents()
+        .joinToString("/")
+
+    for (url in classLoader.getResources(normalizedPath).asSequence()) {
+        resourceClasspathResource(url, normalizedPath, mimeResolve)?.let { content ->
+            return content
+        }
+    }
+
+    return null
+}
+
+private fun resourceClasspathResource(url: URL, path: String, mimeResolve: (String) -> ContentType): OutgoingContent? {
+    return when (url.protocol) {
+        "file" -> {
+            val file = File(url.path.decodeURLPart())
+            if (file.isFile) LocalFileContent(file, mimeResolve(file.extension)) else null
+        }
+        "jar" -> {
+            if (path.endsWith("/")) {
+                null
+            } else {
+                val zipFile = findContainingJarFile(url.toString())
+                val content = JarFileContent(zipFile, path, mimeResolve(url.path.extension()))
+                if (content.isFile) content else null
+            }
+        }
+        "jrt" -> {
+            URIFileContent(url, mimeResolve(url.path.extension()))
+        }
+        else -> null
+    }
+}
+
+private fun findContainingJarFile(url: String): File {
+    if (url.startsWith("jar:file:")) {
+        val jarPathSeparator = url.indexOf("!", startIndex = 9)
+        require(jarPathSeparator != -1) { "Jar path requires !/ separator but it is: $url" }
+
+        return File(url.substring(9, jarPathSeparator).decodeURLPart())
+    }
+
+    throw IllegalArgumentException("Only local jars are supported (jar:file:)")
+}
+
+private fun String.extension(): String {
+    val indexOfName = lastIndexOf('/').takeIf { it != -1 } ?: lastIndexOf('\\').takeIf { it != -1 } ?: 0
+    val indexOfDot = indexOf('.', indexOfName)
+    return if (indexOfDot >= 0) substring(indexOfDot) else ""
 }
