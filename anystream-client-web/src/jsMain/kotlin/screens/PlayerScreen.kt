@@ -831,7 +831,6 @@ private fun SeekBar(
             }
         ) { popper ->
             LaunchedEffect(mouseHoverX) { popper.update() }
-            val timestamp by derivedStateOf { mouseHoverProgress.formatted() }
             val previewUrl by derivedStateOf {
                 val index = (mouseHoverProgress.inWholeSeconds / 5).coerceAtLeast(1)
                 "/api/image/previews/$mediaRefId/preview$index.jpg?${AnyStreamClient.SESSION_KEY}=${client.token}"
@@ -843,16 +842,11 @@ private fun SeekBar(
                     false
                 }
             }
-            var width by remember { mutableStateOf(0.px) }
             Div({
                 style {
                     property("pointer-events", "none")
                     opacity(if (isThumbVisible) 1 else 0)
-                    if (hasPreview) {
-                        width(240.px)
-                    } else {
-                        width(width)
-                    }
+                    width(240.px)
                 }
             }) {
                 if (hasPreview) {
@@ -867,19 +861,34 @@ private fun SeekBar(
                     PreviewImage(images.first, !nextImageHasLoaded) { nextImageHasLoaded = false }
                     PreviewImage(images.second, nextImageHasLoaded) { nextImageHasLoaded = true }
                 }
-                Div({
-                    classes("position-absolute", "px-2", "py-1", "shadow", "bg-dark")
-                    style {
-                        left(50.percent)
-                        property("transform", "translate(-50%, -100%)")
-                    }
-                }) {
-                    DisposableEffect(timestamp) {
-                        width = scopeElement.clientWidth.px
-                        onDispose { }
-                    }
-                    Text(timestamp)
+            }
+        }
+        var timestampWidth by remember { mutableStateOf(0.px) }
+        PopperElement(
+            popperVirtualElement,
+            popperOptions(placement = "top"),
+            attrs = {
+                style {
+                    property("pointer-events", "none")
+                    opacity(if (isThumbVisible) 1 else 0)
+                    width(timestampWidth)
                 }
+            }
+        ) { popper ->
+            val timestamp by derivedStateOf { mouseHoverProgress.formatted() }
+            LaunchedEffect(mouseHoverX) { popper.update() }
+            Div({
+                classes("position-absolute", "px-2", "py-1", "shadow", "bg-dark")
+                style {
+                    left(50.percent)
+                    property("transform", "translate(-50%, -100%)")
+                }
+            }) {
+                DisposableEffect(timestamp) {
+                    timestampWidth = scopeElement.clientWidth.px
+                    onDispose { }
+                }
+                Text(timestamp)
             }
         }
     }
