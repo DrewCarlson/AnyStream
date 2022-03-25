@@ -63,7 +63,7 @@ val json = Json {
     allowStructuredMapKeys = true
 }
 
-@Suppress("unused") // Referenced in application.conf
+@Suppress("unused", "UNUSED_PARAMETER") // Referenced in application.conf
 @JvmOverloads
 fun Application.module(testing: Boolean = false) {
 

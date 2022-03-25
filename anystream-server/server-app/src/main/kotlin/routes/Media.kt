@@ -48,8 +48,8 @@ fun Route.addMediaManageRoutes(
     route("/media") {
         route("/{mediaId}") {
             get("/refresh-stream-details") {
-                val mediaId = call.parameters["mediaId"] ?: ""
-                /*val mediaRefIds = mediaRefsDb.projection(
+                /*val mediaId = call.parameters["mediaId"] ?: ""
+                val mediaRefIds = mediaRefsDb.projection(
                     MediaReference::id,
                     or(
                         MediaReference::contentId eq mediaId,
@@ -235,11 +235,10 @@ fun Route.addMediaManageRoutes(
         }
 
         post("/unmapped") {
-            val session = call.principal<UserSession>()!!
             val import = call.receiveOrNull<ImportMedia>()
                 ?: return@post call.respond(UnprocessableEntity)
 
-            call.respond(importer.findUnmappedFiles(session.userId, import))
+            call.respond(importer.findUnmappedFiles(import))
         }
 
         route("/tmdb") {
@@ -269,9 +268,9 @@ fun Route.addMediaManageRoutes(
 
         route("/movie/{movie_id}") {
             get("/sources") {
-                val movieId = call.parameters["movie_id"] ?: ""
+                /*val movieId = call.parameters["movie_id"] ?: ""
 
-                /*val movie = moviesDb.findOneById(movieId)
+                val movie = moviesDb.findOneById(movieId)
                 if (movie == null) {
                     call.respond(NotFound)
                 } else {

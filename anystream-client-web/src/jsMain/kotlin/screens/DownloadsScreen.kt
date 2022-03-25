@@ -102,7 +102,6 @@ private fun TorrentHeader() {
 
 @Composable
 private fun TorrentRow(torrent: Torrent) {
-    val client = LocalAnyStreamClient.current
     val menuScope = rememberCoroutineScope()
     var isMenuVisible by remember { mutableStateOf(false) }
     val rowElement = remember { mutableStateOf<HTMLElement?>(null) }

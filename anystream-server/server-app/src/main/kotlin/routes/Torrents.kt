@@ -99,7 +99,7 @@ fun Route.addTorrentRoutes(
                         ?.run { this to torrent }
                 }
                 .take(1)
-                .onEach { (file, torrent) ->
+                .onEach { // (file, torrent) ->
                     // TODO: Update download reference details
                     /*val download = mediaRefs.findOneById(downloadId) as DownloadMediaReference
                     mediaRefs.updateOneById(

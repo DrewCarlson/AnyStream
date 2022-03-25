@@ -276,7 +276,7 @@ private fun TvRow(
                 PosterCard(
                     title = show.name,
                     imagePath = show.posterPath,
-                    onClick = { },
+                    onClick = { onClick(show.id) },
                 )
             }
         }

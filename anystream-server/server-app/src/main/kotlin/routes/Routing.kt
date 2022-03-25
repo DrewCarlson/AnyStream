@@ -127,8 +127,6 @@ fun Application.installRouting(dbHandle: Handle) {
     val streamService = StreamService(this, streamQueries, ffmpeg, ffprobe, transcodePath)
     val searchService = SearchService(log, searchableContentDao, mediaDao, mediaReferencesDao)
 
-    GenerateVideoPreviewJob.register(kjob, ffmpeg, storagePath, queries)
-
     routing {
         route("/api") {
             addUserRoutes(userService)

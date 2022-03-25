@@ -60,7 +60,7 @@ class MediaImporter(
     private val classMarker = MarkerFactory.getMarker(this::class.simpleName)
 
     // Within a specified content directory, find all content unknown to anystream
-    fun findUnmappedFiles(userId: Int, request: ImportMedia): List<String> {
+    fun findUnmappedFiles(request: ImportMedia): List<String> {
         val contentFile = File(request.contentPath)
         if (!contentFile.exists()) {
             return emptyList()

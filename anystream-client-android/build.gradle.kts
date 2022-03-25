@@ -40,9 +40,9 @@ android {
     kotlinOptions.freeCompilerArgs += listOf(
         "-Xopt-in=androidx.compose.ui.ExperimentalComposeUiApi",
         "-Xopt-in=androidx.compose.foundation.ExperimentalFoundationApi",
-        "-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
-        "-Xopt-in=kotlinx.coroutines.FlowPreview",
-        "-Xopt-in=kotlin.time.ExperimentalTime",
+        
+        
+        
         "-Xopt-in=kotlin.RequiresOptIn",
         "-Xopt-in=coil.annotation.ExperimentalCoilApi",
         //"-P", "plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=true"

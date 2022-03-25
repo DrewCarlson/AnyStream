@@ -440,9 +440,6 @@ class AnyStreamClient(
         }.body()
     }
 
-    suspend fun closeStream(token: String) {
-    }
-
     fun observeLogs(): Flow<String> = callbackFlow {
         http.wss("$serverUrlWs/api/ws/admin/logs") {
             send(sessionManager.fetchToken()!!)

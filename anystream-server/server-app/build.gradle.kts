@@ -34,8 +34,6 @@ kotlin {
                 jvmTarget = "11"
                 freeCompilerArgs = freeCompilerArgs + listOf(
                     "-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
-                    "-Xopt-in=kotlinx.coroutines.FlowPreview",
-                    "-Xopt-in=kotlin.time.ExperimentalTime",
                     "-Xopt-in=kotlin.RequiresOptIn",
                 )
             }
