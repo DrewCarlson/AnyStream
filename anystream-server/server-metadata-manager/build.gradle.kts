@@ -15,12 +15,7 @@ kotlin {
         compilations.all {
             kotlinOptions {
                 jvmTarget = "11"
-                freeCompilerArgs = freeCompilerArgs + listOf(
-                    
-                    
-                    
-                    "-Xopt-in=kotlin.RequiresOptIn",
-                )
+                freeCompilerArgs = freeCompilerArgs + listOf("-Xopt-in=kotlin.RequiresOptIn")
             }
         }
     }
@@ -40,13 +35,17 @@ dependencies {
 
     implementation(libs.logback)
 
+    implementation(libs.jdbc.sqlite)
     implementation(libs.jdbi.core)
+    implementation(libs.jdbi.sqlite)
     implementation(libs.jdbi.sqlobject)
     implementation(libs.jdbi.kotlin)
     implementation(libs.jdbi.kotlin.sqlobject)
 
     implementation(libs.tmdbapi)
 
+    testImplementation(libs.ktor.client.cio)
+    testImplementation(kotlin("reflect"))
     testImplementation(kotlin("test"))
     testImplementation(kotlin("test-junit"))
 }

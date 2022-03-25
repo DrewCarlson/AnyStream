@@ -38,7 +38,6 @@ import io.ktor.server.sessions.*
 import io.ktor.server.websocket.WebSockets
 import io.ktor.util.date.GMTDate
 import io.ktor.websocket.*
-import kotlinx.serialization.json.Json
 import org.bouncycastle.util.encoders.Hex
 import org.drewcarlson.ktor.permissions.PermissionAuthorization
 import org.jdbi.v3.core.Jdbi
@@ -55,13 +54,6 @@ import kotlin.random.Random
 import kotlin.system.exitProcess
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
-
-val json = Json {
-    isLenient = true
-    ignoreUnknownKeys = true
-    encodeDefaults = true
-    allowStructuredMapKeys = true
-}
 
 @Suppress("unused", "UNUSED_PARAMETER") // Referenced in application.conf
 @JvmOverloads

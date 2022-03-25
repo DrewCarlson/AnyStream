@@ -35,7 +35,7 @@ data class QueryMetadata(
     val mediaKind: MediaKind,
     val query: String? = null,
     val contentId: String? = null,
-    val year: Int? = null,
+    val year: Int = 0,
     val extras: Extras? = null,
 ) {
     @Serializable

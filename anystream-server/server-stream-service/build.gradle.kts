@@ -15,12 +15,7 @@ kotlin {
         compilations.all {
             kotlinOptions {
                 jvmTarget = "11"
-                freeCompilerArgs = freeCompilerArgs + listOf(
-                    
-                    
-                    
-                    "-Xopt-in=kotlin.RequiresOptIn",
-                )
+                freeCompilerArgs = freeCompilerArgs + listOf("-Xopt-in=kotlin.RequiresOptIn")
             }
         }
     }

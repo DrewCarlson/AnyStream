@@ -15,12 +15,7 @@ kotlin {
         compilations.all {
             kotlinOptions {
                 jvmTarget = "11"
-                freeCompilerArgs = freeCompilerArgs + listOf(
-                    
-                    
-                    
-                    "-Xopt-in=kotlin.RequiresOptIn",
-                )
+                freeCompilerArgs = freeCompilerArgs + listOf("-Xopt-in=kotlin.RequiresOptIn")
             }
         }
     }
@@ -28,6 +23,7 @@ kotlin {
 
 dependencies {
     implementation(projects.anystreamDataModels)
+    implementation(projects.anystreamServer.serverShared)
 
     implementation(libs.datetime)
     implementation(libs.serialization.json)

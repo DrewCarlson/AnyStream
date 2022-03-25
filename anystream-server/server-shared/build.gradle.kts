@@ -15,12 +15,7 @@ kotlin {
         compilations.all {
             kotlinOptions {
                 jvmTarget = "11"
-                freeCompilerArgs = freeCompilerArgs + listOf(
-                    
-                    
-                    
-                    "-Xopt-in=kotlin.RequiresOptIn",
-                )
+                freeCompilerArgs = freeCompilerArgs + listOf("-Xopt-in=kotlin.RequiresOptIn")
             }
         }
     }
@@ -43,8 +38,6 @@ dependencies {
     implementation(libs.jdbi.core)
 
     implementation(libs.jaffree)
-
-    implementation(libs.tmdbapi)
 
     testImplementation(kotlin("test"))
     testImplementation(kotlin("test-junit"))

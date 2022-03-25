@@ -74,8 +74,8 @@ class TmdbMetadataProvider(
                 val finalMovie = queries.insertMovie(movie).toMovieModel()
                 ImportMetadataResult.Success(
                     match = MetadataMatch.MovieMatch(
-                        contentId = finalMovie.id,
-                        remoteId = movie.id,
+                        contentId = movie.tmdbId.toString(),
+                        remoteId = movieDb.toRemoteId(),
                         exists = true,
                         movie = finalMovie,
                     ),
@@ -89,7 +89,7 @@ class TmdbMetadataProvider(
                 existingMediaId = existingMovie.id,
                 match = MetadataMatch.MovieMatch(
                     contentId = existingMovie.tmdbId.toString(),
-                    remoteId = existingMovie.id,
+                    remoteId = "tmdb:movie:${existingMovie.tmdbId}",
                     exists = true,
                     movie = existingMovie,
                 )
@@ -130,7 +130,7 @@ class TmdbMetadataProvider(
                 ImportMetadataResult.Success(
                     match = MetadataMatch.TvShowMatch(
                         contentId = tmdbSeries.id.toString(),
-                        remoteId = tvShow.id,
+                        remoteId = "tmdb:tv:${tmdbSeries.id}",
                         exists = true,
                         tvShow = tvShow,
                         seasons = tvSeasons,
@@ -145,7 +145,7 @@ class TmdbMetadataProvider(
                 existingMediaId = existingTvShow.id,
                 match = MetadataMatch.TvShowMatch(
                     contentId = existingTvShow.tmdbId.toString(),
-                    remoteId = existingTvShow.id,
+                    remoteId = "tmdb:tv:${existingTvShow.tmdbId}",
                     exists = true,
                     tvShow = existingTvShow,
                     seasons = existingSeasons,
@@ -160,11 +160,11 @@ class TmdbMetadataProvider(
         return results.mapNotNull { fetchTvSeries(it.id) }
     }
 
-    private suspend fun queryMovies(query: String, year: Int?): List<TmdbMovieDetail> {
+    private suspend fun queryMovies(query: String, year: Int): List<TmdbMovieDetail> {
         return tmdbApi.search.findMovies(
             query = query,
             page = 1,
-            year = year ?: 0,
+            year = year,
             language = null,
             includeAdult = false
         ).results.mapNotNull { fetchMovie(it.id) }
