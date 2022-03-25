@@ -5,7 +5,12 @@ include(
     ":anystream-client-core",
     ":anystream-client-web",
     ":anystream-data-models",
-    ":anystream-server",
+    ":anystream-server:server-app",
+    ":anystream-server:server-db-models",
+    ":anystream-server:server-media-importer",
+    ":anystream-server:server-metadata-manager",
+    ":anystream-server:server-shared",
+    ":anystream-server:server-stream-service",
     ":libs:preferences",
     ":libs:routing-compose",
 )

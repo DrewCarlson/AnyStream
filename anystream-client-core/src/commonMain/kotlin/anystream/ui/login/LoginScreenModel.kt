@@ -56,12 +56,12 @@ data class LoginScreenModel(
 
     override fun toString(): String {
         return "LoginScreenModel(serverUrl='$serverUrl', " +
-                "username='$username', " +
-                "password='***', " +
-                "supportsPairing=$supportsPairing, " +
-                "pairingCode=$pairingCode, state=$state, " +
-                "serverValidation=$serverValidation, " +
-                "loginError=$loginError)"
+            "username='$username', " +
+            "password='***', " +
+            "supportsPairing=$supportsPairing, " +
+            "pairingCode=$pairingCode, state=$state, " +
+            "serverValidation=$serverValidation, " +
+            "loginError=$loginError)"
     }
 
     companion object {

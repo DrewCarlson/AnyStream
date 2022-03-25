@@ -25,8 +25,8 @@ sealed class LoginScreenEffect {
     ) : LoginScreenEffect() {
         override fun toString(): String {
             return "Login(username='$username', " +
-                    "password='***', " +
-                    "serverUrl='$serverUrl')"
+                "password='***', " +
+                "serverUrl='$serverUrl')"
         }
     }
 

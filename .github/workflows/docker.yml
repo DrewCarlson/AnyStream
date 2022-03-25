@@ -60,7 +60,7 @@ jobs:
       - uses: gradle/gradle-build-action@v2
         name: Build Server and Web Client
         with:
-          arguments: :anystream-server:installShadowDist :anystream-client-web:jsBrowserProductionWebpack
+          arguments: :anystream-server:server-app:installShadowDist :anystream-client-web:jsBrowserProductionWebpack
 
       - name: Container registry Log in
         uses: docker/login-action@v1

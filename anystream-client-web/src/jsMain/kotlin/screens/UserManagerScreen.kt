@@ -69,7 +69,7 @@ fun UserManagerScreen() {
             }
         }
     }
-    InviteCodeDialog( usersState.value)
+    InviteCodeDialog(usersState.value)
 }
 
 @Composable

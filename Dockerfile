@@ -2,7 +2,7 @@ FROM mcr.microsoft.com/java/jdk:11-zulu-alpine
 
 COPY . /build-project
 WORKDIR /build-project
-RUN ./gradlew :anystream-server:installShadowDist :anystream-client-web:jsBrowserProductionWebpack --console=plain --no-daemon
+RUN ./gradlew :anystream-server:server-app:installShadowDist :anystream-client-web:jsBrowserProductionWebpack --console=plain --no-daemon
 
 FROM mcr.microsoft.com/java/jre:11-zulu-alpine
 
