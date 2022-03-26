@@ -21,6 +21,7 @@ import anystream.test.RESOURCES
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.server.config.*
 import io.ktor.server.testing.*
 import org.junit.Ignore
 import org.junit.Test
@@ -84,6 +85,9 @@ class SinglePageAppTests {
         test: suspend ApplicationTestBuilder.() -> Unit
     ) {
         testApplication {
+            environment {
+                config = MapApplicationConfig()
+            }
             install(SinglePageApp, configure)
             /*routing {
                 get("/static/test.json") {
