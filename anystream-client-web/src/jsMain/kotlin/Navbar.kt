@@ -27,9 +27,7 @@ import anystream.models.Permission
 import anystream.models.api.SearchResponse
 import app.softwork.routingcompose.BrowserRouter
 import kotlinx.browser.localStorage
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -119,6 +117,30 @@ private fun SecondaryMenu(permissions: Set<Permission>) {
     var isMenuVisible by remember { mutableStateOf(false) }
     Div({ classes("navbar-nav", "ms-auto") }) {
         if (Permission.check(Permission.ConfigureSystem, permissions)) {
+            val sessionCount by client.observeStreams()
+                .retry()
+                .map { it.playbackStates.size }
+                .collectAsState(0)
+            A(attrs = {
+                classes("nav-link", "d-flex", "align-items-center")
+                if (sessionCount > 0) {
+                    style {
+                        color(rgb(255, 8, 28))
+                    }
+                }
+            }) {
+                if (sessionCount > 0) {
+                    Div({
+                        classes("fs-6", "pe-1")
+                        style {
+                            color(rgb(255, 8, 28))
+                        }
+                    }) {
+                        Text(sessionCount.toString())
+                    }
+                }
+                I({ classes("bi", "bi-activity") })
+            }
             A(attrs = {
                 classes("nav-link")
                 onClick { BrowserRouter.navigate("/usermanager") }

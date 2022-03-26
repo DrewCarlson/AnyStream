@@ -454,6 +454,22 @@ class AnyStreamClient(
         return http.get("$serverUrl/api/stream").body()
     }
 
+    fun observeStreams(): Flow<PlaybackSessionsResponse> = callbackFlow {
+        http.wss("$serverUrlWs/api/ws/stream") {
+            send(sessionManager.fetchToken()!!)
+            while (!incoming.isClosedForReceive) {
+                try {
+                    trySend(receiveDeserialized())
+                } catch (e: WebsocketDeserializeException) {
+                    // ignored
+                } catch (e: ClosedReceiveChannelException) {
+                    // ignored
+                }
+            }
+            awaitClose()
+        }
+    }
+
     fun createHlsStreamUrl(mediaRefId: String, token: String): String {
         return "$serverUrl/api/stream/$mediaRefId/hls/playlist.m3u8?token=$token"
     }

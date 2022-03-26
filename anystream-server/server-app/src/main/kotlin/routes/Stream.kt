@@ -20,6 +20,7 @@ package anystream.routes
 import anystream.data.UserSession
 import anystream.json
 import anystream.models.*
+import anystream.models.api.PlaybackSessionsResponse
 import anystream.service.stream.StreamService
 import anystream.util.extractUserSession
 import io.ktor.http.*
@@ -36,12 +37,14 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import org.drewcarlson.ktor.permissions.withPermission
 import java.io.File
 import kotlin.math.roundToInt
+import kotlin.time.Duration.Companion.seconds
 
 private const val PLAYBACK_COMPLETE_PERCENT = 90
 
@@ -130,6 +133,23 @@ fun Route.addStreamRoutes(
 fun Route.addStreamWsRoutes(
     streamService: StreamService,
 ) {
+    val sessionsFlow = flow {
+        var previousSessions: PlaybackSessionsResponse? = null
+        while (true) {
+            val nextSessions = streamService.getPlaybackSessions()
+            if (previousSessions != nextSessions) {
+                previousSessions = nextSessions
+                emit(nextSessions)
+            }
+            delay(2.seconds)
+        }
+    }.shareIn(application, SharingStarted.WhileSubscribed(), 1)
+
+    webSocket("/ws/stream") {
+        checkNotNull(extractUserSession())
+        sessionsFlow.collect { response -> sendSerialized(response) }
+    }
+
     webSocket("/ws/stream/{mediaRefId}/state") {
         val userSession = checkNotNull(extractUserSession())
         val userId = userSession.userId

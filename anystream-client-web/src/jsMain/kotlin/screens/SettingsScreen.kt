@@ -25,7 +25,7 @@ import anystream.models.api.ImportMedia
 import anystream.models.api.PlaybackSessionsResponse
 import anystream.util.formatProgressAndRuntime
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.web.attributes.InputType
 import org.jetbrains.compose.web.attributes.placeholder
@@ -128,16 +128,7 @@ private fun ImportMediaArea(scope: CoroutineScope) {
 @Composable
 private fun ActiveStreamsList() {
     val client = LocalAnyStreamClient.current
-    val sessionsResponse by produceState<PlaybackSessionsResponse?>(null) {
-        while (true) {
-            value = try {
-                client.getStreams()
-            } catch (e: Throwable) {
-                null
-            }
-            delay(5_000L)
-        }
-    }
+    val sessionsResponse by remember { client.observeStreams().retry() }.collectAsState(PlaybackSessionsResponse())
 
     Div({
         classes("d-flex", "flex-row")
@@ -145,53 +136,51 @@ private fun ActiveStreamsList() {
             gap(10.px)
         }
     }) {
-        sessionsResponse?.apply {
-            playbackStates.forEach { playbackState ->
-                val user = users.getValue(playbackState.userId)
-                val mediaLookup = mediaLookups.getValue(playbackState.mediaId)
-                val mediaItem = checkNotNull(
-                    mediaLookup.run { movie?.toMediaItem() ?: episode?.toMediaItem() }
-                )
+        sessionsResponse.playbackStates.forEach { playbackState ->
+            val user = sessionsResponse.users.getValue(playbackState.userId)
+            val mediaLookup = sessionsResponse.mediaLookups.getValue(playbackState.mediaId)
+            val mediaItem = checkNotNull(
+                mediaLookup.run { movie?.toMediaItem() ?: episode?.toMediaItem() }
+            )
+            Div({
+                classes("d-flex", "flex-column", "p-3", "rounded")
+                style {
+                    backgroundColor(rgba(0, 0, 0, 0.2))
+                    width(300.px)
+                }
+            }) {
                 Div({
-                    classes("d-flex", "flex-column", "p-3", "rounded")
+                    classes("d-flex", "flex-row", "align-items-center", "justify-content-between")
+                }) {
+                    Div { Text(mediaItem.contentTitle) }
+                    Div {
+                        I({
+                            classes("bi", "bi-filetype-json")
+                            onClick {
+                                console.log("playbackState", playbackState)
+                                console.log("transcoding", sessionsResponse.transcodeSessions[playbackState.id])
+                            }
+                        })
+                    }
+                }
+                Div({
+                    classes("overflow-hidden", "text-nowrap")
                     style {
-                        backgroundColor(rgba(0, 0, 0, 0.2))
-                        width(300.px)
+                        property("text-overflow", "ellipsis")
                     }
                 }) {
-                    Div({
-                        classes("d-flex", "flex-row", "align-items-center", "justify-content-between")
-                    }) {
-                        Div { Text(mediaItem.contentTitle) }
-                        Div {
-                            I({
-                                classes("bi", "bi-filetype-json")
-                                onClick {
-                                    console.log("playbackState", playbackState)
-                                    console.log("transcoding", transcodeSessions[playbackState.id])
-                                }
-                            })
-                        }
+                    mediaItem.subtitle1?.let { subtitle1 ->
+                        Text(subtitle1.replace("Season ", "S"))
                     }
-                    Div({
-                        classes("overflow-hidden", "text-nowrap")
-                        style {
-                            property("text-overflow", "ellipsis")
-                        }
-                    }) {
-                        mediaItem.subtitle1?.let { subtitle1 ->
-                            Text(subtitle1.replace("Season ", "S"))
-                        }
-                        mediaItem.subtitle2?.let { subtitle2 ->
-                            Text(subtitle2.replace("Episode ", "E"))
-                        }
+                    mediaItem.subtitle2?.let { subtitle2 ->
+                        Text(subtitle2.replace("Episode ", "E"))
                     }
-                    Div { Text("User: ${user.displayName}") }
-                    Div {
-                        val progress = playbackState.position.seconds
-                        val runtime = playbackState.runtime.seconds
-                        Text(formatProgressAndRuntime(progress, runtime))
-                    }
+                }
+                Div { Text("User: ${user.displayName}") }
+                Div {
+                    val progress = playbackState.position.seconds
+                    val runtime = playbackState.runtime.seconds
+                    Text(formatProgressAndRuntime(progress, runtime))
                 }
             }
         }
