@@ -10,7 +10,7 @@ RUN apk add --update --no-cache bash ffmpeg
 
 WORKDIR /app
 
-COPY --from=0 /build-project/anystream-server/build/install ./install/
+COPY --from=0 /build-project/anystream-server/server-app/build/install ./install/
 COPY --from=0 /build-project/anystream-client-web/build/distributions ./client-web/
 
 ENTRYPOINT ["./install/anystream-server-shadow/bin/anystream-server"]
