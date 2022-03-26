@@ -23,6 +23,7 @@ import anystream.frontend.libs.PopperElement
 import anystream.frontend.libs.popperOptions
 import anystream.frontend.util.ExternalClickMask
 import anystream.frontend.util.rememberDomElement
+import anystream.frontend.util.tooltip
 import anystream.models.Permission
 import anystream.models.api.SearchResponse
 import app.softwork.routingcompose.BrowserRouter
@@ -99,6 +100,9 @@ private fun NavLink(
         onMouseEnter { hovering = true }
         onMouseLeave { hovering = false }
         onClick { BrowserRouter.navigate(path) }
+        if (!expanded) {
+            tooltip(text, "right")
+        }
     }) {
         ButtonIcon(icon)
         if (expanded) {
@@ -123,6 +127,7 @@ private fun SecondaryMenu(permissions: Set<Permission>) {
                 .collectAsState(0)
             A(attrs = {
                 classes("nav-link", "d-flex", "align-items-center")
+                tooltip("Activity", "bottom")
                 if (sessionCount > 0) {
                     style {
                         color(rgb(255, 8, 28))
@@ -143,12 +148,14 @@ private fun SecondaryMenu(permissions: Set<Permission>) {
             }
             A(attrs = {
                 classes("nav-link")
+                tooltip("Users", "bottom")
                 onClick { BrowserRouter.navigate("/usermanager") }
             }) {
                 I({ classes("bi", "bi-people") })
             }
             A(attrs = {
                 classes("nav-link")
+                tooltip("Settings", "bottom")
                 onClick { BrowserRouter.navigate("/settings") }
             }) {
                 I({ classes("bi", "bi-gear") })

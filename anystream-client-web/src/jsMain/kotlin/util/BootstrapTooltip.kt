@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2021 AnyStream Maintainers
+ * Copyright (C) 2022 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -15,15 +15,22 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.frontend
+package anystream.frontend.util
 
-fun main() {
-    kotlinext.js.require("@popperjs/core/dist/umd/popper.min.js")
-    kotlinext.js.require("bootstrap/dist/js/bootstrap.min.js")
-    kotlinext.js.require("bootstrap/dist/css/bootstrap.min.css")
-    kotlinext.js.require("bootstrap-icons/font/bootstrap-icons.css")
-    kotlinext.js.require("@fontsource/open-sans/index.css")
-    kotlinext.js.require("video.js/dist/video-js.min.css")
-    kotlinext.js.require("video.js/dist/video.cjs.js")
-    webApp()
+import org.jetbrains.compose.web.attributes.AttrsScope
+import org.w3c.dom.Element
+
+fun <TElement : Element> AttrsScope<TElement>.tooltip(
+    title: String,
+    placement: String,
+) {
+    attr("data-bs-toggle", "tooltip")
+    attr("data-bs-placement", placement)
+    attr("title", title)
+    ref {
+        val tooltip = Bootstrap.Tooltip(it)
+        onDispose {
+            tooltip.dispose()
+        }
+    }
 }
