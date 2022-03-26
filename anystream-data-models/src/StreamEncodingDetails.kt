@@ -23,7 +23,6 @@ import kotlinx.serialization.Serializable
 sealed class StreamEncodingDetails {
     abstract val id: Int
     abstract val codecName: String
-    abstract val rawProbeData: String
     abstract val index: Int
     abstract val language: String?
     abstract val title: String?
@@ -33,7 +32,6 @@ sealed class StreamEncodingDetails {
         override val id: Int,
         override val index: Int,
         override val codecName: String,
-        override val rawProbeData: String,
         override val language: String?,
         override val title: String?,
         val profile: String?,
@@ -46,7 +44,6 @@ sealed class StreamEncodingDetails {
         override val id: Int,
         override val index: Int,
         override val codecName: String,
-        override val rawProbeData: String,
         override val language: String?,
         override val title: String?,
         val profile: String?,
@@ -61,7 +58,6 @@ sealed class StreamEncodingDetails {
         override val id: Int,
         override val index: Int,
         override val codecName: String,
-        override val rawProbeData: String,
         override val language: String?,
         override val title: String?,
     ) : StreamEncodingDetails()

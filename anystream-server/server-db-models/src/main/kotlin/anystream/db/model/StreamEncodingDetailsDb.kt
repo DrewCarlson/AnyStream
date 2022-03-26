@@ -22,7 +22,6 @@ import anystream.models.StreamEncodingDetails
 data class StreamEncodingDetailsDb(
     val id: Int,
     val codecName: String,
-    val rawProbeData: String,
     val index: Int,
     val language: String?,
     val profile: String?,
@@ -43,7 +42,6 @@ data class StreamEncodingDetailsDb(
             Type.AUDIO -> StreamEncodingDetails.Audio(
                 id = id,
                 codecName = codecName,
-                rawProbeData = rawProbeData,
                 index = index,
                 language = language,
                 profile = profile,
@@ -54,7 +52,6 @@ data class StreamEncodingDetailsDb(
             Type.VIDEO -> StreamEncodingDetails.Video(
                 id = id,
                 codecName = codecName,
-                rawProbeData = rawProbeData,
                 index = index,
                 language = language,
                 profile = profile,
@@ -67,7 +64,6 @@ data class StreamEncodingDetailsDb(
             Type.SUBTITLE -> StreamEncodingDetails.Subtitle(
                 id = id,
                 codecName = codecName,
-                rawProbeData = rawProbeData,
                 index = index,
                 language = language,
                 title = title,
@@ -88,7 +84,6 @@ data class StreamEncodingDetailsDb(
             return StreamEncodingDetailsDb(
                 stream.id,
                 stream.codecName,
-                stream.rawProbeData,
                 stream.index,
                 stream.language,
                 audio?.profile ?: video?.profile,

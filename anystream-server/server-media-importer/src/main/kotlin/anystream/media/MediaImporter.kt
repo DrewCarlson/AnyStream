@@ -33,8 +33,6 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.*
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.*
 import org.jdbi.v3.core.JdbiException
 import org.slf4j.Logger
 import org.slf4j.Marker
@@ -218,30 +216,6 @@ class MediaImporter(
     private fun Stream.toStreamEncodingDetails(): StreamEncodingDetails? {
         val title = getTag("title")
         val language = getTag("language") ?: getTag("LANGUAGE")
-        val rawData = buildJsonObject {
-            put("id", id)
-            put("index", index)
-            put("codecName", codecName)
-            put("codecLongName", codecLongName)
-            put("codecType", codecType.name)
-            put("codecTag", codecTag)
-            put("channels", channels)
-            put("codedWidth", codedWidth)
-            put("codedHeight", codedHeight)
-            put("avgFrameRate", avgFrameRate?.toString())
-            put("bitRate", bitRate)
-            put("level", level)
-            put("width", width)
-            put("height", height)
-            put("extradata", extradata)
-            put("profile", profile)
-            put("duration", duration)
-            put("durationTs", durationTs)
-            put("fieldOrder", fieldOrder)
-            put("language", language)
-            put("title", language)
-        }
-        val rawDataString = Json.encodeToString(rawData)
         return when (codecType) {
             StreamType.VIDEO,
             StreamType.VIDEO_NOT_PICTURE -> StreamEncodingDetails.Video(
@@ -254,7 +228,6 @@ class MediaImporter(
                 height = height,
                 width = width,
                 language = language,
-                rawProbeData = rawDataString,
                 title = title,
             )
             StreamType.AUDIO -> StreamEncodingDetails.Audio(
@@ -265,7 +238,6 @@ class MediaImporter(
                 bitRate = bitRate,
                 channels = channels,
                 language = language,
-                rawProbeData = rawDataString,
                 title = title,
             )
             StreamType.SUBTITLE -> StreamEncodingDetails.Subtitle(
@@ -273,7 +245,6 @@ class MediaImporter(
                 index = index,
                 codecName = codecName,
                 language = language,
-                rawProbeData = rawDataString,
                 title = title,
             )
             StreamType.DATA,
