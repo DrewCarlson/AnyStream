@@ -33,7 +33,6 @@ import org.jdbi.v3.sqlobject.SqlObjectPlugin
 import org.jdbi.v3.sqlobject.kotlin.KotlinSqlObjectPlugin
 import org.jdbi.v3.sqlobject.kotlin.attach
 import org.slf4j.LoggerFactory
-import javax.print.attribute.standard.Media
 import kotlin.test.*
 
 class MetadataManagerTests {
