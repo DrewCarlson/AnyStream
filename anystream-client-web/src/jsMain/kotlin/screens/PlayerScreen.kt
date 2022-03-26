@@ -136,15 +136,14 @@ fun PlayerScreen(mediaRefId: String) {
             }
         }
 
-        val miniPlayerHeight = remember { mutableStateOf(120) }
+        val miniPlayerHeight = remember { mutableStateOf(100) }
         val miniPlayerWidth = derivedStateOf { (miniPlayerHeight.value * 1.7777f).toInt() }
         Div({
             if (isInMiniMode.value) {
-                classes("flex-shrink-0", "shadow")
+                classes("flex-shrink-0", "m-2", "shadow")
                 style {
                     width(miniPlayerWidth.value.px)
                     height(miniPlayerHeight.value.px)
-                    margin(12.px)
                 }
             } else {
                 classes("h-100", "w-100")
