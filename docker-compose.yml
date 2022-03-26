@@ -6,17 +6,15 @@ services:
     container_name: anystream
     image: ghcr.io/drewcarlson/anystream:main
     restart: unless-stopped
-    command: >
-      ./install/anystream-server-shadow/bin/anystream-server
-      -P:app.ffmpegPath=/usr/bin
-      -P:app.webClientPath=/app/client-web
-      -P:app.databaseUrl=sqlite:/app/config/anystream.db
-      -P:app.qbittorrentUrl=http://qbittorrent:9090
-      -port=8888
     ports:
       - "8888:8888"
+    environment:
+      PORT: 8888
+      QBT_URL: http://qbittorrent:9090
+      QBT_USER: admin
+      QBT_PASSWORD: adminadmin
     volumes:
-      - ./anystream-config:/config
+      - ./anystream-storage:/app/storage
       - ./qbittorrent/content:/content
       - ./qbittorrent/downloads:/downloads
     links:
