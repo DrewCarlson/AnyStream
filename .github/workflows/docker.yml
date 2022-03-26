@@ -30,6 +30,8 @@ jobs:
             **/anystream-data-models/**
             **/anystream-data-core/**
             **/anystream-server/**
+            Dockerfile
+            Dockerfile-local
 
   build-and-push-image:
     runs-on: ubuntu-latest
