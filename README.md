@@ -5,7 +5,7 @@
 
 <p align="center">
 <img alt="Status" src="https://img.shields.io/static/v1?label=status&message=wip&color=red"/>
-<a href="https://github.com/drewcarlson/AnyStream/releases/lagest" style="text-decoration: none !important;">
+<a href="https://github.com/drewcarlson/AnyStream/releases/latest" style="text-decoration: none !important;">
 <img alt="Latest Release" src="https://img.shields.io/github/v/tag/drewcarlson/anystream?label=release&sort=semver">
 </a>
 <a href="https://matrix.to/#/#anystream-general:matrix.drews.website">
