@@ -19,6 +19,7 @@ package anystream.frontend.screens
 
 import androidx.compose.runtime.*
 import anystream.frontend.LocalAnyStreamClient
+import anystream.frontend.components.LoadingIndicator
 import anystream.frontend.models.toMediaItem
 import anystream.models.MediaKind
 import anystream.models.api.ImportMedia
@@ -31,6 +32,7 @@ import org.jetbrains.compose.web.attributes.InputType
 import org.jetbrains.compose.web.attributes.placeholder
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
+import org.w3c.dom.HTMLInputElement
 import kotlin.time.Duration.Companion.seconds
 
 @Composable
@@ -64,13 +66,22 @@ fun SettingsScreen() {
 @Composable
 private fun ImportMediaArea(scope: CoroutineScope) {
     val client = LocalAnyStreamClient.current
-    Div({
-        classes("col-4")
-    }) {
-        val importAll = remember { mutableStateOf(false) }
-        val selectedPath = remember { mutableStateOf<String?>(null) }
-        val selectedMediaKind = remember { mutableStateOf(MediaKind.MOVIE) }
-
+    val importAll = remember { mutableStateOf(false) }
+    val selectedPath = remember { mutableStateOf<String?>(null) }
+    val selectedMediaKind = remember { mutableStateOf(MediaKind.MOVIE) }
+    var showFiles by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(true) }
+    val subfolders by produceState<List<String>?>(emptyList(), selectedPath.value, showFiles) {
+        isLoading = true
+        value = emptyList()
+        value = try {
+            client.folders(selectedPath.value, showFiles)
+        } catch (e: Throwable) {
+            null
+        }
+        isLoading = false
+    }
+    Div({ classes("col-4") }) {
         Div { H4 { Text("Import Media") } }
         Select({
             onChange { event ->
@@ -84,15 +95,18 @@ private fun ImportMediaArea(scope: CoroutineScope) {
                 }
             }
         }
+        var inputRef by remember { mutableStateOf<HTMLInputElement?>(null) }
         Input(InputType.Text) {
             placeholder("(content path)")
-            onChange { event ->
+            onInput { event ->
                 selectedPath.value = event.value
             }
+            ref {
+                inputRef = it
+                onDispose { inputRef = null }
+            }
         }
-        Div({
-            classes("form-check")
-        }) {
+        Div({ classes("form-check") }) {
             CheckboxInput(importAll.value) {
                 id("import-all-check")
                 classes("form-check-input")
@@ -104,6 +118,20 @@ private fun ImportMediaArea(scope: CoroutineScope) {
                 classes("form-check-label")
             }) {
                 Text("Import All")
+            }
+        }
+        Div({ classes("form-check") }) {
+            CheckboxInput(showFiles) {
+                id("show-files-check")
+                classes("form-check-input")
+                onInput { event ->
+                    showFiles = event.value
+                }
+            }
+            Label("show-files-check", {
+                classes("form-check-label")
+            }) {
+                Text("Show Files")
             }
         }
         Button({
@@ -121,6 +149,49 @@ private fun ImportMediaArea(scope: CoroutineScope) {
             }
         }) {
             Text("Import")
+        }
+
+        Div({
+            classes("w-100", "vstack", "gap-1", "overflow-scroll")
+            style {
+                height(200.px)
+            }
+        }) {
+            if (isLoading) {
+                Div { LoadingIndicator() }
+            } else if (subfolders == null) {
+                Div { Text("Invalid directory") }
+            } else {
+                Div {
+                    A(attrs = {
+                        style { cursor("pointer") }
+                        onClick {
+                            selectedPath.value = selectedPath.value?.let { path ->
+                                if (path.endsWith(":\\")) return@let null
+                                val delimiter = if (path.contains("/")) "/" else "\\"
+                                val newPath = path.split(delimiter).dropLast(1).joinToString(delimiter)
+                                if (newPath.endsWith(":")) newPath + "\\" else newPath
+                            }
+                            inputRef?.value = selectedPath.value.orEmpty()
+                        }
+                    }) {
+                        Text("Up")
+                    }
+                }
+                subfolders.orEmpty().forEach { subfolder ->
+                    Div {
+                        A(attrs = {
+                            style { cursor("pointer") }
+                            onClick {
+                                inputRef?.value = subfolder
+                                selectedPath.value = subfolder
+                            }
+                        }) {
+                            Text(subfolder)
+                        }
+                    }
+                }
+            }
         }
     }
 }

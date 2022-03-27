@@ -20,7 +20,8 @@ package anystream.routes
 import anystream.data.*
 import anystream.media.MediaImporter
 import anystream.metadata.MetadataManager
-import anystream.models.*
+import anystream.models.Episode
+import anystream.models.MediaReference
 import anystream.models.api.*
 import anystream.util.isRemoteId
 import anystream.util.logger
@@ -36,8 +37,16 @@ import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.nio.file.FileSystems
+import java.nio.file.Files
+import kotlin.io.path.absolutePathString
+import kotlin.io.path.exists
+import kotlin.io.path.isDirectory
 
 fun Route.addMediaManageRoutes(
     tmdb: Tmdb3,
@@ -189,6 +198,35 @@ fun Route.addMediaManageRoutes(
                     call.respond(NotFound)
                 } else {
                     call.respond(ref)
+                }
+            }
+        }
+
+        get("/folders") {
+            val root = call.parameters["root"]
+            val showFiles = call.parameters["showFiles"]?.toBoolean() ?: false
+            fun Array<File>?.directoryList() = if (showFiles) {
+                orEmpty().toList()
+            } else {
+                orEmpty().filter(File::isDirectory)
+            }.map(File::getAbsolutePath)
+            if (root == null) {
+                call.respond(File.listRoots().directoryList())
+            } else {
+                val rootDir = FileSystems.getDefault().getPath(root)
+                if (rootDir.exists()) {
+                    if (rootDir.isDirectory()) {
+                        val files = withContext(Dispatchers.IO) {
+                            Files.newDirectoryStream(rootDir) {
+                                if (showFiles) true else it.isDirectory()
+                            }
+                        }.use { stream -> stream.map { it.absolutePathString() } }
+                        call.respond(files)
+                    } else {
+                        call.respond(listOf(rootDir.absolutePathString()))
+                    }
+                } else {
+                    call.respond(NotFound)
                 }
             }
         }

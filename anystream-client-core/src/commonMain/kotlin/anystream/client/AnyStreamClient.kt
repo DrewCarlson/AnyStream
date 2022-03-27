@@ -470,6 +470,19 @@ class AnyStreamClient(
         }
     }
 
+    suspend fun folders(path: String? = null, showFiles: Boolean = false): List<String>? {
+        val response = http.get("$serverUrl/api/media/folders") {
+            parameter("showFiles", showFiles)
+            if (!path.isNullOrBlank()) {
+                parameter("root", path)
+            }
+        }
+
+        if (response.status == NotFound) return null
+
+        return response.body()
+    }
+
     fun createHlsStreamUrl(mediaRefId: String, token: String): String {
         return "$serverUrl/api/stream/$mediaRefId/hls/playlist.m3u8?token=$token"
     }
