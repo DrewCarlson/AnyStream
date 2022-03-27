@@ -211,19 +211,28 @@ fun Route.addMediaManageRoutes(
                 orEmpty().filter(File::isDirectory)
             }.map(File::getAbsolutePath)
             if (root == null) {
-                call.respond(File.listRoots().directoryList())
+                call.respond(FoldersResponse(File.listRoots().directoryList()))
             } else {
                 val rootDir = FileSystems.getDefault().getPath(root)
                 if (rootDir.exists()) {
                     if (rootDir.isDirectory()) {
-                        val files = withContext(Dispatchers.IO) {
-                            Files.newDirectoryStream(rootDir) {
-                                if (showFiles) true else it.isDirectory()
-                            }
-                        }.use { stream -> stream.map { it.absolutePathString() } }
-                        call.respond(files)
+                        val (folders, files) = withContext(Dispatchers.IO) {
+                            Files.newDirectoryStream(rootDir)
+                        }.use { stream ->
+                            stream.partition { it.isDirectory() }
+                        }
+                        call.respond(
+                            FoldersResponse(
+                                folders.map { it.absolutePathString() },
+                                if (showFiles) {
+                                    files.map { it.absolutePathString() }
+                                } else {
+                                    emptyList()
+                                }
+                            )
+                        )
                     } else {
-                        call.respond(listOf(rootDir.absolutePathString()))
+                        call.respond(FoldersResponse(files = listOf(rootDir.absolutePathString())))
                     }
                 } else {
                     call.respond(NotFound)
