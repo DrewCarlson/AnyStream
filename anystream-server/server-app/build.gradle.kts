@@ -9,6 +9,7 @@ plugins {
 }
 
 application {
+    applicationName = "anystream"
     mainClass.set("io.ktor.server.netty.EngineMain")
 }
 
@@ -19,11 +20,17 @@ tasks.withType<KotlinCompile>().all {
     targetCompatibility = "11"
 }
 
+distributions.configureEach {
+    distributionBaseName.set("anystream-server")
+}
+
 tasks.withType<ShadowJar> {
     val clientWeb = projects.anystreamClientWeb.dependencyProject
     dependsOn(clientWeb.tasks.getByName("jsBrowserDistribution"))
+    archiveFileName.set("anystream.jar")
+    archiveBaseName.set("anystream")
+    archiveClassifier.set("anystream")
     manifest {
-        archiveFileName.set("server.jar")
         attributes(mapOf("Main-Class" to application.mainClass.get()))
     }
     from(rootProject.file("anystream-client-web/build/distributions")) {

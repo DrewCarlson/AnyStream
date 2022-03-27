@@ -263,7 +263,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ server-tests, client-core-tests, client-web-tests ]
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v3
       - name: Download kover reports
         uses: actions/download-artifact@v3
         with:

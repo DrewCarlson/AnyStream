@@ -1,0 +1,44 @@
+site_name: AnyStream
+site_url: https://docs.anystream.dev/
+repo_url: https://github.com/drewcarlson/anystream
+
+theme:
+  name: material
+  favicon: /img/favicon.ico
+  logo: /img/as-emblem.svg
+  icon:
+    repo: fontawesome/brands/github
+
+extra_css:
+  - stylesheets/extra.css
+
+docs_dir: docs
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+
+extra:
+  social:
+    - icon: fontawesome/solid/heart
+      link: https://github.com/sponsors/DrewCarlson
+    - icon: fontawesome/brands/github
+      link: https://github.com/DrewCarlson/AnyStream
+    - icon: fontawesome/brands/docker
+      link: https://github.com/DrewCarlson/AnyStream/pkgs/container/anystream
+
+nav:
+  - Home: README.md
+  - Getting Started: 1-getting-started.md
+  - Naming Media Files: 2-naming-media-files.md
+  - Clients and Mobile Apps: 3-clients-and-mobile.md
+  - Connecting qBittorrent: 4-connecting-qbittorrent.md
+  - Development: 99-development.md

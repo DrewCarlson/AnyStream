@@ -49,7 +49,11 @@ import org.jdbi.v3.sqlobject.SqlObjectPlugin
 import org.jdbi.v3.sqlobject.kotlin.KotlinSqlObjectPlugin
 import org.jdbi.v3.sqlobject.kotlin.attach
 import org.slf4j.event.Level
+import java.io.File
 import java.time.Duration
+import kotlin.io.path.Path
+import kotlin.io.path.absolutePathString
+import kotlin.io.path.createDirectories
 import kotlin.random.Random
 import kotlin.system.exitProcess
 
@@ -58,8 +62,20 @@ fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 @Suppress("unused", "UNUSED_PARAMETER") // Referenced in application.conf
 @JvmOverloads
 fun Application.module(testing: Boolean = false) {
-
-    val databaseUrl = environment.config.property("app.databaseUrl").getString()
+    val dataPath = environment.config.propertyOrNull("app.dataPath")?.getString().let { path ->
+        Path(path.orEmpty().ifBlank { "${System.getProperty("user.home")}${File.separator}anystream" })
+            .createDirectories()
+            .absolutePathString()
+    }
+    val databaseUrl = environment.config
+        .property("app.databaseUrl")
+        .getString()
+        .ifBlank {
+            Path("${dataPath}${File.separator}config${File.separator}").run {
+                createDirectories()
+                "sqlite:${resolve("anystream.db").absolutePathString()}"
+            }
+        }
 
     val jdbi = Jdbi.create("jdbc:$databaseUrl").apply {
         setSqlLogger(Slf4JSqlLogger())
@@ -147,5 +163,5 @@ fun Application.module(testing: Boolean = false) {
         global(Permission.Global)
         extract { (it as UserSession).permissions }
     }
-    installRouting(dbHandle)
+    installRouting(dataPath, dbHandle)
 }

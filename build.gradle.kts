@@ -32,6 +32,12 @@ allprojects {
         google()
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     }
+
+    System.getenv("GITHUB_REF")?.let { ref ->
+        if (ref.startsWith("refs/tags/v")) {
+            version = ref.substringAfterLast("refs/tags/v")
+        }
+    }
 }
 
 val rootIosTestTask = rootProject.tasks.create("runIosX64Tests") {

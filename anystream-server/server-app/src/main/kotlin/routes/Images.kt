@@ -31,7 +31,7 @@ import io.ktor.utils.io.*
 import kotlin.io.path.Path
 import kotlin.io.path.exists
 
-fun Route.addImageRoutes(storagePath: String) {
+fun Route.addImageRoutes(dataPath: String) {
     val imageClient = HttpClient {
         install(HttpCache) {
             // TODO: Add disk catching
@@ -42,7 +42,7 @@ fun Route.addImageRoutes(storagePath: String) {
         get("/previews/{mediaRefId}/{imageName}") {
             val mediaRefId = call.parameters["mediaRefId"] ?: return@get call.respond(NotFound)
             val imageName = call.parameters["imageName"] ?: return@get call.respond(NotFound)
-            val imagePath = Path(storagePath, "previews", mediaRefId, imageName)
+            val imagePath = Path(dataPath, "previews", mediaRefId, imageName)
             if (imagePath.exists()) {
                 call.respondFile(imagePath.toFile())
             } else {

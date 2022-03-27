@@ -52,18 +52,8 @@ import org.jdbi.v3.core.Handle
 import org.jdbi.v3.sqlobject.kotlin.attach
 import java.io.File
 import java.nio.file.Path
-import kotlin.io.path.Path
-import kotlin.io.path.absolutePathString
-import kotlin.io.path.createDirectories
 
-fun Application.installRouting(dbHandle: Handle) {
-    val storagePath = environment.config.propertyOrNull("app.storagePath")?.getString().let { path ->
-        if (path.isNullOrBlank()) {
-            Path("${System.getProperty("user.home")}${File.separator}anystream")
-        } else {
-            Path(path)
-        }.createDirectories().absolutePathString()
-    }
+fun Application.installRouting(dataPath: String, dbHandle: Handle) {
     val disableWebClient = environment.config.property("app.disableWebClient").getString().toBoolean()
     val webClientPath = environment.config.propertyOrNull("app.webClientPath")?.getString()
     val ffmpegPath = environment.config.property("app.ffmpegPath").getString()
@@ -133,7 +123,7 @@ fun Application.installRouting(dbHandle: Handle) {
             authenticate {
                 addHomeRoutes(tmdb, queries)
                 withAnyPermission(Permission.ViewCollection) {
-                    addImageRoutes(storagePath)
+                    addImageRoutes(dataPath)
                     addTvShowRoutes(queries)
                     addMovieRoutes(queries)
                     addSearchRoutes(searchService)

@@ -13,7 +13,7 @@ WORKDIR /app
 COPY --from=0 /build-project/anystream-server/server-app/build/install ./install/
 COPY --from=0 /build-project/anystream-client-web/build/distributions ./client-web/
 
-ENV STORAGE_PATH=/app/storage/
+ENV DATA_PATH=/app/storage/
 ENV DATABASE_URL=sqlite:/app/storage/config/anystream.db
 ENV FFMPEG_PATH=/usr/bin
 ENV WEB_CLIENT_PATH=/app/client-web
