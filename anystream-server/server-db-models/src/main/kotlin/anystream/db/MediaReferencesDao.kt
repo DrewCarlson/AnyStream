@@ -48,7 +48,6 @@ private const val MEDIAREF_COLUMNS =
 private const val STEAM_COLUMNS = """
             s.id s_id,
             s.codecName s_codecName,
-            s.rawProbeData s_rawProbeData,
             s.'index' s_index,
             s.language s_language,
             s.profile s_profile,
