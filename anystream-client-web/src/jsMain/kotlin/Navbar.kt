@@ -32,8 +32,10 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.jetbrains.compose.web.attributes.ATarget
 import org.jetbrains.compose.web.attributes.AttrsScope
 import org.jetbrains.compose.web.attributes.onSubmit
+import org.jetbrains.compose.web.attributes.target
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 import org.w3c.dom.HTMLElement
@@ -215,6 +217,13 @@ private fun OverflowMenu(
                     globalClickHandler?.dispose()
                     globalClickHandler = null
                 }
+            }
+            A("https://docs.anystream.dev", {
+                classes("nav-link", "fs-6")
+                target(ATarget.Blank)
+            }) {
+                I({ classes("bi", "bi-book", "me-2") })
+                Text("Documentation")
             }
             A(null, {
                 classes("nav-link", "fs-6")
