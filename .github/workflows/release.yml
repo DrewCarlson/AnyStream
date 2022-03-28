@@ -124,7 +124,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          prerelease: true
+          prerelease: ${{ contains(github.ref, '-') }}
           files: |
             anystream-server/server-app/build/distributions/*.zip
             anystream-server/server-app/build/distributions/*.tar
