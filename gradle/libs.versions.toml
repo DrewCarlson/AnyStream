@@ -37,7 +37,7 @@ leakcanary = "2.8.1"
 okhttp = "4.9.3"
 
 flipperVersion = "0.140.0"
-spotless = "6.3.0"
+spotless = "6.4.0"
 ktlint = "0.43.2"
 
 [plugins]
