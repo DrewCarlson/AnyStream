@@ -27,6 +27,7 @@ jobs:
         uses: tj-actions/changed-files@v18
         with:
           files: |
+            .github/workflows/release.yml
             build.gradle.kts
             gradle/libs.versions.toml
             gradle/kotlin-js-store/**
@@ -41,7 +42,7 @@ jobs:
         uses: tj-actions/changed-files@v18
         with:
           files: |
-            .github/workflows/docs.yml
+            .github/workflows/release.yml
             docs/**/*.md
             mkdocs.yml
 
