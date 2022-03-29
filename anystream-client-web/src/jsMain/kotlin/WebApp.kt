@@ -20,6 +20,8 @@ package anystream.frontend
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
 import anystream.client.SessionManager
+import anystream.frontend.components.Navbar
+import anystream.frontend.components.SideMenu
 import anystream.frontend.screens.*
 import anystream.frontend.util.Js
 import app.softwork.routingcompose.BrowserRouter

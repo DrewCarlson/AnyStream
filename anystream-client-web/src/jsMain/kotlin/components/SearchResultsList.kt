@@ -18,7 +18,6 @@
 package anystream.frontend.components
 
 import androidx.compose.runtime.Composable
-import anystream.frontend.searchQuery
 import anystream.models.api.SearchResponse
 import app.softwork.routingcompose.BrowserRouter
 import org.jetbrains.compose.web.css.*
