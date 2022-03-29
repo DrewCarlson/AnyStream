@@ -53,7 +53,7 @@ jobs:
     steps:
       - name: Get version
         id: tag
-        uses: DrewCarlson/action-get-tag@v1
+        uses: DrewCarlson/action-get-tag@v1.2
         with:
           strip_v: true
       - uses: actions/checkout@v3
