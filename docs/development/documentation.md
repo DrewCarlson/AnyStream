@@ -33,12 +33,29 @@ documentation source is stored in the `docs` folder.
 
 ## Install MkDocs and plugins
 
+Open a new Terminal or Command Prompt window.
+
 ```shell
 pip install mkdocs mkdocs-material mkdocs-markdownextradata-plugin
 ```
 
 For more information see the MkDocs [Installation Guide](https://www.mkdocs.org/getting-started/#installation) and the
 Material for MkDocs [Installation Guide](https://squidfunk.github.io/mkdocs-material/getting-started/#with-pip).
+
+## Writing Documentation
+
+Documentation source files are written in [Markdown](https://www.markdownguide.org/). For navigation and advanced
+formatting features, see the MkDocs [Writing your docs](https://www.mkdocs.org/user-guide/writing-your-docs/) guide and
+Material for MkDocs [Reference](https://squidfunk.github.io/mkdocs-material/reference/).
+
+???+ tip "Variables"
+
+    Some dynamic variables are made available, they can be used with the `{{ name }}` syntax.
+    Below are the available variables.
+    
+    | Name    | Value                                                            |
+    |---------|------------------------------------------------------------------|
+    | version | The current release version, for example `2.3.5` (No `v` prefix) |
 
 ## View docs locally
 
@@ -55,11 +72,3 @@ reload automatically.
 
 Changes are deployed to [docs.anystream.dev](https://docs.anystream.dev/) automatically when merged into the `main`
 branch.
-
-## Writing Documentation
-
-Documentation source files are written in [Markdown](https://www.markdownguide.org/).
-
-For navigation and advanced formatting features, see the
-MkDocs [Writing your docs](https://www.mkdocs.org/user-guide/writing-your-docs/) guide and Material for
-MkDocs [Reference](https://squidfunk.github.io/mkdocs-material/reference/).
