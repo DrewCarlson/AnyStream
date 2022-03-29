@@ -19,9 +19,14 @@ html, body, #root, #main-panel {
   scrollbar-color: #403f3e transparent;
 }
 
-.nav-link {
+.nav-link-large {
     cursor: pointer;
     font-size: 16pt;
+}
+
+.nav-link-small {
+    cursor: pointer;
+    font-size: 14pt;
 }
 
 .navbar.bg-dark {

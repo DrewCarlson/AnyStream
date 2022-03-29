@@ -50,10 +50,7 @@ fun SideMenu(
         }
     }) {
         Ul({
-            classes(
-                "nav", "nav-pills", "flex-column",
-                "h-100", "mb-auto", "rounded", "shadow"
-            )
+            classes("nav", "nav-pills", "flex-column", "h-100", "py-2", "mb-auto", "rounded", "shadow")
             style {
                 overflow("hidden")
                 backgroundColor(rgba(0, 0, 0, 0.3))
@@ -61,25 +58,25 @@ fun SideMenu(
         }) {
 
             // NavLink("Discover", "bi-search", false)
-            Li {
+            Li({ classes("nav-item") }) {
                 NavLink("Home", "bi-house", "/home", expanded)
             }
             if (Permission.check(Permission.ViewCollection, permissions)) {
-                Li {
+                Li({ classes("nav-item") }) {
                     NavLink("Movies", "bi-film", "/movies", expanded)
                 }
-                Li {
+                Li({ classes("nav-item") }) {
                     NavLink("TV", "bi-tv", "/tv", expanded)
                 }
             }
             if (Permission.check(Permission.ManageTorrents, permissions)) {
-                Li {
+                Li({ classes("nav-item") }) {
                     NavLink("Downloads", "bi-cloud-arrow-down", "/downloads", expanded)
                 }
             }
-            Li({ classes("mt-auto") }) {
+            Li({ classes("nav-item", "mt-auto") }) {
                 A(attrs = {
-                    classes("nav-link")
+                    classes("nav-link", "nav-link-large")
                     style {
                         backgroundColor(Color.transparent)
                         color(rgba(255, 255, 255, 0.7))
@@ -111,7 +108,7 @@ private fun NavLink(
     val currentPath = BrowserRouter.getPath("/")
     var hovering by remember { mutableStateOf(false) }
     A(attrs = {
-        classes("nav-link")
+        classes("nav-link", "nav-link-large")
         style {
             backgroundColor(Color.transparent)
             val isActive = currentPath.value.startsWith(path)

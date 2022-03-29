@@ -20,37 +20,82 @@ package anystream.frontend.screens
 import androidx.compose.runtime.*
 import anystream.frontend.LocalAnyStreamClient
 import anystream.frontend.models.toMediaItem
+import anystream.frontend.util.tooltip
 import anystream.models.api.PlaybackSessionsResponse
 import anystream.util.formatProgressAndRuntime
+import app.softwork.routingcompose.BrowserRouter
 import kotlinx.coroutines.flow.retry
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 import kotlin.time.Duration.Companion.seconds
 
 @Composable
-fun SettingsScreen() {
+fun SettingsScreen(subscreen: String) {
     val scope = rememberCoroutineScope()
+    Div({ classes("d-flex", "p-2") }) {
+        when (subscreen) {
+            "activity" -> ActiveStreamsList()
+            "import" -> ImportMediaScreen(scope)
+        }
+    }
+}
+
+@Composable
+fun SettingsSideMenu() {
     Div({
-        classes("d-flex", "flex-column", "p-2")
+        classes("d-inline-block", "mx-2", "py-2")
         style {
-            gap(1.cssRem)
+            property("transition", "width .2s ease-in-out 0s")
+            width(250.px)
+            minWidth(250.px)
         }
     }) {
-        Div {
-            H3 {
-                Text("Settings")
+        Ul({
+            classes("nav", "flex-column", "h-100", "py-2", "mb-auto", "rounded", "shadow")
+            style {
+                overflow("hidden")
+                backgroundColor(rgba(0, 0, 0, 0.3))
+            }
+        }) {
+            Li({ classes("nav-item") }) {
+                NavLink("Activity", "/settings/activity", true)
+            }
+            Li({ classes("nav-item") }) {
+                NavLink("Import Media", "/settings/import", true)
             }
         }
-        Div {
-            ImportMediaScreen(scope)
-        }
-        Div {
-            H3 {
-                Text("Active Streams")
+    }
+}
+
+@Composable
+private fun NavLink(
+    text: String,
+    path: String,
+    expanded: Boolean,
+) {
+    val currentPath = BrowserRouter.getPath("/")
+    var hovering by remember { mutableStateOf(false) }
+    A(attrs = {
+        classes("nav-link", "nav-link-small")
+        style {
+            backgroundColor(Color.transparent)
+            val isActive = currentPath.value.startsWith(path)
+            when {
+                hovering && isActive -> color(Color.white) // TODO: active indicator icon
+                hovering -> color(Color.white)
+                isActive -> color(rgb(255, 8, 28)) // TODO: active indicator icon
+                else -> color(rgba(255, 255, 255, 0.7))
             }
         }
-        Div {
-            ActiveStreamsList()
+        onMouseEnter { hovering = true }
+        onMouseLeave { hovering = false }
+        onClick { BrowserRouter.navigate(path) }
+        if (!expanded) {
+            tooltip(text, "right")
+        }
+    }) {
+        if (expanded) {
+            Text(text)
         }
     }
 }
@@ -58,59 +103,57 @@ fun SettingsScreen() {
 @Composable
 private fun ActiveStreamsList() {
     val client = LocalAnyStreamClient.current
-    val sessionsResponse by remember { client.observeStreams().retry() }.collectAsState(PlaybackSessionsResponse())
+    val sessionsResponse by client.observeStreams().retry().collectAsState(PlaybackSessionsResponse())
 
-    Div({
-        classes("d-flex", "flex-row")
-        style {
-            gap(10.px)
-        }
-    }) {
-        sessionsResponse.playbackStates.forEach { playbackState ->
-            val user = sessionsResponse.users.getValue(playbackState.userId)
-            val mediaLookup = sessionsResponse.mediaLookups.getValue(playbackState.mediaId)
-            val mediaItem = checkNotNull(
-                mediaLookup.run { movie?.toMediaItem() ?: episode?.toMediaItem() }
-            )
-            Div({
-                classes("d-flex", "flex-column", "p-3", "rounded")
-                style {
-                    backgroundColor(rgba(0, 0, 0, 0.2))
-                    width(300.px)
-                }
-            }) {
+    Div({ classes("d-flex", "flex-column") }) {
+        Div { H3 { Text("Activity") } }
+        Div({ classes("d-flex", "flex-row", "gap-1") }) {
+            sessionsResponse.playbackStates.forEach { playbackState ->
+                val user = sessionsResponse.users.getValue(playbackState.userId)
+                val mediaLookup = sessionsResponse.mediaLookups.getValue(playbackState.mediaId)
+                val mediaItem = checkNotNull(
+                    mediaLookup.run { movie?.toMediaItem() ?: episode?.toMediaItem() }
+                )
                 Div({
-                    classes("d-flex", "flex-row", "align-items-center", "justify-content-between")
-                }) {
-                    Div { Text(mediaItem.contentTitle) }
-                    Div {
-                        I({
-                            classes("bi", "bi-filetype-json")
-                            onClick {
-                                console.log("playbackState", playbackState)
-                                console.log("transcoding", sessionsResponse.transcodeSessions[playbackState.id])
-                            }
-                        })
-                    }
-                }
-                Div({
-                    classes("overflow-hidden", "text-nowrap")
+                    classes("d-flex", "flex-column", "p-3", "rounded")
                     style {
-                        property("text-overflow", "ellipsis")
+                        backgroundColor(rgba(0, 0, 0, 0.2))
+                        width(300.px)
                     }
                 }) {
-                    mediaItem.subtitle1?.let { subtitle1 ->
-                        Text(subtitle1.replace("Season ", "S"))
+                    Div({
+                        classes("d-flex", "flex-row", "align-items-center", "justify-content-between")
+                    }) {
+                        Div { Text(mediaItem.contentTitle) }
+                        Div {
+                            I({
+                                classes("bi", "bi-filetype-json")
+                                onClick {
+                                    console.log("playbackState", playbackState)
+                                    console.log("transcoding", sessionsResponse.transcodeSessions[playbackState.id])
+                                }
+                            })
+                        }
                     }
-                    mediaItem.subtitle2?.let { subtitle2 ->
-                        Text(subtitle2.replace("Episode ", "E"))
+                    Div({
+                        classes("overflow-hidden", "text-nowrap")
+                        style {
+                            property("text-overflow", "ellipsis")
+                        }
+                    }) {
+                        mediaItem.subtitle1?.let { subtitle1 ->
+                            Text(subtitle1.replace("Season ", "S"))
+                        }
+                        mediaItem.subtitle2?.let { subtitle2 ->
+                            Text(subtitle2.replace("Episode ", "E"))
+                        }
                     }
-                }
-                Div { Text("User: ${user.displayName}") }
-                Div {
-                    val progress = playbackState.position.seconds
-                    val runtime = playbackState.runtime.seconds
-                    Text(formatProgressAndRuntime(progress, runtime))
+                    Div { Text("User: ${user.displayName}") }
+                    Div {
+                        val progress = playbackState.position.seconds
+                        val runtime = playbackState.runtime.seconds
+                        Text(formatProgressAndRuntime(progress, runtime))
+                    }
                 }
             }
         }

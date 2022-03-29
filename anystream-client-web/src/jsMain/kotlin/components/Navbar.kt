@@ -89,7 +89,7 @@ private fun SecondaryMenu(permissions: Set<Permission>) {
                 .map { it.playbackStates.size }
                 .collectAsState(0)
             A(attrs = {
-                classes("nav-link", "d-flex", "align-items-center")
+                classes("nav-link", "nav-link-large", "d-flex", "align-items-center")
                 tooltip("Activity", "bottom")
                 if (sessionCount > 0) {
                     style {
@@ -110,16 +110,16 @@ private fun SecondaryMenu(permissions: Set<Permission>) {
                 I({ classes("bi", "bi-activity") })
             }
             A(attrs = {
-                classes("nav-link")
+                classes("nav-link", "nav-link-large")
                 tooltip("Users", "bottom")
                 onClick { BrowserRouter.navigate("/usermanager") }
             }) {
                 I({ classes("bi", "bi-people") })
             }
             A(attrs = {
-                classes("nav-link")
+                classes("nav-link", "nav-link-large")
                 tooltip("Settings", "bottom")
-                onClick { BrowserRouter.navigate("/settings") }
+                onClick { BrowserRouter.navigate("/settings/activity") }
             }) {
                 I({ classes("bi", "bi-gear") })
             }
@@ -127,7 +127,7 @@ private fun SecondaryMenu(permissions: Set<Permission>) {
         var overflowMenuButtonElement by remember { mutableStateOf<HTMLElement?>(null) }
         A(attrs = {
             onClick { isMenuVisible = !isMenuVisible }
-            classes("nav-link")
+            classes("nav-link", "nav-link-large")
         }) {
             DisposableEffect(Unit) {
                 overflowMenuButtonElement = scopeElement
@@ -180,14 +180,14 @@ private fun OverflowMenu(
                 }
             }
             A("https://docs.anystream.dev", {
-                classes("nav-link", "fs-6")
+                classes("nav-link", "nav-link-large", "fs-6")
                 target(ATarget.Blank)
             }) {
                 I({ classes("bi", "bi-book", "me-2") })
                 Text("Documentation")
             }
             A(null, {
-                classes("nav-link", "fs-6")
+                classes("nav-link", "nav-link-large", "fs-6")
                 onClick { onLogout() }
             }) {
                 I({ classes("bi", "bi-box-arrow-right", "me-2") })

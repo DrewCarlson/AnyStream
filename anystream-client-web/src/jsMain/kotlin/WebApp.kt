@@ -123,9 +123,13 @@ private fun ContentContainer() {
         val permissions by client.permissions.collectAsState(client.userPermissions())
 
         if (isAuthenticated) {
-            SideMenu(
-                permissions = permissions.orEmpty(),
-            )
+            if (currentPath.value.startsWith("/settings")) {
+                SettingsSideMenu()
+            } else {
+                SideMenu(
+                    permissions = permissions.orEmpty(),
+                )
+            }
         }
 
         Div({
@@ -155,7 +159,7 @@ private fun ContentContainer() {
                     noMatch { UserManagerScreen() }
                 }
                 route("settings") {
-                    noMatch { SettingsScreen() }
+                    string { SettingsScreen(it) }
                 }
                 route("media") {
                     string { id -> MediaScreen(id) }

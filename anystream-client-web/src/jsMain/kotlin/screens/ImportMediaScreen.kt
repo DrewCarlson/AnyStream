@@ -29,8 +29,6 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.web.attributes.InputType
 import org.jetbrains.compose.web.attributes.placeholder
 import org.jetbrains.compose.web.css.cursor
-import org.jetbrains.compose.web.css.height
-import org.jetbrains.compose.web.css.px
 import org.jetbrains.compose.web.dom.*
 import org.w3c.dom.HTMLInputElement
 
@@ -52,89 +50,91 @@ fun ImportMediaScreen(scope: CoroutineScope) {
         }
         isLoading = false
     }
-    Div {
-        Div { H4 { Text("Import Media") } }
-        Select({
-            tooltip("The type of media to be imported.", "top")
-            onChange { event ->
-                selectedMediaKind.value = event.value?.run(MediaKind::valueOf)
-                    ?: selectedMediaKind.value
-            }
-        }) {
-            MediaKind.values().forEach { mediaKind ->
-                Option(mediaKind.name) {
-                    Text(mediaKind.name.lowercase())
+    var inputRef by remember { mutableStateOf<HTMLInputElement?>(null) }
+    Div({ classes("d-flex", "flex-column", "w-100", "gap-1") }) {
+        Div { H3 { Text("Import Media") } }
+        Div({ classes("d-flex", "gap-1") }) {
+            Button({
+                classes("btn", "btn-primary")
+                onClick {
+                    scope.launch {
+                        val contentPath = selectedPath.value ?: return@launch
+                        client.importMedia(
+                            importMedia = ImportMedia(
+                                mediaKind = selectedMediaKind.value,
+                                contentPath = contentPath
+                            ),
+                            importAll = importAll.value
+                        )
+                    }
                 }
-            }
-        }
-        var inputRef by remember { mutableStateOf<HTMLInputElement?>(null) }
-        Input(InputType.Text) {
-            placeholder("(content path)")
-            onInput { event ->
-                selectedPath.value = event.value
-            }
-            ref {
-                inputRef = it
-                onDispose { inputRef = null }
-            }
-        }
-        Div({
-            classes("form-check")
-            tooltip("If enabled, assume each file/folder are different pieces of media.", "top")
-        }) {
-            CheckboxInput(importAll.value) {
-                id("import-all-check")
-                classes("form-check-input")
-                onInput { event ->
-                    importAll.value = event.value
-                }
-            }
-            Label("import-all-check", {
-                classes("form-check-label")
             }) {
-                Text("Import All")
+                Text("Import")
             }
-        }
-        Div({
-            classes("form-check")
-            tooltip("If enabled, display directories and individual files.", "top")
-        }) {
-            CheckboxInput(showFiles) {
-                id("show-files-check")
-                classes("form-check-input")
-                onInput { event ->
-                    showFiles = event.value
+            Select({
+                tooltip("The type of media to be imported.", "top")
+                onChange { event ->
+                    selectedMediaKind.value = event.value?.run(MediaKind::valueOf)
+                        ?: selectedMediaKind.value
                 }
-            }
-            Label("show-files-check", {
-                classes("form-check-label")
             }) {
-                Text("Show Files")
-            }
-        }
-        Button({
-            classes("btn", "btn-primary")
-            onClick {
-                scope.launch {
-                    val contentPath = selectedPath.value ?: return@launch
-                    client.importMedia(
-                        importMedia = ImportMedia(
-                            mediaKind = selectedMediaKind.value,
-                            contentPath = contentPath
-                        ),
-                        importAll = importAll.value
-                    )
+                MediaKind.values().forEach { mediaKind ->
+                    Option(mediaKind.name) {
+                        Text(mediaKind.name.lowercase())
+                    }
                 }
             }
-        }) {
-            Text("Import")
+            Input(InputType.Text) {
+                classes("flex-grow-1")
+                placeholder("(content path)")
+                onInput { event ->
+                    selectedPath.value = event.value
+                }
+                ref {
+                    inputRef = it
+                    onDispose { inputRef = null }
+                }
+            }
+        }
+        Div({ classes("d-flex", "gap-1") }) {
+            Div({
+                classes("form-check")
+                tooltip("If enabled, assume each file/folder are different pieces of media.", "top")
+            }) {
+                CheckboxInput(importAll.value) {
+                    id("import-all-check")
+                    classes("form-check-input")
+                    onInput { event ->
+                        importAll.value = event.value
+                    }
+                }
+                Label("import-all-check", {
+                    classes("form-check-label")
+                }) {
+                    Text("Import All")
+                }
+            }
+            Div({
+                classes("form-check")
+                tooltip("If enabled, display directories and individual files.", "top")
+            }) {
+                CheckboxInput(showFiles) {
+                    id("show-files-check")
+                    classes("form-check-input")
+                    onInput { event ->
+                        showFiles = event.value
+                    }
+                }
+                Label("show-files-check", {
+                    classes("form-check-label")
+                }) {
+                    Text("Show Files")
+                }
+            }
         }
 
         Div({
             classes("w-100", "vstack", "gap-1", "overflow-scroll")
-            style {
-                height(200.px)
-            }
         }) {
             if (isLoading) {
                 Div { LoadingIndicator() }
