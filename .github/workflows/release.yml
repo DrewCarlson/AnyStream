@@ -52,7 +52,7 @@ jobs:
     if: needs.file-changes.outputs.docs == 'true' || startsWith(github.ref, 'refs/tags/v')
     steps:
       - name: Get version
-        uses: DrewCarlson/action-get-tag@v3
+        uses: DrewCarlson/action-get-tag@v4
         with:
           strip_v: true
           env_var_name: AS_VERSION
