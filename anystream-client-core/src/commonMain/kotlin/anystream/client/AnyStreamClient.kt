@@ -470,8 +470,8 @@ class AnyStreamClient(
         }
     }
 
-    suspend fun folders(path: String? = null, showFiles: Boolean = false): FoldersResponse? {
-        val response = http.get("$serverUrl/api/media/folders") {
+    suspend fun listFiles(path: String? = null, showFiles: Boolean = false): ListFilesResponse? {
+        val response = http.get("$serverUrl/api/media/list-files") {
             parameter("showFiles", showFiles)
             if (!path.isNullOrBlank()) {
                 parameter("root", path)

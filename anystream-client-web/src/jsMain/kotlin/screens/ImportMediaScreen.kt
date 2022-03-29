@@ -22,11 +22,12 @@ import anystream.frontend.LocalAnyStreamClient
 import anystream.frontend.components.LoadingIndicator
 import anystream.frontend.util.tooltip
 import anystream.models.MediaKind
-import anystream.models.api.FoldersResponse
+import anystream.models.api.ListFilesResponse
 import anystream.models.api.ImportMedia
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.web.attributes.InputType
+import org.jetbrains.compose.web.attributes.disabled
 import org.jetbrains.compose.web.attributes.placeholder
 import org.jetbrains.compose.web.css.cursor
 import org.jetbrains.compose.web.dom.*
@@ -39,12 +40,13 @@ fun ImportMediaScreen(scope: CoroutineScope) {
     val selectedPath = remember { mutableStateOf<String?>(null) }
     val selectedMediaKind = remember { mutableStateOf(MediaKind.MOVIE) }
     var showFiles by remember { mutableStateOf(false) }
+    var interactiveImport by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(true) }
-    val subfolders by produceState<FoldersResponse?>(null, selectedPath.value, showFiles) {
+    val subfolders by produceState<ListFilesResponse?>(null, selectedPath.value, showFiles) {
         isLoading = true
-        value = FoldersResponse()
+        value = ListFilesResponse()
         value = try {
-            client.folders(selectedPath.value, showFiles)
+            client.listFiles(selectedPath.value, showFiles)
         } catch (e: Throwable) {
             null
         }
@@ -54,6 +56,13 @@ fun ImportMediaScreen(scope: CoroutineScope) {
     Div({ classes("d-flex", "flex-column", "w-100", "gap-1") }) {
         Div { H3 { Text("Import Media") } }
         Div({ classes("d-flex", "gap-1") }) {
+            Button({
+                classes("btn", "btn-primary")
+                attr("data-bs-toggle", "modal")
+                attr("data-bs-target", "#importModal")
+            }) {
+                Text("modal")
+            }
             Button({
                 classes("btn", "btn-primary")
                 onClick {
@@ -131,6 +140,24 @@ fun ImportMediaScreen(scope: CoroutineScope) {
                     Text("Show Files")
                 }
             }
+            Div({
+                classes("form-check")
+                tooltip("If enabled, you must confirm each file/folders media before importing it.", "top")
+            }) {
+                CheckboxInput(interactiveImport) {
+                    disabled()
+                    id("interactive-check")
+                    classes("form-check-input")
+                    onInput { event ->
+                        interactiveImport = event.value
+                    }
+                }
+                Label("interactive-check", {
+                    classes("form-check-label")
+                }) {
+                    Text("Interactive")
+                }
+            }
         }
 
         Div({
@@ -141,15 +168,12 @@ fun ImportMediaScreen(scope: CoroutineScope) {
             } else if (subfolders == null) {
                 Div { Text("Invalid directory") }
             } else {
-                Div {
-                    FolderListItem("Up", "bi-folder2-open") {
-                        selectedPath.value = selectedPath.value?.let { path ->
-                            if (path.endsWith(":\\")) return@let null
-                            val delimiter = if (path.contains("/")) "/" else "\\"
-                            val newPath = path.split(delimiter).dropLast(1).joinToString(delimiter)
-                            if (newPath.endsWith(":")) newPath + "\\" else newPath
+                if (!selectedPath.value.isNullOrBlank()) {
+                    Div {
+                        FolderListItem("Up", "bi-folder2-open") {
+                            selectedPath.value = selectedPath.value?.dropLastPathSegment()
+                            inputRef?.value = selectedPath.value.orEmpty()
                         }
-                        inputRef?.value = selectedPath.value.orEmpty()
                     }
                 }
                 subfolders?.folders.orEmpty().forEach { subfolder ->
@@ -183,5 +207,14 @@ private fun FolderListItem(
             I({ classes("bi", icon, "me-1") })
             Text(text)
         }
+    }
+}
+
+private fun String?.dropLastPathSegment(): String? {
+    return this?.let { path ->
+        if (path.endsWith(":\\")) return@let null
+        val delimiter = if (path.contains("/")) "/" else "\\"
+        val newPath = path.split(delimiter).dropLast(1).joinToString(delimiter)
+        if (newPath.endsWith(":")) newPath + "\\" else newPath
     }
 }

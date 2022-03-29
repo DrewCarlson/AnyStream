@@ -20,7 +20,7 @@ package anystream.models.api
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class FoldersResponse(
+data class ListFilesResponse(
     val folders: List<String> = emptyList(),
     val files: List<String> = emptyList(),
 ) {
