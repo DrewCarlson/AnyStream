@@ -19,4 +19,4 @@ ENV FFMPEG_PATH=/usr/bin
 ENV WEB_CLIENT_PATH=/app/client-web
 ENV PORT=8888
 
-ENTRYPOINT ["./install/server-app-shadow/bin/server-app"]
+ENTRYPOINT ["./install/anystream-server/bin/anystream"]
