@@ -11,11 +11,13 @@ or [Mullvad](https://mullvad.net/).**
 
 ## Installation
 
-[Download](https://github.com/DrewCarlson/AnyStream/releases) the latest `anystream-server` release. AnyStream binaries are not
-operating system specific, the one download will run on Linux, macOS, or Windows.
+[anystream-server.zip](https://github.com/DrewCarlson/AnyStream/releases/download/v{{ version }}/anystream-server-{{ version }}.zip)
 
-After downloading `anystream-server-<version>.zip` or `anystream-server-<version>.tar`, extract the contents to `anystream-<version>`.
-The new folder will contain `bin` and `lib`.
+[Download](https://github.com/DrewCarlson/AnyStream/releases) the latest `anystream-server` release. AnyStream binaries
+are not operating system specific, the one download will run on Linux, macOS, or Windows.
+
+After downloading `anystream-server-<version>.zip` or `anystream-server-<version>.tar`, extract the contents
+to `anystream-<version>`. The new folder will contain `bin` and `lib`.
 
 AnyStream tries to provide optimal default configuration and can be run without any configuration.
 
@@ -50,6 +52,7 @@ When installing without [Podman](https://podman.io/) or [Docker](https://www.doc
 before running AnyStream.
 
 ??? note "Manual install requirements"
+
     **Java Runtime 11+**
     
     [JRE 11+](https://www.azul.com/downloads/?version=java-11-lts&package=jre) is required to run AnyStream.
@@ -66,32 +69,38 @@ print log messages while running.
 
 Or open a new Command Prompt window:
 
-```shell
-cd anystream-<version>/bin
+??? info "anystream.bat from Command Prompt example"
 
-anystream -port=8888 -P:app.ffmpegPath="C:\Users\<user>\Downloads\ffmpeg"
-```
+    ```shell
+    cd anystream-<version>/bin
+    
+    anystream -port=8888 -P:app.ffmpegPath="C:\Users\<user>\Downloads\ffmpeg"
+    ```
 
 ### Linux & macOS
 
-```shell
-cd anystream-<version>/bin
+??? info "anystream from Terminal example"
 
-./anystream -port=8888
-```
+    ```shell
+    cd anystream-<version>/bin
+    
+    ./anystream -port=8888
+    ```
 
-### Docker
+### Docker CLI
 
 A small Alpine based docker image is provided
 at [ghcr.io/drewcarlson/anystream](https://github.com/DrewCarlson/AnyStream/pkgs/container/anystream).
 
-```shell
-docker run -d --name anystream \
-    -v /path/to/anystream:/app/storage \
-    -v /path/to/media:/app/media \
-    -p 8888:8888 \
-    ghcr.io/drewcarlson/anystream:main
-```
+??? example "Docker CLI example"
+
+    ```shell
+    docker run -d --name anystream \
+        -v /path/to/anystream:/app/storage \
+        -v /path/to/media:/app/media \
+        -p 8888:8888 \
+        ghcr.io/drewcarlson/anystream:main
+    ```
 
 ### Docker Compose
 

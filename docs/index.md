@@ -1,4 +1,9 @@
-<h1 align="center">AnyStream</h1>
+#
+
+<p align="center">
+<img src="img/as-logo.svg" alt="AnyStream" width="300" style="margin-left: 24px;"/>
+</p>
+
 <h3 align="center">A self-hosted streaming service for your media collection.</h3>
 
 ---
@@ -12,3 +17,7 @@
 </a>
 </p>
 
+AnyStream is [free and open-source](https://en.wikipedia.org/wiki/Open-source_software) software that makes it easy to
+manage and stream your media library from anywhere, on any device.
+Once running, share access to your collection privately and securely with friends or family.
+Find missing and newly released content for your collection.

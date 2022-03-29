@@ -46,15 +46,24 @@ jobs:
             docs/**/*.md
             mkdocs.yml
 
+  - name: Get version
+    id: tag
+    uses: DrewCarlson/action-get-tag@v1
+    with:
+      strip_v: true
+
   publish-docs:
     runs-on: ubuntu-latest
     needs: [ file-changes ]
     if: needs.file-changes.outputs.docs == 'true' || startsWith(github.ref, 'refs/tags/v')
+    env:
+      AS_VERSION: ${{ steps.tag.outputs.tag }}
     steps:
       - uses: actions/checkout@v3
       - name: Deploy docs
         uses: mhausenblas/mkdocs-deploy-gh-pages@1.24
         env:
+          REQUIREMENTS: docs/requirements.txt
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CUSTOM_DOMAIN: docs.anystream.dev
           CONFIG_FILE: mkdocs.yml

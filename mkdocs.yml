@@ -26,7 +26,12 @@ markdown_extensions:
       emoji_index: !!python/name:materialx.emoji.twemoji
       emoji_generator: !!python/name:materialx.emoji.to_svg
 
+plugins:
+  - search
+  - markdownextradata: {}
+
 extra:
+  version: !ENV [AS_VERSION, '0.0.1-test']
   social:
     - icon: fontawesome/solid/heart
       link: https://github.com/sponsors/DrewCarlson
@@ -36,9 +41,10 @@ extra:
       link: https://github.com/DrewCarlson/AnyStream/pkgs/container/anystream
 
 nav:
-  - Home: README.md
+  - Home: index.md
   - Getting Started: 1-getting-started.md
   - Naming Media Files: 2-naming-media-files.md
   - Clients and Mobile Apps: 3-clients-and-mobile.md
   - Connecting qBittorrent: 4-connecting-qbittorrent.md
-  - Development: 99-development.md
+  - Development:
+    - Documentation: development/documentation.md
