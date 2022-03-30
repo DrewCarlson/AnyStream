@@ -32,7 +32,7 @@ import kotlin.time.Duration.Companion.seconds
 @Composable
 fun SettingsScreen(subscreen: String) {
     val scope = rememberCoroutineScope()
-    Div({ classes("d-flex", "p-2") }) {
+    Div({ classes("d-flex", "p-2", "h-100") }) {
         when (subscreen) {
             "activity" -> ActiveStreamsList()
             "import" -> ImportMediaScreen(scope)

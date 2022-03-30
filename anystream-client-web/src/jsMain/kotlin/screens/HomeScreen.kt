@@ -30,6 +30,7 @@ import org.jetbrains.compose.web.attributes.InputType
 import org.jetbrains.compose.web.attributes.max
 import org.jetbrains.compose.web.attributes.min
 import org.jetbrains.compose.web.attributes.step
+import org.jetbrains.compose.web.css.overflow
 import org.jetbrains.compose.web.css.px
 import org.jetbrains.compose.web.css.width
 import org.jetbrains.compose.web.dom.*
@@ -51,172 +52,195 @@ fun HomeScreen() {
     }
 
     homeResponse?.run {
-        Div({ classes("d-flex", "justify-content-end") }) {
+        Div({ classes("d-flex", "justify-content-between", "align-items-center", "p-3") }) {
+            Div { H4 { Text("Home") } }
             PosterSizeSelector(sizeMultiplier) {
                 sizeMultiplier = it
                 localStorage.setItem(KEY_POSTER_SIZE_MULTIPLIER, it.toString())
             }
         }
 
-        if (playbackStates.isNotEmpty()) {
-            MovieRow(
-                title = { Text("Continue Watching") }
-            ) {
-                playbackStates.forEach { state ->
-                    val movie = currentlyWatchingMovies[state.id]
-                    val (episode, show) = currentlyWatchingTv[state.id] ?: (null to null)
-                    PosterCard(
-                        sizeMultiplier = sizeMultiplier,
-                        title = (movie?.title ?: show?.name)?.let { title ->
-                            {
-                                LinkedText(url = "/media/${movie?.id ?: show?.id}") {
-                                    Text(title)
-                                }
-                            }
-                        },
-                        completedPercent = state.completedPercent,
-                        subtitle1 = {
-                            movie?.releaseDate?.run {
-                                Text(substringBefore("-"))
-                            }
-                            episode?.run {
-                                LinkedText(url = "/media/${episode.id}") {
-                                    Text(name)
-                                }
-                            }
-                        },
-                        subtitle2 = {
-                            episode?.run {
-                                "S$seasonNumber"
-                                Div({ classes("d-flex", "flex-row") }) {
-                                    tvSeasons
-                                    LinkedText(
-                                        tvSeasons
-                                            .first { it.seasonNumber == seasonNumber }
-                                            .run { "/media/$id" }
-                                    ) { Text("S$seasonNumber") }
-                                    Div { Text(" · ") }
-                                    LinkedText(url = "/media/${episode.id}") {
-                                        Text("E$number")
-                                    }
-                                }
-                            }
-                        },
-                        posterPath = movie?.posterPath ?: show?.posterPath,
-                        isAdded = true,
-                        onPlayClicked = {
-                            window.location.hash = "!play:${state.mediaReferenceId}"
-                        },
-                        onBodyClicked = {
-                            BrowserRouter.navigate("/media/${movie?.id ?: episode?.id}")
-                        }
-                    )
-                }
+        Div({
+            classes("vh-100")
+            style {
+                overflow("hidden auto")
+            }
+        }) {
+            if (playbackStates.isNotEmpty()) {
+                ContinueWatchingRow(sizeMultiplier)
+            }
+
+            if (recentlyAdded.isNotEmpty()) {
+                RecentlyAddedMovies(sizeMultiplier)
+            }
+
+            if (recentlyAddedTv.isNotEmpty()) {
+                RecentlyAddedTv(sizeMultiplier)
+            }
+
+            if (popularMovies.isNotEmpty()) {
+                PopularMovies(sizeMultiplier)
+            }
+
+            if (popularTvShows.isNotEmpty()) {
+                PopularTvShows(sizeMultiplier)
             }
         }
+    }
+}
 
-        if (recentlyAdded.isNotEmpty()) {
-            MovieRow(
-                title = { Text("Recently Added Movies") }
-            ) {
-                recentlyAdded.forEach { (movie, ref) ->
-                    PosterCard(
-                        sizeMultiplier = sizeMultiplier,
-                        title = {
-                            LinkedText(url = "/media/${movie.id}") {
-                                Text(movie.title)
-                            }
-                        },
-                        subtitle1 = movie.releaseDate?.run {
-                            { Text(substringBefore("-")) }
-                        },
-                        posterPath = movie.posterPath,
-                        isAdded = true,
-                        onPlayClicked = {
-                            window.location.hash = "!play:${ref?.id}"
-                        }.takeIf { ref != null },
-                        onBodyClicked = {
-                            BrowserRouter.navigate("/media/${movie.id}")
+@Composable
+private fun HomeResponse.ContinueWatchingRow(sizeMultiplier: Float) {
+    MovieRow(title = { Text("Continue Watching") }) {
+        playbackStates.forEach { state ->
+            val movie = currentlyWatchingMovies[state.id]
+            val (episode, show) = currentlyWatchingTv[state.id] ?: (null to null)
+            PosterCard(
+                sizeMultiplier = sizeMultiplier,
+                title = (movie?.title ?: show?.name)?.let { title ->
+                    {
+                        LinkedText(url = "/media/${movie?.id ?: show?.id}") {
+                            Text(title)
                         }
-                    )
+                    }
+                },
+                completedPercent = state.completedPercent,
+                subtitle1 = {
+                    movie?.releaseDate?.run {
+                        Text(substringBefore("-"))
+                    }
+                    episode?.run {
+                        LinkedText(url = "/media/${episode.id}") {
+                            Text(name)
+                        }
+                    }
+                },
+                subtitle2 = {
+                    episode?.run {
+                        "S$seasonNumber"
+                        Div({ classes("d-flex", "flex-row") }) {
+                            tvSeasons
+                            LinkedText(
+                                tvSeasons
+                                    .first { it.seasonNumber == seasonNumber }
+                                    .run { "/media/$id" }
+                            ) { Text("S$seasonNumber") }
+                            Div { Text(" · ") }
+                            LinkedText(url = "/media/${episode.id}") {
+                                Text("E$number")
+                            }
+                        }
+                    }
+                },
+                posterPath = movie?.posterPath ?: show?.posterPath,
+                isAdded = true,
+                onPlayClicked = {
+                    window.location.hash = "!play:${state.mediaReferenceId}"
+                },
+                onBodyClicked = {
+                    BrowserRouter.navigate("/media/${movie?.id ?: episode?.id}")
                 }
-            }
+            )
         }
+    }
+}
 
-        if (recentlyAddedTv.isNotEmpty()) {
-            MovieRow(
-                title = { Text("Recently Added TV") }
-            ) {
-                recentlyAddedTv.forEach { show ->
-                    PosterCard(
-                        sizeMultiplier = sizeMultiplier,
-                        title = {
-                            LinkedText(url = "/media/${show.id}") {
-                                Text(show.name)
-                            }
-                        },
-                        posterPath = show.posterPath,
-                        isAdded = true,
-                        onBodyClicked = {
-                            BrowserRouter.navigate("/media/${show.id}")
-                        }
-                    )
+@Composable
+private fun HomeResponse.RecentlyAddedMovies(sizeMultiplier: Float) {
+    MovieRow(title = { Text("Recently Added Movies") }) {
+        recentlyAdded.forEach { (movie, ref) ->
+            PosterCard(
+                sizeMultiplier = sizeMultiplier,
+                title = {
+                    LinkedText(url = "/media/${movie.id}") {
+                        Text(movie.title)
+                    }
+                },
+                subtitle1 = movie.releaseDate?.run {
+                    { Text(substringBefore("-")) }
+                },
+                posterPath = movie.posterPath,
+                isAdded = true,
+                onPlayClicked = {
+                    window.location.hash = "!play:${ref?.id}"
+                }.takeIf { ref != null },
+                onBodyClicked = {
+                    BrowserRouter.navigate("/media/${movie.id}")
                 }
-            }
+            )
         }
+    }
+}
 
-        if (popularMovies.isNotEmpty()) {
-            MovieRow(
-                title = { Text("Popular Movies") }
-            ) {
-                popularMovies.forEach { (movie, ref) ->
-                    PosterCard(
-                        sizeMultiplier = sizeMultiplier,
-                        title = {
-                            LinkedText(url = "/media/${ref?.contentId ?: movie.id}") {
-                                Text(movie.title)
-                            }
-                        },
-                        subtitle1 = movie.releaseDate?.run {
-                            { Text(substringBefore("-")) }
-                        },
-                        posterPath = movie.posterPath,
-                        isAdded = ref != null,
-                        onPlayClicked = { window.location.hash = "!play:${ref?.id}" }
-                            .takeIf { ref != null },
-                        onBodyClicked = {
-                            BrowserRouter.navigate("/media/${movie.id}")
-                        }
-                    )
+@Composable
+private fun HomeResponse.RecentlyAddedTv(sizeMultiplier: Float) {
+    MovieRow(title = { Text("Recently Added TV") }) {
+        recentlyAddedTv.forEach { show ->
+            PosterCard(
+                sizeMultiplier = sizeMultiplier,
+                title = {
+                    LinkedText(url = "/media/${show.id}") {
+                        Text(show.name)
+                    }
+                },
+                posterPath = show.posterPath,
+                isAdded = true,
+                onBodyClicked = {
+                    BrowserRouter.navigate("/media/${show.id}")
                 }
-            }
+            )
         }
+    }
+}
 
-        if (popularTvShows.isNotEmpty()) {
-            MovieRow(
-                title = { Text("Popular TV") }
-            ) {
-                popularTvShows.forEach { tvShow ->
-                    PosterCard(
-                        sizeMultiplier = sizeMultiplier,
-                        title = {
-                            LinkedText(url = "/media/${tvShow.id}") {
-                                Text(tvShow.name)
-                            }
-                        },
-                        subtitle1 = tvShow.firstAirDate?.run {
-                            { Text(substringBefore("-")) }
-                        },
-                        posterPath = tvShow.posterPath,
-                        isAdded = tvShow.isAdded,
-                        /*onPlayClicked = { window.location.hash = "!play:${ref?.id}" }
-                            .takeIf { ref != null },*/
-                        onBodyClicked = {
-                            BrowserRouter.navigate("/media/${tvShow.id}")
-                        }
-                    )
+@Composable
+private fun HomeResponse.PopularMovies(sizeMultiplier: Float) {
+    MovieRow(title = { Text("Popular Movies") }) {
+        popularMovies.forEach { (movie, ref) ->
+            PosterCard(
+                sizeMultiplier = sizeMultiplier,
+                title = {
+                    LinkedText(url = "/media/${ref?.contentId ?: movie.id}") {
+                        Text(movie.title)
+                    }
+                },
+                subtitle1 = movie.releaseDate?.run {
+                    { Text(substringBefore("-")) }
+                },
+                posterPath = movie.posterPath,
+                isAdded = ref != null,
+                onPlayClicked = { window.location.hash = "!play:${ref?.id}" }
+                    .takeIf { ref != null },
+                onBodyClicked = {
+                    BrowserRouter.navigate("/media/${movie.id}")
                 }
-            }
+            )
+        }
+    }
+}
+
+@Composable
+private fun HomeResponse.PopularTvShows(sizeMultiplier: Float) {
+    MovieRow(title = { Text("Popular TV") }) {
+        popularTvShows.forEach { tvShow ->
+            PosterCard(
+                sizeMultiplier = sizeMultiplier,
+                title = {
+                    LinkedText(url = "/media/${tvShow.id}") {
+                        Text(tvShow.name)
+                    }
+                },
+                subtitle1 = tvShow.firstAirDate?.run {
+                    { Text(substringBefore("-")) }
+                },
+                posterPath = tvShow.posterPath,
+                isAdded = tvShow.isAdded,
+                /*onPlayClicked = { window.location.hash = "!play:${ref?.id}" }
+                    .takeIf { ref != null },*/
+                onBodyClicked = {
+                    BrowserRouter.navigate("/media/${tvShow.id}")
+                }
+            )
         }
     }
 }

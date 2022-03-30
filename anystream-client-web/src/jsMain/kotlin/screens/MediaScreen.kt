@@ -56,7 +56,10 @@ fun MediaScreen(mediaId: String) {
         onDispose { backdropImageUrl.value = null }
     }
 
-    Div({ classes("d-flex", "flex-column", "h-100") }) {
+    Div({
+        classes("d-flex", "flex-column", "h-100")
+        style { overflow("hidden scroll") }
+    }) {
         if (mediaResponse == null) {
             FullSizeCenteredLoader()
         }

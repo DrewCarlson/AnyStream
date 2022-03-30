@@ -30,6 +30,7 @@ import org.jetbrains.compose.web.attributes.InputType
 import org.jetbrains.compose.web.attributes.disabled
 import org.jetbrains.compose.web.attributes.placeholder
 import org.jetbrains.compose.web.css.cursor
+import org.jetbrains.compose.web.css.overflow
 import org.jetbrains.compose.web.dom.*
 import org.w3c.dom.HTMLInputElement
 
@@ -53,7 +54,7 @@ fun ImportMediaScreen(scope: CoroutineScope) {
         isLoading = false
     }
     var inputRef by remember { mutableStateOf<HTMLInputElement?>(null) }
-    Div({ classes("d-flex", "flex-column", "w-100", "gap-1") }) {
+    Div({ classes("d-flex", "flex-column", "w-100", "h-100", "gap-1") }) {
         Div { H3 { Text("Import Media") } }
         Div({ classes("d-flex", "gap-1") }) {
             Button({
@@ -154,32 +155,35 @@ fun ImportMediaScreen(scope: CoroutineScope) {
         }
 
         Div({
-            classes("w-100", "vstack", "gap-1", "overflow-scroll")
+            classes("vstack", "w-100", "gap-1", "justify-content-center", "align-items-center")
+            style { overflow("hidden scroll") }
         }) {
             if (isLoading) {
                 Div { LoadingIndicator() }
             } else if (subfolders == null) {
-                Div { Text("Invalid directory") }
+                Div { H4 { Text("Invalid directory") } }
             } else {
-                if (!selectedPath.value.isNullOrBlank()) {
-                    Div {
-                        FolderListItem("Up", "bi-folder2-open") {
-                            val newPath = selectedPath.value?.dropLastPathSegment()
-                            selectedPath.value = newPath
-                            inputRef?.value = newPath.orEmpty()
+                Div({ classes("vstack",  "h-100", "w-100") }) {
+                    if (!selectedPath.value.isNullOrBlank()) {
+                        Div {
+                            FolderListItem("Up", "bi-folder2-open") {
+                                val newPath = selectedPath.value?.dropLastPathSegment()
+                                selectedPath.value = newPath
+                                inputRef?.value = newPath.orEmpty()
+                            }
                         }
                     }
-                }
-                subfolders?.folders.orEmpty().forEach { subfolder ->
-                    FolderListItem(subfolder, "bi-folder") {
-                        inputRef?.value = subfolder
-                        selectedPath.value = subfolder
+                    subfolders?.folders.orEmpty().forEach { subfolder ->
+                        FolderListItem(subfolder, "bi-folder") {
+                            inputRef?.value = subfolder
+                            selectedPath.value = subfolder
+                        }
                     }
-                }
-                subfolders?.files.orEmpty().forEach { subfolder ->
-                    FolderListItem(subfolder, "bi-file-earmark") {
-                        inputRef?.value = subfolder
-                        selectedPath.value = subfolder
+                    subfolders?.files.orEmpty().forEach { subfolder ->
+                        FolderListItem(subfolder, "bi-file-earmark") {
+                            inputRef?.value = subfolder
+                            selectedPath.value = subfolder
+                        }
                     }
                 }
             }

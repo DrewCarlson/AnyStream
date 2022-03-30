@@ -18,10 +18,12 @@
 package anystream.frontend.components
 
 import androidx.compose.runtime.*
+import anystream.frontend.LocalAnyStreamClient
 import anystream.frontend.util.tooltip
 import anystream.models.Permission
 import app.softwork.routingcompose.BrowserRouter
 import kotlinx.browser.localStorage
+import kotlinx.coroutines.flow.map
 import org.jetbrains.compose.web.attributes.AttrsScope
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
@@ -30,9 +32,11 @@ import org.w3c.dom.HTMLElement
 private const val MENU_EXPANDED_KEY = "menu_expanded"
 
 @Composable
-fun SideMenu(
-    permissions: Set<Permission>,
-) {
+fun SideMenu() {
+    val client = LocalAnyStreamClient.current
+    val permissions by client.permissions
+        .map { it ?: emptySet() }
+        .collectAsState(client.userPermissions())
     var expanded by remember {
         mutableStateOf(localStorage.getItem(MENU_EXPANDED_KEY)?.toBoolean() ?: false)
     }

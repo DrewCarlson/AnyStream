@@ -110,32 +110,26 @@ private fun ContentContainer() {
             "flex-grow-1",
             "flex-shrink-1",
             "px-0",
+            "overflow-hidden"
         )
         style {
             flexBasis("auto")
-            overflowY("auto")
             property("z-index", "1")
         }
     }) {
         val authRoutes = listOf("/signup", "/login")
         val isAuthenticated by client.authenticated.collectAsState(client.isAuthenticated())
         val currentPath = BrowserRouter.getPath("/")
-        val permissions by client.permissions.collectAsState(client.userPermissions())
 
         if (isAuthenticated) {
             if (currentPath.value.startsWith("/settings")) {
                 SettingsSideMenu()
             } else {
-                SideMenu(
-                    permissions = permissions.orEmpty(),
-                )
+                SideMenu()
             }
         }
 
-        Div({
-            classes("h-100", "w-100")
-            style { overflowY("scroll") }
-        }) {
+        Div({ classes("vstack", "h-100", "w-100", "overflow-hidden") }) {
             BrowserRouter("/") {
                 route("home") {
                     noMatch { HomeScreen() }
