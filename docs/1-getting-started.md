@@ -9,15 +9,87 @@ AnyStream communicates with while managing your collection.
 **To maintain privacy it is recommended that you run AnyStream with a VPN like [AirVPN](https://airvpn.org/)
 or [Mullvad](https://mullvad.net/).**
 
+## Requirements
+
+When installing without [Podman](https://podman.io/) or [Docker](https://www.docker.com/), extra software is required
+before running AnyStream.
+
+### Java 11+
+
+#### Windows
+
+??? info "Install Manually"
+
+    Download the [JRE 11](https://www.azul.com/downloads/?version=java-11-lts&package=jre) MSI file and run the installer.
+    Follow the instructions until the installation is complete. For more information
+    see "[Install Azul Zulu with MSI installer](https://docs.azul.com/core/zulu-openjdk/install/windows#install-azul-zulu-with-msi-installer)"
+
+??? info "Install with Chocolatey"
+
+    ```shell
+    choco install zulu --version=11.29.11
+    ```
+
+#### macOS
+
+??? info "Install Manually"
+
+    Download the [JRE 11 for Intel](https://www.azul.com/downloads/?version=java-11-lts&os=macos&architecture=x86-64-bit&package=jdk)
+    DMG file or [JRE 11 for M1](https://www.azul.com/downloads/?version=java-11-lts&os=macos&architecture=arm-64-bit&package=jdk).
+    Double click the file and follow the instructions until the installation is complete.
+
+??? info "Install with Homebrew"
+
+    ```shell
+    brew tap mdogan/zulu
+    brew install zulu-jdk11
+    ```
+
+??? info "Install with MacPorts"
+
+    ```shell
+    sudo port install openjdk11-zulu
+    ```
+
+### FFmpeg
+
+[FFmpeg](https://ffmpeg.org/) is required to [transcode](https://en.wikipedia.org/wiki/Transcoding) your media library
+when streaming to certain devices and analyzing media files.
+
+#### Windows
+
+??? info "Install Manually"
+    
+    [Click here](https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n4.4-latest-win64-gpl-4.4.zip) to download FFmpeg.
+    Extract `fmpeg-n4.4-latest-win64-gpl-4.4.zip` and rename the `bin` folder to `ffmpeg` and move it to `C:\Program Files\ffmpeg`.
+
+??? info "Install with Chocolatey"
+    
+    ```shell
+    choco install ffmpeg
+    ```
+
+#### macOS
+
+??? info "Install Manually"
+    
+    [Click here](https://evermeet.cx/pub/ffmpeg/ffmpeg-4.4.1.zip) to download FFmpeg and
+    [here](https://evermeet.cx/pub/ffprobe/ffprobe-4.4.1.zip) to download FFprobe.
+    Extract both files into `/usr/local/bin`
+
+??? info "Install with Homebrew"
+    
+    ```shell
+    brew install ffmpeg
+    ```
+
+??? info "Install with MacPorts"
+    
+    ```shell
+    sudo port install ffmpeg
+    ```
+
 ## Installation
-
-[anystream-server.zip](https://github.com/DrewCarlson/AnyStream/releases/download/v{{ version }}/anystream-server-{{ version }}.zip)
-
-[Download](https://github.com/DrewCarlson/AnyStream/releases) the latest `anystream-server` release. AnyStream binaries
-are not operating system specific, the one download will run on Linux, macOS, or Windows.
-
-After downloading `anystream-server-<version>.zip` or `anystream-server-<version>.tar`, extract the contents
-to `anystream-<version>`. The new folder will contain `bin` and `lib`.
 
 AnyStream tries to provide optimal default configuration and can be run without any configuration.
 
@@ -46,45 +118,59 @@ AnyStream tries to provide optimal default configuration and can be run without 
     | `FFMPEG_PATH`     | `-app.ffmpegPath="..."`    |
     | `WEB_CLIENT_PATH` | `-app.webClientPath="..."` |
 
-### Requirements
+### Download AnyStream
 
-When installing without [Podman](https://podman.io/) or [Docker](https://www.docker.com/), extra software is required
-before running AnyStream.
+???+ tip "Stay up-to-date"
 
-??? note "Manual install requirements"
+    It is recommended the latest version of AnyStream is used at all times, but older versions are available on the
+    [Releases](https://github.com/DrewCarlson/AnyStream/releases) page if required.
 
-    **Java Runtime 11+**
-    
-    [JRE 11+](https://www.azul.com/downloads/?version=java-11-lts&package=jre) is required to run AnyStream.
-    
-    **FFmpeg**
-    
-    [FFmpeg](https://ffmpeg.org/) is required to [transcode](https://en.wikipedia.org/wiki/Transcoding) your media library
-    when streaming to certain devices and analyzing media files.
+??? tip "One download for any Operating System"
 
-### Windows
+    The AnyStream server runs on Linux, macOS, or Windows with one download, you do not need a version specifically
+    for your operating system.
 
-Open the `anystream-<version>/bin` folder and run `anystream.bat`. A new command prompt window will appear and display
-print log messages while running.
+The latest release can be viewed on the [Github Release](https://github.com/drewcarlson/AnyStream/releases/latest) page
+or choose your preferred format below:
 
-Or open a new Command Prompt window:
+|                                                                                                 **Download ZIP**                                                                                                 |                                                                                                   Download TAR                                                                                                   |
+|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| [<span style="font-size:45pt;">:material-zip-box-outline:</span><br/>anystream-server-{{version}}.zip](https://github.com/DrewCarlson/AnyStream/releases/download/v{{version}}/anystream-server-{{version}}.zip) | [<span style="font-size:45pt;">:material-zip-box-outline:</span><br/>anystream-server-{{version}}.tar](https://github.com/DrewCarlson/AnyStream/releases/download/v{{version}}/anystream-server-{{version}}.tar) |
 
-??? info "anystream.bat from Command Prompt example"
+### Run on Windows
+
+Newer versions of Windows 10 include `curl` and `tar`, if you're running an older version of Windows, follow the
+"Manual Download" section. Otherwise, see the "Command Prompt Download" section.
+
+??? info "Manual Download"
+
+    1. Download [anystream-server-{{ version }}.zip](https://github.com/DrewCarlson/AnyStream/releases/download/v{{ version }}/anystream-server-{{ version }}.zip)
+    1. Right click `anystream-server-{{ version }}.zip`, click "Extract All...", then click "Extract" when the window appears
+    1. Open the `anystream-server-{{ version }}/bin` folder
+    1. Double click on `anystream.bat`
+
+    You will see a Command Prompt window appear, displaying log messages from AnyStream.
+
+??? info "Command Prompt Download"
 
     ```shell
-    cd anystream-<version>/bin
-    
-    anystream -port=8888 -P:app.ffmpegPath="C:\Users\<user>\Downloads\ffmpeg"
+    > curl -LO https://github.com/DrewCarlson/AnyStream/releases/download/v{{ version }}/anystream-server-{{ version }}.tar
+    > tar -xvf anystream-server-{{ version }}.tar
+    > cd anystream-{{ version }}/bin
+    > anystream -port=8888 -P:app.ffmpegPath="C:\Users\<user>\Downloads\ffmpeg"
     ```
 
-### Linux & macOS
+    AnyStream will be running and printing log messages until you close the window or press `ctrl + c`.
+
+### Run on Linux or macOS
 
 ??? info "anystream from Terminal example"
 
     ```shell
-    cd anystream-<version>/bin
-    
-    ./anystream -port=8888
+    $ curl -LO https://github.com/DrewCarlson/AnyStream/releases/download/v{{ version }}/anystream-server-{{ version }}.tar
+    $ tar -xvf anystream-server-{{ version }}.tar
+    $ cd anystream-{{ version }}/bin
+    $ ./anystream -port=8888
     ```
 
 ### Docker CLI
@@ -167,7 +253,7 @@ Create a `docker-compose.yml` copy one of the following examples:
           - /path/to/media:/content
     ```
 
-Start the stack:
+Once you've configured the `docker-compose.yml` file, start it with:
 
 ```shell
 docker-compose up -d
