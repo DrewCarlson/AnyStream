@@ -164,8 +164,9 @@ fun ImportMediaScreen(scope: CoroutineScope) {
                 if (!selectedPath.value.isNullOrBlank()) {
                     Div {
                         FolderListItem("Up", "bi-folder2-open") {
-                            selectedPath.value = selectedPath.value?.dropLastPathSegment()
-                            inputRef?.value = selectedPath.value.orEmpty()
+                            val newPath = selectedPath.value?.dropLastPathSegment()
+                            selectedPath.value = newPath
+                            inputRef?.value = newPath.orEmpty()
                         }
                     }
                 }
