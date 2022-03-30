@@ -176,7 +176,7 @@ class MediaImporter(
                 ImportStreamDetailsResult.ProcessError(e.stackTraceToString())
             }
         } else {
-            logger.error(marker, "Media file reference path does not exist: ${mediaRefId} $filePath")
+            logger.error(marker, "Media file reference path does not exist: $mediaRefId $filePath")
             ImportStreamDetailsResult.ErrorFileNotFound
         }
     }
