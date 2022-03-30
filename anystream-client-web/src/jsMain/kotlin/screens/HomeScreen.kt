@@ -18,15 +18,23 @@
 package anystream.frontend.screens
 
 import androidx.compose.runtime.*
-import anystream.client.AnyStreamClient
 import anystream.frontend.LocalAnyStreamClient
 import anystream.frontend.components.FullSizeCenteredLoader
 import anystream.frontend.components.LinkedText
 import anystream.frontend.components.PosterCard
 import anystream.models.api.HomeResponse
 import app.softwork.routingcompose.BrowserRouter
+import kotlinx.browser.localStorage
 import kotlinx.browser.window
+import org.jetbrains.compose.web.attributes.InputType
+import org.jetbrains.compose.web.attributes.max
+import org.jetbrains.compose.web.attributes.min
+import org.jetbrains.compose.web.attributes.step
+import org.jetbrains.compose.web.css.px
+import org.jetbrains.compose.web.css.width
 import org.jetbrains.compose.web.dom.*
+
+private const val KEY_POSTER_SIZE_MULTIPLIER = "key_poster_size_multiplier"
 
 @Composable
 fun HomeScreen() {
@@ -34,12 +42,22 @@ fun HomeScreen() {
     val homeResponse by produceState<HomeResponse?>(null) {
         value = client.getHomeData()
     }
+    var sizeMultiplier by remember {
+        mutableStateOf(localStorage.getItem(KEY_POSTER_SIZE_MULTIPLIER)?.toFloatOrNull() ?: 1f)
+    }
 
     if (homeResponse == null) {
         FullSizeCenteredLoader()
     }
 
     homeResponse?.run {
+        Div({ classes("d-flex", "justify-content-end") }) {
+            PosterSizeSelector(sizeMultiplier) {
+                sizeMultiplier = it
+                localStorage.setItem(KEY_POSTER_SIZE_MULTIPLIER, it.toString())
+            }
+        }
+
         if (playbackStates.isNotEmpty()) {
             MovieRow(
                 title = { Text("Continue Watching") }
@@ -48,6 +66,7 @@ fun HomeScreen() {
                     val movie = currentlyWatchingMovies[state.id]
                     val (episode, show) = currentlyWatchingTv[state.id] ?: (null to null)
                     PosterCard(
+                        sizeMultiplier = sizeMultiplier,
                         title = (movie?.title ?: show?.name)?.let { title ->
                             {
                                 LinkedText(url = "/media/${movie?.id ?: show?.id}") {
@@ -102,6 +121,7 @@ fun HomeScreen() {
             ) {
                 recentlyAdded.forEach { (movie, ref) ->
                     PosterCard(
+                        sizeMultiplier = sizeMultiplier,
                         title = {
                             LinkedText(url = "/media/${movie.id}") {
                                 Text(movie.title)
@@ -129,6 +149,7 @@ fun HomeScreen() {
             ) {
                 recentlyAddedTv.forEach { show ->
                     PosterCard(
+                        sizeMultiplier = sizeMultiplier,
                         title = {
                             LinkedText(url = "/media/${show.id}") {
                                 Text(show.name)
@@ -150,6 +171,7 @@ fun HomeScreen() {
             ) {
                 popularMovies.forEach { (movie, ref) ->
                     PosterCard(
+                        sizeMultiplier = sizeMultiplier,
                         title = {
                             LinkedText(url = "/media/${ref?.contentId ?: movie.id}") {
                                 Text(movie.title)
@@ -176,6 +198,7 @@ fun HomeScreen() {
             ) {
                 popularTvShows.forEach { tvShow ->
                     PosterCard(
+                        sizeMultiplier = sizeMultiplier,
                         title = {
                             LinkedText(url = "/media/${tvShow.id}") {
                                 Text(tvShow.name)
@@ -218,5 +241,25 @@ private fun MovieRow(
         }
     }) {
         buildItems()
+    }
+}
+
+@Composable
+private fun PosterSizeSelector(sizeMultiplier: Float, onInput: (Float) -> Unit) {
+    Div({
+        classes("d-flex", "align-items-center", "gap-2")
+        style { width(120.px) }
+    }) {
+        Input(InputType.Range) {
+            classes("form-range")
+            value(sizeMultiplier)
+            min("0.8")
+            max("1.2")
+            step(0.01)
+            onInput {
+                it.value?.toFloat()?.takeUnless(Float::isNaN)?.run(onInput)
+            }
+        }
+        I({ classes("bi", "bi-grid-3x3-gap-fill") })
     }
 }

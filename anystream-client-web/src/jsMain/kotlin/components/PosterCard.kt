@@ -30,6 +30,7 @@ fun PosterCard(
     posterPath: String?,
     wide: Boolean = false,
     heightAndWidth: Pair<CSSpxValue, CSSpxValue>? = null,
+    sizeMultiplier: Float = 1f,
     isAdded: Boolean? = null,
     completedPercent: Float? = null,
     subtitle1: (@Composable () -> Unit)? = null,
@@ -49,10 +50,12 @@ fun PosterCard(
             classes(*classes.toTypedArray())
         }
     }) {
-        val (posterHeight, posterWidth) = heightAndWidth ?: if (wide) {
-            166.px to 250.px
-        } else {
-            250.px to 166.px
+        val (posterHeight, posterWidth) = remember(wide, heightAndWidth, sizeMultiplier) {
+            heightAndWidth ?: if (wide) {
+                (166 * sizeMultiplier).px to (250 * sizeMultiplier).px
+            } else {
+                (250 * sizeMultiplier).px to (166 * sizeMultiplier).px
+            }
         }
 
         Div({
