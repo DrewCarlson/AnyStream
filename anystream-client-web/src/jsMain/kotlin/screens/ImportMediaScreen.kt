@@ -163,7 +163,7 @@ fun ImportMediaScreen(scope: CoroutineScope) {
             } else if (subfolders == null) {
                 Div { H4 { Text("Invalid directory") } }
             } else {
-                Div({ classes("vstack",  "h-100", "w-100") }) {
+                Div({ classes("vstack", "h-100", "w-100") }) {
                     if (!selectedPath.value.isNullOrBlank()) {
                         Div {
                             FolderListItem("Up", "bi-folder2-open") {
