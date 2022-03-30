@@ -58,13 +58,6 @@ fun ImportMediaScreen(scope: CoroutineScope) {
         Div({ classes("d-flex", "gap-1") }) {
             Button({
                 classes("btn", "btn-primary")
-                attr("data-bs-toggle", "modal")
-                attr("data-bs-target", "#importModal")
-            }) {
-                Text("modal")
-            }
-            Button({
-                classes("btn", "btn-primary")
                 onClick {
                     scope.launch {
                         val contentPath = selectedPath.value ?: return@launch
