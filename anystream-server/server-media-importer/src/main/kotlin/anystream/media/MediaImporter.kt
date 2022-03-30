@@ -32,13 +32,16 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.onCompletion
 import org.jdbi.v3.core.JdbiException
 import org.slf4j.Logger
 import org.slf4j.Marker
 import org.slf4j.MarkerFactory
 import java.io.File
-import java.util.UUID
+import java.util.*
 
 private val FFMPEG_EXTENSIONS = listOf(
     "webm", "mpg", "mp2", "mpeg", "mov", "mkv",
@@ -66,7 +69,6 @@ class MediaImporter(
 
         val mediaRefPaths = mediaRefsDao.findAllFilePaths()
         return contentFile.listFiles()
-            ?.toList()
             .orEmpty()
             .map(File::getAbsolutePath)
             .filter { filePath ->
@@ -86,21 +88,22 @@ class MediaImporter(
         }
 
         return contentFile.listFiles()
-            ?.asFlow()
-            ?.concurrentMap(scope, 1) { file ->
+            .orEmpty()
+            .asFlow()
+            .concurrentMap(scope, 1) { file ->
                 internalImport(
                     userId,
                     request.copy(contentPath = file.absolutePath),
                     marker,
                 )
             }
-            ?.onCompletion { error ->
+            .onCompletion { error ->
                 if (error == null) {
                     logger.debug(marker, "Recursive import completed")
                 } else {
                     logger.debug(marker, "Recursive import interrupted", error)
                 }
-            } ?: emptyFlow()
+            }
     }
 
     suspend fun import(userId: Int, request: ImportMedia): ImportMediaResult {
@@ -125,26 +128,10 @@ class MediaImporter(
 
         val results = mediaRefs
             .filter { mediaRef ->
-                val extension = mediaRef.filePath.orEmpty().substringAfterLast('.').lowercase()
-                FFMPEG_EXTENSIONS.contains(extension)
-            }.associate { mediaRef ->
-                val filePath = mediaRef.filePath.orEmpty()
-                if (File(filePath).exists()) {
-                    try {
-                        val streams = awaitAll(
-                            ffprobe().processStreamsAsync(filePath, StreamType.VIDEO_NOT_PICTURE),
-                            ffprobe().processStreamsAsync(filePath, StreamType.AUDIO),
-                            ffprobe().processStreamsAsync(filePath, StreamType.SUBTITLE),
-                        ).flatten()
-                        mediaRef to ImportStreamDetailsResult.Success(mediaRef.gid, streams)
-                    } catch (e: JaffreeException) {
-                        logger.error(marker, "FFProbe error, failed to extract stream details", e)
-                        mediaRef to ImportStreamDetailsResult.ProcessError(e.stackTraceToString())
-                    }
-                } else {
-                    logger.error(marker, "Media file reference path does not exist: ${mediaRef.gid} $filePath")
-                    mediaRef to ImportStreamDetailsResult.ErrorFileNotFound
-                }
+                val extension = mediaRef.filePath?.substringAfterLast('.', "")?.lowercase()
+                !extension.isNullOrBlank() && FFMPEG_EXTENSIONS.contains(extension)
+            }.associateWith { mediaRef ->
+                processMediaFileStreams(mediaRef.gid, mediaRef.filePath.orEmpty(), marker)
             }
 
         logger.debug(marker, "Processed ${results.size} item(s)")
@@ -168,6 +155,29 @@ class MediaImporter(
         } catch (e: JdbiException) {
             logger.error(marker, "Failed to update stream data", e)
             listOf(ImportStreamDetailsResult.ErrorDatabaseException(e.stackTraceToString()))
+        }
+    }
+
+    private suspend fun processMediaFileStreams(
+        mediaRefId: String,
+        filePath: String,
+        marker: Marker
+    ): ImportStreamDetailsResult {
+        return if (File(filePath).exists()) {
+            try {
+                val streams = awaitAll(
+                    ffprobe().processStreamsAsync(filePath, StreamType.VIDEO_NOT_PICTURE),
+                    ffprobe().processStreamsAsync(filePath, StreamType.AUDIO),
+                    ffprobe().processStreamsAsync(filePath, StreamType.SUBTITLE),
+                ).flatten()
+                ImportStreamDetailsResult.Success(mediaRefId, streams)
+            } catch (e: JaffreeException) {
+                logger.error(marker, "FFProbe error, failed to extract stream details", e)
+                ImportStreamDetailsResult.ProcessError(e.stackTraceToString())
+            }
+        } else {
+            logger.error(marker, "Media file reference path does not exist: ${mediaRefId} $filePath")
+            ImportStreamDetailsResult.ErrorFileNotFound
         }
     }
 
@@ -203,13 +213,11 @@ class MediaImporter(
     ): Deferred<List<StreamEncodingDetails>> {
         return scope.async {
             setShowStreams(true)
-                .setShowFormat(true)
-                .setSelectStreams(streamType)
-                .setShowEntries("stream=index:stream_tags=language,LANGUAGE,title")
-                .setInput(filePath)
-                .execute()
-                .streams
-                .mapNotNull { it.toStreamEncodingDetails() }
+            setShowFormat(true)
+            setSelectStreams(streamType)
+            setShowEntries("stream=index:stream_tags=language,LANGUAGE,title")
+            setInput(filePath)
+            execute().streams.mapNotNull { it.toStreamEncodingDetails() }
         }
     }
 
