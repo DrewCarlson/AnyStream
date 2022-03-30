@@ -23,7 +23,6 @@ import anystream.db.model.MediaReferenceDb
 import anystream.json
 import anystream.models.DownloadMediaReference
 import anystream.models.MediaKind
-import anystream.models.MediaReference
 import anystream.torrent.search.TorrentDescription2
 import anystream.util.ObjectId
 import anystream.util.extractUserSession
