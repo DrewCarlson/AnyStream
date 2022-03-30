@@ -66,7 +66,7 @@ class MovieImportProcessor(
         val mediaName = if (movieFile.isDirectory) {
             contentFile.name
         } else {
-            contentFile.nameWithoutExtension
+            movieFile.nameWithoutExtension
         }
 
         val existingRef = try {
