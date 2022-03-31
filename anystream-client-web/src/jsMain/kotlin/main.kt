@@ -24,6 +24,6 @@ fun main() {
     kotlinext.js.require("bootstrap-icons/font/bootstrap-icons.css")
     kotlinext.js.require("@fontsource/open-sans/index.css")
     kotlinext.js.require("video.js/dist/video-js.min.css")
-    kotlinext.js.require("video.js/dist/video.cjs.js")
+    kotlinext.js.require("video.js/dist/video.min.js")
     webApp()
 }
