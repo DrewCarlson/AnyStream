@@ -19,16 +19,11 @@ package anystream.db
 
 import anystream.models.InviteCode
 import anystream.models.Permission
-import org.jdbi.v3.sqlobject.locator.UseClasspathSqlLocator
 import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys
 import org.jdbi.v3.sqlobject.statement.SqlQuery
 import org.jdbi.v3.sqlobject.statement.SqlUpdate
 
 interface InvitesDao {
-
-    @SqlUpdate
-    @UseClasspathSqlLocator
-    fun createTable()
 
     @SqlQuery("SELECT * FROM inviteCodes")
     fun all(): List<InviteCode>

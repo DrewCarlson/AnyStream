@@ -18,7 +18,6 @@
 package anystream.db
 
 import anystream.db.model.PlaybackStateDb
-import anystream.db.model.UserDb
 import kotlinx.datetime.Instant
 import org.jdbi.v3.sqlobject.customizer.BindList
 import org.jdbi.v3.sqlobject.locator.UseClasspathSqlLocator
@@ -26,10 +25,6 @@ import org.jdbi.v3.sqlobject.statement.SqlQuery
 import org.jdbi.v3.sqlobject.statement.SqlUpdate
 
 interface PlaybackStatesDao {
-
-    @SqlUpdate
-    @UseClasspathSqlLocator
-    fun createTable()
 
     @SqlUpdate
     @UseClasspathSqlLocator

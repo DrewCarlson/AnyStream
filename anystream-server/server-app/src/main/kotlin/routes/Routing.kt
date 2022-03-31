@@ -79,21 +79,13 @@ fun Application.installRouting(dataPath: String, dbHandle: Handle) {
     val ffmpeg = { FFmpeg.atPath(Path.of(ffmpegPath)) }
     val ffprobe = { FFprobe.atPath(Path.of(ffmpegPath)) }
 
-    val mediaDao = dbHandle.attach<MediaDao>().apply { createTable() }
-    val tagsDao = dbHandle.attach<TagsDao>().apply {
-        createTable()
-        createMediaCompanyLinkTable()
-        createMediaGenreLinkTable()
-    }
-    val playbackStatesDao = dbHandle.attach<PlaybackStatesDao>().apply { createTable() }
-    val mediaReferencesDao = dbHandle.attach<MediaReferencesDao>().apply {
-        createTable()
-        createStreamTable()
-        createStreamLinkTable()
-    }
-    val usersDao = dbHandle.attach<UsersDao>().apply { createTable() }
-    val invitesDao = dbHandle.attach<InvitesDao>().apply { createTable() }
-    val permissionsDao = dbHandle.attach<PermissionsDao>().apply { createTable() }
+    val mediaDao = dbHandle.attach<MediaDao>()
+    val tagsDao = dbHandle.attach<TagsDao>()
+    val playbackStatesDao = dbHandle.attach<PlaybackStatesDao>()
+    val mediaReferencesDao = dbHandle.attach<MediaReferencesDao>()
+    val usersDao = dbHandle.attach<UsersDao>()
+    val invitesDao = dbHandle.attach<InvitesDao>()
+    val permissionsDao = dbHandle.attach<PermissionsDao>()
     val searchableContentDao = dbHandle.attach<SearchableContentDao>().apply { createTable() }
 
     val queries = MediaDbQueries(searchableContentDao, mediaDao, tagsDao, mediaReferencesDao, playbackStatesDao)

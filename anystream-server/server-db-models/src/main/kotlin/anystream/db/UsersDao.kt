@@ -29,10 +29,6 @@ import org.jdbi.v3.sqlobject.statement.SqlUpdate
 
 interface UsersDao {
 
-    @SqlUpdate
-    @UseClasspathSqlLocator
-    fun createTable()
-
     @SqlQuery("SELECT * FROM users")
     fun all(): List<UserDb>
 

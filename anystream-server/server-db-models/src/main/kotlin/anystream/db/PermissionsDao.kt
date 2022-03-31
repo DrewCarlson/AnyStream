@@ -18,19 +18,11 @@
 package anystream.db
 
 import anystream.db.model.PermissionDb
-import anystream.models.InviteCode
 import anystream.models.Permission
-import org.jdbi.v3.sqlobject.customizer.BindList
-import org.jdbi.v3.sqlobject.locator.UseClasspathSqlLocator
-import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys
 import org.jdbi.v3.sqlobject.statement.SqlQuery
 import org.jdbi.v3.sqlobject.statement.SqlUpdate
 
 interface PermissionsDao {
-
-    @SqlUpdate
-    @UseClasspathSqlLocator
-    fun createTable()
 
     @SqlQuery("SELECT * FROM permissions WHERE userId = ?")
     fun allForUser(userId: Int): List<PermissionDb>

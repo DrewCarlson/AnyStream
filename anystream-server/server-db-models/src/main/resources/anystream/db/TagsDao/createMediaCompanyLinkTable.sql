@@ -1,7 +1,0 @@
-CREATE TABLE IF NOT EXISTS mediaCompanies
-(
-    mediaId   INTEGER NOT NULL,
-    companyId INTEGER NOT NULL,
-    FOREIGN KEY (mediaId)   REFERENCES media (id) ON DELETE CASCADE,
-    FOREIGN KEY (companyId) REFERENCES tags (id)  ON DELETE CASCADE
-);

@@ -19,24 +19,11 @@ package anystream.db
 
 import anystream.models.Genre
 import anystream.models.ProductionCompany
-import org.jdbi.v3.sqlobject.locator.UseClasspathSqlLocator
 import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys
 import org.jdbi.v3.sqlobject.statement.SqlQuery
 import org.jdbi.v3.sqlobject.statement.SqlUpdate
 
 interface TagsDao {
-
-    @SqlUpdate
-    @UseClasspathSqlLocator
-    fun createTable()
-
-    @SqlUpdate
-    @UseClasspathSqlLocator
-    fun createMediaGenreLinkTable()
-
-    @SqlUpdate
-    @UseClasspathSqlLocator
-    fun createMediaCompanyLinkTable()
 
     @SqlUpdate("INSERT OR IGNORE INTO tags (id, name, tmdbId) VALUES (null, ?, ?)")
     @GetGeneratedKeys("id")

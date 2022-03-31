@@ -20,6 +20,7 @@ package anystream
 import anystream.data.UserSession
 import anystream.db.SessionsDao
 import anystream.db.mappers.registerMappers
+import anystream.db.runMigrations
 import anystream.models.Permission
 import anystream.routes.installRouting
 import anystream.util.SqlSessionStorage
@@ -77,6 +78,8 @@ fun Application.module(testing: Boolean = false) {
             }
         }
 
+    check(runMigrations("jdbc:$databaseUrl", log))
+
     val jdbi = Jdbi.create("jdbc:$databaseUrl").apply {
         setSqlLogger(Slf4JSqlLogger())
         installPlugin(SQLitePlugin())
@@ -92,7 +95,7 @@ fun Application.module(testing: Boolean = false) {
         exitProcess(-1)
     }
 
-    val sessionsDao = dbHandle.attach<SessionsDao>().apply { createTable() }
+    val sessionsDao = dbHandle.attach<SessionsDao>()
     val sessionStorage = SqlSessionStorage(sessionsDao)
 
     install(DefaultHeaders) {}

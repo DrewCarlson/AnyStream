@@ -33,6 +33,7 @@ import org.jdbi.v3.sqlobject.SqlObjectPlugin
 import org.jdbi.v3.sqlobject.kotlin.KotlinSqlObjectPlugin
 import org.jdbi.v3.sqlobject.kotlin.attach
 import org.slf4j.LoggerFactory
+import java.io.File
 import kotlin.test.*
 
 class MetadataManagerTests {
@@ -42,7 +43,8 @@ class MetadataManagerTests {
 
     @BeforeTest
     fun before() {
-        val jdbi = Jdbi.create("jdbc:sqlite::memory:").apply {
+        runMigrations("jdbc:sqlite:test.db")
+        val jdbi = Jdbi.create("jdbc:sqlite:test.db").apply {
             installPlugin(SQLitePlugin())
             installPlugin(SqlObjectPlugin())
             installPlugin(KotlinSqlObjectPlugin())
@@ -50,18 +52,10 @@ class MetadataManagerTests {
             registerMappers()
         }
         handle = jdbi.open()
-        val mediaDao = handle.attach<MediaDao>().apply { createTable() }
-        val tagsDao = handle.attach<TagsDao>().apply {
-            createTable()
-            createMediaCompanyLinkTable()
-            createMediaGenreLinkTable()
-        }
-        val playbackStatesDao = handle.attach<PlaybackStatesDao>().apply { createTable() }
-        val mediaReferencesDao = handle.attach<MediaReferencesDao>().apply {
-            createTable()
-            createStreamTable()
-            createStreamLinkTable()
-        }
+        val mediaDao = handle.attach<MediaDao>()
+        val tagsDao = handle.attach<TagsDao>()
+        val playbackStatesDao = handle.attach<PlaybackStatesDao>()
+        val mediaReferencesDao = handle.attach<MediaReferencesDao>()
         val searchableContentDao = handle.attach<SearchableContentDao>().apply { createTable() }
 
         val queries = MediaDbQueries(searchableContentDao, mediaDao, tagsDao, mediaReferencesDao, playbackStatesDao)
@@ -72,6 +66,7 @@ class MetadataManagerTests {
     @AfterTest
     fun after() {
         handle.close()
+        File("test.db").delete()
     }
 
     @Test

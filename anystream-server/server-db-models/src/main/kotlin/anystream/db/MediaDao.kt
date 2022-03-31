@@ -77,10 +77,6 @@ private const val JOIN_COMPANIES = """
 )
 interface MediaDao {
 
-    @SqlUpdate
-    @UseClasspathSqlLocator
-    fun createTable()
-
     @SqlQuery("SELECT * FROM media")
     fun all(): List<MediaDb>
 

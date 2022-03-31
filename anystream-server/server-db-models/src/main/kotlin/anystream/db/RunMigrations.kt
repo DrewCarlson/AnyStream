@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2021 AnyStream Maintainers
+ * Copyright (C) 2022 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -17,17 +17,17 @@
  */
 package anystream.db
 
-import org.jdbi.v3.sqlobject.statement.SqlQuery
-import org.jdbi.v3.sqlobject.statement.SqlUpdate
+import org.flywaydb.core.Flyway
+import org.flywaydb.core.api.FlywayException
+import org.slf4j.Logger
 
-interface SessionsDao {
-
-    @SqlQuery("SELECT data FROM sessions WHERE id = ?")
-    fun find(id: String): String?
-
-    @SqlUpdate("INSERT OR REPLACE INTO sessions (id, data) VALUES (?, ?)")
-    fun insertOrUpdate(id: String, data: String)
-
-    @SqlUpdate("DELETE FROM sessions WHERE id = ?")
-    fun delete(id: String)
+fun runMigrations(connectionString: String, logger: Logger? = null): Boolean {
+    val flyway = Flyway.configure().dataSource(connectionString, null, null).load()
+    return try {
+        flyway.migrate()
+        true
+    } catch (e: FlywayException) {
+        logger?.error("Database migrations failed", e)
+        false
+    }
 }

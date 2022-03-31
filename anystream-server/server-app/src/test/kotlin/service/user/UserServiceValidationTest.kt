@@ -21,6 +21,7 @@ import anystream.db.InvitesDao
 import anystream.db.PermissionsDao
 import anystream.db.UsersDao
 import anystream.db.mappers.registerMappers
+import anystream.db.runMigrations
 import anystream.models.*
 import anystream.models.api.*
 import kotlinx.coroutines.runBlocking
@@ -32,6 +33,7 @@ import org.jdbi.v3.sqlite3.SQLitePlugin
 import org.jdbi.v3.sqlobject.SqlObjectPlugin
 import org.jdbi.v3.sqlobject.kotlin.KotlinSqlObjectPlugin
 import org.jdbi.v3.sqlobject.kotlin.attach
+import java.io.File
 import kotlin.test.*
 
 class UserServiceValidationTest {
@@ -42,7 +44,8 @@ class UserServiceValidationTest {
 
     @BeforeTest
     fun setup() {
-        val jdbi = Jdbi.create("jdbc:sqlite::memory:").apply {
+        runMigrations("jdbc:sqlite:test.db")
+        val jdbi = Jdbi.create("jdbc:sqlite:test.db").apply {
             setSqlLogger(Slf4JSqlLogger())
             installPlugin(SQLitePlugin())
             installPlugin(SqlObjectPlugin())
@@ -52,9 +55,9 @@ class UserServiceValidationTest {
         }
         dbHandle = jdbi.open()
         queries = UserServiceQueriesJdbi(
-            usersDao = dbHandle.attach<UsersDao>().apply { createTable() },
-            permissionsDao = dbHandle.attach<PermissionsDao>().apply { createTable() },
-            invitesDao = dbHandle.attach<InvitesDao>().apply { createTable() }
+            usersDao = dbHandle.attach<UsersDao>(),
+            permissionsDao = dbHandle.attach<PermissionsDao>(),
+            invitesDao = dbHandle.attach<InvitesDao>()
         )
         userService = UserService(queries)
     }
@@ -62,6 +65,7 @@ class UserServiceValidationTest {
     @AfterTest
     fun tearDown() {
         dbHandle.close()
+        File("test.db").delete()
     }
 
     // <editor-fold desc="Create User Tests">

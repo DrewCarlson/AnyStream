@@ -70,6 +70,8 @@ kotlinjs-extensions = { module = "org.jetbrains.kotlin-wrappers:kotlin-extension
 
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 
+flyway-core = { module = "org.flywaydb:flyway-core", version = "8.5.5" }
+
 jdbi-core = { module = "org.jdbi:jdbi3-core", version.ref = "jdbi" }
 jdbi-sqlite = { module = "org.jdbi:jdbi3-sqlite", version.ref = "jdbi" }
 jdbi-sqlobject = { module = "org.jdbi:jdbi3-sqlobject", version.ref = "jdbi" }

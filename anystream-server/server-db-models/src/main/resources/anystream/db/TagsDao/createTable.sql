@@ -1,6 +1,0 @@
-CREATE TABLE IF NOT EXISTS tags
-(
-    id INTEGER PRIMARY KEY NOT NULL,
-    name TEXT NOT NULL,
-    tmdbId INT
-);

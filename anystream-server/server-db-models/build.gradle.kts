@@ -31,6 +31,7 @@ dependencies {
 
     implementation(libs.logback)
 
+    implementation(libs.flyway.core)
     implementation(libs.jdbi.core)
     implementation(libs.jdbi.sqlobject)
     implementation(libs.jdbi.kotlin)

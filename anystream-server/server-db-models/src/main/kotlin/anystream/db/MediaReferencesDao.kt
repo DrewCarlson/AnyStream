@@ -68,18 +68,6 @@ private const val JOIN_STREAMS = """
 )
 interface MediaReferencesDao {
 
-    @SqlUpdate
-    @UseClasspathSqlLocator
-    fun createTable()
-
-    @SqlUpdate
-    @UseClasspathSqlLocator
-    fun createStreamTable()
-
-    @SqlUpdate
-    @UseClasspathSqlLocator
-    fun createStreamLinkTable()
-
     @UseRowReducer(MediaReferenceReducer::class)
     @SqlQuery("SELECT $MEDIAREF_COLUMNS, $STEAM_COLUMNS FROM mediaReferences $JOIN_STREAMS")
     fun all(): List<MediaReferenceDb>
