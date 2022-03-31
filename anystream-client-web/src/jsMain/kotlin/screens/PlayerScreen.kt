@@ -423,7 +423,7 @@ private fun PlaybackControls(
         }
     }) {
         Div({
-            classes("d-flex", "flex-column")
+            classes("d-flex", "flex-column", "overflow-hidden")
             style {
                 flexBasis(33.percent)
             }
@@ -435,7 +435,10 @@ private fun PlaybackControls(
                 onClick {
                     BrowserRouter.navigate("/media/${mediaItem.value?.mediaId}")
                 }
+                classes("overflow-hidden")
                 style {
+                    whiteSpace("nowrap")
+                    property("text-overflow", "ellipsis")
                     cursor("pointer")
                     if (hovering) {
                         textDecoration("underline")
