@@ -9,7 +9,7 @@
 ---
 
 <p align="center">
-<a href="https://github.com/drewcarlson/AnyStream/releases/lagest" style="text-decoration: none !important;">
+<a href="https://github.com/drewcarlson/AnyStream/releases/latest" style="text-decoration: none !important;">
 <img alt="Latest Release" src="https://img.shields.io/github/v/tag/drewcarlson/anystream?label=release&sort=semver">
 </a>
 <a href="https://raw.githubusercontent.com/DrewCarlson/AnyStream/main/LICENSE" style="text-decoration: none !important;">
