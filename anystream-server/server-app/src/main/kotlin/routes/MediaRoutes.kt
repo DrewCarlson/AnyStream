@@ -27,7 +27,6 @@ import anystream.util.isRemoteId
 import anystream.util.logger
 import app.moviebase.tmdb.Tmdb3
 import app.moviebase.tmdb.model.AppendResponse
-import torrentsearch.TorrentSearch
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.UnprocessableEntity
@@ -41,6 +40,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import torrentsearch.Category
+import torrentsearch.TorrentSearch
 import java.io.File
 import java.nio.file.FileSystems
 import java.nio.file.Files
