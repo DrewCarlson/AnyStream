@@ -68,7 +68,9 @@ fun Application.module(testing: Boolean = false) {
         installPlugin(SqlObjectPlugin())
         installPlugin(KotlinSqlObjectPlugin())
         installPlugin(KotlinPlugin())
-        configure(PooledExtensions::class.java) { }
+        configure(PooledExtensions::class.java) { extension ->
+            environment.monitor.subscribe(ApplicationStopped) { extension.shutdown() }
+        }
         registerMappers()
     }
 

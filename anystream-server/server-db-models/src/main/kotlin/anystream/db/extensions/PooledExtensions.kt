@@ -48,7 +48,7 @@ class PooledExtensions : JdbiConfig<PooledExtensions> {
         }
 
     private val handlePool by lazy {
-        Pool.from(object : Allocator<Pooled<Handle>> {
+        Pool.fromInline(object : Allocator<Pooled<Handle>> {
             override fun allocate(slot: Slot): Pooled<Handle> {
                 return Pooled(slot, (jdbi ?: exitProcess(-1)).open())
             }
@@ -95,6 +95,10 @@ class PooledExtensions : JdbiConfig<PooledExtensions> {
 
     override fun createCopy(): PooledExtensions {
         return PooledExtensions()
+    }
+
+    fun shutdown() {
+        handlePool.shutdown().await(Timeout(5, TimeUnit.SECONDS))
     }
 
     companion object {
