@@ -31,6 +31,7 @@ data class TvShow(
     val added: Long,
     val addedByUserId: Int,
     val tmdbRating: Int? = null,
+    val contentRating: String? = null,
     val genres: List<Genre> = emptyList(),
     val companies: List<ProductionCompany> = emptyList(),
 ) {

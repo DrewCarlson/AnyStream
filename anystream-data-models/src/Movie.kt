@@ -37,6 +37,7 @@ data class Movie(
     val tmdbRating: Int? = null,
     val genres: List<Genre>,
     val companies: List<ProductionCompany>,
+    val contentRating: String?,
 ) {
     val isAdded: Boolean
         get() = !id.contains(':')

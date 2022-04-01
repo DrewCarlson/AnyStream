@@ -21,6 +21,7 @@ import anystream.models.*
 import anystream.util.ObjectId
 import app.moviebase.tmdb.model.*
 import java.time.Instant
+import java.util.*
 import kotlin.math.roundToInt
 
 private const val MAX_CACHED_POSTERS = 5
@@ -45,6 +46,7 @@ fun TmdbMovieDetail.asMovie(
     addedByUserId = userId,
     tmdbRating = (voteAverage * 10).roundToInt(),
     tagline = tagline,
+    contentRating = releaseDates?.getCertification(Locale.getDefault().country),
     genres = genres.map { Genre(-1, it.name, it.id) },
     companies = productionCompanies.orEmpty().map { tmdbCompany ->
         ProductionCompany(-1, tmdbCompany.name.orEmpty(), tmdbCompany.id)
@@ -108,6 +110,7 @@ fun TmdbShowDetail.asTvShow(id: String, userId: Int = 1): TvShow {
         addedByUserId = userId,
         tmdbRating = (voteAverage * 10).roundToInt(),
         tagline = null,
+        contentRating = contentRatings?.getContentRating(Locale.getDefault().country),
         genres = genres.map { Genre(-1, it.name, it.id) },
         companies = productionCompanies.orEmpty().map { tmdbCompany ->
             ProductionCompany(-1, tmdbCompany.name.orEmpty(), tmdbCompany.id)

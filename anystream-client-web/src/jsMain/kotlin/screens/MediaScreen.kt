@@ -161,10 +161,23 @@ private fun BaseDetailsView(
                 }
             }
 
-            Div({ classes("d-flex", "flex-row", "gap-2") }) {
+            Div({ classes("d-flex", "gap-2") }) {
+                mediaItem.contentRating?.also { contentRating ->
+                    Div({ classes("d-flex", "align-items-center") }) {
+                        Div({
+                            classes("rounded-2", "p-1")
+                            style {
+                                fontSize(14.px)
+                                backgroundColor(rgba(0, 0, 0, 0.3))
+                            }
+                        }) {
+                            Text(contentRating)
+                        }
+                    }
+                }
                 mediaItem.tmdbRating?.also { tmdbRating ->
                     Div({
-                        classes("d-flex", "flex-row", "align-items-center", "gap-2")
+                        classes("d-flex", "align-items-center", "gap-2")
                         style {
                             fontSize(14.px)
                         }
