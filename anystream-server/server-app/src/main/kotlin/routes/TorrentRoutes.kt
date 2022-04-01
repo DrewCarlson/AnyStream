@@ -23,6 +23,7 @@ import anystream.db.model.MediaReferenceDb
 import anystream.json
 import anystream.models.DownloadMediaReference
 import anystream.models.MediaKind
+import anystream.models.Permission
 import anystream.torrent.search.TorrentDescription2
 import anystream.util.ObjectId
 import anystream.util.extractUserSession
@@ -173,7 +174,8 @@ fun Route.addTorrentRoutes(
 
 fun Route.addTorrentWsRoutes(qbClient: QBittorrentClient) {
     webSocket("/ws/torrents/observe") {
-        checkNotNull(extractUserSession())
+        val session = checkNotNull(extractUserSession())
+        check(Permission.check(Permission.ManageTorrents, session.permissions))
         qbClient.syncMainData()
             .takeWhile { !outgoing.isClosedForSend }
             .collect { data ->
@@ -188,7 +190,8 @@ fun Route.addTorrentWsRoutes(qbClient: QBittorrentClient) {
             }
     }
     webSocket("/ws/torrents/global") {
-        checkNotNull(extractUserSession())
+        val session = checkNotNull(extractUserSession())
+        check(Permission.check(Permission.ManageTorrents, session.permissions))
         qbClient.syncMainData()
             .takeWhile { !outgoing.isClosedForSend }
             .collect { data ->

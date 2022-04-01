@@ -146,13 +146,15 @@ fun Route.addStreamWsRoutes(
     }.shareIn(application, SharingStarted.WhileSubscribed(), 1)
 
     webSocket("/ws/stream") {
-        checkNotNull(extractUserSession())
+        val session = checkNotNull(extractUserSession())
+        check(Permission.check(Permission.ConfigureSystem, session.permissions))
         sessionsFlow.collect { response -> sendSerialized(response) }
     }
 
     webSocket("/ws/stream/{mediaRefId}/state") {
-        val userSession = checkNotNull(extractUserSession())
-        val userId = userSession.userId
+        val session = checkNotNull(extractUserSession())
+        check(Permission.check(Permission.ConfigureSystem, session.permissions))
+        val userId = session.userId
         val mediaRefId = call.parameters["mediaRefId"]!!
 
         val state = streamService.getPlaybackState(mediaRefId, userId, create = true)
