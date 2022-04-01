@@ -27,8 +27,7 @@ import anystream.util.isRemoteId
 import anystream.util.logger
 import app.moviebase.tmdb.Tmdb3
 import app.moviebase.tmdb.model.AppendResponse
-import drewcarlson.torrentsearch.Category
-import drewcarlson.torrentsearch.TorrentSearch
+import torrentsearch.TorrentSearch
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.UnprocessableEntity
@@ -41,6 +40,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import torrentsearch.Category
 import java.io.File
 import java.nio.file.FileSystems
 import java.nio.file.Files
@@ -292,9 +292,16 @@ fun Route.addMediaManageRoutes(
                             tmdb.movies.getDetails(tmdbId, null)
                         }.onSuccess { tmdbMovie ->
                             call.respond(
-                                torrentSearch.search(tmdbMovie.title, Category.MOVIES, 100)
+                                torrentSearch.search {
+                                    category = Category.MOVIES
+                                    limit = 100
+                                    if (tmdbMovie.imdbId == null) {
+                                        content = tmdbMovie.title
+                                    } else {
+                                        imdbId = tmdbMovie.imdbId
+                                    }
                                     // TODO: API or client sort+filter
-                                    .sortedByDescending { it.seeds }
+                                }.sortedByDescending { it.seeds }
                             )
                         }.onFailure { e ->
                             logger.error("Error fetching movie from TMDB - tmdbId=$tmdbId", e)

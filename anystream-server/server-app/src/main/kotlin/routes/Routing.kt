@@ -37,7 +37,7 @@ import app.moviebase.tmdb.Tmdb3
 import com.github.kokorin.jaffree.ffmpeg.FFmpeg
 import com.github.kokorin.jaffree.ffprobe.FFprobe
 import drewcarlson.qbittorrent.QBittorrentClient
-import drewcarlson.torrentsearch.TorrentSearch
+import torrentsearch.TorrentSearch
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.routing.*
