@@ -17,18 +17,17 @@
  */
 package anystream.routes
 
+import anystream.AnyStreamConfig
 import anystream.util.SinglePageApp
 import io.ktor.server.application.*
 import java.io.File
 
-fun Application.installWebClientRoutes() {
-    val disableWebClient = environment.config.property("app.disableWebClient").getString().toBoolean()
-    val webClientPath = environment.config.propertyOrNull("app.webClientPath")?.getString()
-    if (disableWebClient) {
+fun Application.installWebClientRoutes(config: AnyStreamConfig) {
+    if (config.disableWebClient) {
         log.debug("Web client disabled, this instance will serve the API only.")
     } else if (
-        webClientPath.isNullOrBlank() ||
-        !File(webClientPath).exists() &&
+        config.webClientPath.isNullOrBlank() ||
+        !File(config.webClientPath).exists() &&
         checkNotNull(javaClass.classLoader).getResource("anystream-client-web") != null
     ) {
         log.debug("This instance will serve the web client from jar resources.")
@@ -37,11 +36,11 @@ fun Application.installWebClientRoutes() {
             staticFilePath = "anystream-client-web"
             useResources = true
         }
-    } else if (File(webClientPath).exists()) {
-        log.debug("This instance will serve the web client from '$webClientPath'.")
+    } else if (File(config.webClientPath).exists()) {
+        log.debug("This instance will serve the web client from '${config.webClientPath}'.")
         install(SinglePageApp) {
             ignoreBasePath = "/api"
-            staticFilePath = webClientPath
+            staticFilePath = config.webClientPath
         }
     } else {
         log.error("Failed to find web client, this instance will serve the API only.")

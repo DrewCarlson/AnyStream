@@ -17,6 +17,7 @@
  */
 package anystream.routes
 
+import anystream.AnyStreamConfig
 import anystream.data.MediaDbQueries
 import anystream.db.*
 import anystream.db.extensions.pooled
@@ -51,29 +52,23 @@ import org.drewcarlson.ktor.permissions.withPermission
 import org.jdbi.v3.core.Jdbi
 import java.nio.file.Path
 
-fun Application.installRouting(jdbi: Jdbi, dataPath: String) {
-    val ffmpegPath = environment.config.property("app.ffmpegPath").getString()
-    val tmdbApiKey = environment.config.property("app.tmdbApiKey").getString()
-    val qbittorrentUrl = environment.config.property("app.qbittorrentUrl").getString()
-    val qbittorrentUser = environment.config.property("app.qbittorrentUser").getString()
-    val qbittorrentPass = environment.config.property("app.qbittorrentPassword").getString()
-
+fun Application.installRouting(jdbi: Jdbi, config: AnyStreamConfig) {
     val kjob = kjob(JdbiKJob) {
         this.jdbi = jdbi
         defaultJobExecutor = JobExecutionType.NON_BLOCKING
     }.start()
     environment.monitor.subscribe(ApplicationStopped) { kjob.shutdown() }
-    val tmdb by lazy { Tmdb3(tmdbApiKey) }
+    val tmdb by lazy { Tmdb3(config.tmdbApiKey) }
 
     val torrentSearch = TorrentSearch()
 
     val qbClient = QBittorrentClient(
-        baseUrl = qbittorrentUrl,
-        username = qbittorrentUser,
-        password = qbittorrentPass,
+        baseUrl = config.qbittorrentUrl,
+        username = config.qbittorrentUser,
+        password = config.qbittorrentPass,
     )
-    val ffmpeg = { FFmpeg.atPath(Path.of(ffmpegPath)) }
-    val ffprobe = { FFprobe.atPath(Path.of(ffmpegPath)) }
+    val ffmpeg = { FFmpeg.atPath(Path.of(config.ffmpegPath)) }
+    val ffprobe = { FFprobe.atPath(Path.of(config.ffmpegPath)) }
 
     val mediaDao = jdbi.pooled<MediaDao>()
     val tagsDao = jdbi.pooled<TagsDao>()
@@ -100,12 +95,11 @@ fun Application.installRouting(jdbi: Jdbi, dataPath: String) {
 
     val userService = UserService(UserServiceQueriesJdbi(usersDao, permissionsDao, invitesDao))
 
-    val transcodePath = environment.config.property("app.transcodePath").getString()
     val streamQueries = StreamServiceQueriesJdbi(usersDao, mediaDao, mediaReferencesDao, playbackStatesDao)
-    val streamService = StreamService(this, streamQueries, ffmpeg, ffprobe, transcodePath)
+    val streamService = StreamService(this, streamQueries, ffmpeg, ffprobe, config.transcodePath)
     val searchService = SearchService(log, searchableContentDao, mediaDao, mediaReferencesDao)
 
-    installWebClientRoutes()
+    installWebClientRoutes(config)
 
     routing {
         route("/api") {
@@ -113,7 +107,7 @@ fun Application.installRouting(jdbi: Jdbi, dataPath: String) {
             authenticate {
                 addHomeRoutes(tmdb, queries)
                 withAnyPermission(Permission.ViewCollection) {
-                    addImageRoutes(dataPath)
+                    addImageRoutes(config.dataPath)
                     addTvShowRoutes(queries)
                     addMovieRoutes(queries)
                     addSearchRoutes(searchService)
