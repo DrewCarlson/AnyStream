@@ -32,7 +32,6 @@ import anystream.service.stream.StreamService
 import anystream.service.stream.StreamServiceQueriesJdbi
 import anystream.service.user.UserService
 import anystream.service.user.UserServiceQueriesJdbi
-import anystream.util.SinglePageApp
 import app.moviebase.tmdb.Tmdb3
 import com.github.kokorin.jaffree.ffmpeg.FFmpeg
 import com.github.kokorin.jaffree.ffprobe.FFprobe
@@ -50,12 +49,9 @@ import kotlinx.coroutines.SupervisorJob
 import org.drewcarlson.ktor.permissions.withAnyPermission
 import org.drewcarlson.ktor.permissions.withPermission
 import org.jdbi.v3.core.Jdbi
-import java.io.File
 import java.nio.file.Path
 
 fun Application.installRouting(jdbi: Jdbi, dataPath: String) {
-    val disableWebClient = environment.config.property("app.disableWebClient").getString().toBoolean()
-    val webClientPath = environment.config.propertyOrNull("app.webClientPath")?.getString()
     val ffmpegPath = environment.config.property("app.ffmpegPath").getString()
     val tmdbApiKey = environment.config.property("app.tmdbApiKey").getString()
     val qbittorrentUrl = environment.config.property("app.qbittorrentUrl").getString()
@@ -109,6 +105,8 @@ fun Application.installRouting(jdbi: Jdbi, dataPath: String) {
     val streamService = StreamService(this, streamQueries, ffmpeg, ffprobe, transcodePath)
     val searchService = SearchService(log, searchableContentDao, mediaDao, mediaReferencesDao)
 
+    installWebClientRoutes()
+
     routing {
         route("/api") {
             addUserRoutes(userService)
@@ -138,28 +136,5 @@ fun Application.installRouting(jdbi: Jdbi, dataPath: String) {
             addUserWsRoutes(userService)
             addAdminWsRoutes()
         }
-    }
-
-    if (disableWebClient) {
-        log.debug("Web client disabled, this instance will serve the API only.")
-    } else if (
-        webClientPath.isNullOrBlank() ||
-        !File(webClientPath).exists() &&
-        checkNotNull(javaClass.classLoader).getResource("anystream-client-web") != null
-    ) {
-        log.debug("This instance will serve the web client from jar resources.")
-        install(SinglePageApp) {
-            ignoreBasePath = "/api"
-            staticFilePath = "anystream-client-web"
-            useResources = true
-        }
-    } else if (File(webClientPath).exists()) {
-        log.debug("This instance will serve the web client from '$webClientPath'.")
-        install(SinglePageApp) {
-            ignoreBasePath = "/api"
-            staticFilePath = webClientPath
-        }
-    } else {
-        log.error("Failed to find web client, this instance will serve the API only.")
     }
 }
