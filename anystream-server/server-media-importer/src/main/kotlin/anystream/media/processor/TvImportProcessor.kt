@@ -170,7 +170,7 @@ class TvImportProcessor(
             }
 
         val seasonResults = seasonDirectories.asFlow()
-            .concurrentMap(scope, 3) { (season, folder) ->
+            .concurrentMap(scope, 5) { (season, folder) ->
                 folder.importSeason(userId, season, episodes, marker)
             }
             .toList()
