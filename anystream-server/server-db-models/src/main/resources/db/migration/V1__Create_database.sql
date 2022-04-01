@@ -44,8 +44,8 @@ CREATE TABLE IF NOT EXISTS mediaReferences
 
 CREATE TABLE IF NOT EXISTS tags
 (
-    id INTEGER PRIMARY KEY NOT NULL,
-    name TEXT NOT NULL,
+    id     INTEGER PRIMARY KEY NOT NULL,
+    name   TEXT                NOT NULL,
     tmdbId INT
 );
 
@@ -53,8 +53,8 @@ CREATE TABLE IF NOT EXISTS mediaCompanies
 (
     mediaId   INTEGER NOT NULL,
     companyId INTEGER NOT NULL,
-    FOREIGN KEY (mediaId)   REFERENCES media (id) ON DELETE CASCADE,
-    FOREIGN KEY (companyId) REFERENCES tags (id)  ON DELETE CASCADE
+    FOREIGN KEY (mediaId) REFERENCES media (id) ON DELETE CASCADE,
+    FOREIGN KEY (companyId) REFERENCES tags (id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS mediaGenres
@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS mediaGenres
     mediaId INTEGER NOT NULL,
     genreId INTEGER NOT NULL,
     FOREIGN KEY (mediaId) REFERENCES media (id) ON DELETE CASCADE,
-    FOREIGN KEY (genreId) REFERENCES tags (id)  ON DELETE CASCADE
+    FOREIGN KEY (genreId) REFERENCES tags (id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS users
@@ -102,18 +102,18 @@ CREATE TABLE IF NOT EXISTS sessions
 
 CREATE TABLE IF NOT EXISTS streamEncoding
 (
-    id           INTEGER PRIMARY KEY NOT NULL,
-    codecName    TEXT                NOT NULL,
-    'index'      INTEGER,
-    language     TEXT,
-    profile      TEXT,
-    bitRate      INTEGER,
-    channels     INTEGER,
-    level        INTEGER,
-    height       INTEGER,
-    width        INTEGER,
-    type         INTEGER,
-    title        TEXT
+    id        INTEGER PRIMARY KEY NOT NULL,
+    codecName TEXT                NOT NULL,
+    'index'   INTEGER,
+    language  TEXT,
+    profile   TEXT,
+    bitRate   INTEGER,
+    channels  INTEGER,
+    level     INTEGER,
+    height    INTEGER,
+    width     INTEGER,
+    type      INTEGER,
+    title     TEXT
 );
 
 CREATE TABLE IF NOT EXISTS streamEncodingLinks
@@ -127,7 +127,7 @@ CREATE TABLE IF NOT EXISTS streamEncodingLinks
 CREATE TABLE IF NOT EXISTS inviteCodes
 (
     id              INTEGER PRIMARY KEY NOT NULL,
-    secret          VARCHAR(255) NOT NULL,
-    permissions     TEXT NOT NULL,
-    createdByUserId INT NOT NULL
+    secret          VARCHAR(255)        NOT NULL,
+    permissions     TEXT                NOT NULL,
+    createdByUserId INT                 NOT NULL
 );
