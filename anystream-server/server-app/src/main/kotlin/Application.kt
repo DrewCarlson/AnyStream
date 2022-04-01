@@ -19,6 +19,8 @@ package anystream
 
 import anystream.data.UserSession
 import anystream.db.SessionsDao
+import anystream.db.extensions.PooledExtensions
+import anystream.db.extensions.pooled
 import anystream.db.mappers.registerMappers
 import anystream.db.runMigrations
 import anystream.models.Permission
@@ -28,7 +30,7 @@ import anystream.util.WebsocketAuthorization
 import anystream.util.headerOrQuery
 import io.ktor.http.*
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
-import io.ktor.http.content.CachingOptions
+import io.ktor.http.content.*
 import io.ktor.serialization.kotlinx.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -36,19 +38,17 @@ import io.ktor.server.auth.*
 import io.ktor.server.plugins.*
 import io.ktor.server.response.*
 import io.ktor.server.sessions.*
-import io.ktor.server.websocket.WebSockets
-import io.ktor.util.date.GMTDate
+import io.ktor.server.websocket.*
+import io.ktor.util.date.*
 import io.ktor.websocket.*
 import org.bouncycastle.util.encoders.Hex
 import org.drewcarlson.ktor.permissions.PermissionAuthorization
 import org.jdbi.v3.core.Jdbi
-import org.jdbi.v3.core.JdbiException
 import org.jdbi.v3.core.kotlin.KotlinPlugin
 import org.jdbi.v3.core.statement.Slf4JSqlLogger
 import org.jdbi.v3.sqlite3.SQLitePlugin
 import org.jdbi.v3.sqlobject.SqlObjectPlugin
 import org.jdbi.v3.sqlobject.kotlin.KotlinSqlObjectPlugin
-import org.jdbi.v3.sqlobject.kotlin.attach
 import org.slf4j.event.Level
 import java.io.File
 import java.time.Duration
@@ -56,7 +56,6 @@ import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.createDirectories
 import kotlin.random.Random
-import kotlin.system.exitProcess
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
@@ -86,16 +85,11 @@ fun Application.module(testing: Boolean = false) {
         installPlugin(SqlObjectPlugin())
         installPlugin(KotlinSqlObjectPlugin())
         installPlugin(KotlinPlugin())
+        configure(PooledExtensions::class.java) { it.setJdbi(this) }
         registerMappers()
     }
-    val dbHandle = try {
-        jdbi.open()
-    } catch (e: JdbiException) {
-        log.error("failed to create database connection", e)
-        exitProcess(-1)
-    }
 
-    val sessionsDao = dbHandle.attach<SessionsDao>()
+    val sessionsDao = jdbi.pooled<SessionsDao>()
     val sessionStorage = SqlSessionStorage(sessionsDao)
 
     install(DefaultHeaders) {}
@@ -166,5 +160,5 @@ fun Application.module(testing: Boolean = false) {
         global(Permission.Global)
         extract { (it as UserSession).permissions }
     }
-    installRouting(dataPath, dbHandle)
+    installRouting(jdbi, dataPath)
 }

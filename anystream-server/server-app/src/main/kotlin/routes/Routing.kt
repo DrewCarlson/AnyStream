@@ -19,6 +19,7 @@ package anystream.routes
 
 import anystream.data.MediaDbQueries
 import anystream.db.*
+import anystream.db.extensions.pooled
 import anystream.media.MediaImporter
 import anystream.media.processor.MovieImportProcessor
 import anystream.media.processor.TvImportProcessor
@@ -48,12 +49,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import org.drewcarlson.ktor.permissions.withAnyPermission
 import org.drewcarlson.ktor.permissions.withPermission
-import org.jdbi.v3.core.Handle
-import org.jdbi.v3.sqlobject.kotlin.attach
+import org.jdbi.v3.core.Jdbi
 import java.io.File
 import java.nio.file.Path
 
-fun Application.installRouting(dataPath: String, dbHandle: Handle) {
+fun Application.installRouting(jdbi: Jdbi, dataPath: String) {
     val disableWebClient = environment.config.property("app.disableWebClient").getString().toBoolean()
     val webClientPath = environment.config.propertyOrNull("app.webClientPath")?.getString()
     val ffmpegPath = environment.config.property("app.ffmpegPath").getString()
@@ -63,7 +63,7 @@ fun Application.installRouting(dataPath: String, dbHandle: Handle) {
     val qbittorrentPass = environment.config.property("app.qbittorrentPassword").getString()
 
     val kjob = kjob(JdbiKJob) {
-        handle = dbHandle
+        this.jdbi = jdbi
         defaultJobExecutor = JobExecutionType.NON_BLOCKING
     }.start()
     environment.monitor.subscribe(ApplicationStopped) { kjob.shutdown() }
@@ -79,14 +79,14 @@ fun Application.installRouting(dataPath: String, dbHandle: Handle) {
     val ffmpeg = { FFmpeg.atPath(Path.of(ffmpegPath)) }
     val ffprobe = { FFprobe.atPath(Path.of(ffmpegPath)) }
 
-    val mediaDao = dbHandle.attach<MediaDao>()
-    val tagsDao = dbHandle.attach<TagsDao>()
-    val playbackStatesDao = dbHandle.attach<PlaybackStatesDao>()
-    val mediaReferencesDao = dbHandle.attach<MediaReferencesDao>()
-    val usersDao = dbHandle.attach<UsersDao>()
-    val invitesDao = dbHandle.attach<InvitesDao>()
-    val permissionsDao = dbHandle.attach<PermissionsDao>()
-    val searchableContentDao = dbHandle.attach<SearchableContentDao>().apply { createTable() }
+    val mediaDao = jdbi.pooled<MediaDao>()
+    val tagsDao = jdbi.pooled<TagsDao>()
+    val playbackStatesDao = jdbi.pooled<PlaybackStatesDao>()
+    val mediaReferencesDao = jdbi.pooled<MediaReferencesDao>()
+    val usersDao = jdbi.pooled<UsersDao>()
+    val invitesDao = jdbi.pooled<InvitesDao>()
+    val permissionsDao = jdbi.pooled<PermissionsDao>()
+    val searchableContentDao = jdbi.pooled<SearchableContentDao>().apply { createTable() }
 
     val queries = MediaDbQueries(searchableContentDao, mediaDao, tagsDao, mediaReferencesDao, playbackStatesDao)
 

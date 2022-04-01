@@ -23,8 +23,6 @@ import anystream.db.model.MediaReferenceDb
 import anystream.db.model.PlaybackStateDb
 import anystream.models.*
 import anystream.models.api.*
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 
 class MediaDbQueries(
     private val searchableContentDao: SearchableContentDao,
@@ -33,10 +31,6 @@ class MediaDbQueries(
     private val mediaReferencesDao: MediaReferencesDao,
     private val playbackStatesDao: PlaybackStatesDao,
 ) {
-
-    private val mediaInsertLock = Mutex()
-    private val mediaRefInsertLock = Mutex()
-    private val searchableContentInsertLock = Mutex()
 
     fun findMovies(includeRefs: Boolean = false): MoviesResponse {
         val mediaRecords = mediaDao.findAllByTypeSortedByTitle(MediaDb.Type.MOVIE)
@@ -324,67 +318,57 @@ class MediaDbQueries(
         return mediaReferencesDao.findByGid(refId)?.toMediaRefModel()
     }
 
-    suspend fun insertMediaReference(mediaReference: MediaReference) {
-        mediaRefInsertLock.withLock {
-            mediaReferencesDao.insertReference(MediaReferenceDb.fromRefModel(mediaReference))
-        }
+    fun insertMediaReference(mediaReference: MediaReference) {
+        mediaReferencesDao.insertReference(MediaReferenceDb.fromRefModel(mediaReference))
     }
 
-    suspend fun insertMediaReferences(mediaReferences: List<MediaReference>) {
-        mediaRefInsertLock.withLock {
-            mediaReferences
-                .map(MediaReferenceDb::fromRefModel)
-                .forEach(mediaReferencesDao::insertReference)
-        }
+    fun insertMediaReferences(mediaReferences: List<MediaReference>) {
+        mediaReferences
+            .map(MediaReferenceDb::fromRefModel)
+            .forEach(mediaReferencesDao::insertReference)
     }
 
-    suspend fun insertMovie(movie: Movie): MediaDb {
+    fun insertMovie(movie: Movie): MediaDb {
         val movieRecord = MediaDb.fromMovie(movie)
-        val finalRecord = mediaInsertLock.withLock {
-            val id = mediaDao.insertMedia(movieRecord)
-            val companies = movie.companies.map { company ->
-                if (company.id == -1) {
-                    company.tmdbId?.run(tagsDao::findCompanyByTmdbId)
-                        ?: company.copy(id = tagsDao.insertTag(company.name, company.tmdbId))
-                } else company
-            }.onEach { company -> tagsDao.insertMediaCompanyLink(id, company.id) }
-            val genres = movie.genres.map { genre ->
-                if (genre.id == -1) {
-                    genre.tmdbId?.run(tagsDao::findGenreByTmdbId)
-                        ?: genre.copy(id = tagsDao.insertTag(genre.name, genre.tmdbId))
-                } else genre
-            }.onEach { genre -> tagsDao.insertMediaGenreLink(id, genre.id) }
-            movieRecord.copy(id = id, genres = genres, companies = companies)
-        }
-        searchableContentInsertLock.withLock {
-            searchableContentDao.insert(movie.id, MediaDb.Type.MOVIE, movie.title)
-        }
+
+        val id = mediaDao.insertMedia(movieRecord)
+        val companies = movie.companies.map { company ->
+            if (company.id == -1) {
+                company.tmdbId?.run(tagsDao::findCompanyByTmdbId)
+                    ?: company.copy(id = tagsDao.insertTag(company.name, company.tmdbId))
+            } else company
+        }.onEach { company -> tagsDao.insertMediaCompanyLink(id, company.id) }
+        val genres = movie.genres.map { genre ->
+            if (genre.id == -1) {
+                genre.tmdbId?.run(tagsDao::findGenreByTmdbId)
+                    ?: genre.copy(id = tagsDao.insertTag(genre.name, genre.tmdbId))
+            } else genre
+        }.onEach { genre -> tagsDao.insertMediaGenreLink(id, genre.id) }
+        val finalRecord = movieRecord.copy(id = id, genres = genres, companies = companies)
+
+        searchableContentDao.insert(movie.id, MediaDb.Type.MOVIE, movie.title)
         return finalRecord
     }
 
-    suspend fun insertTvShow(tvShow: TvShow, tvSeasons: List<TvSeason>, episodes: List<Episode>) {
-        mediaInsertLock.withLock {
-            val tvShowRecord = MediaDb.fromTvShow(tvShow).let { record ->
+    fun insertTvShow(tvShow: TvShow, tvSeasons: List<TvSeason>, episodes: List<Episode>) {
+        val tvShowRecord = MediaDb.fromTvShow(tvShow).let { record ->
+            record.copy(id = mediaDao.insertMedia(record))
+        }
+        val tvSeasonRecords = tvSeasons.map { tvSeason ->
+            MediaDb.fromTvSeason(tvShowRecord, tvSeason).let { record ->
                 record.copy(id = mediaDao.insertMedia(record))
             }
-            val tvSeasonRecords = tvSeasons.map { tvSeason ->
-                MediaDb.fromTvSeason(tvShowRecord, tvSeason).let { record ->
-                    record.copy(id = mediaDao.insertMedia(record))
-                }
-            }
-            val tvSeasonRecordMap = tvSeasonRecords.associateBy { checkNotNull(it.index) }
-            val tvEpisodeRecords = episodes.map { tvEpisode ->
-                val tvSeasonRecord = tvSeasonRecordMap.getValue(tvEpisode.seasonNumber)
-                MediaDb.fromTvEpisode(tvShowRecord, tvSeasonRecord, tvEpisode)
-            }
-            tvEpisodeRecords.forEach(mediaDao::insertMedia)
         }
+        val tvSeasonRecordMap = tvSeasonRecords.associateBy { checkNotNull(it.index) }
+        val tvEpisodeRecords = episodes.map { tvEpisode ->
+            val tvSeasonRecord = tvSeasonRecordMap.getValue(tvEpisode.seasonNumber)
+            MediaDb.fromTvEpisode(tvShowRecord, tvSeasonRecord, tvEpisode)
+        }
+        tvEpisodeRecords.forEach(mediaDao::insertMedia)
 
-        searchableContentInsertLock.withLock {
-            searchableContentDao.insert(tvShow.id, MediaDb.Type.TV_SHOW, tvShow.name)
-            episodes.forEach { episode ->
-                searchableContentDao.insert(episode.id, MediaDb.Type.TV_EPISODE, episode.name)
-            }
+        searchableContentDao.insert(tvShow.id, MediaDb.Type.TV_SHOW, tvShow.name)
+        episodes.forEach { episode ->
+            searchableContentDao.insert(episode.id, MediaDb.Type.TV_EPISODE, episode.name)
         }
     }
 

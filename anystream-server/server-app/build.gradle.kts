@@ -109,6 +109,7 @@ dependencies {
 
     implementation(libs.logback)
 
+    implementation(libs.stormpot)
     implementation(libs.jdbc.sqlite)
     implementation(libs.jdbi.core)
     implementation(libs.jdbi.sqlite)

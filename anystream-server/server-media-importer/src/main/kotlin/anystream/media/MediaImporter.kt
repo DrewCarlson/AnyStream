@@ -90,7 +90,7 @@ class MediaImporter(
         return contentFile.listFiles()
             .orEmpty()
             .asFlow()
-            .concurrentMap(scope, 1) { file ->
+            .concurrentMap(scope, 3) { file ->
                 internalImport(
                     userId,
                     request.copy(contentPath = file.absolutePath),
