@@ -19,7 +19,6 @@ jdbc_sqlite = "3.36.0.3"
 kjob = "0.4.2"
 
 bouncy_castle = "1.70"
-tmdb = "0.7.1"
 jaffree = "2021.12.30"
 logback = "1.2.11"
 shadowjar = "7.1.2"
@@ -137,7 +136,7 @@ bouncyCastle = { module = "org.bouncycastle:bcprov-jdk15on", version.ref = "boun
 
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 
-tmdbapi = { module = "org.drewcarlson:tmdb-api", version.ref = "tmdb" }
+tmdbapi = { module = "org.drewcarlson:tmdb-api", version = "0.7.3" }
 
 androidx-core-ktx = { module = "androidx.core:core-ktx", version = "1.7.0" }
 androidx-appcompat-core = { module = "androidx.appcompat:appcompat", version = "1.4.1" }
