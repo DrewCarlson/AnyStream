@@ -85,7 +85,7 @@ fun Application.module(testing: Boolean = false) {
         installPlugin(SqlObjectPlugin())
         installPlugin(KotlinSqlObjectPlugin())
         installPlugin(KotlinPlugin())
-        configure(PooledExtensions::class.java) { it.setJdbi(this) }
+        configure(PooledExtensions::class.java) { }
         registerMappers()
     }
 

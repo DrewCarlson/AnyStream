@@ -34,30 +34,33 @@ import java.util.concurrent.TimeUnit
 import java.util.function.Function
 import java.util.stream.Stream
 import kotlin.streams.toList
+import kotlin.system.exitProcess
 
 class PooledExtensions : JdbiConfig<PooledExtensions> {
-    private lateinit var jdbi: Jdbi
     private lateinit var factory: OnDemandExtensions.Factory
-
-    private val handlePool = Pool.from(object : Allocator<Pooled<Handle>> {
-        override fun allocate(slot: Slot): Pooled<Handle> {
-            return Pooled(slot, jdbi.open())
+    private var jdbi: Jdbi? = null
+        set(value) {
+            field = value ?: return
+            val onDemandConfig = value.getConfig(OnDemandExtensions::class.java)
+            val factoryField = OnDemandExtensions::class.java.getDeclaredField("factory")
+            factoryField.isAccessible = true
+            factory = factoryField.get(onDemandConfig) as OnDemandExtensions.Factory
         }
 
-        override fun deallocate(poolable: Pooled<Handle>) {
-            poolable.`object`.close()
-        }
-    }).build()
+    private val handlePool by lazy {
+        Pool.from(object : Allocator<Pooled<Handle>> {
+            override fun allocate(slot: Slot): Pooled<Handle> {
+                return Pooled(slot, (jdbi ?: exitProcess(-1)).open())
+            }
 
-    fun setJdbi(jdbi: Jdbi) {
-        this.jdbi = jdbi
-        val onDemandConfig = jdbi.getConfig(OnDemandExtensions::class.java)
-        val factoryField = OnDemandExtensions::class.java.getDeclaredField("factory")
-        factoryField.isAccessible = true
-        factory = factoryField.get(onDemandConfig) as OnDemandExtensions.Factory
+            override fun deallocate(poolable: Pooled<Handle>) {
+                poolable.`object`.close()
+            }
+        }).build()
     }
 
     fun <E> create(db: Jdbi, extensionType: Class<E>, extraTypes: Array<Class<*>> = emptyArray()): E {
+        jdbi = db
         return extensionType.cast(
             factory.onDemand(db, extensionType, *extraTypes)
                 .orElseGet { createProxy(db, extensionType, extraTypes) }
@@ -91,11 +94,7 @@ class PooledExtensions : JdbiConfig<PooledExtensions> {
     }
 
     override fun createCopy(): PooledExtensions {
-        return PooledExtensions().apply {
-            if (::jdbi.isInitialized) {
-                setJdbi(jdbi)
-            }
-        }
+        return PooledExtensions()
     }
 
     companion object {
