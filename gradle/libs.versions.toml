@@ -10,9 +10,9 @@ atomicfu = "0.17.1"
 kover = "0.5.0"
 datetime = "0.3.2"
 
-qbittorrent = "0.4.0"
-mobiuskt = "0.5.2"
-ktor_perm = "0.2.0"
+qbittorrent = "0.5.1"
+mobiuskt = "0.6.0"
+ktor_perm = "0.2.1"
 
 jdbi = "3.28.0"
 jdbc_sqlite = "3.36.0.3"
@@ -121,7 +121,7 @@ exoplayer-core = { module = "com.google.android.exoplayer:exoplayer-core", versi
 exoplayer-ui = { module = "com.google.android.exoplayer:exoplayer-ui", version.ref = "exoplayer" }
 exoplayer-hls = { module = "com.google.android.exoplayer:exoplayer-hls", version.ref = "exoplayer" }
 
-torrentSearch = { module = "org.drewcarlson:torrentsearch", version = "0.3.0" }
+torrentSearch = { module = "org.drewcarlson:torrentsearch", version = "0.4.2" }
 
 compose-ui-ui = { module = "androidx.compose.ui:ui", version.ref = "compose" }
 compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
@@ -136,7 +136,7 @@ bouncyCastle = { module = "org.bouncycastle:bcprov-jdk15on", version.ref = "boun
 
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 
-tmdbapi = { module = "org.drewcarlson:tmdb-api", version = "0.7.3" }
+tmdbapi = { module = "org.drewcarlson:tmdb-api", version = "0.7.5" }
 
 androidx-core-ktx = { module = "androidx.core:core-ktx", version = "1.7.0" }
 androidx-appcompat-core = { module = "androidx.appcompat:appcompat", version = "1.4.1" }
