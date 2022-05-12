@@ -36,7 +36,6 @@ import anystream.service.user.UserServiceQueriesJdbi
 import app.moviebase.tmdb.Tmdb3
 import com.github.kokorin.jaffree.ffmpeg.FFmpeg
 import com.github.kokorin.jaffree.ffprobe.FFprobe
-import drewcarlson.qbittorrent.QBittorrentClient
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.routing.*
@@ -49,6 +48,7 @@ import kotlinx.coroutines.SupervisorJob
 import org.drewcarlson.ktor.permissions.withAnyPermission
 import org.drewcarlson.ktor.permissions.withPermission
 import org.jdbi.v3.core.Jdbi
+import qbittorrent.QBittorrentClient
 import torrentsearch.TorrentSearch
 import java.nio.file.Path
 

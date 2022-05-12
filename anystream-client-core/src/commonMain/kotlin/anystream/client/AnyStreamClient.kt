@@ -20,9 +20,6 @@ package anystream.client
 import anystream.models.*
 import anystream.models.api.*
 import anystream.torrent.search.TorrentDescription2
-import drewcarlson.qbittorrent.models.GlobalTransferInfo
-import drewcarlson.qbittorrent.models.Torrent
-import drewcarlson.qbittorrent.models.TorrentFile
 import io.ktor.client.HttpClient
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*
@@ -47,6 +44,9 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
+import qbittorrent.models.GlobalTransferInfo
+import qbittorrent.models.Torrent
+import qbittorrent.models.TorrentFile
 
 private const val PAGE = "page"
 private const val QUERY = "query"

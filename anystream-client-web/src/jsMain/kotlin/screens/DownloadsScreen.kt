@@ -21,8 +21,6 @@ import androidx.compose.runtime.*
 import anystream.frontend.LocalAnyStreamClient
 import anystream.frontend.libs.*
 import anystream.frontend.util.ExternalClickMask
-import drewcarlson.qbittorrent.models.ConnectionStatus
-import drewcarlson.qbittorrent.models.Torrent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.mapLatest
@@ -33,6 +31,8 @@ import org.jetbrains.compose.web.attributes.scope
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 import org.w3c.dom.HTMLElement
+import qbittorrent.models.ConnectionStatus
+import qbittorrent.models.Torrent
 import kotlin.math.roundToInt
 
 @Composable

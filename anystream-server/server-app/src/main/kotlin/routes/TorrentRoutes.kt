@@ -27,9 +27,6 @@ import anystream.models.Permission
 import anystream.torrent.search.TorrentDescription2
 import anystream.util.ObjectId
 import anystream.util.extractUserSession
-import drewcarlson.qbittorrent.QBittorrentClient
-import drewcarlson.qbittorrent.models.Torrent
-import drewcarlson.qbittorrent.models.TorrentFile
 import io.ktor.client.plugins.*
 import io.ktor.http.HttpStatusCode.Companion.Conflict
 import io.ktor.http.HttpStatusCode.Companion.NotFound
@@ -44,6 +41,9 @@ import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.flow.*
 import kotlinx.serialization.encodeToString
+import qbittorrent.QBittorrentClient
+import qbittorrent.models.Torrent
+import qbittorrent.models.TorrentFile
 import java.time.Instant
 
 fun Route.addTorrentRoutes(
