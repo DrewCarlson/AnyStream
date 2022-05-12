@@ -1,18 +1,18 @@
 [versions]
-kotlin = "1.6.20"
-coroutines = "1.6.0"
+kotlin = "1.6.21"
+coroutines = "1.6.1"
 serialization = "1.3.2"
 ktorio = "2.0.0-beta-1"
-composejb = "1.1.1"
-kotlinjs_ext = "1.0.1-pre.324-kotlin-1.6.10"
-ksp = "1.6.20-1.0.4"
+composejb = "1.2.0-alpha01-dev683"
+kotlinjs_ext = "1.0.1-pre.336"
+ksp = "1.6.21-1.0.5"
 atomicfu = "0.17.1"
 kover = "0.5.0"
 datetime = "0.3.2"
 
 qbittorrent = "0.4.0"
 mobiuskt = "0.5.2"
-ktor_perm = "0.2.0"
+ktor_perm = "0.2.1"
 
 jdbi = "3.28.0"
 jdbc_sqlite = "3.36.0.3"
@@ -26,7 +26,7 @@ shadowjar = "7.1.2"
 zxing = "3.4.1"
 anr_watchdog = "1.4.0"
 compose = "1.1.1"
-composeCompiler = "1.1.0-rc02"
+composeCompiler = "1.2.0-beta01"
 exoplayer = "2.17.1"
 ax_runner = "1.4.0"
 agp = "7.0.4"
@@ -68,7 +68,7 @@ kotlinjs-extensions = { module = "org.jetbrains.kotlin-wrappers:kotlin-extension
 
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 
-flyway-core = { module = "org.flywaydb:flyway-core", version = "8.5.5" }
+flyway-core = { module = "org.flywaydb:flyway-core", version = "8.5.10" }
 stormpot = { module = "com.github.chrisvest:stormpot", version = "3.1" }
 
 jdbi-core = { module = "org.jdbi:jdbi3-core", version.ref = "jdbi" }
@@ -121,7 +121,7 @@ exoplayer-core = { module = "com.google.android.exoplayer:exoplayer-core", versi
 exoplayer-ui = { module = "com.google.android.exoplayer:exoplayer-ui", version.ref = "exoplayer" }
 exoplayer-hls = { module = "com.google.android.exoplayer:exoplayer-hls", version.ref = "exoplayer" }
 
-torrentSearch = { module = "org.drewcarlson:torrentsearch", version = "0.3.0" }
+torrentSearch = { module = "org.drewcarlson:torrentsearch", version = "0.4.2" }
 
 compose-ui-ui = { module = "androidx.compose.ui:ui", version.ref = "compose" }
 compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
@@ -136,7 +136,7 @@ bouncyCastle = { module = "org.bouncycastle:bcprov-jdk15on", version.ref = "boun
 
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 
-tmdbapi = { module = "org.drewcarlson:tmdb-api", version = "0.7.3" }
+tmdbapi = { module = "org.drewcarlson:tmdb-api", version = "0.7.5" }
 
 androidx-core-ktx = { module = "androidx.core:core-ktx", version = "1.7.0" }
 androidx-appcompat-core = { module = "androidx.appcompat:appcompat", version = "1.4.1" }
@@ -147,7 +147,7 @@ androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-
 androidx-test-runner = { module = "androidx.test:runner", version.ref = "ax_runner" }
 
 coil = { module = "io.coil-kt:coil-compose", version = "1.4.0" }
-routingCompose = { module = "app.softwork:routing-compose", version = "0.1.8" }
+routingCompose = { module = "app.softwork:routing-compose", version = "0.1.9-dev670" }
 
 quickie-bundled = { module = "io.github.g00fy2.quickie:quickie-bundled", version = "1.4.1" }
 

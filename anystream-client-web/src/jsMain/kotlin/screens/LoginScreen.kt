@@ -48,8 +48,8 @@ fun LoginScreen() {
     val eventConsumer by remember { eventConsumerState }
 
     Div({
+        classes("d-flex", "flex-column", "justify-content-center", "align-items-center", "py-4")
         style {
-            classes("d-flex", "flex-column", "justify-content-center", "align-items-center", "py-4")
             property("gap", 12.px)
         }
     }) {

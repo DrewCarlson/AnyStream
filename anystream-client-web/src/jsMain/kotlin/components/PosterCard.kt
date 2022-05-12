@@ -160,10 +160,10 @@ private fun CardOverlay(
             property("z-index", 1)
             opacity(if (isOverlayVisible) 1 else 0)
             property("transition", "opacity 0.15s ease-in-out")
-            onClick {
-                it.stopPropagation()
-                onBodyClicked?.invoke()
-            }
+        }
+        onClick {
+            it.stopPropagation()
+            onBodyClicked?.invoke()
         }
     }) {
         Div({
@@ -188,11 +188,12 @@ private fun CardOverlay(
                     color(rgb(255, 255, 255))
                     if (onMenuClicked == null) {
                         opacity(0)
-                    } else {
-                        onClick {
-                            it.stopPropagation()
-                            onMenuClicked()
-                        }
+                    }
+                }
+                if (onMenuClicked != null) {
+                    onClick {
+                        it.stopPropagation()
+                        onMenuClicked()
                     }
                 }
             })

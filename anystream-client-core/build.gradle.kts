@@ -22,12 +22,12 @@ if (hasAndroidSdk) {
 }
 
 dependencies {
-    add("kspMetadata", libs.mobiuskt.updateSpec)
+    add("kspCommonMainMetadata", libs.mobiuskt.updateSpec)
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>>().all {
-    if (name != "kspKotlinMetadata") {
-        dependsOn("kspKotlinMetadata")
+    if (name != "kspCommonMainKotlinMetadata") {
+        dependsOn("kspCommonMainKotlinMetadata")
     }
 }
 
