@@ -7,7 +7,7 @@ composejb = "1.2.0-alpha01-dev683"
 kotlinjs_ext = "1.0.1-pre.336"
 ksp = "1.6.21-1.0.5"
 atomicfu = "0.17.1"
-kover = "0.5.0"
+kover = "0.5.1"
 datetime = "0.3.2"
 
 qbittorrent = "0.4.0"
