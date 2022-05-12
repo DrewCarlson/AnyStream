@@ -38,10 +38,10 @@ android {
         }
     }
     kotlinOptions.freeCompilerArgs += listOf(
-        "-Xopt-in=androidx.compose.ui.ExperimentalComposeUiApi",
-        "-Xopt-in=androidx.compose.foundation.ExperimentalFoundationApi",
-        "-Xopt-in=kotlin.RequiresOptIn",
-        "-Xopt-in=coil.annotation.ExperimentalCoilApi",
+        "-opt-in=androidx.compose.ui.ExperimentalComposeUiApi",
+        "-opt-in=androidx.compose.foundation.ExperimentalFoundationApi",
+        "-opt-in=kotlin.RequiresOptIn",
+        "-opt-in=coil.annotation.ExperimentalCoilApi",
         //"-P", "plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=true"
     )
 }

@@ -35,12 +35,19 @@ import io.ktor.serialization.kotlinx.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
-import io.ktor.server.plugins.*
+import io.ktor.server.plugins.autohead.*
+import io.ktor.server.plugins.cachingheaders.*
+import io.ktor.server.plugins.callloging.*
+import io.ktor.server.plugins.compression.*
+import io.ktor.server.plugins.conditionalheaders.*
+import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.plugins.cors.routing.*
+import io.ktor.server.plugins.defaultheaders.*
+import io.ktor.server.plugins.partialcontent.*
 import io.ktor.server.response.*
 import io.ktor.server.sessions.*
 import io.ktor.server.websocket.*
 import io.ktor.util.date.*
-import io.ktor.websocket.*
 import org.bouncycastle.util.encoders.Hex
 import org.drewcarlson.ktor.permissions.PermissionAuthorization
 import org.jdbi.v3.core.Jdbi
@@ -110,7 +117,7 @@ fun Application.module(testing: Boolean = false) {
     }
 
     install(CachingHeaders) {
-        options { outgoingContent ->
+        options { _, outgoingContent ->
             when (outgoingContent.contentType?.withoutParameters()) {
                 ContentType.Text.CSS -> CachingOptions(
                     CacheControl.MaxAge(maxAgeSeconds = 24 * 60 * 60),
@@ -129,7 +136,7 @@ fun Application.module(testing: Boolean = false) {
 
     install(Authentication) {
         session<UserSession> {
-            challenge { context.respond(Unauthorized) }
+            challenge { call.respond(Unauthorized) }
             validate { it }
         }
     }

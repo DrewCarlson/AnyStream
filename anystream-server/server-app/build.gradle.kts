@@ -45,8 +45,8 @@ kotlin {
             kotlinOptions {
                 jvmTarget = "11"
                 freeCompilerArgs = freeCompilerArgs + listOf(
-                    "-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
-                    "-Xopt-in=kotlin.RequiresOptIn",
+                    "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
+                    "-opt-in=kotlin.RequiresOptIn",
                 )
             }
         }

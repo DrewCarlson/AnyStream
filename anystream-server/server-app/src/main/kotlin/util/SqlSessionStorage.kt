@@ -21,24 +21,20 @@ import anystream.data.UserSession
 import anystream.db.SessionsDao
 import anystream.json
 import io.ktor.server.sessions.*
-import io.ktor.utils.io.*
-import io.ktor.utils.io.core.*
-import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import org.jdbi.v3.core.JdbiException
 import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.NoSuchElementException
-import kotlin.text.Charsets.UTF_8
 
 class SqlSessionStorage(
     private val sessionsDao: SessionsDao,
-) : SimplifiedSessionStorage() {
+) : SessionStorage {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    private val sessionsCache = ConcurrentHashMap<String, ByteArray>()
+    private val sessionsCache = ConcurrentHashMap<String, String>()
 
     object Serializer : SessionSerializer<UserSession> {
         override fun serialize(session: UserSession): String {
@@ -50,67 +46,43 @@ class SqlSessionStorage(
         }
     }
 
-    override suspend fun write(id: String, data: ByteArray?) {
-        if (data == null) {
-            logger.trace("Deleting session '$id'")
-            sessionsCache.remove(id)
-            try {
-                sessionsDao.delete(id)
-            } catch (e: JdbiException) {
-                logger.error("Failed to delete session '$id' from database", e)
-            }
-        } else {
-            logger.trace("Writing session '$id', ${data.toString(UTF_8)}")
-            sessionsCache[id] = data
-            try {
-                sessionsDao.insertOrUpdate(id, data.toString(UTF_8))
-            } catch (e: JdbiException) {
-                logger.trace("Failed to write session data", e)
-            }
+    override suspend fun write(id: String, value: String) {
+        logger.trace("Writing session '$id', $value")
+        sessionsCache[id] = value
+        try {
+            sessionsDao.insertOrUpdate(id, value)
+        } catch (e: JdbiException) {
+            logger.trace("Failed to write session data", e)
         }
     }
 
-    override suspend fun read(id: String): ByteArray? {
+    override suspend fun read(id: String): String {
         logger.trace("Looking for session '$id'")
         return (sessionsCache[id] ?: findSession(id)).also {
             logger.trace("Found session $id")
+        } ?: throw NoSuchElementException()
+    }
+
+    override suspend fun invalidate(id: String) {
+        logger.trace("Deleting session '$id'")
+        sessionsCache.remove(id)
+        try {
+            sessionsDao.delete(id)
+        } catch (e: JdbiException) {
+            logger.error("Failed to delete session '$id' from database", e)
         }
     }
 
-    private fun findSession(id: String): ByteArray? {
+    private fun findSession(id: String): String? {
         return try {
-            sessionsDao.find(id)?.toByteArray()
+            sessionsDao.find(id)
         } catch (e: JdbiException) {
             logger.trace("Failed to find session data", e)
             null
         }
     }
 
-    suspend fun readSession(id: String): UserSession? {
-        return read(id)?.decodeToString()?.run(Serializer::deserialize)
-    }
-}
-
-abstract class SimplifiedSessionStorage : SessionStorage {
-    abstract suspend fun read(id: String): ByteArray?
-    abstract suspend fun write(id: String, data: ByteArray?)
-
-    override suspend fun invalidate(id: String) {
-        write(id, null)
-    }
-
-    override suspend fun <R> read(id: String, consumer: suspend (ByteReadChannel) -> R): R {
-        val data = read(id) ?: throw NoSuchElementException("Session $id not found")
-        return consumer(ByteReadChannel(data))
-    }
-
-    override suspend fun write(id: String, provider: suspend (ByteWriteChannel) -> Unit) {
-        return coroutineScope {
-            provider(
-                reader(autoFlush = true) {
-                    write(id, channel.readRemaining().readBytes())
-                }.channel
-            )
-        }
+    suspend fun readSession(id: String): UserSession {
+        return read(id).run(Serializer::deserialize)
     }
 }

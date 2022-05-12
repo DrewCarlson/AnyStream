@@ -21,7 +21,7 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.sessions.*
 
-inline fun <reified T : Any> Sessions.Configuration.headerOrQuery(
+inline fun <reified T : Any> SessionsConfig.headerOrQuery(
     key: String,
     storage: SessionStorage,
     serializer: SessionSerializer<T>,

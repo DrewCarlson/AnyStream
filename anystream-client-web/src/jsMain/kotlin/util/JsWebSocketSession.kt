@@ -48,6 +48,18 @@ internal class JsWebSocketSession(
         get() = Long.MAX_VALUE
         set(_) {}
 
+    override var pingIntervalMillis: Long
+        get() = throw WebSocketException("Websocket ping-pong is not supported in JS engine.")
+        set(_) = throw WebSocketException("Websocket ping-pong is not supported in JS engine.")
+
+    override var timeoutMillis: Long
+        get() = throw WebSocketException("Websocket timeout is not supported in JS engine.")
+        set(_) = throw WebSocketException("Websocket timeout is not supported in JS engine.")
+
+    override var masking: Boolean
+        get() = true
+        set(_) = throw WebSocketException("Masking switch is not supported in JS engine.")
+
     init {
         websocket.binaryType = BinaryType.ARRAYBUFFER
 

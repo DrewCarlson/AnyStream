@@ -39,8 +39,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import torrentsearch.Category
 import torrentsearch.TorrentSearch
+import torrentsearch.models.Category
 import java.io.File
 import java.nio.file.FileSystems
 import java.nio.file.Files
@@ -301,7 +301,9 @@ fun Route.addMediaManageRoutes(
                                         imdbId = tmdbMovie.imdbId
                                     }
                                     // TODO: API or client sort+filter
-                                }.sortedByDescending { it.seeds }
+                                }.torrents()
+                                    .toList()
+                                    .sortedByDescending { it.seeds }
                             )
                         }.onFailure { e ->
                             logger.error("Error fetching movie from TMDB - tmdbId=$tmdbId", e)

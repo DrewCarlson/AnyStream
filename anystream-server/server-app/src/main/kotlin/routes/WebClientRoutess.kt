@@ -18,8 +18,9 @@
 package anystream.routes
 
 import anystream.AnyStreamConfig
-import anystream.util.SinglePageApp
 import io.ktor.server.application.*
+import io.ktor.server.http.content.*
+import io.ktor.server.routing.*
 import java.io.File
 
 fun Application.installWebClientRoutes(config: AnyStreamConfig) {
@@ -31,16 +32,20 @@ fun Application.installWebClientRoutes(config: AnyStreamConfig) {
         checkNotNull(javaClass.classLoader).getResource("anystream-client-web") != null
     ) {
         log.debug("This instance will serve the web client from jar resources.")
-        install(SinglePageApp) {
-            ignoreBasePath = "/api"
-            staticFilePath = "anystream-client-web"
-            useResources = true
+        routing {
+            singlePageApplication {
+                ignoreFiles { !it.startsWith("/api") }
+                filesPath = "anystream-client-web"
+                useResources = true
+            }
         }
     } else if (File(config.webClientPath).exists()) {
         log.debug("This instance will serve the web client from '${config.webClientPath}'.")
-        install(SinglePageApp) {
-            ignoreBasePath = "/api"
-            staticFilePath = config.webClientPath
+        routing {
+            singlePageApplication {
+                ignoreFiles { !it.startsWith("/api") }
+                filesPath = config.webClientPath
+            }
         }
     } else {
         log.error("Failed to find web client, this instance will serve the API only.")

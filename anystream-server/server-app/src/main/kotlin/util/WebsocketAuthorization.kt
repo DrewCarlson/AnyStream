@@ -35,8 +35,8 @@ class WebsocketAuthorization {
         this.extractUserSession = body
     }
 
-    companion object Feature :
-        ApplicationPlugin<ApplicationCallPipeline, WebsocketAuthorization, WebsocketAuthorization> {
+    companion object Plugin :
+        BaseApplicationPlugin<ApplicationCallPipeline, WebsocketAuthorization, WebsocketAuthorization> {
         override val key = AttributeKey<WebsocketAuthorization>("WebsocketAuthorization")
 
         override fun install(
