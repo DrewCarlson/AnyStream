@@ -24,7 +24,7 @@ jobs:
           fetch-depth: 0
       - name: Get changed files
         id: check
-        uses: tj-actions/changed-files@v18
+        uses: tj-actions/changed-files@v19
         with:
           files: |
             .github/workflows/release.yml
@@ -39,7 +39,7 @@ jobs:
             Dockerfile-local
       - name: Get changed files
         id: docs
-        uses: tj-actions/changed-files@v18
+        uses: tj-actions/changed-files@v19
         with:
           files: |
             .github/workflows/release.yml
@@ -100,7 +100,7 @@ jobs:
             :anystream-server:server-app:shadowDistTar
 
       - name: Container registry Log in
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -108,7 +108,7 @@ jobs:
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v4
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
@@ -117,7 +117,7 @@ jobs:
             type=semver,pattern={{version}},enable=${{ startsWith(github.ref, 'refs/tags/v') }}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           context: .
           file: Dockerfile-local

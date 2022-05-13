@@ -30,12 +30,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import coil.compose.ImagePainter
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
 import coil.compose.rememberImagePainter
+import coil.request.ImageRequest
 
 @Composable
 fun PosterCard(
@@ -63,11 +66,11 @@ fun PosterCard(
                 modifier = Modifier
                     .aspectRatio(ratio = 0.69f)
             ) {
-                val painter = rememberImagePainter(
-                    data = "https://image.tmdb.org/t/p/w200$imagePath",
-                    builder = {
-                        crossfade(true)
-                    }
+                val painter = rememberAsyncImagePainter(
+                    ImageRequest.Builder(LocalContext.current)
+                        .data("https://image.tmdb.org/t/p/w200$imagePath")
+                        .crossfade(true)
+                        .build()
                 )
                 Box(
                     modifier = Modifier.fillMaxSize()
@@ -81,14 +84,14 @@ fun PosterCard(
                     )
 
                     when (painter.state) {
-                        is ImagePainter.State.Loading -> {
+                        is AsyncImagePainter.State.Loading -> {
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .background(Color.DarkGray)
                             )
                         }
-                        is ImagePainter.State.Empty -> {
+                        is AsyncImagePainter.State.Empty -> {
                             Box(
                                 contentAlignment = Alignment.Center,
                                 modifier = Modifier
@@ -98,8 +101,8 @@ fun PosterCard(
                                 Text("No Backdrop")
                             }
                         }
-                        is ImagePainter.State.Success -> Unit
-                        is ImagePainter.State.Error -> Unit
+                        is AsyncImagePainter.State.Success -> Unit
+                        is AsyncImagePainter.State.Error -> Unit
                     }
                 }
             }

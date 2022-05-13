@@ -30,6 +30,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -41,8 +42,9 @@ import anystream.frontend.models.*
 import anystream.models.*
 import anystream.models.api.HomeResponse
 import anystream.routing.Routes
-import coil.compose.ImagePainter
-import coil.compose.rememberImagePainter
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 
 private val CARD_SPACING = 12.dp
 
@@ -175,11 +177,11 @@ private fun WatchingCard(
             .clickable(onClick = { onClick(playbackState.mediaReferenceId) }),
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            val painter = rememberImagePainter(
-                data = "https://image.tmdb.org/t/p/w300${mediaItem.backdropPath}",
-                builder = {
-                    crossfade(true)
-                }
+            val painter = rememberAsyncImagePainter(
+                ImageRequest.Builder(LocalContext.current)
+                    .data("https://image.tmdb.org/t/p/w300${mediaItem.backdropPath}")
+                    .crossfade(true)
+                    .build()
             )
             Box(
                 modifier = Modifier
@@ -193,14 +195,14 @@ private fun WatchingCard(
                 )
 
                 when (painter.state) {
-                    is ImagePainter.State.Loading -> {
+                    is AsyncImagePainter.State.Loading -> {
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .background(Color.DarkGray)
                         )
                     }
-                    is ImagePainter.State.Error -> {
+                    is AsyncImagePainter.State.Error -> {
                         Box(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier
@@ -210,8 +212,8 @@ private fun WatchingCard(
                             Text("No Backdrop")
                         }
                     }
-                    ImagePainter.State.Empty,
-                    is ImagePainter.State.Success -> Unit
+                    AsyncImagePainter.State.Empty,
+                    is AsyncImagePainter.State.Success -> Unit
                 }
             }
 

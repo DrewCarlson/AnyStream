@@ -22,8 +22,11 @@ import anystream.ui.login.LoginScreenModel.State
 import kt.mobius.Next
 import kt.mobius.Next.Companion.next
 import kt.mobius.Next.Companion.noChange
+import kt.mobius.Update
+import kt.mobius.gen.GenerateUpdate
 
-object LoginScreenUpdate : LoginScreenUpdateSpec {
+@GenerateUpdate
+object LoginScreenUpdate : Update<LoginScreenModel, LoginScreenEvent, LoginScreenEffect>, LoginScreenGeneratedUpdate {
     override fun onLoginSubmit(model: LoginScreenModel): Next<LoginScreenModel, LoginScreenEffect> {
         return when (model.state) {
             State.IDLE -> {

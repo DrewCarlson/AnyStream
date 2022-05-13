@@ -35,7 +35,7 @@ fun <M, E, F> createLoopController(
 ): Pair<State<M>, Consumer<E>> {
     val factory = remember {
         object : ViewModelProvider.Factory {
-            override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 @Suppress("UNCHECKED_CAST")
                 return MobiusLoopViewModel.create<M, E, F, Nothing>({ _, _ -> loopBuilder() }, initialModel, init) as T
             }

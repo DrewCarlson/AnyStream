@@ -21,7 +21,7 @@ import android.app.Application
 import okhttp3.Interceptor
 
 object FlipperProvider {
-    @Suppress("unused")
+    @Suppress("UNUSED_PARAMETER")
     fun init(context: Application): Unit = Unit
 
     fun getFlipperOkhttpInterceptor(): Interceptor? = null

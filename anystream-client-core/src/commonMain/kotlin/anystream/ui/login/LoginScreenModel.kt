@@ -18,12 +18,7 @@
 package anystream.ui.login
 
 import anystream.models.api.CreateSessionResponse
-import kt.mobius.gen.UpdateSpec
 
-@UpdateSpec(
-    eventClass = LoginScreenEvent::class,
-    effectClass = LoginScreenEffect::class,
-)
 data class LoginScreenModel(
     val serverUrl: String = "",
     val username: String = "",

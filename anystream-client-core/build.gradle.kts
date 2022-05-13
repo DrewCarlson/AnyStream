@@ -22,7 +22,7 @@ if (hasAndroidSdk) {
 }
 
 dependencies {
-    add("kspCommonMainMetadata", libs.mobiuskt.updateSpec)
+    add("kspCommonMainMetadata", libs.mobiuskt.updateGenerator)
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>>().all {
@@ -91,7 +91,7 @@ kotlin {
                 api(libs.mobiuskt.core)
                 api(libs.mobiuskt.extras)
                 api(libs.mobiuskt.coroutines)
-                implementation(libs.mobiuskt.updateSpec.api)
+                implementation(libs.mobiuskt.updateGenerator.api)
 
                 api(libs.ktor.client.core)
                 api(libs.ktor.client.websockets)
