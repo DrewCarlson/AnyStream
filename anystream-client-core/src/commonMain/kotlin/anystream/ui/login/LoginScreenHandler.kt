@@ -23,6 +23,7 @@ import anystream.models.api.PairingMessage
 import anystream.routing.CommonRouter
 import anystream.routing.Routes
 import anystream.ui.login.LoginScreenModel.ServerValidation
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.mapNotNull
 import kt.mobius.flow.FlowTransformer
@@ -39,7 +40,11 @@ object LoginScreenHandler {
         addAction<LoginScreenEffect.NavigateToHome> { router.pushRoute(Routes.Home) }
 
         addFunction<LoginScreenEffect.Login> { effect ->
-            client.login(effect.username, effect.password).toLoginScreenEvent()
+            try {
+                client.login(effect.username, effect.password).toLoginScreenEvent()
+            } catch (e: Throwable) {
+                LoginScreenEvent.OnLoginError(CreateSessionResponse.Error(null, null))
+            }
         }
 
         addLatestValueCollector<LoginScreenEffect.ValidateServerUrl> { effect ->
@@ -57,19 +62,21 @@ object LoginScreenHandler {
             if (effect.cancel) return@addLatestValueCollector
 
             lateinit var pairingCode: String
-            val pairingFlow = client.createPairingSession().mapNotNull { message ->
-                when (message) {
-                    PairingMessage.Idle -> null // waiting for remote pairing
-                    is PairingMessage.Started -> {
-                        pairingCode = message.pairingCode
-                        LoginScreenEvent.OnPairingStarted(message.pairingCode)
+            val pairingFlow = client.createPairingSession()
+                .catch { }
+                .mapNotNull { message ->
+                    when (message) {
+                        PairingMessage.Idle -> null // waiting for remote pairing
+                        is PairingMessage.Started -> {
+                            pairingCode = message.pairingCode
+                            LoginScreenEvent.OnPairingStarted(message.pairingCode)
+                        }
+                        is PairingMessage.Authorized -> {
+                            client.createPairedSession(pairingCode, message.secret).toLoginScreenEvent()
+                        }
+                        PairingMessage.Failed -> LoginScreenEvent.OnPairingEnded(pairingCode)
                     }
-                    is PairingMessage.Authorized -> {
-                        client.createPairedSession(pairingCode, message.secret).toLoginScreenEvent()
-                    }
-                    PairingMessage.Failed -> LoginScreenEvent.OnPairingEnded(pairingCode)
                 }
-            }
             emitAll(pairingFlow)
         }
     }
