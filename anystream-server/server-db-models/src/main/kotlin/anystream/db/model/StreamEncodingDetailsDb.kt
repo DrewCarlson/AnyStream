@@ -91,7 +91,7 @@ data class StreamEncodingDetailsDb(
                 audio?.channels,
                 video?.level,
                 video?.height,
-                video?.height,
+                video?.width,
                 type,
                 stream.title
             )
