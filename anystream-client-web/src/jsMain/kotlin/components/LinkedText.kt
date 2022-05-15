@@ -20,6 +20,7 @@ package anystream.frontend.components
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import app.softwork.routingcompose.BrowserRouter
 import org.jetbrains.compose.web.css.cursor
@@ -35,7 +36,7 @@ fun LinkedText(
     attrs: AttrBuilderContext<HTMLDivElement>? = null,
     content: @Composable () -> Unit,
 ) {
-    var hovering by mutableStateOf(false)
+    var hovering by remember { mutableStateOf(false) }
     Div({
         attrs?.invoke(this)
         onMouseEnter { hovering = true }

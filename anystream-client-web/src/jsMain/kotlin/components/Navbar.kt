@@ -32,7 +32,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.jetbrains.compose.web.attributes.ATarget
-import org.jetbrains.compose.web.attributes.AttrsScope
 import org.jetbrains.compose.web.attributes.onSubmit
 import org.jetbrains.compose.web.attributes.target
 import org.jetbrains.compose.web.css.*

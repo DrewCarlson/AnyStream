@@ -231,14 +231,20 @@ private fun BaseDetailsView(
                 }
             }
 
-            val videoStreams = mediaItem.mediaRefs.flatMap {
-                it.streams.filterIsInstance<StreamEncodingDetails.Video>()
+            val videoStreams = remember {
+                mediaItem.mediaRefs.flatMap {
+                    it.streams.filterIsInstance<StreamEncodingDetails.Video>()
+                }
             }
-            val audioStreams = mediaItem.mediaRefs.flatMap {
-                it.streams.filterIsInstance<StreamEncodingDetails.Audio>()
+            val audioStreams = remember {
+                mediaItem.mediaRefs.flatMap {
+                    it.streams.filterIsInstance<StreamEncodingDetails.Audio>()
+                }
             }
-            val subtitlesStreams = mediaItem.mediaRefs.flatMap {
-                it.streams.filterIsInstance<StreamEncodingDetails.Subtitle>()
+            val subtitlesStreams = remember {
+                mediaItem.mediaRefs.flatMap {
+                    it.streams.filterIsInstance<StreamEncodingDetails.Subtitle>()
+                }
             }
 
             Div({ classes("d-flex", "flex-column") }) {

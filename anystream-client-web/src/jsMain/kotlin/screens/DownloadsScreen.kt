@@ -38,7 +38,7 @@ import kotlin.math.roundToInt
 @Composable
 fun DownloadsScreen() {
     val client = LocalAnyStreamClient.current
-    val globalInfoState = client.globalInfoChanges().collectAsState(null)
+    val globalInfoState by client.globalInfoChanges().collectAsState(null)
     val torrents = client.torrentListChanges()
         .debounce(2000)
         .mapLatest { client.getTorrents() }
@@ -51,16 +51,17 @@ fun DownloadsScreen() {
                 property("gap", 12.px)
             }
         }) {
-            val globalInfo = globalInfoState.value
-            val (statusName, iconClass) = when (globalInfo?.connectionStatus) {
-                ConnectionStatus.CONNECTED -> "Connected" to "bi-wifi"
-                ConnectionStatus.FIREWALLED -> "Firewalled" to "bi-shield-exclamation"
-                ConnectionStatus.DISCONNECTED -> "Disconnected" to "bi-plug"
-                else -> "Loading" to "bi-hourglass-split"
+            val (statusName, iconClass) = remember(globalInfoState) {
+                when (globalInfoState?.connectionStatus) {
+                    ConnectionStatus.CONNECTED -> "Connected" to "bi-wifi"
+                    ConnectionStatus.FIREWALLED -> "Firewalled" to "bi-shield-exclamation"
+                    ConnectionStatus.DISCONNECTED -> "Disconnected" to "bi-plug"
+                    else -> "Loading" to "bi-hourglass-split"
+                }
             }
             I({ classes("bi", iconClass) })
             Span { Text(statusName) }
-            globalInfo?.run {
+            globalInfoState?.run {
                 Span { Text("Upload: $upInfoSpeed") }
                 Span { Text("Download: $dlInfoSpeed") }
             }
@@ -181,10 +182,12 @@ private fun TorrentContextMenu(
     torrent: Torrent,
 ) {
     val client = LocalAnyStreamClient.current
-    val isPaused = when (torrent.state) {
-        Torrent.State.PAUSED_DL,
-        Torrent.State.PAUSED_UP -> true
-        else -> false
+    val isPaused = remember(torrent.state) {
+        when (torrent.state) {
+            Torrent.State.PAUSED_DL,
+            Torrent.State.PAUSED_UP -> true
+            else -> false
+        }
     }
     Ul({
         classes("d-block", "dropdown-menu", "position-absolute")

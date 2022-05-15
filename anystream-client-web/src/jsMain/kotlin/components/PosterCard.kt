@@ -74,8 +74,10 @@ fun PosterCard(
                 width(posterWidth)
             }
         }) {
-            val isOverlayVisible by derivedStateOf {
-                isMouseOver.value || isMenuVisible.value
+            val isOverlayVisible by remember {
+                derivedStateOf {
+                    isMouseOver.value || isMenuVisible.value
+                }
             }
 
             CardOverlay(

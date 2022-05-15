@@ -68,8 +68,10 @@ fun PlayerScreen(mediaRefId: String) {
         }
         .distinctUntilChanged()
         .collectAsState(false)
-    val areControlsVisible by derivedStateOf {
-        isMouseOnPlayer || !playerIsPlaying
+    val areControlsVisible by remember {
+        derivedStateOf {
+            isMouseOnPlayer || !playerIsPlaying
+        }
     }
     var sessionHandle by remember { mutableStateOf<AnyStreamClient.PlaybackSessionHandle?>(null) }
     val mediaItem = produceState<MediaItem?>(null) {
@@ -100,7 +102,7 @@ fun PlayerScreen(mediaRefId: String) {
     val setFullscreen = remember { mutableStateOf<((Boolean) -> Unit)?>(null) }
     var duration by remember { mutableStateOf(1.0) }
     var progress by remember { mutableStateOf(0.0) }
-    val progressScale = derivedStateOf { progress / duration }
+    val progressScale = remember { derivedStateOf { progress / duration } }
     val bufferedProgress = remember { mutableStateOf(0.0) }
     Div({
         classes("w-100")
@@ -137,7 +139,7 @@ fun PlayerScreen(mediaRefId: String) {
         }
 
         val miniPlayerHeight = remember { mutableStateOf(100) }
-        val miniPlayerWidth = derivedStateOf { (miniPlayerHeight.value * 1.7777f).toInt() }
+        val miniPlayerWidth = remember { derivedStateOf { (miniPlayerHeight.value * 1.7777f).toInt() } }
         Div({
             if (isInMiniMode.value) {
                 classes("flex-shrink-0", "m-2", "shadow")
@@ -156,8 +158,10 @@ fun PlayerScreen(mediaRefId: String) {
                     miniPlayerWidth = miniPlayerWidth,
                 )
             }
-            val posterPath by derivedStateOf {
-                "https://image.tmdb.org/t/p/w1920_and_h800_multi_faces${mediaItem.value?.backdropPath}"
+            val posterPath by remember {
+                derivedStateOf {
+                    "https://image.tmdb.org/t/p/w1920_and_h800_multi_faces${mediaItem.value?.backdropPath}"
+                }
             }
             Video({
                 id("player")

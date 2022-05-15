@@ -18,6 +18,7 @@
 package anystream.frontend.components
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import anystream.models.api.SearchResponse
 import app.softwork.routingcompose.BrowserRouter
 import org.jetbrains.compose.web.css.*
@@ -117,7 +118,9 @@ private fun SearchResultItem(
     subtitle: String,
     wide: Boolean = false,
 ) {
-    val (posterHeight, posterWidth) = if (wide) 28.px to 42.px else 42.px to 28.px
+    val (posterHeight, posterWidth) = remember(wide) {
+        if (wide) 28.px to 42.px else 42.px to 28.px
+    }
 
     Div({
         classes("d-flex", "flex-row", "align-items-center", "px-3", "py-1")
