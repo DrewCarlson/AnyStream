@@ -18,7 +18,6 @@
 package anystream.frontend.screens
 
 import androidx.compose.runtime.*
-import anystream.client.AnyStreamClient
 import anystream.frontend.LocalAnyStreamClient
 import anystream.models.*
 import anystream.models.api.CreateUserResponse
@@ -53,7 +52,7 @@ fun SignupScreen() {
                 is CreateUserResponse.Success -> BrowserRouter.navigate("/home")
                 is CreateUserResponse.Error -> {
                     isLocked = false
-                    errorMessage = response.usernameError?.name ?: response.passwordError?.name
+                    errorMessage = response.usernameError.message ?: response.passwordError.message
                 }
             }
         } catch (e: ResponseException) {
