@@ -82,18 +82,18 @@ data class StreamEncodingDetailsDb(
                     ?: subtitle?.let { Type.SUBTITLE }
             )
             return StreamEncodingDetailsDb(
-                stream.id,
-                stream.codecName,
-                stream.index,
-                stream.language,
-                audio?.profile ?: video?.profile,
-                audio?.bitRate ?: video?.bitRate,
-                audio?.channels,
-                video?.level,
-                video?.height,
-                video?.width,
-                type,
-                stream.title
+                id = stream.id,
+                codecName = stream.codecName,
+                index = stream.index,
+                language = stream.language,
+                profile = audio?.profile ?: video?.profile,
+                bitRate = audio?.bitRate ?: video?.bitRate,
+                channels = audio?.channels,
+                level = video?.level,
+                height = video?.height,
+                width = video?.width,
+                type = type,
+                title = stream.title,
             )
         }
     }
