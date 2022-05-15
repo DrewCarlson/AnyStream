@@ -1,0 +1,44 @@
+@import "_custom.scss";
+
+body {
+  overflow: hidden;
+}
+
+html, body, #root, #main-panel {
+  width: 100%;
+  height: 100%;
+  background-color: #44494f;
+  color: white;
+  font-family: Open Sans,Open Sans Regular,Helvetica Neue,Helvetica,Arial,sans-serif;
+}
+
+#main-panel {
+  background-image: url('../images/noise.webp');
+  background-repeat: repeat;
+}
+
+:root {
+  scrollbar-color: #403f3e transparent;
+}
+
+.nav-link-large {
+  cursor: pointer;
+  font-size: 16pt;
+}
+
+.nav-link-small {
+  cursor: pointer;
+  font-size: 14pt;
+}
+
+.navbar.bg-dark {
+  border: none;
+}
+
+.navbar-brand img {
+  height: 46px;
+}
+
+video {
+  background-color: black;
+}

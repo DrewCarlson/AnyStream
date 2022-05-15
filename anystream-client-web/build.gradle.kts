@@ -30,7 +30,6 @@ kotlin {
                             "rejectUnauthorzied" to false,
                         )
                     ),
-                    static = mutableListOf("$buildDir/processedResources/js/main")
                 )
             }
             webpackTask {
@@ -64,11 +63,16 @@ kotlin {
                 implementation(devNpm("bootstrap-icons", "1.8.2"))
                 implementation(devNpm("@fontsource/open-sans", "4.5.8"))
                 implementation(devNpm("@popperjs/core", "2.11.5"))
-                implementation(devNpm("video.js", "7.18.1"))
+                implementation(devNpm("video.js", "7.17.3"))
                 implementation(devNpm("webworkify-webpack-dropin", "1.1.9"))
+                implementation(devNpm("mini-css-extract-plugin", "2.6.0"))
                 implementation(devNpm("file-loader", "6.2.0"))
                 implementation(devNpm("webpack-bundle-analyzer", "4.5.0"))
                 implementation(devNpm("qrcode", "1.5.0"))
+                implementation(devNpm("sass", "1.51.0"))
+                implementation(devNpm("sass-loader", "12.6.0"))
+                implementation(devNpm("postcss-loader", "6.2.1"))
+                implementation(devNpm("autoprefixer", "10.4.7"))
             }
         }
     }
