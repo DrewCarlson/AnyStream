@@ -26,7 +26,10 @@ buildscript {
 }
 
 allprojects {
-    yarn.lockFileDirectory = rootDir.resolve("gradle/kotlin-js-store")
+    yarn.apply{
+        lockFileDirectory = rootDir.resolve("gradle/kotlin-js-store")
+        version = "1.22.19"
+    }
 
     repositories {
         mavenCentral()

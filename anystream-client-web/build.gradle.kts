@@ -14,15 +14,20 @@ kotlin {
                 cssSupport.enabled = true
             }
             runTask {
+                val anystreamUrl = (project.property("org.gradle.project.anystreamUrl") as? String) ?: "http://localhost:8888"
                 outputFileName = "main.bundle.js"
                 devtool = "eval-cheap-module-source-map"
                 devServer = DevServer(
                     open = false,
                     port = 3000,
+                    static = mutableListOf("$buildDir/processedResources/js/main"),
                     proxy = mutableMapOf(
-                        "/api/*" to mapOf<String, Any>(
-                            "target" to "http://localhost:8888",
-                            "ws" to true
+                        "/api" to mapOf<String, Any>(
+                            "ws" to true,
+                            "target" to anystreamUrl,
+                            "secure" to anystreamUrl.startsWith("https"),
+                            "changeOrigin" to true,
+                            "rejectUnauthorzied" to false,
                         )
                     ),
                     static = mutableListOf("$buildDir/processedResources/js/main")
