@@ -683,13 +683,15 @@ private fun PlaybackControls(
                     onDispose { }
                 }
             }) {
-                I({
-                    val icon = when {
+                val icon = remember(muted, volume) {
+                    when {
                         muted -> "bi-volume-mute-fill"
                         volume == 0f -> "bi-volume-off-fill"
                         volume < 0.5f -> "bi-volume-down-fill"
                         else -> "bi-volume-up-fill"
                     }
+                }
+                I({
                     classes("bi", icon, "user-select-none", "fs-4")
                     style {
                         property("pointer-events", "none")

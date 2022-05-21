@@ -54,13 +54,12 @@ fun SideMenu() {
         }
     }) {
         Ul({
-            classes("nav", "nav-pills", "flex-column", "h-100", "py-2", "mb-auto", "rounded", "shadow")
+            classes("nav", "nav-pills", "bg-dark", "flex-column", "h-100", "py-2", "mb-auto", "rounded", "shadow")
+            attr("role", "navigation")
             style {
                 overflow("hidden")
-                backgroundColor(rgba(0, 0, 0, 0.3))
             }
         }) {
-
             // NavLink("Discover", "bi-search", false)
             Li({ classes("nav-item") }) {
                 NavLink("Home", "bi-house", "/home", expanded)
@@ -81,10 +80,6 @@ fun SideMenu() {
             Li({ classes("nav-item", "mt-auto") }) {
                 A(attrs = {
                     classes("nav-link", "nav-link-large")
-                    style {
-                        backgroundColor(Color.transparent)
-                        color(rgba(255, 255, 255, 0.7))
-                    }
                     onClick {
                         expanded = !expanded
                         localStorage.setItem(MENU_EXPANDED_KEY, expanded.toString())
@@ -103,28 +98,20 @@ fun SideMenu() {
 }
 
 @Composable
-private fun NavLink(
+fun NavLink(
     text: String,
     icon: String,
     path: String,
-    expanded: Boolean,
+    expanded: Boolean = true,
 ) {
-    val currentPath = BrowserRouter.getPath("/")
-    var hovering by remember { mutableStateOf(false) }
+    val currentPath by BrowserRouter.getPath("/")
+    val isActive = remember(currentPath) { currentPath.startsWith(path) }
     A(attrs = {
         classes("nav-link", "nav-link-large")
-        style {
-            backgroundColor(Color.transparent)
-            val isActive = currentPath.value.startsWith(path)
-            when {
-                hovering && isActive -> color(Color.white) // TODO: active indicator icon
-                hovering -> color(Color.white)
-                isActive -> color(rgb(255, 8, 28)) // TODO: active indicator icon
-                else -> color(rgba(255, 255, 255, 0.7))
-            }
+        if (isActive) {
+            classes("active")
+            attr("aria-current", "page")
         }
-        onMouseEnter { hovering = true }
-        onMouseLeave { hovering = false }
         onClick { BrowserRouter.navigate(path) }
         if (!expanded) {
             tooltip(text, "right")

@@ -45,15 +45,7 @@ val searchQuery = MutableStateFlow<String?>(null)
 fun Navbar() {
     val client = LocalAnyStreamClient.current
     val isAuthenticated = client.authenticated.collectAsState(client.isAuthenticated())
-    Nav({
-        classes(
-            "navbar", "navbar-expand-lg", "navbar-dark",
-            "rounded", "shadow", "m-2"
-        )
-        style {
-            backgroundColor(rgba(0, 0, 0, 0.3))
-        }
-    }) {
+    Nav({ classes("navbar", "navbar-dark", "navbar-expand-lg", "bg-dark", "rounded", "shadow", "m-2") }) {
         Div({ classes("container-fluid") }) {
             A(attrs = {
                 classes("navbar-brand", "mx-2")
@@ -81,46 +73,45 @@ private fun SecondaryMenu(permissions: Set<Permission>) {
     val scope = rememberCoroutineScope()
     val authMutex = remember { Mutex() }
     var isMenuVisible by remember { mutableStateOf(false) }
-    Div({ classes("navbar-nav", "ms-auto") }) {
+    Ul({ classes("nav", "ms-auto") }) {
         if (Permission.check(Permission.ConfigureSystem, permissions)) {
             val sessionCount by client.observeStreams()
                 .retry()
                 .map { it.playbackStates.size }
                 .collectAsState(0)
-            A(attrs = {
-                classes("nav-link", "nav-link-large", "d-flex", "align-items-center")
-                tooltip("Activity", "bottom")
-                if (sessionCount > 0) {
-                    style {
-                        color(rgb(255, 8, 28))
+            Li({ classes("nav-item") }) {
+                A(attrs = {
+                    classes("nav-link", "nav-link-large", "d-flex", "align-items-center")
+                    if (sessionCount > 0) {
+                        classes("active")
                     }
-                }
-            }) {
-                if (sessionCount > 0) {
-                    Div({
-                        classes("fs-6", "pe-1")
-                        style {
-                            color(rgb(255, 8, 28))
+                    tooltip("Activity", "bottom")
+                }) {
+                    if (sessionCount > 0) {
+                        Div({ classes("active", "fs-6", "pe-1") }) {
+                            Text(sessionCount.toString())
                         }
-                    }) {
-                        Text(sessionCount.toString())
                     }
+                    I({ classes("bi", "bi-activity") })
                 }
-                I({ classes("bi", "bi-activity") })
             }
-            A(attrs = {
-                classes("nav-link", "nav-link-large")
-                tooltip("Users", "bottom")
-                onClick { BrowserRouter.navigate("/usermanager") }
-            }) {
-                I({ classes("bi", "bi-people") })
+            Li({ classes("nav-item") }) {
+                A(attrs = {
+                    classes("nav-link", "nav-link-large")
+                    tooltip("Users", "bottom")
+                    onClick { BrowserRouter.navigate("/settings/users") }
+                }) {
+                    I({ classes("bi", "bi-people") })
+                }
             }
-            A(attrs = {
-                classes("nav-link", "nav-link-large")
-                tooltip("Settings", "bottom")
-                onClick { BrowserRouter.navigate("/settings/activity") }
-            }) {
-                I({ classes("bi", "bi-gear") })
+            Li({ classes("nav-item") }) {
+                A(attrs = {
+                    classes("nav-link", "nav-link-large")
+                    tooltip("Settings", "bottom")
+                    onClick { BrowserRouter.navigate("/settings/activity") }
+                }) {
+                    I({ classes("bi", "bi-gear") })
+                }
             }
         }
         var overflowMenuButtonElement by remember { mutableStateOf<HTMLElement?>(null) }

@@ -19,6 +19,7 @@ package anystream.frontend.screens
 
 import androidx.compose.runtime.*
 import anystream.frontend.LocalAnyStreamClient
+import anystream.frontend.components.NavLink
 import anystream.frontend.models.toMediaItem
 import anystream.frontend.util.tooltip
 import anystream.models.api.PlaybackSessionsResponse
@@ -35,6 +36,7 @@ fun SettingsScreen(subscreen: String) {
     Div({ classes("d-flex", "p-2", "h-100") }) {
         when (subscreen) {
             "activity" -> ActiveStreamsList()
+            "users" -> UserManagerScreen()
             "import" -> ImportMediaScreen(scope)
         }
     }
@@ -51,51 +53,20 @@ fun SettingsSideMenu() {
         }
     }) {
         Ul({
-            classes("nav", "flex-column", "h-100", "py-2", "mb-auto", "rounded", "shadow")
+            classes("nav", "nav-pills", "bg-dark", "flex-column", "h-100", "py-2", "mb-auto", "rounded", "shadow")
             style {
                 overflow("hidden")
-                backgroundColor(rgba(0, 0, 0, 0.3))
             }
         }) {
             Li({ classes("nav-item") }) {
-                NavLink("Activity", "/settings/activity", true)
+                NavLink("Activity", "bi-activity", "/settings/activity", true)
             }
             Li({ classes("nav-item") }) {
-                NavLink("Import Media", "/settings/import", true)
+                NavLink("Users", "bi-people", "/settings/users", true)
             }
-        }
-    }
-}
-
-@Composable
-private fun NavLink(
-    text: String,
-    path: String,
-    expanded: Boolean,
-) {
-    val currentPath = BrowserRouter.getPath("/")
-    var hovering by remember { mutableStateOf(false) }
-    A(attrs = {
-        classes("nav-link", "nav-link-small")
-        style {
-            backgroundColor(Color.transparent)
-            val isActive = currentPath.value.startsWith(path)
-            when {
-                hovering && isActive -> color(Color.white) // TODO: active indicator icon
-                hovering -> color(Color.white)
-                isActive -> color(rgb(255, 8, 28)) // TODO: active indicator icon
-                else -> color(rgba(255, 255, 255, 0.7))
+            Li({ classes("nav-item") }) {
+                NavLink("Add Media", "bi-folder-plus", "/settings/import", true)
             }
-        }
-        onMouseEnter { hovering = true }
-        onMouseLeave { hovering = false }
-        onClick { BrowserRouter.navigate(path) }
-        if (!expanded) {
-            tooltip(text, "right")
-        }
-    }) {
-        if (expanded) {
-            Text(text)
         }
     }
 }

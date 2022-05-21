@@ -1,8 +1,26 @@
 @import "~bootstrap/scss/functions";
 
-// Override defaults here ...
+$body-bg: #44494f;
+$body-color: white;
+
+$dark: rgba(0, 0, 0, 0.3);
+$primary: #ff081c;
+
+$btn-link-color: white;
+
+$nav-link-color: rgba(255, 255, 255, 0.7);
+$nav-link-hover-color: white;
+
+$nav-pills-link-active-color: $primary;
+$nav-pills-link-active-bg: transparent;
+
+$navbar-dark-active-color: $primary;
+$navbar-light-active-color: $primary;
 
 @import "~bootstrap/scss/variables";
+
+$font-family-base: Open Sans,Open Sans Regular,$font-family-base;
+
 @import "~bootstrap/scss/mixins";
 @import "~bootstrap/scss/utilities";
 

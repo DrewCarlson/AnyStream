@@ -119,10 +119,10 @@ private fun ContentContainer() {
     }) {
         val authRoutes = listOf("/signup", "/login")
         val isAuthenticated by client.authenticated.collectAsState(client.isAuthenticated())
-        val currentPath = BrowserRouter.getPath("/")
+        val currentPath by BrowserRouter.getPath("/")
 
         if (isAuthenticated) {
-            if (currentPath.value.startsWith("/settings")) {
+            if (currentPath.startsWith("/settings")) {
                 SettingsSideMenu()
             } else {
                 SideMenu()
@@ -149,9 +149,6 @@ private fun ContentContainer() {
                 route("downloads") {
                     noMatch { DownloadsScreen() }
                 }
-                route("usermanager") {
-                    noMatch { UserManagerScreen() }
-                }
                 route("settings") {
                     string { SettingsScreen(it) }
                 }
@@ -164,7 +161,7 @@ private fun ContentContainer() {
                 }
             }
         }
-        if (!isAuthenticated && !authRoutes.contains(currentPath.value)) {
+        if (!isAuthenticated && !authRoutes.contains(currentPath)) {
             BrowserRouter.navigate("/login")
         }
     }

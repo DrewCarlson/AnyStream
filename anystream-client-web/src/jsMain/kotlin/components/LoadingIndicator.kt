@@ -31,12 +31,11 @@ fun LoadingIndicator(
 ) {
     Div({
         attrs?.invoke(this)
-        classes("spinner-border")
+        classes("spinner-border", "text-primary")
         attr("role", "status")
         style {
             height(3.em)
             width(3.em)
-            color(rgba(199, 8, 28, 0.8))
         }
     }) {
         Span({

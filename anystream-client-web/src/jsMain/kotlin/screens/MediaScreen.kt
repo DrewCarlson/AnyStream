@@ -164,13 +164,7 @@ private fun BaseDetailsView(
             Div({ classes("d-flex", "gap-2") }) {
                 mediaItem.contentRating?.also { contentRating ->
                     Div({ classes("d-flex", "align-items-center") }) {
-                        Div({
-                            classes("rounded-2", "p-1")
-                            style {
-                                fontSize(14.px)
-                                backgroundColor(rgba(0, 0, 0, 0.3))
-                            }
-                        }) {
+                        Div({ classes("rounded-2", "p-2", "bg-dark") }) {
                             Text(contentRating)
                         }
                     }
@@ -196,10 +190,6 @@ private fun BaseDetailsView(
                 if (mediaRef != null) {
                     Button({
                         classes("btn", "btn-primary")
-                        style {
-                            backgroundColor(rgb(199, 8, 28))
-                            property("border-color", rgb(199, 8, 28))
-                        }
                         onClick {
                             window.location.hash = "!play:${mediaRef.id}"
                         }
@@ -220,10 +210,9 @@ private fun BaseDetailsView(
             Div({ classes("d-flex", "flex-row", "gap-2") }) {
                 mediaItem.genres.forEach { genre ->
                     Div({
-                        classes("rounded-2", "p-2")
+                        classes("rounded-2", "p-2", "bg-dark")
                         style {
                             fontSize(14.px)
-                            backgroundColor(rgba(0, 0, 0, 0.3))
                         }
                     }) {
                         Text(genre.name)
