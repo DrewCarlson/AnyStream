@@ -39,29 +39,16 @@ import anystream.client.AnyStreamClient
 import anystream.client.SessionManager
 import anystream.core.AndroidSessionDataStore
 import anystream.routing.*
-import helper.FlipperProvider
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.okhttp.*
+import io.ktor.client.*
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import okhttp3.OkHttpClient
 
 private const val PREFS_NAME = "prefs"
 
 class LeanbackActivity : MainActivity()
 open class MainActivity : AppCompatActivity() {
     private val backPressHandler = BackPressHandler()
-
-    private val httpClient by lazy {
-        HttpClient(OkHttp) {
-            engine {
-                preconfigured = OkHttpClient.Builder().apply {
-                    FlipperProvider.getFlipperOkhttpInterceptor()?.let(::addInterceptor)
-                }.build()
-            }
-        }
-    }
 
     private val androidRouter: AndroidRouter
         get() = (applicationContext as App).androidRouter
@@ -72,7 +59,7 @@ open class MainActivity : AppCompatActivity() {
         val sessionManager = SessionManager(AndroidSessionDataStore(prefs))
         setContent {
             val scope = rememberCoroutineScope()
-            val client = remember { AnyStreamClient(null, httpClient, sessionManager) }
+            val client = remember { AnyStreamClient(null, HttpClient(), sessionManager) }
             CompositionLocalProvider(LocalBackPressHandler provides backPressHandler) {
                 AppTheme {
                     BundleScope(savedInstanceState) {
@@ -150,7 +137,6 @@ open class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         androidRouter.setBackStack(null)
-        httpClient.close()
     }
 }
 

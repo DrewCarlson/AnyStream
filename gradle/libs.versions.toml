@@ -34,7 +34,6 @@ leakcanary = "2.9.1"
 
 okhttp = "4.9.3"
 
-flipperVersion = "0.145.0"
 spotless = "6.6.1"
 ktlint = "0.45.2"
 
@@ -150,11 +149,6 @@ coil = { module = "io.coil-kt:coil-compose", version = "2.0.0" }
 routingCompose = { module = "app.softwork:routing-compose", version = "0.1.9-dev670" }
 
 quickie-bundled = { module = "io.github.g00fy2.quickie:quickie-bundled", version = "1.4.1" }
-
-# flipper
-flipper = { module = "com.facebook.flipper:flipper", version.ref = "flipperVersion" }
-flipperNetwork = { module = "com.facebook.flipper:flipper-network-plugin", version.ref = "flipperVersion" }
-flipperSo = { module = "com.facebook.soloader:soloader", version = "0.10.3" }
 
 leakcanary = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
 
