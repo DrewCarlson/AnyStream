@@ -162,4 +162,3 @@ mobiuskt-updateGenerator-api = { module = "org.drewcarlson:mobiuskt-update-gener
 [bundles]
 exoplayer = [ "exoplayer-core", "exoplayer-ui", "exoplayer-hls" ]
 compose = [ "compose-ui-ui", "compose-ui-tooling", "compose-foundation", "compose-material", "compose-livedata" ]
-flipper = [ "flipper", "flipperNetwork", "flipperSo" ]
