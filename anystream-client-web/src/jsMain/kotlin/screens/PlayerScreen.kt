@@ -732,6 +732,20 @@ private fun SeekBar(
     var isMouseDown by remember { mutableStateOf(false) }
     var mouseHoverX by remember { mutableStateOf(0) }
     var mouseHoverProgress by remember { mutableStateOf(ZERO) }
+    var popperVirtualElement by remember {
+        mutableStateOf(popperFixedPosition(-100, -100))
+    }
+    val previewUrl by derivedStateOf {
+        val index = (mouseHoverProgress.inWholeSeconds / 5).coerceAtLeast(1)
+        "/api/image/previews/$mediaRefId/preview$index.jpg?${AnyStreamClient.SESSION_KEY}=${client.token}"
+    }
+    val hasPreview by produceState(false, mediaRefId) {
+        value = try {
+            fetch(previewUrl).await().ok
+        } catch (e: Throwable) {
+            false
+        }
+    }
     Div({
         classes("w-100")
         style {
@@ -811,10 +825,6 @@ private fun SeekBar(
                 }
             })
         }
-
-        var popperVirtualElement by remember {
-            mutableStateOf(popperFixedPosition(-100, -100))
-        }
         DisposableEffect(Unit) {
             popperVirtualElement = object : PopperVirtualElement {
                 override val contextElement: HTMLElement = scopeElement
@@ -831,33 +841,22 @@ private fun SeekBar(
                 popperVirtualElement = popperFixedPosition(-100, -100)
             }
         }
-        PopperElement(
-            popperVirtualElement,
-            popperOptions(placement = "top"),
-            attrs = {
-                style { property("pointer-events", "none") }
-            }
-        ) { popper ->
-            LaunchedEffect(mouseHoverX) { popper.update() }
-            val previewUrl by derivedStateOf {
-                val index = (mouseHoverProgress.inWholeSeconds / 5).coerceAtLeast(1)
-                "/api/image/previews/$mediaRefId/preview$index.jpg?${AnyStreamClient.SESSION_KEY}=${client.token}"
-            }
-            val hasPreview by produceState(false, mediaRefId) {
-                value = try {
-                    fetch(previewUrl).await().ok
-                } catch (e: Throwable) {
-                    false
+        if (hasPreview) {
+            PopperElement(
+                popperVirtualElement,
+                popperOptions(placement = "top"),
+                attrs = {
+                    style { property("pointer-events", "none") }
                 }
-            }
-            Div({
-                style {
-                    property("pointer-events", "none")
-                    opacity(if (isThumbVisible) 1 else 0)
-                    width(240.px)
-                }
-            }) {
-                if (hasPreview) {
+            ) { popper ->
+                LaunchedEffect(mouseHoverX) { popper.update() }
+                Div({
+                    style {
+                        property("pointer-events", "none")
+                        opacity(if (isThumbVisible) 1 else 0)
+                        width(240.px)
+                    }
+                }) {
                     var nextImageHasLoaded by remember { mutableStateOf(false) }
                     val images by produceState(previewUrl to "", previewUrl, nextImageHasLoaded) {
                         value = if (nextImageHasLoaded) {
@@ -871,7 +870,7 @@ private fun SeekBar(
                 }
             }
         }
-        var timestampWidth by remember { mutableStateOf(0.px) }
+        val timestamp by remember { derivedStateOf { mouseHoverProgress.formatted() } }
         PopperElement(
             popperVirtualElement,
             popperOptions(placement = "top"),
@@ -879,23 +878,16 @@ private fun SeekBar(
                 style {
                     property("pointer-events", "none")
                     opacity(if (isThumbVisible) 1 else 0)
-                    width(timestampWidth)
                 }
             }
         ) { popper ->
-            val timestamp by derivedStateOf { mouseHoverProgress.formatted() }
             LaunchedEffect(mouseHoverX) { popper.update() }
             Div({
-                classes("position-absolute", "px-2", "py-1", "shadow", "bg-dark")
+                classes("px-2", "py-1", "shadow", "bg-dark")
                 style {
-                    left(50.percent)
-                    property("transform", "translate(-50%, -100%)")
+                    property("transform", "translateY(-100%)")
                 }
             }) {
-                DisposableEffect(timestamp) {
-                    timestampWidth = scopeElement.clientWidth.px
-                    onDispose { }
-                }
                 Text(timestamp)
             }
         }

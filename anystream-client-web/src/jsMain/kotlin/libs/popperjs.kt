@@ -19,6 +19,8 @@ package anystream.frontend.libs
 
 import androidx.compose.runtime.*
 import kotlinext.js.js
+import org.jetbrains.compose.web.css.Position
+import org.jetbrains.compose.web.css.position
 import org.jetbrains.compose.web.dom.AttrBuilderContext
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.ElementScope
@@ -34,7 +36,10 @@ fun PopperElement(
     attrs: AttrBuilderContext<HTMLDivElement>? = null,
     body: @Composable ElementScope<HTMLDivElement>.(popper: PopperInstance) -> Unit,
 ) {
-    Div(attrs = attrs) {
+    Div({
+        attrs?.invoke(this)
+        style { position(Position.Absolute) }
+    }) {
         var popper: PopperInstance? by remember { mutableStateOf(null) }
         DisposableEffect(target) {
             val newPopper = if (popperOptions == null) {
@@ -62,7 +67,10 @@ fun PopperElement(
     attrs: AttrBuilderContext<HTMLDivElement>? = null,
     body: @Composable ElementScope<HTMLDivElement>.(popper: PopperInstance) -> Unit,
 ) {
-    Div(attrs = attrs) {
+    Div({
+        attrs?.invoke(this)
+        style { position(Position.Absolute) }
+    }) {
         var popper: PopperInstance? by remember { mutableStateOf(null) }
         DisposableEffect(virtualElement) {
             val newPopper = if (popperOptions == null) {
