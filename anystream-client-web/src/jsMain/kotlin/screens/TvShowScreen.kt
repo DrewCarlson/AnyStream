@@ -20,7 +20,6 @@ package anystream.frontend.screens
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
-import anystream.client.AnyStreamClient
 import anystream.frontend.LocalAnyStreamClient
 import anystream.frontend.components.*
 import anystream.models.MediaReference
@@ -28,22 +27,30 @@ import anystream.models.TvShow
 import anystream.models.api.TvShowsResponse
 import app.softwork.routingcompose.BrowserRouter
 import kotlinx.browser.window
+import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.Text
 
 @Composable
 fun TvShowScreen() {
     val client = LocalAnyStreamClient.current
-    val showResponse by produceState(TvShowsResponse(emptyList(), emptyList())) {
+    val showResponse by produceState<TvShowsResponse?>(null) {
         value = client.getTvShows()
     }
 
-    val (shows, refs) = showResponse
-    if (shows.isEmpty()) {
-        FullSizeCenteredLoader()
-    } else {
-        VirtualScroller(shows) { show ->
-            val ref = refs.find { it.contentId == show.id }
-            TvShowCard(show, ref)
+    when (val response = showResponse) {
+        null -> FullSizeCenteredLoader()
+        else -> {
+            val (shows, refs) = response
+            if (shows.isEmpty()) {
+                Div({ classes("d-flex", "justify-content-center", "align-items-center", "h-100") }) {
+                    Text("TV Shows will appear here.")
+                }
+            } else {
+                VirtualScroller(shows) { show ->
+                    val ref = refs.find { it.contentId == show.id }
+                    TvShowCard(show, ref)
+                }
+            }
         }
     }
 }

@@ -18,7 +18,6 @@
 package anystream.frontend.screens
 
 import androidx.compose.runtime.*
-import anystream.client.AnyStreamClient
 import anystream.frontend.LocalAnyStreamClient
 import anystream.frontend.components.*
 import anystream.models.MediaReference
@@ -26,22 +25,30 @@ import anystream.models.Movie
 import anystream.models.api.MoviesResponse
 import app.softwork.routingcompose.BrowserRouter
 import kotlinx.browser.window
+import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.Text
 
 @Composable
 fun MoviesScreen() {
     val client = LocalAnyStreamClient.current
-    val moviesResponse by produceState(MoviesResponse(emptyList(), emptyList())) {
+    val moviesResponse by produceState<MoviesResponse?>(null) {
         value = client.getMovies()
     }
 
-    val (movies, refs) = moviesResponse
-    if (movies.isEmpty()) {
-        FullSizeCenteredLoader()
-    } else {
-        VirtualScroller(movies) { movie ->
-            val ref = refs.find { it.contentId == movie.id }
-            MovieCard(movie, ref)
+    when (val response = moviesResponse) {
+        null -> FullSizeCenteredLoader()
+        else -> {
+            val (movies, refs) = response
+            if (movies.isEmpty()) {
+                Div({ classes("d-flex", "justify-content-center", "align-items-center", "h-100") }) {
+                    Text("Movies will appear here.")
+                }
+            } else {
+                VirtualScroller(movies) { movie ->
+                    val ref = refs.find { it.contentId == movie.id }
+                    MovieCard(movie, ref)
+                }
+            }
         }
     }
 }
