@@ -24,21 +24,21 @@ jobs:
           fetch-depth: 0
       - name: Get changed files
         id: android
-        uses: tj-actions/changed-files@v20
+        uses: tj-actions/changed-files@v21
         with:
           files: |
             **/anystream-client-android/**/*.kt
             **/anystream-client-android/**/*.kts
       - name: Get changed files
         id: client-core
-        uses: tj-actions/changed-files@v20
+        uses: tj-actions/changed-files@v21
         with:
           files: |
             **/anystream-client-core/**/*.kt
             **/anystream-client-core/**/*.kts
       - name: Get changed files
         id: data-models
-        uses: tj-actions/changed-files@v20
+        uses: tj-actions/changed-files@v21
         with:
           files: |
             gradle/libs.versions.toml
@@ -46,7 +46,7 @@ jobs:
             **/anystream-data-models/**/*.kts
       - name: Get changed files
         id: server
-        uses: tj-actions/changed-files@v20
+        uses: tj-actions/changed-files@v21
         with:
           files: |
             gradle/libs.versions.toml
@@ -54,7 +54,7 @@ jobs:
             **/anystream-server/**/*.kts
       - name: Get changed files
         id: ios
-        uses: tj-actions/changed-files@v20
+        uses: tj-actions/changed-files@v21
         with:
           files: |
             gradle/libs.versions.toml
@@ -62,7 +62,7 @@ jobs:
             **/anystream-client-ios/**/*.kts
       - name: Get changed files
         id: web
-        uses: tj-actions/changed-files@v20
+        uses: tj-actions/changed-files@v21
         with:
           files: |
             gradle/libs.versions.toml
