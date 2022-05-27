@@ -14,7 +14,7 @@ kotlin {
                 cssSupport.enabled = true
             }
             runTask {
-                val anystreamUrl = (project.property("org.gradle.project.anystreamUrl") as? String) ?: "http://localhost:8888"
+                val anystreamUrl = (project.findProperty("org.gradle.project.anystreamUrl") as? String) ?: "http://localhost:8888"
                 outputFileName = "main.bundle.js"
                 devtool = "eval-cheap-module-source-map"
                 devServer = DevServer(
