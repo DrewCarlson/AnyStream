@@ -19,15 +19,18 @@ package anystream.frontend.screens
 
 import androidx.compose.runtime.*
 import anystream.frontend.LocalAnyStreamClient
+import anystream.frontend.routing.WebRouter
+import anystream.frontend.util.createLoopController
 import anystream.models.*
 import anystream.models.api.CreateUserResponse
+import anystream.ui.signup.*
+import anystream.ui.signup.SignupScreenModel.State
 import app.softwork.routingcompose.BrowserRouter
-import io.ktor.client.plugins.*
 import io.ktor.http.*
 import kotlinx.browser.window
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import kt.mobius.Mobius
+import kt.mobius.SimpleLogger
+import kt.mobius.flow.FlowMobius
 import org.jetbrains.compose.web.attributes.*
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
@@ -35,36 +38,20 @@ import org.jetbrains.compose.web.dom.*
 @Composable
 fun SignupScreen() {
     val client = LocalAnyStreamClient.current
-    val authMutex = Mutex()
-    val scope = rememberCoroutineScope()
-    var username by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    val launchInviteCode = remember {
-        Url(window.location.href).parameters["inviteCode"]
+    val (modelState, eventConsumerState) = createLoopController {
+        val launchInviteCode = Url(window.location.href).parameters["inviteCode"]
+        Mobius.controller(
+            FlowMobius.loop(
+                SignupScreenUpdate,
+                SignupScreenHandler.create(client, WebRouter())
+            ).logger(SimpleLogger("Signup")),
+            SignupScreenModel.create(client.serverUrl, launchInviteCode.orEmpty()),
+            SignupScreenInit
+        )
     }
-    var inviteCode by remember { mutableStateOf(launchInviteCode) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
-    var isLocked by remember { mutableStateOf(false) }
 
-    suspend fun signup() {
-        try {
-            when (val response = client.createUser(username, password, inviteCode)) {
-                is CreateUserResponse.Success -> BrowserRouter.navigate("/home")
-                is CreateUserResponse.Error -> {
-                    isLocked = false
-                    errorMessage = response.usernameError.message ?: response.passwordError.message
-                }
-            }
-        } catch (e: ResponseException) {
-            isLocked = false
-            errorMessage = if (e.response.status == HttpStatusCode.Forbidden) {
-                "A valid invite code is required."
-            } else {
-                e.printStackTrace()
-                e.message
-            }
-        }
-    }
+    val model by remember { modelState }
+    val eventConsumer by remember { eventConsumerState }
 
     Div({
         classes("d-flex", "flex-column", "justify-content-center", "align-items-center", "py-4")
@@ -75,50 +62,49 @@ fun SignupScreen() {
         Div { H3 { Text("Signup") } }
         Div {
             Input(InputType.Text) {
-                onInput { username = it.value }
+                onInput { eventConsumer.accept(SignupScreenEvent.OnUsernameChanged(it.value)) }
                 classes("form-control")
                 placeholder("Username")
                 type(InputType.Text)
-                if (isLocked) disabled()
+                if (model.isInputLocked()) disabled()
             }
         }
         Div {
             Input(InputType.Text) {
-                onInput { password = it.value }
+                onInput { eventConsumer.accept(SignupScreenEvent.OnPasswordChanged(it.value)) }
                 classes("form-control")
                 placeholder("Password")
                 type(InputType.Password)
-                if (isLocked) disabled()
+                if (model.isInputLocked()) disabled()
             }
         }
         Div {
             Input(InputType.Text) {
-                value(inviteCode ?: "")
+                value(model.inviteCode)
                 onInput {
-                    if (!launchInviteCode.isNullOrBlank()) {
+                    if (model.isInviteCodeLocked) {
                         return@onInput it.preventDefault()
                     }
-                    inviteCode = it.value
+                    eventConsumer.accept(SignupScreenEvent.OnInviteCodeChanged(it.value))
                 }
                 classes("form-control")
                 placeholder("Invite Code")
                 type(InputType.Text)
-                if (isLocked) disabled()
-                if (!launchInviteCode.isNullOrBlank()) disabled()
+                if (model.isInputLocked() || model.isInviteCodeLocked) disabled()
             }
         }
         Div {
-            errorMessage?.run { Text(this) }
+            model.signupError?.run {
+                Text(usernameError?.message ?: passwordError?.message ?: "Unknown error")
+            }
         }
         Div {
             Button({
                 classes("btn", "btn-primary")
                 type(ButtonType.Button)
-                if (isLocked) disabled()
+                if (model.isInputLocked()) disabled()
                 onClick {
-                    scope.launch {
-                        authMutex.withLock { signup() }
-                    }
+                    eventConsumer.accept(SignupScreenEvent.OnSignupSubmit)
                 }
             }) {
                 Text("Confirm")
@@ -131,7 +117,9 @@ fun SignupScreen() {
                         property("cursor", "pointer")
                     }
                     onClick {
-                        if (!isLocked) BrowserRouter.navigate("/login")
+                        if (model.state == State.IDLE) {
+                            BrowserRouter.navigate("/login")
+                        }
                     }
                 }
             ) {

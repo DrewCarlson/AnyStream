@@ -37,29 +37,30 @@ object LoginScreenHandler {
         client: AnyStreamClient,
         router: CommonRouter,
     ): FlowTransformer<LoginScreenEffect, LoginScreenEvent> = subtypeEffectHandler {
-        addAction<LoginScreenEffect.NavigateToHome> { router.pushRoute(Routes.Home) }
+        addAction<LoginScreenEffect.NavigateToHome> { router.replaceTop(Routes.Home) }
 
-        addFunction<LoginScreenEffect.Login> { effect ->
+        addFunction<LoginScreenEffect.Login> { (username, password, serverUrl) ->
             try {
-                client.login(effect.username, effect.password).toLoginScreenEvent()
+                check(client.verifyAndSetServerUrl(serverUrl))
+                client.login(username, password).toLoginScreenEvent()
             } catch (e: Throwable) {
                 LoginScreenEvent.OnLoginError(CreateSessionResponse.Error(null, null))
             }
         }
 
-        addLatestValueCollector<LoginScreenEffect.ValidateServerUrl> { effect ->
+        addLatestValueCollector<LoginScreenEffect.ValidateServerUrl> { (serverUrl) ->
             val result = try {
-                check(client.verifyAndSetServerUrl(effect.serverUrl))
+                check(client.verifyAndSetServerUrl(serverUrl))
                 ServerValidation.VALID
             } catch (e: Throwable) {
                 ServerValidation.INVALID
             }
 
-            emit(LoginScreenEvent.OnServerValidated(effect.serverUrl, result))
+            emit(LoginScreenEvent.OnServerValidated(serverUrl, result))
         }
 
-        addLatestValueCollector<LoginScreenEffect.PairingSession> { effect ->
-            if (effect.cancel) return@addLatestValueCollector
+        addLatestValueCollector<LoginScreenEffect.PairingSession> { (serverUrl, cancel) ->
+            if (cancel || !client.verifyAndSetServerUrl(serverUrl)) return@addLatestValueCollector
 
             lateinit var pairingCode: String
             val pairingFlow = client.createPairingSession()

@@ -23,7 +23,6 @@ import anystream.ui.login.LoginScreenModel.ServerValidation
 import kt.mobius.test.NextMatchers.hasEffects
 import kt.mobius.test.NextMatchers.hasModel
 import kt.mobius.test.NextMatchers.hasNoEffects
-import kt.mobius.test.NextMatchers.hasNoModel
 import kt.mobius.test.NextMatchers.hasNothing
 import kt.mobius.test.UpdateSpec
 import kt.mobius.test.UpdateSpec.Companion.assertThatNext

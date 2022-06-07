@@ -161,7 +161,7 @@ private fun ContentContainer() {
                 }
             }
         }
-        if (!isAuthenticated && !authRoutes.contains(currentPath)) {
+        if (!isAuthenticated && !authRoutes.any { currentPath.startsWith(it) }) {
             BrowserRouter.navigate("/login")
         }
     }

@@ -124,6 +124,7 @@ class AnyStreamClient(
     }
 
     suspend fun verifyAndSetServerUrl(serverUrl: String): Boolean {
+        if (this.serverUrl.equals(serverUrl, ignoreCase = true)) return true
         return try {
             check(http.get(serverUrl).status == HttpStatusCode.OK)
             this.serverUrl = serverUrl
