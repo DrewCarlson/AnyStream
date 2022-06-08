@@ -101,7 +101,7 @@ fun Route.addStreamRoutes(
                     if (playlist == null) {
                         call.respond(NotFound)
                     } else {
-                        call.respond(playlist)
+                        call.respondText(playlist, ContentType.parse("application/x-mpegURL"))
                     }
                 }
 
