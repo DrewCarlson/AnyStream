@@ -71,6 +71,8 @@ external class VjsPlayer {
     fun duration(): Double
     fun duration(duration: Double)
 
+    fun dispose()
+
     fun on(event: String, callback: () -> Unit)
 }
 

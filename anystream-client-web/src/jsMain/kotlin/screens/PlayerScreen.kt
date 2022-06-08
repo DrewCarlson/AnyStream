@@ -229,6 +229,7 @@ fun PlayerScreen(mediaRefId: String) {
                     }
 
                     onDispose {
+                        player?.dispose()
                         player = null
                         element.ontimeupdate = null
                         element.onloadedmetadata = null
