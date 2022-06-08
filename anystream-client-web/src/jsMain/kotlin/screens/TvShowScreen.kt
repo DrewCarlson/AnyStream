@@ -25,7 +25,7 @@ import anystream.frontend.components.*
 import anystream.models.MediaReference
 import anystream.models.TvShow
 import anystream.models.api.TvShowsResponse
-import app.softwork.routingcompose.BrowserRouter
+import app.softwork.routingcompose.Router
 import kotlinx.browser.window
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.Text
@@ -46,9 +46,10 @@ fun TvShowScreen() {
                     Text("TV Shows will appear here.")
                 }
             } else {
+                val router = Router.current
                 VirtualScroller(shows) { show ->
                     val ref = refs.find { it.contentId == show.id }
-                    TvShowCard(show, ref)
+                    TvShowCard(router, show, ref)
                 }
             }
         }
@@ -56,10 +57,14 @@ fun TvShowScreen() {
 }
 
 @Composable
-fun TvShowCard(show: TvShow, ref: MediaReference?) {
+fun TvShowCard(
+    router: Router,
+    show: TvShow,
+    ref: MediaReference?,
+) {
     PosterCard(
         title = {
-            LinkedText(url = "/media/${show.id}") {
+            LinkedText("/media/${show.id}", router) {
                 Text(show.name)
             }
         },
@@ -69,7 +74,7 @@ fun TvShowCard(show: TvShow, ref: MediaReference?) {
             window.location.hash = "!play:${ref?.id}"
         }.takeIf { ref != null },
         onBodyClicked = {
-            BrowserRouter.navigate("/media/${show.id}")
+            router.navigate("/media/${show.id}")
         }
     )
 }

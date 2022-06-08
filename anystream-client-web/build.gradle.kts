@@ -16,7 +16,7 @@ kotlin {
             runTask {
                 val anystreamUrl = (project.findProperty("org.gradle.project.anystreamUrl") as? String) ?: "http://localhost:8888"
                 outputFileName = "main.bundle.js"
-                devtool = "eval-cheap-module-source-map"
+                devtool = "eval-source-map"
                 devServer = DevServer(
                     open = false,
                     port = 3000,
@@ -34,7 +34,7 @@ kotlin {
             }
             webpackTask {
                 outputFileName = "main.bundle.js"
-                //devtool = "cheap-module-eval-source-map"
+                devtool = "eval-source-map"
             }
         }
     }

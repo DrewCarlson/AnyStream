@@ -26,7 +26,7 @@ import anystream.frontend.util.rememberDomElement
 import anystream.frontend.util.tooltip
 import anystream.models.Permission
 import anystream.models.api.SearchResponse
-import app.softwork.routingcompose.BrowserRouter
+import app.softwork.routingcompose.Router
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -43,6 +43,7 @@ val searchQuery = MutableStateFlow<String?>(null)
 
 @Composable
 fun Navbar() {
+    val router = Router.current
     val client = LocalAnyStreamClient.current
     val isAuthenticated = client.authenticated.collectAsState(client.isAuthenticated())
     Nav({ classes("navbar", "navbar-dark", "navbar-expand-lg", "bg-dark", "rounded", "shadow", "m-2") }) {
@@ -52,7 +53,7 @@ fun Navbar() {
                 style {
                     cursor("pointer")
                 }
-                onClick { BrowserRouter.navigate("/home") }
+                onClick { router.navigate("/home") }
             }) {
                 Img(src = "/images/as-logo.svg")
             }
@@ -69,6 +70,7 @@ fun Navbar() {
 
 @Composable
 private fun SecondaryMenu(permissions: Set<Permission>) {
+    val router = Router.current
     val client = LocalAnyStreamClient.current
     val scope = rememberCoroutineScope()
     val authMutex = remember { Mutex() }
@@ -99,7 +101,7 @@ private fun SecondaryMenu(permissions: Set<Permission>) {
                 A(attrs = {
                     classes("nav-link", "nav-link-large")
                     tooltip("Users", "bottom")
-                    onClick { BrowserRouter.navigate("/settings/users") }
+                    onClick { router.navigate("/settings/users") }
                 }) {
                     I({ classes("bi", "bi-people") })
                 }
@@ -108,7 +110,7 @@ private fun SecondaryMenu(permissions: Set<Permission>) {
                 A(attrs = {
                     classes("nav-link", "nav-link-large")
                     tooltip("Settings", "bottom")
-                    onClick { BrowserRouter.navigate("/settings/activity") }
+                    onClick { router.navigate("/settings/activity") }
                 }) {
                     I({ classes("bi", "bi-gear") })
                 }

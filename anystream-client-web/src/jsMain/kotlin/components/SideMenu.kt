@@ -21,7 +21,7 @@ import androidx.compose.runtime.*
 import anystream.frontend.LocalAnyStreamClient
 import anystream.frontend.util.tooltip
 import anystream.models.Permission
-import app.softwork.routingcompose.BrowserRouter
+import app.softwork.routingcompose.Router
 import kotlinx.browser.localStorage
 import kotlinx.coroutines.flow.map
 import org.jetbrains.compose.web.attributes.AttrsScope
@@ -104,7 +104,8 @@ fun NavLink(
     path: String,
     expanded: Boolean = true,
 ) {
-    val currentPath by BrowserRouter.getPath("/")
+    val router = Router.current
+    val currentPath by router.getPath("/")
     val isActive = remember(currentPath) { currentPath.startsWith(path) }
     A(attrs = {
         classes("nav-link", "nav-link-large")
@@ -112,7 +113,7 @@ fun NavLink(
             classes("active")
             attr("aria-current", "page")
         }
-        onClick { BrowserRouter.navigate(path) }
+        onClick { router.navigate(path) }
         if (!expanded) {
             tooltip(text, "right")
         }

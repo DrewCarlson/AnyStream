@@ -25,12 +25,14 @@ import anystream.frontend.components.SideMenu
 import anystream.frontend.screens.*
 import anystream.frontend.util.Js
 import app.softwork.routingcompose.BrowserRouter
+import app.softwork.routingcompose.Router
 import io.ktor.client.*
 import kotlinx.browser.window
 import kotlinx.coroutines.flow.*
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 import org.jetbrains.compose.web.renderComposable
+import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HashChangeEvent
 
 private val urlHashFlow = MutableStateFlow(window.location.hash)
@@ -91,7 +93,6 @@ fun webApp() = renderComposable(rootElementId = "root") {
                 })
             }
 
-            Div { Navbar() }
             ContentContainer()
 
             hashValue?.run { PlayerScreen(this) }
@@ -102,6 +103,52 @@ fun webApp() = renderComposable(rootElementId = "root") {
 @Composable
 private fun ContentContainer() {
     val client = LocalAnyStreamClient.current
+    BrowserRouter("/") {
+        route("home") {
+            noMatch { ScreenContainer { HomeScreen() } }
+        }
+        route("login") {
+            noMatch { ScreenContainer({}) { LoginScreen() } }
+        }
+        route("signup") {
+            noMatch { ScreenContainer({}) { SignupScreen() } }
+        }
+        route("movies") {
+            noMatch { ScreenContainer { MoviesScreen() } }
+        }
+        route("tv") {
+            noMatch { ScreenContainer { TvShowScreen() } }
+        }
+        route("downloads") {
+            noMatch { ScreenContainer { DownloadsScreen() } }
+        }
+        route("settings") {
+            string { subScreen ->
+                ScreenContainer({ SettingsSideMenu() }) {
+                    SettingsScreen(subScreen)
+                }
+            }
+        }
+        route("media") {
+            string { id -> ScreenContainer { MediaScreen(id) } }
+            noMatch { redirect("/home") }
+        }
+        noMatch { redirect(if (client.isAuthenticated()) "/home" else "/login") }
+    }
+}
+
+@Composable
+private fun ScreenContainer(
+    menu: @Composable () -> Unit = { SideMenu() },
+    content: ContentBuilder<HTMLDivElement>
+) {
+    val authRoutes = remember { listOf("/signup", "/login") }
+    val client = LocalAnyStreamClient.current
+    val isAuthenticated by client.authenticated.collectAsState(client.isAuthenticated())
+    val router = Router.current
+    val currentPath by router.getPath("/")
+
+    Div { Navbar() }
     Div({
         classes(
             "container-fluid",
@@ -117,52 +164,14 @@ private fun ContentContainer() {
             property("z-index", "1")
         }
     }) {
-        val authRoutes = listOf("/signup", "/login")
-        val isAuthenticated by client.authenticated.collectAsState(client.isAuthenticated())
-        val currentPath by BrowserRouter.getPath("/")
+        menu()
 
-        if (isAuthenticated) {
-            if (currentPath.startsWith("/settings")) {
-                SettingsSideMenu()
-            } else {
-                SideMenu()
-            }
-        }
+        Div({ classes("vstack", "h-100", "w-100", "overflow-hidden") }, content)
+    }
 
-        Div({ classes("vstack", "h-100", "w-100", "overflow-hidden") }) {
-            BrowserRouter("/") {
-                route("home") {
-                    noMatch { HomeScreen() }
-                }
-                route("login") {
-                    noMatch { LoginScreen() }
-                }
-                route("signup") {
-                    noMatch { SignupScreen() }
-                }
-                route("movies") {
-                    noMatch { MoviesScreen() }
-                }
-                route("tv") {
-                    noMatch { TvShowScreen() }
-                }
-                route("downloads") {
-                    noMatch { DownloadsScreen() }
-                }
-                route("settings") {
-                    string { SettingsScreen(it) }
-                }
-                route("media") {
-                    string { id -> MediaScreen(id) }
-                    noMatch { BrowserRouter.navigate("/home") }
-                }
-                noMatch {
-                    BrowserRouter.navigate(if (isAuthenticated) "/home" else "/login")
-                }
-            }
-        }
+    remember(isAuthenticated, currentPath) {
         if (!isAuthenticated && !authRoutes.any { currentPath.startsWith(it) }) {
-            BrowserRouter.navigate("/login")
+            router.navigate("/login")
         }
     }
 }

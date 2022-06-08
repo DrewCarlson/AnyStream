@@ -19,18 +19,18 @@ package anystream.frontend.routing
 
 import anystream.routing.CommonRouter
 import anystream.routing.Routes
-import app.softwork.routingcompose.BrowserRouter
+import app.softwork.routingcompose.Router
 
 // TODO: BrowserRouter is not customizable and can only push routes,
 //  a custom Router utilizing window.history.state data can emulate
 //  a full BackStack.
-class WebRouter : CommonRouter {
+class WebRouter(private val router: Router) : CommonRouter {
     override fun replaceTop(route: Routes) {
-        BrowserRouter.navigate("/${route.path}")
+        router.navigate("/${route.path}")
     }
 
     override fun pushRoute(route: Routes) {
-        BrowserRouter.navigate("/${route.path}")
+        router.navigate("/${route.path}")
     }
 
     override fun replaceStack(routes: List<Routes>) {

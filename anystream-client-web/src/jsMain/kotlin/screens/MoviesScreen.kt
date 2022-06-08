@@ -23,7 +23,7 @@ import anystream.frontend.components.*
 import anystream.models.MediaReference
 import anystream.models.Movie
 import anystream.models.api.MoviesResponse
-import app.softwork.routingcompose.BrowserRouter
+import app.softwork.routingcompose.Router
 import kotlinx.browser.window
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.Text
@@ -44,9 +44,10 @@ fun MoviesScreen() {
                     Text("Movies will appear here.")
                 }
             } else {
+                val router = Router.current
                 VirtualScroller(movies) { movie ->
                     val ref = refs.find { it.contentId == movie.id }
-                    MovieCard(movie, ref)
+                    MovieCard(router, movie, ref)
                 }
             }
         }
@@ -54,10 +55,14 @@ fun MoviesScreen() {
 }
 
 @Composable
-private fun MovieCard(movie: Movie, ref: MediaReference?) {
+private fun MovieCard(
+    router: Router,
+    movie: Movie,
+    ref: MediaReference?,
+) {
     PosterCard(
         title = {
-            LinkedText(url = "/media/${movie.id}") {
+            LinkedText("/media/${movie.id}", router) {
                 Text(movie.title)
             }
         },
@@ -67,7 +72,7 @@ private fun MovieCard(movie: Movie, ref: MediaReference?) {
             window.location.hash = "!play:${ref?.id}"
         }.takeIf { ref != null },
         onBodyClicked = {
-            BrowserRouter.navigate("/media/${movie.id}")
+            router.navigate("/media/${movie.id}")
         },
     )
 }

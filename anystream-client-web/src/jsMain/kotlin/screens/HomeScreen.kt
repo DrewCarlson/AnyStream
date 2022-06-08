@@ -23,7 +23,7 @@ import anystream.frontend.components.FullSizeCenteredLoader
 import anystream.frontend.components.LinkedText
 import anystream.frontend.components.PosterCard
 import anystream.models.api.HomeResponse
-import app.softwork.routingcompose.BrowserRouter
+import app.softwork.routingcompose.Router
 import kotlinx.browser.localStorage
 import kotlinx.browser.window
 import org.jetbrains.compose.web.attributes.InputType
@@ -91,6 +91,7 @@ fun HomeScreen() {
 
 @Composable
 private fun HomeResponse.ContinueWatchingRow(sizeMultiplier: Float) {
+    val router = Router.current
     MovieRow(title = { Text("Continue Watching") }) {
         playbackStates.forEach { state ->
             val movie = currentlyWatchingMovies[state.id]
@@ -138,7 +139,7 @@ private fun HomeResponse.ContinueWatchingRow(sizeMultiplier: Float) {
                     window.location.hash = "!play:${state.mediaReferenceId}"
                 },
                 onBodyClicked = {
-                    BrowserRouter.navigate("/media/${movie?.id ?: episode?.id}")
+                    router.navigate("/media/${movie?.id ?: episode?.id}")
                 }
             )
         }
@@ -147,6 +148,7 @@ private fun HomeResponse.ContinueWatchingRow(sizeMultiplier: Float) {
 
 @Composable
 private fun HomeResponse.RecentlyAddedMovies(sizeMultiplier: Float) {
+    val router = Router.current
     MovieRow(title = { Text("Recently Added Movies") }) {
         recentlyAdded.forEach { (movie, ref) ->
             PosterCard(
@@ -165,7 +167,7 @@ private fun HomeResponse.RecentlyAddedMovies(sizeMultiplier: Float) {
                     window.location.hash = "!play:${ref?.id}"
                 }.takeIf { ref != null },
                 onBodyClicked = {
-                    BrowserRouter.navigate("/media/${movie.id}")
+                    router.navigate("/media/${movie.id}")
                 }
             )
         }
@@ -174,6 +176,7 @@ private fun HomeResponse.RecentlyAddedMovies(sizeMultiplier: Float) {
 
 @Composable
 private fun HomeResponse.RecentlyAddedTv(sizeMultiplier: Float) {
+    val router = Router.current
     MovieRow(title = { Text("Recently Added TV") }) {
         recentlyAddedTv.forEach { show ->
             PosterCard(
@@ -186,7 +189,7 @@ private fun HomeResponse.RecentlyAddedTv(sizeMultiplier: Float) {
                 posterPath = show.posterPath,
                 isAdded = true,
                 onBodyClicked = {
-                    BrowserRouter.navigate("/media/${show.id}")
+                    router.navigate("/media/${show.id}")
                 }
             )
         }
@@ -195,6 +198,7 @@ private fun HomeResponse.RecentlyAddedTv(sizeMultiplier: Float) {
 
 @Composable
 private fun HomeResponse.PopularMovies(sizeMultiplier: Float) {
+    val router = Router.current
     MovieRow(title = { Text("Popular Movies") }) {
         popularMovies.forEach { (movie, ref) ->
             PosterCard(
@@ -212,7 +216,7 @@ private fun HomeResponse.PopularMovies(sizeMultiplier: Float) {
                 onPlayClicked = { window.location.hash = "!play:${ref?.id}" }
                     .takeIf { ref != null },
                 onBodyClicked = {
-                    BrowserRouter.navigate("/media/${movie.id}")
+                    router.navigate("/media/${movie.id}")
                 }
             )
         }
@@ -221,6 +225,7 @@ private fun HomeResponse.PopularMovies(sizeMultiplier: Float) {
 
 @Composable
 private fun HomeResponse.PopularTvShows(sizeMultiplier: Float) {
+    val router = Router.current
     MovieRow(title = { Text("Popular TV") }) {
         popularTvShows.forEach { tvShow ->
             PosterCard(
@@ -238,7 +243,7 @@ private fun HomeResponse.PopularTvShows(sizeMultiplier: Float) {
                 /*onPlayClicked = { window.location.hash = "!play:${ref?.id}" }
                     .takeIf { ref != null },*/
                 onBodyClicked = {
-                    BrowserRouter.navigate("/media/${tvShow.id}")
+                    router.navigate("/media/${tvShow.id}")
                 }
             )
         }

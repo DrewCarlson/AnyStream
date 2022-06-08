@@ -18,13 +18,12 @@
 package anystream.frontend.screens
 
 import androidx.compose.runtime.*
-import anystream.client.AnyStreamClient
 import anystream.frontend.LocalAnyStreamClient
 import anystream.frontend.libs.QRCodeImage
 import anystream.frontend.routing.WebRouter
 import anystream.frontend.util.createLoopController
 import anystream.ui.login.*
-import app.softwork.routingcompose.BrowserRouter
+import app.softwork.routingcompose.Router
 import kt.mobius.Mobius
 import kt.mobius.SimpleLogger
 import kt.mobius.flow.FlowMobius
@@ -34,11 +33,12 @@ import org.jetbrains.compose.web.dom.*
 
 @Composable
 fun LoginScreen() {
+    val router = Router.current
     val client = LocalAnyStreamClient.current
     val (modelState, eventConsumerState) = createLoopController {
         val factory = FlowMobius.loop(
             LoginScreenUpdate,
-            LoginScreenHandler.create(client, WebRouter())
+            LoginScreenHandler.create(client, WebRouter(router))
         ).logger(SimpleLogger("Login"))
         val startModel = LoginScreenModel.create(client.serverUrl, supportsPairing = true)
         Mobius.controller(factory, startModel, LoginScreenInit)
@@ -93,7 +93,7 @@ fun LoginScreen() {
                     }
                     onClick {
                         if (model.state == LoginScreenModel.State.IDLE) {
-                            BrowserRouter.navigate("/signup")
+                            router.navigate("/signup")
                         }
                     }
                 }

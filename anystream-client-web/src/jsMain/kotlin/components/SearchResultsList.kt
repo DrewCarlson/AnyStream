@@ -20,7 +20,7 @@ package anystream.frontend.components
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import anystream.models.api.SearchResponse
-import app.softwork.routingcompose.BrowserRouter
+import app.softwork.routingcompose.Router
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.H5
@@ -118,6 +118,7 @@ private fun SearchResultItem(
     subtitle: String,
     wide: Boolean = false,
 ) {
+    val router = Router.current
     val (posterHeight, posterWidth) = remember(wide) {
         if (wide) 28.px to 42.px else 42.px to 28.px
     }
@@ -128,7 +129,7 @@ private fun SearchResultItem(
             cursor("pointer")
         }
         onClick {
-            BrowserRouter.navigate("/media/$mediaId")
+            router.navigate("/media/$mediaId")
             searchQuery.value = null
         }
     }) {

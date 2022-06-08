@@ -26,7 +26,7 @@ import anystream.frontend.models.toMediaItem
 import anystream.models.PlaybackState
 import anystream.util.formatProgressAndRuntime
 import anystream.util.formatted
-import app.softwork.routingcompose.BrowserRouter
+import app.softwork.routingcompose.Router
 import io.ktor.client.fetch.*
 import kotlinx.browser.document
 import kotlinx.browser.window
@@ -409,6 +409,7 @@ private fun PlaybackControls(
     bufferedPercent: State<Double>,
     overlayMode: Boolean,
 ) {
+    val router = Router.current
     Div({
         classes("d-flex", "justify-content-between", "align-items-center", "w-100", "p-3")
         style {
@@ -437,7 +438,7 @@ private fun PlaybackControls(
                 onMouseEnter { hovering = true }
                 onMouseLeave { hovering = false }
                 onClick {
-                    BrowserRouter.navigate("/media/${mediaItem.value?.mediaId}")
+                    router.navigate("/media/${mediaItem.value?.mediaId}")
                 }
                 classes("overflow-hidden")
                 style {

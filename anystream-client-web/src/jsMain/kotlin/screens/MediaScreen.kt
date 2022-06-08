@@ -29,7 +29,7 @@ import anystream.frontend.models.toMediaItem
 import anystream.frontend.util.ExternalClickMask
 import anystream.models.*
 import anystream.models.api.MediaLookupResponse
-import app.softwork.routingcompose.BrowserRouter
+import app.softwork.routingcompose.Router
 import kotlinx.browser.window
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.jetbrains.compose.web.css.*
@@ -394,6 +394,7 @@ private fun StreamSelectionMenu(
 
 @Composable
 private fun SeasonRow(seasons: List<TvSeason>) {
+    val router = Router.current
     BaseRow(
         title = { Text("${seasons.size} Seasons") },
         wrap = true
@@ -407,7 +408,7 @@ private fun SeasonRow(seasons: List<TvSeason>) {
                 },
                 posterPath = season.posterPath,
                 onBodyClicked = {
-                    BrowserRouter.navigate("/media/${season.id}")
+                    router.navigate("/media/${season.id}")
                 }
             )
         }
@@ -419,6 +420,7 @@ private fun EpisodeGrid(
     episodes: List<Episode>,
     mediaRefs: Map<String, MediaReference>,
 ) {
+    val router = Router.current
     BaseRow(
         title = { Text("${episodes.size} Episodes") },
         wrap = true
@@ -444,7 +446,7 @@ private fun EpisodeGrid(
                     { window.location.hash = "!play:${ref.id}" }
                 },
                 onBodyClicked = {
-                    BrowserRouter.navigate("/media/${episode.id}")
+                    router.navigate("/media/${episode.id}")
                 },
             )
         }

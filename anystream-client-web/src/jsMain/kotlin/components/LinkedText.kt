@@ -22,7 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import app.softwork.routingcompose.BrowserRouter
+import app.softwork.routingcompose.Router
 import org.jetbrains.compose.web.css.cursor
 import org.jetbrains.compose.web.css.overflow
 import org.jetbrains.compose.web.css.textDecoration
@@ -33,6 +33,7 @@ import org.w3c.dom.HTMLDivElement
 @Composable
 fun LinkedText(
     url: String,
+    router: Router = Router.current,
     attrs: AttrBuilderContext<HTMLDivElement>? = null,
     content: @Composable () -> Unit,
 ) {
@@ -41,7 +42,7 @@ fun LinkedText(
         attrs?.invoke(this)
         onMouseEnter { hovering = true }
         onMouseLeave { hovering = false }
-        onClick { BrowserRouter.navigate(url) }
+        onClick { router.navigate(url) }
         style {
             cursor("pointer")
             textDecoration(if (hovering) "underline" else "none")

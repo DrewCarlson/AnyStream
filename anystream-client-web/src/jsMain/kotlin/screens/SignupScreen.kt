@@ -25,7 +25,7 @@ import anystream.models.*
 import anystream.models.api.CreateUserResponse
 import anystream.ui.signup.*
 import anystream.ui.signup.SignupScreenModel.State
-import app.softwork.routingcompose.BrowserRouter
+import app.softwork.routingcompose.Router
 import io.ktor.http.*
 import kotlinx.browser.window
 import kt.mobius.Mobius
@@ -37,13 +37,14 @@ import org.jetbrains.compose.web.dom.*
 
 @Composable
 fun SignupScreen() {
+    val router = Router.current
     val client = LocalAnyStreamClient.current
     val (modelState, eventConsumerState) = createLoopController {
         val launchInviteCode = Url(window.location.href).parameters["inviteCode"]
         Mobius.controller(
             FlowMobius.loop(
                 SignupScreenUpdate,
-                SignupScreenHandler.create(client, WebRouter())
+                SignupScreenHandler.create(client, WebRouter(router))
             ).logger(SimpleLogger("Signup")),
             SignupScreenModel.create(client.serverUrl, launchInviteCode.orEmpty()),
             SignupScreenInit
@@ -118,7 +119,7 @@ fun SignupScreen() {
                     }
                     onClick {
                         if (model.state == State.IDLE) {
-                            BrowserRouter.navigate("/login")
+                            router.navigate("/login")
                         }
                     }
                 }
