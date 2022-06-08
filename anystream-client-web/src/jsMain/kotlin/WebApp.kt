@@ -66,16 +66,6 @@ fun webApp() = renderComposable(rootElementId = "root") {
                     window.onhashchange = null
                 }
             }
-            val hashValue by urlHashFlow
-                .map { hash ->
-                    if (hash.contains("close")) {
-                        null
-                    } else {
-                        hash.substringAfter(":")
-                            .takeIf(String::isNotBlank)
-                    }
-                }
-                .collectAsState(null)
 
             val backgroundUrl by backdropImageUrl.collectAsState(null)
 
@@ -94,8 +84,6 @@ fun webApp() = renderComposable(rootElementId = "root") {
             }
 
             ContentContainer()
-
-            hashValue?.run { PlayerScreen(this) }
         }
     }
 }
@@ -103,6 +91,16 @@ fun webApp() = renderComposable(rootElementId = "root") {
 @Composable
 private fun ContentContainer() {
     val client = LocalAnyStreamClient.current
+    val hashValue by urlHashFlow
+        .map { hash ->
+            if (hash.contains("close")) {
+                null
+            } else {
+                hash.substringAfter(":")
+                    .takeIf(String::isNotBlank)
+            }
+        }
+        .collectAsState(null)
     BrowserRouter("/") {
         route("home") {
             noMatch { ScreenContainer { HomeScreen() } }
@@ -134,6 +132,8 @@ private fun ContentContainer() {
             noMatch { redirect("/home") }
         }
         noMatch { redirect(if (client.isAuthenticated()) "/home" else "/login") }
+
+        hashValue?.run { PlayerScreen(this) }
     }
 }
 
