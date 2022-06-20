@@ -147,7 +147,7 @@ androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-
 androidx-test-runner = { module = "androidx.test:runner", version.ref = "ax_runner" }
 
 coil = { module = "io.coil-kt:coil-compose", version = "2.1.0" }
-routingCompose = { module = "app.softwork:routing-compose", version = "0.2.2" }
+routingCompose = { module = "app.softwork:routing-compose", version = "0.2.4" }
 
 quickie-bundled = { module = "io.github.g00fy2.quickie:quickie-bundled", version = "1.4.2" }
 
