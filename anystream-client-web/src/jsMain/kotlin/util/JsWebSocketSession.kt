@@ -108,13 +108,11 @@ internal class JsWebSocketSession(
             }
         )
 
-        @OptIn(DelicateCoroutinesApi::class)
         launch {
             // Note: To ensure close frame is dispatched outgoing messages
             // will always be consumed, if the parent scope is cancelled
             // only the close frame can be dispatched.
             withContext(NonCancellable) {
-                @OptIn(ExperimentalCoroutinesApi::class)
                 _outgoing.consumeEach {
                     if (!this@launch.isActive && it !is Frame.Close) {
                         return@consumeEach

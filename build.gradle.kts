@@ -35,6 +35,7 @@ allprojects {
         mavenCentral()
         google()
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+        maven("https://androidx.dev/storage/compose-compiler/repository/")
     }
 
     System.getenv("GITHUB_REF")?.let { ref ->

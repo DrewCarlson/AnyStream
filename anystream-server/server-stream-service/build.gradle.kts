@@ -5,17 +5,16 @@ plugins {
     kotlin("plugin.serialization")
 }
 
-tasks.withType<KotlinCompile>().all {
+/*tasks.withType<KotlinCompile>().all {
     sourceCompatibility = "11"
     targetCompatibility = "11"
-}
+}*/
 
 kotlin {
     target {
         compilations.all {
             kotlinOptions {
                 jvmTarget = "11"
-                freeCompilerArgs = freeCompilerArgs + listOf("-opt-in=kotlin.RequiresOptIn")
             }
         }
     }

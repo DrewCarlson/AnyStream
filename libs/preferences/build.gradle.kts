@@ -30,11 +30,6 @@ kotlin {
     }
 
     sourceSets {
-        all {
-            languageSettings.apply {
-                optIn("kotlin.RequiresOptIn")
-            }
-        }
         val commonMain by getting {
             dependencies {
                 implementation(kotlin("stdlib-common"))

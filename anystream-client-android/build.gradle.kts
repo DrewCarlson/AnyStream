@@ -40,7 +40,6 @@ android {
     kotlinOptions.freeCompilerArgs += listOf(
         "-opt-in=androidx.compose.ui.ExperimentalComposeUiApi",
         "-opt-in=androidx.compose.foundation.ExperimentalFoundationApi",
-        "-opt-in=kotlin.RequiresOptIn",
         "-opt-in=coil.annotation.ExperimentalCoilApi",
         //"-P", "plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=true"
     )

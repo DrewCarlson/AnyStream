@@ -1,5 +1,4 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     application
@@ -11,13 +10,6 @@ plugins {
 application {
     applicationName = "anystream"
     mainClass.set("io.ktor.server.netty.EngineMain")
-}
-
-val testGenSrcPath = "build/generated-kotlin"
-
-tasks.withType<KotlinCompile>().all {
-    sourceCompatibility = "11"
-    targetCompatibility = "11"
 }
 
 distributions.configureEach {
@@ -38,16 +30,19 @@ tasks.withType<ShadowJar> {
     }
 }
 
+val testGenSrcPath = "build/generated-kotlin"
+
 kotlin {
     sourceSets["test"].kotlin.srcDirs(testGenSrcPath)
+    sourceSets.all {
+        languageSettings {
+            optIn("kotlinx.coroutines.ExperimentalCoroutinesApi")
+        }
+    }
     target {
         compilations.all {
             kotlinOptions {
                 jvmTarget = "11"
-                freeCompilerArgs = freeCompilerArgs + listOf(
-                    "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
-                    "-opt-in=kotlin.RequiresOptIn",
-                )
             }
         }
         compilations.getByName("test") {

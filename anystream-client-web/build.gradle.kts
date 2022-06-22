@@ -34,7 +34,7 @@ kotlin {
             }
             webpackTask {
                 outputFileName = "main.bundle.js"
-                devtool = "eval-source-map"
+                //devtool = "eval-source-map"
             }
         }
     }
@@ -45,7 +45,6 @@ kotlin {
                 optIn("kotlinx.coroutines.ExperimentalCoroutinesApi")
                 optIn("kotlinx.coroutines.FlowPreview")
                 optIn("kotlin.time.ExperimentalTime")
-                optIn("kotlin.RequiresOptIn")
             }
         }
         named("jsMain") {
