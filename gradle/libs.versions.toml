@@ -32,9 +32,9 @@ ax_runner = "1.4.0"
 agp = "7.0.4"
 leakcanary = "2.9.1"
 
-okhttp = "5.0.0-alpha.8"
+okhttp = "5.0.0-alpha.9"
 
-spotless = "6.7.0"
+spotless = "6.7.2"
 ktlint = "0.46.1"
 
 [plugins]
