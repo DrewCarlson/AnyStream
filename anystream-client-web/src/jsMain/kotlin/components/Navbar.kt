@@ -75,7 +75,7 @@ private fun SecondaryMenu(permissions: Set<Permission>) {
     val scope = rememberCoroutineScope()
     val authMutex = remember { Mutex() }
     var isMenuVisible by remember { mutableStateOf(false) }
-    Ul({ classes("nav", "ms-auto") }) {
+    Ul({ classes("nav", "nav-pills", "ms-auto") }) {
         if (Permission.check(Permission.ConfigureSystem, permissions)) {
             val sessionCount by client.observeStreams()
                 .retry()
@@ -90,7 +90,7 @@ private fun SecondaryMenu(permissions: Set<Permission>) {
                     tooltip("Activity", "bottom")
                 }) {
                     if (sessionCount > 0) {
-                        Div({ classes("active", "fs-6", "pe-1") }) {
+                        Div({ classes("fs-6", "pe-1") }) {
                             Text(sessionCount.toString())
                         }
                     }
