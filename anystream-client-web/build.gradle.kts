@@ -1,9 +1,12 @@
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig.*
 
 plugins {
     kotlin("multiplatform")
     id("org.jetbrains.compose")
 }
+
+val localProperties = gradleLocalProperties(rootDir)
 
 kotlin {
     js(IR) {
@@ -14,7 +17,7 @@ kotlin {
                 cssSupport.enabled = true
             }
             runTask {
-                val anystreamUrl = (project.findProperty("org.gradle.project.anystreamUrl") as? String) ?: "http://localhost:8888"
+                val anystreamUrl = localProperties.getProperty("anystream.serverUrl", "http://localhost:8888")
                 outputFileName = "main.bundle.js"
                 devtool = "eval-source-map"
                 devServer = DevServer(
