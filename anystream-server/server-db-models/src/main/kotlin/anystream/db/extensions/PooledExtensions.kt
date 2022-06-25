@@ -17,6 +17,9 @@
  */
 package anystream.db.extensions
 
+import cn.danielw.fop.ObjectFactory
+import cn.danielw.fop.ObjectPool
+import cn.danielw.fop.PoolConfig
 import org.jdbi.v3.core.Handle
 import org.jdbi.v3.core.Jdbi
 import org.jdbi.v3.core.config.JdbiConfig
@@ -24,17 +27,14 @@ import org.jdbi.v3.core.extension.Extensions
 import org.jdbi.v3.core.extension.NoSuchExtensionException
 import org.jdbi.v3.core.internal.OnDemandExtensions
 import org.jdbi.v3.core.internal.exceptions.Unchecked
-import stormpot.*
 import java.lang.invoke.MethodHandles
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Method
 import java.lang.reflect.Proxy
 import java.util.*
-import java.util.concurrent.TimeUnit
 import java.util.function.Function
 import java.util.stream.Stream
 import kotlin.streams.toList
-import kotlin.system.exitProcess
 
 class PooledExtensions : JdbiConfig<PooledExtensions> {
     private lateinit var factory: OnDemandExtensions.Factory
@@ -47,17 +47,26 @@ class PooledExtensions : JdbiConfig<PooledExtensions> {
             factory = factoryField.get(onDemandConfig) as OnDemandExtensions.Factory
         }
 
-    private val handlePool by lazy {
-        Pool.fromInline(object : Allocator<Pooled<Handle>> {
-            override fun allocate(slot: Slot): Pooled<Handle> {
-                return Pooled(slot, (jdbi ?: exitProcess(-1)).open())
-            }
+    private val fact = object : ObjectFactory<Handle> {
+        override fun create(): Handle {
+            return requireNotNull(jdbi?.open())
+        }
 
-            override fun deallocate(poolable: Pooled<Handle>) {
-                poolable.`object`.close()
-            }
-        }).build()
+        override fun destroy(handle: Handle) {
+            if (!handle.isClosed) handle.close()
+        }
+
+        override fun validate(handle: Handle): Boolean {
+            return !handle.isClosed
+        }
     }
+    private val pool = ObjectPool(
+        PoolConfig().apply {
+            minSize = 0
+            maxIdleMilliseconds = 5000
+        },
+        fact
+    )
 
     fun <E> create(db: Jdbi, extensionType: Class<E>, extraTypes: Array<Class<*>> = emptyArray()): E {
         jdbi = db
@@ -75,10 +84,10 @@ class PooledExtensions : JdbiConfig<PooledExtensions> {
                 HASHCODE_METHOD -> System.identityHashCode(proxy)
                 TOSTRING_METHOD -> "$extensionType@" + Integer.toHexString(System.identityHashCode(proxy))
                 else -> {
-                    handlePool.apply(Timeout(Long.MAX_VALUE, TimeUnit.DAYS)) {
+                    pool.borrowObject().use {
                         val extension = it.`object`.attach(extensionType)
                         invoke(extension, method, args)
-                    }.orElse(null)
+                    }
                 }
             }
         }
@@ -98,7 +107,11 @@ class PooledExtensions : JdbiConfig<PooledExtensions> {
     }
 
     fun shutdown() {
-        handlePool.shutdown().await(Timeout(5, TimeUnit.SECONDS))
+        try {
+            pool.shutdown()
+        } catch (e: InterruptedException) {
+            e.printStackTrace()
+        }
     }
 
     companion object {
