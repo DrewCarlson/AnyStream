@@ -8,7 +8,7 @@ kotlinjs_ext = "1.0.1-pre.347"
 ksp = "1.7.0-1.0.6"
 atomicfu = "0.18.0"
 kover = "0.5.1"
-datetime = "0.3.3"
+datetime = "0.4.0"
 
 qbittorrent = "0.5.1"
 mobiuskt = "0.6.0"
