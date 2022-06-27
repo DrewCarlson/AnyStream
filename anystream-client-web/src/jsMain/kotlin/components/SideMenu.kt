@@ -15,18 +15,19 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.frontend.components
+package anystream.components
 
 import androidx.compose.runtime.*
-import anystream.frontend.LocalAnyStreamClient
-import anystream.frontend.util.tooltip
+import anystream.LocalAnyStreamClient
 import anystream.models.Permission
+import anystream.util.tooltip
 import app.softwork.routingcompose.Router
 import kotlinx.browser.localStorage
 import kotlinx.coroutines.flow.map
 import org.jetbrains.compose.web.attributes.AttrsScope
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
+import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.HTMLElement
 
 private const val MENU_EXPANDED_KEY = "menu_expanded"
@@ -54,7 +55,17 @@ fun SideMenu() {
         }
     }) {
         Ul({
-            classes("nav", "nav-pills", "bg-dark", "flex-column", "h-100", "py-2", "mb-auto", "rounded", "shadow")
+            classes(
+                "nav",
+                "nav-pills",
+                "bg-dark-translucent",
+                "flex-column",
+                "h-100",
+                "py-2",
+                "mb-auto",
+                "rounded",
+                "shadow"
+            )
             attr("role", "navigation")
             style {
                 overflow("hidden")
@@ -103,12 +114,14 @@ fun NavLink(
     icon: String,
     path: String,
     expanded: Boolean = true,
+    attrs: AttrsScope<HTMLAnchorElement>.() -> Unit = {},
 ) {
     val router = Router.current
     val currentPath by router.getPath("/")
     val isActive = remember(currentPath) { currentPath.startsWith(path) }
     A(attrs = {
         classes("nav-link", "nav-link-large")
+        attrs()
         if (isActive) {
             classes("active")
             attr("aria-current", "page")

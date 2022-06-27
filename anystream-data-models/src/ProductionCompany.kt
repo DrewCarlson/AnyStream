@@ -23,5 +23,5 @@ import kotlinx.serialization.Serializable
 data class ProductionCompany(
     val id: Int,
     val name: String,
-    val tmdbId: Int?,
+    val tmdbId: Int?
 )

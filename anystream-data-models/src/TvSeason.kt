@@ -21,11 +21,12 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class TvSeason(
-    val id: String,
+    val id: Int,
+    val gid: String,
     val name: String,
     val overview: String,
     val seasonNumber: Int,
     val airDate: String?,
     val tmdbId: Int,
-    val posterPath: String?,
+    val posterPath: String?
 )

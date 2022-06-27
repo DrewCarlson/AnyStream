@@ -17,7 +17,7 @@
  */
 package anystream.routes
 
-import anystream.data.MediaDbQueries
+import anystream.data.MetadataDbQueries
 import anystream.models.*
 import anystream.models.api.*
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
@@ -30,12 +30,12 @@ import org.drewcarlson.ktor.permissions.withAnyPermission
 import org.jdbi.v3.core.JdbiException
 
 fun Route.addTvShowRoutes(
-    queries: MediaDbQueries,
+    queries: MetadataDbQueries,
 ) {
     route("/tv") {
         get {
-            val includeRefs = call.parameters["includeRefs"]?.toBoolean() ?: false
-            call.respond(queries.findShows(includeRefs = includeRefs))
+            val includeLinks = call.parameters["includeLinks"]?.toBoolean() ?: false
+            call.respond(queries.findShows(includeLinks = includeLinks))
         }
 
         route("/{show_id}") {
@@ -43,8 +43,8 @@ fun Route.addTvShowRoutes(
                 val showId = call.parameters["show_id"]
                     ?.takeUnless(String::isNullOrBlank)
                     ?: return@get call.respond(NotFound)
-                val includeRefs = call.parameters["includeRefs"]?.toBoolean() ?: false
-                val response = queries.findShowById(showId, includeRefs = includeRefs)
+                val includeLinks = call.parameters["includeLinks"]?.toBoolean() ?: false
+                val response = queries.findShowById(showId, includeLinks = includeLinks)
                     ?: return@get call.respond(NotFound)
                 call.respond(response)
             }
@@ -57,13 +57,14 @@ fun Route.addTvShowRoutes(
                 queries.findShowById(showId, false) ?: return@get call.respond(NotFound)
 
                 val episodes = queries.findEpisodesByShow(showId, seasonNumber = seasonNumber)
-                val episodeIds = episodes.map(Episode::id)
-                val mediaRefs = queries.findMediaRefsByContentIds(episodeIds)
+                val episodeIds = episodes.map(Episode::gid)
+                val mediaLinks = queries.findMediaLinksByMetadataIds(episodeIds)
 
                 call.respond(
                     EpisodesResponse(
                         episodes = episodes,
-                        mediaRefs = mediaRefs.associateBy(MediaReference::contentId)
+                        mediaLinks = mediaLinks.filter { !it.metadataGid.isNullOrBlank() }
+                            .associateBy { it.metadataGid!! }
                     )
                 )
             }
@@ -73,7 +74,7 @@ fun Route.addTvShowRoutes(
                     val result = call.parameters["show_id"]?.let { showId ->
                         try {
                             queries.deleteTvShow(showId)
-                            queries.deleteRefsByRootContentId(showId)
+                            queries.deleteLinksByRootContentId(showId)
                             OK
                         } catch (e: JdbiException) {
                             InternalServerError
@@ -87,8 +88,8 @@ fun Route.addTvShowRoutes(
         get("/episode/{episode_id}") {
             val episodeId = call.parameters["episode_id"]
             if (episodeId.isNullOrBlank()) return@get call.respond(NotFound)
-            val includeRefs = call.parameters["includeRefs"]?.toBoolean() ?: true
-            val response = queries.findEpisodeById(episodeId, includeRefs = includeRefs)
+            val includeLinks = call.parameters["includeLinks"]?.toBoolean() ?: true
+            val response = queries.findEpisodeById(episodeId, includeLinks = includeLinks)
                 ?: return@get call.respond(NotFound)
             call.respond(response)
         }
@@ -96,8 +97,8 @@ fun Route.addTvShowRoutes(
         get("/season/{season_id}") {
             val seasonId = call.parameters["season_id"]
             if (seasonId.isNullOrBlank()) return@get call.respond(NotFound)
-            val includeRefs = call.parameters["includeRefs"]?.toBoolean() ?: true
-            val response = queries.findSeasonById(seasonId, includeRefs = includeRefs)
+            val includeLinks = call.parameters["includeLinks"]?.toBoolean() ?: true
+            val response = queries.findSeasonById(seasonId, includeLinks = includeLinks)
                 ?: return@get call.respond(NotFound)
 
             call.respond(response)

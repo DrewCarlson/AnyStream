@@ -39,10 +39,10 @@ fun Route.addImageRoutes(dataPath: String) {
         }
     }
     route("/image") {
-        get("/previews/{mediaRefId}/{imageName}") {
-            val mediaRefId = call.parameters["mediaRefId"] ?: return@get call.respond(NotFound)
+        get("/previews/{mediaLinkId}/{imageName}") {
+            val mediaLinkId = call.parameters["mediaLinkId"] ?: return@get call.respond(NotFound)
             val imageName = call.parameters["imageName"] ?: return@get call.respond(NotFound)
-            val imagePath = Path(dataPath, "previews", mediaRefId, imageName)
+            val imagePath = Path(dataPath, "previews", mediaLinkId, imageName)
             if (imagePath.exists()) {
                 call.respondFile(imagePath.toFile())
             } else {

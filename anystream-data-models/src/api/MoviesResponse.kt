@@ -17,12 +17,12 @@
  */
 package anystream.models.api
 
-import anystream.models.MediaReference
+import anystream.models.MediaLink
 import anystream.models.Movie
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class MoviesResponse(
     val movies: List<Movie>,
-    val mediaReferences: List<MediaReference>
+    val mediaLinks: List<MediaLink>
 )

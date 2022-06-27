@@ -23,8 +23,8 @@ import kotlinx.datetime.Instant
 data class PlaybackStateDb(
     val id: Int,
     val gid: String,
-    val mediaReferenceId: String,
-    val mediaGid: String,
+    val mediaLinkId: String,
+    val metadataGid: String,
     val userId: Int,
     val position: Double,
     val runtime: Double,
@@ -35,8 +35,8 @@ data class PlaybackStateDb(
             return PlaybackStateDb(
                 id = -1,
                 gid = state.id,
-                mediaReferenceId = state.mediaReferenceId,
-                mediaGid = state.mediaId,
+                mediaLinkId = state.mediaLinkGid,
+                metadataGid = state.metadataGid,
                 userId = state.userId,
                 position = state.position,
                 runtime = state.runtime,
@@ -48,8 +48,8 @@ data class PlaybackStateDb(
     fun toStateModel(): PlaybackState {
         return PlaybackState(
             id = gid,
-            mediaReferenceId = mediaReferenceId,
-            mediaId = mediaGid,
+            mediaLinkGid = mediaLinkId,
+            metadataGid = metadataGid,
             userId = userId,
             position = position,
             runtime = runtime,

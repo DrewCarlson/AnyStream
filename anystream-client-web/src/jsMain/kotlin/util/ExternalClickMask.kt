@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.frontend.util
+package anystream.util
 
 import kotlinx.browser.window
 import org.w3c.dom.HTMLElement

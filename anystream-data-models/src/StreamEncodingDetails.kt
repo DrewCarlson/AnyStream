@@ -22,44 +22,73 @@ import kotlinx.serialization.Serializable
 @Serializable
 sealed class StreamEncodingDetails {
     abstract val id: Int
+    abstract val streamId: Int?
     abstract val codecName: String
+    abstract val codecLongName: String
     abstract val index: Int
     abstract val language: String?
+    abstract val duration: Float?
     abstract val title: String?
+    abstract val mediaLinkId: Int
+    abstract val default: Boolean
 
     @Serializable
     data class Audio(
         override val id: Int,
+        override val streamId: Int?,
         override val index: Int,
         override val codecName: String,
+        override val codecLongName: String,
         override val language: String?,
+        override val duration: Float?,
         override val title: String?,
+        override val mediaLinkId: Int,
+        override val default: Boolean,
         val profile: String?,
         val bitRate: Int?,
         val channels: Int,
+        val channelLayout: String?,
+        val sampleFmt: String?,
+        val sampleRate: Int?
     ) : StreamEncodingDetails()
 
     @Serializable
     data class Video(
         override val id: Int,
+        override val streamId: Int?,
         override val index: Int,
         override val codecName: String,
+        override val codecLongName: String,
         override val language: String?,
+        override val duration: Float?,
         override val title: String?,
+        override val mediaLinkId: Int,
+        override val default: Boolean,
         val profile: String?,
         val bitRate: Int?,
         val level: Int,
         val height: Int,
         val width: Int,
+        val colorSpace: String?,
+        val colorRange: String?,
+        val colorTransfer: String?,
+        val colorPrimaries: String?,
+        val pixFmt: String?,
+        val fieldOrder: String?
     ) : StreamEncodingDetails()
 
     @Serializable
     data class Subtitle(
         override val id: Int,
+        override val streamId: Int?,
         override val index: Int,
         override val codecName: String,
+        override val codecLongName: String,
         override val language: String?,
+        override val duration: Float?,
         override val title: String?,
+        override val mediaLinkId: Int,
+        override val default: Boolean
     ) : StreamEncodingDetails()
 
     val languageName: String

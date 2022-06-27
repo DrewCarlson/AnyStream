@@ -4,14 +4,20 @@
             <pattern>%d{YYYY-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
-    <root level="trace">
+    <!--appender name="SOCKET" class="ch.qos.logback.classic.net.SocketAppender">
+        <remoteHost>localhost</remoteHost>
+        <port>50505</port>
+        <reconnectionDelay>10000</reconnectionDelay>
+        <includeCallerData>true</includeCallerData>
+        <appender-ref ref="SOCKET"/>
+    </appender-->
+    <root level="TRACE">
         <appender-ref ref="STDOUT"/>
     </root>
     <logger name="org.eclipse.jetty" level="INFO"/>
     <logger name="io.netty" level="INFO"/>
-    <logger name="org.jdbi.sql" level="INFO"/>
+    <logger name="org.jdbi" level="ERROR"/>
     <logger name="info.movito.themoviedbapi" level="INFO"/>
     <logger name="com.github.kokorin.jaffree" level="ERROR"/>
     <logger name="kjob" level="ERROR"/>
-    <logger name="anystream.util" level="ERROR"/>
 </configuration>

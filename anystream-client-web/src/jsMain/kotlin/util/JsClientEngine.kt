@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.frontend.util
+package anystream.util
 
 import io.ktor.client.engine.*
 import io.ktor.client.fetch.*
@@ -110,6 +110,7 @@ internal suspend fun HttpRequestData.toRaw(callContext: CoroutineContext): Reque
 
 internal fun <T> buildObject(block: T.() -> Unit): T = (js("{}") as T).apply(block)
 
+@Suppress("UnsafeCastFromDynamic")
 internal suspend fun commonFetch(
     input: String,
     init: RequestInit
@@ -121,7 +122,7 @@ internal suspend fun commonFetch(
         controller.abort()
     }
 
-    val promise: Promise<Response> = fetch(input, init)
+    val promise: Promise<Response> = fetch(input, init).asDynamic()
 
     promise.then(
         onFulfilled = {

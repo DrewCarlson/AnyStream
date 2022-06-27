@@ -19,14 +19,12 @@ package anystream.metadata
 
 import anystream.models.MediaKind
 import anystream.models.api.*
-import org.slf4j.Logger
-import org.slf4j.MarkerFactory
+import org.slf4j.LoggerFactory
 
 class MetadataManager(
-    private val providers: List<MetadataProvider>,
-    private val logger: Logger,
+    private val providers: List<MetadataProvider>
 ) {
-    private val classMarker = MarkerFactory.getMarker(this::class.simpleName)
+    private val logger = LoggerFactory.getLogger(this::class.java)
 
     suspend fun findByRemoteId(remoteId: String): QueryMetadataResult {
         val (providerId, mediaKindString, rawId) = remoteId.split(':')
@@ -39,7 +37,7 @@ class MetadataManager(
                     parsedId = parts[0]
                     QueryMetadata.Extras.TvShowExtras(
                         seasonNumber = parts.getOrNull(1)?.toIntOrNull(),
-                        episodeNumber = parts.getOrNull(2)?.toIntOrNull(),
+                        episodeNumber = parts.getOrNull(2)?.toIntOrNull()
                     )
                 } else null
             }
@@ -49,7 +47,7 @@ class MetadataManager(
         return search(
             QueryMetadata(
                 providerId = providerId,
-                contentId = parsedId,
+                metadataGid = parsedId,
                 mediaKind = mediaKind,
                 extras = extras
             )

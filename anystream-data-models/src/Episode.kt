@@ -20,7 +20,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Episode(
-    val id: String,
+    val id: Int,
+    val gid: String,
     val showId: String,
     val seasonId: String,
     val name: String,
@@ -30,5 +31,5 @@ data class Episode(
     val number: Int,
     val seasonNumber: Int,
     val stillPath: String,
-    val tmdbRating: Int?,
+    val tmdbRating: Int?
 )

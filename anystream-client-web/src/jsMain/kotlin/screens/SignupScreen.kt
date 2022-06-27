@@ -15,16 +15,16 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.frontend.screens
+package anystream.screens
 
 import androidx.compose.runtime.*
-import anystream.frontend.LocalAnyStreamClient
-import anystream.frontend.routing.WebRouter
-import anystream.frontend.util.createLoopController
+import anystream.LocalAnyStreamClient
 import anystream.models.*
 import anystream.models.api.CreateUserResponse
+import anystream.routing.WebRouter
 import anystream.ui.signup.*
 import anystream.ui.signup.SignupScreenModel.State
+import anystream.util.createLoopController
 import app.softwork.routingcompose.Router
 import io.ktor.http.*
 import kotlinx.browser.window

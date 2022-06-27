@@ -24,7 +24,7 @@ data class InviteCode(
     val id: Long,
     val secret: String,
     val permissions: Set<Permission>,
-    val createdByUserId: Int,
+    val createdByUserId: Int
 ) {
     companion object {
         const val SIZE = 32

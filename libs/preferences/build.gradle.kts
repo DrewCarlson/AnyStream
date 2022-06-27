@@ -8,7 +8,7 @@ plugins {
 if (hasAndroidSdk) {
     apply(plugin = "com.android.library")
     configure<LibraryExtension> {
-        compileSdk = 31
+        compileSdk = 32
         defaultConfig {
             minSdk = 23
             targetSdk = 31
@@ -21,7 +21,6 @@ kotlin {
     if (hasAndroidSdk) {
         android()
     }
-    jvm()
     iosX64()
     iosArm64()
     iosSimulatorArm64()

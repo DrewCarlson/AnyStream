@@ -36,7 +36,6 @@ dependencies {
 
     implementation(libs.jdbc.sqlite)
     implementation(libs.jdbi.core)
-    implementation(libs.jdbi.sqlite)
     implementation(libs.jdbi.sqlobject)
     implementation(libs.jdbi.kotlin)
     implementation(libs.jdbi.kotlin.sqlobject)

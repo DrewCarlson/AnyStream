@@ -18,14 +18,10 @@
 package anystream.routes
 
 import anystream.data.UserSession
-import anystream.db.MediaReferencesDao
-import anystream.db.model.MediaReferenceDb
+import anystream.db.MediaLinkDao
 import anystream.json
-import anystream.models.DownloadMediaReference
-import anystream.models.MediaKind
 import anystream.models.Permission
 import anystream.torrent.search.TorrentDescription2
-import anystream.util.ObjectId
 import anystream.util.extractUserSession
 import io.ktor.client.plugins.*
 import io.ktor.http.HttpStatusCode.Companion.Conflict
@@ -42,13 +38,11 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.flow.*
 import kotlinx.serialization.encodeToString
 import qbittorrent.QBittorrentClient
-import qbittorrent.models.Torrent
 import qbittorrent.models.TorrentFile
-import java.time.Instant
 
 fun Route.addTorrentRoutes(
     qbClient: QBittorrentClient,
-    mediaReferencesDao: MediaReferencesDao,
+    mediaLinkDao: MediaLinkDao,
 ) {
     route("/torrents") {
         get {
@@ -56,7 +50,7 @@ fun Route.addTorrentRoutes(
         }
 
         post {
-            val session = call.principal<UserSession>()!!
+            val session = checkNotNull(call.principal<UserSession>())
             val description = call.receiveOrNull<TorrentDescription2>()
                 ?: return@post call.respond(UnprocessableEntity)
             try {
@@ -68,19 +62,19 @@ fun Route.addTorrentRoutes(
             }
             qbClient.addTorrent {
                 urls.add(description.magnetUrl)
-                savePath = "/downloads"
+                savepath = "/downloads"
                 sequentialDownload = true
                 firstLastPiecePriority = true
             }
             call.respond(OK)
 
-            val movieId = call.parameters["movieId"] ?: return@post
+            /*val movieId = call.parameters["movieId"] ?: return@post
             val downloadId = ObjectId.get().toString()
-            mediaReferencesDao.insertReference(
+            mediaLinkDao.insertLink(
                 MediaReferenceDb.fromRefModel(
                     DownloadMediaReference(
                         id = downloadId,
-                        contentId = movieId,
+                        metadataGid = movieId,
                         hash = description.hash,
                         addedByUserId = session.userId,
                         added = Instant.now().toEpochMilli(),
@@ -101,8 +95,8 @@ fun Route.addTorrentRoutes(
                 .take(1)
                 .onEach { // (file, torrent) ->
                     // TODO: Update download reference details
-                    /*val download = mediaRefs.findOneById(downloadId) as DownloadMediaReference
-                    mediaRefs.updateOneById(
+                    /*val download = mediaLinks.findOneById(downloadId) as DownloadMediaReference
+                    mediaLinks.updateOneById(
                         downloadId,
                         download.copy(
                             fileIndex = file.id,
@@ -110,7 +104,7 @@ fun Route.addTorrentRoutes(
                         )
                     )*/
                 }
-                .launchIn(application)
+                .launchIn(application)*/
         }
 
         route("/global") {
@@ -141,7 +135,7 @@ fun Route.addTorrentRoutes(
                 val hash = call.parameters["hash"]!!
                 val deleteFiles = call.request.queryParameters["deleteFiles"]!!.toBoolean()
                 qbClient.deleteTorrents(listOf(hash), deleteFiles = deleteFiles)
-                mediaReferencesDao.deleteDownloadByHash(hash)
+                mediaLinkDao.deleteDownloadByHash(hash)
                 call.respond(OK)
             }
         }
@@ -176,7 +170,7 @@ fun Route.addTorrentWsRoutes(qbClient: QBittorrentClient) {
     webSocket("/ws/torrents/observe") {
         val session = checkNotNull(extractUserSession())
         check(Permission.check(Permission.ManageTorrents, session.permissions))
-        qbClient.syncMainData()
+        qbClient.observeMainData()
             .takeWhile { !outgoing.isClosedForSend }
             .collect { data ->
                 val changed = data.torrents.keys
@@ -192,7 +186,7 @@ fun Route.addTorrentWsRoutes(qbClient: QBittorrentClient) {
     webSocket("/ws/torrents/global") {
         val session = checkNotNull(extractUserSession())
         check(Permission.check(Permission.ManageTorrents, session.permissions))
-        qbClient.syncMainData()
+        qbClient.observeMainData()
             .takeWhile { !outgoing.isClosedForSend }
             .collect { data ->
                 outgoing.send(Frame.Text(json.encodeToString(data.serverState)))

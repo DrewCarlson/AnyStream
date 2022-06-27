@@ -51,7 +51,7 @@ private const val PLAYER_STATE_REMOTE_UPDATE_INTERVAL = 5_000L
 @Composable
 fun PlayerScreen(
     client: AnyStreamClient,
-    mediaRefId: String,
+    mediaLinkId: String,
     modifier: Modifier = Modifier,
 ) {
     val scope = rememberCoroutineScope()
@@ -84,7 +84,7 @@ fun PlayerScreen(
     }
     produceState<PlaybackState?>(null) {
         val initialState = MutableStateFlow<PlaybackState?>(null)
-        val handle = client.playbackSession(mediaRefId) { state ->
+        val handle = client.playbackSession(mediaLinkId) { state ->
             println("[player] $state")
             initialState.value = state
             position = (state.position * 1000).toLong()
@@ -92,7 +92,7 @@ fun PlayerScreen(
         }
         val state = initialState.filterNotNull().first()
         withContext(Main) {
-            val url = client.createHlsStreamUrl(mediaRefId, state.id)
+            val url = client.createHlsStreamUrl(mediaLinkId, state.id)
             println("[player] $url")
             player.setMediaItem(ExoMediaItem.fromUri(url))
             player.seekTo(window, position)

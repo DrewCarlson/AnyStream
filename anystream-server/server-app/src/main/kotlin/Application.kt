@@ -53,7 +53,6 @@ import org.drewcarlson.ktor.permissions.PermissionAuthorization
 import org.jdbi.v3.core.Jdbi
 import org.jdbi.v3.core.kotlin.KotlinPlugin
 import org.jdbi.v3.core.statement.Slf4JSqlLogger
-import org.jdbi.v3.sqlite3.SQLitePlugin
 import org.jdbi.v3.sqlobject.SqlObjectPlugin
 import org.jdbi.v3.sqlobject.kotlin.KotlinSqlObjectPlugin
 import org.slf4j.event.Level
@@ -71,7 +70,6 @@ fun Application.module(testing: Boolean = false) {
 
     val jdbi = Jdbi.create(config.databaseUrl).apply {
         setSqlLogger(Slf4JSqlLogger())
-        installPlugin(SQLitePlugin())
         installPlugin(SqlObjectPlugin())
         installPlugin(KotlinSqlObjectPlugin())
         installPlugin(KotlinPlugin())
@@ -119,10 +117,10 @@ fun Application.module(testing: Boolean = false) {
     install(CachingHeaders) {
         options { _, outgoingContent ->
             when (outgoingContent.contentType?.withoutParameters()) {
-                ContentType.Text.CSS -> CachingOptions(
+                /*ContentType.Text.CSS -> CachingOptions(
                     CacheControl.MaxAge(maxAgeSeconds = 24 * 60 * 60),
                     expires = null as? GMTDate?
-                )
+                )*/
                 else -> null
             }
         }

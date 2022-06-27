@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    compileSdk = 31
+    compileSdk = 32
     defaultConfig {
         minSdk = 24
         targetSdk = 31
@@ -60,7 +60,7 @@ dependencies {
     implementation(libs.quickie.bundled)
     implementation(libs.anrWatchdog)
     implementation(libs.okhttp)
-    implementation(libs.ktor.client.okhttp)
+    implementation(libs.ktor.client.cio)
 
     debugImplementation(libs.leakcanary)
 }

@@ -1,9 +1,10 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
+@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
+    alias(libs.plugins.jvm)
+    alias(libs.plugins.serialization)
     application
-    kotlin("jvm")
-    kotlin("plugin.serialization")
     id("com.github.johnrengelman.shadow")
 }
 
@@ -65,7 +66,7 @@ kotlin {
 dependencies {
     implementation(projects.anystreamDataModels)
     implementation(projects.anystreamServer.serverDbModels)
-    implementation(projects.anystreamServer.serverMediaImporter)
+    implementation(projects.anystreamServer.serverLibraryManager)
     implementation(projects.anystreamServer.serverMetadataManager)
     implementation(projects.anystreamServer.serverShared)
     implementation(projects.anystreamServer.serverStreamService)
@@ -96,7 +97,7 @@ dependencies {
     implementation(libs.ktor.server.permissions)
 
     implementation(libs.ktor.client.core)
-    implementation(libs.ktor.client.okhttp)
+    implementation(libs.ktor.client.cio)
     implementation(libs.ktor.client.logging)
     implementation(libs.ktor.client.contentNegotiation)
 
@@ -106,7 +107,6 @@ dependencies {
 
     implementation(libs.jdbc.sqlite)
     implementation(libs.jdbi.core)
-    implementation(libs.jdbi.sqlite)
     implementation(libs.jdbi.sqlobject)
     implementation(libs.jdbi.kotlin)
     implementation(libs.jdbi.kotlin.sqlobject)

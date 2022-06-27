@@ -15,12 +15,12 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.frontend.screens
+package anystream.screens
 
 import androidx.compose.runtime.*
-import anystream.frontend.LocalAnyStreamClient
-import anystream.frontend.libs.*
-import anystream.frontend.util.ExternalClickMask
+import anystream.LocalAnyStreamClient
+import anystream.libs.*
+import anystream.util.ExternalClickMask
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.mapLatest

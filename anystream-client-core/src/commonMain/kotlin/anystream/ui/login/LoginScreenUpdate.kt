@@ -50,10 +50,10 @@ object LoginScreenUpdate : Update<LoginScreenModel, LoginScreenEvent, LoginScree
                 model.copy(
                     serverUrl = event.serverUrl,
                     serverValidation = ServerValidation.VALIDATING,
-                    pairingCode = null,
+                    pairingCode = null
                 ),
                 LoginScreenEffect.ValidateServerUrl(serverUrl = event.serverUrl),
-                LoginScreenEffect.PairingSession("", cancel = true),
+                LoginScreenEffect.PairingSession("", cancel = true)
             )
             else -> noChange()
         }
@@ -101,7 +101,7 @@ object LoginScreenUpdate : Update<LoginScreenModel, LoginScreenEvent, LoginScree
             model.state == State.AUTHENTICATING || !model.pairingCode.isNullOrBlank() -> {
                 next(
                     model.copy(state = State.AUTHENTICATED),
-                    LoginScreenEffect.NavigateToHome,
+                    LoginScreenEffect.NavigateToHome
                 )
             }
             else -> noChange()
@@ -116,7 +116,7 @@ object LoginScreenUpdate : Update<LoginScreenModel, LoginScreenEvent, LoginScree
             State.AUTHENTICATING -> next(
                 model.copy(
                     state = State.IDLE,
-                    loginError = event.error,
+                    loginError = event.error
                 )
             )
             else -> noChange()

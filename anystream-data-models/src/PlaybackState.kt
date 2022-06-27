@@ -23,17 +23,13 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class PlaybackState(
     val id: String,
-    val mediaReferenceId: String,
-    val mediaId: String,
+    val mediaLinkGid: String,
+    val metadataGid: String, // TODO: Make optional
     val userId: Int,
     val position: Double,
     val runtime: Double,
-    val updatedAt: Instant,
+    val updatedAt: Instant
 ) {
     val completedPercent: Float
-        get() {
-            return (position / runtime)
-                .coerceIn(0.0, 1.0)
-                .toFloat()
-        }
+        get() = (position / runtime).coerceIn(0.0, 1.0).toFloat()
 }

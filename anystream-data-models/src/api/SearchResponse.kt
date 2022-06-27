@@ -18,7 +18,7 @@
 package anystream.models.api
 
 import anystream.models.Episode
-import anystream.models.MediaReference
+import anystream.models.MediaLink
 import anystream.models.Movie
 import anystream.models.TvShow
 import kotlinx.serialization.Serializable
@@ -28,7 +28,7 @@ data class SearchResponse(
     val movies: List<Movie> = emptyList(),
     val tvShows: List<TvShowResult> = emptyList(),
     val episodes: List<EpisodeResult> = emptyList(),
-    val mediaReferences: Map<String, MediaReference> = emptyMap(),
+    val mediaLink: Map<String, MediaLink> = emptyMap()
 ) {
     fun hasResult(): Boolean =
         movies.isNotEmpty() || tvShows.isNotEmpty() || episodes.isNotEmpty()
@@ -36,12 +36,12 @@ data class SearchResponse(
     @Serializable
     data class TvShowResult(
         val tvShow: TvShow,
-        val seasonCount: Int,
+        val seasonCount: Int
     )
 
     @Serializable
     data class EpisodeResult(
         val episode: Episode,
-        val tvShow: TvShow,
+        val tvShow: TvShow
     )
 }

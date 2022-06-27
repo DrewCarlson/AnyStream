@@ -21,7 +21,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Movie(
-    val id: String,
+    val id: Int,
+    val gid: String,
     val title: String,
     val overview: String,
     val tagline: String? = null,
@@ -37,10 +38,10 @@ data class Movie(
     val tmdbRating: Int? = null,
     val genres: List<Genre>,
     val companies: List<ProductionCompany>,
-    val contentRating: String?,
+    val contentRating: String?
 ) {
     val isAdded: Boolean
-        get() = !id.contains(':')
+        get() = !gid.contains(':')
 }
 
 @Serializable

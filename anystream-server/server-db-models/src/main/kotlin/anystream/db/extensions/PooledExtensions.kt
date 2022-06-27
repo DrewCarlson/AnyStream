@@ -35,6 +35,10 @@ import java.util.*
 import java.util.function.Function
 import java.util.stream.Stream
 import kotlin.streams.toList
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.DurationUnit
+import kotlin.time.DurationUnit.MILLISECONDS
 
 class PooledExtensions : JdbiConfig<PooledExtensions> {
     private lateinit var factory: OnDemandExtensions.Factory
@@ -47,9 +51,9 @@ class PooledExtensions : JdbiConfig<PooledExtensions> {
             factory = factoryField.get(onDemandConfig) as OnDemandExtensions.Factory
         }
 
-    private val fact = object : ObjectFactory<Handle> {
+    private val objectFactory = object : ObjectFactory<Handle> {
         override fun create(): Handle {
-            return requireNotNull(jdbi?.open())
+            return checkNotNull(jdbi?.open())
         }
 
         override fun destroy(handle: Handle) {
@@ -60,13 +64,16 @@ class PooledExtensions : JdbiConfig<PooledExtensions> {
             return !handle.isClosed
         }
     }
-    private val pool = ObjectPool(
-        PoolConfig().apply {
-            minSize = 0
-            maxIdleMilliseconds = 5000
-        },
-        fact
-    )
+    private val pool by lazy(LazyThreadSafetyMode.PUBLICATION) {
+        ObjectPool(
+            PoolConfig().apply {
+                minSize = 1
+                maxSize = 20
+                maxIdleMilliseconds = 10.seconds.toInt(MILLISECONDS)
+            },
+            objectFactory
+        )
+    }
 
     fun <E> create(db: Jdbi, extensionType: Class<E>, extraTypes: Array<Class<*>> = emptyArray()): E {
         jdbi = db
@@ -84,21 +91,18 @@ class PooledExtensions : JdbiConfig<PooledExtensions> {
                 HASHCODE_METHOD -> System.identityHashCode(proxy)
                 TOSTRING_METHOD -> "$extensionType@" + Integer.toHexString(System.identityHashCode(proxy))
                 else -> {
-                    pool.borrowObject().use {
-                        val extension = it.`object`.attach(extensionType)
+                    pool.borrowObject().use { holder ->
+                        val extension = holder.`object`.attach(extensionType)
                         invoke(extension, method, args)
                     }
                 }
             }
         }
-        val types = Stream.of<Stream<out Class<*>>>(
-            Stream.of(extensionType),
-            Arrays.stream(extensionType.interfaces),
-            Arrays.stream(extraTypes)
-        ).flatMap(Function.identity())
-            .distinct()
-            .toList()
-            .toTypedArray()
+        val types = buildList(extensionType.interfaces.size + extraTypes.size) {
+            add(extensionType)
+            addAll(extensionType.interfaces)
+            addAll(extraTypes)
+        }.toTypedArray()
         return Proxy.newProxyInstance(extensionType.classLoader, types, handler)
     }
 

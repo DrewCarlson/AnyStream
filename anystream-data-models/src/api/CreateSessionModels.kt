@@ -33,13 +33,13 @@ sealed class CreateSessionResponse {
     @Serializable
     data class Success(
         val user: User,
-        val permissions: Set<Permission>,
+        val permissions: Set<Permission>
     ) : CreateSessionResponse()
 
     @Serializable
     data class Error(
         val usernameError: UsernameError? = null,
-        val passwordError: PasswordError? = null,
+        val passwordError: PasswordError? = null
     ) : CreateSessionResponse()
 
     enum class UsernameError {

@@ -23,7 +23,7 @@ sealed class SignupScreenEffect {
         val username: String,
         val password: String,
         val inviteCode: String,
-        val serverUrl: String,
+        val serverUrl: String
     ) : SignupScreenEffect() {
         override fun toString(): String {
             return "Signup(username='$username', " +

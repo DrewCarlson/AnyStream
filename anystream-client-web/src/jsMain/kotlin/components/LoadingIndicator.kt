@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.frontend.components
+package anystream.components
 
 import androidx.compose.runtime.Composable
 import org.jetbrains.compose.web.css.*
@@ -27,16 +27,21 @@ import org.w3c.dom.HTMLDivElement
 
 @Composable
 fun LoadingIndicator(
-    attrs: AttrBuilderContext<HTMLDivElement>? = null,
+    small: Boolean = false,
+    attrs: AttrBuilderContext<HTMLDivElement>? = null
 ) {
     Div({
-        attrs?.invoke(this)
-        classes("spinner-border", "text-primary")
         attr("role", "status")
-        style {
-            height(3.em)
-            width(3.em)
+        classes("spinner-border", "text-primary")
+        if (small) {
+            classes("spinner-border-sm")
+        } else {
+            style {
+                height(3.em)
+                width(3.em)
+            }
         }
+        attrs?.invoke(this)
     }) {
         Span({
             classes("visually-hidden")

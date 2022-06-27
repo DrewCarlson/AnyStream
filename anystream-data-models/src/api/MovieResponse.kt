@@ -17,7 +17,7 @@
  */
 package anystream.models.api
 
-import anystream.models.MediaReference
+import anystream.models.MediaLink
 import anystream.models.Movie
 import anystream.models.PlaybackState
 import kotlinx.serialization.Serializable
@@ -25,6 +25,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class MovieResponse(
     val movie: Movie,
-    val mediaRefs: List<MediaReference> = emptyList(),
-    val playbackState: PlaybackState? = null,
+    val mediaLinks: List<MediaLink> = emptyList(),
+    val playbackState: PlaybackState? = null
 )

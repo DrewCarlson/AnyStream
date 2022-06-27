@@ -29,7 +29,6 @@ import org.jdbi.v3.core.Handle
 import org.jdbi.v3.core.Jdbi
 import org.jdbi.v3.core.kotlin.KotlinPlugin
 import org.jdbi.v3.core.statement.Slf4JSqlLogger
-import org.jdbi.v3.sqlite3.SQLitePlugin
 import org.jdbi.v3.sqlobject.SqlObjectPlugin
 import org.jdbi.v3.sqlobject.kotlin.KotlinSqlObjectPlugin
 import org.jdbi.v3.sqlobject.kotlin.attach
@@ -47,7 +46,6 @@ class UserServiceValidationTest {
         runMigrations("jdbc:sqlite:test.db")
         val jdbi = Jdbi.create("jdbc:sqlite:test.db").apply {
             setSqlLogger(Slf4JSqlLogger())
-            installPlugin(SQLitePlugin())
             installPlugin(SqlObjectPlugin())
             installPlugin(KotlinSqlObjectPlugin())
             installPlugin(KotlinPlugin())

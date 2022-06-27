@@ -1,6 +1,6 @@
 import org.jetbrains.kotlin.gradle.targets.js.yarn.yarn
 
-@Suppress("DSL_SCOPE_VIOLATION", "UnstableApiUsage")
+@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     alias(libs.plugins.multiplatform) apply false
     alias(libs.plugins.jvm) apply false
@@ -17,7 +17,6 @@ buildscript {
         gradlePluginPortal()
         mavenCentral()
         google()
-        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev/")
     }
     dependencies {
         classpath(libs.agp)
@@ -26,7 +25,7 @@ buildscript {
 }
 
 allprojects {
-    yarn.apply{
+    yarn.apply {
         lockFileDirectory = rootDir.resolve("gradle/kotlin-js-store")
         version = "1.22.19"
     }
@@ -36,6 +35,7 @@ allprojects {
         google()
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
         maven("https://androidx.dev/storage/compose-compiler/repository/")
+        maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
     }
 
     System.getenv("GITHUB_REF")?.let { ref ->
@@ -60,7 +60,7 @@ subprojects {
             target("**/**.kt")
             licenseHeaderFile(rootDir.resolve("licenseHeader.txt"))
             ktlint(libs.versions.ktlint.get())
-                .userData(mapOf("disabled_rules" to "no-wildcard-imports,no-unused-imports"))
+                .editorConfigOverride(mapOf("disabled_rules" to "no-wildcard-imports,no-unused-imports"))
         }
     }
 

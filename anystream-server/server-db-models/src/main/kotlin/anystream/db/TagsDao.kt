@@ -19,9 +19,18 @@ package anystream.db
 
 import anystream.models.Genre
 import anystream.models.ProductionCompany
+import org.jdbi.v3.sqlobject.kotlin.BindKotlin
 import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys
+import org.jdbi.v3.sqlobject.statement.SqlBatch
 import org.jdbi.v3.sqlobject.statement.SqlQuery
 import org.jdbi.v3.sqlobject.statement.SqlUpdate
+
+data class TagData(
+    val name: String? = null,
+    val mediaId: Int? = null,
+    val tmdbId: Int? = null,
+    val genreId: Int? = null,
+)
 
 interface TagsDao {
 
@@ -29,11 +38,23 @@ interface TagsDao {
     @GetGeneratedKeys("id")
     fun insertTag(name: String, tmdbId: Int?): Int
 
-    @SqlUpdate("INSERT OR IGNORE INTO mediaGenres (mediaId, genreId) VALUES (?, ?)")
-    fun insertMediaGenreLink(mediaId: Int, genreId: Int)
+    @SqlBatch("INSERT OR IGNORE INTO tags (id, name, tmdbId) VALUES (null, ?, ?)")
+    @GetGeneratedKeys("id")
+    fun insertTag(@BindKotlin tags: List<TagData>): IntArray
 
-    @SqlUpdate("INSERT OR IGNORE INTO mediaCompanies (mediaId, companyId) VALUES (?, ?)")
-    fun insertMediaCompanyLink(mediaId: Int, companyId: Int)
+    @SqlUpdate("INSERT OR IGNORE INTO metadataGenres (metadataId, genreId) VALUES (?, ?)")
+    fun insertMetadataGenreLink(mediaId: Int, genreId: Int)
+
+    @SqlBatch("INSERT OR IGNORE INTO metadataGenres (metadataId, genreId) VALUES (?, ?)")
+    @GetGeneratedKeys("id")
+    fun insertMetadataGenreLink(@BindKotlin tags: List<TagData>): IntArray
+
+    @SqlUpdate("INSERT OR IGNORE INTO metadataCompanies (metadataId, companyId) VALUES (?, ?)")
+    fun insertMetadataCompanyLink(mediaId: Int, companyId: Int)
+
+    @SqlUpdate("INSERT OR IGNORE INTO metadataCompanies (metadataId, companyId) VALUES (?, ?)")
+    @GetGeneratedKeys("id")
+    fun insertMetadataCompanyLink(@BindKotlin tags: List<TagData>): IntArray
 
     @SqlQuery("SELECT * FROM tags WHERE tmdbId = ?")
     fun findGenreByTmdbId(tmdbId: Int): Genre?

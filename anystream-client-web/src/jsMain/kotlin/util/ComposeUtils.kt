@@ -15,15 +15,15 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.frontend.util
+package anystream.util
 
 import androidx.compose.runtime.*
 import org.jetbrains.compose.web.dom.ElementScope
 import org.w3c.dom.HTMLElement
 
 @Composable
-fun <T : HTMLElement> ElementScope<T>.rememberDomElement(key: Any? = null): State<HTMLElement?> {
-    val state = remember { mutableStateOf<HTMLElement?>(null) }
+fun <T : HTMLElement> ElementScope<T>.rememberDomElement(key: Any? = null): State<T?> {
+    val state = remember { mutableStateOf<T?>(null) }
     DisposableEffect(key) {
         state.value = scopeElement
         onDispose {

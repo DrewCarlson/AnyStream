@@ -1,10 +1,11 @@
 @import "_custom.scss";
 
-.bg-dark {
-  --bs-bg-opacity: 0.3;
+.bg-dark-translucent {
+  background-color: rgba(0, 0, 0, 0.3);
 }
 
 .btn-primary {
+  @extend .btn-primary;
   color: white;
   &:hover {
     color: darken(white, 10%);
@@ -12,6 +13,21 @@
   &:focus {
     color: darken(white, 10%);
   }
+}
+
+.media-kind-link {
+  color: white;
+  text-decoration: none;
+  &:hover {
+    background-color: transparentize(white, 0.9);
+  }
+  &:focus {
+    background-color: transparentize(white, 0.9);
+  }
+}
+
+.media-kind-link.active {
+  color: $primary;
 }
 
 body {
@@ -52,4 +68,24 @@ html, body, #root, #main-panel {
 
 video {
   background-color: black;
+}
+
+.animate-popup {
+  animation-duration: 0.15s;
+  animation-name: animate-popup-transition;
+  animation-fill-mode: backwards;
+  animation-timing-function: cubic-bezier(0.8, 1, 1, 1);
+}
+
+@keyframes animate-popup-transition {
+  0% {
+    opacity: 0.1;
+    margin-top: -10px;
+    scale: 0.90;
+  }
+  100% {
+    opacity: 1;
+    margin-top: 0;
+    scale: 1;
+  }
 }

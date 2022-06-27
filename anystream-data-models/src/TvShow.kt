@@ -21,7 +21,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class TvShow(
-    val id: String,
+    val id: Int,
+    val gid: String,
     val name: String,
     val tmdbId: Int,
     val overview: String,
@@ -33,8 +34,8 @@ data class TvShow(
     val tmdbRating: Int? = null,
     val contentRating: String? = null,
     val genres: List<Genre> = emptyList(),
-    val companies: List<ProductionCompany> = emptyList(),
+    val companies: List<ProductionCompany> = emptyList()
 ) {
     val isAdded: Boolean
-        get() = !id.contains(':')
+        get() = !gid.contains(':')
 }

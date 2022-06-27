@@ -17,7 +17,11 @@
  */
 package anystream.routes
 
+import anystream.media.LibraryManager
 import anystream.models.Permission
+import anystream.models.api.LibraryActivity
+import anystream.models.api.PlaybackSessions
+import anystream.service.stream.StreamService
 import anystream.util.extractUserSession
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.LoggerContext
@@ -28,15 +32,49 @@ import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.isActive
 import org.slf4j.LoggerFactory
+import kotlin.time.Duration.Companion.seconds
 
 fun Route.addAdminRoutes() {
     route("/admin") {
     }
 }
 
-fun Route.addAdminWsRoutes() {
+fun Route.addAdminWsRoutes(
+    libraryManager: LibraryManager,
+    streamService: StreamService,
+) {
+    val sessionsFlow = callbackFlow<PlaybackSessions> {
+        var previousSessions: PlaybackSessions? = null
+        while (true) {
+            val nextSessions = streamService.getPlaybackSessions()
+            if (previousSessions != nextSessions) {
+                previousSessions = nextSessions
+                trySend(nextSessions)
+            }
+            delay(2.seconds)
+        }
+    }.shareIn(application, SharingStarted.WhileSubscribed(), 1)
+
+    webSocket("/ws/admin/sessions") {
+        val session = checkNotNull(extractUserSession())
+        check(Permission.check(Permission.ConfigureSystem, session.permissions))
+        sessionsFlow.collect { response -> sendSerialized(response) }
+    }
+
+    webSocket("/ws/admin/activity") {
+        val session = checkNotNull(extractUserSession())
+        check(Permission.check(Permission.ConfigureSystem, session.permissions))
+        combine(
+            sessionsFlow,
+            libraryManager.mediaScannerState,
+        ) { playbackSessions, mediaScannerState ->
+            LibraryActivity(mediaScannerState, playbackSessions)
+        }.collect { sendSerialized(it) }
+    }
+
     webSocket("/ws/admin/logs") {
         val session = checkNotNull(extractUserSession())
         check(Permission.check(Permission.ConfigureSystem, session.permissions))

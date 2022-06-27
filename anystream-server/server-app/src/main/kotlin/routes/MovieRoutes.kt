@@ -27,12 +27,12 @@ import io.ktor.server.routing.*
 import org.drewcarlson.ktor.permissions.withAnyPermission
 
 fun Route.addMovieRoutes(
-    queries: MediaDbQueries,
+    queries: MetadataDbQueries,
 ) {
     route("/movies") {
         get {
-            val includeRefs = call.parameters["includeRefs"]?.toBoolean() ?: true
-            call.respond(queries.findMovies(includeRefs = includeRefs))
+            val includeLinks = call.parameters["includeLinks"]?.toBoolean() ?: true
+            call.respond(queries.findMovies(includeLinks = includeLinks))
         }
 
         route("/{movie_id}") {
@@ -46,12 +46,12 @@ fun Route.addMovieRoutes(
                 call.respond(response)
             }
 
-            get("/refs") {
+            get("/links") {
                 val movieId = call.parameters["movie_id"]
                     ?.takeUnless(String::isNullOrBlank)
                     ?: return@get call.respond(NotFound)
 
-                call.respond(queries.findMediaRefsByContentId(movieId))
+                call.respond(queries.findMediaLinksByMetadataId(movieId))
             }
 
             withAnyPermission(Permission.ManageCollection) {
@@ -59,10 +59,10 @@ fun Route.addMovieRoutes(
                     val movieId = call.parameters["movie_id"]
                         ?.takeUnless(String::isNullOrBlank)
                         ?: return@delete call.respond(NotFound)
-                    val deleteRefs = call.parameters["deleteRefs"]?.toBoolean() ?: true
+                    val deleteLinks = call.parameters["deleteLinks"]?.toBoolean() ?: true
 
-                    if (deleteRefs) {
-                        queries.deleteRefsByContentId(movieId)
+                    if (deleteLinks) {
+                        queries.deleteLinksByContentId(movieId)
                     }
 
                     call.respond(if (queries.deleteMovie(movieId)) OK else NotFound)

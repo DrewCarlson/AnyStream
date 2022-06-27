@@ -30,10 +30,14 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.HttpStatusCode.Companion.NotFound
+import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.serialization.*
 import io.ktor.serialization.kotlinx.*
 import io.ktor.serialization.kotlinx.json.*
+import io.ktor.util.*
+import io.ktor.util.date.*
+import io.ktor.utils.io.*
 import io.ktor.websocket.*
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.*
@@ -59,10 +63,12 @@ private val json = Json {
     useAlternativeNames = false
 }
 
+private val KEY_INTERNAL_ERROR = AttributeKey<Throwable>("INTERNAL_ERROR")
+
 class AnyStreamClient(
     /** The AnyStream server URL, ex. `http://localhost:3000`. */
     serverUrl: String?,
-    http: HttpClient = HttpClient(),
+    httpClient: HttpClient = HttpClient(),
     private val sessionManager: SessionManager = SessionManager(SessionDataStore)
 ) {
     companion object {
@@ -93,7 +99,7 @@ class AnyStreamClient(
         this.serverUrl = serverUrl ?: sessionManager.fetchServerUrl() ?: ""
     }
 
-    private val http = http.config {
+    private val http = httpClient.config {
         install(HttpCookies) {
             storage = AcceptAllCookiesStorage()
         }
@@ -102,6 +108,26 @@ class AnyStreamClient(
         }
         WebSockets {
             contentConverter = KotlinxWebsocketSerializationConverter(json)
+        }
+        install("ErrorTransformer") {
+            requestPipeline.intercept(HttpRequestPipeline.State) {
+                try {
+                    proceed()
+                } catch (e: Throwable) {
+                    val responseData = HttpResponseData(
+                        statusCode = HttpStatusCode(-1, ""),
+                        requestTime = GMTDate(),
+                        body = ByteReadChannel(byteArrayOf()),
+                        callContext = context.executionContext,
+                        headers = Headers.Empty,
+                        version = HttpProtocolVersion.HTTP_1_0
+                    )
+                    context.attributes.put(KEY_INTERNAL_ERROR, e)
+                    @OptIn(InternalAPI::class)
+                    subject = HttpClientCall(this@install, context.build(), responseData)
+                    proceed()
+                }
+            }
         }
         install("TokenHandler") {
             requestPipeline.intercept(HttpRequestPipeline.Before) {
@@ -123,14 +149,39 @@ class AnyStreamClient(
         }
     }
 
+    private val playbackSessionsFlow = createWsStateFlow("/api/ws/admin/sessions", PlaybackSessions())
+    private val libraryActivityFlow = createWsStateFlow("/api/ws/admin/activity", LibraryActivity())
+
+    val playbackSessions: StateFlow<PlaybackSessions> = playbackSessionsFlow
+    val libraryActivity: StateFlow<LibraryActivity> = libraryActivityFlow
+
+    private inline fun <reified T> createWsStateFlow(path: String, default: T): StateFlow<T> {
+        return callbackFlow<T> {
+            http.wss("$serverUrlWs$path") {
+                send(sessionManager.fetchToken()!!)
+                while (!incoming.isClosedForReceive) {
+                    try {
+                        trySend(receiveDeserialized())
+                    } catch (e: WebsocketDeserializeException) {
+                        // ignored
+                    } catch (e: ClosedReceiveChannelException) {
+                        // ignored
+                    }
+                }
+                awaitClose()
+            }
+        }.stateIn(http, SharingStarted.WhileSubscribed(), default)
+    }
+
     suspend fun verifyAndSetServerUrl(serverUrl: String): Boolean {
         if (this.serverUrl.equals(serverUrl, ignoreCase = true)) return true
         return try {
-            check(http.get(serverUrl).status == HttpStatusCode.OK)
+            check(http.get(serverUrl).status == OK)
             this.serverUrl = serverUrl
             sessionManager.writeServerUrl(this.serverUrl)
             true
         } catch (e: Throwable) {
+            e.printStackTrace()
             false
         }
     }
@@ -180,104 +231,108 @@ class AnyStreamClient(
         }
     }
 
-    suspend fun getHomeData(): HomeResponse = http.get("$serverUrl/api/home").body()
+    suspend fun getHomeData(): HomeResponse = http.get("$serverUrl/api/home").bodyOrThrow()
 
     suspend fun getMovies(page: Int = 1): MoviesResponse =
-        http.get("$serverUrl/api/movies") { pageParam(page) }.body()
-
-    suspend fun getMovieSources(id: String): List<TorrentDescription2> =
-        http.get("$serverUrl/api/media/movies/$id/sources").body()
-
-    suspend fun getTvShowSources(id: String): List<TorrentDescription2> =
-        http.get("$serverUrl/api/media/tv/$id/sources").body()
+        http.get("$serverUrl/api/movies") { pageParam(page) }.bodyOrThrow()
 
     suspend fun getTvShows(page: Int = 1): TvShowsResponse =
-        http.get("$serverUrl/api/tv") { pageParam(page) }.body()
+        http.get("$serverUrl/api/tv") { pageParam(page) }.bodyOrThrow()
 
     suspend fun getMovie(id: String): MovieResponse =
-        http.get("$serverUrl/api/movies/$id").body()
+        http.get("$serverUrl/api/movies/$id").bodyOrThrow()
 
     suspend fun deleteMovie(id: String) {
-        http.delete("$serverUrl/api/movies/$id")
+        http.delete("$serverUrl/api/movies/$id").orThrow()
     }
 
-    suspend fun getMediaRefs(): List<MediaReference> =
-        http.get("$serverUrl/api/media/refs").body()
+    suspend fun getMediaLinks(): List<MediaLink> =
+        http.get("$serverUrl/api/media/links").bodyOrThrow()
 
-    suspend fun getMediaRef(refId: String): MediaReference =
-        http.get("$serverUrl/api/media/refs/$refId").body()
+    suspend fun getMediaLink(linkGid: String): MediaLink =
+        http.get("$serverUrl/api/media/links/$linkGid").bodyOrThrow()
 
-    suspend fun getMediaRefsForMovie(movieId: String): List<MediaReference> =
-        http.get("$serverUrl/api/movies/$movieId/refs").body()
+    suspend fun getMediaLinksForMovie(movieId: String): List<MediaLink> =
+        http.get("$serverUrl/api/movies/$movieId/links").bodyOrThrow()
 
-    suspend fun getMediaRefsForShow(showId: String): List<MediaReference> =
-        http.get("$serverUrl/api/tv/$showId/refs").body()
+    suspend fun getMediaLinksForShow(showId: String): List<MediaLink> =
+        http.get("$serverUrl/api/tv/$showId/links").bodyOrThrow()
 
-    suspend fun importMedia(importMedia: ImportMedia, importAll: Boolean) {
-        http.post("$serverUrl/api/media/import") {
-            contentType(ContentType.Application.Json)
-            parameter("importAll", importAll)
-            setBody(importMedia)
+    suspend fun addLibraryFolder(path: String, mediaKind: MediaKind): AddLibraryFolderResponse {
+        return try {
+            http.post("$serverUrl/api/media/library-folders") {
+                contentType(ContentType.Application.Json)
+                setBody(AddLibraryFolderRequest(path, mediaKind))
+            }.bodyOrThrow()
+        } catch (e: AnyStreamClientException) {
+            e.printStackTrace()
+            AddLibraryFolderResponse.RequestError(e.stackTraceToString())
         }
     }
 
-    suspend fun unmappedMedia(importMedia: ImportMedia): List<String> {
+    suspend fun deleteLibraryFolder(gid: String): Boolean {
+        return try {
+            http.delete("$serverUrl/api/media/library-folders/$gid").orThrow()
+            true
+        } catch (e: AnyStreamClientException) {
+            if (e.response?.status == NotFound) false else throw e
+        }
+    }
+
+    suspend fun getLibraryFolderList(): LibraryFolderList {
+        return try {
+            http.get("$serverUrl/api/media/library-folders").bodyOrThrow()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            LibraryFolderList(emptyList())
+        }
+    }
+
+    suspend fun unmappedMedia(mediaScanRequest: MediaScanRequest): List<String> {
         return http.post("$serverUrl/api/media/unmapped") {
             contentType(ContentType.Application.Json)
-            setBody(importMedia)
-        }.body()
+            setBody(mediaScanRequest)
+        }.bodyOrThrow()
     }
 
-    suspend fun refreshMetadata(mediaId: String): MediaLookupResponse {
-        return http.get("$serverUrl/api/media/$mediaId/refresh-metadata").body()
+    suspend fun refreshMetadata(metadataGid: String): MediaLookupResponse {
+        return http.get("$serverUrl/api/media/$metadataGid/refresh-metadata").bodyOrThrow()
     }
 
-    suspend fun refreshStreamDetails(mediaId: String): List<ImportStreamDetailsResult> {
-        return http.get("$serverUrl/api/media/$mediaId/refresh-stream-details").body()
+    suspend fun analyzeMediaLinks(metadataGid: String): List<MediaAnalyzerResult> {
+        return http.get("$serverUrl/api/media/$metadataGid/analyze").bodyOrThrow()
     }
-
-    suspend fun getTvShow(id: String): TvShowResponse =
-        http.get("$serverUrl/api/tv/$id").body()
-
-    suspend fun getEpisodes(showId: String): EpisodesResponse =
-        http.get("$serverUrl/api/tv/$showId/episodes").body()
-
-    suspend fun getEpisode(id: String): EpisodeResponse =
-        http.get("$serverUrl/api/tv/episode/$id").body()
-
-    suspend fun getSeason(seasonId: String): SeasonResponse =
-        http.get("$serverUrl/api/tv/season/$seasonId").body()
 
     suspend fun lookupMedia(mediaId: String): MediaLookupResponse =
-        http.get("$serverUrl/api/media/$mediaId").body()
+        http.get("$serverUrl/api/media/$mediaId").bodyOrThrow()
 
-    suspend fun lookupMediaByRefId(refId: String): MediaLookupResponse =
-        http.get("$serverUrl/api/media/by-ref/$refId").body()
+    suspend fun lookupMetadataByMediaLinkGid(linkGid: String): MediaLookupResponse =
+        http.get("$serverUrl/api/media/by-link/$linkGid").bodyOrThrow()
 
     suspend fun getTmdbSources(tmdbId: Int): List<TorrentDescription2> =
-        http.get("$serverUrl/api/media/tmdb/$tmdbId/sources").body()
+        http.get("$serverUrl/api/media/tmdb/$tmdbId/sources").bodyOrThrow()
 
     suspend fun getGlobalTransferInfo(): GlobalTransferInfo =
-        http.get("$serverUrl/api/torrents/global").body()
+        http.get("$serverUrl/api/torrents/global").bodyOrThrow()
 
     suspend fun getTorrents(): List<Torrent> =
         http.get("$serverUrl/api/torrents").body()
 
     suspend fun getTorrentFiles(hash: String): List<TorrentFile> =
-        http.get("$serverUrl/api/torrents/$hash/files").body()
+        http.get("$serverUrl/api/torrents/$hash/files").bodyOrThrow()
 
     suspend fun resumeTorrent(hash: String) {
-        http.get("$serverUrl/api/torrents/$hash/resume")
+        http.get("$serverUrl/api/torrents/$hash/resume").orThrow()
     }
 
     suspend fun pauseTorrent(hash: String) {
-        http.get("$serverUrl/api/torrents/$hash/pause")
+        http.get("$serverUrl/api/torrents/$hash/pause").orThrow()
     }
 
     suspend fun deleteTorrent(hash: String, deleteFiles: Boolean = false) {
         http.delete("$serverUrl/api/torrents/$hash") {
             parameter("deleteFiles", deleteFiles)
-        }
+        }.orThrow()
     }
 
     suspend fun downloadTorrent(description: TorrentDescription2, movieId: String?) {
@@ -286,11 +341,11 @@ class AnyStreamClient(
             setBody(description)
 
             movieId?.let { parameter("movieId", it) }
-        }
+        }.orThrow()
     }
 
     suspend fun playbackSession(
-        mediaRefId: String,
+        mediaLinkId: String,
         init: (state: PlaybackState) -> Unit
     ): PlaybackSessionHandle {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -298,7 +353,7 @@ class AnyStreamClient(
         val progressFlow = MutableSharedFlow<Double>(0, 1, BufferOverflow.DROP_OLDEST)
         val mutex = Mutex(locked = true)
         scope.launch {
-            http.wss("$serverUrlWs/api/ws/stream/$mediaRefId/state") {
+            http.wss("$serverUrlWs/api/ws/stream/$mediaLinkId/state") {
                 send(sessionManager.fetchToken()!!)
                 val playbackState = receiveDeserialized<PlaybackState>()
                 currentState.value = playbackState
@@ -325,12 +380,12 @@ class AnyStreamClient(
         username: String,
         password: String,
         inviteCode: String?,
-        rememberUser: Boolean = true,
+        rememberUser: Boolean = true
     ): CreateUserResponse = http.post("$serverUrl/api/users") {
         contentType(ContentType.Application.Json)
         parameter("createSession", rememberUser)
         setBody(CreateUserBody(username, password, inviteCode))
-    }.body<CreateUserResponse>().also { response ->
+    }.bodyOrThrow<CreateUserResponse>().also { response ->
         if (rememberUser && response is CreateUserResponse.Success) {
             sessionManager.writeUser(response.user)
             sessionManager.writePermissions(response.permissions)
@@ -338,11 +393,11 @@ class AnyStreamClient(
     }
 
     suspend fun getUser(id: String): User {
-        return http.get("$serverUrl/api/users/$id").body()
+        return http.get("$serverUrl/api/users/$id").bodyOrThrow()
     }
 
     suspend fun getUsers(): List<User> {
-        return http.get("$serverUrl/api/users").body()
+        return http.get("$serverUrl/api/users").bodyOrThrow()
     }
 
     suspend fun updateUser(
@@ -360,18 +415,18 @@ class AnyStreamClient(
                     currentPassword = currentPassword
                 )
             )
-        }
+        }.orThrow()
     }
 
-    suspend fun deleteUser(id: String): HttpResponse {
-        return http.delete("$serverUrl/api/users/$id")
+    suspend fun deleteUser(id: String) {
+        http.delete("$serverUrl/api/users/$id").orThrow()
     }
 
     suspend fun login(username: String, password: String, pairing: Boolean = false): CreateSessionResponse {
         return http.post("$serverUrl/api/users/session") {
             contentType(ContentType.Application.Json)
             setBody(CreateSessionBody(username, password))
-        }.body<CreateSessionResponse>().also { response ->
+        }.bodyOrThrow<CreateSessionResponse>().also { response ->
             if (!pairing && response is CreateSessionResponse.Success) {
                 sessionManager.writeUser(response.user)
                 sessionManager.writePermissions(response.permissions)
@@ -384,26 +439,26 @@ class AnyStreamClient(
         sessionManager.clear()
         http.delete("$serverUrl/api/users/session") {
             header(SESSION_KEY, token)
-        }
+        }.orThrow()
     }
 
     suspend fun getInvites(): List<InviteCode> {
-        return http.get("$serverUrl/api/users/invite").body()
+        return http.get("$serverUrl/api/users/invite").bodyOrThrow()
     }
 
     suspend fun createInvite(permissions: Set<Permission>): InviteCode {
         return http.post("$serverUrl/api/users/invite") {
             contentType(ContentType.Application.Json)
             setBody(permissions)
-        }.body()
+        }.bodyOrThrow()
     }
 
     suspend fun deleteInvite(id: String): Boolean {
         return try {
-            http.delete("$serverUrl/api/users/invite/$id")
+            http.delete("$serverUrl/api/users/invite/$id").orThrow()
             true
-        } catch (e: ClientRequestException) {
-            if (e.response.status == NotFound) false else throw e
+        } catch (e: AnyStreamClientException) {
+            if (e.response?.status == NotFound) false else throw e
         }
     }
 
@@ -411,7 +466,7 @@ class AnyStreamClient(
         val response = http.post("$serverUrl/api/users/session/paired") {
             parameter("pairingCode", pairingCode)
             parameter("secret", secret)
-        }.body<CreateSessionResponse>()
+        }.bodyOrThrow<CreateSessionResponse>()
 
         (response as? CreateSessionResponse.Success)?.run {
             sessionManager.writeUser(user)
@@ -439,7 +494,7 @@ class AnyStreamClient(
         return http.get("$serverUrl/api/search") {
             parameter("query", query)
             parameter("limit", limit)
-        }.body()
+        }.bodyOrThrow()
     }
 
     fun observeLogs(): Flow<String> = callbackFlow {
@@ -452,28 +507,12 @@ class AnyStreamClient(
         }
     }
 
-    suspend fun getStreams(): PlaybackSessionsResponse {
-        return http.get("$serverUrl/api/stream").body()
-    }
-
-    fun observeStreams(): Flow<PlaybackSessionsResponse> = callbackFlow {
-        http.wss("$serverUrlWs/api/ws/stream") {
-            send(sessionManager.fetchToken()!!)
-            while (!incoming.isClosedForReceive) {
-                try {
-                    trySend(receiveDeserialized())
-                } catch (e: WebsocketDeserializeException) {
-                    // ignored
-                } catch (e: ClosedReceiveChannelException) {
-                    // ignored
-                }
-            }
-            awaitClose()
-        }
+    suspend fun getStreams(): PlaybackSessions {
+        return http.get("$serverUrl/api/stream").bodyOrThrow()
     }
 
     suspend fun listFiles(path: String? = null, showFiles: Boolean = false): ListFilesResponse? {
-        val response = http.get("$serverUrl/api/media/list-files") {
+        val response = http.get("$serverUrl/api/media/library-folders/list-files") {
             parameter("showFiles", showFiles)
             if (!path.isNullOrBlank()) {
                 parameter("root", path)
@@ -482,17 +521,60 @@ class AnyStreamClient(
 
         if (response.status == NotFound) return null
 
-        return response.body()
+        return response.bodyOrThrow()
     }
 
-    fun createHlsStreamUrl(mediaRefId: String, token: String): String {
-        return "$serverUrl/api/stream/$mediaRefId/hls/playlist.m3u8?token=$token"
+    fun createHlsStreamUrl(mediaLinkId: String, token: String): String {
+        return "$serverUrl/api/stream/$mediaLinkId/hls/playlist.m3u8?token=$token"
     }
 
     data class PlaybackSessionHandle(
         val update: MutableSharedFlow<Double>,
-        val cancel: () -> Unit,
+        val cancel: () -> Unit
     )
+
+    internal suspend fun HttpResponse.orThrow() {
+        if (!status.isSuccess()) {
+            throw call.attributes.takeOrNull(KEY_INTERNAL_ERROR)?.run(::AnyStreamClientException)
+                ?: AnyStreamClientException(this, bodyAsText())
+        }
+    }
+
+    internal suspend inline fun <reified T> HttpResponse.bodyOrThrow(): T {
+        return if (status.isSuccess()) {
+            when (T::class) {
+                String::class -> bodyAsText() as T
+                else -> body()
+            }
+        } else {
+            throw call.attributes.takeOrNull(KEY_INTERNAL_ERROR)?.run(::AnyStreamClientException)
+                ?: AnyStreamClientException(this, bodyAsText())
+        }
+    }
+}
+
+class AnyStreamClientException : Exception {
+
+    private var body: String? = null
+    var response: HttpResponse? = null
+        private set
+
+    constructor(
+        response: HttpResponse,
+        body: String
+    ) : super() {
+        this.response = response
+        this.body = body
+    }
+
+    constructor(cause: Throwable) : super(cause)
+
+    override val message: String
+        get() = if (response == null) {
+            super.message ?: "<no message>"
+        } else {
+            body?.ifBlank { "${response?.status?.value}: <no message>" }.orEmpty()
+        }
 }
 
 fun HttpRequestBuilder.pageParam(page: Int) {

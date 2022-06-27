@@ -51,9 +51,9 @@ object SignupScreenUpdate :
             State.IDLE -> next(
                 model.copy(
                     serverUrl = event.serverUrl,
-                    serverValidation = SignupScreenModel.ServerValidation.VALIDATING,
+                    serverValidation = SignupScreenModel.ServerValidation.VALIDATING
                 ),
-                SignupScreenEffect.ValidateServerUrl(serverUrl = event.serverUrl),
+                SignupScreenEffect.ValidateServerUrl(serverUrl = event.serverUrl)
             )
             else -> noChange()
         }
@@ -97,7 +97,7 @@ object SignupScreenUpdate :
             State.AUTHENTICATING -> {
                 next(
                     model.copy(state = State.AUTHENTICATED),
-                    SignupScreenEffect.NavigateToHome,
+                    SignupScreenEffect.NavigateToHome
                 )
             }
             else -> noChange()
@@ -112,7 +112,7 @@ object SignupScreenUpdate :
             State.AUTHENTICATING -> next(
                 model.copy(
                     state = State.IDLE,
-                    signupError = event.error,
+                    signupError = event.error
                 )
             )
             else -> noChange()

@@ -22,7 +22,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class TranscodeSession(
     val token: String,
-    val mediaRefId: String,
+    val mediaLinkId: String,
     val mediaPath: String,
     val outputPath: String,
     val ffmpegCommand: String,
@@ -35,7 +35,7 @@ data class TranscodeSession(
     val endTime: Double,
     val lastTranscodedSegment: Int,
     val state: State,
-    val transcodedSegments: List<Int>,
+    val transcodedSegments: List<Int>
 ) {
     enum class State {
         IDLE, RUNNING, COMPLETE

@@ -88,9 +88,9 @@ open class MainActivity : AppCompatActivity() {
                                 Routes.Home -> HomeScreen(
                                     client = client,
                                     backStack = stack,
-                                    onMediaClick = { mediaRefId ->
-                                        if (mediaRefId != null) {
-                                            stack.push(Routes.Player(mediaRefId))
+                                    onMediaClick = { mediaLinkId ->
+                                        if (mediaLinkId != null) {
+                                            stack.push(Routes.Player(mediaLinkId))
                                         }
                                     },
                                     onViewMoviesClicked = {
@@ -99,9 +99,9 @@ open class MainActivity : AppCompatActivity() {
                                 )
                                 Routes.Movies -> MoviesScreen(
                                     client = client,
-                                    onMediaClick = { mediaRefId ->
-                                        if (mediaRefId != null) {
-                                            stack.replace(Routes.Player(mediaRefId))
+                                    onMediaClick = { mediaLinkId ->
+                                        if (mediaLinkId != null) {
+                                            stack.replace(Routes.Player(mediaLinkId))
                                         }
                                     },
                                     backStack = stack
@@ -113,7 +113,7 @@ open class MainActivity : AppCompatActivity() {
                                 )
                                 is Routes.Player -> PlayerScreen(
                                     client = client,
-                                    mediaRefId = route.mediaRefId
+                                    mediaLinkId = route.mediaLinkId
                                 )
                             }
                         }

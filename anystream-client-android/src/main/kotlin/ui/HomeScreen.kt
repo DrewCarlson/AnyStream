@@ -38,7 +38,6 @@ import anystream.android.AppTopBar
 import anystream.android.AppTypography
 import anystream.android.router.BackStack
 import anystream.client.AnyStreamClient
-import anystream.frontend.models.*
 import anystream.models.*
 import anystream.models.api.HomeResponse
 import anystream.routing.Routes
@@ -55,7 +54,7 @@ private fun RowSpace() = Spacer(modifier = Modifier.size(8.dp))
 fun HomeScreen(
     client: AnyStreamClient,
     backStack: BackStack<Routes>,
-    onMediaClick: (mediaRefId: String?) -> Unit,
+    onMediaClick: (mediaLinkId: String?) -> Unit,
     onViewMoviesClicked: () -> Unit
 ) {
     Scaffold(
@@ -124,7 +123,7 @@ private fun ContinueWatchingRow(
     playbackStates: List<PlaybackState>,
     currentlyWatchingMovies: Map<String, Movie>,
     currentlyWatchingTv: Map<String, Pair<Episode, TvShow>>,
-    onClick: (mediaRefId: String) -> Unit,
+    onClick: (mediaLinkId: String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyRow(
@@ -134,11 +133,11 @@ private fun ContinueWatchingRow(
             items(playbackStates) { playbackState ->
                 currentlyWatchingMovies[playbackState.id]?.also { movie ->
                     val mediaItem = MediaItem(
-                        mediaId = movie.id,
+                        mediaId = movie.gid,
                         contentTitle = movie.title,
                         backdropPath = movie.backdropPath,
                         posterPath = movie.posterPath,
-                        mediaRefs = emptyList(),
+                        mediaLinks = emptyList(),
                         releaseDate = movie.releaseDate,
                         subtitle1 = movie.releaseDate?.split("-")?.first(),
                         overview = "",
@@ -147,11 +146,11 @@ private fun ContinueWatchingRow(
                 }
                 currentlyWatchingTv[playbackState.id]?.also { (episode, show) ->
                     val mediaItem = MediaItem(
-                        mediaId = episode.id,
+                        mediaId = episode.gid,
                         contentTitle = show.name,
                         backdropPath = episode.stillPath,
                         posterPath = show.posterPath,
-                        mediaRefs = emptyList(),
+                        mediaLinks = emptyList(),
                         releaseDate = episode.airDate,
                         subtitle1 = episode.name,
                         subtitle2 = "S${episode.seasonNumber} · E${episode.number}",
@@ -168,13 +167,13 @@ private fun ContinueWatchingRow(
 private fun WatchingCard(
     mediaItem: MediaItem,
     playbackState: PlaybackState,
-    onClick: (mediaRefId: String) -> Unit,
+    onClick: (mediaLinkId: String) -> Unit,
 ) {
     Card(
         shape = RoundedCornerShape(2.dp),
         modifier = Modifier
             .width(256.dp)
-            .clickable(onClick = { onClick(playbackState.mediaReferenceId) }),
+            .clickable(onClick = { onClick(playbackState.mediaLinkGid) }),
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             val painter = rememberAsyncImagePainter(
@@ -249,17 +248,17 @@ private fun WatchingCard(
 
 @Composable
 private fun MovieRow(
-    movies: Map<Movie, MediaReference?>,
-    onClick: (mediaRefId: String?) -> Unit
+    movies: Map<Movie, MediaLink?>,
+    onClick: (mediaLinkId: String?) -> Unit
 ) {
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(CARD_SPACING),
         content = {
-            items(movies.toList()) { (movie, mediaRef) ->
+            items(movies.toList()) { (movie, mediaLink) ->
                 PosterCard(
                     title = movie.title,
                     imagePath = movie.posterPath,
-                    onClick = { mediaRef?.run { onClick(id) } },
+                    onClick = { mediaLink?.run { onClick(gid) } },
                 )
             }
         }
@@ -269,7 +268,7 @@ private fun MovieRow(
 @Composable
 private fun TvRow(
     shows: List<TvShow>,
-    onClick: (mediaRefId: String?) -> Unit
+    onClick: (mediaLinkId: String?) -> Unit
 ) {
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(CARD_SPACING),
@@ -278,7 +277,7 @@ private fun TvRow(
                 PosterCard(
                     title = show.name,
                     imagePath = show.posterPath,
-                    onClick = { onClick(show.id) },
+                    onClick = { onClick(show.gid) },
                 )
             }
         }

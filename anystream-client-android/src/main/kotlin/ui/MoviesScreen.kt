@@ -18,7 +18,7 @@
 package anystream.android.ui
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.*
+import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.dp
 import anystream.android.AppTopBar
 import anystream.android.router.BackStack
 import anystream.client.AnyStreamClient
-import anystream.models.MediaReference
+import anystream.models.MediaLink
 import anystream.models.Movie
 import anystream.models.api.MoviesResponse
 import anystream.routing.Routes
@@ -39,7 +39,7 @@ import anystream.routing.Routes
 @Composable
 fun MoviesScreen(
     client: AnyStreamClient,
-    onMediaClick: (mediaRefId: String?) -> Unit,
+    onMediaClick: (mediaLinkId: String?) -> Unit,
     backStack: BackStack<Routes>
 ) {
     Scaffold(
@@ -53,7 +53,7 @@ fun MoviesScreen(
         } else {
             MovieGrid(
                 movies = response.value!!.movies,
-                mediaReferences = response.value!!.mediaReferences,
+                mediaLinks = response.value!!.mediaLinks,
                 onMediaClick = onMediaClick,
                 paddingValues = padding
             )
@@ -76,26 +76,26 @@ private fun LoadingScreen(paddingValues: PaddingValues) {
 @Composable
 private fun MovieGrid(
     movies: List<Movie>,
-    mediaReferences: List<MediaReference>,
-    onMediaClick: (mediaRefId: String?) -> Unit,
+    mediaLinks: List<MediaLink>,
+    onMediaClick: (mediaLinkId: String?) -> Unit,
     paddingValues: PaddingValues,
 ) {
     val cardWidth = (LocalConfiguration.current.screenWidthDp / 3).coerceAtMost(130).dp
     LazyVerticalGrid(
-        cells = GridCells.Adaptive(cardWidth),
+        columns = GridCells.Adaptive(cardWidth),
         modifier = Modifier
             .padding(paddingValues)
             .fillMaxSize(),
         contentPadding = PaddingValues(all = 8.dp)
     ) {
         items(movies) { movie ->
-            val mediaRef = remember {
-                mediaReferences.find { it.contentId == movie.id }
+            val mediaLink = remember {
+                mediaLinks.find { it.metadataGid == movie.gid }
             }
             PosterCard(
                 title = movie.title,
                 imagePath = movie.posterPath,
-                onClick = { onMediaClick(mediaRef?.id) },
+                onClick = { onMediaClick(mediaLink?.gid) },
                 preferredWidth = cardWidth,
                 modifier = Modifier
                     .padding(all = 8.dp)

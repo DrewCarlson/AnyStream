@@ -21,7 +21,7 @@ import android.annotation.SuppressLint
 import android.content.SharedPreferences
 
 class AndroidPreferences(
-    private val prefs: SharedPreferences,
+    private val prefs: SharedPreferences
 ) : Preferences {
 
     override val keys: Set<String>

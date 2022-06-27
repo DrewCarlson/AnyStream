@@ -11,7 +11,7 @@ apply(plugin = "kotlinx-atomicfu")
 if (hasAndroidSdk) {
     apply(plugin = "com.android.library")
     configure<LibraryExtension> {
-        compileSdk = 31
+        compileSdk = 32
         defaultConfig {
             minSdk = 23
             targetSdk = 31
@@ -41,6 +41,7 @@ kotlin {
             }
         }
     }
+    jvm()
     if (hasAndroidSdk) {
         android()
     }
@@ -110,7 +111,7 @@ kotlin {
             val androidMain by getting {
                 dependencies {
                     implementation(libs.androidx.core.ktx)
-                    implementation(libs.ktor.client.okhttp)
+                    implementation(libs.ktor.client.cio)
                 }
             }
 
@@ -120,6 +121,19 @@ kotlin {
                     implementation(kotlin("test"))
                     implementation(kotlin("test-junit"))
                 }
+            }
+        }
+
+        val jvmMain by getting {
+            dependencies {
+                implementation(libs.ktor.client.cio)
+            }
+        }
+
+        val jvmTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
+                implementation(kotlin("test-junit"))
             }
         }
 

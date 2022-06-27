@@ -18,12 +18,12 @@
 package anystream.routes
 
 import anystream.AnyStreamConfig
-import anystream.data.MediaDbQueries
+import anystream.data.MetadataDbQueries
 import anystream.db.*
 import anystream.db.extensions.pooled
-import anystream.media.MediaImporter
-import anystream.media.processor.MovieImportProcessor
-import anystream.media.processor.TvImportProcessor
+import anystream.media.LibraryManager
+import anystream.media.processor.MovieFileProcessor
+import anystream.media.processor.TvFileProcessor
 import anystream.metadata.MetadataManager
 import anystream.metadata.MetadataProvider
 import anystream.metadata.providers.TmdbMetadataProvider
@@ -42,9 +42,8 @@ import io.ktor.server.routing.*
 import kjob.core.job.JobExecutionType
 import kjob.core.kjob
 import kjob.jdbi.JdbiKJob
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import org.drewcarlson.ktor.permissions.withAnyPermission
 import org.drewcarlson.ktor.permissions.withPermission
 import org.jdbi.v3.core.Jdbi
@@ -70,34 +69,33 @@ fun Application.installRouting(jdbi: Jdbi, config: AnyStreamConfig) {
     val ffmpeg = { FFmpeg.atPath(Path.of(config.ffmpegPath)) }
     val ffprobe = { FFprobe.atPath(Path.of(config.ffmpegPath)) }
 
-    val mediaDao = jdbi.pooled<MediaDao>()
+    val mediaDao = jdbi.pooled<MetadataDao>()
     val tagsDao = jdbi.pooled<TagsDao>()
     val playbackStatesDao = jdbi.pooled<PlaybackStatesDao>()
-    val mediaReferencesDao = jdbi.pooled<MediaReferencesDao>()
+    val mediaLinkDao = jdbi.pooled<MediaLinkDao>()
     val usersDao = jdbi.pooled<UsersDao>()
     val invitesDao = jdbi.pooled<InvitesDao>()
     val permissionsDao = jdbi.pooled<PermissionsDao>()
     val searchableContentDao = jdbi.pooled<SearchableContentDao>().apply { createTable() }
 
-    val queries = MediaDbQueries(searchableContentDao, mediaDao, tagsDao, mediaReferencesDao, playbackStatesDao)
+    val queries = MetadataDbQueries(searchableContentDao, mediaDao, tagsDao, mediaLinkDao, playbackStatesDao)
 
     val providers = listOf<MetadataProvider>(
         TmdbMetadataProvider(tmdb, queries)
     )
-    val metadataManager = MetadataManager(providers, log)
+    val metadataManager = MetadataManager(providers)
 
-    val importScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     val processors = listOf(
-        MovieImportProcessor(metadataManager, queries, log),
-        TvImportProcessor(metadataManager, queries, importScope, log),
+        MovieFileProcessor(metadataManager, queries),
+        TvFileProcessor(metadataManager, queries),
     )
-    val importer = MediaImporter(ffprobe, processors, mediaReferencesDao, importScope, log)
+    val libraryManager = LibraryManager(ffprobe, processors, mediaLinkDao)
 
     val userService = UserService(UserServiceQueriesJdbi(usersDao, permissionsDao, invitesDao))
 
-    val streamQueries = StreamServiceQueriesJdbi(usersDao, mediaDao, mediaReferencesDao, playbackStatesDao)
+    val streamQueries = StreamServiceQueriesJdbi(usersDao, mediaDao, mediaLinkDao, playbackStatesDao)
     val streamService = StreamService(this, streamQueries, ffmpeg, ffprobe, config.transcodePath)
-    val searchService = SearchService(log, searchableContentDao, mediaDao, mediaReferencesDao)
+    val searchService = SearchService(searchableContentDao, mediaDao, mediaLinkDao)
 
     installWebClientRoutes(config)
 
@@ -114,10 +112,10 @@ fun Application.installRouting(jdbi: Jdbi, config: AnyStreamConfig) {
                     addMediaViewRoutes(metadataManager, queries)
                 }
                 withAnyPermission(Permission.ManageTorrents) {
-                    addTorrentRoutes(qbClient, mediaReferencesDao)
+                    addTorrentRoutes(qbClient, mediaLinkDao)
                 }
                 withAnyPermission(Permission.ManageCollection) {
-                    addMediaManageRoutes(tmdb, torrentSearch, importer, queries)
+                    addMediaManageRoutes(libraryManager, queries)
                 }
                 withPermission(Permission.ConfigureSystem) {
                     addAdminRoutes()
@@ -128,7 +126,7 @@ fun Application.installRouting(jdbi: Jdbi, config: AnyStreamConfig) {
             addStreamWsRoutes(streamService)
             addTorrentWsRoutes(qbClient)
             addUserWsRoutes(userService)
-            addAdminWsRoutes()
+            addAdminWsRoutes(libraryManager, streamService)
         }
     }
 }

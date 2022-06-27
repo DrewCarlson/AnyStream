@@ -17,11 +17,11 @@
  */
 package anystream.routes
 
-import anystream.data.MediaDbQueries
+import anystream.data.MetadataDbQueries
 import anystream.data.UserSession
 import anystream.data.asMovie
 import anystream.data.asTvShow
-import anystream.db.model.MediaDb
+import anystream.db.model.MetadataDb
 import anystream.models.*
 import anystream.models.api.HomeResponse
 import anystream.util.toRemoteId
@@ -40,9 +40,9 @@ private const val POPULAR_MOVIES_REFRESH = 86_400_000L // 24 hours
 
 fun Route.addHomeRoutes(
     tmdb: Tmdb3,
-    queries: MediaDbQueries,
+    queries: MetadataDbQueries,
 ) {
-    val popularMoviesFlow = flow {
+    val popularMoviesFlow = callbackFlow<List<TmdbMovieDetail>> {
         val category = DiscoverCategory.Popular(TmdbMediaType.MOVIE)
         while (true) {
             val result = tmdb.discover
@@ -61,11 +61,11 @@ fun Route.addHomeRoutes(
                         )
                     )
                 }
-            emit(result)
+            trySend(result)
             delay(POPULAR_MOVIES_REFRESH)
         }
     }.stateIn(application, SharingStarted.Eagerly, null)
-    val popularTvShowsFlow = flow {
+    val popularTvShowsFlow = callbackFlow<List<TmdbShowDetail>> {
         val category = DiscoverCategory.Popular(TmdbMediaType.SHOW)
         while (true) {
             val result = tmdb.discover
@@ -84,13 +84,13 @@ fun Route.addHomeRoutes(
                         )
                     )
                 }
-            emit(result)
+            trySend(result)
             delay(POPULAR_MOVIES_REFRESH)
         }
     }.stateIn(application, SharingStarted.Eagerly, null)
     route("/home") {
         get {
-            val session = call.principal<UserSession>()!!
+            val session = checkNotNull(call.principal<UserSession>())
 
             // Currently watching
             val (playbackStates, playbackStateMovies, playbackStateTv) =
@@ -115,9 +115,9 @@ fun Route.addHomeRoutes(
                     existingMovies.removeAt(existingIndex)
                 }
             }
-            val popularMediaRefs = queries.findMediaRefsByContentIds(popularMovies.map(Movie::id))
+            val popularMediaLinks = queries.findMediaLinksByMetadataIds(popularMovies.map(Movie::gid))
             val popularMoviesMap = popularMovies.associateWith { m ->
-                popularMediaRefs.find { it.contentId == m.id }
+                popularMediaLinks.find { it.metadataId == m.id }
             }
 
             val tmdbPopularShows = popularTvShowsFlow.filterNotNull().first()
@@ -128,14 +128,14 @@ fun Route.addHomeRoutes(
                 .map { series ->
                     val existingIndex = existingShows.indexOfFirst { it.tmdbId == series.id }
                     if (existingIndex == -1) {
-                        series.asTvShow(series.toRemoteId())
+                        series.asTvShow(series.toRemoteId()).toTvShowModel()
                     } else {
                         existingShows.removeAt(existingIndex)
                     }
                 }
 
             val tvSeasonIds = playbackStateTv.values.map { (episode, _) -> episode.seasonId }.distinct()
-            val tvSeasons = queries.findTvSeasonsByIds(tvSeasonIds).map(MediaDb::toTvSeasonModel)
+            val tvSeasons = queries.findTvSeasonsByIds(tvSeasonIds).map(MetadataDb::toTvSeasonModel)
 
             call.respond(
                 HomeResponse(

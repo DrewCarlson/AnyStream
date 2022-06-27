@@ -241,7 +241,7 @@ jobs:
           arguments: >
             anystream-server:server-app:test anystream-server:server-app:koverXmlReport
             anystream-server:server-db-models:test anystream-server:server-db-models:koverXmlReport
-            anystream-server:server-media-importer:test anystream-server:server-media-importer:koverXmlReport
+            anystream-server:server-library-manager:test anystream-server:server-library-manager:koverXmlReport
             anystream-server:server-metadata-manager:test anystream-server:server-metadata-manager:koverXmlReport
             anystream-server:server-shared:test anystream-server:server-shared:koverXmlReport
             anystream-server:server-stream-service:test anystream-server:server-stream-service:koverXmlReport

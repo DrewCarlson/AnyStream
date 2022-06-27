@@ -15,15 +15,17 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.frontend
+package anystream
 
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
 import anystream.client.SessionManager
-import anystream.frontend.components.Navbar
-import anystream.frontend.components.SideMenu
-import anystream.frontend.screens.*
-import anystream.frontend.util.Js
+import anystream.components.Navbar
+import anystream.components.SideMenu
+import anystream.screens.*
+import anystream.screens.settings.SettingsScreen
+import anystream.screens.settings.SettingsSideMenu
+import anystream.util.Js
 import app.softwork.routingcompose.BrowserRouter
 import app.softwork.routingcompose.Router
 import io.ktor.client.*
@@ -44,7 +46,7 @@ fun webApp() = renderComposable(rootElementId = "root") {
         AnyStreamClient(
             serverUrl = window.location.run { "$protocol//$host" },
             sessionManager = SessionManager(JsSessionDataStore),
-            http = HttpClient(Js),
+            httpClient = HttpClient(Js),
         )
     }
     CompositionLocalProvider(
@@ -79,6 +81,7 @@ fun webApp() = renderComposable(rootElementId = "root") {
                         backgroundSize("cover")
                         backgroundRepeat("no-repeat")
                         property("transition", "background 0.8s linear")
+                        property("pointer-events", "none")
                     }
                 })
             }
@@ -161,7 +164,6 @@ private fun ScreenContainer(
         )
         style {
             flexBasis("auto")
-            property("z-index", "1")
         }
     }) {
         menu()

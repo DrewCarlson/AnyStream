@@ -3,6 +3,19 @@ plugins {
     kotlin("plugin.serialization")
 }
 
+if (hasAndroidSdk) {
+    apply(plugin = "com.android.library")
+    configure<com.android.build.gradle.LibraryExtension> {
+        compileSdk = 32
+        defaultConfig {
+            minSdk = 23
+            targetSdk = 31
+            testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        }
+        namespace = "anystream.models"
+    }
+}
+
 kotlin {
     jvm()
     js(IR) {
@@ -11,6 +24,10 @@ kotlin {
     iosX64()
     iosArm64()
     iosSimulatorArm64()
+
+    if (hasAndroidSdk) {
+        android()
+    }
 
     sourceSets {
         val commonMain by getting {

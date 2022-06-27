@@ -15,14 +15,14 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.frontend.screens
+package anystream.screens
 
 import androidx.compose.runtime.*
-import anystream.frontend.LocalAnyStreamClient
-import anystream.frontend.libs.QRCodeImage
-import anystream.frontend.routing.WebRouter
-import anystream.frontend.util.createLoopController
+import anystream.LocalAnyStreamClient
+import anystream.libs.QRCodeImage
+import anystream.routing.WebRouter
 import anystream.ui.login.*
+import anystream.util.createLoopController
 import app.softwork.routingcompose.Router
 import kt.mobius.Mobius
 import kt.mobius.SimpleLogger

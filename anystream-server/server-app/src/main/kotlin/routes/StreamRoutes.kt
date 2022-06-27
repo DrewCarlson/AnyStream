@@ -20,7 +20,6 @@ package anystream.routes
 import anystream.data.UserSession
 import anystream.json
 import anystream.models.*
-import anystream.models.api.PlaybackSessionsResponse
 import anystream.service.stream.StreamService
 import anystream.util.extractUserSession
 import io.ktor.http.*
@@ -37,14 +36,12 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import org.drewcarlson.ktor.permissions.withPermission
 import java.io.File
 import kotlin.math.roundToInt
-import kotlin.time.Duration.Companion.seconds
 
 private const val PLAYBACK_COMPLETE_PERCENT = 90
 
@@ -60,14 +57,14 @@ fun Route.addStreamRoutes(
             }
         }
 
-        route("/{mediaRefId}") {
+        route("/{mediaLinkId}") {
             authenticate {
                 route("/state") {
                     get {
-                        val session = call.principal<UserSession>()!!
-                        val mediaRefId = call.parameters["mediaRefId"]!!
+                        val session = checkNotNull(call.principal<UserSession>())
+                        val mediaLinkId = call.parameters["mediaLinkId"]!!
                         val playbackState =
-                            streamService.getPlaybackState(mediaRefId, session.userId, false)
+                            streamService.getPlaybackState(mediaLinkId, session.userId, false)
                         if (playbackState == null) {
                             call.respond(NotFound)
                         } else {
@@ -75,12 +72,12 @@ fun Route.addStreamRoutes(
                         }
                     }
                     put {
-                        val session = call.principal<UserSession>()!!
-                        val mediaRefId = call.parameters["mediaRefId"]!!
+                        val session = checkNotNull(call.principal<UserSession>())
+                        val mediaLinkId = call.parameters["mediaLinkId"]!!
                         val state = call.receiveOrNull<PlaybackState>()
                             ?: return@put call.respond(UnprocessableEntity)
 
-                        val actualState = streamService.getPlaybackState(mediaRefId, session.userId, false)
+                        val actualState = streamService.getPlaybackState(mediaLinkId, session.userId, false)
 
                         if (actualState == null) {
                             call.respond(NotFound)
@@ -94,10 +91,10 @@ fun Route.addStreamRoutes(
 
             route("/hls") {
                 get("/playlist.m3u8") {
-                    val mediaRefId = call.parameters["mediaRefId"]!!
+                    val mediaLinkId = call.parameters["mediaLinkId"]!!
                     val token = call.parameters["token"]
                         ?: return@get call.respond(Unauthorized)
-                    val playlist = streamService.getPlaylist(mediaRefId, token)
+                    val playlist = streamService.getPlaylist(mediaLinkId, token)
                     if (playlist == null) {
                         call.respond(NotFound)
                     } else {
@@ -133,31 +130,14 @@ fun Route.addStreamRoutes(
 fun Route.addStreamWsRoutes(
     streamService: StreamService,
 ) {
-    val sessionsFlow = flow {
-        var previousSessions: PlaybackSessionsResponse? = null
-        while (true) {
-            val nextSessions = streamService.getPlaybackSessions()
-            if (previousSessions != nextSessions) {
-                previousSessions = nextSessions
-                emit(nextSessions)
-            }
-            delay(2.seconds)
-        }
-    }.shareIn(application, SharingStarted.WhileSubscribed(), 1)
 
-    webSocket("/ws/stream") {
-        val session = checkNotNull(extractUserSession())
-        check(Permission.check(Permission.ConfigureSystem, session.permissions))
-        sessionsFlow.collect { response -> sendSerialized(response) }
-    }
-
-    webSocket("/ws/stream/{mediaRefId}/state") {
+    webSocket("/ws/stream/{mediaLinkId}/state") {
         val session = checkNotNull(extractUserSession())
         check(Permission.check(Permission.ConfigureSystem, session.permissions))
         val userId = session.userId
-        val mediaRefId = call.parameters["mediaRefId"]!!
+        val mediaLinkId = call.parameters["mediaLinkId"]!!
 
-        val state = streamService.getPlaybackState(mediaRefId, userId, create = true)
+        val state = streamService.getPlaybackState(mediaLinkId, userId, create = true)
             ?: return@webSocket close()
 
         send(Frame.Text(json.encodeToString(state)))

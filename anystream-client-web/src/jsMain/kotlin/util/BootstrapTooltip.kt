@@ -15,20 +15,20 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.frontend.util
+package anystream.util
 
 import org.jetbrains.compose.web.attributes.AttrsScope
 import org.w3c.dom.Element
 
 fun <TElement : Element> AttrsScope<TElement>.tooltip(
     title: String,
-    placement: String,
+    placement: String = "top",
 ) {
     attr("data-bs-toggle", "tooltip")
     attr("data-bs-placement", placement)
-    attr("title", title)
+    title(title)
     ref {
-        val tooltip = Bootstrap.Tooltip(it)
+        val tooltip = Bootstrap.Tooltip.getOrCreateInstance(it)
         onDispose {
             tooltip.dispose()
         }

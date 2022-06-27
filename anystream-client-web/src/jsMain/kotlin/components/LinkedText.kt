@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.frontend.components
+package anystream.components
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue

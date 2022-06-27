@@ -43,7 +43,7 @@ extra:
 nav:
   - Home: index.md
   - Getting Started: 1-getting-started.md
-  - Naming Media Files: 2-naming-media-files.md
+  - Library Management: 2-library-management.md
   - Clients and Mobile Apps: 3-clients-and-mobile.md
   - Connecting qBittorrent: 4-connecting-qbittorrent.md
   - Development:

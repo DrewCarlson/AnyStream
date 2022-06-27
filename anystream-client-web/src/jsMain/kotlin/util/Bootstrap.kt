@@ -15,14 +15,36 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.frontend.util
+package anystream.util
 
 import org.w3c.dom.Element
 
 @JsNonModule
 @JsModule("bootstrap")
 external class Bootstrap {
-    class Tooltip(element: Element) {
+    object Tooltip {
+        fun getOrCreateInstance(element: Element): TooltipInstance
+    }
+
+    object Modal {
+        fun getOrCreateInstance(element: Element): ModalInstance
+    }
+
+    interface TooltipInstance {
+        fun show()
+        fun hide()
         fun dispose()
+    }
+
+    interface ModalInstance {
+        fun show()
+        fun hide()
+
+        val _config: Config
+
+        interface Config {
+            var backdrop: String
+            var keyboard: Boolean
+        }
     }
 }

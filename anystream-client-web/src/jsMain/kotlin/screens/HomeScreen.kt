@@ -15,17 +15,18 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.frontend.screens
+package anystream.screens
 
 import androidx.compose.runtime.*
-import anystream.frontend.LocalAnyStreamClient
-import anystream.frontend.components.FullSizeCenteredLoader
-import anystream.frontend.components.LinkedText
-import anystream.frontend.components.PosterCard
+import anystream.LocalAnyStreamClient
+import anystream.components.FullSizeCenteredLoader
+import anystream.components.LinkedText
+import anystream.components.PosterCard
 import anystream.models.api.HomeResponse
 import app.softwork.routingcompose.Router
 import kotlinx.browser.localStorage
 import kotlinx.browser.window
+import kotlinx.coroutines.delay
 import org.jetbrains.compose.web.attributes.InputType
 import org.jetbrains.compose.web.attributes.max
 import org.jetbrains.compose.web.attributes.min
@@ -41,7 +42,16 @@ private const val KEY_POSTER_SIZE_MULTIPLIER = "key_poster_size_multiplier"
 fun HomeScreen() {
     val client = LocalAnyStreamClient.current
     val homeResponse by produceState<HomeResponse?>(null) {
-        value = client.getHomeData()
+        var i = 0
+        while (value == null) {
+            i = (i + 1).coerceAtMost(3)
+            value = try {
+                client.getHomeData()
+            } catch (e: Throwable) {
+                null
+            }
+            delay(i * 5000L)
+        }
     }
     var sizeMultiplier by remember {
         mutableStateOf(localStorage.getItem(KEY_POSTER_SIZE_MULTIPLIER)?.toFloatOrNull() ?: 1f)
@@ -100,7 +110,7 @@ private fun HomeResponse.ContinueWatchingRow(sizeMultiplier: Float) {
                 sizeMultiplier = sizeMultiplier,
                 title = (movie?.title ?: show?.name)?.let { title ->
                     {
-                        LinkedText(url = "/media/${movie?.id ?: show?.id}") {
+                        LinkedText(url = "/media/${movie?.gid ?: show?.gid}") {
                             Text(title)
                         }
                     }
@@ -111,7 +121,7 @@ private fun HomeResponse.ContinueWatchingRow(sizeMultiplier: Float) {
                         Text(substringBefore("-"))
                     }
                     episode?.run {
-                        LinkedText(url = "/media/${episode.id}") {
+                        LinkedText(url = "/media/${episode.gid}") {
                             Text(name)
                         }
                     }
@@ -124,10 +134,10 @@ private fun HomeResponse.ContinueWatchingRow(sizeMultiplier: Float) {
                             LinkedText(
                                 tvSeasons
                                     .first { it.seasonNumber == seasonNumber }
-                                    .run { "/media/$id" }
+                                    .run { "/media/$gid" }
                             ) { Text("S$seasonNumber") }
                             Div { Text(" · ") }
-                            LinkedText(url = "/media/${episode.id}") {
+                            LinkedText(url = "/media/${episode.gid}") {
                                 Text("E$number")
                             }
                         }
@@ -136,10 +146,10 @@ private fun HomeResponse.ContinueWatchingRow(sizeMultiplier: Float) {
                 posterPath = movie?.posterPath ?: show?.posterPath,
                 isAdded = true,
                 onPlayClicked = {
-                    window.location.hash = "!play:${state.mediaReferenceId}"
+                    window.location.hash = "!play:${state.mediaLinkGid}"
                 },
                 onBodyClicked = {
-                    router.navigate("/media/${movie?.id ?: episode?.id}")
+                    router.navigate("/media/${movie?.gid ?: episode?.gid}")
                 }
             )
         }
@@ -150,11 +160,11 @@ private fun HomeResponse.ContinueWatchingRow(sizeMultiplier: Float) {
 private fun HomeResponse.RecentlyAddedMovies(sizeMultiplier: Float) {
     val router = Router.current
     MovieRow(title = { Text("Recently Added Movies") }) {
-        recentlyAdded.forEach { (movie, ref) ->
+        recentlyAdded.forEach { (movie, mediaLink) ->
             PosterCard(
                 sizeMultiplier = sizeMultiplier,
                 title = {
-                    LinkedText(url = "/media/${movie.id}") {
+                    LinkedText(url = "/media/${movie.gid}") {
                         Text(movie.title)
                     }
                 },
@@ -164,10 +174,10 @@ private fun HomeResponse.RecentlyAddedMovies(sizeMultiplier: Float) {
                 posterPath = movie.posterPath,
                 isAdded = true,
                 onPlayClicked = {
-                    window.location.hash = "!play:${ref?.id}"
-                }.takeIf { ref != null },
+                    window.location.hash = "!play:${mediaLink?.gid}"
+                }.takeIf { mediaLink != null },
                 onBodyClicked = {
-                    router.navigate("/media/${movie.id}")
+                    router.navigate("/media/${movie.gid}")
                 }
             )
         }
@@ -182,14 +192,14 @@ private fun HomeResponse.RecentlyAddedTv(sizeMultiplier: Float) {
             PosterCard(
                 sizeMultiplier = sizeMultiplier,
                 title = {
-                    LinkedText(url = "/media/${show.id}") {
+                    LinkedText(url = "/media/${show.gid}") {
                         Text(show.name)
                     }
                 },
                 posterPath = show.posterPath,
                 isAdded = true,
                 onBodyClicked = {
-                    router.navigate("/media/${show.id}")
+                    router.navigate("/media/${show.gid}")
                 }
             )
         }
@@ -200,11 +210,11 @@ private fun HomeResponse.RecentlyAddedTv(sizeMultiplier: Float) {
 private fun HomeResponse.PopularMovies(sizeMultiplier: Float) {
     val router = Router.current
     MovieRow(title = { Text("Popular Movies") }) {
-        popularMovies.forEach { (movie, ref) ->
+        popularMovies.forEach { (movie, link) ->
             PosterCard(
                 sizeMultiplier = sizeMultiplier,
                 title = {
-                    LinkedText(url = "/media/${ref?.contentId ?: movie.id}") {
+                    LinkedText(url = "/media/${link?.metadataGid ?: movie.gid}") {
                         Text(movie.title)
                     }
                 },
@@ -212,11 +222,11 @@ private fun HomeResponse.PopularMovies(sizeMultiplier: Float) {
                     { Text(substringBefore("-")) }
                 },
                 posterPath = movie.posterPath,
-                isAdded = ref != null,
-                onPlayClicked = { window.location.hash = "!play:${ref?.id}" }
-                    .takeIf { ref != null },
+                isAdded = link != null,
+                onPlayClicked = { window.location.hash = "!play:${link?.gid}" }
+                    .takeIf { link != null },
                 onBodyClicked = {
-                    router.navigate("/media/${movie.id}")
+                    router.navigate("/media/${movie.gid}")
                 }
             )
         }
@@ -231,7 +241,7 @@ private fun HomeResponse.PopularTvShows(sizeMultiplier: Float) {
             PosterCard(
                 sizeMultiplier = sizeMultiplier,
                 title = {
-                    LinkedText(url = "/media/${tvShow.id}") {
+                    LinkedText(url = "/media/${tvShow.gid}") {
                         Text(tvShow.name)
                     }
                 },
@@ -243,7 +253,7 @@ private fun HomeResponse.PopularTvShows(sizeMultiplier: Float) {
                 /*onPlayClicked = { window.location.hash = "!play:${ref?.id}" }
                     .takeIf { ref != null },*/
                 onBodyClicked = {
-                    router.navigate("/media/${tvShow.id}")
+                    router.navigate("/media/${tvShow.gid}")
                 }
             )
         }

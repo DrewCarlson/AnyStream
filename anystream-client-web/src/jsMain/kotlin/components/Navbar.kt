@@ -15,17 +15,21 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.frontend.components
+package anystream.components
 
 import androidx.compose.runtime.*
-import anystream.frontend.LocalAnyStreamClient
-import anystream.frontend.libs.PopperElement
-import anystream.frontend.libs.popperOptions
-import anystream.frontend.util.ExternalClickMask
-import anystream.frontend.util.rememberDomElement
-import anystream.frontend.util.tooltip
+import anystream.LocalAnyStreamClient
+import anystream.util.throttleLatest
+import anystream.libs.PopperElement
+import anystream.libs.popperOptions
+import anystream.models.LocalMediaLink
 import anystream.models.Permission
+import anystream.models.api.LibraryActivity
 import anystream.models.api.SearchResponse
+import anystream.models.backend.MediaScannerState
+import anystream.util.ExternalClickMask
+import anystream.util.rememberDomElement
+import anystream.util.tooltip
 import app.softwork.routingcompose.Router
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -38,6 +42,7 @@ import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLInputElement
+import kotlin.time.Duration.Companion.seconds
 
 val searchQuery = MutableStateFlow<String?>(null)
 
@@ -46,7 +51,7 @@ fun Navbar() {
     val router = Router.current
     val client = LocalAnyStreamClient.current
     val isAuthenticated = client.authenticated.collectAsState(client.isAuthenticated())
-    Nav({ classes("navbar", "navbar-dark", "navbar-expand-lg", "bg-dark", "rounded", "shadow", "m-2") }) {
+    Nav({ classes("navbar", "navbar-dark", "navbar-expand-lg", "bg-dark-translucent", "rounded", "shadow", "m-2") }) {
         Div({ classes("container-fluid") }) {
             A(attrs = {
                 classes("navbar-brand", "mx-2")
@@ -77,17 +82,22 @@ private fun SecondaryMenu(permissions: Set<Permission>) {
     var isMenuVisible by remember { mutableStateOf(false) }
     Ul({ classes("nav", "nav-pills", "ms-auto") }) {
         if (Permission.check(Permission.ConfigureSystem, permissions)) {
-            val sessionCount by client.observeStreams()
-                .retry()
-                .map { it.playbackStates.size }
-                .collectAsState(0)
+            var activityIsVisible by remember { mutableStateOf(false) }
+            val libraryActivity by client.libraryActivity
+                .throttleLatest(0.5.seconds)
+                .collectAsState(LibraryActivity())
+            val sessionCount by derivedStateOf { libraryActivity.playbackSessions.playbackStates.size }
+            val scannerIsActive by derivedStateOf { libraryActivity.scannerState != MediaScannerState.Idle }
+            val hasActivity by remember { derivedStateOf { sessionCount > 0 || scannerIsActive } }
             Li({ classes("nav-item") }) {
+                val activityIconRef by rememberDomElement()
                 A(attrs = {
                     classes("nav-link", "nav-link-large", "d-flex", "align-items-center")
-                    if (sessionCount > 0) {
+                    if (hasActivity) {
                         classes("active")
                     }
                     tooltip("Activity", "bottom")
+                    onClick { activityIsVisible = !activityIsVisible }
                 }) {
                     if (sessionCount > 0) {
                         Div({ classes("fs-6", "pe-1") }) {
@@ -96,14 +106,17 @@ private fun SecondaryMenu(permissions: Set<Permission>) {
                     }
                     I({ classes("bi", "bi-activity") })
                 }
-            }
-            Li({ classes("nav-item") }) {
-                A(attrs = {
-                    classes("nav-link", "nav-link-large")
-                    tooltip("Users", "bottom")
-                    onClick { router.navigate("/settings/users") }
-                }) {
-                    I({ classes("bi", "bi-people") })
+                if (activityIsVisible) {
+                    activityIconRef?.let {
+                        LaunchedEffect(hasActivity) {
+                            if (!hasActivity) {
+                                activityIsVisible = false
+                            }
+                        }
+                        ServerActivityPopper(it, libraryActivity) {
+                            activityIsVisible = false
+                        }
+                    }
                 }
             }
             Li({ classes("nav-item") }) {
@@ -156,9 +169,7 @@ private fun OverflowMenu(
             style { property("z-index", 100) }
         }
     ) { popper ->
-        Div({
-            classes("d-flex", "flex-column", "px-2", "bg-dark", "rounded", "shadow")
-        }) {
+        Div({ classes("d-flex", "flex-column", "px-2", "bg-dark", "rounded", "shadow", "animate-popup") }) {
             var globalClickHandler by remember { mutableStateOf<ExternalClickMask?>(null) }
             DisposableEffect(Unit) {
                 globalClickHandler = ExternalClickMask(scopeElement) { remove ->
@@ -333,5 +344,72 @@ private fun SearchResultPopper(
             }
         }
         SearchResultsList(response)
+    }
+}
+
+@Composable
+private fun ServerActivityPopper(
+    element: HTMLElement,
+    libraryActivity: LibraryActivity,
+    onClose: () -> Unit,
+) {
+    var globalClickHandler by remember { mutableStateOf<ExternalClickMask?>(null) }
+    PopperElement(
+        element,
+        popperOptions(placement = "bottom-end"),
+        attrs = { style { property("z-index", 100) } }
+    ) { popper ->
+        Ul({
+            classes(
+                "dropdown-menu", "dropdown-menu-dark", "show",
+                "bg-dark", "rounded", "shadow", "animate-popup",
+                "p-2"
+            )
+            style {
+                width(250.px)
+                property("transform", "translateX(-100%)")
+            }
+        }) {
+            DisposableEffect(Unit) {
+                globalClickHandler = ExternalClickMask(scopeElement) { remove ->
+                    onClose()
+                    remove()
+                }
+                globalClickHandler?.attachListener()
+                onDispose {
+                    globalClickHandler?.dispose()
+                    globalClickHandler = null
+                }
+            }
+
+            if (libraryActivity.scannerState != MediaScannerState.Idle) {
+                val activeState by derivedStateOf { libraryActivity.scannerState as? MediaScannerState.Active }
+                Li {
+                    Div({ classes("vstack", "gap-1") }) {
+                        Div { Text("Scanning Media") }
+                        activeState?.run {
+                            Div({ classes("hstack", "gap-1") }) {
+                                LoadingIndicator(small = true)
+                                (currentLink as? LocalMediaLink ?: libraryLink as? LocalMediaLink)?.let {
+                                    Div({ classes("text-nowrap", "overflow-hidden") }) {
+                                        Text(it.filename)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            /*Li {
+                A(null, {
+                    classes("dropdown-item", "fs-6")
+                    style { cursor("pointer") }
+                    onClick { }
+                }) {
+                    Text("Refresh Metadata")
+                }
+            }*/
+        }
+        LaunchedEffect(Unit) { popper.update() }
     }
 }

@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.frontend.components
+package anystream.components
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -32,7 +32,7 @@ fun SearchResultsList(
     searchResponse: SearchResponse,
 ) {
     Div({
-        classes("d-flex", "flex-column", "rounded", "shadow", "py-3")
+        classes("d-flex", "flex-column", "rounded", "shadow", "py-3", "animate-popup")
         style {
             overflowY("scroll")
             backgroundColor(rgb(28, 28, 28))
@@ -47,7 +47,7 @@ fun SearchResultsList(
         Div({ classes("d-flex", "flex-column", "flex-wrap", "w-100") }) {
             searchResponse.movies.forEach { movie ->
                 SearchResultItem(
-                    mediaId = movie.id,
+                    mediaId = movie.gid,
                     posterPath = movie.posterPath,
                     title = movie.title,
                     subtitle = movie.releaseDate
@@ -63,7 +63,7 @@ fun SearchResultsList(
         Div({ classes("d-flex", "flex-column", "flex-wrap", "w-100") }) {
             searchResponse.tvShows.forEach { (show, seasonNumber) ->
                 SearchResultItem(
-                    mediaId = show.id,
+                    mediaId = show.gid,
                     posterPath = show.posterPath,
                     title = show.name,
                     subtitle = buildString {
@@ -84,7 +84,7 @@ fun SearchResultsList(
         Div({ classes("d-flex", "flex-column", "flex-wrap", "w-100") }) {
             searchResponse.episodes.forEach { (episode, show) ->
                 SearchResultItem(
-                    mediaId = episode.id,
+                    mediaId = episode.gid,
                     posterPath = episode.stillPath,
                     title = episode.name,
                     subtitle = show.name,

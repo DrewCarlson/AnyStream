@@ -22,6 +22,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class MediaFile(
     val id: String,
-    val contentId: String,
+    val metadataGid: String,
     val filePath: String
 )

@@ -17,7 +17,7 @@
  */
 package anystream.db
 
-import anystream.db.model.MediaDb
+import anystream.db.model.MetadataDb
 import org.jdbi.v3.sqlobject.statement.SqlQuery
 import org.jdbi.v3.sqlobject.statement.SqlUpdate
 
@@ -28,14 +28,14 @@ interface SearchableContentDao {
     fun createTable()
 
     @SqlUpdate("INSERT INTO searchableContent(gid, type, content) VALUES (:gid, :type, :content)")
-    fun insert(gid: String, type: MediaDb.Type, content: String)
+    fun insert(gid: String, type: MetadataDb.Type, content: String)
 
     @SqlQuery("SELECT gid FROM searchableContent WHERE content MATCH ? ORDER BY rank")
     fun search(query: String): List<String>
 
     @SqlQuery("SELECT gid FROM searchableContent WHERE content MATCH ? AND type = ? ORDER BY rank")
-    fun search(query: String, type: MediaDb.Type): List<String>
+    fun search(query: String, type: MetadataDb.Type): List<String>
 
     @SqlQuery("SELECT gid FROM searchableContent WHERE content MATCH ? AND type = ? ORDER BY rank LIMIT ?")
-    fun search(query: String, type: MediaDb.Type, limit: Int): List<String>
+    fun search(query: String, type: MetadataDb.Type, limit: Int): List<String>
 }

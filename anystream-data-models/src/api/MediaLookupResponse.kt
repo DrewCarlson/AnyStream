@@ -24,5 +24,5 @@ data class MediaLookupResponse(
     val movie: MovieResponse? = null,
     val tvShow: TvShowResponse? = null,
     val episode: EpisodeResponse? = null,
-    val season: SeasonResponse? = null,
+    val season: SeasonResponse? = null
 )

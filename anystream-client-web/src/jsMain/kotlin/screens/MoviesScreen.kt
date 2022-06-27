@@ -15,12 +15,12 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.frontend.screens
+package anystream.screens
 
 import androidx.compose.runtime.*
-import anystream.frontend.LocalAnyStreamClient
-import anystream.frontend.components.*
-import anystream.models.MediaReference
+import anystream.LocalAnyStreamClient
+import anystream.components.*
+import anystream.models.MediaLink
 import anystream.models.Movie
 import anystream.models.api.MoviesResponse
 import app.softwork.routingcompose.Router
@@ -38,7 +38,7 @@ fun MoviesScreen() {
     when (val response = moviesResponse) {
         null -> FullSizeCenteredLoader()
         else -> {
-            val (movies, refs) = response
+            val (movies, mediaLinks) = response
             if (movies.isEmpty()) {
                 Div({ classes("d-flex", "justify-content-center", "align-items-center", "h-100") }) {
                     Text("Movies will appear here.")
@@ -46,8 +46,8 @@ fun MoviesScreen() {
             } else {
                 val router = Router.current
                 VirtualScroller(movies) { movie ->
-                    val ref = refs.find { it.contentId == movie.id }
-                    MovieCard(router, movie, ref)
+                    val mediaLink = mediaLinks.find { it.metadataGid == movie.gid }
+                    MovieCard(router, movie, mediaLink)
                 }
             }
         }
@@ -58,21 +58,21 @@ fun MoviesScreen() {
 private fun MovieCard(
     router: Router,
     movie: Movie,
-    ref: MediaReference?,
+    link: MediaLink?,
 ) {
     PosterCard(
         title = {
-            LinkedText("/media/${movie.id}", router) {
+            LinkedText("/media/${movie.gid}", router) {
                 Text(movie.title)
             }
         },
         posterPath = movie.posterPath,
         isAdded = true,
         onPlayClicked = {
-            window.location.hash = "!play:${ref?.id}"
-        }.takeIf { ref != null },
+            window.location.hash = "!play:${link?.gid}"
+        }.takeIf { link != null },
         onBodyClicked = {
-            router.navigate("/media/${movie.id}")
+            router.navigate("/media/${movie.gid}")
         },
     )
 }

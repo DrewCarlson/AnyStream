@@ -17,12 +17,12 @@
  */
 package anystream.models.api
 
-import anystream.models.MediaReference
+import anystream.models.MediaLink
 import anystream.models.TvShow
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class TvShowsResponse(
     val tvShows: List<TvShow>,
-    val mediaRefs: List<MediaReference>,
+    val mediaLinks: List<MediaLink>
 )

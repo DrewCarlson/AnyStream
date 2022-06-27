@@ -25,7 +25,7 @@ import kotlinx.serialization.Serializable
 data class CreateUserBody(
     val username: String,
     val password: String,
-    val inviteCode: String?,
+    val inviteCode: String?
 )
 
 @Serializable
@@ -34,13 +34,13 @@ sealed class CreateUserResponse {
     @Serializable
     data class Success(
         val user: User,
-        val permissions: Set<Permission>,
+        val permissions: Set<Permission>
     ) : CreateUserResponse()
 
     @Serializable
     data class Error(
         val usernameError: UsernameError?,
-        val passwordError: PasswordError?,
+        val passwordError: PasswordError?
     ) : CreateUserResponse()
 
     enum class PasswordError {

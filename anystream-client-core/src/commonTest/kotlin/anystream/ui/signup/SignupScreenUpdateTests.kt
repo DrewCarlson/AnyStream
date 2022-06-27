@@ -71,11 +71,11 @@ class SignupScreenUpdateTests {
         val testServerUrl = "https://test.url"
         val startModel = defaultModel.copy(
             serverUrl = testServerUrl,
-            serverValidation = ServerValidation.VALIDATING,
+            serverValidation = ServerValidation.VALIDATING
         )
         val testModels = listOf(
             startModel.copy(state = State.AUTHENTICATING),
-            startModel.copy(state = State.AUTHENTICATED),
+            startModel.copy(state = State.AUTHENTICATED)
         )
 
         testModels.forEach { testModel ->
@@ -110,7 +110,7 @@ class SignupScreenUpdateTests {
         val testServerUrl = "https://test.url"
         val testModels = listOf(
             defaultModel.copy(state = State.AUTHENTICATING),
-            defaultModel.copy(state = State.AUTHENTICATED),
+            defaultModel.copy(state = State.AUTHENTICATED)
         )
         testModels.forEach { testModel ->
             UpdateSpec(SignupScreenUpdate)
@@ -127,11 +127,11 @@ class SignupScreenUpdateTests {
             serverUrl = testServerUrl,
             serverValidation = ServerValidation.VALID,
             username = "test",
-            password = "test",
+            password = "test"
         )
         val testModels = listOf(
             startModel.copy(state = State.AUTHENTICATING),
-            startModel.copy(state = State.AUTHENTICATED),
+            startModel.copy(state = State.AUTHENTICATED)
         )
         testModels.forEach { testModel ->
             UpdateSpec(SignupScreenUpdate)
@@ -148,7 +148,7 @@ class SignupScreenUpdateTests {
             serverUrl = testServerUrl,
             serverValidation = ServerValidation.VALID,
             username = "test",
-            password = "test",
+            password = "test"
         )
         UpdateSpec(SignupScreenUpdate)
             .given(startModel)
@@ -161,7 +161,7 @@ class SignupScreenUpdateTests {
                             startModel.username,
                             startModel.password,
                             startModel.inviteCode,
-                            startModel.serverUrl,
+                            startModel.serverUrl
                         )
                     )
                 )
@@ -174,7 +174,7 @@ class SignupScreenUpdateTests {
             serverUrl = "",
             serverValidation = ServerValidation.INVALID,
             username = "test",
-            password = "test",
+            password = "test"
         )
         UpdateSpec(SignupScreenUpdate)
             .given(startModel)
@@ -189,7 +189,7 @@ class SignupScreenUpdateTests {
             serverUrl = testServerUrl,
             serverValidation = ServerValidation.VALIDATING,
             username = "test",
-            password = "test",
+            password = "test"
         )
         UpdateSpec(SignupScreenUpdate)
             .given(startModel)
@@ -204,7 +204,7 @@ class SignupScreenUpdateTests {
             serverUrl = testServerUrl,
             serverValidation = ServerValidation.VALID,
             username = "",
-            password = "",
+            password = ""
         )
         UpdateSpec(SignupScreenUpdate)
             .given(startModel)
@@ -229,7 +229,7 @@ class SignupScreenUpdateTests {
     fun test_OnUsernameChanged_WhenNotIdle_DoesNothing() {
         val testModels = listOf(
             defaultModel.copy(state = State.AUTHENTICATING),
-            defaultModel.copy(state = State.AUTHENTICATED),
+            defaultModel.copy(state = State.AUTHENTICATED)
         )
         testModels.forEach { testModel ->
             UpdateSpec(SignupScreenUpdate)
@@ -256,7 +256,7 @@ class SignupScreenUpdateTests {
     fun test_OnPasswordChanged_WhenNotIdle_DoesNothing() {
         val testModels = listOf(
             defaultModel.copy(state = State.AUTHENTICATING),
-            defaultModel.copy(state = State.AUTHENTICATED),
+            defaultModel.copy(state = State.AUTHENTICATED)
         )
         testModels.forEach { testModel ->
             UpdateSpec(SignupScreenUpdate)
@@ -285,7 +285,7 @@ class SignupScreenUpdateTests {
         val user = User(-1, "test", "test")
         val testModels = listOf(
             defaultModel.copy(state = State.IDLE),
-            defaultModel.copy(state = State.AUTHENTICATED),
+            defaultModel.copy(state = State.AUTHENTICATED)
         )
         testModels.forEach { testModel ->
             UpdateSpec(SignupScreenUpdate)
@@ -313,7 +313,7 @@ class SignupScreenUpdateTests {
     fun test_OnSignupError_WhenStateIsNotAuthenticating_DoesNothing() {
         val testModels = listOf(
             defaultModel.copy(state = State.IDLE),
-            defaultModel.copy(state = State.AUTHENTICATED),
+            defaultModel.copy(state = State.AUTHENTICATED)
         )
         testModels.forEach { testModel ->
             UpdateSpec(SignupScreenUpdate)

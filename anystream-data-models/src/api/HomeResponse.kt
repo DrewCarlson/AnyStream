@@ -25,9 +25,9 @@ data class HomeResponse(
     val playbackStates: List<PlaybackState>,
     val currentlyWatchingMovies: Map<String, Movie>,
     val currentlyWatchingTv: Map<String, Pair<Episode, TvShow>>,
-    val recentlyAdded: Map<Movie, MediaReference?>,
-    val popularMovies: Map<Movie, MediaReference?>,
+    val recentlyAdded: Map<Movie, MediaLink?>,
+    val popularMovies: Map<Movie, MediaLink?>,
     val popularTvShows: List<TvShow>,
     val recentlyAddedTv: List<TvShow>,
-    val tvSeasons: List<TvSeason>,
+    val tvSeasons: List<TvSeason>
 )

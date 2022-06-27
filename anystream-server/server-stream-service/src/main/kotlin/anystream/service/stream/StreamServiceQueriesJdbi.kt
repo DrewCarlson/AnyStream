@@ -17,11 +17,11 @@
  */
 package anystream.service.stream
 
-import anystream.db.MediaDao
-import anystream.db.MediaReferencesDao
+import anystream.db.MediaLinkDao
+import anystream.db.MetadataDao
 import anystream.db.PlaybackStatesDao
 import anystream.db.UsersDao
-import anystream.db.model.MediaDb
+import anystream.db.model.MetadataDb
 import anystream.db.model.PlaybackStateDb
 import anystream.db.model.UserDb
 import anystream.models.*
@@ -31,9 +31,9 @@ import org.slf4j.LoggerFactory
 
 class StreamServiceQueriesJdbi(
     private val usersDao: UsersDao,
-    private val mediaDao: MediaDao,
-    private val mediaRefDao: MediaReferencesDao,
-    private val playbackStatesDao: PlaybackStatesDao,
+    private val mediaDao: MetadataDao,
+    private val mediaLinkDao: MediaLinkDao,
+    private val playbackStatesDao: PlaybackStatesDao
 ) : StreamServiceQueries {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
@@ -60,7 +60,7 @@ class StreamServiceQueriesJdbi(
 
     override suspend fun fetchMovieById(id: String): Movie? {
         return try {
-            mediaDao.findByGidAndType(id, MediaDb.Type.MOVIE)?.toMovieModel()
+            mediaDao.findByGidAndType(id, MetadataDb.Type.MOVIE)?.toMovieModel()
         } catch (e: JdbiException) {
             logger.error("Failed to load Movie id='$id'", e)
             null
@@ -69,7 +69,7 @@ class StreamServiceQueriesJdbi(
 
     override suspend fun fetchEpisodeById(id: String): Pair<Episode, TvShow>? {
         return try {
-            val dbEpisode = mediaDao.findByGidAndType(id, MediaDb.Type.TV_EPISODE)
+            val dbEpisode = mediaDao.findByGidAndType(id, MetadataDb.Type.TV_EPISODE)
             return if (dbEpisode == null) {
                 null
             } else {
@@ -83,20 +83,20 @@ class StreamServiceQueriesJdbi(
         }
     }
 
-    override fun fetchMediaRef(mediaRefId: String): MediaReference? {
+    override fun fetchMediaLink(mediaLinkId: String): MediaLink? {
         return try {
-            mediaRefDao.findByGid(mediaRefId)?.toMediaRefModel()
+            mediaLinkDao.findByGid(mediaLinkId)?.toModel()
         } catch (e: JdbiException) {
-            logger.error("Failed to find MediaReference '$mediaRefId'")
+            logger.error("Failed to find MediaReference '$mediaLinkId'")
             null
         }
     }
 
-    override suspend fun fetchPlaybackState(mediaRefId: String, userId: Int): PlaybackState? {
+    override suspend fun fetchPlaybackState(mediaLinkId: String, userId: Int): PlaybackState? {
         return try {
-            playbackStatesDao.findByUserIdAndMediaRefGid(userId, mediaRefId)?.toStateModel()
+            playbackStatesDao.findByUserIdAndMediaRefGid(userId, mediaLinkId)?.toStateModel()
         } catch (e: JdbiException) {
-            logger.error("Failed to load PlaybackState, mediaRefId='$mediaRefId' userId='$userId'")
+            logger.error("Failed to load PlaybackState, mediaLinkId='$mediaLinkId' userId='$userId'")
             null
         }
     }

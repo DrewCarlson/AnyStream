@@ -15,15 +15,15 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.frontend.screens
+package anystream.screens
 
 import androidx.compose.runtime.*
+import anystream.LocalAnyStreamClient
 import anystream.client.AnyStreamClient
-import anystream.frontend.LocalAnyStreamClient
-import anystream.frontend.libs.*
-import anystream.frontend.models.MediaItem
-import anystream.frontend.models.toMediaItem
+import anystream.libs.*
+import anystream.models.MediaItem
 import anystream.models.PlaybackState
+import anystream.models.toMediaItem
 import anystream.util.formatProgressAndRuntime
 import anystream.util.formatted
 import app.softwork.routingcompose.Router
@@ -49,7 +49,7 @@ private val playerControlsColor = rgba(35, 36, 38, .45)
 private const val CONTROL_HIDE_DELAY = 2_750L
 
 @Composable
-fun PlayerScreen(mediaRefId: String) {
+fun PlayerScreen(mediaLinkId: String) {
     val client = LocalAnyStreamClient.current
     var player: VjsPlayer? by remember { mutableStateOf(null) }
     var playerIsPlaying by remember { mutableStateOf(false) }
@@ -76,7 +76,7 @@ fun PlayerScreen(mediaRefId: String) {
     var sessionHandle by remember { mutableStateOf<AnyStreamClient.PlaybackSessionHandle?>(null) }
     val mediaItem = produceState<MediaItem?>(null) {
         value = try {
-            client.lookupMediaByRefId(mediaRefId).run {
+            client.lookupMetadataByMediaLinkGid(mediaLinkId).run {
                 movie?.toMediaItem() ?: episode?.toMediaItem()
             }
         } catch (e: Throwable) {
@@ -85,7 +85,7 @@ fun PlayerScreen(mediaRefId: String) {
     }
     val playbackState by produceState<PlaybackState?>(null) {
         var initialState: PlaybackState? = null
-        sessionHandle = client.playbackSession(mediaRefId) { state ->
+        sessionHandle = client.playbackSession(mediaLinkId) { state ->
             println("[player] $state")
             if (initialState == null) {
                 initialState = state
@@ -133,7 +133,7 @@ fun PlayerScreen(mediaRefId: String) {
                 }
             }) {
                 player?.also { player ->
-                    SeekBar(player, mediaRefId, progressScale, bufferedProgress)
+                    SeekBar(player, mediaLinkId, progressScale, bufferedProgress)
                 }
             }
         }
@@ -238,7 +238,7 @@ fun PlayerScreen(mediaRefId: String) {
             }) {
                 LaunchedEffect(playbackState?.id, player) {
                     playbackState?.also { state ->
-                        val url = client.createHlsStreamUrl(mediaRefId, state.id)
+                        val url = client.createHlsStreamUrl(mediaLinkId, state.id)
                         println("[player] $url")
                         player?.src(url)
                         player?.play()
@@ -291,7 +291,7 @@ fun PlayerScreen(mediaRefId: String) {
             PlaybackControls(
                 areControlsVisible = areControlsVisible,
                 player = currentPlayer,
-                mediaRefId = mediaRefId,
+                mediaLinkId = mediaLinkId,
                 mediaItem = mediaItem,
                 progressScale = progressScale,
                 bufferedPercent = bufferedProgress,
@@ -404,7 +404,7 @@ private fun MaxPlayerTopBar(
 private fun PlaybackControls(
     areControlsVisible: Boolean,
     player: VjsPlayer,
-    mediaRefId: String,
+    mediaLinkId: String,
     mediaItem: State<MediaItem?>,
     progressScale: State<Double>,
     bufferedPercent: State<Double>,
@@ -713,7 +713,7 @@ private fun PlaybackControls(
             }) {
                 SeekBar(
                     player = player,
-                    mediaRefId = mediaRefId,
+                    mediaLinkId = mediaLinkId,
                     progressScale = progressScale,
                     bufferedPercent = bufferedPercent,
                 )
@@ -725,7 +725,7 @@ private fun PlaybackControls(
 @Composable
 private fun SeekBar(
     player: VjsPlayer,
-    mediaRefId: String,
+    mediaLinkId: String,
     progressScale: State<Double>,
     bufferedPercent: State<Double>,
 ) {
@@ -739,9 +739,9 @@ private fun SeekBar(
     }
     val previewUrl by derivedStateOf {
         val index = (mouseHoverProgress.inWholeSeconds / 5).coerceAtLeast(1)
-        "/api/image/previews/$mediaRefId/preview$index.jpg?${AnyStreamClient.SESSION_KEY}=${client.token}"
+        "/api/image/previews/$mediaLinkId/preview$index.jpg?${AnyStreamClient.SESSION_KEY}=${client.token}"
     }
-    val hasPreview by produceState(false, mediaRefId) {
+    val hasPreview by produceState(false, mediaLinkId) {
         value = try {
             fetch(previewUrl).await().ok
         } catch (e: Throwable) {
@@ -885,7 +885,7 @@ private fun SeekBar(
         ) { popper ->
             LaunchedEffect(mouseHoverX) { popper.update() }
             Div({
-                classes("px-2", "py-1", "shadow", "bg-dark")
+                classes("px-2", "py-1", "shadow", "bg-dark-translucent")
                 style {
                     property("transform", "translateY(-100%)")
                 }

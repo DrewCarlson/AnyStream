@@ -25,8 +25,8 @@ interface StreamServiceQueries {
     suspend fun fetchPlaybackStatesByIds(ids: List<String>): List<PlaybackState>
     suspend fun fetchMovieById(id: String): Movie?
     suspend fun fetchEpisodeById(id: String): Pair<Episode, TvShow>?
-    fun fetchMediaRef(mediaRefId: String): MediaReference?
-    suspend fun fetchPlaybackState(mediaRefId: String, userId: Int): PlaybackState?
+    fun fetchMediaLink(mediaLinkId: String): MediaLink?
+    suspend fun fetchPlaybackState(mediaLinkId: String, userId: Int): PlaybackState?
     suspend fun insertPlaybackState(playbackState: PlaybackState): Boolean
     suspend fun updatePlaybackState(stateId: String, position: Double): Boolean
     suspend fun deletePlaybackState(playbackStateId: String): Boolean

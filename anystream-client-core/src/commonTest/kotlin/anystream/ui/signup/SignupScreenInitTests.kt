@@ -33,7 +33,7 @@ class SignupScreenInitTests {
             .then(
                 InitSpec.assertThatFirst(
                     hasModel(startModel),
-                    hasNoEffects(),
+                    hasNoEffects()
                 )
             )
     }
@@ -42,14 +42,14 @@ class SignupScreenInitTests {
     fun test_ModelWithUrl_RequiringValidation_RequestsValidation() {
         val startModel = SignupScreenModel(
             serverUrl = "test",
-            serverValidation = SignupScreenModel.ServerValidation.VALIDATING,
+            serverValidation = SignupScreenModel.ServerValidation.VALIDATING
         )
         InitSpec(SignupScreenInit)
             .whenInit(startModel)
             .then(
                 InitSpec.assertThatFirst(
                     hasModel(startModel),
-                    hasEffects(SignupScreenEffect.ValidateServerUrl("test")),
+                    hasEffects(SignupScreenEffect.ValidateServerUrl("test"))
                 )
             )
     }

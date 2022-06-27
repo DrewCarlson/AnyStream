@@ -22,7 +22,7 @@ internal data class LangCode(
     val nativeNative: String,
     val iso639_1: String,
     val iso639_2T: String,
-    val iso639_2B: String,
+    val iso639_2B: String
 )
 
 internal object IsoLanguageCodes {

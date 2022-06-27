@@ -7,7 +7,7 @@ include(
     ":anystream-data-models",
     ":anystream-server:server-app",
     ":anystream-server:server-db-models",
-    ":anystream-server:server-media-importer",
+    ":anystream-server:server-library-manager",
     ":anystream-server:server-metadata-manager",
     ":anystream-server:server-shared",
     ":anystream-server:server-stream-service",
@@ -22,6 +22,6 @@ pluginManagement {
     repositories {
         gradlePluginPortal()
         google()
-        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev/")
     }
 }

@@ -42,14 +42,14 @@ interface PlaybackStatesDao {
     @SqlQuery("SELECT * FROM playbackStates WHERE userId = ? ORDER BY updatedAt DESC LIMIT ?")
     fun findByUserId(userId: Int, limit: Int): List<PlaybackStateDb>
 
-    @SqlQuery("SELECT * FROM playbackStates WHERE userId = ? AND mediaGid = ?")
-    fun findByUserIdAndMediaGid(userId: Int, mediaGid: String): PlaybackStateDb?
+    @SqlQuery("SELECT * FROM playbackStates WHERE userId = ? AND metadataGid = ?")
+    fun findByUserIdAndMediaGid(userId: Int, metadataGid: String): PlaybackStateDb?
 
-    @SqlQuery("SELECT * FROM playbackStates WHERE userId = ? AND mediaReferenceId = ?")
-    fun findByUserIdAndMediaRefGid(userId: Int, mediaRefGid: String): PlaybackStateDb?
+    @SqlQuery("SELECT * FROM playbackStates WHERE userId = ? AND mediaLinkId = ?")
+    fun findByUserIdAndMediaRefGid(userId: Int, mediaLinkGid: String): PlaybackStateDb?
 
-    @SqlQuery("SELECT * FROM playbackStates WHERE userId = :userId AND mediaGid IN (<mediaGids>)")
-    fun findByUserIdAndMediaGids(userId: Int, @BindList("mediaGids") mediaGids: List<String>): List<PlaybackStateDb>
+    @SqlQuery("SELECT * FROM playbackStates WHERE userId = :userId AND metadataGid IN (<metadataGids>)")
+    fun findByUserIdAndMediaGids(userId: Int, @BindList("metadataGids") metadataGids: List<String>): List<PlaybackStateDb>
 
     @SqlUpdate("UPDATE playbackStates SET position = :position, updatedAt = :updatedAt WHERE gid = :gid")
     fun updatePosition(gid: String, position: Double, updatedAt: Instant)

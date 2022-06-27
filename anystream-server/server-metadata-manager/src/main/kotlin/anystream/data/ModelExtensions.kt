@@ -17,9 +17,13 @@
  */
 package anystream.data
 
+import anystream.db.model.MetadataDb
 import anystream.models.*
 import anystream.util.ObjectId
 import app.moviebase.tmdb.model.*
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atStartOfDayIn
 import java.time.Instant
 import java.util.*
 import kotlin.math.roundToInt
@@ -28,9 +32,10 @@ private const val MAX_CACHED_POSTERS = 5
 
 fun TmdbMovieDetail.asMovie(
     id: String,
-    userId: Int = 1,
+    userId: Int = 1
 ) = Movie(
-    id = id,
+    id = -1,
+    gid = id,
     tmdbId = this.id,
     title = title,
     overview = overview,
@@ -50,15 +55,15 @@ fun TmdbMovieDetail.asMovie(
     genres = genres.map { Genre(-1, it.name, it.id) },
     companies = productionCompanies.orEmpty().map { tmdbCompany ->
         ProductionCompany(-1, tmdbCompany.name.orEmpty(), tmdbCompany.id)
-    },
+    }
 )
 
 fun TmdbShowDetail.asTvShow(
     tmdbSeasons: List<TmdbSeason>,
     id: String,
     userId: Int,
-    createId: (id: Int) -> String = { ObjectId.get().toString() },
-): Triple<TvShow, List<TvSeason>, List<Episode>> {
+    createId: (id: Int) -> String = { ObjectId.get().toString() }
+): Triple<MetadataDb, List<MetadataDb>, List<MetadataDb>> {
     val episodes = tmdbSeasons.flatMap { season ->
         season.episodes.orEmpty().map { episode ->
             episode.asTvEpisode(createId(episode.id), id, createId(season.id))
@@ -70,43 +75,62 @@ fun TmdbShowDetail.asTvShow(
     return Triple(asTvShow(id, userId), seasons, episodes)
 }
 
-fun TmdbEpisode.asTvEpisode(id: String, showId: String, seasonId: String): Episode {
-    return Episode(
-        id = id,
-        seasonId = seasonId,
+fun TmdbEpisode.asTvEpisode(id: String, showId: String, seasonId: String, userId: Int = 1): MetadataDb {
+    val now = Clock.System.now()
+    return MetadataDb(
+        id = -1,
+        gid = id,
+        parentId = -1, // TODO: Add parent id int
+        parentGid = seasonId,
+        rootId = -1, // TODO: Add root id int
+        rootGid = showId,
         tmdbId = this.id,
-        name = name ?: "",
+        title = name ?: "",
         overview = overview.orEmpty(),
-        airDate = airDate?.run { "$year-$monthNumber-$dayOfMonth" },
-        number = episodeNumber,
-        seasonNumber = seasonNumber,
-        showId = showId,
-        stillPath = stillPath ?: "",
+        addedByUserId = userId,
+        firstAvailableAt = airDate?.atStartOfDayIn(TimeZone.UTC),
+        index = episodeNumber,
+        parentIndex = seasonNumber,
+        posterPath = stillPath,
         tmdbRating = voteAverage?.run { times(10).roundToInt() },
+        createdAt = now,
+        updatedAt = now,
+        mediaKind = MediaKind.TV,
+        mediaType = MetadataDb.Type.TV_EPISODE
     )
 }
 
-fun TmdbSeason.asTvSeason(id: String): TvSeason {
-    return TvSeason(
-        id = id,
+fun TmdbSeason.asTvSeason(id: String, userId: Int = 1): MetadataDb {
+    val now = Clock.System.now()
+    return MetadataDb(
+        id = -1,
+        gid = id,
         tmdbId = this.id,
-        name = name,
+        title = name,
         overview = overview.orEmpty(),
-        seasonNumber = seasonNumber,
-        airDate = airDate?.run { "$year-$monthNumber-$dayOfMonth" },
-        posterPath = posterPath ?: "",
+        index = seasonNumber,
+        firstAvailableAt = airDate?.atStartOfDayIn(TimeZone.UTC),
+        posterPath = posterPath,
+        addedByUserId = userId,
+        createdAt = now,
+        updatedAt = now,
+        mediaKind = MediaKind.TV,
+        mediaType = MetadataDb.Type.TV_SEASON
     )
 }
 
-fun TmdbShowDetail.asTvShow(id: String, userId: Int = 1): TvShow {
-    return TvShow(
-        id = id,
-        name = name,
+fun TmdbShowDetail.asTvShow(id: String, userId: Int = 1): MetadataDb {
+    val now = Clock.System.now()
+    return MetadataDb(
+        id = -1,
+        gid = id,
+        title = name,
         tmdbId = this.id,
         overview = overview,
-        firstAirDate = firstAirDate?.run { "$year-$monthNumber-$dayOfMonth" },
+        firstAvailableAt = firstAirDate?.atStartOfDayIn(TimeZone.UTC),
         posterPath = posterPath ?: "",
-        added = Instant.now().toEpochMilli(),
+        createdAt = now,
+        updatedAt = now,
         addedByUserId = userId,
         tmdbRating = (voteAverage * 10).roundToInt(),
         tagline = null,
@@ -115,5 +139,7 @@ fun TmdbShowDetail.asTvShow(id: String, userId: Int = 1): TvShow {
         companies = productionCompanies.orEmpty().map { tmdbCompany ->
             ProductionCompany(-1, tmdbCompany.name.orEmpty(), tmdbCompany.id)
         },
+        mediaKind = MediaKind.TV,
+        mediaType = MetadataDb.Type.TV_SHOW
     )
 }
