@@ -58,7 +58,7 @@ jobs:
           env_var_name: AS_VERSION
       - uses: actions/checkout@v3
       - name: Deploy docs
-        uses: mhausenblas/mkdocs-deploy-gh-pages@1.24
+        uses: mhausenblas/mkdocs-deploy-gh-pages@1.25
         env:
           REQUIREMENTS: docs/requirements.txt
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
