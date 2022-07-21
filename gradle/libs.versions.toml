@@ -6,7 +6,7 @@ ktorio = "2.0.2"
 composejb = "0.0.0-on_kotlin_1.7.0-rc-dev705"
 kotlinjs_ext = "1.0.1-pre.347"
 ksp = "1.7.0-1.0.6"
-atomicfu = "0.18.0"
+atomicfu = "0.18.3"
 kover = "0.5.1"
 datetime = "0.3.3"
 
