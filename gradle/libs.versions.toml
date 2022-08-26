@@ -25,7 +25,7 @@ shadowjar = "7.1.2"
 
 zxing = "3.5.0"
 anr_watchdog = "1.4.0"
-compose = "1.1.1"
+compose = "1.2.1"
 composeCompiler = "1.2.1-dev-k1.7.10-27cf0868d10"
 exoplayer = "2.18.0"
 ax_runner = "1.4.0"
