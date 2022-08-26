@@ -2,9 +2,9 @@ name: Spotless
 
 on:
   push:
-    branches: [ main ]
+    branches: [ disabled ]
   pull_request:
-    branches: [ main ]
+    branches: [ disabled ]
 
 jobs:
   file-changes:
