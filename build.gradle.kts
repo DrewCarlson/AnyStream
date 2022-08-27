@@ -54,6 +54,9 @@ tasks.create("shutdownSimulator") {
 }
 
 subprojects {
+    apply(plugin = "org.jetbrains.kotlinx.kover")
+    kover {}
+
     apply(plugin = "com.diffplug.spotless")
     configure<com.diffplug.gradle.spotless.SpotlessExtension> {
         kotlin {

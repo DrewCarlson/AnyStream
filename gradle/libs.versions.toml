@@ -7,15 +7,15 @@ composejb = "1.2.0-alpha01-dev770"
 kotlinjs_ext = "1.0.1-pre.377"
 ksp = "1.7.10-1.0.6"
 atomicfu = "0.18.3"
-kover = "0.5.1"
+kover = "0.6.0"
 datetime = "0.4.0"
 
 qbittorrent = "1.0.0-SNAPSHOT"
 mobiuskt = "0.6.0"
 ktor_perm = "0.2.1"
 
-jdbi = "3.30.0"
-jdbc_sqlite = "3.36.0.3"
+jdbi = "3.32.0"
+jdbc_sqlite = "3.39.2.1"
 kjob = "0.4.2"
 
 bouncy_castle = "1.70"
@@ -59,7 +59,6 @@ serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-jso
 datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "datetime" }
 
 atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu" }
-atomicfu-runtime = { module = "org.jetbrains.kotlinx:atomicfu-runtime", version.ref = "atomicfu" }
 atomicfu-plugin = { module = "org.jetbrains.kotlinx:atomicfu-gradle-plugin", version.ref = "atomicfu" }
 
 agp = { module = "com.android.tools.build:gradle", version.ref = "agp" }
@@ -68,7 +67,7 @@ kotlinjs-extensions = { module = "org.jetbrains.kotlin-wrappers:kotlin-extension
 
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 
-flyway-core = { module = "org.flywaydb:flyway-core", version = "9.0.0" }
+flyway-core = { module = "org.flywaydb:flyway-core", version = "9.2.0" }
 fastObjectPool = { module = "cn.danielw:fast-object-pool", version = "2.2.1" }
 
 jdbi-core = { module = "org.jdbi:jdbi3-core", version.ref = "jdbi" }
@@ -138,7 +137,7 @@ logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 tmdbapi = { module = "org.drewcarlson:tmdb-api", version = "0.7.5" }
 
 androidx-core-ktx = { module = "androidx.core:core-ktx", version = "1.8.0" }
-androidx-appcompat-core = { module = "androidx.appcompat:appcompat", version = "1.4.2" }
+androidx-appcompat-core = { module = "androidx.appcompat:appcompat", version = "1.5.0" }
 androidx-leanback-core = { module = "androidx.leanback:leanback", version = "1.1.0-rc02" }
 androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version = "1.5.1" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version = "1.5.1" }
