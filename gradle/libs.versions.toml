@@ -29,7 +29,7 @@ compose = "1.2.1"
 composeCompiler = "1.2.1-dev-k1.7.10-27cf0868d10"
 exoplayer = "2.18.1"
 ax_runner = "1.4.0"
-agp = "7.2.1"
+agp = "7.2.2"
 leakcanary = "2.9.1"
 
 okhttp = "5.0.0-alpha.10"
