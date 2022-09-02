@@ -45,14 +45,6 @@ allprojects {
     }
 }
 
-val rootIosTestTask = rootProject.tasks.create("runIosX64Tests") {
-    doLast { shutdownSimulator() }
-}
-
-tasks.create("shutdownSimulator") {
-    doFirst { shutdownSimulator() }
-}
-
 subprojects {
     apply(plugin = "org.jetbrains.kotlinx.kover")
     kover {}
@@ -72,25 +64,5 @@ subprojects {
 
         // Silence release sourceset warning for every module that targets Android
         kotlin?.sourceSets?.removeAll { it.name == "androidAndroidTestRelease" }
-
-        // Setup alternative test iOS test configurations
-        kotlin?.targets
-            ?.takeIf { org.gradle.internal.os.OperatingSystem.current().isMacOsX }
-            ?.also { tasks.findByName("allTests")?.dependsOn(rootIosTestTask) }
-            ?.withType<org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget>()
-            ?.filter { it.name == "iosX64" && it.publishable }
-            ?.forEach { target ->
-                val testExecutable = target.binaries.getTest("debug")
-                val executable = testExecutable.outputFile
-                tasks.create("runIosX64Tests") {
-                    rootIosTestTask.dependsOn(this)
-                    dependsOn(testExecutable.linkTaskName)
-                    doFirst {
-                        if (executable.exists()) {
-                            runSimulatorTests(executable.absolutePath)
-                        }
-                    }
-                }
-            }
     }
 }
