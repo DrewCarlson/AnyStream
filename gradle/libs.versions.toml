@@ -136,7 +136,7 @@ logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 
 tmdbapi = { module = "org.drewcarlson:tmdb-api", version = "0.7.5" }
 
-androidx-core-ktx = { module = "androidx.core:core-ktx", version = "1.8.0" }
+androidx-core-ktx = { module = "androidx.core:core-ktx", version = "1.9.0" }
 androidx-appcompat-core = { module = "androidx.appcompat:appcompat", version = "1.5.1" }
 androidx-leanback-core = { module = "androidx.leanback:leanback", version = "1.1.0-rc02" }
 androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version = "1.5.1" }
