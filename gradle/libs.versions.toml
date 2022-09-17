@@ -3,8 +3,8 @@ kotlin = { strictly = "1.7.10" }
 coroutines = "1.6.4"
 serialization = "1.4.0"
 ktorio = "2.1.1"
-composejb = "1.2.0-alpha01-dev778"
-kotlinjs_ext = "1.0.1-pre.383"
+composejb = "1.2.0-beta01"
+kotlinjs_ext = "1.0.1-pre.386"
 ksp = "1.7.10-1.0.6"
 atomicfu = "0.18.3"
 kover = "0.6.0"
@@ -20,7 +20,7 @@ kjob = "0.4.2"
 
 bouncy_castle = "1.70"
 jaffree = "2022.06.03"
-logback = "1.4.0"
+logback = "1.4.1"
 shadowjar = "7.1.2"
 
 zxing = "3.5.0"
@@ -34,7 +34,7 @@ leakcanary = "2.9.1"
 
 okhttp = "5.0.0-alpha.10"
 
-spotless = "6.10.0"
+spotless = "6.11.0"
 ktlint = "0.47.0"
 
 [plugins]
@@ -136,7 +136,7 @@ logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 
 tmdbapi = { module = "org.drewcarlson:tmdb-api", version = "0.7.5" }
 
-androidx-core-ktx = { module = "androidx.core:core-ktx", version = "1.8.0" }
+androidx-core-ktx = { module = "androidx.core:core-ktx", version = "1.9.0" }
 androidx-appcompat-core = { module = "androidx.appcompat:appcompat", version = "1.5.1" }
 androidx-leanback-core = { module = "androidx.leanback:leanback", version = "1.1.0-rc02" }
 androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version = "1.5.1" }

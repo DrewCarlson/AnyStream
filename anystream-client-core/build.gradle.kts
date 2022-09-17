@@ -11,7 +11,7 @@ apply(plugin = "kotlinx-atomicfu")
 if (hasAndroidSdk) {
     apply(plugin = "com.android.library")
     configure<LibraryExtension> {
-        compileSdk = 32
+        compileSdk = 33
         defaultConfig {
             minSdk = 23
             targetSdk = 31
