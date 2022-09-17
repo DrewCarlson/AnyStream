@@ -246,7 +246,8 @@ private fun TorrentContextMenu(
 private fun stateIcon(torrent: Torrent): String {
     return when (torrent.state) {
         Torrent.State.PAUSED_DL,
-        Torrent.State.QUEUED_UP -> "bi-pause-fill"
+        Torrent.State.QUEUED_UP,
+        Torrent.State.QUEUED_DL -> "bi-pause-fill"
         Torrent.State.STALLED_DL -> "bi-binoculars-fill"
         Torrent.State.CHECKING_UP,
         Torrent.State.STALLED_UP,
