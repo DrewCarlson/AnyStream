@@ -139,8 +139,8 @@ tmdbapi = { module = "org.drewcarlson:tmdb-api", version = "0.7.5" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version = "1.9.0" }
 androidx-appcompat-core = { module = "androidx.appcompat:appcompat", version = "1.5.1" }
 androidx-leanback-core = { module = "androidx.leanback:leanback", version = "1.1.0-rc02" }
-androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version = "1.5.1" }
-androidx-activity-compose = { module = "androidx.activity:activity-compose", version = "1.5.1" }
+androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version = "1.6.0" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version = "1.6.0" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version = "2.5.1" }
 androidx-test-runner = { module = "androidx.test:runner", version.ref = "ax_runner" }
 
