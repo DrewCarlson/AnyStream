@@ -1,11 +1,11 @@
 [versions]
-kotlin = { strictly = "1.7.10" }
+kotlin = { strictly = "1.7.20" }
 coroutines = "1.6.4"
 serialization = "1.4.0"
 ktorio = "2.1.1"
 composejb = "1.2.0-beta01"
 kotlinjs_ext = "1.0.1-pre.394"
-ksp = "1.7.10-1.0.6"
+ksp = "1.7.20-1.0.6"
 atomicfu = "0.18.3"
 kover = "0.6.0"
 datetime = "0.4.0"
@@ -26,7 +26,7 @@ shadowjar = "7.1.2"
 zxing = "3.5.0"
 anr_watchdog = "1.4.0"
 compose = "1.2.1"
-composeCompiler = "1.3.0"
+composeCompiler = "1.4.0-dev-k1.7.20-RC-a143c065804"
 exoplayer = "2.18.1"
 ax_runner = "1.4.0"
 agp = "7.2.2"

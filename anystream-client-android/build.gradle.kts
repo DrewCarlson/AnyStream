@@ -41,7 +41,7 @@ android {
         "-opt-in=androidx.compose.ui.ExperimentalComposeUiApi",
         "-opt-in=androidx.compose.foundation.ExperimentalFoundationApi",
         "-opt-in=coil.annotation.ExperimentalCoilApi",
-        //"-P", "plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=true"
+        "-P", "plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=true"
     )
 }
 

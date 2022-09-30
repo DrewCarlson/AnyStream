@@ -56,13 +56,6 @@ kotlin {
                 export(projects.anystreamDataModels)
                 export(libs.mobiuskt.core)
                 export(libs.mobiuskt.coroutines)
-
-                binaryOptions["freezing"] = "disabled"
-                binaryOptions["memoryModel"] = "experimental"
-            }
-            getTest("DEBUG").apply {
-                binaryOptions["freezing"] = "disabled"
-                binaryOptions["memoryModel"] = "experimental"
             }
         }
     }
