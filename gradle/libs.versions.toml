@@ -20,7 +20,7 @@ kjob = "0.5.0"
 
 bouncy_castle = "1.70"
 jaffree = "2022.06.03"
-logback = "1.4.1"
+logback = "1.4.3"
 shadowjar = "7.1.2"
 
 zxing = "3.5.0"
