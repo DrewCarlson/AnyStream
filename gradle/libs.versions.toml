@@ -1,7 +1,7 @@
 [versions]
 kotlin = { strictly = "1.7.10" }
 coroutines = "1.6.4"
-serialization = "1.4.0"
+serialization = "1.4.1"
 ktorio = "2.1.2"
 composejb = "1.2.0-beta02-dev798"
 kotlinjs_ext = "1.0.1-pre.407"
