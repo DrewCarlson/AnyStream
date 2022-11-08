@@ -1,10 +1,10 @@
 [versions]
-kotlin = { strictly = "1.7.10" }
+kotlin = { strictly = "1.7.20" }
 coroutines = "1.6.4"
 serialization = "1.4.1"
 ktorio = "2.1.3"
 composejb = "1.2.1"
-kotlinjs_ext = "1.0.1-pre.417"
+kotlinjs_ext = "1.0.1-pre.429"
 ksp = "1.7.10-1.0.6"
 atomicfu = "0.18.5"
 kover = "0.6.1"
