@@ -15,7 +15,7 @@ mobiuskt = "0.6.0"
 ktor_perm = "0.2.1"
 
 jdbi = "3.34.0"
-jdbc_sqlite = "3.39.4.0"
+jdbc_sqlite = "3.39.4.1"
 kjob = "0.5.0"
 
 bouncy_castle = "1.70"
