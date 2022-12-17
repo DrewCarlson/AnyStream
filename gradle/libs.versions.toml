@@ -3,7 +3,7 @@ kotlin = { strictly = "1.7.20" }
 coroutines = "1.6.4"
 serialization = "1.4.1"
 ktorio = "2.2.1"
-composejb = "1.2.1"
+composejb = "1.2.2"
 kotlinjs_ext = "1.0.1-pre.459"
 ksp = "1.7.20-1.0.8"
 atomicfu = "0.18.5"
