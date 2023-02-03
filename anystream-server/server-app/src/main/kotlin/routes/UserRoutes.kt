@@ -47,8 +47,8 @@ private const val PAIRING_SESSION_SECONDS = 60
 fun Route.addUserRoutes(userService: UserService) {
     route("/users") {
         post {
-            val body = call.receiveOrNull<CreateUserBody>()
-                ?: return@post call.respond(UnprocessableEntity)
+            val body = runCatching { call.receiveNullable<CreateUserBody>() }
+                .getOrNull() ?: return@post call.respond(UnprocessableEntity)
             val createSession = call.parameters["createSession"]?.toBoolean() ?: true
 
             val result = userService.createUser(body)
@@ -83,8 +83,8 @@ fun Route.addUserRoutes(userService: UserService) {
 
                     post {
                         val session = call.sessions.get<UserSession>()!!
-                        val permissions = call.receiveOrNull<Set<Permission>>()
-                            ?: setOf(Permission.ViewCollection)
+                        val permissions = runCatching { call.receiveNullable<Set<Permission>>() }
+                            .getOrNull() ?: setOf(Permission.ViewCollection)
 
                         val inviteCode = userService.createInviteCode(session.userId, permissions)
                         if (inviteCode == null) {
@@ -116,8 +116,8 @@ fun Route.addUserRoutes(userService: UserService) {
         route("/session") {
             authenticate(optional = true) {
                 post {
-                    val body = call.receiveOrNull<CreateSessionBody>()
-                        ?: return@post call.respond(UnprocessableEntity)
+                    val body = runCatching { call.receiveNullable<CreateSessionBody>() }
+                        .getOrNull() ?: return@post call.respond(UnprocessableEntity)
 
                     val result = userService.createSession(body, call.principal())
                     if (result is CreateSessionResponse.Success) {

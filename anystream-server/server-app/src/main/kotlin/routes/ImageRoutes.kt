@@ -35,7 +35,7 @@ fun Route.addImageRoutes(dataPath: String) {
     val imageClient = HttpClient {
         install(HttpCache) {
             // TODO: Add disk catching
-            publicStorage = HttpCacheStorage.Unlimited()
+            publicStorage(CacheStorage.Unlimited())
         }
     }
     route("/image") {

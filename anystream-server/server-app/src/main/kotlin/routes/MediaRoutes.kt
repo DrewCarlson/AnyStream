@@ -37,7 +37,6 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jdbi.v3.core.JdbiException
@@ -81,8 +80,8 @@ fun Route.addMediaManageRoutes(
             }
             post {
                 val (userId) = checkNotNull(call.principal<UserSession>())
-                val request = call.receiveOrNull<AddLibraryFolderRequest>()
-                    ?: return@post call.respond(UnprocessableEntity)
+                val request = runCatching { call.receiveNullable<AddLibraryFolderRequest>() }
+                    .getOrNull() ?: return@post call.respond(UnprocessableEntity)
 
                 val (path, mediaKind) = request
                 val response = when (val result = libraryManager.addLibraryFolder(userId, path, mediaKind)) {
@@ -163,8 +162,8 @@ fun Route.addMediaManageRoutes(
             }
 
             post("/unmapped") {
-                val import = call.receiveOrNull<MediaScanRequest>()
-                    ?: return@post call.respond(UnprocessableEntity)
+                val import = runCatching { call.receiveNullable<MediaScanRequest>() }
+                    .getOrNull() ?: return@post call.respond(UnprocessableEntity)
 
                 call.respond(libraryManager.findUnmappedFiles(import))
             }

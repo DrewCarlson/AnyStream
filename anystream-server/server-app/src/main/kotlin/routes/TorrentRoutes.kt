@@ -51,8 +51,8 @@ fun Route.addTorrentRoutes(
 
         post {
             val session = checkNotNull(call.principal<UserSession>())
-            val description = call.receiveOrNull<TorrentDescription2>()
-                ?: return@post call.respond(UnprocessableEntity)
+            val description = runCatching { call.receiveNullable<TorrentDescription2>() }
+                .getOrNull() ?: return@post call.respond(UnprocessableEntity)
             try {
                 qbClient.getTorrentProperties(description.hash)
             } catch (e: ResponseException) {

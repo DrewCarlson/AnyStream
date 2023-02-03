@@ -74,15 +74,17 @@ fun Route.addStreamRoutes(
                     put {
                         val session = checkNotNull(call.principal<UserSession>())
                         val mediaLinkId = call.parameters["mediaLinkId"]!!
-                        val state = call.receiveOrNull<PlaybackState>()
-                            ?: return@put call.respond(UnprocessableEntity)
+                        val state = runCatching { call.receiveNullable<PlaybackState>() }
+                            .getOrNull() ?: return@put call.respond(UnprocessableEntity)
 
-                        val actualState = streamService.getPlaybackState(mediaLinkId, session.userId, false)
+                        val actualState =
+                            streamService.getPlaybackState(mediaLinkId, session.userId, false)
 
                         if (actualState == null) {
                             call.respond(NotFound)
                         } else {
-                            val success = streamService.updateStatePosition(actualState.id, state.position)
+                            val success =
+                                streamService.updateStatePosition(actualState.id, state.position)
                             call.respond(if (success) OK else InternalServerError)
                         }
                     }
@@ -112,7 +114,12 @@ fun Route.addStreamRoutes(
                     if (filePath == null) {
                         call.respond(NotFound)
                     } else {
-                        call.respond(LocalFileContent(File(filePath), ContentType.Application.OctetStream))
+                        call.respond(
+                            LocalFileContent(
+                                File(filePath),
+                                ContentType.Application.OctetStream
+                            )
+                        )
                     }
                 }
             }

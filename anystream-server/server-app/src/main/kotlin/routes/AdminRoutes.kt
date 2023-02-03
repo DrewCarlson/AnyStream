@@ -103,9 +103,8 @@ private fun createAppender(callback: (String) -> Unit): Appender<ILoggingEvent> 
                     append(" : ")
                     append(event.timeStamp)
                     append(" : ")
-                    event.marker
-                        ?.iterator()
-                        ?.forEachRemaining { marker ->
+                    event.markerList
+                        ?.forEach { marker ->
                             append("[")
                             append(marker.name)
                             append("]")
