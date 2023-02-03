@@ -178,8 +178,8 @@ fun Route.addUserRoutes(userService: UserService) {
                 put {
                     val session = call.sessions.get<UserSession>()!!
                     val userId = call.parameters["user_id"]?.toIntOrNull()!!
-                    val body = call.receiveOrNull<UpdateUserBody>()
-                        ?: return@put call.respond(UnprocessableEntity)
+                    val body = runCatching { call.receiveNullable<UpdateUserBody>() }
+                        .getOrNull() ?: return@put call.respond(UnprocessableEntity)
 
                     if (userId == session.userId) {
                         val success = userService.updateUser(userId, body)
