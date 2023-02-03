@@ -59,9 +59,11 @@ class SearchService(
                 val episodes = mediaDao.findAllByGidsAndType(episodeIds, Type.TV_EPISODE)
                     .map(MetadataDb::toTvEpisodeModel)
                 val episodeShowIds = episodes.map(Episode::showId).distinct()
-                val episodeShows = mediaDao.findAllByGidsAndType(episodeShowIds, Type.TV_SHOW)
-                    .map(MetadataDb::toTvShowModel)
-                    .associateBy(TvShow::gid)
+                val episodeShows = if (episodeShowIds.isNotEmpty()) {
+                    mediaDao.findAllByGidsAndType(episodeShowIds, Type.TV_SHOW)
+                        .map(MetadataDb::toTvShowModel)
+                        .associateBy(TvShow::gid)
+                } else emptyMap()
                 episodes.map { episode ->
                     SearchResponse.EpisodeResult(
                         episode = episode,
