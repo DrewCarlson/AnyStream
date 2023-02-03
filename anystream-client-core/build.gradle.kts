@@ -108,7 +108,7 @@ kotlin {
                 }
             }
 
-            val androidTest by getting {
+            val androidUnitTest by getting {
                 dependencies {
                     implementation(libs.androidx.test.runner)
                     implementation(kotlin("test"))

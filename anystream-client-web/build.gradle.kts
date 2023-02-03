@@ -14,7 +14,9 @@ kotlin {
         browser {
             binaries.executable()
             commonWebpackConfig {
-                cssSupport.enabled = true
+                cssSupport {
+                    enabled.set(true)
+                }
             }
             runTask {
                 val anystreamUrl = localProperties.getProperty("anystream.serverUrl", "http://localhost:8888")
