@@ -20,6 +20,7 @@ package anystream.routes
 import anystream.data.MetadataDbQueries
 import anystream.models.*
 import anystream.models.api.*
+import anystream.util.koinGet
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
@@ -30,7 +31,7 @@ import org.drewcarlson.ktor.permissions.withAnyPermission
 import org.jdbi.v3.core.JdbiException
 
 fun Route.addTvShowRoutes(
-    queries: MetadataDbQueries,
+    queries: MetadataDbQueries = koinGet(),
 ) {
     route("/tv") {
         get {

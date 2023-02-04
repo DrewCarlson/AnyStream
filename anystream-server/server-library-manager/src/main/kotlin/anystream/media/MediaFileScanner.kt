@@ -53,7 +53,7 @@ class MediaFileScanner(
 
         mediaScannerState.value = MediaScannerState.Active(
             libraryLink = libraryLink.toModel(),
-            currentLink = childLink?.toModel(),
+            currentLink = childLink?.toModel()
         )
         val targetFile = File(childLink?.filePath ?: libraryLink.filePath)
         return if (targetFile.isDirectory) {
@@ -85,7 +85,8 @@ class MediaFileScanner(
         userId: Int
     ): MediaScanResult {
         val (existingFilePaths, removedFilePaths) = try {
-            mediaLinkDao.findFilePathsByBasePath(targetFile.absolutePath).partition { File(it).exists() }
+            mediaLinkDao.findFilePathsByBasePath(targetFile.absolutePath)
+                .partition { File(it).exists() }
         } catch (e: JdbiException) {
             logger.error("Failed to find child media links", e)
             return MediaScanResult.ErrorDatabaseException(e.stackTraceToString())
@@ -156,12 +157,13 @@ class MediaFileScanner(
         return try {
             logger.debug("Inserting ${mediaFileLinks.size} media file links.")
             mediaLinkDao.insertLink(mediaFileLinks)
-
+            val existing = mediaLinkDao.findGidsByFilePaths(existingFilePaths)
             val addedGids = newDirectoryLinkGids + mediaFileLinks.map(MediaLinkDb::gid)
             return MediaScanResult.Success(
                 parentMediaLinkGid = libraryLink.gid,
                 addedMediaLinkGids = addedGids,
                 removedMediaLinkGids = removedGids,
+                existingMediaLinkGids = existing
             )
         } catch (e: JdbiException) {
             MediaScanResult.ErrorDatabaseException(e.stackTraceToString())

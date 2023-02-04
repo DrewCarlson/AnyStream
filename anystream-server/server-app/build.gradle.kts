@@ -118,6 +118,10 @@ dependencies {
 
     implementation(libs.tmdbapi)
 
+    implementation(libs.koin.core)
+    implementation(libs.koin.ktor)
+    implementation(libs.koin.slf4j)
+
     implementation(libs.qbittorrent.client)
     implementation(libs.torrentSearch)
     testImplementation(libs.ktor.server.tests)

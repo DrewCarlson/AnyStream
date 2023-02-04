@@ -19,6 +19,7 @@ package anystream.routes
 
 import anystream.data.*
 import anystream.db.model.MediaLinkDb
+import anystream.jobs.RefreshMetadataJob
 import anystream.media.AddLibraryFolderResult
 import anystream.media.LibraryManager
 import anystream.metadata.MetadataManager
@@ -26,6 +27,7 @@ import anystream.models.LocalMediaLink
 import anystream.models.MediaLink
 import anystream.models.api.*
 import anystream.util.isRemoteId
+import anystream.util.koinGet
 import anystream.util.logger
 import anystream.util.toHumanReadableSize
 import io.ktor.http.HttpStatusCode.Companion.NotFound
@@ -36,6 +38,7 @@ import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kjob.core.KJob
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -45,8 +48,9 @@ import java.nio.file.*
 import kotlin.io.path.*
 
 fun Route.addMediaManageRoutes(
-    libraryManager: LibraryManager,
-    queries: MetadataDbQueries,
+    libraryManager: LibraryManager = koinGet(),
+    queries: MetadataDbQueries = koinGet(),
+    kjob: KJob = koinGet(),
 ) {
     route("/media") {
         route("/library-folders") {
@@ -86,21 +90,7 @@ fun Route.addMediaManageRoutes(
                 val (path, mediaKind) = request
                 val response = when (val result = libraryManager.addLibraryFolder(userId, path, mediaKind)) {
                     is AddLibraryFolderResult.Success -> {
-                        application.launch {
-                            when (libraryManager.scanForMedia(userId, result.mediaLink)) {
-                                is MediaScanResult.Success -> {
-                                    libraryManager.refreshMetadata(userId, result.mediaLink)
-                                }
-                                is MediaScanResult.ErrorDatabaseException -> TODO()
-                                MediaScanResult.ErrorFileNotFound -> TODO()
-                                MediaScanResult.ErrorInvalidConfiguration -> TODO()
-                                MediaScanResult.ErrorNothingToScan -> TODO()
-                            }
-                            // launch(Default) { libraryManager.refreshMetadata(session.userId, result.mediaLink) }
-                            // if (scanResult.addedMediaLinkGids.isNotEmpty()) {
-                            // launch(Default) { libraryManager.analyzeMediaFiles(scanResult.addedMediaLinkGids) }
-                            // }
-                        }
+                        RefreshMetadataJob.schedule(kjob, userId, result.mediaLink.gid)
                         AddLibraryFolderResponse.Success(result.mediaLink.toModel())
                     }
                     is AddLibraryFolderResult.DatabaseError -> {
@@ -209,8 +199,8 @@ fun Route.addMediaManageRoutes(
 }
 
 fun Route.addMediaViewRoutes(
-    metadataManager: MetadataManager,
-    queries: MetadataDbQueries,
+    metadataManager: MetadataManager = koinGet(),
+    queries: MetadataDbQueries = koinGet(),
 ) {
     route("/media") {
         route("/{metadataGid}") {

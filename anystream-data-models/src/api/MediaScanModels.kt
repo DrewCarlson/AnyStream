@@ -32,8 +32,11 @@ sealed class MediaScanResult {
     data class Success(
         val parentMediaLinkGid: String,
         val addedMediaLinkGids: List<String>,
-        val removedMediaLinkGids: List<String>
-    ) : MediaScanResult()
+        val removedMediaLinkGids: List<String>,
+        val existingMediaLinkGids: List<String>
+    ) : MediaScanResult() {
+        val allValidGids = addedMediaLinkGids + existingMediaLinkGids
+    }
 
     @Serializable
     object ErrorNothingToScan : MediaScanResult() {

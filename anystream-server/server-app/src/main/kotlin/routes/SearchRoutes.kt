@@ -19,6 +19,7 @@ package anystream.routes
 
 import anystream.models.api.SearchResponse
 import anystream.service.search.SearchService
+import anystream.util.koinGet
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -30,7 +31,7 @@ private const val LIMIT = "limit"
 private const val MEDIA_KIND = "mediaKind"
 
 fun Route.addSearchRoutes(
-    searchService: SearchService
+    searchService: SearchService = koinGet()
 ) {
     route("/search") {
         get {

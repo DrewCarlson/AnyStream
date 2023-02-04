@@ -21,9 +21,10 @@ import anystream.AnyStreamConfig
 import io.ktor.server.application.*
 import io.ktor.server.http.content.*
 import io.ktor.server.routing.*
+import org.koin.ktor.ext.get
 import java.io.File
 
-fun Application.installWebClientRoutes(config: AnyStreamConfig) {
+fun Application.installWebClientRoutes(config: AnyStreamConfig = get()) {
     if (config.disableWebClient) {
         log.debug("Web client disabled, this instance will serve the API only.")
     } else if (

@@ -24,6 +24,7 @@ import anystream.data.asTvShow
 import anystream.db.model.MetadataDb
 import anystream.models.*
 import anystream.models.api.HomeResponse
+import anystream.util.koinGet
 import anystream.util.toRemoteId
 import app.moviebase.tmdb.Tmdb3
 import app.moviebase.tmdb.discover.DiscoverCategory
@@ -39,8 +40,8 @@ private const val CURRENTLY_WATCHING_ITEM_LIMIT = 10
 private const val POPULAR_MOVIES_REFRESH = 86_400_000L // 24 hours
 
 fun Route.addHomeRoutes(
-    tmdb: Tmdb3,
-    queries: MetadataDbQueries,
+    tmdb: Tmdb3 = koinGet(),
+    queries: MetadataDbQueries = koinGet(),
 ) {
     val popularMoviesFlow = callbackFlow<List<TmdbMovieDetail>> {
         val category = DiscoverCategory.Popular(TmdbMediaType.MOVIE)

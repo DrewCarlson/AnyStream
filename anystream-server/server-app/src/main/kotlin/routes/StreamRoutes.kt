@@ -22,6 +22,7 @@ import anystream.json
 import anystream.models.*
 import anystream.service.stream.StreamService
 import anystream.util.extractUserSession
+import anystream.util.koinGet
 import io.ktor.http.*
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
@@ -46,7 +47,7 @@ import kotlin.math.roundToInt
 private const val PLAYBACK_COMPLETE_PERCENT = 90
 
 fun Route.addStreamRoutes(
-    streamService: StreamService,
+    streamService: StreamService = koinGet(),
 ) {
     route("/stream") {
         authenticate {
@@ -135,7 +136,7 @@ fun Route.addStreamRoutes(
 }
 
 fun Route.addStreamWsRoutes(
-    streamService: StreamService,
+    streamService: StreamService = koinGet(),
 ) {
 
     webSocket("/ws/stream/{mediaLinkId}/state") {

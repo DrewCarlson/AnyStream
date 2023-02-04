@@ -23,6 +23,7 @@ import anystream.models.api.LibraryActivity
 import anystream.models.api.PlaybackSessions
 import anystream.service.stream.StreamService
 import anystream.util.extractUserSession
+import anystream.util.koinGet
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.LoggerContext
 import ch.qos.logback.classic.spi.ILoggingEvent
@@ -43,8 +44,8 @@ fun Route.addAdminRoutes() {
 }
 
 fun Route.addAdminWsRoutes(
-    libraryManager: LibraryManager,
-    streamService: StreamService,
+    libraryManager: LibraryManager = koinGet(),
+    streamService: StreamService = koinGet(),
 ) {
     val sessionsFlow = callbackFlow<PlaybackSessions> {
         var previousSessions: PlaybackSessions? = null

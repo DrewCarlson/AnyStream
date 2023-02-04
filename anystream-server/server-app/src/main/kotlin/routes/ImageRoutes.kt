@@ -17,6 +17,8 @@
  */
 package anystream.routes
 
+import anystream.AnyStreamConfig
+import anystream.util.koinGet
 import io.ktor.client.*
 import io.ktor.client.plugins.cache.*
 import io.ktor.client.plugins.cache.storage.*
@@ -31,7 +33,8 @@ import io.ktor.utils.io.*
 import kotlin.io.path.Path
 import kotlin.io.path.exists
 
-fun Route.addImageRoutes(dataPath: String) {
+fun Route.addImageRoutes(config: AnyStreamConfig = koinGet()) {
+    val dataPath = config.dataPath
     val imageClient = HttpClient {
         install(HttpCache) {
             // TODO: Add disk catching

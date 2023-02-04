@@ -22,6 +22,7 @@ import anystream.json
 import anystream.models.*
 import anystream.models.api.*
 import anystream.service.user.UserService
+import anystream.util.koinGet
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
@@ -44,7 +45,7 @@ import kotlin.time.Duration.Companion.seconds
 
 private const val PAIRING_SESSION_SECONDS = 60
 
-fun Route.addUserRoutes(userService: UserService) {
+fun Route.addUserRoutes(userService: UserService = koinGet()) {
     route("/users") {
         post {
             val body = runCatching { call.receiveNullable<CreateUserBody>() }
@@ -201,7 +202,7 @@ fun Route.addUserRoutes(userService: UserService) {
     }
 }
 
-fun Route.addUserWsRoutes(userService: UserService) {
+fun Route.addUserWsRoutes(userService: UserService = koinGet()) {
     webSocket("/ws/users/pair") {
         val pairingCode = UUID.randomUUID().toString().lowercase()
         val startingJson = json.encodeToString<PairingMessage>(PairingMessage.Started(pairingCode))

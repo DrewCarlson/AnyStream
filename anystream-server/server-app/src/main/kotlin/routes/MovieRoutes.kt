@@ -19,6 +19,7 @@ package anystream.routes
 
 import anystream.data.*
 import anystream.models.Permission
+import anystream.util.koinGet
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.server.application.*
@@ -27,7 +28,7 @@ import io.ktor.server.routing.*
 import org.drewcarlson.ktor.permissions.withAnyPermission
 
 fun Route.addMovieRoutes(
-    queries: MetadataDbQueries,
+    queries: MetadataDbQueries = koinGet(),
 ) {
     route("/movies") {
         get {

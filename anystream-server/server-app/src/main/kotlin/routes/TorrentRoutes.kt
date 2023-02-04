@@ -23,6 +23,7 @@ import anystream.json
 import anystream.models.Permission
 import anystream.torrent.search.TorrentDescription2
 import anystream.util.extractUserSession
+import anystream.util.koinGet
 import io.ktor.client.plugins.*
 import io.ktor.http.HttpStatusCode.Companion.Conflict
 import io.ktor.http.HttpStatusCode.Companion.NotFound
@@ -41,8 +42,8 @@ import qbittorrent.QBittorrentClient
 import qbittorrent.models.TorrentFile
 
 fun Route.addTorrentRoutes(
-    qbClient: QBittorrentClient,
-    mediaLinkDao: MediaLinkDao,
+    qbClient: QBittorrentClient = koinGet(),
+    mediaLinkDao: MediaLinkDao = koinGet(),
 ) {
     route("/torrents") {
         get {
@@ -166,7 +167,7 @@ fun Route.addTorrentRoutes(
     }
 }
 
-fun Route.addTorrentWsRoutes(qbClient: QBittorrentClient) {
+fun Route.addTorrentWsRoutes(qbClient: QBittorrentClient = koinGet()) {
     webSocket("/ws/torrents/observe") {
         val session = checkNotNull(extractUserSession())
         check(Permission.check(Permission.ManageTorrents, session.permissions))
