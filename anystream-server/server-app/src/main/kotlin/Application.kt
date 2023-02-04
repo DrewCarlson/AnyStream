@@ -87,78 +87,79 @@ fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 @Suppress("unused", "UNUSED_PARAMETER") // Referenced in application.conf
 @JvmOverloads
 fun Application.module(testing: Boolean = false) {
-
     install(Koin) {
         slf4jLogger()
     }
 
     val applicationScope = this as CoroutineScope
     koin {
-        modules(org.koin.dsl.module {
-            val config = AnyStreamConfig(environment.config)
-            single { config }
-            single { applicationScope }
+        modules(
+            org.koin.dsl.module {
+                val config = AnyStreamConfig(environment.config)
+                single { config }
+                single { applicationScope }
 
-            factory { FFmpeg.atPath(Path.of(config.ffmpegPath)) }
-            factory { FFprobe.atPath(Path.of(config.ffmpegPath)) }
+                factory { FFmpeg.atPath(Path.of(config.ffmpegPath)) }
+                factory { FFprobe.atPath(Path.of(config.ffmpegPath)) }
 
-            single {
-                Jdbi.create(config.databaseUrl).apply {
-                    setSqlLogger(Slf4JSqlLogger())
-                    installPlugin(SqlObjectPlugin())
-                    installPlugin(KotlinSqlObjectPlugin())
-                    installPlugin(KotlinPlugin())
-                    configure(PooledExtensions::class.java) { extension ->
-                        environment.monitor.subscribe(ApplicationStopped) { extension.shutdown() }
+                single {
+                    Jdbi.create(config.databaseUrl).apply {
+                        setSqlLogger(Slf4JSqlLogger())
+                        installPlugin(SqlObjectPlugin())
+                        installPlugin(KotlinSqlObjectPlugin())
+                        installPlugin(KotlinPlugin())
+                        configure(PooledExtensions::class.java) { extension ->
+                            environment.monitor.subscribe(ApplicationStopped) { extension.shutdown() }
+                        }
+                        registerMappers()
                     }
-                    registerMappers()
                 }
+
+                single { SqlSessionStorage(get()) }
+
+                single { Tmdb3(config.tmdbApiKey) }
+
+                single {
+                    QBittorrentClient(
+                        baseUrl = config.qbittorrentUrl,
+                        username = config.qbittorrentUser,
+                        password = config.qbittorrentPass,
+                    )
+                }
+
+                single {
+                    kjob(JdbiKJob) {
+                        this.jdbi = get()
+                        defaultJobExecutor = JobExecutionType.NON_BLOCKING
+                    }.apply { start() }
+                }
+
+                single { get<Jdbi>().pooled<SessionsDao>() }
+                single { get<Jdbi>().pooled<MetadataDao>() }
+                single { get<Jdbi>().pooled<TagsDao>() }
+                single { get<Jdbi>().pooled<PlaybackStatesDao>() }
+                single { get<Jdbi>().pooled<MediaLinkDao>() }
+                single { get<Jdbi>().pooled<UsersDao>() }
+                single { get<Jdbi>().pooled<InvitesDao>() }
+                single { get<Jdbi>().pooled<PermissionsDao>() }
+                single { get<Jdbi>().pooled<SearchableContentDao>().apply { createTable() } }
+                single { MetadataDbQueries(get(), get(), get(), get(), get()) }
+
+                single { MetadataManager(listOf(TmdbMetadataProvider(get(), get()))) }
+                single {
+                    val processors = listOf(
+                        MovieFileProcessor(get(), get()),
+                        TvFileProcessor(get(), get()),
+                    )
+                    LibraryManager({ get() }, processors, get())
+                }
+                single { UserService(UserServiceQueriesJdbi(get(), get(), get())) }
+
+                single<StreamServiceQueries> { StreamServiceQueriesJdbi(get(), get(), get(), get()) }
+                single { StreamService(get(), get(), { get() }, { get() }, get<AnyStreamConfig>().transcodePath) }
+                single { SearchService(get(), get(), get()) }
             }
-
-            single { SqlSessionStorage(get()) }
-
-            single { Tmdb3(config.tmdbApiKey) }
-
-            single {
-                QBittorrentClient(
-                    baseUrl = config.qbittorrentUrl,
-                    username = config.qbittorrentUser,
-                    password = config.qbittorrentPass,
-                )
-            }
-
-            single {
-                kjob(JdbiKJob) {
-                    this.jdbi = get()
-                    defaultJobExecutor = JobExecutionType.NON_BLOCKING
-                }.apply { start() }
-            }
-
-            single { get<Jdbi>().pooled<SessionsDao>() }
-            single { get<Jdbi>().pooled<MetadataDao>() }
-            single { get<Jdbi>().pooled<TagsDao>() }
-            single { get<Jdbi>().pooled<PlaybackStatesDao>() }
-            single { get<Jdbi>().pooled<MediaLinkDao>() }
-            single { get<Jdbi>().pooled<UsersDao>() }
-            single { get<Jdbi>().pooled<InvitesDao>() }
-            single { get<Jdbi>().pooled<PermissionsDao>() }
-            single { get<Jdbi>().pooled<SearchableContentDao>().apply { createTable() } }
-            single { MetadataDbQueries(get(), get(), get(), get(), get()) }
-
-            single { MetadataManager(listOf(TmdbMetadataProvider(get(), get()))) }
-            single {
-                val processors = listOf(
-                    MovieFileProcessor(get(), get()),
-                    TvFileProcessor(get(), get()),
-                )
-                LibraryManager({ get() }, processors, get())
-            }
-            single { UserService(UserServiceQueriesJdbi(get(), get(), get())) }
-
-            single<StreamServiceQueries> { StreamServiceQueriesJdbi(get(), get(), get(), get()) }
-            single { StreamService(get(), get(), { get() }, { get() }, get<AnyStreamConfig>().transcodePath) }
-            single { SearchService(get(), get(), get()) }
-        })
+        )
     }
     environment.monitor.subscribe(ApplicationStopped) { get<KJob>().shutdown() }
 

@@ -138,7 +138,6 @@ fun Route.addStreamRoutes(
 fun Route.addStreamWsRoutes(
     streamService: StreamService = koinGet(),
 ) {
-
     webSocket("/ws/stream/{mediaLinkId}/state") {
         val session = checkNotNull(extractUserSession())
         check(Permission.check(Permission.ConfigureSystem, session.permissions))

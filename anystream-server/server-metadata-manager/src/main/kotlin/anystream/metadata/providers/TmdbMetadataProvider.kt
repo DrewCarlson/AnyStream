@@ -331,7 +331,9 @@ class TmdbMetadataProvider(
                         seasonResponse.episodes
                             .orEmpty()
                             .run {
-                                if (episodeNumber == null) this else {
+                                if (episodeNumber == null) {
+                                    this
+                                } else {
                                     filter { episode ->
                                         episode.episodeNumber == episodeNumber
                                     }

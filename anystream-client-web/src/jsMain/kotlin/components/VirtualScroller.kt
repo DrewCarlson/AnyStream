@@ -191,7 +191,9 @@ fun <T> VirtualScroller(
                             activeHolder.itemTop.value == itemTop &&
                             activeHolder.itemLeft.value == itemLeft &&
                             activeHolder.itemState.value == item
-                        ) return // no change, skip
+                        ) {
+                            return // no change, skip
+                        }
                     }
                     ?: cachedHolders.removeFirstOrNull()
                     ?: createHolder(containerId, buildItem)

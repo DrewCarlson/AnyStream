@@ -54,7 +54,11 @@ internal val AUDIO_EXTENSIONS = listOf(
 )
 
 internal val SUBTITLE_EXTENSIONS = listOf(
-    "sub", "srt", "vtt", "ass", "ssa",
+    "sub",
+    "srt",
+    "vtt",
+    "ass",
+    "ssa",
 )
 
 class LibraryManager(

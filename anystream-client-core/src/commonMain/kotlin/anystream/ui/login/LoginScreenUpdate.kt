@@ -35,7 +35,9 @@ object LoginScreenUpdate : Update<LoginScreenModel, LoginScreenEvent, LoginScree
                         model.copy(state = State.AUTHENTICATING),
                         LoginScreenEffect.Login(model.username, model.password, model.serverUrl)
                     )
-                } else noChange()
+                } else {
+                    noChange()
+                }
             }
             else -> noChange()
         }
@@ -136,7 +138,9 @@ object LoginScreenUpdate : Update<LoginScreenModel, LoginScreenEvent, LoginScree
                         effects.add(LoginScreenEffect.PairingSession(event.serverUrl))
                     }
                     next(newModel, effects)
-                } else noChange()
+                } else {
+                    noChange()
+                }
             }
             else -> noChange()
         }

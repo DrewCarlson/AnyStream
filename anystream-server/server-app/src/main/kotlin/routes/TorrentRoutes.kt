@@ -57,9 +57,11 @@ fun Route.addTorrentRoutes(
             try {
                 qbClient.getTorrentProperties(description.hash)
             } catch (e: ResponseException) {
-                if (e.response.status == NotFound)
+                if (e.response.status == NotFound) {
                     return@post call.respond(Conflict)
-                else throw e
+                } else {
+                    throw e
+                }
             }
             qbClient.addTorrent {
                 urls.add(description.magnetUrl)

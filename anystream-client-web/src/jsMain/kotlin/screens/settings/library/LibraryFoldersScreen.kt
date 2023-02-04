@@ -19,7 +19,6 @@ package anystream.screens.settings.library
 
 import androidx.compose.runtime.*
 import anystream.LocalAnyStreamClient
-import anystream.util.throttleLatest
 import anystream.components.Modal
 import anystream.models.LocalMediaLink
 import anystream.models.api.LibraryFolderList

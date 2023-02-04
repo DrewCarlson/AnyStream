@@ -528,7 +528,8 @@ private fun PlaybackControls(
             }) {
                 I({
                     classes(
-                        "user-select-none", "bi",
+                        "user-select-none",
+                        "bi",
                         if (isPlaying) "bi-pause-fill" else "bi-play-fill"
                     )
                     style {
@@ -608,7 +609,8 @@ private fun PlaybackControls(
                     I({
                         classes(
                             "user-select-none",
-                            "bi", if (isInPipMode) "bi-pip-fill" else "bi-pip"
+                            "bi",
+                            if (isInPipMode) "bi-pip-fill" else "bi-pip"
                         )
                         style {
                             property("pointer-events", "none")

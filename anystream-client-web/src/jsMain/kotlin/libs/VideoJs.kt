@@ -116,11 +116,14 @@ external interface VjsOptions {
     var loadingSpinner: Boolean?
     var notSupportedMessage: String?
     var playbackRates: Array<Float>
+
     // plugins?: Partial<VideoJsPlayerPluginOptions> | undefined;
     var responsive: Boolean?
     var sourceOrder: Boolean?
+
     // sources?: videojs.Tech.SourceObject[] | undefined;
     var techOrder: Array<String>?
+
     // userActions?: videojs.UserActions | undefined;
     var width: Float?
 }

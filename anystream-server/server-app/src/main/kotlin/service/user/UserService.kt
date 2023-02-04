@@ -89,7 +89,9 @@ class UserService(
         }
 
         val inviteCodeString = body.inviteCode
-        val inviteCode = if (inviteCodeString.isNullOrBlank()) null else {
+        val inviteCode = if (inviteCodeString.isNullOrBlank()) {
+            null
+        } else {
             queries.fetchInviteCode(inviteCodeString, null)
         }
 
@@ -130,7 +132,9 @@ class UserService(
                 } else {
                     return false
                 }
-            } else null
+            } else {
+                null
+            }
 
         val updatedUser = user.toUserModel().copy(
             displayName = body.displayName
@@ -156,7 +160,9 @@ class UserService(
             val user = queries.fetchUser(pairingMessage.userId) ?: return null
             val permissions = queries.fetchPermissions(user.id).map(PermissionDb::value).toSet()
             CreateSessionResponse.Success(user.toUserModel(), permissions)
-        } else null
+        } else {
+            null
+        }
     }
 
     suspend fun createSession(

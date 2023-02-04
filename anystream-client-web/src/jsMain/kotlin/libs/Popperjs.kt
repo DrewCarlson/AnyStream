@@ -112,6 +112,7 @@ external class PopperInstance {
 
     fun forceUpdate()
     fun update()
+
     // fun setOptions(options): Promise<State>
     fun destroy()
 }

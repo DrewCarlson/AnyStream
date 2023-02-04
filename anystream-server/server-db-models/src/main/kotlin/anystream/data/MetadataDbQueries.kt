@@ -36,7 +36,9 @@ class MetadataDbQueries(
         val mediaRecords = metadataDao.findAllByTypeSortedByTitle(MetadataDb.Type.MOVIE)
         val mediaLinkRecords = if (includeLinks && mediaRecords.isNotEmpty()) {
             mediaLinkDao.findByMetadataGids(mediaRecords.map(MetadataDb::gid))
-        } else emptyList()
+        } else {
+            emptyList()
+        }
 
         return MoviesResponse(
             movies = mediaRecords.map(MetadataDb::toMovieModel),
@@ -74,7 +76,9 @@ class MetadataDbQueries(
         val mediaRecord = metadataDao.findByGidAndType(movieId, MetadataDb.Type.MOVIE) ?: return null
         val mediaLinks = if (includeLinks) {
             mediaLinkDao.findByMetadataGid(mediaRecord.gid)
-        } else emptyList()
+        } else {
+            emptyList()
+        }
         val playbackState = includePlaybackStateForUser?.let { userId ->
             playbackStatesDao.findByUserIdAndMediaGid(userId, movieId)
         }
@@ -91,7 +95,9 @@ class MetadataDbQueries(
         val mediaLinks = if (includeLinks && mediaRecords.isNotEmpty()) {
             val showIds = mediaRecords.map(MetadataDb::gid)
             mediaLinkDao.findByRootMetadataGids(showIds)
-        } else emptyList()
+        } else {
+            emptyList()
+        }
 
         return TvShowsResponse(
             tvShows = mediaRecords.map(MetadataDb::toTvShowModel),
@@ -109,7 +115,9 @@ class MetadataDbQueries(
         val mediaLinks = if (includeLinks && seasons.isNotEmpty()) {
             val seasonGids = seasons.map(MetadataDb::gid)
             mediaLinkDao.findByMetadataGids(seasonGids + show.gid)
-        } else emptyList()
+        } else {
+            emptyList()
+        }
         val playbackState = includePlaybackStateForUser
             ?.takeIf { mediaLinks.isNotEmpty() }
             ?.let { userId ->
@@ -136,7 +144,9 @@ class MetadataDbQueries(
         val mediaLinks = if (includeLinks) {
             val searchIds = episodeRecords.map(MetadataDb::gid) + tvShowGid + seasonId
             mediaLinkDao.findByMetadataGids(searchIds)
-        } else emptyList()
+        } else {
+            emptyList()
+        }
         val playbackStateRecord = includePlaybackStateForUser
             ?.takeIf { episodeRecords.isNotEmpty() }
             ?.let { userId ->
@@ -163,7 +173,9 @@ class MetadataDbQueries(
         val showRecord = metadataDao.findByGid(checkNotNull(episodeRecord.rootGid)) ?: return null
         val mediaLinks = if (includeLinks) {
             mediaLinkDao.findByMetadataGid(episodeId)
-        } else emptyList()
+        } else {
+            emptyList()
+        }
         val playbackState = includePlaybackStateForUser?.let { userId ->
             playbackStatesDao.findByUserIdAndMediaGid(userId, episodeId)
         }
@@ -227,7 +239,9 @@ class MetadataDbQueries(
         val mediaLink = if (movies.isNotEmpty()) {
             mediaLinkDao.findByMetadataGids(movies.map(Movie::gid))
                 .map(MediaLinkDb::toModel)
-        } else emptyList()
+        } else {
+            emptyList()
+        }
         return movies.associateWith { movie ->
             mediaLink.find { it.metadataGid == movie.gid }
         }
@@ -309,13 +323,17 @@ class MetadataDbQueries(
             if (company.id == -1) {
                 company.tmdbId?.run(tagsDao::findCompanyByTmdbId)
                     ?: company.copy(id = tagsDao.insertTag(company.name, company.tmdbId))
-            } else company
+            } else {
+                company
+            }
         }.onEach { company -> tagsDao.insertMetadataCompanyLink(id, company.id) }
         val genres = movie.genres.map { genre ->
             if (genre.id == -1) {
                 genre.tmdbId?.run(tagsDao::findGenreByTmdbId)
                     ?: genre.copy(id = tagsDao.insertTag(genre.name, genre.tmdbId))
-            } else genre
+            } else {
+                genre
+            }
         }.onEach { genre -> tagsDao.insertMetadataGenreLink(id, genre.id) }
         val finalRecord = movieRecord.copy(id = id, genres = genres, companies = companies)
 

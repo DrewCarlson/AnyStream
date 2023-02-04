@@ -128,7 +128,9 @@ class StreamService(
             ).also { newState ->
                 queries.insertPlaybackState(newState)
             }
-        } else checkNotNull(state)
+        } else {
+            checkNotNull(state)
+        }
         if (create && !sessionMap.containsKey(newState.id)) {
             val (file, _) = fileAndMediaGid ?: return null
             val output = File("$transcodePath/${newState.id}/$mediaLinkId")
@@ -264,12 +266,16 @@ class StreamService(
         val startOffset = startSegment - requestedStartSegment
         val endSegment = if (stopAt < runtime) {
             (ceil(stopAt / segmentDuration).toInt() + startOffset).coerceAtMost(lastSegmentIndex)
-        } else lastSegmentIndex
+        } else {
+            lastSegmentIndex
+        }
 
         val startTime = (startSegment * segmentDuration).coerceIn(ZERO, runtime - lastSegmentDuration)
         val endTime = if (stopAt < runtime) {
             ((startOffset + endSegment) * segmentDuration).coerceAtMost(runtime)
-        } else null
+        } else {
+            null
+        }
 
         logger.debug("Transcoding range: segments=$startSegment..$endSegment, time=$startTime..${endTime ?: runtime}")
 
@@ -389,7 +395,9 @@ class StreamService(
                         if (session.isSegmentComplete(targetSegmentIndex)) {
                             logger.debug("Target segment completed, unlocking")
                             true
-                        } else false
+                        } else {
+                            false
+                        }
                     }
             }
         }

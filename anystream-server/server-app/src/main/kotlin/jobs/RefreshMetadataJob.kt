@@ -6,7 +6,6 @@ import anystream.models.api.MediaScanResult
 import kjob.core.Job
 import kjob.core.KJob
 
-
 object RefreshMetadataJob : Job("refresh-metadata") {
 
     private val USER_ID = integer("userId")

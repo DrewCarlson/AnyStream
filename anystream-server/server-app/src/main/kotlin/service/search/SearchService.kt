@@ -46,7 +46,9 @@ class SearchService(
             val episodeIds = searchableContentDao.search(query, Type.TV_EPISODE, limit)
             val movies = if (movieIds.isNotEmpty()) {
                 mediaDao.findAllByGidsAndType(movieIds, Type.MOVIE).map(MetadataDb::toMovieModel)
-            } else emptyList()
+            } else {
+                emptyList()
+            }
             val tvShows = if (tvShowIds.isNotEmpty()) {
                 mediaDao.findAllByGidsAndType(tvShowIds, Type.TV_SHOW).map { showRecord ->
                     SearchResponse.TvShowResult(
@@ -54,7 +56,9 @@ class SearchService(
                         seasonCount = mediaDao.countSeasonsForTvShow(showRecord.gid)
                     )
                 }
-            } else emptyList()
+            } else {
+                emptyList()
+            }
             val episodes = if (episodeIds.isNotEmpty()) {
                 val episodes = mediaDao.findAllByGidsAndType(episodeIds, Type.TV_EPISODE)
                     .map(MetadataDb::toTvEpisodeModel)
@@ -63,14 +67,18 @@ class SearchService(
                     mediaDao.findAllByGidsAndType(episodeShowIds, Type.TV_SHOW)
                         .map(MetadataDb::toTvShowModel)
                         .associateBy(TvShow::gid)
-                } else emptyMap()
+                } else {
+                    emptyMap()
+                }
                 episodes.map { episode ->
                     SearchResponse.EpisodeResult(
                         episode = episode,
                         tvShow = episodeShows.getValue(episode.showId)
                     )
                 }
-            } else emptyList()
+            } else {
+                emptyList()
+            }
 
             val searchIds = movies.map(Movie::gid) + episodes.map { it.episode.gid }
             val mediaLinks = if (searchIds.isNotEmpty()) {
@@ -78,7 +86,9 @@ class SearchService(
                     .filter { it.metadataGid != null }
                     .map(MediaLinkDb::toModel)
                     .associateBy { it.metadataGid!! }
-            } else emptyMap()
+            } else {
+                emptyMap()
+            }
 
             SearchResponse(
                 movies = movies,

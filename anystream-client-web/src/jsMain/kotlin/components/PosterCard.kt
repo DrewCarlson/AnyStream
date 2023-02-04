@@ -175,7 +175,9 @@ private fun CardOverlay(
                 "justify-content-between",
                 "align-items-center",
                 "position-absolute",
-                "h-100", "w-100", "p-3"
+                "h-100",
+                "w-100",
+                "p-3"
             )
             classes("rounded", "border", "border-white")
             style {

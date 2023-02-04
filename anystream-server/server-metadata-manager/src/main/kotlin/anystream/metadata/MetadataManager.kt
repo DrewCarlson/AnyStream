@@ -39,7 +39,9 @@ class MetadataManager(
                         seasonNumber = parts.getOrNull(1)?.toIntOrNull(),
                         episodeNumber = parts.getOrNull(2)?.toIntOrNull()
                     )
-                } else null
+                } else {
+                    null
+                }
             }
             else -> null
         }

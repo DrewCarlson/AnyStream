@@ -37,7 +37,9 @@ object SignupScreenUpdate :
                         model.copy(state = State.AUTHENTICATING),
                         SignupScreenEffect.Signup(model.username, model.password, model.inviteCode, model.serverUrl)
                     )
-                } else noChange()
+                } else {
+                    noChange()
+                }
             }
             else -> noChange()
         }
@@ -127,7 +129,9 @@ object SignupScreenUpdate :
             State.IDLE -> {
                 if (model.serverUrl == event.serverUrl) {
                     next(model.copy(serverValidation = event.result))
-                } else noChange()
+                } else {
+                    noChange()
+                }
             }
             else -> noChange()
         }

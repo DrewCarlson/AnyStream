@@ -19,7 +19,6 @@ package anystream.components
 
 import androidx.compose.runtime.*
 import anystream.LocalAnyStreamClient
-import anystream.util.throttleLatest
 import anystream.libs.PopperElement
 import anystream.libs.popperOptions
 import anystream.models.LocalMediaLink
@@ -29,6 +28,7 @@ import anystream.models.api.SearchResponse
 import anystream.models.backend.MediaScannerState
 import anystream.util.ExternalClickMask
 import anystream.util.rememberDomElement
+import anystream.util.throttleLatest
 import anystream.util.tooltip
 import app.softwork.routingcompose.Router
 import kotlinx.coroutines.flow.*
@@ -361,8 +361,13 @@ private fun ServerActivityPopper(
     ) { popper ->
         Ul({
             classes(
-                "dropdown-menu", "dropdown-menu-dark", "show",
-                "bg-dark", "rounded", "shadow", "animate-popup",
+                "dropdown-menu",
+                "dropdown-menu-dark",
+                "show",
+                "bg-dark",
+                "rounded",
+                "shadow",
+                "animate-popup",
                 "p-2"
             )
             style {

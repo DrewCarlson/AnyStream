@@ -186,7 +186,9 @@ class TvFileProcessor(
                 return null // TODO: Return no match error result
             }
 
-        return if (match.exists) match else {
+        return if (match.exists) {
+            match
+        } else {
             logger.debug("Importing metadata for new media.")
             val importResults = metadataManager.importMetadata(
                 ImportMetadata(

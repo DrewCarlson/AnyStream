@@ -52,7 +52,8 @@ fun Route.addHomeRoutes(
                 .filterIsInstance<TmdbMovie>()
                 .map {
                     tmdb.movies.getDetails(
-                        it.id, null,
+                        it.id,
+                        null,
                         listOf(
                             AppendResponse.EXTERNAL_IDS,
                             AppendResponse.CREDITS,
@@ -75,7 +76,8 @@ fun Route.addHomeRoutes(
                 .filterIsInstance<TmdbShow>()
                 .map {
                     tmdb.show.getDetails(
-                        it.id, null,
+                        it.id,
+                        null,
                         listOf(
                             AppendResponse.EXTERNAL_IDS,
                             AppendResponse.CREDITS,
@@ -107,7 +109,9 @@ fun Route.addHomeRoutes(
                 queries
                     .findMoviesByTmdbId(tmdbPopular.map(TmdbMovieDetail::id))
                     .toMutableList()
-            } else mutableListOf()
+            } else {
+                mutableListOf()
+            }
             val popularMovies = tmdbPopular.map { dbMovie ->
                 val existingIndex = existingMovies.indexOfFirst { it.tmdbId == dbMovie.id }
                 if (existingIndex == -1) {
