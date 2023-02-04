@@ -1,4 +1,4 @@
-name: Spotless
+name: Code Quality
 
 on:
   push:
@@ -94,7 +94,7 @@ jobs:
       - uses: gradle/gradle-build-action@v2
         name: Spotless Check
         with:
-          arguments: anystream-client-android:spotlessCheck
+          arguments: -p anystream-client-android spotlessCheck formatKotlin
 
   client-core:
     runs-on: ubuntu-latest
@@ -121,7 +121,7 @@ jobs:
       - uses: gradle/gradle-build-action@v2
         name: Spotless Check
         with:
-          arguments: anystream-client-core:spotlessCheck
+          arguments: -p anystream-client-core spotlessCheck formatKotlin
 
   client-web:
     runs-on: ubuntu-latest
@@ -148,7 +148,7 @@ jobs:
       - uses: gradle/gradle-build-action@v2
         name: Spotless Check
         with:
-          arguments: anystream-client-web:spotlessCheck
+          arguments: -p anystream-client-web spotlessCheck formatKotlin
 
   data-models:
     runs-on: ubuntu-latest
@@ -175,7 +175,7 @@ jobs:
       - uses: gradle/gradle-build-action@v2
         name: Spotless Check
         with:
-          arguments: anystream-data-models:spotlessCheck
+          arguments: -p anystream-data-models spotlessCheck formatKotlin
 
   server:
     runs-on: ubuntu-latest
@@ -202,4 +202,4 @@ jobs:
       - uses: gradle/gradle-build-action@v2
         name: Spotless Check
         with:
-          arguments: anystream-server:spotlessCheck
+          arguments: -p anystream-server spotlessCheck formatKotlin
