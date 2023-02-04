@@ -20,10 +20,7 @@ package anystream.android
 import android.app.Application
 import android.content.Context
 import anystream.android.router.AndroidRouter
-import anystream.client.AnyStreamClient
-import anystream.client.SessionManager
-import anystream.core.AndroidSessionDataStore
-import io.ktor.client.*
+import anystream.client.coreModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
@@ -39,12 +36,11 @@ class App : Application() {
             androidLogger()
             androidContext(this@App)
             modules(
+                coreModule(),
                 appModule(),
                 module {
                     single { AndroidRouter() }
                     single { get<Context>().getSharedPreferences(PREFS_NAME, MODE_PRIVATE) }
-                    single { SessionManager(AndroidSessionDataStore(get())) }
-                    single { AnyStreamClient(null, HttpClient(), get()) }
                 }
             )
         }

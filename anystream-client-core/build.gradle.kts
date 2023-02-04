@@ -41,7 +41,7 @@ kotlin {
             }
         }
     }
-    jvm()
+    // jvm()
     if (hasAndroidSdk) {
         android()
     }
@@ -81,6 +81,9 @@ kotlin {
                 implementation(libs.ktor.client.websockets)
                 implementation(libs.ktor.serialization)
 
+                api(libs.koin.core)
+                api(libs.objectstore.core)
+                api(libs.objectstore.json)
                 api(libs.coroutines.core)
                 api(libs.mobiuskt.core)
                 api(libs.mobiuskt.extras)
@@ -105,6 +108,7 @@ kotlin {
                 dependencies {
                     implementation(libs.androidx.core.ktx)
                     implementation(libs.ktor.client.cio)
+                    implementation(libs.objectstore.secure)
                 }
             }
 
@@ -117,8 +121,9 @@ kotlin {
             }
         }
 
-        val jvmMain by getting {
+        /*val jvmMain by getting {
             dependencies {
+                implementation(libs.objectstore.fs)
                 implementation(libs.ktor.client.cio)
             }
         }
@@ -128,7 +133,7 @@ kotlin {
                 implementation(kotlin("test"))
                 implementation(kotlin("test-junit"))
             }
-        }
+        }*/
 
         val jsMain by getting {
             dependencies {
@@ -146,6 +151,7 @@ kotlin {
             dependsOn(commonMain)
             dependencies {
                 implementation(libs.ktor.client.darwin)
+                implementation(libs.objectstore.secure)
             }
         }
 

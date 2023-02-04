@@ -18,13 +18,14 @@
 package anystream.screens
 
 import androidx.compose.runtime.*
-import anystream.LocalAnyStreamClient
+import anystream.client.AnyStreamClient
 import anystream.models.*
 import anystream.models.api.CreateUserResponse
 import anystream.routing.WebRouter
 import anystream.ui.signup.*
 import anystream.ui.signup.SignupScreenModel.State
 import anystream.util.createLoopController
+import anystream.util.get
 import app.softwork.routingcompose.Router
 import io.ktor.http.*
 import kotlinx.browser.window
@@ -38,7 +39,7 @@ import org.jetbrains.compose.web.dom.*
 @Composable
 fun SignupScreen() {
     val router = Router.current
-    val client = LocalAnyStreamClient.current
+    val client = get<AnyStreamClient>()
     val (modelState, eventConsumerState) = createLoopController {
         val launchInviteCode = Url(window.location.href).parameters["inviteCode"]
         Mobius.controller(

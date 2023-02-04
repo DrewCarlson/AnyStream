@@ -18,7 +18,7 @@
 package anystream.screens
 
 import androidx.compose.runtime.*
-import anystream.LocalAnyStreamClient
+import anystream.client.AnyStreamClient
 import anystream.components.FullSizeCenteredLoader
 import anystream.components.LinkedText
 import anystream.components.PosterCard
@@ -26,6 +26,7 @@ import anystream.models.api.CurrentlyWatching
 import anystream.models.api.HomeResponse
 import anystream.models.api.Popular
 import anystream.models.api.RecentlyAdded
+import anystream.util.get
 import app.softwork.routingcompose.Router
 import kotlinx.browser.localStorage
 import kotlinx.browser.window
@@ -45,7 +46,7 @@ private const val KEY_POSTER_SIZE_MULTIPLIER = "key_poster_size_multiplier"
 
 @Composable
 fun HomeScreen() {
-    val client = LocalAnyStreamClient.current
+    val client = get<AnyStreamClient>()
     val homeResponse by produceState<HomeResponse?>(null) {
         var i = 0
         while (value == null) {

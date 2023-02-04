@@ -18,7 +18,7 @@
 package anystream.screens
 
 import androidx.compose.runtime.*
-import anystream.LocalAnyStreamClient
+import anystream.client.AnyStreamClient
 import anystream.components.*
 import anystream.libs.PopperElement
 import anystream.libs.popperOptions
@@ -27,6 +27,7 @@ import anystream.models.MediaItem
 import anystream.models.api.MediaLookupResponse
 import anystream.models.toMediaItem
 import anystream.util.ExternalClickMask
+import anystream.util.get
 import anystream.util.tooltip
 import app.softwork.routingcompose.Router
 import kotlinx.browser.window
@@ -46,7 +47,7 @@ val backdropImageUrl = MutableStateFlow<String?>(null)
 
 @Composable
 fun MediaScreen(mediaId: String) {
-    val client = LocalAnyStreamClient.current
+    val client = get<AnyStreamClient>()
     val lookupIdFlow = remember(mediaId) { MutableStateFlow<Int?>(null) }
     val analyzeFiles: () -> Unit = remember(lookupIdFlow) { { lookupIdFlow.update { (it ?: 0) + 1 } } }
     val mediaResponse by produceState<MediaLookupResponse?>(null, mediaId) {

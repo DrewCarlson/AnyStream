@@ -18,10 +18,11 @@
 package anystream.screens.settings
 
 import androidx.compose.runtime.*
-import anystream.LocalAnyStreamClient
+import anystream.client.AnyStreamClient
 import anystream.models.InviteCode
 import anystream.models.Permission
 import anystream.models.User
+import anystream.util.get
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
@@ -37,7 +38,7 @@ import org.w3c.dom.get
 
 @Composable
 fun UserManagerScreen() {
-    val client = LocalAnyStreamClient.current
+    val client = get<AnyStreamClient>()
     val usersState = produceState(emptyList<User>()) {
         value = client.getUsers()
     }
@@ -87,7 +88,7 @@ private fun UserRow(user: User) {
 
 @Composable
 private fun InviteCodeDialog(users: List<User>) {
-    val client = LocalAnyStreamClient.current
+    val client = get<AnyStreamClient>()
     val scope = rememberCoroutineScope()
     var inviteCodesState by remember {
         mutableStateOf<List<InviteCode>>(emptyList())

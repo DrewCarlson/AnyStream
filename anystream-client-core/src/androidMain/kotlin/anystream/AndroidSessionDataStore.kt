@@ -17,19 +17,23 @@
  */
 package anystream
 
+import android.content.SharedPreferences
+import androidx.core.content.edit
 import anystream.client.SessionDataStore
-import kotlinx.browser.localStorage
 
-object JsSessionDataStore : SessionDataStore {
+internal class AndroidSessionDataStore(
+    private val prefs: SharedPreferences
+) : SessionDataStore {
+
     override fun write(key: String, value: String) {
-        localStorage.setItem(key, value)
+        prefs.edit { putString(key, value) }
     }
 
     override fun read(key: String): String? {
-        return localStorage.getItem(key)
+        return prefs.getString(key, null)
     }
 
     override fun remove(key: String) {
-        localStorage.removeItem(key)
+        prefs.edit { remove(key) }
     }
 }

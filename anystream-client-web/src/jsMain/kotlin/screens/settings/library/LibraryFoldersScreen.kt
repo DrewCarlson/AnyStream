@@ -18,12 +18,13 @@
 package anystream.screens.settings.library
 
 import androidx.compose.runtime.*
-import anystream.LocalAnyStreamClient
+import anystream.client.AnyStreamClient
 import anystream.components.Modal
 import anystream.models.LocalMediaLink
 import anystream.models.api.LibraryFolderList
 import anystream.models.backend.MediaScannerState
 import anystream.util.Bootstrap
+import anystream.util.get
 import anystream.util.tooltip
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -40,7 +41,7 @@ fun LibraryFoldersScreen() {
     val scope = rememberCoroutineScope()
     val addFolderModalId = remember { "addFolderModal" }
     var folderListUpdate by remember { mutableStateOf(0) }
-    val client = LocalAnyStreamClient.current
+    val client = get<AnyStreamClient>()
     var modal by remember { mutableStateOf<Bootstrap.ModalInstance?>(null) }
     var deleteTarget by remember { mutableStateOf<LocalMediaLink?>(null) }
     val folderList by produceState<LibraryFolderList?>(null, folderListUpdate) {

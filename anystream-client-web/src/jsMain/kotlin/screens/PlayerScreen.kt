@@ -18,7 +18,6 @@
 package anystream.screens
 
 import androidx.compose.runtime.*
-import anystream.LocalAnyStreamClient
 import anystream.client.AnyStreamClient
 import anystream.libs.*
 import anystream.models.MediaItem
@@ -26,6 +25,7 @@ import anystream.models.PlaybackState
 import anystream.models.toMediaItem
 import anystream.util.formatProgressAndRuntime
 import anystream.util.formatted
+import anystream.util.get
 import app.softwork.routingcompose.Router
 import io.ktor.client.fetch.*
 import kotlinx.browser.document
@@ -50,7 +50,7 @@ private const val CONTROL_HIDE_DELAY = 2_750L
 
 @Composable
 fun PlayerScreen(mediaLinkId: String) {
-    val client = LocalAnyStreamClient.current
+    val client = get<AnyStreamClient>()
     var player: VjsPlayer? by remember { mutableStateOf(null) }
     var playerIsPlaying by remember { mutableStateOf(false) }
     val isInMiniMode = remember { mutableStateOf(false) }
@@ -61,13 +61,13 @@ fun PlayerScreen(mediaLinkId: String) {
         )
     }
     val isMouseOnPlayer by mouseMoveFlow
-        .transformLatest {
-            emit(true)
-            delay(CONTROL_HIDE_DELAY)
-            emit(false)
-        }
-        .distinctUntilChanged()
-        .collectAsState(false)
+            .transformLatest {
+                emit(true)
+                delay(CONTROL_HIDE_DELAY)
+                emit(false)
+            }
+            .distinctUntilChanged()
+            .collectAsState(false)
     val areControlsVisible by remember {
         derivedStateOf {
             isMouseOnPlayer || !playerIsPlaying
@@ -731,7 +731,7 @@ private fun SeekBar(
     progressScale: State<Double>,
     bufferedPercent: State<Double>,
 ) {
-    val client = LocalAnyStreamClient.current
+    val client = get<AnyStreamClient>()
     var isThumbVisible by remember { mutableStateOf(false) }
     var isMouseDown by remember { mutableStateOf(false) }
     var mouseHoverX by remember { mutableStateOf(0) }

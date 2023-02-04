@@ -18,11 +18,12 @@
 package anystream.screens.settings.library
 
 import androidx.compose.runtime.*
-import anystream.LocalAnyStreamClient
+import anystream.client.AnyStreamClient
 import anystream.components.LoadingIndicator
 import anystream.models.MediaKind
 import anystream.models.api.AddLibraryFolderResponse
 import anystream.models.api.ListFilesResponse
+import anystream.util.get
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -39,7 +40,7 @@ fun AddLibraryScreen(
     onLoadingStatChanged: (isLoading: Boolean) -> Unit,
     closeScreen: () -> Unit,
 ) {
-    val client = LocalAnyStreamClient.current
+    val client = get<AnyStreamClient>()
     val scope = rememberCoroutineScope()
     var selectedPath by remember { mutableStateOf<String?>(null) }
     var selectedMediaKind by remember { mutableStateOf<MediaKind?>(null) }

@@ -19,81 +19,70 @@ package anystream
 
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
-import anystream.client.SessionManager
+import anystream.client.coreModule
 import anystream.components.Navbar
 import anystream.components.SideMenu
 import anystream.screens.*
 import anystream.screens.settings.SettingsScreen
 import anystream.screens.settings.SettingsSideMenu
-import anystream.util.Js
+import anystream.util.get
 import app.softwork.routingcompose.BrowserRouter
 import app.softwork.routingcompose.Router
-import io.ktor.client.*
 import kotlinx.browser.window
 import kotlinx.coroutines.flow.*
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 import org.jetbrains.compose.web.renderComposable
+import org.koin.core.context.startKoin
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HashChangeEvent
 
 private val urlHashFlow = MutableStateFlow(window.location.hash)
 
-val LocalAnyStreamClient = compositionLocalOf<AnyStreamClient> { error("Client not yet created.") }
-
 fun webApp() = renderComposable(rootElementId = "root") {
-    val client = remember {
-        AnyStreamClient(
-            serverUrl = window.location.run { "$protocol//$host" },
-            sessionManager = SessionManager(JsSessionDataStore),
-            httpClient = HttpClient(Js),
-        )
+    startKoin {
+        modules(coreModule())
     }
-    CompositionLocalProvider(
-        LocalAnyStreamClient provides client
+    Div(
+        attrs = {
+            id("main-panel")
+            classes("d-flex", "flex-column", "h-100", "w-100")
+        },
     ) {
-        Div(
-            attrs = {
-                id("main-panel")
-                classes("d-flex", "flex-column", "h-100", "w-100")
-            },
-        ) {
-            DisposableEffect(Unit) {
-                val listener = { event: HashChangeEvent ->
-                    urlHashFlow.value = event.newURL.substringAfter("!")
-                    true
-                }
-                window.onhashchange = listener
-                onDispose {
-                    window.onhashchange = null
-                }
+        DisposableEffect(Unit) {
+            val listener = { event: HashChangeEvent ->
+                urlHashFlow.value = event.newURL.substringAfter("!")
+                true
             }
-
-            val backgroundUrl by backdropImageUrl.collectAsState(null)
-
-            if (backgroundUrl != null) {
-                Div({
-                    classes("position-absolute", "h-100", "w-100")
-                    style {
-                        opacity(0.1)
-                        backgroundImage("url('$backgroundUrl')")
-                        backgroundPosition("center center")
-                        backgroundSize("cover")
-                        backgroundRepeat("no-repeat")
-                        property("transition", "background 0.8s linear")
-                        property("pointer-events", "none")
-                    }
-                })
+            window.onhashchange = listener
+            onDispose {
+                window.onhashchange = null
             }
-
-            ContentContainer()
         }
+
+        val backgroundUrl by backdropImageUrl.collectAsState(null)
+
+        if (backgroundUrl != null) {
+            Div({
+                classes("position-absolute", "h-100", "w-100")
+                style {
+                    opacity(0.1)
+                    backgroundImage("url('$backgroundUrl')")
+                    backgroundPosition("center center")
+                    backgroundSize("cover")
+                    backgroundRepeat("no-repeat")
+                    property("transition", "background 0.8s linear")
+                    property("pointer-events", "none")
+                }
+            })
+        }
+
+        ContentContainer()
     }
 }
 
 @Composable
-private fun ContentContainer() {
-    val client = LocalAnyStreamClient.current
+private fun ContentContainer(client: AnyStreamClient = get()) {
     val hashValue by urlHashFlow
         .map { hash ->
             if (hash.contains("close")) {
@@ -146,7 +135,7 @@ private fun ScreenContainer(
     content: ContentBuilder<HTMLDivElement>
 ) {
     val authRoutes = remember { listOf("/signup", "/login") }
-    val client = LocalAnyStreamClient.current
+    val client = get<AnyStreamClient>()
     val isAuthenticated by client.authenticated.collectAsState(client.isAuthenticated())
     val router = Router.current
     val currentPath by router.getPath("/")

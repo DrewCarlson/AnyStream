@@ -18,12 +18,13 @@
 package anystream.screens.settings
 
 import androidx.compose.runtime.*
-import anystream.LocalAnyStreamClient
+import anystream.client.AnyStreamClient
 import anystream.components.NavLink
 import anystream.models.api.PlaybackSessions
 import anystream.models.toMediaItem
 import anystream.screens.settings.library.LibraryFoldersScreen
 import anystream.util.formatProgressAndRuntime
+import anystream.util.get
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 import kotlin.time.Duration.Companion.seconds
@@ -79,7 +80,7 @@ fun SettingsSideMenu() {
 
 @Composable
 private fun ActiveStreamsList() {
-    val client = LocalAnyStreamClient.current
+    val client = get<AnyStreamClient>()
     val sessionsResponse by client.playbackSessions.collectAsState(PlaybackSessions())
 
     Div({ classes("d-flex", "flex-column", "pt-2", "ps-2") }) {

@@ -18,7 +18,7 @@
 package anystream.components
 
 import androidx.compose.runtime.*
-import anystream.LocalAnyStreamClient
+import anystream.client.AnyStreamClient
 import anystream.libs.PopperElement
 import anystream.libs.popperOptions
 import anystream.models.LocalMediaLink
@@ -26,10 +26,7 @@ import anystream.models.Permission
 import anystream.models.api.LibraryActivity
 import anystream.models.api.SearchResponse
 import anystream.models.backend.MediaScannerState
-import anystream.util.ExternalClickMask
-import anystream.util.rememberDomElement
-import anystream.util.throttleLatest
-import anystream.util.tooltip
+import anystream.util.*
 import app.softwork.routingcompose.Router
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -49,7 +46,7 @@ val searchQuery = MutableStateFlow<String?>(null)
 @Composable
 fun Navbar() {
     val router = Router.current
-    val client = LocalAnyStreamClient.current
+    val client = get<AnyStreamClient>()
     val isAuthenticated = client.authenticated.collectAsState(client.isAuthenticated())
     Nav({ classes("navbar", "navbar-dark", "navbar-expand-lg", "bg-dark-translucent", "rounded", "shadow", "m-2") }) {
         Div({ classes("container-fluid") }) {
@@ -76,7 +73,7 @@ fun Navbar() {
 @Composable
 private fun SecondaryMenu(permissions: Set<Permission>) {
     val router = Router.current
-    val client = LocalAnyStreamClient.current
+    val client = get<AnyStreamClient>()
     val scope = rememberCoroutineScope()
     val authMutex = remember { Mutex() }
     var isMenuVisible by remember { mutableStateOf(false) }
@@ -203,7 +200,7 @@ private fun OverflowMenu(
 
 @Composable
 private fun SearchBar() {
-    val client = LocalAnyStreamClient.current
+    val client = get<AnyStreamClient>()
     val focused = remember { mutableStateOf(false) }
     var elementValue by remember { mutableStateOf<String?>(null) }
     val inputRef = remember { mutableStateOf<HTMLInputElement?>(null) }

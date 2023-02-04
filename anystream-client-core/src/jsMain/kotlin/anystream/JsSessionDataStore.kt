@@ -18,21 +18,18 @@
 package anystream
 
 import anystream.client.SessionDataStore
-import platform.Foundation.NSUserDefaults
-import platform.Foundation.setValue
+import kotlinx.browser.localStorage
 
-class IosSessionDataStore(
-    private val defaults: NSUserDefaults
-) : SessionDataStore {
+internal class JsSessionDataStore : SessionDataStore {
     override fun write(key: String, value: String) {
-        defaults.setValue(value = value, forKey = key)
+        localStorage.setItem(key, value)
     }
 
     override fun read(key: String): String? {
-        return defaults.stringForKey(key)
+        return localStorage.getItem(key)
     }
 
     override fun remove(key: String) {
-        defaults.removeObjectForKey(key)
+        localStorage.removeItem(key)
     }
 }

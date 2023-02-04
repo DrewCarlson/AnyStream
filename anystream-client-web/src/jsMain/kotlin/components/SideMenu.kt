@@ -18,8 +18,9 @@
 package anystream.components
 
 import androidx.compose.runtime.*
-import anystream.LocalAnyStreamClient
+import anystream.client.AnyStreamClient
 import anystream.models.Permission
+import anystream.util.get
 import anystream.util.tooltip
 import app.softwork.routingcompose.Router
 import kotlinx.browser.localStorage
@@ -34,7 +35,7 @@ private const val MENU_EXPANDED_KEY = "menu_expanded"
 
 @Composable
 fun SideMenu() {
-    val client = LocalAnyStreamClient.current
+    val client = get<AnyStreamClient>()
     val permissions by client.permissions
         .map { it ?: emptySet() }
         .collectAsState(client.userPermissions())

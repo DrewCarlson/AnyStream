@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2021 AnyStream Maintainers
+ * Copyright (C) 2023 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -15,25 +15,14 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.core
+package anystream.client
 
-import android.content.SharedPreferences
-import androidx.core.content.edit
-import anystream.client.SessionDataStore
+import anystream.IosSessionDataStore
+import io.ktor.client.engine.darwin.*
+import org.koin.dsl.module
+import platform.Foundation.NSUserDefaults
 
-class AndroidSessionDataStore(
-    private val prefs: SharedPreferences
-) : SessionDataStore {
-
-    override fun write(key: String, value: String) {
-        prefs.edit { putString(key, value) }
-    }
-
-    override fun read(key: String): String? {
-        return prefs.getString(key, null)
-    }
-
-    override fun remove(key: String) {
-        prefs.edit { remove(key) }
-    }
+actual fun platformCoreModule() = module {
+    single { Darwin.create { } }
+    single<SessionDataStore> { IosSessionDataStore(NSUserDefaults()) }
 }

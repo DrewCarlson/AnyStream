@@ -18,9 +18,10 @@
 package anystream.screens
 
 import androidx.compose.runtime.*
-import anystream.LocalAnyStreamClient
+import anystream.client.AnyStreamClient
 import anystream.libs.*
 import anystream.util.ExternalClickMask
+import anystream.util.get
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.mapLatest
@@ -37,7 +38,7 @@ import kotlin.math.roundToInt
 
 @Composable
 fun DownloadsScreen() {
-    val client = LocalAnyStreamClient.current
+    val client = get<AnyStreamClient>()
     val globalInfoState by client.globalInfoChanges().collectAsState(null)
     val torrents = client.torrentListChanges()
         .debounce(2000)
@@ -181,7 +182,7 @@ private fun TorrentContextMenu(
     scope: CoroutineScope,
     torrent: Torrent,
 ) {
-    val client = LocalAnyStreamClient.current
+    val client = get<AnyStreamClient>()
     val isPaused = remember(torrent.state) {
         when (torrent.state) {
             Torrent.State.PAUSED_DL,
