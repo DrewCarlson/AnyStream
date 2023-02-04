@@ -41,15 +41,16 @@ import kotlin.time.Duration.Companion.seconds
 fun LibraryFoldersScreen() {
     val scope = rememberCoroutineScope()
     val addFolderModalId = remember { "addFolderModal" }
+    var folderListUpdate by remember { mutableStateOf(0) }
     val client = LocalAnyStreamClient.current
     var modal by remember { mutableStateOf<Bootstrap.ModalInstance?>(null) }
     var deleteTarget by remember { mutableStateOf<LocalMediaLink?>(null) }
-    val folderList by produceState<LibraryFolderList?>(null) {
+    val folderList by produceState<LibraryFolderList?>(null, folderListUpdate) {
         value = client.getLibraryFolderList()
         client.libraryActivity
             .map { it.scannerState }
             .filterIsInstance<MediaScannerState.Active>()
-            .throttleLatest(1.seconds)
+            .debounce(1.seconds)
             .collect { value = client.getLibraryFolderList() }
     }
     Div({ classes("vstack", "h-100", "w-100", "gap-1", "p-2") }) {
@@ -120,6 +121,7 @@ fun LibraryFoldersScreen() {
             onDeleteClicked = {
                 scope.launch {
                     client.deleteLibraryFolder(checkNotNull(deleteTarget).gid)
+                    folderListUpdate++
                     deleteTarget = null
                     modalRef.hide()
                 }
