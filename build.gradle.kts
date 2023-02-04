@@ -1,6 +1,5 @@
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
-import org.jetbrains.kotlin.gradle.targets.js.yarn.yarn
 
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
@@ -11,6 +10,7 @@ plugins {
     alias(libs.plugins.shadowjar) apply false
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.spotless)
+    alias(libs.plugins.kotlinter) apply false
     alias(libs.plugins.kover)
 }
 
@@ -57,8 +57,20 @@ subprojects {
         kotlin {
             target("**/**.kt")
             licenseHeaderFile(rootDir.resolve("licenseHeader.txt"))
-            ktlint(libs.versions.ktlint.get())
-                .editorConfigOverride(mapOf("disabled_rules" to "no-wildcard-imports,no-unused-imports"))
         }
+    }
+
+    apply(plugin = "org.jmailen.kotlinter")
+
+    configure<org.jmailen.gradle.kotlinter.KotlinterExtension> {
+        disabledRules += "no-wildcard-imports"
+        disabledRules += "no-unused-imports"
+        disabledRules += "trailing-comma-on-call-site"
+        disabledRules += "trailing-comma-on-declaration-site"
+    }
+
+    val generatedDir = File(buildDir, "generated").absolutePath
+    tasks.withType<org.jmailen.gradle.kotlinter.tasks.ConfigurableKtLintTask> {
+        exclude { it.file.absolutePath.startsWith(generatedDir) }
     }
 }
