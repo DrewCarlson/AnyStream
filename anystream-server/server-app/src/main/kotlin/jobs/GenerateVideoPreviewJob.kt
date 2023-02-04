@@ -40,7 +40,7 @@ private const val PREVIEW_IMAGE_FILE_NAME = "preview%d.jpg"
 private const val FFMPEG_FILTER = "fps=fps=1/$PREVIEW_IMAGE_INTERVAL,scale=$PREVIEW_IMAGE_WIDTH:-1"
 
 object GenerateVideoPreviewJob : Job("generate-video-preview") {
-    private val MEDIA_REF_ID = string("mediaLinkId")
+    private val MEDIA_LINK_ID = string("mediaLinkId")
 
     fun register(
         kjob: KJob,
@@ -51,7 +51,7 @@ object GenerateVideoPreviewJob : Job("generate-video-preview") {
         val previewStorage = "${rootStorageDir}${File.separator}previews"
         kjob.register(GenerateVideoPreviewJob) {
             execute {
-                val mediaLinkId = props[MEDIA_REF_ID]
+                val mediaLinkId = props[MEDIA_LINK_ID]
                 when (val mediaLink = metadataDbQueries.findMediaLinkByGid(mediaLinkId)) {
                     null -> logger.error("No mediaLink found for id: $mediaLinkId")
                     is DownloadMediaLink ->
@@ -65,7 +65,7 @@ object GenerateVideoPreviewJob : Job("generate-video-preview") {
     suspend fun schedule(kjob: KJob, mediaLinkId: String) {
         kjob.schedule(GenerateVideoPreviewJob) {
             jobId = "$name-$mediaLinkId"
-            props[MEDIA_REF_ID] = mediaLinkId
+            props[MEDIA_LINK_ID] = mediaLinkId
         }
     }
 
