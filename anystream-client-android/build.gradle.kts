@@ -58,7 +58,6 @@ dependencies {
     implementation(libs.bundles.exoplayer)
     implementation(libs.zxing.core)
     implementation(libs.quickie.bundled)
-    implementation(libs.anrWatchdog)
     implementation(libs.okhttp)
     implementation(libs.ktor.client.cio)
     implementation(libs.koin.core)
@@ -66,5 +65,6 @@ dependencies {
     implementation(libs.koin.android.compat)
     implementation(libs.koin.androidx.compose)
 
+    debugImplementation(libs.anrWatchdog)
     debugImplementation(libs.leakcanary)
 }
