@@ -20,13 +20,11 @@ package anystream.components
 import androidx.compose.runtime.*
 import anystream.util.Bootstrap
 import anystream.util.newElementId
-import anystream.util.rememberDomElement
 import org.jetbrains.compose.web.attributes.AttrsScope
 import org.jetbrains.compose.web.attributes.ButtonType
 import org.jetbrains.compose.web.attributes.type
 import org.jetbrains.compose.web.dom.*
 import org.w3c.dom.HTMLDivElement
-import kotlin.random.Random
 
 @Composable
 fun Modal(

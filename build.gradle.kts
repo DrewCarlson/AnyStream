@@ -64,7 +64,6 @@ subprojects {
 
     configure<org.jmailen.gradle.kotlinter.KotlinterExtension> {
         disabledRules += "no-wildcard-imports"
-        disabledRules += "no-unused-imports"
         disabledRules += "trailing-comma-on-call-site"
         disabledRules += "trailing-comma-on-declaration-site"
     }

@@ -31,13 +31,7 @@ import java.lang.invoke.MethodHandles
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Method
 import java.lang.reflect.Proxy
-import java.util.*
-import java.util.function.Function
-import java.util.stream.Stream
-import kotlin.streams.toList
-import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.DurationUnit
 import kotlin.time.DurationUnit.MILLISECONDS
 
 class PooledExtensions : JdbiConfig<PooledExtensions> {

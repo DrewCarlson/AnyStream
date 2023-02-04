@@ -17,8 +17,6 @@
  */
 package anystream.routing
 
-import anystream.routing.CommonRouter
-import anystream.routing.Routes
 import app.softwork.routingcompose.Router
 
 // TODO: BrowserRouter is not customizable and can only push routes,

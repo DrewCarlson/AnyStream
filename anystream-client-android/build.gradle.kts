@@ -12,11 +12,6 @@ android {
     buildFeatures {
         compose = true
     }
-    sourceSets {
-        named("main") {
-            java.srcDir("src/main/kotlin")
-        }
-    }
     composeOptions {
         kotlinCompilerExtensionVersion = libs.versions.composeCompiler.get()
     }

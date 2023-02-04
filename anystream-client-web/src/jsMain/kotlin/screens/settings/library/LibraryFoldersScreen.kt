@@ -24,7 +24,6 @@ import anystream.models.LocalMediaLink
 import anystream.models.api.LibraryFolderList
 import anystream.models.backend.MediaScannerState
 import anystream.util.Bootstrap
-import anystream.util.throttleLatest
 import anystream.util.tooltip
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch

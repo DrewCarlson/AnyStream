@@ -23,7 +23,6 @@ import anystream.android.router.AndroidRouter
 import anystream.client.AnyStreamClient
 import anystream.client.SessionManager
 import anystream.core.AndroidSessionDataStore
-import com.github.anrwatchdog.ANRWatchDog
 import io.ktor.client.*
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger

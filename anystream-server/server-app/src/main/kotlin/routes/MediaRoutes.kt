@@ -40,7 +40,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kjob.core.KJob
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jdbi.v3.core.JdbiException
 import java.io.File
