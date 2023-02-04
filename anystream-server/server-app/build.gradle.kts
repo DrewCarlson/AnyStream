@@ -76,8 +76,9 @@ dependencies {
     implementation(libs.coroutines.core)
     implementation(libs.coroutines.jdk8)
 
-    implementation(libs.ktor.serialization)
+    implementation(libs.bundles.icu4j)
 
+    implementation(libs.ktor.serialization)
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.netty)
     implementation(libs.ktor.server.sessions)

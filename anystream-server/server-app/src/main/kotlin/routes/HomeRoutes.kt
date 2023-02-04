@@ -23,31 +23,37 @@ import anystream.data.asMovie
 import anystream.data.asTvShow
 import anystream.db.model.MetadataDb
 import anystream.models.*
+import anystream.models.api.CurrentlyWatching
 import anystream.models.api.HomeResponse
+import anystream.models.api.Popular
+import anystream.models.api.RecentlyAdded
 import anystream.util.koinGet
 import anystream.util.toRemoteId
 import app.moviebase.tmdb.Tmdb3
 import app.moviebase.tmdb.discover.DiscoverCategory
 import app.moviebase.tmdb.model.*
+import com.ibm.icu.util.ULocale
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
+import kotlin.time.Duration.Companion.hours
 
 private const val CURRENTLY_WATCHING_ITEM_LIMIT = 10
-private const val POPULAR_MOVIES_REFRESH = 86_400_000L // 24 hours
+private val POPULAR_MOVIES_REFRESH = 24.hours
 
 fun Route.addHomeRoutes(
     tmdb: Tmdb3 = koinGet(),
     queries: MetadataDbQueries = koinGet(),
 ) {
+    val language = ULocale.getDefault().isO3Language
     val popularMoviesFlow = callbackFlow<List<TmdbMovieDetail>> {
         val category = DiscoverCategory.Popular(TmdbMediaType.MOVIE)
         while (true) {
             val result = tmdb.discover
-                .discoverByCategory(1, language = "en", category = category)
+                .discoverByCategory(1, language = language, category = category)
                 .results
                 .filterIsInstance<TmdbMovie>()
                 .map {
@@ -71,7 +77,7 @@ fun Route.addHomeRoutes(
         val category = DiscoverCategory.Popular(TmdbMediaType.SHOW)
         while (true) {
             val result = tmdb.discover
-                .discoverByCategory(1, language = "en", category = category)
+                .discoverByCategory(1, language = language, category = category)
                 .results
                 .filterIsInstance<TmdbShow>()
                 .map {
@@ -99,61 +105,104 @@ fun Route.addHomeRoutes(
             val (playbackStates, playbackStateMovies, playbackStateTv) =
                 queries.findCurrentlyWatching(session.userId, CURRENTLY_WATCHING_ITEM_LIMIT)
 
+            val tvSeasonIds = playbackStateTv.values.map { (episode, _) -> episode.seasonId }.distinct()
+            val tvSeasons = queries.findTvSeasonsByIds(tvSeasonIds).map(MetadataDb::toTvSeasonModel)
+
             // Recently Added
             val recentlyAddedMovies = queries.findRecentlyAddedMovies(20)
             val recentlyAddedTvShows = queries.findRecentlyAddedTv(20)
 
             // Popular movies
-            val tmdbPopular = popularMoviesFlow.filterNotNull().first()
-            val existingMovies = if (tmdbPopular.isNotEmpty()) {
-                queries
-                    .findMoviesByTmdbId(tmdbPopular.map(TmdbMovieDetail::id))
-                    .toMutableList()
-            } else {
-                mutableListOf()
-            }
-            val popularMovies = tmdbPopular.map { dbMovie ->
-                val existingIndex = existingMovies.indexOfFirst { it.tmdbId == dbMovie.id }
-                if (existingIndex == -1) {
-                    dbMovie.asMovie(dbMovie.toRemoteId())
-                } else {
-                    existingMovies.removeAt(existingIndex)
-                }
-            }
-            val popularMediaLinks = queries.findMediaLinksByMetadataIds(popularMovies.map(Movie::gid))
-            val popularMoviesMap = popularMovies.associateWith { m ->
-                popularMediaLinks.find { it.metadataId == m.id }
-            }
-
-            val tmdbPopularShows = popularTvShowsFlow.filterNotNull().first()
-            val existingShows = queries
-                .findTvShowsByTmdbId(tmdbPopularShows.map(TmdbShowDetail::id))
-                .toMutableList()
-            val popularTvShows = tmdbPopularShows
-                .map { series ->
-                    val existingIndex = existingShows.indexOfFirst { it.tmdbId == series.id }
-                    if (existingIndex == -1) {
-                        series.asTvShow(series.toRemoteId()).toTvShowModel()
-                    } else {
-                        existingShows.removeAt(existingIndex)
-                    }
-                }
-
-            val tvSeasonIds = playbackStateTv.values.map { (episode, _) -> episode.seasonId }.distinct()
-            val tvSeasons = queries.findTvSeasonsByIds(tvSeasonIds).map(MetadataDb::toTvSeasonModel)
+            val (popularMoviesMap, popularTvShows) = loadPopularMovies(
+                queries,
+                popularMoviesFlow,
+                popularTvShowsFlow,
+            )
 
             call.respond(
                 HomeResponse(
-                    playbackStates = playbackStates,
-                    currentlyWatchingMovies = playbackStateMovies,
-                    currentlyWatchingTv = playbackStateTv,
-                    recentlyAdded = recentlyAddedMovies,
-                    popularMovies = popularMoviesMap,
-                    popularTvShows = popularTvShows,
-                    recentlyAddedTv = recentlyAddedTvShows,
-                    tvSeasons = tvSeasons,
+                    currentlyWatching = CurrentlyWatching(
+                        playbackStates = playbackStates,
+                        tvShows = playbackStateTv,
+                        movies = playbackStateMovies,
+                        tvSeasons = tvSeasons
+                    ),
+                    recentlyAdded = RecentlyAdded(
+                        movies = recentlyAddedMovies,
+                        tvShows = recentlyAddedTvShows,
+                    ),
+                    popular = Popular(
+                        movies = popularMoviesMap,
+                        tvShows = popularTvShows,
+                    )
                 )
             )
         }
+
+        get("watching") {
+            val session = checkNotNull(call.principal<UserSession>())
+            val (playbackStates, playbackStateMovies, playbackStateTv) =
+                queries.findCurrentlyWatching(session.userId, CURRENTLY_WATCHING_ITEM_LIMIT)
+            val tvSeasonIds = playbackStateTv.values.map { (episode, _) -> episode.seasonId }.distinct()
+            val tvSeasons = queries.findTvSeasonsByIds(tvSeasonIds).map(MetadataDb::toTvSeasonModel)
+            call.respond(CurrentlyWatching(playbackStates, playbackStateMovies, playbackStateTv, tvSeasons))
+        }
+
+        get("recent") {
+            val recentlyAddedMovies = queries.findRecentlyAddedMovies(20)
+            val recentlyAddedTvShows = queries.findRecentlyAddedTv(20)
+            call.respond(RecentlyAdded(recentlyAddedMovies, recentlyAddedTvShows))
+        }
+
+        get("popular") {
+            val (popularMoviesMap, popularTvShows) = loadPopularMovies(
+                queries,
+                popularMoviesFlow,
+                popularTvShowsFlow
+            )
+            call.respond(Popular(popularMoviesMap, popularTvShows))
+        }
     }
+}
+
+private suspend fun loadPopularMovies(
+    queries: MetadataDbQueries,
+    popularMoviesFlow: StateFlow<List<TmdbMovieDetail>?>,
+    popularTvShowsFlow: StateFlow<List<TmdbShowDetail>?>,
+): Pair<Map<Movie, MediaLink?>, List<TvShow>> {
+    val tmdbPopular = popularMoviesFlow.filterNotNull().first()
+    val existingMovies = if (tmdbPopular.isNotEmpty()) {
+        queries
+            .findMoviesByTmdbId(tmdbPopular.map(TmdbMovieDetail::id))
+            .toMutableList()
+    } else {
+        mutableListOf()
+    }
+    val popularMovies = tmdbPopular.map { dbMovie ->
+        val existingIndex = existingMovies.indexOfFirst { it.tmdbId == dbMovie.id }
+        if (existingIndex == -1) {
+            dbMovie.asMovie(dbMovie.toRemoteId())
+        } else {
+            existingMovies.removeAt(existingIndex)
+        }
+    }
+    val popularMediaLinks = queries.findMediaLinksByMetadataIds(popularMovies.map(Movie::gid))
+    val popularMoviesMap = popularMovies.associateWith { m ->
+        popularMediaLinks.find { it.metadataId == m.id }
+    }
+
+    val tmdbPopularShows = popularTvShowsFlow.filterNotNull().first()
+    val existingShows = queries
+        .findTvShowsByTmdbId(tmdbPopularShows.map(TmdbShowDetail::id))
+        .toMutableList()
+    val popularTvShows = tmdbPopularShows
+        .map { series ->
+            val existingIndex = existingShows.indexOfFirst { it.tmdbId == series.id }
+            if (existingIndex == -1) {
+                series.asTvShow(series.toRemoteId()).toTvShowModel()
+            } else {
+                existingShows.removeAt(existingIndex)
+            }
+        }
+    return Pair(popularMoviesMap, popularTvShows)
 }

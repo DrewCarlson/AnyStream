@@ -22,7 +22,10 @@ import anystream.LocalAnyStreamClient
 import anystream.components.FullSizeCenteredLoader
 import anystream.components.LinkedText
 import anystream.components.PosterCard
+import anystream.models.api.CurrentlyWatching
 import anystream.models.api.HomeResponse
+import anystream.models.api.Popular
+import anystream.models.api.RecentlyAdded
 import app.softwork.routingcompose.Router
 import kotlinx.browser.localStorage
 import kotlinx.browser.window
@@ -35,6 +38,8 @@ import org.jetbrains.compose.web.css.overflow
 import org.jetbrains.compose.web.css.px
 import org.jetbrains.compose.web.css.width
 import org.jetbrains.compose.web.dom.*
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.times
 
 private const val KEY_POSTER_SIZE_MULTIPLIER = "key_poster_size_multiplier"
 
@@ -50,7 +55,7 @@ fun HomeScreen() {
             } catch (e: Throwable) {
                 null
             }
-            delay(i * 5000L)
+            delay(i * 5.seconds)
         }
     }
     var sizeMultiplier by remember {
@@ -76,36 +81,36 @@ fun HomeScreen() {
                 overflow("hidden auto")
             }
         }) {
-            if (playbackStates.isNotEmpty()) {
-                ContinueWatchingRow(sizeMultiplier)
+            if (currentlyWatching.playbackStates.isNotEmpty()) {
+                currentlyWatching.ContinueWatchingRow(sizeMultiplier)
             }
 
-            if (recentlyAdded.isNotEmpty()) {
-                RecentlyAddedMovies(sizeMultiplier)
+            if (recentlyAdded.movies.isNotEmpty()) {
+                recentlyAdded.RecentlyAddedMovies(sizeMultiplier)
             }
 
-            if (recentlyAddedTv.isNotEmpty()) {
-                RecentlyAddedTv(sizeMultiplier)
+            if (recentlyAdded.tvShows.isNotEmpty()) {
+                recentlyAdded.RecentlyAddedMovies(sizeMultiplier)
             }
 
-            if (popularMovies.isNotEmpty()) {
-                PopularMovies(sizeMultiplier)
+            if (popular.movies.isNotEmpty()) {
+                popular.PopularMovies(sizeMultiplier)
             }
 
-            if (popularTvShows.isNotEmpty()) {
-                PopularTvShows(sizeMultiplier)
+            if (popular.tvShows.isNotEmpty()) {
+                popular.PopularTvShows(sizeMultiplier)
             }
         }
     }
 }
 
 @Composable
-private fun HomeResponse.ContinueWatchingRow(sizeMultiplier: Float) {
+private fun CurrentlyWatching.ContinueWatchingRow(sizeMultiplier: Float) {
     val router = Router.current
     MovieRow(title = { Text("Continue Watching") }) {
         playbackStates.forEach { state ->
-            val movie = currentlyWatchingMovies[state.id]
-            val (episode, show) = currentlyWatchingTv[state.id] ?: (null to null)
+            val movie = movies[state.id]
+            val (episode, show) = tvShows[state.id] ?: (null to null)
             PosterCard(
                 sizeMultiplier = sizeMultiplier,
                 title = (movie?.title ?: show?.name)?.let { title ->
@@ -157,10 +162,10 @@ private fun HomeResponse.ContinueWatchingRow(sizeMultiplier: Float) {
 }
 
 @Composable
-private fun HomeResponse.RecentlyAddedMovies(sizeMultiplier: Float) {
+private fun RecentlyAdded.RecentlyAddedMovies(sizeMultiplier: Float) {
     val router = Router.current
     MovieRow(title = { Text("Recently Added Movies") }) {
-        recentlyAdded.forEach { (movie, mediaLink) ->
+        movies.forEach { (movie, mediaLink) ->
             PosterCard(
                 sizeMultiplier = sizeMultiplier,
                 title = {
@@ -185,10 +190,10 @@ private fun HomeResponse.RecentlyAddedMovies(sizeMultiplier: Float) {
 }
 
 @Composable
-private fun HomeResponse.RecentlyAddedTv(sizeMultiplier: Float) {
+private fun RecentlyAdded.RecentlyAddedTv(sizeMultiplier: Float) {
     val router = Router.current
     MovieRow(title = { Text("Recently Added TV") }) {
-        recentlyAddedTv.forEach { show ->
+        tvShows.forEach { show ->
             PosterCard(
                 sizeMultiplier = sizeMultiplier,
                 title = {
@@ -207,10 +212,10 @@ private fun HomeResponse.RecentlyAddedTv(sizeMultiplier: Float) {
 }
 
 @Composable
-private fun HomeResponse.PopularMovies(sizeMultiplier: Float) {
+private fun Popular.PopularMovies(sizeMultiplier: Float) {
     val router = Router.current
     MovieRow(title = { Text("Popular Movies") }) {
-        popularMovies.forEach { (movie, link) ->
+        movies.forEach { (movie, link) ->
             PosterCard(
                 sizeMultiplier = sizeMultiplier,
                 title = {
@@ -234,10 +239,10 @@ private fun HomeResponse.PopularMovies(sizeMultiplier: Float) {
 }
 
 @Composable
-private fun HomeResponse.PopularTvShows(sizeMultiplier: Float) {
+private fun Popular.PopularTvShows(sizeMultiplier: Float) {
     val router = Router.current
     MovieRow(title = { Text("Popular TV") }) {
-        popularTvShows.forEach { tvShow ->
+        tvShows.forEach { tvShow ->
             PosterCard(
                 sizeMultiplier = sizeMultiplier,
                 title = {

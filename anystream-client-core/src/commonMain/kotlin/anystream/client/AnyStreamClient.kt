@@ -233,6 +233,12 @@ class AnyStreamClient(
 
     suspend fun getHomeData(): HomeResponse = http.get("$serverUrl/api/home").bodyOrThrow()
 
+    suspend fun getHomeWatching(): CurrentlyWatching = http.get("$serverUrl/api/home/watching").bodyOrThrow()
+
+    suspend fun getHomeRecent(): RecentlyAdded = http.get("$serverUrl/api/home/recent").bodyOrThrow()
+
+    suspend fun getHomePopular(): Popular = http.get("$serverUrl/api/home/popular").bodyOrThrow()
+
     suspend fun getMovies(page: Int = 1): MoviesResponse =
         http.get("$serverUrl/api/movies") { pageParam(page) }.bodyOrThrow()
 

@@ -22,12 +22,27 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class HomeResponse(
+    val currentlyWatching: CurrentlyWatching,
+    val recentlyAdded: RecentlyAdded,
+    val popular: Popular,
+)
+
+@Serializable
+data class CurrentlyWatching(
     val playbackStates: List<PlaybackState>,
-    val currentlyWatchingMovies: Map<String, Movie>,
-    val currentlyWatchingTv: Map<String, Pair<Episode, TvShow>>,
-    val recentlyAdded: Map<Movie, MediaLink?>,
-    val popularMovies: Map<Movie, MediaLink?>,
-    val popularTvShows: List<TvShow>,
-    val recentlyAddedTv: List<TvShow>,
-    val tvSeasons: List<TvSeason>
+    val movies: Map<String, Movie>,
+    val tvShows: Map<String, Pair<Episode, TvShow>>,
+    val tvSeasons: List<TvSeason>,
+)
+
+@Serializable
+data class RecentlyAdded(
+    val movies: Map<Movie, MediaLink?>,
+    val tvShows: List<TvShow>,
+)
+
+@Serializable
+data class Popular(
+    val movies: Map<Movie, MediaLink?>,
+    val tvShows: List<TvShow>,
 )

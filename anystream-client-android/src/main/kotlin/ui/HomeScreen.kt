@@ -39,6 +39,7 @@ import anystream.android.AppTypography
 import anystream.android.router.BackStack
 import anystream.client.AnyStreamClient
 import anystream.models.*
+import anystream.models.api.CurrentlyWatching
 import anystream.models.api.HomeResponse
 import anystream.routing.Routes
 import coil.compose.AsyncImagePainter
@@ -59,25 +60,24 @@ fun HomeScreen(
 ) {
     Scaffold(
         topBar = { AppTopBar(client = client, backStack = backStack) }
-    ) {
+    ) { paddigValues ->
         LazyColumn(
             modifier = Modifier
+                .padding(paddigValues)
                 .padding(horizontal = 8.dp)
         ) {
             item {
-                val homeData = produceState<HomeResponse?>(null) {
+                val homeData by produceState<HomeResponse?>(null) {
                     value = client.getHomeData()
                 }
 
-                homeData.value?.run {
+                homeData?.run {
                     Spacer(modifier = Modifier.size(4.dp))
 
-                    if (playbackStates.isNotEmpty()) {
+                    if (currentlyWatching.playbackStates.isNotEmpty()) {
                         RowTitle(text = "Continue Watching")
                         ContinueWatchingRow(
-                            playbackStates = playbackStates,
-                            currentlyWatchingMovies = currentlyWatchingMovies,
-                            currentlyWatchingTv = currentlyWatchingTv,
+                            currentlyWatching = currentlyWatching,
                             onClick = onMediaClick
                         )
                         RowSpace()
@@ -93,7 +93,7 @@ fun HomeScreen(
                             Text(text = "All Movies")
                         }
                     }
-                    MovieRow(movies = recentlyAdded, onClick = onMediaClick)
+                    MovieRow(movies = recentlyAdded.movies, onClick = onMediaClick)
                     RowSpace()
 
                     Row(
@@ -106,11 +106,11 @@ fun HomeScreen(
                             Text(text = "All Shows")
                         }
                     }
-                    TvRow(shows = recentlyAddedTv, onClick = onMediaClick)
+                    TvRow(shows = recentlyAdded.tvShows, onClick = onMediaClick)
                     RowSpace()
 
                     RowTitle(text = "Popular Movies")
-                    MovieRow(movies = popularMovies, onClick = onMediaClick)
+                    MovieRow(movies = popular.movies, onClick = onMediaClick)
                     RowSpace()
                 }
             }
@@ -120,12 +120,13 @@ fun HomeScreen(
 
 @Composable
 private fun ContinueWatchingRow(
-    playbackStates: List<PlaybackState>,
-    currentlyWatchingMovies: Map<String, Movie>,
-    currentlyWatchingTv: Map<String, Pair<Episode, TvShow>>,
+    currentlyWatching: CurrentlyWatching,
     onClick: (mediaLinkId: String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val playbackStates = currentlyWatching.playbackStates
+    val currentlyWatchingMovies = currentlyWatching.movies
+    val currentlyWatchingTv = currentlyWatching.tvShows
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(CARD_SPACING),
         modifier = modifier,
@@ -201,6 +202,7 @@ private fun WatchingCard(
                                 .background(Color.DarkGray)
                         )
                     }
+
                     is AsyncImagePainter.State.Error -> {
                         Box(
                             contentAlignment = Alignment.Center,
@@ -211,6 +213,7 @@ private fun WatchingCard(
                             Text("No Backdrop")
                         }
                     }
+
                     AsyncImagePainter.State.Empty,
                     is AsyncImagePainter.State.Success -> Unit
                 }
