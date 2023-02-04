@@ -61,13 +61,13 @@ fun PlayerScreen(mediaLinkId: String) {
         )
     }
     val isMouseOnPlayer by mouseMoveFlow
-            .transformLatest {
-                emit(true)
-                delay(CONTROL_HIDE_DELAY)
-                emit(false)
-            }
-            .distinctUntilChanged()
-            .collectAsState(false)
+        .transformLatest {
+            emit(true)
+            delay(CONTROL_HIDE_DELAY)
+            emit(false)
+        }
+        .distinctUntilChanged()
+        .collectAsState(false)
     val areControlsVisible by remember {
         derivedStateOf {
             isMouseOnPlayer || !playerIsPlaying

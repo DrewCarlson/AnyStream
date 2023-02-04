@@ -19,7 +19,6 @@ package anystream.jobs
 
 import anystream.db.MediaLinkDao
 import anystream.media.LibraryManager
-import anystream.models.MediaKind
 import anystream.models.MediaLink
 import anystream.models.api.MediaScanResult
 import kjob.core.Job

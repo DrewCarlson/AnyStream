@@ -70,7 +70,7 @@ class MovieFileProcessor(
         }
         if (existingRef != null) {
             logger.debug("Content file reference already exists")
-            //return // MediaScanResult.ErrorNothingToScan
+            // return // MediaScanResult.ErrorNothingToScan
         }
 
         val match = yearRegex.find(mediaName)

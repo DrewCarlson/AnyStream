@@ -2,9 +2,9 @@ name: Code Quality
 
 on:
   push:
-    branches: [ disabled ]
+    branches: [ main ]
   pull_request:
-    branches: [ disabled ]
+    branches: [ main ]
 
 jobs:
   file-changes:
@@ -94,7 +94,7 @@ jobs:
       - uses: gradle/gradle-build-action@v2
         name: Spotless Check
         with:
-          arguments: -p anystream-client-android spotlessCheck formatKotlin
+          arguments: -p anystream-client-android spotlessCheck lintKotlin
 
   client-core:
     runs-on: ubuntu-latest
@@ -121,7 +121,7 @@ jobs:
       - uses: gradle/gradle-build-action@v2
         name: Spotless Check
         with:
-          arguments: -p anystream-client-core spotlessCheck formatKotlin
+          arguments: -p anystream-client-core spotlessCheck lintKotlin
 
   client-web:
     runs-on: ubuntu-latest
@@ -148,7 +148,7 @@ jobs:
       - uses: gradle/gradle-build-action@v2
         name: Spotless Check
         with:
-          arguments: -p anystream-client-web spotlessCheck formatKotlin
+          arguments: -p anystream-client-web spotlessCheck lintKotlin
 
   data-models:
     runs-on: ubuntu-latest
@@ -175,7 +175,7 @@ jobs:
       - uses: gradle/gradle-build-action@v2
         name: Spotless Check
         with:
-          arguments: -p anystream-data-models spotlessCheck formatKotlin
+          arguments: -p anystream-data-models spotlessCheck lintKotlin
 
   server:
     runs-on: ubuntu-latest
@@ -202,4 +202,4 @@ jobs:
       - uses: gradle/gradle-build-action@v2
         name: Spotless Check
         with:
-          arguments: -p anystream-server spotlessCheck formatKotlin
+          arguments: -p anystream-server spotlessCheck lintKotlin
