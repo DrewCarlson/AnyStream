@@ -20,6 +20,7 @@ package anystream.android.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -61,8 +62,9 @@ fun PlayerScreen(
     var autoPlay by rememberSaveable { mutableStateOf(true) }
     var window by rememberSaveable { mutableStateOf(0) }
     var position by rememberSaveable { mutableStateOf(0L) }
-    val player = remember {
-        ExoPlayer.Builder(context).build().apply {
+    val player = remember { ExoPlayer.Builder(context).build() }
+    LaunchedEffect(player) {
+        player.apply {
             var updateStateJob: Job? = null
             addListener(object : Player.Listener {
                 override fun onPlaybackStateChanged(state: Int) {
@@ -117,8 +119,9 @@ fun PlayerScreen(
         position = player.contentPosition.coerceAtLeast(0L)
     }
 
-    val playerView = remember {
-        StyledPlayerView(context).apply {
+    val playerView = remember { StyledPlayerView(context) }
+    LaunchedEffect(playerView) {
+        playerView.apply {
             lifecycle.addObserver(object : DefaultLifecycleObserver {
                 override fun onStart(owner: LifecycleOwner) {
                     super.onStart(owner)
@@ -143,10 +146,11 @@ fun PlayerScreen(
         }
     }
 
-    Scaffold(modifier = modifier) {
+    Scaffold(modifier = modifier) { padding ->
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
+                .padding(padding)
                 .background(Color.Black)
                 .fillMaxSize()
         ) {

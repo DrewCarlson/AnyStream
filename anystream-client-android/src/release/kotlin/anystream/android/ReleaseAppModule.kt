@@ -17,5 +17,7 @@
  */
 package anystream.android
 
+import org.koin.dsl.module
+
 fun appModule() = module {
 }

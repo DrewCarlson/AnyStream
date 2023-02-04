@@ -22,8 +22,8 @@ import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -89,8 +89,8 @@ private fun MovieGrid(
         contentPadding = PaddingValues(all = 8.dp)
     ) {
         items(movies) { movie ->
-            val mediaLink = remember {
-                mediaLinks.find { it.metadataGid == movie.gid }
+            val mediaLink by produceState<MediaLink?>(null, movie) {
+                value = mediaLinks.find { it.metadataGid == movie.gid }
             }
             PosterCard(
                 title = movie.title,

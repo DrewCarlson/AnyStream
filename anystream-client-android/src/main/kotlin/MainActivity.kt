@@ -61,8 +61,8 @@ open class MainActivity : AppCompatActivity() {
                             else -> Routes.Home
                         }
                         Router(defaultRouting = defaultRoute) { stack ->
-                            val androidRouter = remember(stack) {
-                                androidRouter.apply { setBackStack(stack) }
+                            LaunchedEffect(stack) {
+                                androidRouter.setBackStack(stack)
                             }
                             remember {
                                 client.authenticated
