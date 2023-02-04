@@ -19,6 +19,8 @@ package anystream.jobs
 
 import anystream.db.MediaLinkDao
 import anystream.media.LibraryManager
+import anystream.models.MediaKind
+import anystream.models.MediaLink
 import anystream.models.api.MediaScanResult
 import kjob.core.Job
 import kjob.core.KJob
@@ -34,6 +36,7 @@ object RefreshMetadataJob : Job("refresh-metadata") {
         libraryManager: LibraryManager,
     ) {
         kJob.register(RefreshMetadataJob) {
+            maxRetries = 0
             execute {
                 val userId = props[USER_ID]
                 val mediaLinkId = props[MEDIA_LINK_ID]
@@ -44,16 +47,25 @@ object RefreshMetadataJob : Job("refresh-metadata") {
                     return@execute
                 }
 
-                when (val scanResult = libraryManager.scanForMedia(userId, mediaLink)) {
-                    is MediaScanResult.Success -> {
-                        logger.debug("Scanning files: " + scanResult.allValidGids.joinToString())
-                        scanResult.allValidGids.forEach { addedMediaLink ->
-                            libraryManager.refreshMetadata(userId, addedMediaLink)
+                when (mediaLink.descriptor) {
+                    MediaLink.Descriptor.ROOT_DIRECTORY -> {
+                        libraryManager.scanForMedia(userId, mediaLink)
+                        when (val scanResult = libraryManager.scanForMedia(userId, mediaLink)) {
+                            is MediaScanResult.Success -> {
+                                logger.debug("Scanning files: " + scanResult.allValidGids.joinToString())
+                                scanResult.allValidGids.forEach { addedMediaLink ->
+                                    libraryManager.refreshMetadata(userId, addedMediaLink)
+                                }
+                            }
+                            else -> {
+                                logger.error("Failed to scan media: $scanResult")
+                            }
                         }
                     }
-                    else -> {
-                        logger.error("Failed to scan media: $scanResult")
-                    }
+                    MediaLink.Descriptor.MEDIA_DIRECTORY -> TODO()
+                    MediaLink.Descriptor.CHILD_DIRECTORY -> TODO()
+                    MediaLink.Descriptor.VIDEO -> TODO()
+                    else -> error("Refresh Metadata unsupported for MediaLink with descriptor(${mediaLink.descriptor})")
                 }
             }
         }

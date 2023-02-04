@@ -23,6 +23,7 @@ import anystream.db.*
 import anystream.db.extensions.PooledExtensions
 import anystream.db.extensions.pooled
 import anystream.db.mappers.registerMappers
+import anystream.jobs.registerJobs
 import anystream.media.LibraryManager
 import anystream.media.processor.MovieFileProcessor
 import anystream.media.processor.TvFileProcessor
@@ -108,9 +109,7 @@ fun Application.module(testing: Boolean = false) {
                         installPlugin(SqlObjectPlugin())
                         installPlugin(KotlinSqlObjectPlugin())
                         installPlugin(KotlinPlugin())
-                        configure(PooledExtensions::class.java) { extension ->
-                            environment.monitor.subscribe(ApplicationStopped) { extension.shutdown() }
-                        }
+                        configure(PooledExtensions::class.java) {}
                         registerMappers()
                     }
                 }
@@ -161,9 +160,15 @@ fun Application.module(testing: Boolean = false) {
             }
         )
     }
-    environment.monitor.subscribe(ApplicationStopped) { get<KJob>().shutdown() }
+    environment.monitor.subscribe(ApplicationStopped) {
+        get<Jdbi>().configure(PooledExtensions::class.java) { extension ->
+            extension.shutdown()
+        }
+        get<KJob>().shutdown()
+    }
 
     check(runMigrations(get<AnyStreamConfig>().databaseUrl, log))
+    registerJobs()
 
     install(DefaultHeaders) {}
     install(ContentNegotiation) {

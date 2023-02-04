@@ -155,7 +155,7 @@ class TvFileProcessor(
             }
             // TODO: handle this check before process is invoked,
             //  replace mediaKinds with fun supports(mediaLink)
-            else -> error("unsupported MediaLink.Descriptor")
+            else -> error("unsupported MediaLink.Descriptor (${mediaLink.descriptor})")
         }
 
         return // MediaScanResult.ErrorNothingToScan

@@ -33,7 +33,7 @@ class MovieFileProcessor(
 ) : MediaFileProcessor {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
-    private val yearRegex = "\\b\\((\\d{4})\\)\$".toRegex()
+    private val yearRegex = "\\s\\((\\d{4})\\)\$".toRegex()
 
     override val mediaKinds: List<MediaKind> = listOf(MediaKind.MOVIE)
 
@@ -70,11 +70,11 @@ class MovieFileProcessor(
         }
         if (existingRef != null) {
             logger.debug("Content file reference already exists")
-            return // MediaScanResult.ErrorNothingToScan
+            //return // MediaScanResult.ErrorNothingToScan
         }
 
         val match = yearRegex.find(mediaName)
-        val year = match?.value?.trim('(', ')')?.toInt() ?: 0
+        val year = match?.groupValues?.lastOrNull()?.toIntOrNull() ?: 0
 
         logger.debug("Found content year: $year")
 

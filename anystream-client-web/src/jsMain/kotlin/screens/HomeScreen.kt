@@ -91,7 +91,7 @@ fun HomeScreen() {
             }
 
             if (recentlyAdded.tvShows.isNotEmpty()) {
-                recentlyAdded.RecentlyAddedMovies(sizeMultiplier)
+                recentlyAdded.RecentlyAddedTv(sizeMultiplier)
             }
 
             if (popular.movies.isNotEmpty()) {
