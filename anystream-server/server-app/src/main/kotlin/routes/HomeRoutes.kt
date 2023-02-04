@@ -59,7 +59,7 @@ fun Route.addHomeRoutes(
                 .map {
                     tmdb.movies.getDetails(
                         it.id,
-                        null,
+                        language,
                         listOf(
                             AppendResponse.EXTERNAL_IDS,
                             AppendResponse.CREDITS,
@@ -83,7 +83,7 @@ fun Route.addHomeRoutes(
                 .map {
                     tmdb.show.getDetails(
                         it.id,
-                        null,
+                        language,
                         listOf(
                             AppendResponse.EXTERNAL_IDS,
                             AppendResponse.CREDITS,

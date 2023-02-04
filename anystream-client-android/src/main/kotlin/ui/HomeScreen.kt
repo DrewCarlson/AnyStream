@@ -83,34 +83,42 @@ fun HomeScreen(
                         RowSpace()
                     }
 
-                    Row(
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        RowTitle(text = "Recently Added Movies")
-                        TextButton(onClick = onViewMoviesClicked) {
-                            Text(text = "All Movies")
+                    if (recentlyAdded.movies.isNotEmpty()) {
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            RowTitle(text = "Recently Added Movies")
+                            TextButton(onClick = onViewMoviesClicked) {
+                                Text(text = "All Movies")
+                            }
                         }
+                        MovieRow(movies = recentlyAdded.movies, onClick = onMediaClick)
+                        RowSpace()
                     }
-                    MovieRow(movies = recentlyAdded.movies, onClick = onMediaClick)
-                    RowSpace()
 
-                    Row(
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        RowTitle(text = "Recently Added TV")
-                        TextButton(onClick = onViewMoviesClicked) {
-                            Text(text = "All Shows")
+                    if (recentlyAdded.tvShows.isNotEmpty()) {
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            RowTitle(text = "Recently Added TV")
+                            TextButton(onClick = onViewMoviesClicked) {
+                                Text(text = "All Shows")
+                            }
                         }
+                        TvRow(shows = recentlyAdded.tvShows, onClick = onMediaClick)
+                        RowSpace()
                     }
-                    TvRow(shows = recentlyAdded.tvShows, onClick = onMediaClick)
-                    RowSpace()
 
                     RowTitle(text = "Popular Movies")
                     MovieRow(movies = popular.movies, onClick = onMediaClick)
+                    RowSpace()
+
+                    RowTitle(text = "Popular TV")
+                    TvRow(shows = popular.tvShows, onClick = { })
                     RowSpace()
                 }
             }

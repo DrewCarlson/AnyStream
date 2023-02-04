@@ -18,15 +18,36 @@
 package anystream.android
 
 import android.app.Application
+import android.content.Context
 import anystream.android.router.AndroidRouter
+import anystream.client.AnyStreamClient
+import anystream.client.SessionManager
+import anystream.core.AndroidSessionDataStore
 import com.github.anrwatchdog.ANRWatchDog
+import io.ktor.client.*
+import org.koin.android.ext.koin.androidContext
+import org.koin.android.ext.koin.androidLogger
+import org.koin.core.context.startKoin
+import org.koin.dsl.module
+
+private const val PREFS_NAME = "prefs"
 
 class App : Application() {
 
-    val androidRouter = AndroidRouter()
-
     override fun onCreate() {
         super.onCreate()
-        ANRWatchDog().start()
+        startKoin {
+            androidLogger()
+            androidContext(this@App)
+            modules(
+                appModule(),
+                module {
+                    single { AndroidRouter() }
+                    single { get<Context>().getSharedPreferences(PREFS_NAME, MODE_PRIVATE) }
+                    single { SessionManager(AndroidSessionDataStore(get())) }
+                    single { AnyStreamClient(null, HttpClient(), get()) }
+                }
+            )
+        }
     }
 }

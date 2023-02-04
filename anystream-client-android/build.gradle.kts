@@ -61,6 +61,10 @@ dependencies {
     implementation(libs.anrWatchdog)
     implementation(libs.okhttp)
     implementation(libs.ktor.client.cio)
+    implementation(libs.koin.core)
+    implementation(libs.koin.android)
+    implementation(libs.koin.android.compat)
+    implementation(libs.koin.androidx.compose)
 
     debugImplementation(libs.leakcanary)
 }

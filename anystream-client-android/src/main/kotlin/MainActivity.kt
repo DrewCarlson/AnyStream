@@ -36,30 +36,23 @@ import androidx.compose.ui.unit.dp
 import anystream.android.router.*
 import anystream.android.ui.*
 import anystream.client.AnyStreamClient
-import anystream.client.SessionManager
-import anystream.core.AndroidSessionDataStore
 import anystream.routing.*
-import io.ktor.client.*
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-
-private const val PREFS_NAME = "prefs"
+import org.koin.android.ext.android.inject
 
 class LeanbackActivity : MainActivity()
 open class MainActivity : AppCompatActivity() {
     private val backPressHandler = BackPressHandler()
 
-    private val androidRouter: AndroidRouter
-        get() = (applicationContext as App).androidRouter
+    private val androidRouter: AndroidRouter by inject()
+    private val client: AnyStreamClient by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val prefs = applicationContext.getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-        val sessionManager = SessionManager(AndroidSessionDataStore(prefs))
         setContent {
             val scope = rememberCoroutineScope()
-            val client = remember { AnyStreamClient(null, HttpClient(), sessionManager) }
             CompositionLocalProvider(LocalBackPressHandler provides backPressHandler) {
                 AppTheme {
                     BundleScope(savedInstanceState) {
