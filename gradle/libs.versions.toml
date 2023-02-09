@@ -34,7 +34,7 @@ ax_runner = "1.5.2"
 agp = "7.3.1"
 leakcanary = "2.10"
 koin = "3.3.3"
-koinAndroid = "3.3.2"
+koinAndroid = "3.3.3"
 koinAndroidxCompose = "3.4.1"
 koinKtor = "3.3.0"
 
