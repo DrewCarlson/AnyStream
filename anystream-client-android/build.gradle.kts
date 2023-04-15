@@ -40,7 +40,6 @@ android {
         "-opt-in=androidx.compose.ui.ExperimentalComposeUiApi",
         "-opt-in=androidx.compose.foundation.ExperimentalFoundationApi",
         "-opt-in=coil.annotation.ExperimentalCoilApi",
-        //"-P", "plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=true"
     )
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -74,4 +73,9 @@ dependencies {
 
     debugImplementation(libs.anrWatchdog)
     debugImplementation(libs.leakcanary)
+
+    androidTestImplementation(libs.coroutines.test) {
+        // conflicts with mockito due to direct inclusion of byte buddy
+        exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-coroutines-debug")
+    }
 }
