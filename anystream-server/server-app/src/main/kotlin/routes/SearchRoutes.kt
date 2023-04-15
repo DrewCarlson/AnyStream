@@ -31,7 +31,7 @@ private const val LIMIT = "limit"
 private const val MEDIA_KIND = "mediaKind"
 
 fun Route.addSearchRoutes(
-    searchService: SearchService = koinGet()
+    searchService: SearchService = koinGet(),
 ) {
     route("/search") {
         get {

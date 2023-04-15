@@ -145,7 +145,7 @@ private fun BaseDetailsView(
                 completedPercent = mediaItem.playbackState?.completedPercent,
                 onPlayClicked = {
                     window.location.hash = "!play:${mediaItem.mediaLinks.firstOrNull()?.gid}"
-                }.takeIf { mediaItem.mediaLinks.isNotEmpty() }
+                }.takeIf { mediaItem.mediaLinks.isNotEmpty() },
             )
 
             mediaItem.playbackState?.run {
@@ -416,7 +416,7 @@ private fun <T : StreamEncodingDetails> StreamSelectionMenu(
         PopperElement(
             element,
             popperOptions("bottom-start"),
-            attrs = { style { property("z-index", 100) } }
+            attrs = { style { property("z-index", 100) } },
         ) { popper ->
             Div({ classes("rounded", "shadow", "animate-popup") }) {
                 DisposableEffect(isVisible) {
@@ -460,7 +460,7 @@ private fun SeasonRow(seasons: List<TvSeason>) {
     val router = Router.current
     BaseRow(
         title = { Text("${seasons.size} Seasons") },
-        wrap = true
+        wrap = true,
     ) {
         seasons.forEach { season ->
             PosterCard(
@@ -472,7 +472,7 @@ private fun SeasonRow(seasons: List<TvSeason>) {
                 posterPath = season.posterPath,
                 onBodyClicked = {
                     router.navigate("/media/${season.gid}")
-                }
+                },
             )
         }
     }
@@ -486,7 +486,7 @@ private fun EpisodeGrid(
     val router = Router.current
     BaseRow(
         title = { Text("${episodes.size} Episodes") },
-        wrap = true
+        wrap = true,
     ) {
         episodes.forEach { episode ->
             val link = mediaLinks[episode.gid]
@@ -558,7 +558,7 @@ private fun OptionsPopper(
     PopperElement(
         element,
         popperOptions(placement = "bottom-start"),
-        attrs = { style { property("z-index", 100) } }
+        attrs = { style { property("z-index", 100) } },
     ) { popper ->
         Div({ classes("bg-dark", "rounded", "shadow", "animate-popup") }) {
             DisposableEffect(Unit) {

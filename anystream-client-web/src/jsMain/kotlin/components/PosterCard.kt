@@ -86,7 +86,7 @@ fun PosterCard(
                 onBodyClicked = onBodyClicked,
                 isOverlayVisible = isOverlayVisible,
                 onMenuClicked = { isMenuVisible.value = true }
-                    .takeUnless { buildMenu == null }
+                    .takeUnless { buildMenu == null },
             )
 
             if (completedPercent != null) {
@@ -127,7 +127,7 @@ fun PosterCard(
                     attrs = {
                         classes("rounded", "h-100", "w-100")
                         attr("loading", "lazy")
-                    }
+                    },
                 )
             }
         }
@@ -177,7 +177,7 @@ private fun CardOverlay(
                 "position-absolute",
                 "h-100",
                 "w-100",
-                "p-3"
+                "p-3",
             )
             classes("rounded", "border", "border-white")
             style {

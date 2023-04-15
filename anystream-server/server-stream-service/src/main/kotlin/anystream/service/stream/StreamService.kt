@@ -65,7 +65,7 @@ class StreamService(
     private val queries: StreamServiceQueries,
     private val ffmpeg: () -> FFmpeg,
     private val ffprobe: () -> FFprobe,
-    private val transcodePath: String
+    private val transcodePath: String,
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
     private val scope = CoroutineScope(Dispatchers.IO + scope.coroutineContext)
@@ -73,7 +73,7 @@ class StreamService(
     private val transcodeJobs = ConcurrentHashMap<String, Job>()
     private val sessionUpdates = MutableSharedFlow<TranscodeSession>(
         extraBufferCapacity = 50,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST
+        onBufferOverflow = BufferOverflow.DROP_OLDEST,
     )
 
     fun getSessions(): Map<String, TranscodeSession> {
@@ -90,21 +90,21 @@ class StreamService(
                 movie = queries.fetchMovieById(id)?.run(::MovieResponse),
                 episode = queries.fetchEpisodeById(id)?.let { (episode, show) ->
                     EpisodeResponse(episode, show)
-                }
+                },
             )
         }
         return PlaybackSessions(
             playbackStates = playbackStates,
             transcodeSessions = sessionMap,
             users = users.associateBy(User::id),
-            mediaLookups = mediaLookups
+            mediaLookups = mediaLookups,
         )
     }
 
     suspend fun getPlaybackState(
         mediaLinkId: String,
         userId: Int,
-        create: Boolean
+        create: Boolean,
     ): PlaybackState? {
         val state = queries.fetchPlaybackState(mediaLinkId, userId)
         val fileAndMediaGid by lazy {
@@ -124,7 +124,7 @@ class StreamService(
                 userId = userId,
                 metadataGid = metadataGid.orEmpty(),
                 runtime = runtime.toDouble(SECONDS),
-                updatedAt = Clock.System.now()
+                updatedAt = Clock.System.now(),
             ).also { newState ->
                 queries.insertPlaybackState(newState)
             }
@@ -145,7 +145,7 @@ class StreamService(
                 startAt = positionSeconds,
                 stopAt = positionSeconds + (runtimeSeconds * DEFAULT_BUFFER_PERCENT),
                 segmentDuration = DEFAULT_SEGMENT_DURATION,
-                waitForSegments = 1
+                waitForSegments = 1,
             )
         }
         return newState
@@ -177,7 +177,7 @@ class StreamService(
                 outputDir = output,
                 runtime = runtime,
                 segmentDuration = segmentDuration,
-                waitForSegments = 0
+                waitForSegments = 0,
             )
         }
 
@@ -186,7 +186,7 @@ class StreamService(
             mediaFile = file,
             token = token,
             runtime = runtime,
-            segmentDuration = segmentDuration
+            segmentDuration = segmentDuration,
         )
     }
 
@@ -236,7 +236,7 @@ class StreamService(
         segmentDuration: Duration,
         startAt: Duration = ZERO,
         stopAt: Duration = runtime,
-        waitForSegments: Int = DEFAULT_WAIT_FOR_SEGMENTS
+        waitForSegments: Int = DEFAULT_WAIT_FOR_SEGMENTS,
     ): TranscodeSession {
         logger.debug("Start Transcode: $name, runtime=$runtime, startAt=$startAt, stopAt=$stopAt, waitForSegments=$waitForSegments, token=$token")
         val existingSession = sessionMap[token]
@@ -289,7 +289,7 @@ class StreamService(
                     endTime = runtime.toDouble(SECONDS),
                     lastTranscodedSegment = lastSegmentIndex,
                     state = TranscodeSession.State.COMPLETE,
-                    ffmpegCommand = ""
+                    ffmpegCommand = "",
                 ) ?: TranscodeSession(
                     token = token,
                     mediaLinkId = name,
@@ -305,7 +305,7 @@ class StreamService(
                     endTime = endTime?.toDouble(SECONDS) ?: runtime.toDouble(SECONDS),
                     startSegment = startSegment,
                     endSegment = endSegment,
-                    transcodedSegments = transcodedSegments
+                    transcodedSegments = transcodedSegments,
                 )
             }.run(::checkNotNull)
         }
@@ -337,7 +337,7 @@ class StreamService(
                     if (endTime != null) {
                         addArguments("-to", endTime.toDouble(SECONDS).toString())
                     }
-                }
+                },
             )
             addOutput(
                 UrlOutput.toPath(File(outputDir, "$name.m3u8").toPath()).apply {
@@ -345,7 +345,7 @@ class StreamService(
                     setCodec(StreamType.AUDIO, "aac")
                     // copyCodec(StreamType.VIDEO)
                     // copyCodec(StreamType.AUDIO)
-                }
+                },
             )
             setOverwriteOutput(false)
         }
@@ -359,7 +359,7 @@ class StreamService(
                 endTime = endTime?.toDouble(SECONDS) ?: runtime.toDouble(SECONDS),
                 lastTranscodedSegment = startSegment,
                 ffmpegCommand = command.buildCommandString(),
-                state = TranscodeSession.State.RUNNING
+                state = TranscodeSession.State.RUNNING,
             ) ?: TranscodeSession(
                 token = token,
                 mediaLinkId = name,
@@ -375,7 +375,7 @@ class StreamService(
                 endTime = endTime?.toDouble(SECONDS) ?: runtime.toDouble(SECONDS),
                 startSegment = startSegment,
                 endSegment = endSegment,
-                transcodedSegments = transcodedSegments
+                transcodedSegments = transcodedSegments,
             )
         }.run(::checkNotNull)
         transcodeJobs[token] = createTranscodeJob(name, outputDir, endSegment, lastSegmentIndex, token, command)
@@ -409,7 +409,7 @@ class StreamService(
         endSegment: Int,
         lastSegmentIndex: Int,
         token: String,
-        command: FFmpeg
+        command: FFmpeg,
     ) = scope.launch {
         val nameRegex = "$name-(\\d+)\\.ts\$".toRegex()
         val segmentWatchJob = createSegmentWatcher(outputDir.toPath(), nameRegex)
@@ -418,7 +418,7 @@ class StreamService(
                 val session = sessionMap.compute(token) { _, session ->
                     session?.copy(
                         transcodedSegments = session.transcodedSegments + completedSegment,
-                        lastTranscodedSegment = completedSegment
+                        lastTranscodedSegment = completedSegment,
                     )
                 }
                 sessionUpdates.tryEmit(checkNotNull(session))
@@ -463,7 +463,7 @@ class StreamService(
             runtime = runtime,
             segmentDuration = session.segmentLength.seconds,
             startAt = segmentTime,
-            stopAt = segmentTime + (session.runtime * DEFAULT_BUFFER_PERCENT).seconds
+            stopAt = segmentTime + (session.runtime * DEFAULT_BUFFER_PERCENT).seconds,
         )
 
         if (session.isSegmentComplete(segment)) {
@@ -503,7 +503,7 @@ class StreamService(
         mediaFile: File,
         token: String,
         runtime: Duration,
-        segmentDuration: Duration
+        segmentDuration: Duration,
     ): String {
         logger.debug("Creating variant playlist for $mediaFile")
 
@@ -555,7 +555,7 @@ class StreamService(
 
     private fun getSegmentCountAndFinalLength(
         runtime: Duration,
-        segmentLength: Duration
+        segmentLength: Duration,
     ): Pair<Int, Duration> {
         val segments = ceil(runtime / segmentLength).toInt()
         val lastPartialSegmentLength = (runtime.inWholeMilliseconds % segmentLength.inWholeMilliseconds).milliseconds
@@ -598,7 +598,7 @@ class StreamService(
         @Suppress("UNCHECKED_CAST")
         return (buildArguments(this) as List<String>).joinToString(
             separator = " ",
-            prefix = "ffmpeg "
+            prefix = "ffmpeg ",
         ) { if (it.contains(' ')) "\"$it\"" else it }
     }
 }

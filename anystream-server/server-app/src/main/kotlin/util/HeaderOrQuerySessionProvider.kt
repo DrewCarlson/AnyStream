@@ -40,7 +40,7 @@ inline fun <reified T : Any> SessionsConfig.headerOrQuery(
                     return call.request.queryParameters[key] ?: call.request.headers[key]
                 }
             },
-            SessionTrackerById(T::class, serializer, storage, sessionIdProvider)
-        )
+            SessionTrackerById(T::class, serializer, storage, sessionIdProvider),
+        ),
     )
 }

@@ -29,7 +29,7 @@ interface MediaFileProcessor {
     sealed class FileScanResult {
 
         data class Success(
-            val a: String = ""
+            val a: String = "",
         ) : FileScanResult()
 
         object Error : FileScanResult()

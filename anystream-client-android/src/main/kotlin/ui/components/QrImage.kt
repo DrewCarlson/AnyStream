@@ -58,7 +58,7 @@ fun QrImage(
         Image(
             bitmap = asImageBitmap(),
             modifier = modifier,
-            contentDescription = null
+            contentDescription = null,
         )
     }
 }

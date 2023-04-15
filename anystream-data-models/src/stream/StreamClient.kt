@@ -22,7 +22,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class StreamClient(
     val platform: Platform,
-    val browser: Browser? = null
+    val browser: Browser? = null,
 ) {
     @Serializable
     enum class Platform {

@@ -69,7 +69,7 @@ fun AddLibraryScreen(
                     if (!isInputLocked) {
                         selectedMediaKind = MediaKind.MOVIE
                     }
-                }
+                },
             )
             MediaKindButton(
                 name = "TV Shows",
@@ -79,13 +79,13 @@ fun AddLibraryScreen(
                     if (!isInputLocked) {
                         selectedMediaKind = MediaKind.TV
                     }
-                }
+                },
             )
             MediaKindButton(
                 name = "Music",
                 isSelected = selectedMediaKind == MediaKind.MUSIC,
                 icon = "music-note-beamed",
-                onClick = { /*selectedMediaKind.value = MediaKind.MUSIC*/ }
+                onClick = { /*selectedMediaKind.value = MediaKind.MUSIC*/ },
             )
         }
         Div({ classes("input-group") }) {

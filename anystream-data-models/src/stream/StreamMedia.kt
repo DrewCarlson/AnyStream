@@ -24,5 +24,5 @@ data class StreamMedia(
     val container: String,
     val videoCodec: String?,
     val audioCodec: String?,
-    val subtitles: String?
+    val subtitles: String?,
 )

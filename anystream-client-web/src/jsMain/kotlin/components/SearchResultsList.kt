@@ -73,7 +73,7 @@ fun SearchResultsList(
                         } else {
                             append(" season")
                         }
-                    }
+                    },
                 )
             }
         }
@@ -145,7 +145,7 @@ private fun SearchResultItem(
                 attrs = {
                     classes("h-100", "w-100")
                     attr("loading", "lazy")
-                }
+                },
             )
         }
 

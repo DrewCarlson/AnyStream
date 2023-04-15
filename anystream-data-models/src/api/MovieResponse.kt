@@ -26,5 +26,5 @@ import kotlinx.serialization.Serializable
 data class MovieResponse(
     val movie: Movie,
     val mediaLinks: List<MediaLink> = emptyList(),
-    val playbackState: PlaybackState? = null
+    val playbackState: PlaybackState? = null,
 )

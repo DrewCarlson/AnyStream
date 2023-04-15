@@ -32,7 +32,7 @@ class ApplicationTest {
     private val testEnv = createTestEnvironment {
         config = HoconApplicationConfig(
             ConfigFactory.load("application.conf")
-                .withValue("app.webClientPath", ConfigValueFactory.fromAnyRef("$RESOURCES/static"))
+                .withValue("app.webClientPath", ConfigValueFactory.fromAnyRef("$RESOURCES/static")),
         )
     }
 

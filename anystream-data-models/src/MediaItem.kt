@@ -37,7 +37,7 @@ data class MediaItem(
     val genres: List<Genre> = emptyList(),
     val tmdbRating: Int? = null,
     val contentRating: String? = null,
-    val runtime: Int? = null
+    val runtime: Int? = null,
 )
 
 fun MovieResponse.toMediaItem(): MediaItem {
@@ -53,7 +53,7 @@ fun MovieResponse.toMediaItem(): MediaItem {
         genres = movie.genres,
         tmdbRating = movie.tmdbRating,
         runtime = movie.runtime,
-        contentRating = movie.contentRating
+        contentRating = movie.contentRating,
     )
 }
 
@@ -69,7 +69,7 @@ fun TvShowResponse.toMediaItem(): MediaItem {
         playbackState = playbackState,
         genres = tvShow.genres,
         tmdbRating = tvShow.tmdbRating,
-        contentRating = tvShow.contentRating
+        contentRating = tvShow.contentRating,
     )
 }
 
@@ -85,7 +85,7 @@ fun EpisodeResponse.toMediaItem(): MediaItem {
         releaseDate = episode.airDate,
         mediaLinks = mediaLinks,
         wide = true,
-        playbackState = playbackState
+        playbackState = playbackState,
     )
 }
 
@@ -99,6 +99,6 @@ fun SeasonResponse.toMediaItem(): MediaItem {
         overview = season.overview,
         releaseDate = season.airDate,
         mediaLinks = emptyList(),
-        playbackState = playbackState
+        playbackState = playbackState,
     )
 }

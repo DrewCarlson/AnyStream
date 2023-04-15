@@ -27,7 +27,7 @@ data class SignupScreenModel(
     val state: State = State.IDLE,
     val serverValidation: ServerValidation = ServerValidation.VALIDATING,
     val signupError: CreateUserResponse.Error? = null,
-    val isInviteCodeLocked: Boolean = false
+    val isInviteCodeLocked: Boolean = false,
 ) {
     enum class State {
         IDLE, AUTHENTICATING, AUTHENTICATED,
@@ -71,7 +71,7 @@ data class SignupScreenModel(
                 serverUrl = serverUrl,
                 serverValidation = ServerValidation.VALID,
                 inviteCode = inviteCode,
-                isInviteCodeLocked = inviteCode.isNotBlank()
+                isInviteCodeLocked = inviteCode.isNotBlank(),
             )
         }
     }

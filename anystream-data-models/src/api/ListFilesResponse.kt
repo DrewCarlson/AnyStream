@@ -22,7 +22,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ListFilesResponse(
     val folders: List<String> = emptyList(),
-    val files: List<String> = emptyList()
+    val files: List<String> = emptyList(),
 ) {
     fun isEmpty(): Boolean {
         return folders.isEmpty() && files.isEmpty()

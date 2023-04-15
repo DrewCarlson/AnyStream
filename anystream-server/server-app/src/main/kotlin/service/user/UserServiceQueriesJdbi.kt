@@ -83,7 +83,7 @@ class UserServiceQueriesJdbi(
     override suspend fun createUser(
         user: User,
         passwordHash: String,
-        permissions: Set<Permission>
+        permissions: Set<Permission>,
     ): UserDb? {
         return try {
             val id = usersDao.insertUser(user, passwordHash, Clock.System.now())
@@ -149,7 +149,7 @@ class UserServiceQueriesJdbi(
     override suspend fun createInviteCode(
         secret: String,
         permissions: Set<Permission>,
-        userId: Int
+        userId: Int,
     ): InviteCode? {
         return try {
             val id = invitesDao.createInviteCode(secret, permissions, userId)

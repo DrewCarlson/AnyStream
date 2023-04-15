@@ -53,16 +53,16 @@ class MetadataDbQueries(
     ): MediaLookupResponse {
         return when (metadataDao.findTypeByGid(mediaId)) {
             MetadataDb.Type.MOVIE -> MediaLookupResponse(
-                movie = findMovieById(mediaId, includeLinks, includePlaybackStateForUser)
+                movie = findMovieById(mediaId, includeLinks, includePlaybackStateForUser),
             )
             MetadataDb.Type.TV_SHOW -> MediaLookupResponse(
-                tvShow = findShowById(mediaId, includeLinks, includePlaybackStateForUser)
+                tvShow = findShowById(mediaId, includeLinks, includePlaybackStateForUser),
             )
             MetadataDb.Type.TV_EPISODE -> MediaLookupResponse(
-                episode = findEpisodeById(mediaId, includeLinks, includePlaybackStateForUser)
+                episode = findEpisodeById(mediaId, includeLinks, includePlaybackStateForUser),
             )
             MetadataDb.Type.TV_SEASON -> MediaLookupResponse(
-                season = findSeasonById(mediaId, includeLinks, includePlaybackStateForUser)
+                season = findSeasonById(mediaId, includeLinks, includePlaybackStateForUser),
             )
             else -> MediaLookupResponse()
         }
@@ -344,7 +344,7 @@ class MetadataDbQueries(
     fun insertTvShow(
         tvShow: MetadataDb,
         tvSeasons: List<MetadataDb>,
-        episodes: List<MetadataDb>
+        episodes: List<MetadataDb>,
     ): Triple<MetadataDb, List<MetadataDb>, List<MetadataDb>> {
         val tvShowRecord = tvShow.copy(id = metadataDao.insertMetadata(tvShow))
         val tvSeasonRecordMap = tvSeasons.map { tvSeason ->

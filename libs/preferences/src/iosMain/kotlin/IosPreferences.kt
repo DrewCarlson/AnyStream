@@ -21,7 +21,7 @@ import platform.Foundation.NSUserDefaults
 import kotlin.native.concurrent.freeze
 
 class IosPreferences(
-    private val prefs: NSUserDefaults
+    private val prefs: NSUserDefaults,
 ) : Preferences {
 
     init {

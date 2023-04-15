@@ -22,7 +22,9 @@ import androidx.compose.runtime.*
 
 private val rootSavedInstanceState = Bundle()
 
-val LocalSavedInstanceState: ProvidableCompositionLocal<Bundle> = compositionLocalOf { rootSavedInstanceState }
+val LocalSavedInstanceState: ProvidableCompositionLocal<Bundle> = compositionLocalOf {
+    rootSavedInstanceState
+}
 
 internal const val BUNDLE_KEY = "LocalSavedInstanceState"
 
@@ -36,7 +38,7 @@ fun persistentInt(key: String, defaultValue: Int = 0): MutableState<Int> {
 
     val state: MutableState<Int> = remember {
         mutableStateOf(
-            bundle.getInt(key, defaultValue)
+            bundle.getInt(key, defaultValue),
         )
     }
 
@@ -54,7 +56,7 @@ private fun saveInt(key: String, value: Int) {
 @Composable
 fun BundleScope(
     savedInstanceState: Bundle?,
-    children: @Composable (bundle: Bundle) -> Unit
+    children: @Composable (bundle: Bundle) -> Unit,
 ) {
     BundleScope(BUNDLE_KEY, savedInstanceState ?: Bundle(), true, children)
 }
@@ -62,7 +64,7 @@ fun BundleScope(
 @Composable
 fun BundleScope(
     key: String,
-    children: @Composable (bundle: Bundle) -> Unit
+    children: @Composable (bundle: Bundle) -> Unit,
 ) {
     BundleScope(key, Bundle(), true, children)
 }
@@ -72,7 +74,7 @@ fun BundleScope(
     key: String,
     defaultBundle: Bundle = Bundle(),
     autoDispose: Boolean = true,
-    children: @Composable (Bundle) -> Unit
+    children: @Composable (Bundle) -> Unit,
 ) {
     val upstream = LocalSavedInstanceState.current
     val downstream = upstream.getBundle(key) ?: defaultBundle

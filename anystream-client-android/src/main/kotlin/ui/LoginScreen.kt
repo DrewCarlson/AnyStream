@@ -70,16 +70,16 @@ fun LoginScreen(
     }
     val (modelState, eventConsumer) = createLoopController(
         LoginScreenModel.create(supportsPairing = supportsPairing),
-        LoginScreenInit
+        LoginScreenInit,
     ) {
         FlowMobius.loop(
             LoginScreenUpdate,
-            LoginScreenHandler.create(client, router)
+            LoginScreenHandler.create(client, router),
         ).logger(AndroidLogger.tag("Login"))
     }
     Scaffold(
         topBar = { AppTopBar(client = null, backStack = null) },
-        modifier = modifier
+        modifier = modifier,
     ) { padding ->
         FormBody(modelState, eventConsumer, padding)
     }
@@ -89,7 +89,7 @@ fun LoginScreen(
 private fun FormBody(
     modelState: State<LoginScreenModel>,
     eventConsumer: Consumer<LoginScreenEvent>,
-    paddingValues: PaddingValues
+    paddingValues: PaddingValues,
 ) {
     val showStacked = LocalConfiguration.current.screenWidthDp < 800
     val model by remember { modelState }
@@ -104,7 +104,7 @@ private fun FormBody(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(paddingValues),
         ) {
             OutlinedTextField(
                 value = serverUrlValue,
@@ -116,13 +116,13 @@ private fun FormBody(
                 readOnly = model.isInputLocked(),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Uri,
-                    imeAction = ImeAction.Next
+                    imeAction = ImeAction.Next,
                 ),
                 singleLine = true,
             )
             AutofillInput(
                 autofillTypes = listOf(AutofillType.EmailAddress, AutofillType.Username),
-                onFill = { eventConsumer.accept(LoginScreenEvent.OnUsernameChanged(it)) }
+                onFill = { eventConsumer.accept(LoginScreenEvent.OnUsernameChanged(it)) },
             ) { node ->
                 val autofill = LocalAutofill.current
                 OutlinedTextField(
@@ -136,7 +136,7 @@ private fun FormBody(
                     readOnly = model.isInputLocked(),
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Next
+                        imeAction = ImeAction.Next,
                     ),
                     modifier = Modifier.onGloballyPositioned {
                         node.boundingBox = it.boundsInWindow()
@@ -147,7 +147,7 @@ private fun FormBody(
             }
             AutofillInput(
                 autofillTypes = listOf(AutofillType.Password),
-                onFill = { eventConsumer.accept(LoginScreenEvent.OnPasswordChanged(it)) }
+                onFill = { eventConsumer.accept(LoginScreenEvent.OnPasswordChanged(it)) },
             ) { node ->
                 val autofill = LocalAutofill.current
                 OutlinedTextField(
@@ -162,7 +162,7 @@ private fun FormBody(
                     readOnly = model.isInputLocked(),
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Password,
-                        imeAction = ImeAction.Go
+                        imeAction = ImeAction.Go,
                     ),
                     modifier = Modifier.onGloballyPositioned {
                         node.boundingBox = it.boundsInWindow()
@@ -193,14 +193,14 @@ private fun FormBody(
 private fun StackedOrSideBySide(
     stacked: Boolean,
     modifier: Modifier = Modifier,
-    body: @Composable () -> Unit
+    body: @Composable () -> Unit,
 ) {
     if (stacked) {
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = modifier
-                .fillMaxSize()
+                .fillMaxSize(),
         ) {
             item { body() }
         }
@@ -209,7 +209,7 @@ private fun StackedOrSideBySide(
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically,
             modifier = modifier
-                .fillMaxSize()
+                .fillMaxSize(),
         ) {
             item { body() }
         }
@@ -218,19 +218,19 @@ private fun StackedOrSideBySide(
 
 @Composable
 private fun DisplayPairingCode(
-    pairingCode: String
+    pairingCode: String,
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Text(
             text = "Pairing Code",
-            style = AppTypography.subtitle1
+            style = AppTypography.subtitle1,
         )
         Text(
             text = "Scan with another device to login.",
-            style = AppTypography.subtitle2
+            style = AppTypography.subtitle2,
         )
         QrImage(content = pairingCode, Modifier.size(250.dp))
     }

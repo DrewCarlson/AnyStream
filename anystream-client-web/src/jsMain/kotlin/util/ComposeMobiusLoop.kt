@@ -25,7 +25,7 @@ import kt.mobius.functions.Consumer
 
 @Composable
 fun <M, E> createLoopController(
-    loopBuilder: () -> MobiusLoop.Controller<M, E>
+    loopBuilder: () -> MobiusLoop.Controller<M, E>,
 ): Pair<MutableState<M>, MutableState<Consumer<E>>> {
     val controller = remember { loopBuilder() }
     val modelState = remember { mutableStateOf(controller.model) }

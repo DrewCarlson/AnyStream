@@ -28,5 +28,5 @@ data class TvSeason(
     val seasonNumber: Int,
     val airDate: String?,
     val tmdbId: Int,
-    val posterPath: String?
+    val posterPath: String?,
 )

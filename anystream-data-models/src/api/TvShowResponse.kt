@@ -28,5 +28,5 @@ data class TvShowResponse(
     val tvShow: TvShow,
     val seasons: List<TvSeason>,
     val mediaLinks: List<MediaLink> = emptyList(),
-    val playbackState: PlaybackState? = null
+    val playbackState: PlaybackState? = null,
 )

@@ -32,7 +32,7 @@ import androidx.compose.ui.platform.LocalAutofillTree
 fun AutofillInput(
     autofillTypes: List<AutofillType>,
     onFill: ((String) -> Unit),
-    content: @Composable (AutofillNode) -> Unit
+    content: @Composable (AutofillNode) -> Unit,
 ) {
     val autofillNode = AutofillNode(onFill = onFill, autofillTypes = autofillTypes)
 
@@ -42,7 +42,7 @@ fun AutofillInput(
     Box(
         Modifier.onGloballyPositioned {
             autofillNode.boundingBox = it.boundsInWindow()
-        }
+        },
     ) {
         content(autofillNode)
     }

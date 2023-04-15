@@ -21,7 +21,7 @@ import android.annotation.SuppressLint
 import android.content.SharedPreferences
 
 class AndroidPreferences(
-    private val prefs: SharedPreferences
+    private val prefs: SharedPreferences,
 ) : Preferences {
 
     override val keys: Set<String>
@@ -117,7 +117,7 @@ class AndroidPreferences(
     @SuppressLint("ApplySharedPref")
     private inline fun SharedPreferences.edit(
         commit: Boolean = false,
-        action: SharedPreferences.Editor.() -> Unit
+        action: SharedPreferences.Editor.() -> Unit,
     ) {
         val editor = edit()
         action(editor)

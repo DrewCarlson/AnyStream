@@ -27,7 +27,7 @@ data class LoginScreenModel(
     val pairingCode: String? = null,
     val state: State = State.IDLE,
     val serverValidation: ServerValidation = ServerValidation.VALIDATING,
-    val loginError: CreateSessionResponse.Error? = null
+    val loginError: CreateSessionResponse.Error? = null,
 ) {
     enum class State {
         IDLE, AUTHENTICATING, AUTHENTICATED,
@@ -72,7 +72,7 @@ data class LoginScreenModel(
             return LoginScreenModel(
                 serverUrl = serverUrl,
                 supportsPairing = supportsPairing,
-                serverValidation = ServerValidation.VALID
+                serverValidation = ServerValidation.VALID,
             )
         }
     }

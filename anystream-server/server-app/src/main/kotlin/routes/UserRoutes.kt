@@ -77,8 +77,8 @@ fun Route.addUserRoutes(userService: UserService = koinGet()) {
                             userService.getInvites(
                                 session.userId.takeIf {
                                     session.permissions.contains(Permission.Global)
-                                }
-                            )
+                                },
+                            ),
                         )
                     }
 
@@ -106,7 +106,7 @@ fun Route.addUserRoutes(userService: UserService = koinGet()) {
                             inviteCode = inviteCode,
                             byUserId = session.userId.takeIf {
                                 session.permissions.contains(Permission.Global)
-                            }
+                            },
                         )
                         call.respond(if (result) NotFound else OK)
                     }
@@ -142,7 +142,7 @@ fun Route.addUserRoutes(userService: UserService = koinGet()) {
                         UserSession(
                             userId = result.user.id,
                             permissions = result.permissions,
-                        )
+                        ),
                     )
                 }
 

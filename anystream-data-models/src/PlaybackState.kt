@@ -28,7 +28,7 @@ data class PlaybackState(
     val userId: Int,
     val position: Double,
     val runtime: Double,
-    val updatedAt: Instant
+    val updatedAt: Instant,
 ) {
     val completedPercent: Float
         get() = (position / runtime).coerceIn(0.0, 1.0).toFloat()

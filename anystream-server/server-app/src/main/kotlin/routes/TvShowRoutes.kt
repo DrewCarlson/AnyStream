@@ -65,8 +65,8 @@ fun Route.addTvShowRoutes(
                     EpisodesResponse(
                         episodes = episodes,
                         mediaLinks = mediaLinks.filter { !it.metadataGid.isNullOrBlank() }
-                            .associateBy { it.metadataGid!! }
-                    )
+                            .associateBy { it.metadataGid!! },
+                    ),
                 )
             }
 

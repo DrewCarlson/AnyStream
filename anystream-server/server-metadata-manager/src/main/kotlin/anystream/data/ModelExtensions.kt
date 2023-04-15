@@ -32,7 +32,7 @@ private const val MAX_CACHED_POSTERS = 5
 
 fun TmdbMovieDetail.asMovie(
     id: String,
-    userId: Int = 1
+    userId: Int = 1,
 ) = Movie(
     id = -1,
     gid = id,
@@ -55,14 +55,14 @@ fun TmdbMovieDetail.asMovie(
     genres = genres.map { Genre(-1, it.name, it.id) },
     companies = productionCompanies.orEmpty().map { tmdbCompany ->
         ProductionCompany(-1, tmdbCompany.name.orEmpty(), tmdbCompany.id)
-    }
+    },
 )
 
 fun TmdbShowDetail.asTvShow(
     tmdbSeasons: List<TmdbSeason>,
     id: String,
     userId: Int,
-    createId: (id: Int) -> String = { ObjectId.get().toString() }
+    createId: (id: Int) -> String = { ObjectId.get().toString() },
 ): Triple<MetadataDb, List<MetadataDb>, List<MetadataDb>> {
     val episodes = tmdbSeasons.flatMap { season ->
         season.episodes.orEmpty().map { episode ->
@@ -96,7 +96,7 @@ fun TmdbEpisode.asTvEpisode(id: String, showId: String, seasonId: String, userId
         createdAt = now,
         updatedAt = now,
         mediaKind = MediaKind.TV,
-        mediaType = MetadataDb.Type.TV_EPISODE
+        mediaType = MetadataDb.Type.TV_EPISODE,
     )
 }
 
@@ -115,7 +115,7 @@ fun TmdbSeason.asTvSeason(id: String, userId: Int = 1): MetadataDb {
         createdAt = now,
         updatedAt = now,
         mediaKind = MediaKind.TV,
-        mediaType = MetadataDb.Type.TV_SEASON
+        mediaType = MetadataDb.Type.TV_SEASON,
     )
 }
 
@@ -140,6 +140,6 @@ fun TmdbShowDetail.asTvShow(id: String, userId: Int = 1): MetadataDb {
             ProductionCompany(-1, tmdbCompany.name.orEmpty(), tmdbCompany.id)
         },
         mediaKind = MediaKind.TV,
-        mediaType = MetadataDb.Type.TV_SHOW
+        mediaType = MetadataDb.Type.TV_SHOW,
     )
 }

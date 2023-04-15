@@ -31,7 +31,7 @@ fun Application.module() {
                 call.respondText(
                     status = HttpStatusCode.InternalServerError,
                     contentType = ContentType.Text.Plain,
-                    text = error.stackTraceToString()
+                    text = error.stackTraceToString(),
                 )
             }
         }

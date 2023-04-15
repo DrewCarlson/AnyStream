@@ -146,7 +146,7 @@ private fun SecondaryMenu(permissions: Set<Permission>) {
                             authMutex.withLock { client.logout() }
                         }
                     },
-                    onClose = { isMenuVisible = false }
+                    onClose = { isMenuVisible = false },
                 )
             }
         }
@@ -164,7 +164,7 @@ private fun OverflowMenu(
         popperOptions(placement = "bottom-end"),
         attrs = {
             style { property("z-index", 100) }
-        }
+        },
     ) { popper ->
         Div({ classes("d-flex", "flex-column", "px-2", "bg-dark", "rounded", "shadow", "animate-popup") }) {
             var globalClickHandler by remember { mutableStateOf<ExternalClickMask?>(null) }
@@ -324,7 +324,7 @@ private fun SearchResultPopper(
             style {
                 property("z-index", 100)
             }
-        }
+        },
     ) {
         DisposableEffect(Unit) {
             globalClickHandler = ExternalClickMask(scopeElement) { remove ->
@@ -354,7 +354,7 @@ private fun ServerActivityPopper(
     PopperElement(
         element,
         popperOptions(placement = "bottom-end"),
-        attrs = { style { property("z-index", 100) } }
+        attrs = { style { property("z-index", 100) } },
     ) { popper ->
         Ul({
             classes(
@@ -365,7 +365,7 @@ private fun ServerActivityPopper(
                 "rounded",
                 "shadow",
                 "animate-popup",
-                "p-2"
+                "p-2",
             )
             style {
                 width(250.px)

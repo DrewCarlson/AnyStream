@@ -227,15 +227,15 @@ fun Route.addMediaViewRoutes(
                                     val tvExtras = queryResult.extras?.asTvShowExtras()
                                     when {
                                         tvExtras?.episodeNumber != null -> MediaLookupResponse(
-                                            episode = EpisodeResponse(match.episodes.first(), match.tvShow)
+                                            episode = EpisodeResponse(match.episodes.first(), match.tvShow),
                                         )
 
                                         tvExtras?.seasonNumber != null -> MediaLookupResponse(
-                                            season = SeasonResponse(match.tvShow, match.seasons.first(), match.episodes)
+                                            season = SeasonResponse(match.tvShow, match.seasons.first(), match.episodes),
                                         )
 
                                         else -> MediaLookupResponse(
-                                            tvShow = TvShowResponse(match.tvShow, match.seasons)
+                                            tvShow = TvShowResponse(match.tvShow, match.seasons),
                                         )
                                     }
                                 }
@@ -251,7 +251,7 @@ fun Route.addMediaViewRoutes(
                             metadataGid,
                             includeLinks = includeLinks,
                             includePlaybackStateForUser = playbackStateUserId,
-                        )
+                        ),
                     )
                 }
             }
@@ -271,7 +271,7 @@ fun Route.addMediaViewRoutes(
                     tvShow = queries.findShowById(metadataGid, includeLinks = includeLinks),
                     episode = queries.findEpisodeById(metadataGid, includeLinks = includeLinks),
                     season = queries.findSeasonById(metadataGid, includeLinks = includeLinks),
-                )
+                ),
             )
         }
     }

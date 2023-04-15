@@ -116,7 +116,7 @@ interface MediaLinkDao {
              parentMediaLinkId = :mediaLink.parentMediaLinkId,
              parentMediaLinkGid = :mediaLink.parentMediaLinkGid
             WHERE id = :mediaLink.id
-        """
+        """,
     )
     fun updateMediaLinkIds(mediaLink: List<MediaLinkDb>)
 
@@ -171,7 +171,7 @@ interface MediaLinkDao {
     @SqlQuery("SELECT $MEDIAREF_COLUMNS, $STEAM_COLUMNS FROM mediaLink $JOIN_STREAMS WHERE filePath LIKE :basePath || '%' AND descriptor IN (<descriptor>)")
     fun findByBasePathAndDescriptors(
         basePath: String,
-        @BindList("descriptor") descriptor: List<MediaLink.Descriptor>
+        @BindList("descriptor") descriptor: List<MediaLink.Descriptor>,
     ): List<MediaLinkDb>
 
     @SqlQuery("SELECT count(id) FROM mediaLink WHERE filePath LIKE ? || '%' AND descriptor = ?")

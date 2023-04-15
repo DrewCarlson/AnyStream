@@ -140,7 +140,7 @@ private fun CurrentlyWatching.ContinueWatchingRow(sizeMultiplier: Float) {
                             LinkedText(
                                 tvSeasons
                                     .first { it.seasonNumber == seasonNumber }
-                                    .run { "/media/$gid" }
+                                    .run { "/media/$gid" },
                             ) { Text("S$seasonNumber") }
                             Div { Text(" · ") }
                             LinkedText(url = "/media/${episode.gid}") {
@@ -156,7 +156,7 @@ private fun CurrentlyWatching.ContinueWatchingRow(sizeMultiplier: Float) {
                 },
                 onBodyClicked = {
                     router.navigate("/media/${movie?.gid ?: episode?.gid}")
-                }
+                },
             )
         }
     }
@@ -184,7 +184,7 @@ private fun RecentlyAdded.RecentlyAddedMovies(sizeMultiplier: Float) {
                 }.takeIf { mediaLink != null },
                 onBodyClicked = {
                     router.navigate("/media/${movie.gid}")
-                }
+                },
             )
         }
     }
@@ -206,7 +206,7 @@ private fun RecentlyAdded.RecentlyAddedTv(sizeMultiplier: Float) {
                 isAdded = true,
                 onBodyClicked = {
                     router.navigate("/media/${show.gid}")
-                }
+                },
             )
         }
     }
@@ -233,7 +233,7 @@ private fun Popular.PopularMovies(sizeMultiplier: Float) {
                     .takeIf { link != null },
                 onBodyClicked = {
                     router.navigate("/media/${movie.gid}")
-                }
+                },
             )
         }
     }
@@ -260,7 +260,7 @@ private fun Popular.PopularTvShows(sizeMultiplier: Float) {
                     .takeIf { ref != null },*/
                 onBodyClicked = {
                     router.navigate("/media/${tvShow.gid}")
-                }
+                },
             )
         }
     }

@@ -41,7 +41,7 @@ class App : Application() {
                 module {
                     single { AndroidRouter() }
                     single { get<Context>().getSharedPreferences(PREFS_NAME, MODE_PRIVATE) }
-                }
+                },
             )
         }
     }

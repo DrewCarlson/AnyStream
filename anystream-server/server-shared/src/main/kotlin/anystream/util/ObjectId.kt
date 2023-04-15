@@ -43,7 +43,7 @@ class ObjectId : Comparable<ObjectId?>, Serializable {
     constructor(date: Date = Date()) : this(
         dateToTimestampSeconds(date),
         NEXT_COUNTER.getAndIncrement() and LOW_ORDER_THREE_BYTES,
-        false
+        false,
     )
 
     /**
@@ -68,7 +68,7 @@ class ObjectId : Comparable<ObjectId?>, Serializable {
         RANDOM_VALUE1,
         RANDOM_VALUE2,
         counter,
-        checkCounter
+        checkCounter,
     ) {
     }
 
@@ -77,7 +77,7 @@ class ObjectId : Comparable<ObjectId?>, Serializable {
         randomValue1: Int,
         randomValue2: Short,
         counter: Int,
-        checkCounter: Boolean
+        checkCounter: Boolean,
     ) {
         require(randomValue1 and -0x1000000 == 0) { "The machine identifier must be between 0 and 16777215 (it must fit in three bytes)." }
         require(!(checkCounter && counter and -0x1000000 != 0)) { "The counter must be between 0 and 16777215 (it must fit in three bytes)." }
@@ -256,7 +256,7 @@ class ObjectId : Comparable<ObjectId?>, Serializable {
         private val NEXT_COUNTER: AtomicInteger = AtomicInteger(SecureRandom().nextInt())
         private val HEX_CHARS = charArrayOf(
             '0', '1', '2', '3', '4', '5', '6', '7',
-            '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
+            '8', '9', 'a', 'b', 'c', 'd', 'e', 'f',
         )
 
         /**

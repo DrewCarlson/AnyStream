@@ -22,7 +22,7 @@ internal data class LangCode(
     val nativeNative: String,
     val iso639_1: String,
     val iso639_2T: String,
-    val iso639_2B: String
+    val iso639_2B: String,
 )
 
 internal object IsoLanguageCodes {
@@ -224,7 +224,7 @@ internal object IsoLanguageCodes {
         LangCode("Wolof", "Wollof", "wo", "wol", "wol"),
         LangCode("Xhosa", "isiXhosa", "xh", "xho", "xho"),
         LangCode("Yoruba", "Yorùbá", "yo", "yor", "yor"),
-        LangCode("Zulu", "isiZulu", "zu", "zul", "zul")
+        LangCode("Zulu", "isiZulu", "zu", "zul", "zul"),
     )
 
     private val by639_2T = codes.associateBy(LangCode::iso639_2T)

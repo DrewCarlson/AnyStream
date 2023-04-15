@@ -26,7 +26,7 @@ data class ImportMetadata(
     val providerId: String,
     val mediaKind: MediaKind,
     val year: Int? = null,
-    val refresh: Boolean = false
+    val refresh: Boolean = false,
 )
 
 @Serializable
@@ -36,14 +36,14 @@ data class QueryMetadata(
     val query: String? = null,
     val metadataGid: String? = null,
     val year: Int? = null,
-    val extras: Extras? = null
+    val extras: Extras? = null,
 ) {
     @Serializable
     sealed class Extras {
         @Serializable
         data class TvShowExtras(
             val seasonNumber: Int? = null,
-            val episodeNumber: Int? = null
+            val episodeNumber: Int? = null,
         ) : Extras()
 
         fun asTvShowExtras(): TvShowExtras? {
@@ -63,7 +63,7 @@ sealed class MetadataMatch {
         val movie: Movie,
         override val metadataGid: String,
         override val remoteId: String,
-        override val exists: Boolean
+        override val exists: Boolean,
     ) : MetadataMatch()
 
     @Serializable
@@ -73,7 +73,7 @@ sealed class MetadataMatch {
         val episodes: List<Episode>,
         override val metadataGid: String,
         override val remoteId: String,
-        override val exists: Boolean
+        override val exists: Boolean,
     ) : MetadataMatch()
 }
 
@@ -83,23 +83,23 @@ sealed class ImportMetadataResult {
     @Serializable
     data class Success(
         val match: MetadataMatch,
-        val subresults: List<ImportMetadataResult> = emptyList()
+        val subresults: List<ImportMetadataResult> = emptyList(),
     ) : ImportMetadataResult()
 
     @Serializable
     data class ErrorMetadataAlreadyExists(
         val existingMediaId: String,
-        val match: MetadataMatch
+        val match: MetadataMatch,
     ) : ImportMetadataResult()
 
     @Serializable
     data class ErrorDatabaseException(
-        val stacktrace: String
+        val stacktrace: String,
     ) : ImportMetadataResult()
 
     @Serializable
     data class ErrorDataProviderException(
-        val stacktrace: String
+        val stacktrace: String,
     ) : ImportMetadataResult()
 }
 
@@ -110,7 +110,7 @@ sealed class QueryMetadataResult {
     data class Success(
         val providerId: String,
         val results: List<MetadataMatch>,
-        val extras: QueryMetadata.Extras?
+        val extras: QueryMetadata.Extras?,
     ) : QueryMetadataResult()
 
     @Serializable
@@ -118,11 +118,11 @@ sealed class QueryMetadataResult {
 
     @Serializable
     data class ErrorDatabaseException(
-        val stacktrace: String
+        val stacktrace: String,
     ) : QueryMetadataResult()
 
     @Serializable
     data class ErrorDataProviderException(
-        val stacktrace: String
+        val stacktrace: String,
     ) : QueryMetadataResult()
 }

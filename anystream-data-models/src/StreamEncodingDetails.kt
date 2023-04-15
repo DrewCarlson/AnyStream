@@ -49,7 +49,7 @@ sealed class StreamEncodingDetails {
         val channels: Int,
         val channelLayout: String?,
         val sampleFmt: String?,
-        val sampleRate: Int?
+        val sampleRate: Int?,
     ) : StreamEncodingDetails()
 
     @Serializable
@@ -74,7 +74,7 @@ sealed class StreamEncodingDetails {
         val colorTransfer: String?,
         val colorPrimaries: String?,
         val pixFmt: String?,
-        val fieldOrder: String?
+        val fieldOrder: String?,
     ) : StreamEncodingDetails()
 
     @Serializable
@@ -88,7 +88,7 @@ sealed class StreamEncodingDetails {
         override val duration: Float?,
         override val title: String?,
         override val mediaLinkId: Int,
-        override val default: Boolean
+        override val default: Boolean,
     ) : StreamEncodingDetails()
 
     val languageName: String

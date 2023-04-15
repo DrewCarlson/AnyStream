@@ -31,5 +31,5 @@ data class Episode(
     val number: Int,
     val seasonNumber: Int,
     val stillPath: String,
-    val tmdbRating: Int?
+    val tmdbRating: Int?,
 )

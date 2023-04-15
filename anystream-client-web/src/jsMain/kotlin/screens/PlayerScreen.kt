@@ -57,7 +57,7 @@ fun PlayerScreen(mediaLinkId: String) {
     val mouseMoveFlow = remember {
         MutableSharedFlow<Unit>(
             replay = 1,
-            onBufferOverflow = BufferOverflow.DROP_OLDEST
+            onBufferOverflow = BufferOverflow.DROP_OLDEST,
         )
     }
     val isMouseOnPlayer by mouseMoveFlow
@@ -194,7 +194,7 @@ fun PlayerScreen(mediaLinkId: String) {
                             errorDisplay = false
                             controlBar = false
                             loadingSpinner = false
-                        }
+                        },
                     )
                     element.onprogress = {
                         val timeSpans = List(element.buffered.length) { i ->
@@ -530,7 +530,7 @@ private fun PlaybackControls(
                     classes(
                         "user-select-none",
                         "bi",
-                        if (isPlaying) "bi-pause-fill" else "bi-play-fill"
+                        if (isPlaying) "bi-pause-fill" else "bi-play-fill",
                     )
                     style {
                         property("pointer-events", "none")
@@ -610,7 +610,7 @@ private fun PlaybackControls(
                         classes(
                             "user-select-none",
                             "bi",
-                            if (isInPipMode) "bi-pip-fill" else "bi-pip"
+                            if (isInPipMode) "bi-pip-fill" else "bi-pip",
                         )
                         style {
                             property("pointer-events", "none")
@@ -851,7 +851,7 @@ private fun SeekBar(
                 popperOptions(placement = "top"),
                 attrs = {
                     style { property("pointer-events", "none") }
-                }
+                },
             ) { popper ->
                 LaunchedEffect(mouseHoverX) { popper.update() }
                 Div({
@@ -883,7 +883,7 @@ private fun SeekBar(
                     property("pointer-events", "none")
                     opacity(if (isThumbVisible) 1 else 0)
                 }
-            }
+            },
         ) { popper ->
             LaunchedEffect(mouseHoverX) { popper.update() }
             Div({

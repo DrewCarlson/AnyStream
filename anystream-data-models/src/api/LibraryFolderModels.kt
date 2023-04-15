@@ -25,7 +25,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class AddLibraryFolderRequest(
     val path: String,
-    val mediaKind: MediaKind
+    val mediaKind: MediaKind,
 )
 
 @Serializable
@@ -33,7 +33,7 @@ sealed class AddLibraryFolderResponse {
 
     @Serializable
     data class Success(
-        val mediaLink: MediaLink
+        val mediaLink: MediaLink,
     ) : AddLibraryFolderResponse()
 
     @Serializable
@@ -42,23 +42,23 @@ sealed class AddLibraryFolderResponse {
     @Serializable
     data class FileError(
         val exists: Boolean,
-        val isDirectory: Boolean
+        val isDirectory: Boolean,
     ) : AddLibraryFolderResponse()
 
     @Serializable
     data class DatabaseError(
-        val stacktrace: String?
+        val stacktrace: String?,
     ) : AddLibraryFolderResponse()
 
     @Serializable
     data class RequestError(
-        val stacktrace: String?
+        val stacktrace: String?,
     ) : AddLibraryFolderResponse()
 }
 
 @Serializable
 data class LibraryFolderList(
-    val folders: List<RootFolder>
+    val folders: List<RootFolder>,
 ) {
     @Serializable
     data class RootFolder(
@@ -67,6 +67,6 @@ data class LibraryFolderList(
         val unmatchedFileCount: Int,
         val unmatchedFolderCount: Int,
         val sizeOnDisk: String? = null,
-        val freeSpace: String? = null
+        val freeSpace: String? = null,
     )
 }

@@ -35,7 +35,7 @@ object SignupScreenUpdate :
                 if (model.isServerUrlValid() && model.credentialsAreSet()) {
                     next(
                         model.copy(state = State.AUTHENTICATING),
-                        SignupScreenEffect.Signup(model.username, model.password, model.inviteCode, model.serverUrl)
+                        SignupScreenEffect.Signup(model.username, model.password, model.inviteCode, model.serverUrl),
                     )
                 } else {
                     noChange()
@@ -47,15 +47,15 @@ object SignupScreenUpdate :
 
     override fun onServerUrlChanged(
         model: SignupScreenModel,
-        event: SignupScreenEvent.OnServerUrlChanged
+        event: SignupScreenEvent.OnServerUrlChanged,
     ): Next<SignupScreenModel, SignupScreenEffect> {
         return when (model.state) {
             State.IDLE -> next(
                 model.copy(
                     serverUrl = event.serverUrl,
-                    serverValidation = SignupScreenModel.ServerValidation.VALIDATING
+                    serverValidation = SignupScreenModel.ServerValidation.VALIDATING,
                 ),
-                SignupScreenEffect.ValidateServerUrl(serverUrl = event.serverUrl)
+                SignupScreenEffect.ValidateServerUrl(serverUrl = event.serverUrl),
             )
             else -> noChange()
         }
@@ -63,7 +63,7 @@ object SignupScreenUpdate :
 
     override fun onUsernameChanged(
         model: SignupScreenModel,
-        event: SignupScreenEvent.OnUsernameChanged
+        event: SignupScreenEvent.OnUsernameChanged,
     ): Next<SignupScreenModel, SignupScreenEffect> {
         return when (model.state) {
             State.IDLE -> next(model.copy(username = event.username))
@@ -73,7 +73,7 @@ object SignupScreenUpdate :
 
     override fun onPasswordChanged(
         model: SignupScreenModel,
-        event: SignupScreenEvent.OnPasswordChanged
+        event: SignupScreenEvent.OnPasswordChanged,
     ): Next<SignupScreenModel, SignupScreenEffect> {
         return when (model.state) {
             State.IDLE -> next(model.copy(password = event.password))
@@ -83,7 +83,7 @@ object SignupScreenUpdate :
 
     override fun onInviteCodeChanged(
         model: SignupScreenModel,
-        event: SignupScreenEvent.OnInviteCodeChanged
+        event: SignupScreenEvent.OnInviteCodeChanged,
     ): Next<SignupScreenModel, SignupScreenEffect> {
         return when (model.state) {
             State.IDLE -> next(model.copy(inviteCode = event.inviteCode))
@@ -93,13 +93,13 @@ object SignupScreenUpdate :
 
     override fun onSignupSuccess(
         model: SignupScreenModel,
-        event: SignupScreenEvent.OnSignupSuccess
+        event: SignupScreenEvent.OnSignupSuccess,
     ): Next<SignupScreenModel, SignupScreenEffect> {
         return when (model.state) {
             State.AUTHENTICATING -> {
                 next(
                     model.copy(state = State.AUTHENTICATED),
-                    SignupScreenEffect.NavigateToHome
+                    SignupScreenEffect.NavigateToHome,
                 )
             }
             else -> noChange()
@@ -108,14 +108,14 @@ object SignupScreenUpdate :
 
     override fun onSignupError(
         model: SignupScreenModel,
-        event: SignupScreenEvent.OnSignupError
+        event: SignupScreenEvent.OnSignupError,
     ): Next<SignupScreenModel, SignupScreenEffect> {
         return when (model.state) {
             State.AUTHENTICATING -> next(
                 model.copy(
                     state = State.IDLE,
-                    signupError = event.error
-                )
+                    signupError = event.error,
+                ),
             )
             else -> noChange()
         }
@@ -123,7 +123,7 @@ object SignupScreenUpdate :
 
     override fun onServerValidated(
         model: SignupScreenModel,
-        event: SignupScreenEvent.OnServerValidated
+        event: SignupScreenEvent.OnServerValidated,
     ): Next<SignupScreenModel, SignupScreenEffect> {
         return when (model.state) {
             State.IDLE -> {

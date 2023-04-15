@@ -20,7 +20,7 @@ package anystream.prefs
 import org.w3c.dom.Storage
 
 class JsPreferences(
-    private val storage: Storage
+    private val storage: Storage,
 ) : Preferences {
 
     override val keys: Set<String>

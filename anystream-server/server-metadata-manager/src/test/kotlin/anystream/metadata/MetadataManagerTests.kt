@@ -73,7 +73,7 @@ class MetadataManagerTests {
             mediaKind = MediaKind.MOVIE,
             year = 2000,
             providerId = "tmdb",
-            refresh = false
+            refresh = false,
         )
         val importResults = manager.importMetadata(request)
         val importResult = assertIs<ImportMetadataResult.Success>(importResults.first())
@@ -96,7 +96,7 @@ class MetadataManagerTests {
             mediaKind = MediaKind.TV,
             year = 2015,
             providerId = "tmdb",
-            refresh = false
+            refresh = false,
         )
         val importResults = manager.importMetadata(request)
         val importResult = assertIs<ImportMetadataResult.Success>(importResults.first())
@@ -118,7 +118,7 @@ class MetadataManagerTests {
             providerId = "tmdb",
             mediaKind = MediaKind.MOVIE,
             query = "the avengers",
-            year = 2012
+            year = 2012,
         )
         val queryResult = manager.search(query)
         val searchResult = queryResult.first()
@@ -135,7 +135,7 @@ class MetadataManagerTests {
             providerId = "tmdb",
             mediaKind = MediaKind.TV,
             query = "last kingdom",
-            year = 2015
+            year = 2015,
         )
         val queryResult = manager.search(query)
         val searchResult = queryResult.first()

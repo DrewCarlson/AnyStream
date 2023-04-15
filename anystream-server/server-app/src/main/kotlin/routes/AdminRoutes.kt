@@ -112,7 +112,7 @@ private fun createAppender(callback: (String) -> Unit): Appender<ILoggingEvent> 
                         }
                         ?.also { append(" : ") }
                     append(event.message)
-                }
+                },
             )
         }
     }

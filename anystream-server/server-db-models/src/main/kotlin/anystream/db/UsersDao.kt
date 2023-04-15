@@ -50,7 +50,7 @@ interface UsersDao {
     fun insertUser(
         @BindKotlin("user") user: User,
         passwordHash: String,
-        createdAt: Instant
+        createdAt: Instant,
     ): Int
 
     @SqlUpdate("delete FROM users WHERE id = ?")

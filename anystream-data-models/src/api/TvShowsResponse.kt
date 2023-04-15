@@ -24,5 +24,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class TvShowsResponse(
     val tvShows: List<TvShow>,
-    val mediaLinks: List<MediaLink>
+    val mediaLinks: List<MediaLink>,
 )

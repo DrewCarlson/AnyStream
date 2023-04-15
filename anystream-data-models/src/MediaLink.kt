@@ -162,7 +162,7 @@ data class LocalMediaLink(
     override val descriptor: Descriptor,
     override val streams: List<StreamEncodingDetails> = emptyList(),
     val filePath: String,
-    val directory: Boolean
+    val directory: Boolean,
 ) : MediaLink() {
     val filename: String = filePath
         .substringAfterLast('/')
@@ -195,5 +195,5 @@ data class DownloadMediaLink(
     override val streams: List<StreamEncodingDetails> = emptyList(),
     val infoHash: String,
     val fileIndex: Int?,
-    val filePath: String?
+    val filePath: String?,
 ) : MediaLink()

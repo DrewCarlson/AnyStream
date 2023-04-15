@@ -157,7 +157,7 @@ fun Application.module(testing: Boolean = false) {
                 single<StreamServiceQueries> { StreamServiceQueriesJdbi(get(), get(), get(), get()) }
                 single { StreamService(get(), get(), { get() }, { get() }, get<AnyStreamConfig>().transcodePath) }
                 single { SearchService(get(), get(), get()) }
-            }
+            },
         )
     }
     environment.monitor.subscribe(ApplicationStopped) {

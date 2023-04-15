@@ -58,6 +58,6 @@ internal fun Stream.toStreamEncodingDetails(mediaLinkId: Int): StreamEncodingDet
             StreamType.AUDIO -> StreamEncodingDetailsDb.Type.AUDIO
             StreamType.SUBTITLE -> StreamEncodingDetailsDb.Type.SUBTITLE
             else -> error("Unsupported codecType '$codecType'")
-        }
+        },
     )
 }

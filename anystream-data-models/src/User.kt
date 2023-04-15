@@ -28,7 +28,7 @@ const val PASSWORD_LENGTH_MAX = 64
 data class User(
     val id: Int,
     val username: String,
-    val displayName: String
+    val displayName: String,
 )
 
 @Serializable
@@ -71,5 +71,5 @@ sealed class Permission {
 data class UpdateUserBody(
     val displayName: String,
     val password: String?,
-    val currentPassword: String?
+    val currentPassword: String?,
 )

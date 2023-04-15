@@ -23,5 +23,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class LibraryActivity(
     val scannerState: MediaScannerState = MediaScannerState.Idle,
-    val playbackSessions: PlaybackSessions = PlaybackSessions()
+    val playbackSessions: PlaybackSessions = PlaybackSessions(),
 )

@@ -90,7 +90,7 @@ private fun ActiveStreamsList() {
                 val user = sessionsResponse.users.getValue(playbackState.userId)
                 val mediaLookup = sessionsResponse.mediaLookups.getValue(playbackState.metadataGid)
                 val mediaItem = checkNotNull(
-                    mediaLookup.run { movie?.toMediaItem() ?: episode?.toMediaItem() }
+                    mediaLookup.run { movie?.toMediaItem() ?: episode?.toMediaItem() },
                 )
                 Div({
                     classes("d-flex", "flex-column", "p-3", "rounded")

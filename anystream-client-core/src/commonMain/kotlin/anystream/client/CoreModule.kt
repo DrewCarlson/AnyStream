@@ -35,7 +35,7 @@ fun coreModule() = module {
         AnyStreamClient(
             serverUrl = getOrNull(qualifier(INITIAL_SERVER_URL)),
             httpClient = get(),
-            sessionManager = get()
+            sessionManager = get(),
         )
     }
 }

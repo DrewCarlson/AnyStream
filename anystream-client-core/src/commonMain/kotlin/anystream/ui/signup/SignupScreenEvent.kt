@@ -23,15 +23,15 @@ import anystream.models.api.CreateUserResponse
 sealed class SignupScreenEvent {
 
     data class OnServerUrlChanged(
-        val serverUrl: String
+        val serverUrl: String,
     ) : SignupScreenEvent()
 
     data class OnUsernameChanged(
-        val username: String
+        val username: String,
     ) : SignupScreenEvent()
 
     data class OnPasswordChanged(
-        val password: String
+        val password: String,
     ) : SignupScreenEvent() {
         override fun toString(): String {
             return "OnPasswordChanged(password='***')"
@@ -39,21 +39,21 @@ sealed class SignupScreenEvent {
     }
 
     data class OnInviteCodeChanged(
-        val inviteCode: String
+        val inviteCode: String,
     ) : SignupScreenEvent()
 
     object OnSignupSubmit : SignupScreenEvent()
 
     data class OnSignupSuccess(
-        val user: User
+        val user: User,
     ) : SignupScreenEvent()
 
     data class OnSignupError(
-        val error: CreateUserResponse.Error
+        val error: CreateUserResponse.Error,
     ) : SignupScreenEvent()
 
     data class OnServerValidated(
         val serverUrl: String,
-        val result: SignupScreenModel.ServerValidation
+        val result: SignupScreenModel.ServerValidation,
     ) : SignupScreenEvent()
 }

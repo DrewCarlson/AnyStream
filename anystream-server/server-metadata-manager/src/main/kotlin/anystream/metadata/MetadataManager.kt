@@ -22,7 +22,7 @@ import anystream.models.api.*
 import org.slf4j.LoggerFactory
 
 class MetadataManager(
-    private val providers: List<MetadataProvider>
+    private val providers: List<MetadataProvider>,
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
@@ -37,7 +37,7 @@ class MetadataManager(
                     parsedId = parts[0]
                     QueryMetadata.Extras.TvShowExtras(
                         seasonNumber = parts.getOrNull(1)?.toIntOrNull(),
-                        episodeNumber = parts.getOrNull(2)?.toIntOrNull()
+                        episodeNumber = parts.getOrNull(2)?.toIntOrNull(),
                     )
                 } else {
                     null
@@ -51,8 +51,8 @@ class MetadataManager(
                 providerId = providerId,
                 metadataGid = parsedId,
                 mediaKind = mediaKind,
-                extras = extras
-            )
+                extras = extras,
+            ),
         ).firstOrNull() ?: QueryMetadataResult.ErrorProviderNotFound
     }
 

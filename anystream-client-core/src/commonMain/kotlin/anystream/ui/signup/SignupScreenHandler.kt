@@ -31,7 +31,7 @@ object SignupScreenHandler {
     // - Add anystream verification url to server and validate Server Url points to real instance
     fun create(
         client: AnyStreamClient,
-        router: CommonRouter
+        router: CommonRouter,
     ): FlowTransformer<SignupScreenEffect, SignupScreenEvent> = subtypeEffectHandler {
         addAction<SignupScreenEffect.NavigateToHome> { router.replaceTop(Routes.Home) }
 

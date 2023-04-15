@@ -89,7 +89,7 @@ interface MetadataDao {
         """
             SELECT $MEDIA_COLUMNS, $GENRE_COLUMNS, $COMPANIES_COLUMNS FROM metadata $JOIN_GENRES $JOIN_COMPANIES
             WHERE metadata.id = ?
-        """
+        """,
     )
     fun findById(metadataId: Int): MetadataDb?
 
@@ -101,7 +101,7 @@ interface MetadataDao {
         """
             SELECT $MEDIA_COLUMNS, $GENRE_COLUMNS, $COMPANIES_COLUMNS FROM metadata $JOIN_GENRES $JOIN_COMPANIES
             WHERE metadata.parentGid = ? AND metadata.mediaType = ?
-        """
+        """,
     )
     fun findAllByParentGidAndType(parentGid: String, type: MetadataDb.Type): List<MetadataDb>
 
@@ -113,7 +113,7 @@ interface MetadataDao {
         """
             SELECT $MEDIA_COLUMNS, $GENRE_COLUMNS, $COMPANIES_COLUMNS FROM metadata $JOIN_GENRES $JOIN_COMPANIES
             WHERE metadata.rootGid = ? AND metadata.mediaType = ?
-        """
+        """,
     )
     fun findAllByRootGidAndType(rootGid: String, type: MetadataDb.Type): List<MetadataDb>
 
@@ -122,7 +122,7 @@ interface MetadataDao {
         """
             SELECT $MEDIA_COLUMNS, $GENRE_COLUMNS, $COMPANIES_COLUMNS FROM metadata $JOIN_GENRES $JOIN_COMPANIES
             WHERE metadata.rootGid = ? AND metadata.parentIndex = ? AND metadata.mediaType = ?
-        """
+        """,
     )
     fun findAllByRootGidAndParentIndexAndType(rootGid: String, parentIndex: Int, type: MetadataDb.Type): List<MetadataDb>
 
@@ -131,7 +131,7 @@ interface MetadataDao {
         """
             SELECT $MEDIA_COLUMNS, $GENRE_COLUMNS, $COMPANIES_COLUMNS FROM metadata $JOIN_GENRES $JOIN_COMPANIES
             WHERE metadata.gid = ? AND metadata.mediaType = ?
-        """
+        """,
     )
     fun findByGidAndType(gid: String, type: MetadataDb.Type): MetadataDb?
 
@@ -143,7 +143,7 @@ interface MetadataDao {
         """
             SELECT $MEDIA_COLUMNS, $GENRE_COLUMNS, $COMPANIES_COLUMNS FROM metadata $JOIN_GENRES $JOIN_COMPANIES
             WHERE metadata.gid IN (<gids>) AND metadata.mediaType = :type
-        """
+        """,
     )
     fun findAllByGidsAndType(@BindList("gids") gids: List<String>, type: MetadataDb.Type): List<MetadataDb>
 
@@ -152,7 +152,7 @@ interface MetadataDao {
         """
             SELECT $MEDIA_COLUMNS, $GENRE_COLUMNS, $COMPANIES_COLUMNS FROM metadata $JOIN_GENRES $JOIN_COMPANIES
             WHERE metadata.gid = ?
-        """
+        """,
     )
     fun findByGid(gid: String): MetadataDb?
 
@@ -168,7 +168,7 @@ interface MetadataDao {
             SELECT $MEDIA_COLUMNS, $GENRE_COLUMNS, $COMPANIES_COLUMNS FROM
             (SELECT * FROM metadata WHERE mediaType = ? ORDER BY createdAt DESC LIMIT ?) metadata
             $JOIN_GENRES $JOIN_COMPANIES
-        """
+        """,
     )
     fun findByType(type: MetadataDb.Type, limit: Int): List<MetadataDb>
 
@@ -177,7 +177,7 @@ interface MetadataDao {
         """
             SELECT $MEDIA_COLUMNS, $GENRE_COLUMNS, $COMPANIES_COLUMNS FROM metadata $JOIN_GENRES $JOIN_COMPANIES
             WHERE metadata.mediaType = ? ORDER BY metadata.title
-        """
+        """,
     )
     fun findAllByTypeSortedByTitle(type: MetadataDb.Type): List<MetadataDb>
 
@@ -186,7 +186,7 @@ interface MetadataDao {
         """
             SELECT $MEDIA_COLUMNS, $GENRE_COLUMNS, $COMPANIES_COLUMNS FROM metadata $JOIN_GENRES $JOIN_COMPANIES
             WHERE metadata.tmdbId = ? AND metadata.mediaType = ?
-        """
+        """,
     )
     fun findByTmdbIdAndType(tmdbId: Int, type: MetadataDb.Type): MetadataDb?
 
@@ -195,7 +195,7 @@ interface MetadataDao {
         """
             SELECT $MEDIA_COLUMNS, $GENRE_COLUMNS, $COMPANIES_COLUMNS FROM metadata $JOIN_GENRES $JOIN_COMPANIES
             WHERE metadata.tmdbId IN (<ids>) AND metadata.mediaType = :type
-        """
+        """,
     )
     fun findAllByTmdbIdsAndType(@BindList("ids") tmdbId: List<Int>, type: MetadataDb.Type): List<MetadataDb>
 

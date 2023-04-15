@@ -45,7 +45,7 @@ class TvFileProcessor(
         val contentFile = File(
             requireNotNull(mediaLink.filePath) {
                 "Cannot process media link without a filePath: $mediaLink"
-            }
+            },
         )
         if (contentFile.isDirectory && contentFile.listFiles().isNullOrEmpty()) {
             logger.debug("Content folder is empty.")
@@ -172,7 +172,7 @@ class TvFileProcessor(
                     providerId = null,
                     mediaKind = MediaKind.TV,
                     metadataGid = metadataGid,
-                )
+                ),
             )
         }
         val result = results
@@ -195,7 +195,7 @@ class TvFileProcessor(
                     metadataIds = listOf(match.metadataGid),
                     providerId = result.providerId,
                     mediaKind = MediaKind.TV,
-                )
+                ),
             )
             val successResult = importResults
                 .filterIsInstance<ImportMetadataResult.Success>()

@@ -89,7 +89,7 @@ class MovieFileProcessor(
                 mediaKind = MediaKind.MOVIE,
                 year = year,
                 extras = null,
-            )
+            ),
         )
         val result = results.firstOrNull { result ->
             result is QueryMetadataResult.Success && result.results.isNotEmpty()
@@ -110,7 +110,7 @@ class MovieFileProcessor(
                             metadataIds = listOf(metadataMatch.metadataGid),
                             providerId = result.providerId,
                             mediaKind = MediaKind.MOVIE,
-                        )
+                        ),
                     ).filterIsInstance<ImportMetadataResult.Success>()
 
                     if (importResults.isEmpty()) {

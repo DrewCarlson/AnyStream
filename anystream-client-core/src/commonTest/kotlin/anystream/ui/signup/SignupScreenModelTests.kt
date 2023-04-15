@@ -28,11 +28,11 @@ class SignupScreenModelTests {
     fun test_CreateWithServerUrl_IsValid() {
         assertEquals(
             SignupScreenModel.ServerValidation.VALID,
-            SignupScreenModel.create("test", "").serverValidation
+            SignupScreenModel.create("test", "").serverValidation,
         )
         assertEquals(
             SignupScreenModel.ServerValidation.VALID,
-            SignupScreenModel.create("test", "").serverValidation
+            SignupScreenModel.create("test", "").serverValidation,
         )
     }
 
@@ -40,11 +40,11 @@ class SignupScreenModelTests {
     fun test_CreateWithoutServerUrl_IsValidating() {
         assertEquals(
             SignupScreenModel.ServerValidation.VALIDATING,
-            SignupScreenModel.create().serverValidation
+            SignupScreenModel.create().serverValidation,
         )
         assertEquals(
             SignupScreenModel.ServerValidation.VALIDATING,
-            SignupScreenModel.create().serverValidation
+            SignupScreenModel.create().serverValidation,
         )
     }
 

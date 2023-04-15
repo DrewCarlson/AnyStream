@@ -113,7 +113,7 @@ internal fun <T> buildObject(block: T.() -> Unit): T = (js("{}") as T).apply(blo
 @Suppress("UnsafeCastFromDynamic")
 internal suspend fun commonFetch(
     input: String,
-    init: RequestInit
+    init: RequestInit,
 ): Response = suspendCancellableCoroutine { continuation ->
     val controller = AbortController()
     init.signal = controller.signal
@@ -130,7 +130,7 @@ internal suspend fun commonFetch(
         },
         onRejected = {
             continuation.resumeWith(Result.failure(Error("Fail to fetch", it)))
-        }
+        },
     )
 }
 
@@ -141,7 +141,7 @@ internal fun CoroutineScope.readBodyBrowser(response: Response): ByteReadChannel
 }
 
 internal fun CoroutineScope.channelFromStream(
-    stream: ReadableStream
+    stream: ReadableStream,
 ): ByteReadChannel = writer {
     val reader = stream.getReader()
     while (true) {
@@ -195,7 +195,7 @@ internal class JsClientEngine(override val config: HttpClientEngineConfig) : Htt
             headers,
             version,
             body,
-            callContext
+            callContext,
         )
     }
 
@@ -207,7 +207,7 @@ internal class JsClientEngine(override val config: HttpClientEngineConfig) : Htt
 
     private suspend fun executeWebSocketRequest(
         request: HttpRequestData,
-        callContext: CoroutineContext
+        callContext: CoroutineContext,
     ): HttpResponseData {
         val requestTime = GMTDate()
 
@@ -229,7 +229,7 @@ internal class JsClientEngine(override val config: HttpClientEngineConfig) : Htt
             Headers.Empty,
             HttpProtocolVersion.HTTP_1_1,
             session,
-            callContext
+            callContext,
         )
     }
 }

@@ -129,7 +129,7 @@ class LibraryManager(
     fun scanForMedia(
         userId: Int,
         libraryLink: MediaLinkDb,
-        childMediaLink: MediaLinkDb? = null
+        childMediaLink: MediaLinkDb? = null,
     ): MediaScanResult {
         return mediaFileScanner.scanForMedia(userId, libraryLink, childMediaLink)
     }
@@ -148,7 +148,7 @@ class LibraryManager(
             MediaLink.Descriptor.ROOT_DIRECTORY -> {
                 mediaLinkDao.findByBasePathAndDescriptor(
                     mediaLink.filePath.orEmpty(),
-                    MediaLink.Descriptor.MEDIA_DIRECTORY
+                    MediaLink.Descriptor.MEDIA_DIRECTORY,
                 )
             }
             MediaLink.Descriptor.MEDIA_DIRECTORY -> listOf(mediaLink)

@@ -56,15 +56,15 @@ fun HomeScreen(
     client: AnyStreamClient,
     backStack: BackStack<Routes>,
     onMediaClick: (mediaLinkId: String?) -> Unit,
-    onViewMoviesClicked: () -> Unit
+    onViewMoviesClicked: () -> Unit,
 ) {
     Scaffold(
-        topBar = { AppTopBar(client = client, backStack = backStack) }
+        topBar = { AppTopBar(client = client, backStack = backStack) },
     ) { paddigValues ->
         LazyColumn(
             modifier = Modifier
                 .padding(paddigValues)
-                .padding(horizontal = 8.dp)
+                .padding(horizontal = 8.dp),
         ) {
             item {
                 val homeData by produceState<HomeResponse?>(null) {
@@ -78,7 +78,7 @@ fun HomeScreen(
                         RowTitle(text = "Continue Watching")
                         ContinueWatchingRow(
                             currentlyWatching = currentlyWatching,
-                            onClick = onMediaClick
+                            onClick = onMediaClick,
                         )
                         RowSpace()
                     }
@@ -87,7 +87,7 @@ fun HomeScreen(
                         Row(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
                         ) {
                             RowTitle(text = "Recently Added Movies")
                             TextButton(onClick = onViewMoviesClicked) {
@@ -102,7 +102,7 @@ fun HomeScreen(
                         Row(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
                         ) {
                             RowTitle(text = "Recently Added TV")
                             TextButton(onClick = onViewMoviesClicked) {
@@ -168,7 +168,7 @@ private fun ContinueWatchingRow(
                     WatchingCard(mediaItem, playbackState, onClick)
                 }
             }
-        }
+        },
     )
 }
 
@@ -189,17 +189,17 @@ private fun WatchingCard(
                 ImageRequest.Builder(LocalContext.current)
                     .data("https://image.tmdb.org/t/p/w300${mediaItem.backdropPath}")
                     .crossfade(true)
-                    .build()
+                    .build(),
             )
             Box(
                 modifier = Modifier
                     .height(144.dp)
-                    .fillMaxWidth()
+                    .fillMaxWidth(),
             ) {
                 Image(
                     painter = painter,
                     contentDescription = null,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
                 )
 
                 when (painter.state) {
@@ -207,7 +207,7 @@ private fun WatchingCard(
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .background(Color.DarkGray)
+                                .background(Color.DarkGray),
                         )
                     }
 
@@ -216,41 +216,42 @@ private fun WatchingCard(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier
                                 .fillMaxSize()
-                                .background(Color.DarkGray)
+                                .background(Color.DarkGray),
                         ) {
                             Text("No Backdrop")
                         }
                     }
 
                     AsyncImagePainter.State.Empty,
-                    is AsyncImagePainter.State.Success -> Unit
+                    is AsyncImagePainter.State.Success,
+                    -> Unit
                 }
             }
 
             LinearProgressIndicator(
                 progress = (playbackState.position / playbackState.runtime).toFloat(),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             )
 
             Column(
                 modifier = Modifier
                     .padding(all = 4.dp)
-                    .fillMaxWidth()
+                    .fillMaxWidth(),
             ) {
                 Text(
                     text = mediaItem.contentTitle,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
                 Text(
                     text = mediaItem.subtitle1 ?: " ",
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
                 Text(
                     text = mediaItem.subtitle2 ?: " ",
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
@@ -260,7 +261,7 @@ private fun WatchingCard(
 @Composable
 private fun MovieRow(
     movies: Map<Movie, MediaLink?>,
-    onClick: (mediaLinkId: String?) -> Unit
+    onClick: (mediaLinkId: String?) -> Unit,
 ) {
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(CARD_SPACING),
@@ -272,14 +273,14 @@ private fun MovieRow(
                     onClick = { mediaLink?.run { onClick(gid) } },
                 )
             }
-        }
+        },
     )
 }
 
 @Composable
 private fun TvRow(
     shows: List<TvShow>,
-    onClick: (mediaLinkId: String?) -> Unit
+    onClick: (mediaLinkId: String?) -> Unit,
 ) {
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(CARD_SPACING),
@@ -291,7 +292,7 @@ private fun TvRow(
                     onClick = { onClick(show.gid) },
                 )
             }
-        }
+        },
     )
 }
 

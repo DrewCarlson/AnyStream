@@ -132,7 +132,7 @@ private fun ContentContainer(client: AnyStreamClient = get()) {
 @Composable
 private fun ScreenContainer(
     menu: @Composable () -> Unit = { SideMenu() },
-    content: ContentBuilder<HTMLDivElement>
+    content: ContentBuilder<HTMLDivElement>,
 ) {
     val authRoutes = remember { listOf("/signup", "/login") }
     val client = get<AnyStreamClient>()
@@ -149,7 +149,7 @@ private fun ScreenContainer(
             "flex-grow-1",
             "flex-shrink-1",
             "px-0",
-            "overflow-hidden"
+            "overflow-hidden",
         )
         style {
             flexBasis("auto")

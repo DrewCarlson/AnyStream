@@ -26,7 +26,7 @@ import kotlinx.serialization.Serializable
 data class UserSession(
     val userId: Int,
     val permissions: Set<Permission>,
-    val sessionStarted: Long = Clock.System.now().epochSeconds
+    val sessionStarted: Long = Clock.System.now().epochSeconds,
 ) : Principal {
     companion object {
         const val KEY = "as_user_session"

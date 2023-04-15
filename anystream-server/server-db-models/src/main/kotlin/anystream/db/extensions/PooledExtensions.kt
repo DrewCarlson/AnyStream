@@ -65,7 +65,7 @@ class PooledExtensions : JdbiConfig<PooledExtensions> {
                 maxSize = 20
                 maxIdleMilliseconds = 10.seconds.toInt(MILLISECONDS)
             },
-            objectFactory
+            objectFactory,
         )
     }
 
@@ -73,7 +73,7 @@ class PooledExtensions : JdbiConfig<PooledExtensions> {
         jdbi = db
         return extensionType.cast(
             factory.onDemand(db, extensionType, *extraTypes)
-                .orElseGet { createProxy(db, extensionType, extraTypes) }
+                .orElseGet { createProxy(db, extensionType, extraTypes) },
         )
     }
 

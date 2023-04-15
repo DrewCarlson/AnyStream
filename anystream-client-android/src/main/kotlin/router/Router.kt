@@ -32,7 +32,7 @@ val LocalRouting: ProvidableCompositionLocal<List<Any>> = compositionLocalOf {
 @Composable
 inline fun <reified T> Router(
     defaultRouting: T,
-    noinline children: @Composable (BackStack<T>) -> Unit
+    noinline children: @Composable (BackStack<T>) -> Unit,
 ) {
     Router(T::class.java.name, defaultRouting, children)
 }
@@ -41,7 +41,7 @@ inline fun <reified T> Router(
 fun <T> Router(
     contextId: String,
     defaultRouting: T,
-    children: @Composable (BackStack<T>) -> Unit
+    children: @Composable (BackStack<T>) -> Unit,
 ) {
     val route = LocalRouting.current
 
@@ -71,7 +71,7 @@ fun <T> Router(
         BundleScope(key(backStack.lastIndex), autoDispose = false) {
             CompositionLocalProvider(
                 LocalBackPressHandler provides localHandler,
-                LocalRouting provides downStreamRoute
+                LocalRouting provides downStreamRoute,
             ) {
                 children(backStack)
             }

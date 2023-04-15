@@ -66,7 +66,7 @@ fun Route.addHomeRoutes(
                             AppendResponse.RELEASES_DATES,
                             AppendResponse.IMAGES,
                             AppendResponse.MOVIE_CREDITS,
-                        )
+                        ),
                     )
                 }
             trySend(result)
@@ -90,7 +90,7 @@ fun Route.addHomeRoutes(
                             AppendResponse.RELEASES_DATES,
                             AppendResponse.IMAGES,
                             AppendResponse.TV_CREDITS,
-                        )
+                        ),
                     )
                 }
             trySend(result)
@@ -125,7 +125,7 @@ fun Route.addHomeRoutes(
                         playbackStates = playbackStates,
                         tvShows = playbackStateTv,
                         movies = playbackStateMovies,
-                        tvSeasons = tvSeasons
+                        tvSeasons = tvSeasons,
                     ),
                     recentlyAdded = RecentlyAdded(
                         movies = recentlyAddedMovies,
@@ -134,8 +134,8 @@ fun Route.addHomeRoutes(
                     popular = Popular(
                         movies = popularMoviesMap,
                         tvShows = popularTvShows,
-                    )
-                )
+                    ),
+                ),
             )
         }
 
@@ -158,7 +158,7 @@ fun Route.addHomeRoutes(
             val (popularMoviesMap, popularTvShows) = loadPopularMovies(
                 queries,
                 popularMoviesFlow,
-                popularTvShowsFlow
+                popularTvShowsFlow,
             )
             call.respond(Popular(popularMoviesMap, popularTvShows))
         }

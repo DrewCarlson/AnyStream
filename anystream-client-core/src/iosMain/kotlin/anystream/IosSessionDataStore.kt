@@ -22,7 +22,7 @@ import platform.Foundation.NSUserDefaults
 import platform.Foundation.setValue
 
 internal class IosSessionDataStore(
-    private val defaults: NSUserDefaults
+    private val defaults: NSUserDefaults,
 ) : SessionDataStore {
     override fun write(key: String, value: String) {
         defaults.setValue(value = value, forKey = key)

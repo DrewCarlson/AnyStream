@@ -33,7 +33,7 @@ object LoginScreenUpdate : Update<LoginScreenModel, LoginScreenEvent, LoginScree
                 if (model.isServerUrlValid() && model.credentialsAreSet()) {
                     next(
                         model.copy(state = State.AUTHENTICATING),
-                        LoginScreenEffect.Login(model.username, model.password, model.serverUrl)
+                        LoginScreenEffect.Login(model.username, model.password, model.serverUrl),
                     )
                 } else {
                     noChange()
@@ -45,17 +45,17 @@ object LoginScreenUpdate : Update<LoginScreenModel, LoginScreenEvent, LoginScree
 
     override fun onServerUrlChanged(
         model: LoginScreenModel,
-        event: LoginScreenEvent.OnServerUrlChanged
+        event: LoginScreenEvent.OnServerUrlChanged,
     ): Next<LoginScreenModel, LoginScreenEffect> {
         return when (model.state) {
             State.IDLE -> next(
                 model.copy(
                     serverUrl = event.serverUrl,
                     serverValidation = ServerValidation.VALIDATING,
-                    pairingCode = null
+                    pairingCode = null,
                 ),
                 LoginScreenEffect.ValidateServerUrl(serverUrl = event.serverUrl),
-                LoginScreenEffect.PairingSession("", cancel = true)
+                LoginScreenEffect.PairingSession("", cancel = true),
             )
             else -> noChange()
         }
@@ -63,7 +63,7 @@ object LoginScreenUpdate : Update<LoginScreenModel, LoginScreenEvent, LoginScree
 
     override fun onUsernameChanged(
         model: LoginScreenModel,
-        event: LoginScreenEvent.OnUsernameChanged
+        event: LoginScreenEvent.OnUsernameChanged,
     ): Next<LoginScreenModel, LoginScreenEffect> {
         return when (model.state) {
             State.IDLE -> next(model.copy(username = event.username))
@@ -73,7 +73,7 @@ object LoginScreenUpdate : Update<LoginScreenModel, LoginScreenEvent, LoginScree
 
     override fun onPasswordChanged(
         model: LoginScreenModel,
-        event: LoginScreenEvent.OnPasswordChanged
+        event: LoginScreenEvent.OnPasswordChanged,
     ): Next<LoginScreenModel, LoginScreenEffect> {
         return when (model.state) {
             State.IDLE -> next(model.copy(password = event.password))
@@ -83,27 +83,27 @@ object LoginScreenUpdate : Update<LoginScreenModel, LoginScreenEvent, LoginScree
 
     override fun onPairingStarted(
         model: LoginScreenModel,
-        event: LoginScreenEvent.OnPairingStarted
+        event: LoginScreenEvent.OnPairingStarted,
     ): Next<LoginScreenModel, LoginScreenEffect> {
         return next(model.copy(pairingCode = event.pairingCode))
     }
 
     override fun onPairingEnded(
         model: LoginScreenModel,
-        event: LoginScreenEvent.OnPairingEnded
+        event: LoginScreenEvent.OnPairingEnded,
     ): Next<LoginScreenModel, LoginScreenEffect> {
         return next(model.copy(pairingCode = null))
     }
 
     override fun onLoginSuccess(
         model: LoginScreenModel,
-        event: LoginScreenEvent.OnLoginSuccess
+        event: LoginScreenEvent.OnLoginSuccess,
     ): Next<LoginScreenModel, LoginScreenEffect> {
         return when {
             model.state == State.AUTHENTICATING || !model.pairingCode.isNullOrBlank() -> {
                 next(
                     model.copy(state = State.AUTHENTICATED),
-                    LoginScreenEffect.NavigateToHome
+                    LoginScreenEffect.NavigateToHome,
                 )
             }
             else -> noChange()
@@ -112,14 +112,14 @@ object LoginScreenUpdate : Update<LoginScreenModel, LoginScreenEvent, LoginScree
 
     override fun onLoginError(
         model: LoginScreenModel,
-        event: LoginScreenEvent.OnLoginError
+        event: LoginScreenEvent.OnLoginError,
     ): Next<LoginScreenModel, LoginScreenEffect> {
         return when (model.state) {
             State.AUTHENTICATING -> next(
                 model.copy(
                     state = State.IDLE,
-                    loginError = event.error
-                )
+                    loginError = event.error,
+                ),
             )
             else -> noChange()
         }
@@ -127,7 +127,7 @@ object LoginScreenUpdate : Update<LoginScreenModel, LoginScreenEvent, LoginScree
 
     override fun onServerValidated(
         model: LoginScreenModel,
-        event: LoginScreenEvent.OnServerValidated
+        event: LoginScreenEvent.OnServerValidated,
     ): Next<LoginScreenModel, LoginScreenEffect> {
         return when (model.state) {
             State.IDLE -> {

@@ -73,7 +73,7 @@ object GenerateVideoPreviewJob : Job("generate-video-preview") {
         logger: Logger,
         ffmpeg: FFmpeg,
         rootStorageDir: String,
-        mediaLink: LocalMediaLink
+        mediaLink: LocalMediaLink,
     ) {
         val outputPath = Path(rootStorageDir, mediaLink.gid).createDirectories().absolutePathString()
         val input = UrlInput.fromUrl(mediaLink.filePath)

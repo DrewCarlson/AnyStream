@@ -29,11 +29,11 @@ class LoginScreenModelTests {
     fun test_CreateWithServerUrl_IsValid() {
         assertEquals(
             ServerValidation.VALID,
-            LoginScreenModel.create("test", supportsPairing = true).serverValidation
+            LoginScreenModel.create("test", supportsPairing = true).serverValidation,
         )
         assertEquals(
             ServerValidation.VALID,
-            LoginScreenModel.create("test", supportsPairing = false).serverValidation
+            LoginScreenModel.create("test", supportsPairing = false).serverValidation,
         )
     }
 
@@ -41,11 +41,11 @@ class LoginScreenModelTests {
     fun test_CreateWithoutServerUrl_IsValidating() {
         assertEquals(
             ServerValidation.VALIDATING,
-            LoginScreenModel.create().serverValidation
+            LoginScreenModel.create().serverValidation,
         )
         assertEquals(
             ServerValidation.VALIDATING,
-            LoginScreenModel.create(supportsPairing = false).serverValidation
+            LoginScreenModel.create(supportsPairing = false).serverValidation,
         )
     }
 

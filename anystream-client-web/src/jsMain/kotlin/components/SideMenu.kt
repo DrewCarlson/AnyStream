@@ -65,7 +65,7 @@ fun SideMenu() {
                 "py-2",
                 "mb-auto",
                 "rounded",
-                "shadow"
+                "shadow",
             )
             attr("role", "navigation")
             style {

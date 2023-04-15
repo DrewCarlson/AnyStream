@@ -28,7 +28,7 @@ import org.w3c.dom.HTMLDivElement
 @Composable
 fun LoadingIndicator(
     small: Boolean = false,
-    attrs: AttrBuilderContext<HTMLDivElement>? = null
+    attrs: AttrBuilderContext<HTMLDivElement>? = null,
 ) {
     Div({
         attr("role", "status")

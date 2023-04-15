@@ -45,34 +45,34 @@ fun PosterCard(
     imagePath: String?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    preferredWidth: Dp = 130.dp
+    preferredWidth: Dp = 130.dp,
 ) {
     Card(
         shape = RoundedCornerShape(size = 2.dp),
         modifier = modifier
-            .clickable(onClick = onClick)
+            .clickable(onClick = onClick),
     ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(2.dp),
             modifier = Modifier
-                .width(preferredWidth)
+                .width(preferredWidth),
         ) {
             Surface(
                 shape = RoundedCornerShape(
                     bottomStart = 2.dp,
-                    bottomEnd = 2.dp
+                    bottomEnd = 2.dp,
                 ),
                 modifier = Modifier
-                    .aspectRatio(ratio = 0.69f)
+                    .aspectRatio(ratio = 0.69f),
             ) {
                 val painter = rememberAsyncImagePainter(
                     ImageRequest.Builder(LocalContext.current)
                         .data("https://image.tmdb.org/t/p/w200$imagePath")
                         .crossfade(true)
-                        .build()
+                        .build(),
                 )
                 Box(
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
                 ) {
                     Image(
                         painter = painter,
@@ -87,7 +87,7 @@ fun PosterCard(
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .background(Color.DarkGray)
+                                    .background(Color.DarkGray),
                             )
                         }
                         is AsyncImagePainter.State.Empty -> {
@@ -95,7 +95,7 @@ fun PosterCard(
                                 contentAlignment = Alignment.Center,
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .background(Color.DarkGray)
+                                    .background(Color.DarkGray),
                             ) {
                                 Text("No Backdrop")
                             }
@@ -112,7 +112,7 @@ fun PosterCard(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .fillMaxWidth(),
                 )
             }
         }
@@ -125,6 +125,6 @@ private fun MovieCardPreview() {
     PosterCard(
         title = "Turbo: A Power Rangers Movie",
         imagePath = "/sHgjdRPYduUCaw3Te2CXaWLpBkm.jpg",
-        onClick = { }
+        onClick = { },
     )
 }

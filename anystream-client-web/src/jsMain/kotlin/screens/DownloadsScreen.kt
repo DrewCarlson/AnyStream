@@ -148,7 +148,7 @@ private fun TorrentRow(torrent: Torrent) {
                                 globalClickHandler = null
                             }
                         }
-                    }
+                    },
                 ) {
                     TorrentContextMenu(menuScope, torrent)
                 }
@@ -186,7 +186,8 @@ private fun TorrentContextMenu(
     val isPaused = remember(torrent.state) {
         when (torrent.state) {
             Torrent.State.PAUSED_DL,
-            Torrent.State.PAUSED_UP -> true
+            Torrent.State.PAUSED_UP,
+            -> true
             else -> false
         }
     }
@@ -248,7 +249,8 @@ private fun stateIcon(torrent: Torrent): String {
     return when (torrent.state) {
         Torrent.State.PAUSED_DL,
         Torrent.State.QUEUED_UP,
-        Torrent.State.QUEUED_DL -> "bi-pause-fill"
+        Torrent.State.QUEUED_DL,
+        -> "bi-pause-fill"
         Torrent.State.STALLED_DL -> "bi-binoculars-fill"
         Torrent.State.CHECKING_UP,
         Torrent.State.STALLED_UP,
@@ -258,12 +260,14 @@ private fun stateIcon(torrent: Torrent): String {
         Torrent.State.META_DL,
         Torrent.State.FORCED_DL,
         Torrent.State.CHECKING_RESUME_DATA,
-        Torrent.State.DOWNLOADING -> "bi-play-fill"
+        Torrent.State.DOWNLOADING,
+        -> "bi-play-fill"
         Torrent.State.UPLOADING -> "bi-cloud-upload-fill"
         Torrent.State.MOVING -> "fi-file-earmark-arrow-up-fill"
         Torrent.State.MISSING_FILES,
         Torrent.State.ERROR,
-        Torrent.State.UNKNOWN -> "bi-exclamation-triangle-fill"
+        Torrent.State.UNKNOWN,
+        -> "bi-exclamation-triangle-fill"
         Torrent.State.PAUSED_UP -> "bi-check-circle-fill"
     }
 }

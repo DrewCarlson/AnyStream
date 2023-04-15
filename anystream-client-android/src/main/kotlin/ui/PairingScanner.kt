@@ -17,8 +17,8 @@
  */
 package anystream.android.ui
 
-import android.Manifest
-import android.content.pm.PackageManager
+import android.Manifest.permission.CAMERA
+import android.content.pm.PackageManager.PERMISSION_GRANTED
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
 import androidx.compose.runtime.*
@@ -43,7 +43,9 @@ fun PairingScanner(
     val scope = rememberCoroutineScope()
     var launched = remember { false }
     val hasPermission = remember {
-        mutableStateOf(context.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED)
+        mutableStateOf(
+            context.checkSelfPermission(CAMERA) == PERMISSION_GRANTED,
+        )
     }
     val scanRequest = rememberLauncherForActivityResult(ScanQRCode()) { result ->
         scope.launch(Dispatchers.Default) {
@@ -70,7 +72,7 @@ fun PairingScanner(
             if (hasPermission.value) {
                 scanRequest.launch(null)
             } else {
-                permissionLauncher.launch(Manifest.permission.CAMERA)
+                permissionLauncher.launch(CAMERA)
             }
             launched = true
         }

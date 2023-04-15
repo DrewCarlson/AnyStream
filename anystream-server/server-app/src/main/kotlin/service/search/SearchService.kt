@@ -53,7 +53,7 @@ class SearchService(
                 mediaDao.findAllByGidsAndType(tvShowIds, Type.TV_SHOW).map { showRecord ->
                     SearchResponse.TvShowResult(
                         tvShow = showRecord.toTvShowModel(),
-                        seasonCount = mediaDao.countSeasonsForTvShow(showRecord.gid)
+                        seasonCount = mediaDao.countSeasonsForTvShow(showRecord.gid),
                     )
                 }
             } else {
@@ -73,7 +73,7 @@ class SearchService(
                 episodes.map { episode ->
                     SearchResponse.EpisodeResult(
                         episode = episode,
-                        tvShow = episodeShows.getValue(episode.showId)
+                        tvShow = episodeShows.getValue(episode.showId),
                     )
                 }
             } else {

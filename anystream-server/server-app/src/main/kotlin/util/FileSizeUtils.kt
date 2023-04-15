@@ -47,7 +47,7 @@ fun discoverUsedSpace(path: Path): Long {
                 override fun postVisitDirectory(dir: Path, exc: IOException?): FileVisitResult {
                     return FileVisitResult.CONTINUE
                 }
-            }
+            },
         )
     } catch (e: IOException) {
         return -1

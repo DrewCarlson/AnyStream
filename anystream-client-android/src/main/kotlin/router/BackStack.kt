@@ -23,7 +23,7 @@ import androidx.compose.runtime.setValue
 
 class BackStack<T> internal constructor(
     initialElement: T,
-    private var onElementRemoved: ((Int) -> Unit)
+    private var onElementRemoved: ((Int) -> Unit),
 ) {
     var elements by mutableStateOf(listOf(initialElement))
         private set
@@ -53,7 +53,7 @@ class BackStack<T> internal constructor(
         } else {
             onElementRemoved.invoke(lastIndex)
             elements = ArrayList(
-                elements.subList(0, lastIndex) // exclusive
+                elements.subList(0, lastIndex), // exclusive
             )
             true
         }

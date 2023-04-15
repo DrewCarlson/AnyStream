@@ -28,13 +28,13 @@ fun AppTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         colors = AppColors,
         content = content,
-        typography = AppTypography
+        typography = AppTypography,
     )
 }
 
 val AppColors = darkColors(
     primary = Color.Red,
-    primaryVariant = Color.Red
+    primaryVariant = Color.Red,
 )
 
 val AppTypography = Typography()

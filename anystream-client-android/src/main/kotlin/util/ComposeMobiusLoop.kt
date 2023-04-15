@@ -28,7 +28,7 @@ import kt.mobius.android.MobiusLoopViewModel
 import kt.mobius.functions.Consumer
 
 @Composable
-fun <M, E, F> createLoopController(
+fun <M : Any, E, F> createLoopController(
     initialModel: M,
     init: Init<M, F>,
     loopBuilder: () -> MobiusLoop.Factory<M, E, F>,
@@ -37,11 +37,18 @@ fun <M, E, F> createLoopController(
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 @Suppress("UNCHECKED_CAST")
-                return MobiusLoopViewModel.create<M, E, F, Nothing>({ _, _ -> loopBuilder() }, initialModel, init) as T
+                return MobiusLoopViewModel.create<M, E, F, Nothing>(
+                    { _, _ -> loopBuilder() },
+                    initialModel,
+                    init,
+                ) as T
             }
         }
     }
-    val loopVm = viewModel<MobiusLoopViewModel<M, E, F, Nothing>>(factory = factory)
+    val loopVm = viewModel<MobiusLoopViewModel<M, E, F, Nothing>>(
+        factory = factory,
+        key = initialModel::class.simpleName,
+    )
     val modelState = loopVm.models.observeAsState(loopVm.model)
 
     return remember(loopVm) {

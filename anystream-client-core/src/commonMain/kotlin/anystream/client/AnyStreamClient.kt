@@ -69,7 +69,7 @@ class AnyStreamClient(
     /** The AnyStream server URL, ex. `http://localhost:3000`. */
     serverUrl: String?,
     httpClient: HttpClient = HttpClient(),
-    private val sessionManager: SessionManager = SessionManager(SessionDataStore)
+    private val sessionManager: SessionManager = SessionManager(SessionDataStore),
 ) {
     companion object {
         const val SESSION_KEY = "as_user_session"
@@ -120,7 +120,7 @@ class AnyStreamClient(
                         body = ByteReadChannel(byteArrayOf()),
                         callContext = context.executionContext,
                         headers = Headers.Empty,
-                        version = HttpProtocolVersion.HTTP_1_0
+                        version = HttpProtocolVersion.HTTP_1_0,
                     )
                     context.attributes.put(KEY_INTERNAL_ERROR, e)
                     @OptIn(InternalAPI::class)
@@ -352,7 +352,7 @@ class AnyStreamClient(
 
     suspend fun playbackSession(
         mediaLinkId: String,
-        init: (state: PlaybackState) -> Unit
+        init: (state: PlaybackState) -> Unit,
     ): PlaybackSessionHandle {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
         val currentState = MutableStateFlow<PlaybackState?>(null)
@@ -378,7 +378,7 @@ class AnyStreamClient(
         }
         return PlaybackSessionHandle(
             update = progressFlow,
-            cancel = { mutex.unlock() }
+            cancel = { mutex.unlock() },
         )
     }
 
@@ -386,7 +386,7 @@ class AnyStreamClient(
         username: String,
         password: String,
         inviteCode: String?,
-        rememberUser: Boolean = true
+        rememberUser: Boolean = true,
     ): CreateUserResponse = http.post("$serverUrl/api/users") {
         contentType(ContentType.Application.Json)
         parameter("createSession", rememberUser)
@@ -410,7 +410,7 @@ class AnyStreamClient(
         userId: Int,
         displayName: String,
         password: String?,
-        currentPassword: String?
+        currentPassword: String?,
     ) {
         http.put("$serverUrl/api/users/$userId") {
             contentType(ContentType.Application.Json)
@@ -418,8 +418,8 @@ class AnyStreamClient(
                 UpdateUserBody(
                     displayName = displayName,
                     password = password,
-                    currentPassword = currentPassword
-                )
+                    currentPassword = currentPassword,
+                ),
             )
         }.orThrow()
     }
@@ -536,7 +536,7 @@ class AnyStreamClient(
 
     data class PlaybackSessionHandle(
         val update: MutableSharedFlow<Double>,
-        val cancel: () -> Unit
+        val cancel: () -> Unit,
     )
 
     internal suspend fun HttpResponse.orThrow() {
@@ -567,7 +567,7 @@ class AnyStreamClientException : Exception {
 
     constructor(
         response: HttpResponse,
-        body: String
+        body: String,
     ) : super() {
         this.response = response
         this.body = body

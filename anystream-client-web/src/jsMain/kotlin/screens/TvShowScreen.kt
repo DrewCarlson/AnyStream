@@ -76,6 +76,6 @@ fun TvShowCard(
         }.takeIf { link != null },
         onBodyClicked = {
             router.navigate("/media/${show.gid}")
-        }
+        },
     )
 }

@@ -106,10 +106,10 @@ class UserService(
             User(
                 id = -1,
                 username = username,
-                displayName = body.username
+                displayName = body.username,
             ),
             passwordHash = hashPassword(body.password),
-            permissions = permissions
+            permissions = permissions,
         ) ?: return CreateUserResponse.Error(null, null)
         if (inviteCode != null) {
             queries.deleteInviteCode(inviteCode.secret, null)
@@ -137,7 +137,7 @@ class UserService(
             }
 
         val updatedUser = user.toUserModel().copy(
-            displayName = body.displayName
+            displayName = body.displayName,
         )
         return queries.updateUser(user.id, updatedUser, newPasswordHash)
     }
@@ -152,7 +152,7 @@ class UserService(
 
     suspend fun verifyPairingSecret(
         pairingCode: String,
-        secret: String
+        secret: String,
     ): CreateSessionResponse? {
         val pairingMessage = pairingCodes.remove(pairingCode)
         val pairingSecret = (pairingMessage as? PairingMessage.Authorized)?.secret
@@ -167,11 +167,11 @@ class UserService(
 
     suspend fun createSession(
         body: CreateSessionBody,
-        parent: UserSession?
+        parent: UserSession?,
     ): CreateSessionResponse? {
         if (body.username.run { isBlank() || length !in USERNAME_LENGTH_MIN..USERNAME_LENGTH_MAX }) {
             return CreateSessionResponse.Error(
-                CreateSessionResponse.UsernameError.INVALID
+                CreateSessionResponse.UsernameError.INVALID,
             )
         }
 
@@ -179,33 +179,33 @@ class UserService(
         if (pairingCodes.containsKey(body.password)) {
             val session =
                 parent ?: return CreateSessionResponse.Error(
-                    CreateSessionResponse.UsernameError.INVALID
+                    CreateSessionResponse.UsernameError.INVALID,
                 )
 
             val user = queries.fetchUserByUsername(username) ?: return null
             return if (session.userId == user.id) {
                 pairingCodes[body.password] = PairingMessage.Authorized(
                     secret = Hex.toHexString(Random.nextBytes(28)),
-                    userId = session.userId
+                    userId = session.userId,
                 )
                 CreateSessionResponse.Success(user.toUserModel(), session.permissions)
             } else {
                 pairingCodes[body.password] = PairingMessage.Failed
                 CreateSessionResponse.Error(
-                    passwordError = CreateSessionResponse.PasswordError.INCORRECT
+                    passwordError = CreateSessionResponse.PasswordError.INCORRECT,
                 )
             }
         }
 
         if (body.password.run { isBlank() || length !in PASSWORD_LENGTH_MIN..PASSWORD_LENGTH_MAX }) {
             return CreateSessionResponse.Error(
-                passwordError = CreateSessionResponse.PasswordError.INVALID
+                passwordError = CreateSessionResponse.PasswordError.INVALID,
             )
         }
 
         val user = queries.fetchUserByUsername(username)
             ?: return CreateSessionResponse.Error(
-                usernameError = CreateSessionResponse.UsernameError.NOT_FOUND
+                usernameError = CreateSessionResponse.UsernameError.NOT_FOUND,
             )
         val permissions = queries.fetchPermissions(user.id).map(PermissionDb::value).toSet()
 
@@ -213,7 +213,7 @@ class UserService(
             CreateSessionResponse.Success(user.toUserModel(), permissions)
         } else {
             CreateSessionResponse.Error(
-                passwordError = CreateSessionResponse.PasswordError.INCORRECT
+                passwordError = CreateSessionResponse.PasswordError.INCORRECT,
             )
         }
     }

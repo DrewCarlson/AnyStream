@@ -33,7 +33,7 @@ class StreamServiceQueriesJdbi(
     private val usersDao: UsersDao,
     private val mediaDao: MetadataDao,
     private val mediaLinkDao: MediaLinkDao,
-    private val playbackStatesDao: PlaybackStatesDao
+    private val playbackStatesDao: PlaybackStatesDao,
 ) : StreamServiceQueries {
 
     private val logger = LoggerFactory.getLogger(this::class.java)

@@ -39,7 +39,7 @@ fun LoginScreen() {
     val (modelState, eventConsumerState) = createLoopController {
         val factory = FlowMobius.loop(
             LoginScreenUpdate,
-            LoginScreenHandler.create(client, WebRouter(router))
+            LoginScreenHandler.create(client, WebRouter(router)),
         ).logger(SimpleLogger("Login"))
         val startModel = LoginScreenModel.create(client.serverUrl, supportsPairing = true)
         Mobius.controller(factory, startModel, LoginScreenInit)
@@ -97,7 +97,7 @@ fun LoginScreen() {
                             router.navigate("/signup")
                         }
                     }
-                }
+                },
             ) {
                 Text("Go to Signup")
             }

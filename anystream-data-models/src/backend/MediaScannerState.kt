@@ -31,7 +31,7 @@ sealed class MediaScannerState {
     @Serializable
     data class Active(
         val libraryLink: MediaLink,
-        val currentLink: MediaLink?
+        val currentLink: MediaLink?,
     ) : MediaScannerState()
 
     @Serializable

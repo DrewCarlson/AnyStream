@@ -55,7 +55,7 @@ class UserServiceValidationTest {
         queries = UserServiceQueriesJdbi(
             usersDao = dbHandle.attach<UsersDao>(),
             permissionsDao = dbHandle.attach<PermissionsDao>(),
-            invitesDao = dbHandle.attach<InvitesDao>()
+            invitesDao = dbHandle.attach<InvitesDao>(),
         )
         userService = UserService(queries)
     }
@@ -278,7 +278,7 @@ class UserServiceValidationTest {
         assertNotEquals(password, hashString)
         assertTrue(
             hashString.startsWith("\$2y\$10\$"),
-            "Result should be in BCrypt format but was '$hashString'"
+            "Result should be in BCrypt format but was '$hashString'",
         )
     }
 
@@ -289,18 +289,18 @@ class UserServiceValidationTest {
 
         assertFalse(
             userService.verifyPassword("wrong", bcryptString),
-            "Invalid password should not verify"
+            "Invalid password should not verify",
         )
         assertTrue(
             userService.verifyPassword(password, bcryptString),
-            "Valid password should verify"
+            "Valid password should verify",
         )
 
         assertTrue(
             userService.verifyPassword(
                 checkPassword = password,
-                hashString = userService.hashPassword(password)
-            )
+                hashString = userService.hashPassword(password),
+            ),
         )
     }
     // </editor-fold>

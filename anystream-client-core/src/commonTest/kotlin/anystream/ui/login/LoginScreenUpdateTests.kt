@@ -40,7 +40,7 @@ class LoginScreenUpdateTests {
             .given(startModel)
             .whenEvents(
                 LoginScreenEvent.OnServerUrlChanged(testServerUrl),
-                LoginScreenEvent.OnServerValidated(testServerUrl, ServerValidation.VALID)
+                LoginScreenEvent.OnServerValidated(testServerUrl, ServerValidation.VALID),
             )
             .then(assertThatNext(hasNoEffects()))
     }
@@ -53,7 +53,7 @@ class LoginScreenUpdateTests {
             .given(startModel)
             .whenEvents(
                 LoginScreenEvent.OnServerUrlChanged(testServerUrl),
-                LoginScreenEvent.OnServerValidated(testServerUrl, ServerValidation.VALID)
+                LoginScreenEvent.OnServerValidated(testServerUrl, ServerValidation.VALID),
             )
             .then(assertThatNext(hasEffects(LoginScreenEffect.PairingSession(testServerUrl))))
     }
@@ -65,17 +65,17 @@ class LoginScreenUpdateTests {
             .given(defaultModel)
             .whenEvents(
                 LoginScreenEvent.OnServerUrlChanged(testServerUrl),
-                LoginScreenEvent.OnServerValidated(testServerUrl, ServerValidation.VALID)
+                LoginScreenEvent.OnServerValidated(testServerUrl, ServerValidation.VALID),
             )
             .then(
                 assertThatNext(
                     hasModel(
                         defaultModel.copy(
                             serverUrl = testServerUrl,
-                            serverValidation = ServerValidation.VALID
-                        )
-                    )
-                )
+                            serverValidation = ServerValidation.VALID,
+                        ),
+                    ),
+                ),
             )
     }
 
@@ -86,7 +86,7 @@ class LoginScreenUpdateTests {
             .given(defaultModel)
             .whenEvents(
                 LoginScreenEvent.OnServerUrlChanged(testServerUrl),
-                LoginScreenEvent.OnServerValidated("not-matching", ServerValidation.VALID)
+                LoginScreenEvent.OnServerValidated("not-matching", ServerValidation.VALID),
             )
             .then(assertThatNext(hasNothing()))
     }
@@ -96,11 +96,11 @@ class LoginScreenUpdateTests {
         val testServerUrl = "https://test.url"
         val startModel = defaultModel.copy(
             serverUrl = testServerUrl,
-            serverValidation = ServerValidation.VALIDATING
+            serverValidation = ServerValidation.VALIDATING,
         )
         val testModels = listOf(
             startModel.copy(state = LoginScreenModel.State.AUTHENTICATING),
-            startModel.copy(state = LoginScreenModel.State.AUTHENTICATED)
+            startModel.copy(state = LoginScreenModel.State.AUTHENTICATED),
         )
 
         testModels.forEach { testModel ->
@@ -122,11 +122,11 @@ class LoginScreenUpdateTests {
                     hasModel(
                         defaultModel.copy(
                             serverUrl = testServerUrl,
-                            serverValidation = ServerValidation.VALIDATING
-                        )
+                            serverValidation = ServerValidation.VALIDATING,
+                        ),
                     ),
-                    hasEffects(LoginScreenEffect.ValidateServerUrl(testServerUrl))
-                )
+                    hasEffects(LoginScreenEffect.ValidateServerUrl(testServerUrl)),
+                ),
             )
     }
 
@@ -141,11 +141,11 @@ class LoginScreenUpdateTests {
                     hasModel(
                         defaultModel.copy(
                             serverUrl = testServerUrl,
-                            pairingCode = null
-                        )
+                            pairingCode = null,
+                        ),
                     ),
-                    hasEffects(LoginScreenEffect.PairingSession("", cancel = true))
-                )
+                    hasEffects(LoginScreenEffect.PairingSession("", cancel = true)),
+                ),
             )
     }
 
@@ -154,7 +154,7 @@ class LoginScreenUpdateTests {
         val testServerUrl = "https://test.url"
         val testModels = listOf(
             defaultModel.copy(state = LoginScreenModel.State.AUTHENTICATING),
-            defaultModel.copy(state = LoginScreenModel.State.AUTHENTICATED)
+            defaultModel.copy(state = LoginScreenModel.State.AUTHENTICATED),
         )
         testModels.forEach { testModel ->
             UpdateSpec(LoginScreenUpdate)
@@ -171,11 +171,11 @@ class LoginScreenUpdateTests {
             serverUrl = testServerUrl,
             serverValidation = ServerValidation.VALID,
             username = "test",
-            password = "test"
+            password = "test",
         )
         val testModels = listOf(
             startModel.copy(state = LoginScreenModel.State.AUTHENTICATING),
-            startModel.copy(state = LoginScreenModel.State.AUTHENTICATED)
+            startModel.copy(state = LoginScreenModel.State.AUTHENTICATED),
         )
         testModels.forEach { testModel ->
             UpdateSpec(LoginScreenUpdate)
@@ -192,7 +192,7 @@ class LoginScreenUpdateTests {
             serverUrl = testServerUrl,
             serverValidation = ServerValidation.VALID,
             username = "test",
-            password = "test"
+            password = "test",
         )
         UpdateSpec(LoginScreenUpdate)
             .given(startModel)
@@ -200,8 +200,8 @@ class LoginScreenUpdateTests {
             .then(
                 assertThatNext(
                     hasModel(startModel.copy(state = LoginScreenModel.State.AUTHENTICATING)),
-                    hasEffects(LoginScreenEffect.Login(startModel.username, startModel.password, startModel.serverUrl))
-                )
+                    hasEffects(LoginScreenEffect.Login(startModel.username, startModel.password, startModel.serverUrl)),
+                ),
             )
     }
 
@@ -211,7 +211,7 @@ class LoginScreenUpdateTests {
             serverUrl = "",
             serverValidation = ServerValidation.INVALID,
             username = "test",
-            password = "test"
+            password = "test",
         )
         UpdateSpec(LoginScreenUpdate)
             .given(startModel)
@@ -226,7 +226,7 @@ class LoginScreenUpdateTests {
             serverUrl = testServerUrl,
             serverValidation = ServerValidation.VALIDATING,
             username = "test",
-            password = "test"
+            password = "test",
         )
         UpdateSpec(LoginScreenUpdate)
             .given(startModel)
@@ -241,7 +241,7 @@ class LoginScreenUpdateTests {
             serverUrl = testServerUrl,
             serverValidation = ServerValidation.VALID,
             username = "",
-            password = ""
+            password = "",
         )
         UpdateSpec(LoginScreenUpdate)
             .given(startModel)
@@ -257,8 +257,8 @@ class LoginScreenUpdateTests {
             .then(
                 assertThatNext(
                     hasNoEffects(),
-                    hasModel(defaultModel.copy(username = "test"))
-                )
+                    hasModel(defaultModel.copy(username = "test")),
+                ),
             )
     }
 
@@ -266,7 +266,7 @@ class LoginScreenUpdateTests {
     fun test_OnUsernameChanged_WhenNotIdle_DoesNothing() {
         val testModels = listOf(
             defaultModel.copy(state = LoginScreenModel.State.AUTHENTICATING),
-            defaultModel.copy(state = LoginScreenModel.State.AUTHENTICATED)
+            defaultModel.copy(state = LoginScreenModel.State.AUTHENTICATED),
         )
         testModels.forEach { testModel ->
             UpdateSpec(LoginScreenUpdate)
@@ -284,8 +284,8 @@ class LoginScreenUpdateTests {
             .then(
                 assertThatNext(
                     hasNoEffects(),
-                    hasModel(defaultModel.copy(password = "test"))
-                )
+                    hasModel(defaultModel.copy(password = "test")),
+                ),
             )
     }
 
@@ -293,7 +293,7 @@ class LoginScreenUpdateTests {
     fun test_OnPasswordChanged_WhenNotIdle_DoesNothing() {
         val testModels = listOf(
             defaultModel.copy(state = LoginScreenModel.State.AUTHENTICATING),
-            defaultModel.copy(state = LoginScreenModel.State.AUTHENTICATED)
+            defaultModel.copy(state = LoginScreenModel.State.AUTHENTICATED),
         )
         testModels.forEach { testModel ->
             UpdateSpec(LoginScreenUpdate)
@@ -311,8 +311,8 @@ class LoginScreenUpdateTests {
             .then(
                 assertThatNext(
                     hasNoEffects(),
-                    hasModel(defaultModel.copy(pairingCode = "test"))
-                )
+                    hasModel(defaultModel.copy(pairingCode = "test")),
+                ),
             )
     }
 
@@ -324,8 +324,8 @@ class LoginScreenUpdateTests {
             .then(
                 assertThatNext(
                     hasNoEffects(),
-                    hasModel(defaultModel.copy(pairingCode = null))
-                )
+                    hasModel(defaultModel.copy(pairingCode = null)),
+                ),
             )
     }
 
@@ -338,8 +338,8 @@ class LoginScreenUpdateTests {
             .then(
                 assertThatNext(
                     hasEffects(LoginScreenEffect.NavigateToHome),
-                    hasModel(defaultModel.copy(state = LoginScreenModel.State.AUTHENTICATED))
-                )
+                    hasModel(defaultModel.copy(state = LoginScreenModel.State.AUTHENTICATED)),
+                ),
             )
     }
 
@@ -353,8 +353,8 @@ class LoginScreenUpdateTests {
             .then(
                 assertThatNext(
                     hasEffects(LoginScreenEffect.NavigateToHome),
-                    hasModel(startModel.copy(state = LoginScreenModel.State.AUTHENTICATED))
-                )
+                    hasModel(startModel.copy(state = LoginScreenModel.State.AUTHENTICATED)),
+                ),
             )
     }
 
@@ -363,7 +363,7 @@ class LoginScreenUpdateTests {
         val user = User(-1, "test", "test")
         val testModels = listOf(
             defaultModel.copy(state = LoginScreenModel.State.IDLE),
-            defaultModel.copy(state = LoginScreenModel.State.AUTHENTICATED)
+            defaultModel.copy(state = LoginScreenModel.State.AUTHENTICATED),
         )
         testModels.forEach { testModel ->
             UpdateSpec(LoginScreenUpdate)
@@ -382,8 +382,8 @@ class LoginScreenUpdateTests {
             .then(
                 assertThatNext(
                     hasNoEffects(),
-                    hasModel(defaultModel.copy(loginError = loginError))
-                )
+                    hasModel(defaultModel.copy(loginError = loginError)),
+                ),
             )
     }
 
@@ -391,7 +391,7 @@ class LoginScreenUpdateTests {
     fun test_OnLoginError_WhenStateIsNotAuthenticating_DoesNothing() {
         val testModels = listOf(
             defaultModel.copy(state = LoginScreenModel.State.IDLE),
-            defaultModel.copy(state = LoginScreenModel.State.AUTHENTICATED)
+            defaultModel.copy(state = LoginScreenModel.State.AUTHENTICATED),
         )
         testModels.forEach { testModel ->
             UpdateSpec(LoginScreenUpdate)

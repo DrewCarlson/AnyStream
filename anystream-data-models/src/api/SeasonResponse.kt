@@ -26,5 +26,5 @@ data class SeasonResponse(
     val season: TvSeason,
     val episodes: List<Episode> = emptyList(),
     val mediaLinks: Map<String, MediaLink> = emptyMap(),
-    val playbackState: PlaybackState? = null
+    val playbackState: PlaybackState? = null,
 )

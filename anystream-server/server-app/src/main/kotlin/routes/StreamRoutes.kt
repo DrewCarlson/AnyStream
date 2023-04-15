@@ -118,8 +118,8 @@ fun Route.addStreamRoutes(
                         call.respond(
                             LocalFileContent(
                                 File(filePath),
-                                ContentType.Application.OctetStream
-                            )
+                                ContentType.Application.OctetStream,
+                            ),
                         )
                     }
                 }

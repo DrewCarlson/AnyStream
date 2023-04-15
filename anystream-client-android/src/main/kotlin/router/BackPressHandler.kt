@@ -24,7 +24,7 @@ val LocalBackPressHandler: ProvidableCompositionLocal<BackPressHandler> =
     compositionLocalOf { throw IllegalStateException("backPressHandler is not initialized") }
 
 class BackPressHandler(
-    val id: String = "Root"
+    val id: String = "Root",
 ) {
     var children = mutableListOf<() -> Boolean>()
 

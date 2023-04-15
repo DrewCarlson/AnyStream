@@ -35,6 +35,10 @@ tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>>().all {
     }
 }
 
+tasks.findByName("lintKotlinCommonMain")?.apply {
+    dependsOn("kspCommonMainKotlinMetadata")
+}
+
 kotlin {
     js(IR) {
         browser {

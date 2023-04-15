@@ -21,7 +21,7 @@ sealed class LoginScreenEffect {
     data class Login(
         val username: String,
         val password: String,
-        val serverUrl: String
+        val serverUrl: String,
     ) : LoginScreenEffect() {
         override fun toString(): String {
             return "Login(username='$username', " +
@@ -31,12 +31,12 @@ sealed class LoginScreenEffect {
     }
 
     data class ValidateServerUrl(
-        val serverUrl: String
+        val serverUrl: String,
     ) : LoginScreenEffect()
 
     data class PairingSession(
         val serverUrl: String,
-        val cancel: Boolean = false
+        val cancel: Boolean = false,
     ) : LoginScreenEffect()
 
     object NavigateToHome : LoginScreenEffect()

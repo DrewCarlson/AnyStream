@@ -35,7 +35,7 @@ data class TranscodeSession(
     val endTime: Double,
     val lastTranscodedSegment: Int,
     val state: State,
-    val transcodedSegments: List<Int>
+    val transcodedSegments: List<Int>,
 ) {
     enum class State {
         IDLE, RUNNING, COMPLETE

@@ -22,7 +22,7 @@ import androidx.core.content.edit
 import anystream.client.SessionDataStore
 
 internal class AndroidSessionDataStore(
-    private val prefs: SharedPreferences
+    private val prefs: SharedPreferences,
 ) : SessionDataStore {
 
     override fun write(key: String, value: String) {

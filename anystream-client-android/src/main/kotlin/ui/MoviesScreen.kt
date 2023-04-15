@@ -40,10 +40,10 @@ import anystream.routing.Routes
 fun MoviesScreen(
     client: AnyStreamClient,
     onMediaClick: (mediaLinkId: String?) -> Unit,
-    backStack: BackStack<Routes>
+    backStack: BackStack<Routes>,
 ) {
     Scaffold(
-        topBar = { AppTopBar(client = client, backStack = backStack) }
+        topBar = { AppTopBar(client = client, backStack = backStack) },
     ) { padding ->
         val response = produceState<MoviesResponse?>(null) {
             value = client.getMovies()
@@ -55,7 +55,7 @@ fun MoviesScreen(
                 movies = response.value!!.movies,
                 mediaLinks = response.value!!.mediaLinks,
                 onMediaClick = onMediaClick,
-                paddingValues = padding
+                paddingValues = padding,
             )
         }
     }
@@ -67,7 +67,7 @@ private fun LoadingScreen(paddingValues: PaddingValues) {
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .padding(paddingValues)
-            .fillMaxSize()
+            .fillMaxSize(),
     ) {
         CircularProgressIndicator()
     }
@@ -86,7 +86,7 @@ private fun MovieGrid(
         modifier = Modifier
             .padding(paddingValues)
             .fillMaxSize(),
-        contentPadding = PaddingValues(all = 8.dp)
+        contentPadding = PaddingValues(all = 8.dp),
     ) {
         items(movies) { movie ->
             val mediaLink by produceState<MediaLink?>(null, movie) {
@@ -98,7 +98,7 @@ private fun MovieGrid(
                 onClick = { onMediaClick(mediaLink?.gid) },
                 preferredWidth = cardWidth,
                 modifier = Modifier
-                    .padding(all = 8.dp)
+                    .padding(all = 8.dp),
             )
         }
     }

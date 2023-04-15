@@ -45,10 +45,10 @@ fun SignupScreen() {
         Mobius.controller(
             FlowMobius.loop(
                 SignupScreenUpdate,
-                SignupScreenHandler.create(client, WebRouter(router))
+                SignupScreenHandler.create(client, WebRouter(router)),
             ).logger(SimpleLogger("Signup")),
             SignupScreenModel.create(client.serverUrl, launchInviteCode.orEmpty()),
-            SignupScreenInit
+            SignupScreenInit,
         )
     }
 
@@ -123,7 +123,7 @@ fun SignupScreen() {
                             router.navigate("/login")
                         }
                     }
-                }
+                },
             ) {
                 Text("Go to Login")
             }

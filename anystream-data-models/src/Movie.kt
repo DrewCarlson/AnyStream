@@ -38,7 +38,7 @@ data class Movie(
     val tmdbRating: Int? = null,
     val genres: List<Genre>,
     val companies: List<ProductionCompany>,
-    val contentRating: String?
+    val contentRating: String?,
 ) {
     val isAdded: Boolean
         get() = !gid.contains(':')
@@ -47,5 +47,5 @@ data class Movie(
 @Serializable
 data class Image(
     val filePath: String,
-    val language: String
+    val language: String,
 )

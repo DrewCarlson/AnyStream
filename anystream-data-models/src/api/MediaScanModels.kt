@@ -22,7 +22,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class MediaScanRequest(
-    val filePath: String
+    val filePath: String,
 )
 
 @Serializable
@@ -33,7 +33,7 @@ sealed class MediaScanResult {
         val parentMediaLinkGid: String,
         val addedMediaLinkGids: List<String>,
         val removedMediaLinkGids: List<String>,
-        val existingMediaLinkGids: List<String>
+        val existingMediaLinkGids: List<String>,
     ) : MediaScanResult() {
         val allValidGids = addedMediaLinkGids + existingMediaLinkGids
     }
@@ -55,7 +55,7 @@ sealed class MediaScanResult {
 
     @Serializable
     data class ErrorDatabaseException(
-        val stacktrace: String
+        val stacktrace: String,
     ) : MediaScanResult()
 }
 
@@ -64,12 +64,12 @@ sealed class MediaAnalyzerResult {
     @Serializable
     data class Success(
         val mediaLinkId: String,
-        val streams: List<StreamEncodingDetails>
+        val streams: List<StreamEncodingDetails>,
     ) : MediaAnalyzerResult()
 
     @Serializable
     data class ProcessError(
-        val stacktrace: String
+        val stacktrace: String,
     ) : MediaAnalyzerResult()
 
     @Serializable
@@ -80,6 +80,6 @@ sealed class MediaAnalyzerResult {
 
     @Serializable
     data class ErrorDatabaseException(
-        val stacktrace: String
+        val stacktrace: String,
     ) : MediaAnalyzerResult()
 }

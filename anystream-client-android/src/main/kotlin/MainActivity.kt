@@ -88,7 +88,7 @@ open class MainActivity : AppCompatActivity() {
                                     },
                                     onViewMoviesClicked = {
                                         stack.push(Routes.Movies)
-                                    }
+                                    },
                                 )
                                 Routes.Movies -> MoviesScreen(
                                     client = client,
@@ -97,16 +97,16 @@ open class MainActivity : AppCompatActivity() {
                                             stack.replace(Routes.Player(mediaLinkId))
                                         }
                                     },
-                                    backStack = stack
+                                    backStack = stack,
                                 )
                                 Routes.Tv -> TODO("Tv route not implemented")
                                 Routes.PairingScanner -> PairingScanner(
                                     client = client,
-                                    backStack = stack
+                                    backStack = stack,
                                 )
                                 is Routes.Player -> PlayerScreen(
                                     client = client,
-                                    mediaLinkId = route.mediaLinkId
+                                    mediaLinkId = route.mediaLinkId,
                                 )
                             }
                         }
@@ -142,7 +142,7 @@ fun AppTopBar(client: AnyStreamClient?, backStack: BackStack<Routes>?) {
             modifier = Modifier
                 .padding(all = 8.dp)
                 .size(width = 150.dp, height = 50.dp),
-            contentDescription = null
+            contentDescription = null,
         )
 
         if (client != null) {
@@ -151,7 +151,7 @@ fun AppTopBar(client: AnyStreamClient?, backStack: BackStack<Routes>?) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.End,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
                 ) {
                     val packageManager = LocalContext.current.packageManager
                     val hasCamera = remember {
@@ -159,11 +159,13 @@ fun AppTopBar(client: AnyStreamClient?, backStack: BackStack<Routes>?) {
                     }
                     if (hasCamera) {
                         IconButton(
-                            onClick = { backStack?.push(Routes.PairingScanner) }
+                            onClick = { backStack?.push(Routes.PairingScanner) },
                         ) {
                             Icon(
-                                imageVector = ImageVector.vectorResource(R.drawable.ic_qr_code_scanner),
-                                contentDescription = "Pair a device."
+                                imageVector = ImageVector.vectorResource(
+                                    R.drawable.ic_qr_code_scanner,
+                                ),
+                                contentDescription = "Pair a device.",
                             )
                         }
                     }
@@ -175,7 +177,7 @@ fun AppTopBar(client: AnyStreamClient?, backStack: BackStack<Routes>?) {
                     }) {
                         Icon(
                             imageVector = Icons.Filled.ExitToApp,
-                            contentDescription = "Sign out"
+                            contentDescription = "Sign out",
                         )
                     }
                 }

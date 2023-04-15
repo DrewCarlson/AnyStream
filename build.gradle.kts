@@ -63,9 +63,6 @@ subprojects {
     apply(plugin = "org.jmailen.kotlinter")
 
     configure<org.jmailen.gradle.kotlinter.KotlinterExtension> {
-        //disabledRules += "no-wildcard-imports"
-        //disabledRules += "trailing-comma-on-call-site"
-        //disabledRules += "trailing-comma-on-declaration-site"
     }
 
     val generatedDir = File(buildDir, "generated").absolutePath

@@ -41,7 +41,7 @@ class WebsocketAuthorization {
 
         override fun install(
             pipeline: ApplicationCallPipeline,
-            configure: WebsocketAuthorization.() -> Unit
+            configure: WebsocketAuthorization.() -> Unit,
         ): WebsocketAuthorization {
             return WebsocketAuthorization().also(configure)
         }

@@ -30,7 +30,7 @@ import kotlin.coroutines.*
 @Suppress("CAST_NEVER_SUCCEEDS")
 internal class JsWebSocketSession(
     override val coroutineContext: CoroutineContext,
-    private val websocket: WebSocket
+    private val websocket: WebSocket,
 ) : DefaultWebSocketSession {
     private val _closeReason: CompletableDeferred<CloseReason> = CompletableDeferred()
     private val _incoming: Channel<Frame> = Channel(Channel.UNLIMITED)
@@ -81,7 +81,7 @@ internal class JsWebSocketSession(
 
                     _incoming.trySend(frame).isSuccess
                 }
-            }
+            },
         )
 
         websocket.addEventListener(
@@ -91,7 +91,7 @@ internal class JsWebSocketSession(
                 _closeReason.completeExceptionally(cause)
                 _incoming.close(cause)
                 _outgoing.cancel()
-            }
+            },
         )
 
         websocket.addEventListener(
@@ -105,7 +105,7 @@ internal class JsWebSocketSession(
 
                     _outgoing.cancel()
                 }
-            }
+            },
         )
 
         launch {
@@ -126,7 +126,7 @@ internal class JsWebSocketSession(
                             val source = it.data as Int8Array
                             val frameData = source.buffer.slice(
                                 source.byteOffset,
-                                source.byteOffset + source.byteLength
+                                source.byteOffset + source.byteLength,
                             )
 
                             websocket.send(frameData)
@@ -169,7 +169,7 @@ internal class JsWebSocketSession(
 
     @Deprecated(
         "Use cancel() instead.",
-        ReplaceWith("cancel()", "kotlinx.coroutines.cancel")
+        ReplaceWith("cancel()", "kotlinx.coroutines.cancel"),
     )
     override fun terminate() {
         _incoming.cancel()

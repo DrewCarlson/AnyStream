@@ -53,7 +53,7 @@ class MediaFileScanner(
 
         mediaScannerState.value = MediaScannerState.Active(
             libraryLink = libraryLink.toModel(),
-            currentLink = childLink?.toModel()
+            currentLink = childLink?.toModel(),
         )
         val targetFile = File(childLink?.filePath ?: libraryLink.filePath)
         return if (targetFile.isDirectory) {
@@ -82,7 +82,7 @@ class MediaFileScanner(
     private fun scanMediaFolder(
         targetFile: File,
         libraryLink: MediaLinkDb,
-        userId: Int
+        userId: Int,
     ): MediaScanResult {
         val (existingFilePaths, removedFilePaths) = try {
             mediaLinkDao.findFilePathsByBasePath(targetFile.absolutePath)
@@ -163,7 +163,7 @@ class MediaFileScanner(
                 parentMediaLinkGid = libraryLink.gid,
                 addedMediaLinkGids = addedGids,
                 removedMediaLinkGids = removedGids,
-                existingMediaLinkGids = existing
+                existingMediaLinkGids = existing,
             )
         } catch (e: JdbiException) {
             MediaScanResult.ErrorDatabaseException(e.stackTraceToString())

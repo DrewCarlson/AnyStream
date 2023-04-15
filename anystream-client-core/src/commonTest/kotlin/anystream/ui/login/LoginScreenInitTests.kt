@@ -35,8 +35,8 @@ class LoginScreenInitTests {
             .then(
                 assertThatFirst(
                     hasModel(startModel),
-                    hasNoEffects()
-                )
+                    hasNoEffects(),
+                ),
             )
     }
 
@@ -44,15 +44,15 @@ class LoginScreenInitTests {
     fun test_ModelWithUrl_RequiringValidation_RequestsValidation() {
         val startModel = LoginScreenModel(
             serverUrl = "test",
-            serverValidation = ServerValidation.VALIDATING
+            serverValidation = ServerValidation.VALIDATING,
         )
         InitSpec(LoginScreenInit)
             .whenInit(startModel)
             .then(
                 assertThatFirst(
                     hasModel(startModel),
-                    hasEffects(LoginScreenEffect.ValidateServerUrl("test"))
-                )
+                    hasEffects(LoginScreenEffect.ValidateServerUrl("test")),
+                ),
             )
     }
 
@@ -64,8 +64,8 @@ class LoginScreenInitTests {
             .then(
                 assertThatFirst(
                     hasModel(startModel),
-                    hasEffects(LoginScreenEffect.PairingSession("test"))
-                )
+                    hasEffects(LoginScreenEffect.PairingSession("test")),
+                ),
             )
     }
 }

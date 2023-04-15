@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory
 
 class TmdbMetadataProvider(
     private val tmdbApi: Tmdb3,
-    private val queries: MetadataDbQueries
+    private val queries: MetadataDbQueries,
 ) : MetadataProvider {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
@@ -83,9 +83,9 @@ class TmdbMetadataProvider(
                         metadataGid = movie.tmdbId.toString(),
                         remoteId = movieDb.toRemoteId(),
                         exists = true,
-                        movie = finalMovie
+                        movie = finalMovie,
                     ),
-                    subresults = emptyList()
+                    subresults = emptyList(),
                 )
             } catch (e: JdbiException) {
                 ImportMetadataResult.ErrorDatabaseException(e.stackTraceToString())
@@ -97,8 +97,8 @@ class TmdbMetadataProvider(
                     metadataGid = existingMovie.tmdbId.toString(),
                     remoteId = "tmdb:movie:${existingMovie.tmdbId}",
                     exists = true,
-                    movie = existingMovie
-                )
+                    movie = existingMovie,
+                ),
             )
         }
         return result
@@ -118,8 +118,8 @@ class TmdbMetadataProvider(
                     exists = true,
                     tvShow = existingTvShow,
                     seasons = existingSeasons.map { it.toTvSeasonModel() },
-                    episodes = existingEpisodes
-                )
+                    episodes = existingEpisodes,
+                ),
             )
         }
 
@@ -148,8 +148,8 @@ class TmdbMetadataProvider(
                     exists = true,
                     tvShow = finalTvShow.toTvShowModel(),
                     seasons = finalSeasons.map(MetadataDb::toTvSeasonModel),
-                    episodes = finalEpisodes.map(MetadataDb::toTvEpisodeModel)
-                )
+                    episodes = finalEpisodes.map(MetadataDb::toTvEpisodeModel),
+                ),
             )
         } catch (e: JdbiException) {
             ImportMetadataResult.ErrorDatabaseException(e.stackTraceToString())
@@ -167,7 +167,7 @@ class TmdbMetadataProvider(
             page = 1,
             year = year,
             language = null,
-            includeAdult = false
+            includeAdult = false,
         ).results.mapNotNull { fetchMovie(it.id) }
     }
 
@@ -182,8 +182,8 @@ class TmdbMetadataProvider(
                     AppendResponse.IMAGES,
                     AppendResponse.EXTERNAL_IDS,
                     AppendResponse.WATCH_PROVIDERS,
-                    AppendResponse.RELEASES_DATES
-                )
+                    AppendResponse.RELEASES_DATES,
+                ),
             )
         } catch (e: ResponseException) {
             if (e.response.status == HttpStatusCode.NotFound) null else throw e
@@ -201,9 +201,9 @@ class TmdbMetadataProvider(
                     AppendResponse.IMAGES,
                     AppendResponse.CREDITS,
                     AppendResponse.TV_CREDITS,
-                    AppendResponse.EXTERNAL_IDS
+                    AppendResponse.EXTERNAL_IDS,
                 ),
-                ""
+                "",
             )
         } catch (e: ResponseException) {
             if (e.response.status == HttpStatusCode.NotFound) null else throw e
@@ -220,8 +220,8 @@ class TmdbMetadataProvider(
                     AppendResponse.CREDITS,
                     AppendResponse.RELEASES_DATES,
                     AppendResponse.IMAGES,
-                    AppendResponse.MOVIE_CREDITS
-                )
+                    AppendResponse.MOVIE_CREDITS,
+                ),
             )
         } catch (e: ResponseException) {
             if (e.response.status == HttpStatusCode.NotFound) null else throw e
@@ -257,8 +257,8 @@ class TmdbMetadataProvider(
                 exists = existingMovie != null,
                 movie = movieDb.asMovie(
                     id = existingMovie?.gid ?: remoteId,
-                    userId = 1
-                )
+                    userId = 1,
+                ),
             )
         }
         return QueryMetadataResult.Success(id, matches, request.extras)
@@ -295,8 +295,8 @@ class TmdbMetadataProvider(
                     exists = true,
                     tvShow = tvResponse.tvShow,
                     seasons = tvResponse.seasons,
-                    episodes = episodes
-                )
+                    episodes = episodes,
+                ),
             )
             return QueryMetadataResult.Success(id, matchList, request.extras)
         } else if (tmdbSeries == null) {
@@ -344,7 +344,7 @@ class TmdbMetadataProvider(
                                     .asTvEpisode(
                                         tmdbEpisode.toRemoteId(tvSeries.id),
                                         tvSeries.toRemoteId(),
-                                        seasonResponse.toRemoteId(tvSeries.id)
+                                        seasonResponse.toRemoteId(tvSeries.id),
                                     )
                                     .toTvEpisodeModel()
                             }
@@ -366,7 +366,7 @@ class TmdbMetadataProvider(
                 exists = existingShow != null,
                 tvShow = existingShow ?: tvSeries.asTvShow(remoteId).toTvShowModel(),
                 seasons = existingSeasons.map { it.toTvSeasonModel() },
-                episodes = existingEpisodes
+                episodes = existingEpisodes,
             )
         }
         return QueryMetadataResult.Success(id, matches, request.extras)

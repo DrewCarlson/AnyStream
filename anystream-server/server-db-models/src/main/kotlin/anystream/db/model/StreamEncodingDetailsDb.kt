@@ -117,7 +117,7 @@ data class StreamEncodingDetailsDb(
             val type = checkNotNull(
                 audio?.let { Type.AUDIO }
                     ?: video?.let { Type.VIDEO }
-                    ?: subtitle?.let { Type.SUBTITLE }
+                    ?: subtitle?.let { Type.SUBTITLE },
             )
             return StreamEncodingDetailsDb(
                 id = stream.id,
