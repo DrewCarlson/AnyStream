@@ -1,15 +1,8 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     alias(libs.plugins.jvm)
     alias(libs.plugins.serialization)
 }
-
-/*tasks.withType<KotlinCompile>().all {
-    sourceCompatibility = "11"
-    targetCompatibility = "11"
-}*/
 
 kotlin {
     target {
@@ -19,6 +12,11 @@ kotlin {
             }
         }
     }
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
 }
 
 dependencies {

@@ -98,7 +98,7 @@ jobs:
       - uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
-          java-version: 11
+          java-version: 17
 
       - name: Cache Build files
         uses: actions/cache@v3
@@ -139,7 +139,7 @@ jobs:
       - uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
-          java-version: 11
+          java-version: 17
 
       - name: Cache Build files
         uses: actions/cache@v3
@@ -186,7 +186,7 @@ jobs:
       - uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
-          java-version: 11
+          java-version: 17
 
       - name: Cache Build files
         uses: actions/cache@v3
@@ -225,7 +225,7 @@ jobs:
       - uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
-          java-version: 11
+          java-version: 17
 
       - name: Cache Build files
         uses: actions/cache@v3

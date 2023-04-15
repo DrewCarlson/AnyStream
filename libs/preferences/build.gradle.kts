@@ -11,15 +11,25 @@ if (hasAndroidSdk) {
         compileSdk = 33
         defaultConfig {
             minSdk = 23
-            targetSdk = 31
+            targetSdk = 33
         }
         namespace = "anystream.prefs"
+        compileOptions {
+            sourceCompatibility = JavaVersion.VERSION_11
+            targetCompatibility = JavaVersion.VERSION_11
+        }
     }
 }
 
 kotlin {
     if (hasAndroidSdk) {
-        android()
+        android {
+            compilations.all {
+                kotlinOptions {
+                    jvmTarget = JavaVersion.VERSION_11.majorVersion
+                }
+            }
+        }
     }
     iosX64()
     iosArm64()

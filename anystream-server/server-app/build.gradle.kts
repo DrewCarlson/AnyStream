@@ -33,6 +33,11 @@ tasks.withType<ShadowJar> {
 
 val testGenSrcPath = "build/generated-kotlin"
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
 kotlin {
     sourceSets["test"].kotlin.srcDirs(testGenSrcPath)
     sourceSets.all {

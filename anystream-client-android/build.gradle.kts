@@ -4,16 +4,20 @@ plugins {
 }
 
 android {
+    namespace = "anystream.android"
     compileSdk = 33
     defaultConfig {
         minSdk = 24
-        targetSdk = 31
+        targetSdk = 33
     }
     buildFeatures {
         compose = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = libs.versions.composeCompiler.get()
+    }
+    packagingOptions {
+        resources.excludes.add("META-INF/versions/*/*.bin")
     }
     signingConfigs {
         named("debug") {
@@ -38,6 +42,14 @@ android {
         "-opt-in=coil.annotation.ExperimentalCoilApi",
         //"-P", "plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=true"
     )
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_11.majorVersion
+    }
 }
 
 dependencies {

@@ -40,7 +40,7 @@ class PooledExtensions : JdbiConfig<PooledExtensions> {
         set(value) {
             field = value ?: return
             val onDemandConfig = value.getConfig(OnDemandExtensions::class.java)
-            val factoryField = OnDemandExtensions::class.java.getDeclaredField("factory")
+            val factoryField = OnDemandExtensions::class.java.getDeclaredField("onDemandExtensionFactory")
             factoryField.isAccessible = true
             factory = factoryField.get(onDemandConfig) as OnDemandExtensions.Factory
         }

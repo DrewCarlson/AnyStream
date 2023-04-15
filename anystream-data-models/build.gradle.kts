@@ -6,13 +6,17 @@ plugins {
 if (hasAndroidSdk) {
     apply(plugin = "com.android.library")
     configure<com.android.build.gradle.LibraryExtension> {
+        namespace = "anystream.models"
         compileSdk = 33
         defaultConfig {
             minSdk = 23
-            targetSdk = 31
+            targetSdk = 33
             testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         }
-        namespace = "anystream.models"
+        compileOptions {
+            sourceCompatibility = JavaVersion.VERSION_11
+            targetCompatibility = JavaVersion.VERSION_11
+        }
     }
 }
 
@@ -26,7 +30,13 @@ kotlin {
     iosSimulatorArm64()
 
     if (hasAndroidSdk) {
-        android()
+        android {
+            compilations.all {
+                kotlinOptions {
+                    jvmTarget = JavaVersion.VERSION_11.majorVersion
+                }
+            }
+        }
     }
 
     sourceSets {

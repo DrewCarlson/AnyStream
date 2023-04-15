@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/java/jdk:11-zulu-alpine
+FROM mcr.microsoft.com/java/jdk:17-zulu-alpine
 
 COPY . /build-project
 WORKDIR /build-project
