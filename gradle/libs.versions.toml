@@ -10,7 +10,7 @@ atomicfu = "0.20.2"
 kover = "0.6.1"
 datetime = "0.4.0"
 
-qbittorrent = "1.0.0-beta04"
+qbittorrent = "1.0.0-SNAPSHOT"
 mobiuskt = "0.6.0"
 ktor_perm = "0.2.1"
 
