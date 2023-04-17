@@ -48,16 +48,15 @@ object RefreshMetadataJob : Job("refresh-metadata") {
 
                 when (mediaLink.descriptor) {
                     MediaLink.Descriptor.ROOT_DIRECTORY -> {
-                        libraryManager.scanForMedia(userId, mediaLink)
                         when (val scanResult = libraryManager.scanForMedia(userId, mediaLink)) {
                             is MediaScanResult.Success -> {
-                                logger.debug("Scanning files: " + scanResult.allValidGids.joinToString())
+                                logger.debug("Scanning files: {}", scanResult.allValidGids.joinToString())
                                 scanResult.allValidGids.forEach { addedMediaLink ->
                                     libraryManager.refreshMetadata(userId, addedMediaLink)
                                 }
                             }
                             else -> {
-                                logger.error("Failed to scan media: $scanResult")
+                                logger.error("Failed to scan media: {}", scanResult)
                             }
                         }
                     }

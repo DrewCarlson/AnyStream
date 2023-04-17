@@ -107,7 +107,7 @@ class LibraryManager(
 
         return try {
             val newId = mediaLinkDao.insertLink(newLink)
-            logger.debug("Added new library root MediaLink $newLink")
+            logger.debug("Added new library root MediaLink {}", newLink)
             AddLibraryFolderResult.Success(mediaLink = newLink.copy(id = newId))
         } catch (e: JdbiException) {
             logger.error("Failed to insert new library root MediaLink $newLink", e)

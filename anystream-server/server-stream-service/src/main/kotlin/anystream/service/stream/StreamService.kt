@@ -277,7 +277,13 @@ class StreamService(
             null
         }
 
-        logger.debug("Transcoding range: segments=$startSegment..$endSegment, time=$startTime..${endTime ?: runtime}")
+        logger.debug(
+            "Transcoding range: segments={}..{}, time={}..{}",
+            startSegment,
+            endSegment,
+            startTime,
+            endTime ?: runtime,
+        )
 
         if (startSegment > lastSegmentIndex) {
             // Occurs when all required segments are completed, create the session without transcoding
@@ -505,7 +511,7 @@ class StreamService(
         runtime: Duration,
         segmentDuration: Duration,
     ): String {
-        logger.debug("Creating variant playlist for $mediaFile")
+        logger.debug("Creating variant playlist for {}", mediaFile)
 
         val segmentContainer = null ?: "ts"
         val isHlsInFmp4 = segmentContainer.equals("mp4", ignoreCase = true)

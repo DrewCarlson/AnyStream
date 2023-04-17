@@ -49,7 +49,7 @@ class MovieFileProcessor(
                 .orEmpty()
                 .maxByOrNull(File::length)
                 ?.also { result ->
-                    logger.debug("Largest content file found: ${result.absolutePath}")
+                    logger.debug("Largest content file found: {}", result.absolutePath)
                 }
         }
 
@@ -81,7 +81,7 @@ class MovieFileProcessor(
         // TODO: Improve query capabilities
         val query = mediaName.replace(yearRegex, "").trim()
 
-        logger.debug("Querying provider for '$query'")
+        logger.debug("Querying provider for '{}'", query)
         val results = metadataManager.search(
             QueryMetadata(
                 providerId = null,
@@ -97,14 +97,19 @@ class MovieFileProcessor(
 
         val movie = when (result) {
             is QueryMetadataResult.Success -> {
+                logger.debug("Query successful with {} results", results.size)
                 val metadataMatch = result.results
                     .filterIsInstance<MetadataMatch.MovieMatch>()
                     .maxByOrNull { it.movie.title.equals(query, true) }
                     ?: result.results.first()
 
                 if (metadataMatch.exists) {
-                    (metadataMatch as MetadataMatch.MovieMatch).movie
+                    (metadataMatch as MetadataMatch.MovieMatch).movie.also {
+                        logger.debug("Matched existing metadata for '{}'", it.title)
+                    }
                 } else {
+                    val movie = (metadataMatch as MetadataMatch.MovieMatch).movie
+                    logger.debug("Importing new metadata for '{}'", movie.title)
                     val importResults = metadataManager.importMetadata(
                         ImportMetadata(
                             metadataIds = listOf(metadataMatch.metadataGid),
@@ -114,7 +119,7 @@ class MovieFileProcessor(
                     ).filterIsInstance<ImportMetadataResult.Success>()
 
                     if (importResults.isEmpty()) {
-                        logger.debug("Provider lookup error: $results")
+                        logger.debug("Provider lookup error: {}", results)
                         return // MediaScanResult.ErrorNothingToScan
                     } else {
                         (importResults.first().match as MetadataMatch.MovieMatch).movie
@@ -122,10 +127,12 @@ class MovieFileProcessor(
                 }
             }
             else -> {
-                logger.debug("Provider lookup error: $results")
+                logger.debug("Provider lookup error: {}", results)
                 return // MediaScanResult.ErrorNothingToScan
             }
         }
+
+        queries.mediaLinkDao.updateMetadataIds(checkNotNull(existingRef).id, movie.id, movie.gid)
 
         return // MediaScanResult.ErrorDatabaseException("")
     }

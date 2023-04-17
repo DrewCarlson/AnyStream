@@ -39,6 +39,10 @@ tasks.findByName("lintKotlinCommonMain")?.apply {
     dependsOn("kspCommonMainKotlinMetadata")
 }
 
+tasks.findByName("formatKotlinCommonMain")?.apply {
+    dependsOn("kspCommonMainKotlinMetadata")
+}
+
 kotlin {
     js(IR) {
         browser {

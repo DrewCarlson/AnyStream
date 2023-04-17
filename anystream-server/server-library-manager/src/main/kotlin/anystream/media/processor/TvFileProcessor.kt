@@ -60,7 +60,7 @@ class TvFileProcessor(
                 queries.mediaLinkDao.updateMetadataIds(mediaLink.gid, tvShow.id, tvShow.gid)
 
                 val childLinks = queries.mediaLinkDao.findByBasePath(checkNotNull(mediaLink.filePath))
-                logger.debug("Loaded ${childLinks.size} child MediaLinks.")
+                logger.debug("Loaded {} child MediaLinks.", childLinks.size)
                 val (directoryLinks, fileLinks) = childLinks
                     .filter { childLink ->
                         childLink.descriptor == MediaLink.Descriptor.CHILD_DIRECTORY ||
@@ -79,9 +79,9 @@ class TvFileProcessor(
                     if (seasonFolderRegex.containsMatchIn(file.name)) {
                         val matchResult = checkNotNull(seasonFolderRegex.find(file.name))
                         val seasonNumber = matchResult.groupValues[1].toInt()
-                        logger.debug("Parsed '$seasonNumber' from season folder '${file.name}'.")
+                        logger.debug("Parsed '{}' from season folder '{}'.", seasonNumber, file.name)
                         seasons.find { it.seasonNumber == seasonNumber }?.let { season ->
-                            logger.debug("Linked season metadata to folder for season $seasonNumber.")
+                            logger.debug("Linked season metadata to folder for season {}.", seasonNumber)
                             childLink.copy(
                                 metadataId = season.id,
                                 metadataGid = season.gid,
@@ -90,7 +90,7 @@ class TvFileProcessor(
                             )
                         }
                     } else {
-                        logger.debug("Expected season folder but could not parse '${file.name}'.")
+                        logger.debug("Expected season folder but could not parse '{}'.", file.name)
                         null
                     }
                 }
@@ -104,11 +104,16 @@ class TvFileProcessor(
                     } else if (simpleEpisodeIndexRegex.containsMatchIn(file.name)) {
                         checkNotNull(simpleEpisodeIndexRegex.find(file.name))
                     } else {
-                        logger.debug("Expected to find episode file but could not parse '${file.name}'")
+                        logger.debug("Expected to find episode file but could not parse '{}'", file.name)
                         return@mapNotNull null
                     }
                     val (seasonNumber, episodeNumber) = matchResult.groupValues.drop(1)
-                    logger.debug("Parsed season '$seasonNumber' and episode '$episodeNumber' from '${file.name}'")
+                    logger.debug(
+                        "Parsed season '{}' and episode '{}' from '{}'",
+                        seasonNumber,
+                        episodeNumber,
+                        file.name,
+                    )
                     val actualSeasonNumber = seasonNumber.toIntOrNull()
                         ?: queries.mediaLinkDao.findByFilePath(file.parent)
                             ?.run {
@@ -123,14 +128,20 @@ class TvFileProcessor(
                     val episode = episodesBySeason[actualSeasonNumber]
                         ?.firstOrNull { it.number == episodeNumber.toInt() }
                         ?: run {
-                            logger.debug("Failed to find episode metadata for episode $episodeNumber.")
+                            logger.debug("Failed to find episode metadata for episode {}.", episodeNumber)
                             return@mapNotNull null
                         }
                     val season = seasons.firstOrNull { it.seasonNumber == actualSeasonNumber }
                         ?: return@mapNotNull null
                     val seasonLink = updatedDirectoryLinks.firstOrNull { it.metadataId == season.id }
 
-                    logger.debug("Linked episode file '${file.name}' to S${season.seasonNumber} E${episode.number} of '${tvShow.name}'")
+                    logger.debug(
+                        "Linked episode file {} to S{} E{} of '{}'",
+                        file.name,
+                        season.seasonNumber,
+                        episode.number,
+                        tvShow.name,
+                    )
                     childLink.copy(
                         metadataId = episode.id,
                         metadataGid = episode.gid,
@@ -142,7 +153,7 @@ class TvFileProcessor(
                 }
 
                 val allLinks = updatedDirectoryLinks + updatedFileLinks
-                logger.debug("Updating ${allLinks.size} Media Links.")
+                logger.debug("Updating {} Media Links.", allLinks.size)
                 queries.mediaLinkDao.updateMediaLinkIds(allLinks)
             }
             MediaLink.Descriptor.CHILD_DIRECTORY -> {
@@ -163,10 +174,10 @@ class TvFileProcessor(
 
     private suspend fun findOrImportShow(metadataGid: String?, rootFolder: File): MetadataMatch.TvShowMatch? {
         val results = if (metadataGid == null) {
-            logger.debug("Searching for TV Show by folder name '${rootFolder.name}'.")
+            logger.debug("Searching for TV Show by folder name '{}'.", rootFolder.name)
             queryShowTitle(rootFolder.name)
         } else {
-            logger.debug("Searching for TV Show by metadata gid '$metadataGid'.")
+            logger.debug("Searching for TV Show by metadata gid '{}'.", metadataGid)
             metadataManager.search(
                 QueryMetadata(
                     providerId = null,
@@ -182,7 +193,7 @@ class TvFileProcessor(
             ?.filterIsInstance<MetadataMatch.TvShowMatch>()
             ?.firstOrNull()
             ?: run {
-                logger.debug("No match found for '${metadataGid ?: rootFolder.name}', ignoring file.")
+                logger.debug("No match found for '{}', ignoring file.", metadataGid ?: rootFolder.name)
                 return null // TODO: Return no match error result
             }
 
@@ -202,7 +213,11 @@ class TvFileProcessor(
                 .firstOrNull()
 
             if (importResults.isEmpty() || successResult == null) {
-                logger.debug("Failed to import metadata for '${match.metadataGid}' on '${result.providerId}', ignoring file.")
+                logger.debug(
+                    "Failed to import metadata for '{}' on '{}', ignoring file.",
+                    match.metadataGid,
+                    result.providerId,
+                )
                 return null // TODO: Return metadata import error result
             } else {
                 successResult.match as MetadataMatch.TvShowMatch
