@@ -35,7 +35,7 @@ agp = "7.4.2"
 leakcanary = "2.10"
 koin = "3.4.0"
 koinAndroid = "3.4.0"
-koinAndroidxCompose = "3.4.3"
+koinAndroidxCompose = "3.4.4"
 koinKtor = "3.4.0"
 
 okhttp = "5.0.0-alpha.10"
