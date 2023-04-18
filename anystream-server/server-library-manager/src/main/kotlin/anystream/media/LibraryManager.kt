@@ -82,7 +82,7 @@ class LibraryManager(
     fun addLibraryFolder(userId: Int, path: String, mediaKind: MediaKind): AddLibraryFolderResult {
         val libraryFile = File(path)
         if (!libraryFile.exists() || !libraryFile.isDirectory) {
-            logger.debug("Invalid library folder path '$path'")
+            logger.debug("Invalid library folder path '{}'", path)
             return AddLibraryFolderResult.FileError(
                 exists = libraryFile.exists(),
                 isDirectory = libraryFile.isDirectory,
@@ -91,7 +91,7 @@ class LibraryManager(
 
         val existingLink = mediaLinkDao.findByFilePath(path)
         if (existingLink != null) {
-            logger.debug("MediaLink already exists for '$path'")
+            logger.debug("MediaLink already exists for '{}'", path)
             return AddLibraryFolderResult.LinkAlreadyExists
         }
         val newLink = MediaLinkDb(
@@ -107,8 +107,9 @@ class LibraryManager(
 
         return try {
             val newId = mediaLinkDao.insertLink(newLink)
-            logger.debug("Added new library root MediaLink {}", newLink)
-            AddLibraryFolderResult.Success(mediaLink = newLink.copy(id = newId))
+            val updatedLink = newLink.copy(id = newId)
+            logger.debug("Added new library root MediaLink {}", updatedLink)
+            AddLibraryFolderResult.Success(mediaLink = updatedLink)
         } catch (e: JdbiException) {
             logger.error("Failed to insert new library root MediaLink $newLink", e)
             AddLibraryFolderResult.DatabaseError(e)
@@ -140,7 +141,7 @@ class LibraryManager(
 
     suspend fun refreshMetadata(userId: Int, mediaLink: MediaLinkDb) {
         val processor = processors.firstOrNull { it.mediaKinds.contains(mediaLink.mediaKind) } ?: run {
-            logger.error("No processor found for MediaKind '${mediaLink.mediaKind}'")
+            logger.error("No processor found for MediaKind '{}'", mediaLink.mediaKind)
             return // TODO: return no processor result
         }
 
@@ -164,8 +165,8 @@ class LibraryManager(
     suspend fun analyzeMediaFiles(mediaLinkIds: List<String>): List<MediaAnalyzerResult> {
         val mediaLinks = mediaLinkDao.findByGids(mediaLinkIds)
 
-        logger.debug("Importing stream details for ${mediaLinkIds.size} item(s)")
-        logger.debug("Ignored ${mediaLinkIds.size - mediaLinks.size} invalid item(s)")
+        logger.debug("Importing stream details for {} item(s)", mediaLinkIds.size)
+        logger.debug("Ignored {} invalid item(s)", mediaLinkIds.size - mediaLinks.size)
 
         return mediaLinks
             .filter { mediaLink ->
@@ -188,14 +189,14 @@ class LibraryManager(
                 }
             }
             .also { results ->
-                logger.debug("Processed ${results.size} item(s)")
+                logger.debug("Processed {} item(s)", results.size)
             }
             .ifEmpty { listOf(MediaAnalyzerResult.ErrorNothingToImport) }
     }
 
     private suspend fun processMediaFileStreams(mediaLink: MediaLinkDb): MediaAnalyzerResult {
         if (!File(mediaLink.filePath.orEmpty()).exists()) {
-            logger.error("Media file reference path does not exist: ${mediaLink.id} ${mediaLink.filePath}")
+            logger.error("Media file reference path does not exist: {} {}", mediaLink.id, mediaLink.filePath)
             return MediaAnalyzerResult.ErrorFileNotFound
         }
 
@@ -294,7 +295,7 @@ class LibraryManager(
         val watchKeys = mutableMapOf<WatchKey, Path>()
         val unregisterPath = { path: Path ->
             val pathString = path.absolutePathString()
-            logger.trace("Stopped watching $pathString")
+            logger.trace("Stopped watching {}", pathString)
             val key = watchKeys.entries.firstOrNull { (_, value) ->
                 value.absolutePathString() == pathString
             }?.key

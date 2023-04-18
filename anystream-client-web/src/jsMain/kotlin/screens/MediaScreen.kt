@@ -144,8 +144,8 @@ private fun BaseDetailsView(
                 },
                 completedPercent = mediaItem.playbackState?.completedPercent,
                 onPlayClicked = {
-                    window.location.hash = "!play:${mediaItem.mediaLinks.firstOrNull()?.gid}"
-                }.takeIf { mediaItem.mediaLinks.isNotEmpty() },
+                    window.location.hash = "!play:${mediaItem.playableMediaLink?.gid}"
+                }.takeUnless { mediaItem.playableMediaLink == null },
             )
 
             mediaItem.playbackState?.run {
@@ -209,7 +209,7 @@ private fun BaseDetailsView(
 
             Div({ classes("d-flex", "flex-row", "py-3", "gap-2") }) {
                 // TODO: Allow user mediaLink selection, order medialinks on server
-                val mediaLink = mediaItem.mediaLinks.firstOrNull()
+                val mediaLink = mediaItem.playableMediaLink
                 if (mediaLink != null) {
                     Button({
                         classes("btn", "btn-sm", "btn-primary")

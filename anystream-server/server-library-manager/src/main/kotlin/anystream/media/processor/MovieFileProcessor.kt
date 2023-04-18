@@ -76,7 +76,7 @@ class MovieFileProcessor(
         val match = yearRegex.find(mediaName)
         val year = match?.groupValues?.lastOrNull()?.toIntOrNull() ?: 0
 
-        logger.debug("Found content year: $year")
+        logger.debug("Found content year: {}", year)
 
         // TODO: Improve query capabilities
         val query = mediaName.replace(yearRegex, "").trim()
@@ -132,6 +132,7 @@ class MovieFileProcessor(
             }
         }
 
+        queries.mediaLinkDao.updateMetadataIds(checkNotNull(mediaLink.id), movie.id, movie.gid)
         queries.mediaLinkDao.updateMetadataIds(checkNotNull(existingRef).id, movie.id, movie.gid)
 
         return // MediaScanResult.ErrorDatabaseException("")

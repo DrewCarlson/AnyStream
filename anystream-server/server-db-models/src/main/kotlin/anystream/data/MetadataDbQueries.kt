@@ -238,6 +238,7 @@ class MetadataDbQueries(
         val movies = metadataDao.findByType(MetadataDb.Type.MOVIE, limit).map(MetadataDb::toMovieModel)
         val mediaLink = if (movies.isNotEmpty()) {
             mediaLinkDao.findByMetadataGids(movies.map(Movie::gid))
+                .filter { it.descriptor == MediaLink.Descriptor.VIDEO }
                 .map(MediaLinkDb::toModel)
         } else {
             emptyList()

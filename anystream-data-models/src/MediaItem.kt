@@ -38,7 +38,13 @@ data class MediaItem(
     val tmdbRating: Int? = null,
     val contentRating: String? = null,
     val runtime: Int? = null,
-)
+) {
+    val playableMediaLink: MediaLink? =
+        mediaLinks.firstOrNull {
+            it.descriptor == MediaLink.Descriptor.VIDEO ||
+                it.descriptor == MediaLink.Descriptor.AUDIO
+        }
+}
 
 fun MovieResponse.toMediaItem(): MediaItem {
     return MediaItem(
