@@ -20,4 +20,5 @@
     <logger name="info.movito.themoviedbapi" level="INFO"/>
     <logger name="com.github.kokorin.jaffree" level="ERROR"/>
     <logger name="kjob" level="ERROR"/>
+    <logger name="io.ktor.routing.Routing" level="DEBUG"/>
 </configuration>
