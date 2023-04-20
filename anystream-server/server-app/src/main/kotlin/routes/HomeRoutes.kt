@@ -30,7 +30,6 @@ import anystream.models.api.RecentlyAdded
 import anystream.util.koinGet
 import anystream.util.toRemoteId
 import app.moviebase.tmdb.Tmdb3
-import app.moviebase.tmdb.discover.DiscoverCategory
 import app.moviebase.tmdb.model.*
 import com.ibm.icu.util.ULocale
 import io.ktor.server.application.*
@@ -48,14 +47,14 @@ fun Route.addHomeRoutes(
     tmdb: Tmdb3 = koinGet(),
     queries: MetadataDbQueries = koinGet(),
 ) {
-    val language = ULocale.getDefault().isO3Language
+    val locale = ULocale.getDefault()
+    val language = locale.language
+    val region = "$language-${locale.country}"
     val popularMoviesFlow = callbackFlow<List<TmdbMovieDetail>> {
-        val category = DiscoverCategory.Popular(TmdbMediaType.MOVIE)
         while (true) {
-            val result = tmdb.discover
-                .discoverByCategory(1, language = language, category = category)
+            val result = tmdb.trending
+                .getTrendingMovies(TmdbTimeWindow.WEEK, page = 1, language = language, region = region)
                 .results
-                .filterIsInstance<TmdbMovie>()
                 .map {
                     tmdb.movies.getDetails(
                         it.id,
@@ -74,12 +73,10 @@ fun Route.addHomeRoutes(
         }
     }.stateIn(application, SharingStarted.Eagerly, null)
     val popularTvShowsFlow = callbackFlow<List<TmdbShowDetail>> {
-        val category = DiscoverCategory.Popular(TmdbMediaType.SHOW)
         while (true) {
-            val result = tmdb.discover
-                .discoverByCategory(1, language = language, category = category)
+            val result = tmdb.trending
+                .getTrendingShows(TmdbTimeWindow.WEEK, page = 1, language = language, region = region)
                 .results
-                .filterIsInstance<TmdbShow>()
                 .map {
                     tmdb.show.getDetails(
                         it.id,
