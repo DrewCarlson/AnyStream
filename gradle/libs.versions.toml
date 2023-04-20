@@ -4,8 +4,8 @@ coroutines = "1.7.0-RC"
 serialization = "1.5.0"
 ktorio = "2.3.0"
 composejb = "1.4.0"
-kotlinjs_ext = "1.0.1-pre.537"
-ksp = "1.8.20-1.0.10"
+kotlinjs_ext = "1.0.1-pre.539"
+ksp = "1.8.20-1.0.11"
 atomicfu = "0.20.2"
 kover = "0.6.1"
 datetime = "0.4.0"
@@ -25,20 +25,20 @@ shadowjar = "8.1.1"
 
 zxing = "3.5.1"
 anr_watchdog = "1.4.0"
-compose = "1.4.1"
-compose_material = "1.4.1"
-compose_foundation = "1.4.1"
-composeCompiler = "1.4.5"
+compose = "1.4.2"
+compose_material = "1.4.2"
+compose_foundation = "1.4.2"
+composeCompiler = "1.4.6"
 exoplayer = "2.18.5"
 ax_runner = "1.5.2"
 agp = "7.4.2"
 leakcanary = "2.10"
 koin = "3.4.0"
 koinAndroid = "3.4.0"
-koinAndroidxCompose = "3.4.3"
+koinAndroidxCompose = "3.4.4"
 koinKtor = "3.4.0"
 
-okhttp = "5.0.0-alpha.10"
+okhttp = "5.0.0-alpha.11"
 
 spotless = "6.18.0"
 ktlint = "0.48.2"
@@ -149,7 +149,7 @@ androidx-core-ktx = { module = "androidx.core:core-ktx", version = "1.10.0" }
 androidx-appcompat-core = { module = "androidx.appcompat:appcompat", version = "1.6.1" }
 androidx-leanback-core = { module = "androidx.leanback:leanback", version = "1.1.0-rc02" }
 androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version = "1.7.0" }
-androidx-activity-compose = { module = "androidx.activity:activity-compose", version = "1.7.0" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version = "1.7.1" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version = "2.6.1" }
 androidx-test-runner = { module = "androidx.test:runner", version.ref = "ax_runner" }
 

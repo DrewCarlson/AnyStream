@@ -17,7 +17,7 @@ plugins {
 buildscript {
     repositories {
         gradlePluginPortal()
-        mavenCentral()
+maven("https://repo1.maven.org/maven2/")
         google()
     }
     dependencies {
@@ -34,7 +34,7 @@ allprojects {
     }
 
     repositories {
-        mavenCentral()
+        maven("https://repo1.maven.org/maven2/")
         google()
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
         maven("https://androidx.dev/storage/compose-compiler/repository/")
