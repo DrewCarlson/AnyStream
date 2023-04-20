@@ -74,14 +74,15 @@ class SqlGenerator(
                     it.annotationType.resolve()
                         .declaration
                         .qualifiedName
-                        ?.asString() == "anystream.sql.codegen.JoinTable"
+                        ?.asString() == JoinTable::class.qualifiedName
                 }
             }
             .joinToString(",\n") { prop ->
                 val propName = prop.simpleName.asString()
+                // escape sqlite reserved keywords
                 val cleanPropName = when (propName) {
-                    "default" -> "'default'"
-                    "index" -> "'index'"
+                    "default",
+                    "index" -> "'$propName'"
                     else -> propName
                 }
                 "$prefix.$cleanPropName ${prefix}_$propName"
