@@ -187,20 +187,25 @@ private fun BaseDetailsView(
             Div({ classes("d-flex", "gap-2") }) {
                 mediaItem.contentRating?.also { contentRating ->
                     Div({ classes("d-flex", "align-items-center") }) {
-                        Div({ classes("rounded-2", "p-2", "bg-dark-translucent") }) {
+                        Div({
+                            classes("rounded-2", "p-1", "bg-dark-translucent")
+                            style {
+                                fontSize(14.px)
+                            }
+                        }) {
                             Text(contentRating)
                         }
                     }
                 }
                 mediaItem.tmdbRating?.also { tmdbRating ->
                     Div({
-                        classes("d-flex", "align-items-center", "gap-2")
+                        classes("d-flex", "align-items-center", "gap-2", "rounded-2", "p-1", "bg-dark-translucent")
                         style {
                             fontSize(14.px)
                         }
                     }) {
                         Img("/images/tmdb-small.svg") {
-                            style { width(38.px); height(38.px) }
+                            style { width(21.px); height(21.px) }
                         }
                         Div { Text("$tmdbRating%") }
                     }
@@ -208,7 +213,6 @@ private fun BaseDetailsView(
             }
 
             Div({ classes("d-flex", "flex-row", "py-3", "gap-2") }) {
-                // TODO: Allow user mediaLink selection, order medialinks on server
                 val mediaLink = mediaItem.playableMediaLink
                 if (mediaLink != null) {
                     Button({

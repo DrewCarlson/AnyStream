@@ -22,10 +22,12 @@ $navbar-dark-active-color: $primary;
 $navbar-light-active-color: $primary;
 
 @import "~bootstrap/scss/variables";
+@import "~bootstrap/scss/variables-dark";
 
 $font-family-base: Open Sans,Open Sans Regular,$font-family-base;
 
 @import "~bootstrap/scss/mixins";
+@import "~bootstrap/scss/maps";
 @import "~bootstrap/scss/utilities";
 
 // Components
