@@ -1,6 +1,8 @@
+@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     kotlin("jvm")
     kotlin("plugin.serialization")
+    alias(libs.plugins.ksp)
 }
 
 kotlin {
@@ -18,7 +20,13 @@ java {
     targetCompatibility = JavaVersion.VERSION_11
 }
 
+sourceSets {
+    main { java.srcDir(buildDir.resolve("generated/ksp/$name/kotlin")) }
+}
+
 dependencies {
+    ksp(projects.libs.sqlGenerator)
+    implementation(projects.libs.sqlGeneratorApi)
     implementation(projects.anystreamDataModels)
     implementation(projects.anystreamServer.serverShared)
 
@@ -37,4 +45,12 @@ dependencies {
 
     testImplementation(kotlin("test"))
     testImplementation(kotlin("test-junit"))
+}
+
+tasks.named("formatKotlinMain").configure {
+    dependsOn("kspKotlin")
+}
+
+tasks.named("lintKotlinMain").configure {
+    dependsOn("kspKotlin")
 }

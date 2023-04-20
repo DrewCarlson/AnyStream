@@ -186,6 +186,8 @@ objectstore-json = { module = "org.drewcarlson:objectstore-json", version.ref = 
 objectstore-protobuf = { module = "org.drewcarlson:objectstore-protobuf", version.ref = "objectstore" }
 objectstore-secure = { module = "org.drewcarlson:objectstore-secure", version.ref = "objectstore" }
 
+ksp = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }
+
 [bundles]
 exoplayer = ["exoplayer-core", "exoplayer-ui", "exoplayer-hls"]
 compose = ["compose-ui-ui", "compose-ui-tooling", "compose-foundation", "compose-material", "compose-livedata"]

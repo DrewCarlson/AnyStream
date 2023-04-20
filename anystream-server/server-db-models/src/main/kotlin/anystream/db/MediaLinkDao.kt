@@ -17,11 +17,11 @@
  */
 package anystream.db
 
-import anystream.db.model.MediaLinkDb
-import anystream.db.model.StreamEncodingDetailsDb
+import anystream.db.model.*
 import anystream.models.MediaLink
 import org.jdbi.v3.core.result.LinkedHashMapRowReducer
 import org.jdbi.v3.core.result.RowView
+import org.jdbi.v3.sqlobject.config.RegisterJoinRowMapper
 import org.jdbi.v3.sqlobject.customizer.BindList
 import org.jdbi.v3.sqlobject.kotlin.RegisterKotlinMapper
 import org.jdbi.v3.sqlobject.kotlin.RegisterKotlinMappers
@@ -32,64 +32,14 @@ import org.jdbi.v3.sqlobject.statement.SqlQuery
 import org.jdbi.v3.sqlobject.statement.SqlUpdate
 import org.jdbi.v3.sqlobject.statement.UseRowReducer
 
-private const val MEDIAREF_COLUMNS = """
-            mediaLink.id medialink_id,
-            mediaLink.gid medialink_gid,
-            mediaLink.metadataId medialink_metadataId,
-            mediaLink.metadataGid medialink_metadataGid,
-            mediaLink.rootMetadataId medialink_rootMetadataId,
-            mediaLink.rootMetadataGid medialink_rootMetadataGid,
-            mediaLink.parentMediaLinkId medialink_parentMediaLinkId,
-            mediaLink.parentMediaLinkGid medialink_parentMediaLinkGid,
-            mediaLink.addedAt medialink_addedAt,
-            mediaLink.addedByUserId medialink_addedByUserId,
-            mediaLink.mediaKind medialink_mediaKind,
-            mediaLink.type medialink_type,
-            mediaLink.updatedAt medialink_updatedAt,
-            mediaLink.filePath medialink_filePath,
-            mediaLink.directory medialink_directory,
-            mediaLink.descriptor medialink_descriptor,
-            mediaLink.hash medialink_hash,
-            mediaLink.fileIndex medialink_fileIndex"""
-
-private const val STEAM_COLUMNS = """
-            s.id s_id,
-            s.streamId s_streamId,
-            s.codecName s_codecName,
-            s.codecLongName s_codecLongName,
-            s.'index' s_index,
-            s.language s_language,
-            s.profile s_profile,
-            s.bitRate s_bitRate,
-            s.channels s_channels,
-            s.channelLayout s_channelLayout,
-            s.level s_level,
-            s.height s_height,
-            s.width s_width,
-            s.type s_type,
-            s.pixFmt s_pixFmt,
-            s.colorSpace s_colorSpace,
-            s.colorRange s_colorRange,
-            s.colorTransfer s_colorTransfer,
-            s.colorPrimaries s_colorPrimaries,
-            s.fieldOrder s_fieldOrder,
-            s.sampleFmt s_sampleFmt,
-            s.sampleRate s_sampleRate,
-            s.duration s_duration,
-            s.'default' s_default,
-            s.mediaLinkId s_mediaLinkId"""
-
-private const val JOIN_STREAMS = """
-            LEFT JOIN streamEncoding s on s.mediaLinkId = mediaLink.id"""
-
 @RegisterKotlinMappers(
-    RegisterKotlinMapper(MediaLinkDb::class, prefix = "medialink"),
-    RegisterKotlinMapper(StreamEncodingDetailsDb::class, prefix = "s"),
+    RegisterKotlinMapper(MediaLinkDb::class, prefix = "mediaLink"),
+    RegisterKotlinMapper(StreamEncodingDetailsDb::class, prefix = "streamEncoding"),
 )
 interface MediaLinkDao {
 
     @UseRowReducer(MediaReferenceReducer::class)
-    @SqlQuery("SELECT $MEDIAREF_COLUMNS, $STEAM_COLUMNS FROM mediaLink $JOIN_STREAMS")
+    @SqlQuery(MEDIALINK_SELECT)
     fun all(): List<MediaLinkDb>
 
     @SqlUpdate
@@ -136,39 +86,40 @@ interface MediaLinkDao {
     fun updateParentMediaLinkId(mediaLinkGid: String, parentMediaLinkId: Int, parentMediaLinkGid: String)
 
     @UseRowReducer(MediaReferenceReducer::class)
-    @SqlQuery("SELECT $MEDIAREF_COLUMNS, $STEAM_COLUMNS FROM mediaLink $JOIN_STREAMS WHERE gid = ?")
+    @SqlQuery("$MEDIALINK_SELECT WHERE gid = ?")
     fun findByGid(gid: String): MediaLinkDb?
 
     @UseRowReducer(MediaReferenceReducer::class)
-    @SqlQuery("SELECT $MEDIAREF_COLUMNS, $STEAM_COLUMNS FROM mediaLink $JOIN_STREAMS WHERE gid IN (<gids>)")
+    @SqlQuery("$MEDIALINK_SELECT WHERE gid IN (<gids>)")
     fun findByGids(@BindList("gids") gids: List<String>): List<MediaLinkDb>
 
     @UseRowReducer(MediaReferenceReducer::class)
-    @SqlQuery("SELECT $MEDIAREF_COLUMNS, $STEAM_COLUMNS FROM mediaLink $JOIN_STREAMS WHERE metadataGid = ?")
+    @SqlQuery("$MEDIALINK_SELECT WHERE metadataGid = ?")
     fun findByMetadataGid(metadataGid: String): List<MediaLinkDb>
 
+    @RegisterJoinRowMapper(StreamEncodingDetailsDb::class)
     @UseRowReducer(MediaReferenceReducer::class)
-    @SqlQuery("SELECT $MEDIAREF_COLUMNS, $STEAM_COLUMNS FROM mediaLink $JOIN_STREAMS WHERE metadataGid IN (<gids>)")
+    @SqlQuery("$MEDIALINK_SELECT WHERE metadataGid IN (<gids>)")
     fun findByMetadataGids(@BindList("gids") gids: List<String>): List<MediaLinkDb>
 
     @UseRowReducer(MediaReferenceReducer::class)
-    @SqlQuery("SELECT $MEDIAREF_COLUMNS, $STEAM_COLUMNS FROM mediaLink $JOIN_STREAMS WHERE rootMetadataGid = ?")
+    @SqlQuery("$MEDIALINK_SELECT WHERE rootMetadataGid = ?")
     fun findByRootMetadataGid(metadataGid: String): List<MediaLinkDb>
 
     @UseRowReducer(MediaReferenceReducer::class)
-    @SqlQuery("SELECT $MEDIAREF_COLUMNS, $STEAM_COLUMNS FROM mediaLink $JOIN_STREAMS WHERE rootMetadataGid IN (<gids>)")
+    @SqlQuery("$MEDIALINK_SELECT WHERE rootMetadataGid IN (<gids>)")
     fun findByRootMetadataGids(@BindList("gids") gids: List<String>): List<MediaLinkDb>
 
     @UseRowReducer(MediaReferenceReducer::class)
-    @SqlQuery("SELECT $MEDIAREF_COLUMNS, $STEAM_COLUMNS FROM mediaLink $JOIN_STREAMS WHERE filePath LIKE ? || '%'")
+    @SqlQuery("$MEDIALINK_SELECT WHERE filePath LIKE ? || '%'")
     fun findByBasePath(basePath: String): List<MediaLinkDb>
 
     @UseRowReducer(MediaReferenceReducer::class)
-    @SqlQuery("SELECT $MEDIAREF_COLUMNS, $STEAM_COLUMNS FROM mediaLink $JOIN_STREAMS WHERE filePath LIKE ? || '%' AND descriptor = ?")
+    @SqlQuery("$MEDIALINK_SELECT WHERE filePath LIKE ? || '%' AND descriptor = ?")
     fun findByBasePathAndDescriptor(basePath: String, descriptor: MediaLink.Descriptor): List<MediaLinkDb>
 
     @UseRowReducer(MediaReferenceReducer::class)
-    @SqlQuery("SELECT $MEDIAREF_COLUMNS, $STEAM_COLUMNS FROM mediaLink $JOIN_STREAMS WHERE filePath LIKE :basePath || '%' AND descriptor IN (<descriptor>)")
+    @SqlQuery("$MEDIALINK_SELECT WHERE filePath LIKE :basePath || '%' AND descriptor IN (<descriptor>)")
     fun findByBasePathAndDescriptors(
         basePath: String,
         @BindList("descriptor") descriptor: List<MediaLink.Descriptor>,
@@ -178,11 +129,11 @@ interface MediaLinkDao {
     fun countInBasePath(basePath: String, descriptor: MediaLink.Descriptor): Int
 
     @UseRowReducer(MediaReferenceReducer::class)
-    @SqlQuery("SELECT $MEDIAREF_COLUMNS, $STEAM_COLUMNS FROM mediaLink $JOIN_STREAMS WHERE filePath = ?")
+    @SqlQuery("$MEDIALINK_SELECT WHERE filePath = ?")
     fun findByFilePath(filePath: String): MediaLinkDb?
 
     @UseRowReducer(MediaReferenceReducer::class)
-    @SqlQuery("SELECT $MEDIAREF_COLUMNS, $STEAM_COLUMNS FROM mediaLink $JOIN_STREAMS WHERE filePath IN (<filePaths>)")
+    @SqlQuery("$MEDIALINK_SELECT WHERE filePath IN (<filePaths>)")
     fun findByFilePaths(@BindList("filePaths") filePaths: List<String>): List<MediaLinkDb>
 
     @SqlQuery("SELECT gid FROM mediaLink WHERE filePath IN (<filePaths>)")
@@ -195,7 +146,7 @@ interface MediaLinkDao {
     fun findFilePathsByBasePath(basePath: String): List<String>
 
     @UseRowReducer(MediaReferenceReducer::class)
-    @SqlQuery("SELECT $MEDIAREF_COLUMNS, $STEAM_COLUMNS FROM mediaLink $JOIN_STREAMS WHERE descriptor = ?")
+    @SqlQuery("$MEDIALINK_SELECT WHERE descriptor = ?")
     fun findByDescriptor(descriptor: MediaLink.Descriptor): List<MediaLinkDb>
 
     @SqlQuery("SELECT filePath FROM mediaLink WHERE length(mediaLink.filePath) > 0")
@@ -223,9 +174,9 @@ interface MediaLinkDao {
         override fun accumulate(container: MutableMap<Int, MediaLinkDb>?, rowView: RowView?) {
             checkNotNull(container)
             checkNotNull(rowView)
-            val rowId = rowView.getColumn("medialink_id", Integer::class.javaObjectType) as Int
+            val rowId = rowView.getColumn("mediaLink_id", Integer::class.javaObjectType).toInt()
             var mediaLinkDb = container.computeIfAbsent(rowId) { rowView.getRow(MediaLinkDb::class.java) }
-            rowView.getColumn("s_mediaLinkId", Integer::class.javaObjectType)?.let { joinId ->
+            rowView.getColumn("streamEncoding_mediaLinkId", Integer::class.javaObjectType)?.let { joinId ->
                 if (mediaLinkDb.streams.none { it.id == joinId.toInt() }) {
                     val stream = rowView.getRow(StreamEncodingDetailsDb::class.java)
                     mediaLinkDb = mediaLinkDb.copy(streams = mediaLinkDb.streams + stream)

@@ -18,11 +18,14 @@
 package anystream.db.model
 
 import anystream.models.*
+import anystream.sql.codegen.GenerateSqlSelect
+import anystream.sql.codegen.JoinTable
 import anystream.util.ObjectId
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import java.io.File
 
+@GenerateSqlSelect
 data class MediaLinkDb(
     val id: Int?,
     val gid: String,
@@ -42,6 +45,7 @@ data class MediaLinkDb(
     val fileIndex: Int? = null,
     val hash: String? = null,
     val descriptor: MediaLink.Descriptor,
+    @JoinTable("streamEncoding")
     val streams: List<StreamEncodingDetailsDb> = emptyList(),
 ) {
     enum class Type {

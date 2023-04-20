@@ -13,6 +13,8 @@ include(
     ":anystream-server:server-stream-service",
     ":libs:preferences",
     ":libs:routing-compose",
+    ":libs:sql-generator",
+    ":libs:sql-generator-api",
 )
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
