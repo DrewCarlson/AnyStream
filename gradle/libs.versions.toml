@@ -38,7 +38,7 @@ koinAndroid = "3.4.0"
 koinAndroidxCompose = "3.4.4"
 koinKtor = "3.4.0"
 
-okhttp = "5.0.0-alpha.11"
+okhttp = "5.0.0-SNAPSHOT"
 
 spotless = "6.18.0"
 ktlint = "0.48.2"
