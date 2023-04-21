@@ -1,21 +1,6 @@
 plugins {
-    kotlin("jvm")
+    id("server-lib")
     kotlin("plugin.serialization")
-}
-
-kotlin {
-    target {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = "11"
-            }
-        }
-    }
-}
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
 }
 
 dependencies {

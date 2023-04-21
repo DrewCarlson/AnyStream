@@ -2,7 +2,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
-    alias(libs.plugins.jvm)
+    id("server-lib")
     alias(libs.plugins.serialization)
     application
     id("com.github.johnrengelman.shadow")
@@ -33,11 +33,6 @@ tasks.withType<ShadowJar> {
 
 val testGenSrcPath = "build/generated-kotlin"
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
-}
-
 kotlin {
     sourceSets["test"].kotlin.srcDirs(testGenSrcPath)
     sourceSets.all {
@@ -46,11 +41,6 @@ kotlin {
         }
     }
     target {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = "11"
-            }
-        }
         compilations.getByName("test") {
             compileKotlinTask.doFirst {
                 file(testGenSrcPath).also { if (!it.exists()) it.mkdirs() }
