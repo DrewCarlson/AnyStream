@@ -47,6 +47,7 @@ kotlin {
     iosSimulatorArm64()
     iosX64()
 
+    @Suppress("UNUSED_VARIABLE")
     sourceSets {
         all {
             languageSettings.apply {
