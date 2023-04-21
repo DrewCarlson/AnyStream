@@ -80,10 +80,9 @@ class SqlGenerator(
             .joinToString(",\n") { prop ->
                 val propName = prop.simpleName.asString()
                 // escape sqlite reserved keywords
-                val cleanPropName = when (propName) {
-                    "default",
-                    "index" -> "'$propName'"
-                    else -> propName
+                val cleanPropName = when (SqliteKeywords.contains(propName.lowercase())) {
+                    true -> "'$propName'"
+                    false -> propName
                 }
                 "$prefix.$cleanPropName ${prefix}_$propName"
             }
@@ -104,8 +103,9 @@ class SqlGenerator(
                     .first { it.name?.asString() == "table" }
                     .value as String
 
-                val joinedTableClass = (prop.type.resolve().arguments.first().type?.resolve()?.declaration as? KSClassDeclaration)
-                    ?: throw IllegalStateException("Joined table property type must be a List of data class.")
+                val joinedTableClass =
+                    (prop.type.resolve().arguments.first().type?.resolve()?.declaration as? KSClassDeclaration)
+                        ?: throw IllegalStateException("Joined table property type must be a List of data class.")
 
                 joinedTableName to generateSqlSelect(joinedTableClass, joinedTableName)
             }
