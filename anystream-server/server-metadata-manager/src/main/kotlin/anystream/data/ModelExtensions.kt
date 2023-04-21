@@ -31,11 +31,12 @@ import kotlin.math.roundToInt
 private const val MAX_CACHED_POSTERS = 5
 
 fun TmdbMovieDetail.asMovie(
-    id: String,
+    id: Int,
+    gid: String,
     userId: Int = 1,
 ) = Movie(
-    id = -1,
-    gid = id,
+    id = id,
+    gid = gid,
     tmdbId = this.id,
     title = title,
     overview = overview,
@@ -60,30 +61,51 @@ fun TmdbMovieDetail.asMovie(
 
 fun TmdbShowDetail.asTvShow(
     tmdbSeasons: List<TmdbSeason>,
-    id: String,
+    id: Int,
+    gid: String,
     userId: Int,
+    existingEpisodes: Map<Int, MetadataDb>,
+    existingSeasons: Map<Int, MetadataDb>,
     createId: (id: Int) -> String = { ObjectId.get().toString() },
 ): Triple<MetadataDb, List<MetadataDb>, List<MetadataDb>> {
     val episodes = tmdbSeasons.flatMap { season ->
+        val existingSeason = existingSeasons[season.id]
         season.episodes.orEmpty().map { episode ->
-            episode.asTvEpisode(createId(episode.id), id, createId(season.id))
+            val existingEpisode = existingEpisodes[season.id]
+            episode.asTvEpisode(
+                existingEpisode?.id ?: -1,
+                existingEpisode?.gid ?: createId(episode.id),
+                id,
+                gid,
+                existingSeason?.id ?: -1,
+                existingEpisode?.gid ?: createId(season.id),
+            )
         }
     }
     val seasons = tmdbSeasons.map { season ->
-        season.asTvSeason(createId(season.id))
+        val existingSeason = existingSeasons[season.id]
+        season.asTvSeason(existingSeason?.id ?: -1, existingSeason?.gid ?: createId(season.id))
     }
-    return Triple(asTvShow(id, userId), seasons, episodes)
+    return Triple(asTvShow(id, gid, userId), seasons, episodes)
 }
 
-fun TmdbEpisode.asTvEpisode(id: String, showId: String, seasonId: String, userId: Int = 1): MetadataDb {
+fun TmdbEpisode.asTvEpisode(
+    id: Int,
+    gid: String,
+    showId: Int,
+    showGid: String,
+    seasonId: Int,
+    seasonGid: String,
+    userId: Int = 1,
+): MetadataDb {
     val now = Clock.System.now()
     return MetadataDb(
-        id = -1,
-        gid = id,
-        parentId = -1, // TODO: Add parent id int
-        parentGid = seasonId,
-        rootId = -1, // TODO: Add root id int
-        rootGid = showId,
+        id = id,
+        gid = gid,
+        parentId = seasonId,
+        parentGid = seasonGid,
+        rootId = showId,
+        rootGid = showGid,
         tmdbId = this.id,
         title = name ?: "",
         overview = overview.orEmpty(),
@@ -100,11 +122,11 @@ fun TmdbEpisode.asTvEpisode(id: String, showId: String, seasonId: String, userId
     )
 }
 
-fun TmdbSeason.asTvSeason(id: String, userId: Int = 1): MetadataDb {
+fun TmdbSeason.asTvSeason(id: Int, gid: String, userId: Int = 1): MetadataDb {
     val now = Clock.System.now()
     return MetadataDb(
-        id = -1,
-        gid = id,
+        id = id,
+        gid = gid,
         tmdbId = this.id,
         title = name,
         overview = overview.orEmpty(),
@@ -119,11 +141,15 @@ fun TmdbSeason.asTvSeason(id: String, userId: Int = 1): MetadataDb {
     )
 }
 
-fun TmdbShowDetail.asTvShow(id: String, userId: Int = 1): MetadataDb {
+fun TmdbShowDetail.asTvShow(
+    id: Int,
+    gid: String,
+    userId: Int = 1,
+): MetadataDb {
     val now = Clock.System.now()
     return MetadataDb(
-        id = -1,
-        gid = id,
+        id = id,
+        gid = gid,
         title = name,
         tmdbId = this.id,
         overview = overview,

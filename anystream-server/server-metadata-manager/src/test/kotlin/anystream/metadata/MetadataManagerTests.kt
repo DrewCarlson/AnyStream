@@ -79,6 +79,7 @@ class MetadataManagerTests {
         val importResult = assertIs<ImportMetadataResult.Success>(importResults.first())
         val metadataMatch = assertIs<MetadataMatch.MovieMatch>(importResult.match)
 
+        assertNotEquals(-1, metadataMatch.movie.id)
         assertEquals("77", metadataMatch.metadataGid)
         assertEquals("tmdb:movie:77", metadataMatch.remoteId)
         assertEquals("Memento", metadataMatch.movie.title)
@@ -102,6 +103,7 @@ class MetadataManagerTests {
         val importResult = assertIs<ImportMetadataResult.Success>(importResults.first())
         val metadataMatch = assertIs<MetadataMatch.TvShowMatch>(importResult.match)
 
+        assertNotEquals(-1, metadataMatch.tvShow.id)
         assertEquals("63333", metadataMatch.metadataGid)
         assertEquals("tmdb:tv:63333", metadataMatch.remoteId)
         assertEquals("The Last Kingdom", metadataMatch.tvShow.name)

@@ -75,7 +75,7 @@ class TmdbMetadataProvider(
             } catch (e: Throwable) {
                 return ImportMetadataResult.ErrorDataProviderException(e.stackTraceToString())
             }
-            val movie = movieDb.asMovie(movieId, userId)
+            val movie = movieDb.asMovie(existingMovie?.id ?: -1, movieId, userId)
             try {
                 val finalMovie = queries.insertMovie(movie).toMovieModel()
                 ImportMetadataResult.Success(
@@ -106,10 +106,10 @@ class TmdbMetadataProvider(
 
     private suspend fun importTvShow(tmdbId: Int, request: ImportMetadata): ImportMetadataResult {
         val existingTvShow = queries.findTvShowByTmdbId(tmdbId)
-        val existingSeasons = existingTvShow?.run { queries.findTvSeasonsByTvShowId(gid) }.orEmpty()
 
         if (existingTvShow != null && !request.refresh) {
             val existingEpisodes = queries.findEpisodesByShow(existingTvShow.gid)
+            val existingSeasons = queries.findTvSeasonsByTvShowId(existingTvShow.gid)
             return ImportMetadataResult.ErrorMetadataAlreadyExists(
                 existingMediaId = existingTvShow.gid,
                 match = MetadataMatch.TvShowMatch(
@@ -123,7 +123,8 @@ class TmdbMetadataProvider(
             )
         }
 
-        val tvShowId = existingTvShow?.gid ?: ObjectId.get().toString()
+        val tvShowId = existingTvShow?.id ?: -1
+        val tvShowGid = existingTvShow?.gid ?: ObjectId.get().toString()
         val userId = 1
         val tmdbSeries = try {
             checkNotNull(fetchTvSeries(tmdbId))
@@ -137,7 +138,20 @@ class TmdbMetadataProvider(
         } catch (e: Throwable) {
             return ImportMetadataResult.ErrorDataProviderException(e.stackTraceToString())
         }
-        val (tvShow, tvSeasons, episodes) = tmdbSeries.asTvShow(tmdbSeasons, tvShowId, userId)
+        val existingSeasons = queries.metadataDao
+            .findAllByRootGidAndType(tvShowGid, MetadataDb.Type.TV_SEASON)
+            .associateBy { it.tmdbId!! }
+        val existingEpisodes = queries.metadataDao
+            .findAllByRootGidAndType(tvShowGid, MetadataDb.Type.TV_EPISODE)
+            .associateBy { it.tmdbId!! }
+        val (tvShow, tvSeasons, episodes) = tmdbSeries.asTvShow(
+            tmdbSeasons,
+            tvShowId,
+            tvShowGid,
+            userId,
+            existingEpisodes,
+            existingSeasons,
+        )
 
         return try {
             val (finalTvShow, finalSeasons, finalEpisodes) = queries.insertTvShow(tvShow, tvSeasons, episodes)
@@ -256,8 +270,9 @@ class TmdbMetadataProvider(
                 remoteId = remoteId,
                 exists = existingMovie != null,
                 movie = movieDb.asMovie(
-                    id = existingMovie?.gid ?: remoteId,
-                    userId = 1,
+                    id = existingMovie?.id ?: -1,
+                    gid = existingMovie?.gid ?: remoteId,
+                    userId = existingMovie?.addedByUserId ?: 1,
                 ),
             )
         }
@@ -315,11 +330,11 @@ class TmdbMetadataProvider(
             val remoteId = tvSeries.toRemoteId()
             val existingSeasons = if (tvShowExtras?.seasonNumber == null) {
                 existingShow?.run { queries.findTvSeasonsByTvShowId(gid) }
-                    ?: tvSeries.seasons.map { it.asTvSeason(it.toRemoteId(tvSeries.id)) }
+                    ?: tvSeries.seasons.map { it.asTvSeason(-1, it.toRemoteId(tvSeries.id)) }
             } else {
                 tvSeries.seasons
                     .filter { it.seasonNumber == tvShowExtras.seasonNumber }
-                    .map { it.asTvSeason(it.toRemoteId(tvSeries.id)) }
+                    .map { it.asTvSeason(-1, it.toRemoteId(tvSeries.id)) }
             }
             val existingEpisodes = when {
                 tvShowExtras?.seasonNumber != null -> {
@@ -342,8 +357,11 @@ class TmdbMetadataProvider(
                             .map { tmdbEpisode ->
                                 tmdbEpisode
                                     .asTvEpisode(
+                                        -1,
                                         tmdbEpisode.toRemoteId(tvSeries.id),
+                                        -1,
                                         tvSeries.toRemoteId(),
+                                        -1,
                                         seasonResponse.toRemoteId(tvSeries.id),
                                     )
                                     .toTvEpisodeModel()
@@ -364,7 +382,7 @@ class TmdbMetadataProvider(
                 metadataGid = tvSeries.id.toString(),
                 remoteId = remoteId,
                 exists = existingShow != null,
-                tvShow = existingShow ?: tvSeries.asTvShow(remoteId).toTvShowModel(),
+                tvShow = existingShow ?: tvSeries.asTvShow(-1, remoteId).toTvShowModel(),
                 seasons = existingSeasons.map { it.toTvSeasonModel() },
                 episodes = existingEpisodes,
             )

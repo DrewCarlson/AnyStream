@@ -178,7 +178,7 @@ private suspend fun loadPopularMovies(
     val popularMovies = tmdbPopular.map { dbMovie ->
         val existingIndex = existingMovies.indexOfFirst { it.tmdbId == dbMovie.id }
         if (existingIndex == -1) {
-            dbMovie.asMovie(dbMovie.toRemoteId())
+            dbMovie.asMovie(-1, dbMovie.toRemoteId())
         } else {
             existingMovies.removeAt(existingIndex)
         }
@@ -196,7 +196,7 @@ private suspend fun loadPopularMovies(
         .map { series ->
             val existingIndex = existingShows.indexOfFirst { it.tmdbId == series.id }
             if (existingIndex == -1) {
-                series.asTvShow(series.toRemoteId()).toTvShowModel()
+                series.asTvShow(-1, series.toRemoteId()).toTvShowModel()
             } else {
                 existingShows.removeAt(existingIndex)
             }
