@@ -20,6 +20,45 @@ package anystream.db.model
 import anystream.models.*
 import kotlinx.datetime.*
 
+/**
+ * A data class representing the metadata of various media entities such as movies, TV shows, episodes, seasons,
+ * music artists, albums, etc. This class is used as a database model to store and manage metadata information.
+ *
+ * Metadata entries may represent a hierarchy of content such as TV Show > Seasons > Episodes.
+ * The metadata hierarchy for TV episodes and seasons is organized as follows:
+ * - A TV show has multiple seasons.
+ * - Each season has multiple episodes.
+ * - The TV show metadata contains the overall information about the show, such as title, overview, and content rating.
+ * - The season metadata contains information specific to the season, such as its index within the show and poster.
+ * - The episode metadata contains information specific to the episode, such as its index within the season and runtime.
+ *
+ * @property id Unique identifier for the metadata entry.
+ * @property gid Globally unique identifier for the metadata entry.
+ * @property rootId Unique identifier of the root entity in the hierarchy (e.g., the TV show for a season or episode).
+ * @property rootGid Globally unique identifier of the root entity in the hierarchy.
+ * @property parentId Unique identifier of the parent entity in the hierarchy (e.g., the season for an episode).
+ * @property parentGid Globally unique identifier of the parent entity in the hierarchy.
+ * @property title Title of the media entity.
+ * @property overview Overview or description of the media entity.
+ * @property tagline Tagline or subtitle of the media entity.
+ * @property tmdbId The Movie Database (TMDb) identifier for the media entity.
+ * @property imdbId Internet Movie Database (IMDb) identifier for the media entity.
+ * @property runtime Runtime duration of the media entity in minutes.
+ * @property index Index or position of the entity within its parent container (e.g., season index within a show).
+ * @property parentIndex Index or position of the parent entity within its container (e.g., season index for an episode).
+ * @property contentRating Content rating of the media entity (e.g., PG-13, TV-MA).
+ * @property posterPath Path to the poster image file for the media entity.
+ * @property backdropPath Path to the backdrop image file for the media entity.
+ * @property firstAvailableAt Timestamp of when the media entity was first made available.
+ * @property createdAt Timestamp of when the metadata entry was created in the database.
+ * @property updatedAt Timestamp of when the metadata entry was last updated in the database.
+ * @property addedByUserId Unique identifier of the user who added the metadata entry.
+ * @property mediaKind The kind of media (e.g., video, audio) the entity belongs to.
+ * @property mediaType The specific type of the media entity (e.g., movie, TV show, TV episode, TV season).
+ * @property tmdbRating The Movie Database (TMDb) rating for the media entity.
+ * @property genres List of genres associated with the media entity.
+ * @property companies List of production companies associated with the media entity.
+ */
 data class MetadataDb(
     val id: Int,
     val gid: String,

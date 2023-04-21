@@ -20,6 +20,20 @@ package anystream.db.model
 import anystream.models.PlaybackState
 import kotlinx.datetime.Instant
 
+/**
+ * A data class representing the current playback state of a media file for a specific user. This class is used
+ * as a database model to store and manage information related to the user's progress in watching or listening
+ * to media content.
+ *
+ * @property id Unique identifier for the playback state entry.
+ * @property gid Globally unique identifier for the playback state entry.
+ * @property mediaLinkId Unique identifier for the associated media link entry.
+ * @property metadataGid Globally unique identifier for the associated metadata entry.
+ * @property userId Unique identifier for the user whose playback state is being tracked.
+ * @property position Current playback position in the media file in seconds.
+ * @property runtime Total runtime of the media file in seconds.
+ * @property updatedAt Timestamp of when the playback state entry was last updated.
+ */
 data class PlaybackStateDb(
     val id: Int,
     val gid: String,

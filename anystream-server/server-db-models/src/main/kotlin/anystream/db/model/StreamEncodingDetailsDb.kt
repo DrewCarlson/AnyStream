@@ -19,6 +19,38 @@ package anystream.db.model
 
 import anystream.models.StreamEncodingDetails
 
+/**
+ * A data class representing the encoding details of a media file associated with a media link. This class is used
+ * as a database model to store and manage information related to the encoding properties of media files, such as
+ * codec, resolution, and bitrate.
+ *
+ * @property id Unique identifier for the stream encoding details entry.
+ * @property streamId Unique identifier for the associated stream.
+ * @property codecName Short name of the codec used for encoding the media stream.
+ * @property codecLongName Long name of the codec used for encoding the media stream.
+ * @property index Index of the stream within the media file.
+ * @property language Language code of the stream (e.g., 'en' for English).
+ * @property profile Codec profile used for encoding the media stream.
+ * @property bitRate Bitrate of the encoded media stream in bits per second.
+ * @property channels Number of audio channels in the media stream.
+ * @property channelLayout Layout of the audio channels in the media stream.
+ * @property level Level of the codec used for encoding the media stream.
+ * @property height Height of the video stream in pixels.
+ * @property width Width of the video stream in pixels.
+ * @property type Type of the media stream (e.g., video, audio, subtitle).
+ * @property title Title of the media stream.
+ * @property colorSpace Color space used in the video stream.
+ * @property colorRange Color range used in the video stream.
+ * @property colorTransfer Color transfer function used in the video stream.
+ * @property colorPrimaries Color primaries used in the video stream.
+ * @property pixFmt Pixel format used in the video stream.
+ * @property fieldOrder Field order used in the video stream.
+ * @property sampleFmt Audio sample format used in the audio stream.
+ * @property sampleRate Audio sample rate used in the audio stream, in samples per second.
+ * @property duration Duration of the media stream in seconds.
+ * @property mediaLinkId Unique identifier for the associated media link entry.
+ * @property default Flag indicating whether the stream is the default choice for its type within the media file.
+ */
 data class StreamEncodingDetailsDb(
     val id: Int,
     val streamId: Int?,

@@ -25,6 +25,35 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import java.io.File
 
+/**
+ * A data class representing the links to various media files, which may exist locally or be downloaded from
+ * external sources. This class is used as a database model to store and manage information related to media files
+ * and their associations with metadata entries.
+ *
+ * MediaLinkDb instances are organized in a hierarchical structure, with root directories containing media files
+ * and directories, and child directories containing a subset of files and directories belonging to a specific
+ * root metadata entry.
+ *
+ * @property id Unique identifier for the media link entry.
+ * @property gid Globally unique identifier for the media link entry.
+ * @property metadataId Unique identifier for the associated metadata entry.
+ * @property metadataGid Globally unique identifier for the associated metadata entry.
+ * @property rootMetadataId Unique identifier for the root metadata entry in the hierarchy (e.g., the TV show for a season or episode).
+ * @property rootMetadataGid Globally unique identifier for the root metadata entry in the hierarchy.
+ * @property parentMediaLinkId Unique identifier for the parent media link entry in the hierarchy (e.g., the season directory for an episode file).
+ * @property parentMediaLinkGid Globally unique identifier for the parent media link entry in the hierarchy.
+ * @property addedAt Timestamp of when the media link entry was added.
+ * @property updatedAt Timestamp of when the media link entry was last updated.
+ * @property addedByUserId Unique identifier of the user who added the media link entry.
+ * @property mediaKind The kind of media (e.g., video, audio) the file belongs to.
+ * @property type The type of the media link (e.g., DOWNLOAD, LOCAL).
+ * @property filePath Path to the media file.
+ * @property directory Flag indicating whether the media link represents a directory.
+ * @property fileIndex Index or position of the file within its parent container (e.g., episode index within a season directory).
+ * @property hash Hash of the media file, used for integrity checks and deduplication.
+ * @property descriptor Descriptor indicating the type of media file or directory (e.g., VIDEO, AUDIO, SUBTITLE, IMAGE).
+ * @property streams List of stream encoding details associated with the media file.
+ */
 @GenerateSqlSelect
 data class MediaLinkDb(
     val id: Int?,
@@ -73,6 +102,7 @@ data class MediaLinkDb(
                 filePath = filePath,
                 descriptor = descriptor,
             )
+
             Type.LOCAL -> LocalMediaLink(
                 id = id ?: -1,
                 gid = gid,
@@ -141,6 +171,7 @@ data class MediaLinkDb(
                     descriptor = mediaLink.descriptor,
                     streams = mediaLink.streams.map(StreamEncodingDetailsDb::fromModel),
                 )
+
                 is LocalMediaLink -> MediaLinkDb(
                     id = mediaLink.id,
                     gid = mediaLink.gid,

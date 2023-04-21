@@ -135,7 +135,7 @@ sealed class MediaLink {
         SUBTITLE,
 
         /**
-         * A subtitle file of any type, identified as usable based
+         * An image file of any type, identified as usable based
          * on the file extension and known image file extensions.
          */
         IMAGE,
