@@ -21,5 +21,12 @@ java {
 
 sourceSets {
     main { java.srcDir(buildDir.resolve("generated/ksp/$name/kotlin")) }
+
+    val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
+    test {
+        dependencies {
+            implementation(libs.findLibrary("mockk").get())
+        }
+    }
 }
 

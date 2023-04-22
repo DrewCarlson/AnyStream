@@ -44,6 +44,7 @@ spotless = "6.18.0"
 ktlint = "0.48.2"
 icu4j = "73.1"
 objectstore = "0.2.0"
+mockk = "1.13.5"
 
 [plugins]
 multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
@@ -80,6 +81,7 @@ okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 
 flyway-core = { module = "org.flywaydb:flyway-core", version = "9.16.3" }
 fastObjectPool = { module = "cn.danielw:fast-object-pool", version = "2.2.1" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 
 jdbi-core = { module = "org.jdbi:jdbi3-core", version.ref = "jdbi" }
 jdbi-sqlobject = { module = "org.jdbi:jdbi3-sqlobject", version.ref = "jdbi" }

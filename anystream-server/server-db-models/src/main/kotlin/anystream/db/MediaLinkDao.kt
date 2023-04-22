@@ -145,6 +145,9 @@ interface MediaLinkDao {
     @SqlQuery("SELECT filePath FROM mediaLink WHERE filePath LIKE ? || '%'")
     fun findFilePathsByBasePath(basePath: String): List<String>
 
+    @SqlQuery("SELECT filePath FROM mediaLink WHERE gid IN (<mediaLinkGids>)")
+    fun findFilePathsByGids(@BindList("mediaLinkGids") gids: List<String>): List<String>
+
     @UseRowReducer(MediaReferenceReducer::class)
     @SqlQuery("$MEDIALINK_SELECT WHERE descriptor = ?")
     fun findByDescriptor(descriptor: MediaLink.Descriptor): List<MediaLinkDb>
