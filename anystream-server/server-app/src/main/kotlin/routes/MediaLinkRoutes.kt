@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2021 AnyStream Maintainers
+ * Copyright (C) 2023 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -15,17 +15,24 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.media
+package anystream.routes
 
-import anystream.db.model.MediaLinkDb
-import anystream.media.processor.file.FileNameParser
-import anystream.models.MediaKind
+import anystream.data.MetadataDbQueries
+import anystream.media.LibraryManager
+import anystream.util.koinGet
+import io.ktor.server.routing.*
 
-interface MediaFileProcessor {
+fun Route.addMediaLinkManageRotues(
+    libraryManager: LibraryManager = koinGet(),
+    queries: MetadataDbQueries = koinGet(),
+) {
+    route("/medialink") {
+    }
+}
 
-    val mediaKinds: List<MediaKind>
-
-    val fileNameParser: FileNameParser
-
-    suspend fun matchMediaLinkMetadata(mediaLink: MediaLinkDb, userId: Int)
+fun Route.addMediaLinkViewRotues(
+    queries: MetadataDbQueries = koinGet(),
+) {
+    route("/medialink") {
+    }
 }

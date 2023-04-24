@@ -150,7 +150,7 @@ fun Application.module(testing: Boolean = false) {
                         MovieFileProcessor(get(), get()),
                         TvFileProcessor(get(), get()),
                     )
-                    LibraryManager({ get() }, processors, get())
+                    LibraryManager({ get() }, processors, get(), get())
                 }
                 single { UserService(UserServiceQueriesJdbi(get(), get(), get())) }
 

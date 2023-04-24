@@ -38,7 +38,9 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.seconds
 
 private const val CURRENTLY_WATCHING_ITEM_LIMIT = 10
 private val POPULAR_MOVIES_REFRESH = 24.hours
@@ -167,7 +169,9 @@ private suspend fun loadPopularMovies(
     popularMoviesFlow: StateFlow<List<TmdbMovieDetail>?>,
     popularTvShowsFlow: StateFlow<List<TmdbShowDetail>?>,
 ): Pair<Map<Movie, MediaLink?>, List<TvShow>> {
-    val tmdbPopular = popularMoviesFlow.filterNotNull().first()
+    val tmdbPopular = withTimeoutOrNull(5.seconds) {
+        popularMoviesFlow.filterNotNull().first()
+    } ?: return Pair(emptyMap(), emptyList())
     val existingMovies = if (tmdbPopular.isNotEmpty()) {
         queries
             .findMoviesByTmdbId(tmdbPopular.map(TmdbMovieDetail::id))

@@ -23,6 +23,8 @@ import anystream.models.MediaLink
 import anystream.models.api.MediaScanResult
 import kjob.core.Job
 import kjob.core.KJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 
 object RefreshMetadataJob : Job("refresh-metadata") {
 
@@ -51,15 +53,20 @@ object RefreshMetadataJob : Job("refresh-metadata") {
                         when (val scanResult = libraryManager.scanForMedia(userId, mediaLink)) {
                             is MediaScanResult.Success -> {
                                 logger.debug("Scanning files: {}", scanResult.allValidGids.joinToString())
-                                scanResult.allValidGids.forEach { addedMediaLink ->
-                                    libraryManager.refreshMetadata(userId, addedMediaLink)
-                                }
+                                awaitAll(
+                                    async {
+                                        scanResult.addedMediaLinkGids.forEach { addedMediaLink ->
+                                            libraryManager.refreshMetadata(userId, addedMediaLink)
+                                        }
+                                    },
+                                    async { libraryManager.analyzeMediaFiles(scanResult.addedMediaLinkGids) },
+                                )
                             }
-                            else -> {
-                                logger.error("Failed to scan media: {}", scanResult)
-                            }
+
+                            else -> logger.error("Failed to scan media: {}", scanResult)
                         }
                     }
+
                     MediaLink.Descriptor.MEDIA_DIRECTORY -> TODO()
                     MediaLink.Descriptor.CHILD_DIRECTORY -> TODO()
                     MediaLink.Descriptor.VIDEO -> TODO()

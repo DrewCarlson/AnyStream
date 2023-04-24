@@ -18,11 +18,12 @@
 package anystream.media
 
 import anystream.db.MediaLinkDao
+import anystream.db.MetadataDao
 import anystream.db.model.MediaLinkDb
 import anystream.db.model.StreamEncodingDetailsDb
 import anystream.media.util.toStreamEncodingDetails
 import anystream.models.MediaKind
-import anystream.models.MediaLink
+import anystream.models.MediaLink.Descriptor.*
 import anystream.models.api.MediaAnalyzerResult
 import anystream.models.api.MediaScanRequest
 import anystream.models.api.MediaScanResult
@@ -65,6 +66,7 @@ class LibraryManager(
     private val ffprobe: () -> FFprobe,
     private val processors: List<MediaFileProcessor>,
     private val mediaLinkDao: MediaLinkDao,
+    private val metadataDao: MetadataDao,
 ) {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
@@ -76,8 +78,7 @@ class LibraryManager(
         // scope.launch { watchLibraries() }
     }
 
-    val mediaScannerState: StateFlow<MediaScannerState>
-        get() = mediaFileScanner.state
+    val mediaScannerState: StateFlow<MediaScannerState> = mediaFileScanner.state
 
     fun addLibraryFolder(userId: Int, path: String, mediaKind: MediaKind): AddLibraryFolderResult {
         val libraryFile = File(path)
@@ -98,7 +99,7 @@ class LibraryManager(
             id = -1,
             gid = ObjectId.get().toString(),
             addedByUserId = userId,
-            descriptor = MediaLink.Descriptor.ROOT_DIRECTORY,
+            descriptor = ROOT_DIRECTORY,
             mediaKind = mediaKind,
             type = MediaLinkDb.Type.LOCAL,
             directory = true,
@@ -146,14 +147,11 @@ class LibraryManager(
         }
 
         when (mediaLink.descriptor) {
-            MediaLink.Descriptor.ROOT_DIRECTORY -> {
-                mediaLinkDao.findByBasePathAndDescriptor(
-                    mediaLink.filePath.orEmpty(),
-                    MediaLink.Descriptor.MEDIA_DIRECTORY,
-                )
+            ROOT_DIRECTORY -> {
+                mediaLinkDao.findByBasePathAndDescriptor(mediaLink.filePath.orEmpty(), MEDIA_DIRECTORY)
             }
-            MediaLink.Descriptor.MEDIA_DIRECTORY -> listOf(mediaLink)
-            MediaLink.Descriptor.CHILD_DIRECTORY ->
+            MEDIA_DIRECTORY -> listOf(mediaLink)
+            CHILD_DIRECTORY ->
                 listOfNotNull(mediaLinkDao.findByGid(checkNotNull(mediaLink.parentMediaLinkGid)))
             else -> return
         }.filter { it.mediaKind == mediaLink.mediaKind }
@@ -162,11 +160,17 @@ class LibraryManager(
             }
     }
 
-    suspend fun analyzeMediaFiles(mediaLinkIds: List<String>): List<MediaAnalyzerResult> {
+    suspend fun analyzeMediaFiles(
+        mediaLinkIds: List<String>,
+        overwrite: Boolean = false,
+    ): List<MediaAnalyzerResult> {
         val mediaLinks = mediaLinkDao.findByGids(mediaLinkIds)
 
-        logger.debug("Importing stream details for {} item(s)", mediaLinkIds.size)
-        logger.debug("Ignored {} invalid item(s)", mediaLinkIds.size - mediaLinks.size)
+        logger.debug(
+            "Importing stream details for {} item(s), ignored {} invalid item(s)",
+            mediaLinkIds.size,
+            mediaLinkIds.size - mediaLinks.size,
+        )
 
         return mediaLinks
             .filter { mediaLink ->
@@ -174,23 +178,26 @@ class LibraryManager(
                 val extension = mediaLink.filePath?.substringAfterLast('.', "")?.lowercase()
                 !extension.isNullOrBlank() && VIDEO_EXTENSIONS.contains(extension)
             }
-            .map { mediaLink ->
-                val result = processMediaFileStreams(mediaLink)
-                val streamDetails = (result as? MediaAnalyzerResult.Success)?.streams.orEmpty()
-                    .map { stream -> StreamEncodingDetailsDb.fromModel(stream) }
-                try {
-                    if (streamDetails.isNotEmpty()) {
-                        mediaLinkDao.insertStreamDetails(streamDetails)
+            .mapNotNull { mediaLink ->
+                val hasDetails = mediaLinkDao.countStreamDetails(checkNotNull(mediaLink.id)) > 0
+                if (!hasDetails || overwrite) {
+                    val result = processMediaFileStreams(mediaLink)
+                    val streamDetails = (result as? MediaAnalyzerResult.Success)?.streams.orEmpty()
+                        .map { stream -> StreamEncodingDetailsDb.fromModel(stream) }
+                    try {
+                        if (streamDetails.isNotEmpty()) {
+                            mediaLinkDao.insertStreamDetails(streamDetails)
+                        }
+                        result
+                    } catch (e: JdbiException) {
+                        logger.error("Failed to update stream data", e)
+                        MediaAnalyzerResult.ErrorDatabaseException(e.stackTraceToString())
                     }
-                    result
-                } catch (e: JdbiException) {
-                    logger.error("Failed to update stream data", e)
-                    MediaAnalyzerResult.ErrorDatabaseException(e.stackTraceToString())
+                } else {
+                    null
                 }
             }
-            .also { results ->
-                logger.debug("Processed {} item(s)", results.size)
-            }
+            .also { results -> logger.debug("Processed {} item(s)", results.size) }
             .ifEmpty { listOf(MediaAnalyzerResult.ErrorNothingToImport) }
     }
 
@@ -200,6 +207,7 @@ class LibraryManager(
             return MediaAnalyzerResult.ErrorFileNotFound
         }
 
+        logger.debug("Processing media streams for {}", mediaLink)
         return try {
             val streams = awaitAll(
                 ffprobe().processStreamsAsync(mediaLink, StreamType.VIDEO_NOT_PICTURE),

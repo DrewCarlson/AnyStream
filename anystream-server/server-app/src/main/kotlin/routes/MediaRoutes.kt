@@ -19,7 +19,6 @@ package anystream.routes
 
 import anystream.data.*
 import anystream.db.model.MediaLinkDb
-import anystream.jobs.RefreshMetadataJob
 import anystream.media.AddLibraryFolderResult
 import anystream.media.LibraryManager
 import anystream.metadata.MetadataManager
@@ -38,9 +37,7 @@ import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kjob.core.KJob
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import org.jdbi.v3.core.JdbiException
 import java.io.File
 import java.nio.file.*
@@ -49,7 +46,6 @@ import kotlin.io.path.*
 fun Route.addMediaManageRoutes(
     libraryManager: LibraryManager = koinGet(),
     queries: MetadataDbQueries = koinGet(),
-    kjob: KJob = koinGet(),
 ) {
     route("/media") {
         route("/library-folders") {
@@ -74,7 +70,7 @@ fun Route.addMediaManageRoutes(
                         mediaLink = mediaLink.toModel() as LocalMediaLink,
                         mediaMatchCount = matched.size,
                         unmatchedFileCount = 0,
-                        unmatchedFolderCount = unmatched.size,
+                        unmatchedFolders = unmatched.mapNotNull(MediaLinkDb::filePath),
                         sizeOnDisk = null,
                         freeSpace = freeSpace,
                     )
@@ -89,28 +85,62 @@ fun Route.addMediaManageRoutes(
                 val (path, mediaKind) = request
                 val response = when (val result = libraryManager.addLibraryFolder(userId, path, mediaKind)) {
                     is AddLibraryFolderResult.Success -> {
-                        RefreshMetadataJob.schedule(kjob, userId, result.mediaLink.gid)
+                        application.launch {
+                            when (val scanResult = libraryManager.scanForMedia(userId, result.mediaLink)) {
+                                is MediaScanResult.Success -> {
+                                    logger.debug("Scanning new media links: {}", scanResult.addedMediaLinkGids.joinToString())
+                                    launch {
+                                        scanResult.addedMediaLinkGids.forEach { addedMediaLink ->
+                                            libraryManager.refreshMetadata(userId, addedMediaLink)
+                                        }
+                                    }
+                                    launch { libraryManager.analyzeMediaFiles(scanResult.addedMediaLinkGids) }
+                                }
+
+                                else -> logger.error("Failed to scan media: {}", scanResult)
+                            }
+                        }
                         AddLibraryFolderResponse.Success(result.mediaLink.toModel())
                     }
+
                     is AddLibraryFolderResult.DatabaseError -> {
                         AddLibraryFolderResponse.DatabaseError(result.exception.stackTraceToString())
                     }
+
                     is AddLibraryFolderResult.FileError -> {
                         AddLibraryFolderResponse.FileError(result.exists, result.isDirectory)
                     }
+
                     AddLibraryFolderResult.LinkAlreadyExists -> AddLibraryFolderResponse.LibraryFolderExists
                 }
                 call.respond(response)
             }
 
-            delete("/{libraryGid}") {
-                val libraryGid = call.parameters["libraryGid"]
-                    ?: return@delete call.respond(UnprocessableEntity)
+            route("/{libraryGid}") {
+                get("/scan") {
+                    val libraryGid = call.parameters["libraryGid"]
+                        ?: return@get call.respond(UnprocessableEntity)
+                    val libraryMediaLink = try {
+                        queries.mediaLinkDao.findByGid(libraryGid)
+                    } catch (e: JdbiException) {
+                        logger.error("Failed to load media link", e)
+                        null
+                    } ?: return@get call.respond(NotFound)
 
-                if (libraryManager.removeLibraryFolder(libraryGid)) {
+                    libraryManager.scanForMedia(1, libraryMediaLink)
+
                     call.respond(OK)
-                } else {
-                    call.respond(NotFound)
+                }
+
+                delete {
+                    val libraryGid = call.parameters["libraryGid"]
+                        ?: return@delete call.respond(UnprocessableEntity)
+
+                    if (libraryManager.removeLibraryFolder(libraryGid)) {
+                        call.respond(OK)
+                    } else {
+                        call.respond(NotFound)
+                    }
                 }
             }
 
@@ -160,14 +190,15 @@ fun Route.addMediaManageRoutes(
 
         route("/{metadataGid}") {
             get("/analyze") {
-                val metadataGid = call.parameters["metadataGid"] ?: ""
+                val metadataGid = call.parameters["metadataGid"]?.takeIf(String::isNotBlank)
+                    ?: return@get call.respond(UnprocessableEntity)
+                val descriptors = listOf(MediaLink.Descriptor.VIDEO, MediaLink.Descriptor.AUDIO)
+                val mediaLinkIds = queries.mediaLinkDao
+                    .findGidsByMetadataGidAndDescriptors(metadataGid, descriptors)
+                    .takeIf { it.isNotEmpty() }
+                    ?: return@get call.respond(NotFound)
 
-                val mediaLinkIds = queries.mediaLinkDao.findGidsByMetadataGid(metadataGid)
-                if (mediaLinkIds.isEmpty()) {
-                    call.respond(emptyList<MediaAnalyzerResult>())
-                } else {
-                    call.respond(libraryManager.analyzeMediaFiles(mediaLinkIds))
-                }
+                call.respond(libraryManager.analyzeMediaFiles(mediaLinkIds, overwrite = true))
             }
             get("/refresh-metadata") {
                 val metadataGid = call.parameters["metadataGid"] ?: ""
@@ -231,7 +262,11 @@ fun Route.addMediaViewRoutes(
                                         )
 
                                         tvExtras?.seasonNumber != null -> MediaLookupResponse(
-                                            season = SeasonResponse(match.tvShow, match.seasons.first(), match.episodes),
+                                            season = SeasonResponse(
+                                                match.tvShow,
+                                                match.seasons.first(),
+                                                match.episodes,
+                                            ),
                                         )
 
                                         else -> MediaLookupResponse(

@@ -55,6 +55,9 @@ interface MediaLinkDao {
     @UseClasspathSqlLocator
     fun insertStreamDetails(stream: List<StreamEncodingDetailsDb>)
 
+    @SqlQuery("SELECT COUNT(id) FROM streamEncoding WHERE mediaLinkId = :mediaLinkId")
+    fun countStreamDetails(mediaLinkId: Int): Int
+
     @SqlBatch(
         """
             UPDATE mediaLink
@@ -136,11 +139,23 @@ interface MediaLinkDao {
     @SqlQuery("$MEDIALINK_SELECT WHERE filePath IN (<filePaths>)")
     fun findByFilePaths(@BindList("filePaths") filePaths: List<String>): List<MediaLinkDb>
 
+    @SqlQuery("SELECT gid FROM mediaLink WHERE filePath LIKE ?")
+    fun findGidsByBasePath(filePath: String): List<String>
+
     @SqlQuery("SELECT gid FROM mediaLink WHERE filePath IN (<filePaths>)")
     fun findGidsByFilePaths(@BindList("filePaths") filePaths: List<String>): List<String>
 
     @SqlQuery("SELECT gid FROM mediaLink WHERE metadataGid = :metadataGid OR rootMetadataGid = :metadataGid")
     fun findGidsByMetadataGid(metadataGid: String): List<String>
+
+    @SqlQuery("SELECT gid FROM mediaLink WHERE (metadataGid = :metadataGid OR rootMetadataGid = :metadataGid) AND descriptor = :descriptor")
+    fun findGidsByMetadataGidAndDescriptor(metadataGid: String, descriptor: MediaLink.Descriptor): List<String>
+
+    @SqlQuery("SELECT gid FROM mediaLink WHERE (metadataGid = :metadataGid OR rootMetadataGid = :metadataGid) AND descriptor IN (<descriptors>)")
+    fun findGidsByMetadataGidAndDescriptors(
+        metadataGid: String,
+        @BindList("descriptors") descriptors: List<MediaLink.Descriptor>,
+    ): List<String>
 
     @SqlQuery("SELECT filePath FROM mediaLink WHERE filePath LIKE ? || '%'")
     fun findFilePathsByBasePath(basePath: String): List<String>

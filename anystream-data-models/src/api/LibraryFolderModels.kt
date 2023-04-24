@@ -65,7 +65,7 @@ data class LibraryFolderList(
         val mediaLink: LocalMediaLink,
         val mediaMatchCount: Int,
         val unmatchedFileCount: Int,
-        val unmatchedFolderCount: Int,
+        val unmatchedFolders: List<String>,
         val sizeOnDisk: String? = null,
         val freeSpace: String? = null,
     )

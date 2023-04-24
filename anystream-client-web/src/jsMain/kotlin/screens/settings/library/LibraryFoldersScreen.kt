@@ -63,7 +63,7 @@ fun LibraryFoldersScreen() {
                             FolderRow(
                                 folder,
                                 onDeleteClicked = { deleteTarget = it.mediaLink },
-                                onScanClicked = {},
+                                onScanClicked = { scope.launch { client.scanLibrary(it.mediaLink.gid) } },
                                 onEditClicked = {},
                             )
                         }
@@ -188,9 +188,9 @@ private fun FolderRow(
         }
         Th({ scope(Scope.Row) }) { Text(folder.mediaLink.filePath) }
         Td { Text(folder.mediaLink.mediaKind.name) }
-        Td { Text(folder.sizeOnDisk.orEmpty()) }
+        Td { Text(folder.freeSpace.orEmpty()) }
         Td { Text(folder.mediaMatchCount.toString()) }
-        Td { Text(folder.run { unmatchedFileCount + unmatchedFolderCount }.toString()) }
+        Td { Text(folder.run { unmatchedFileCount + unmatchedFolders.size }.toString()) }
     }
 }
 

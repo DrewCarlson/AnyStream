@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2021 AnyStream Maintainers
+ * Copyright (C) 2023 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -15,17 +15,26 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.media
+package anystream.media.processor.file
 
-import anystream.db.model.MediaLinkDb
-import anystream.media.processor.file.FileNameParser
-import anystream.models.MediaKind
+class MovieFileNameParser : FileNameParser {
 
-interface MediaFileProcessor {
+    private val yearRegex = "\\s\\((\\d{4})\\)\$".toRegex()
 
-    val mediaKinds: List<MediaKind>
+    override fun parseFileName(fileName: String): ParsedFileNameResult {
+        val mediaName = fileName.substringBeforeLast('.').trim()
 
-    val fileNameParser: FileNameParser
+        val match = yearRegex.find(mediaName)
+        val year = match?.groupValues?.lastOrNull()?.toIntOrNull()
 
-    suspend fun matchMediaLinkMetadata(mediaLink: MediaLinkDb, userId: Int)
+        val name = if (year == null) {
+            mediaName
+        } else {
+            mediaName.replace(yearRegex, "")
+        }.trim()
+        return ParsedFileNameResult.MovieFile(
+            name = name,
+            year = year,
+        )
+    }
 }

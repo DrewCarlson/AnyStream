@@ -20,6 +20,9 @@ package anystream.media.processor
 import anystream.data.MetadataDbQueries
 import anystream.db.model.MediaLinkDb
 import anystream.media.MediaFileProcessor
+import anystream.media.processor.file.FileNameParser
+import anystream.media.processor.file.MovieFileNameParser
+import anystream.media.processor.file.ParsedFileNameResult
 import anystream.metadata.MetadataManager
 import anystream.models.MediaKind
 import anystream.models.api.*
@@ -33,9 +36,9 @@ class MovieFileProcessor(
 ) : MediaFileProcessor {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
-    private val yearRegex = "\\s\\((\\d{4})\\)\$".toRegex()
 
     override val mediaKinds: List<MediaKind> = listOf(MediaKind.MOVIE)
+    override val fileNameParser: FileNameParser = MovieFileNameParser()
 
     override suspend fun matchMediaLinkMetadata(mediaLink: MediaLinkDb, userId: Int) {
         val contentFile = File(requireNotNull(mediaLink.filePath))
@@ -73,15 +76,18 @@ class MovieFileProcessor(
             // return // MediaScanResult.ErrorNothingToScan
         }
 
-        val match = yearRegex.find(mediaName)
-        val year = match?.groupValues?.lastOrNull()?.toIntOrNull() ?: 0
-
-        logger.debug("Found content year: {}", year)
+        val (movieName, year) = when (val result = fileNameParser.parseFileName(mediaName)) {
+            is ParsedFileNameResult.MovieFile -> result
+            else -> {
+                logger.debug("Expected to find movie file but could not parse '{}'", mediaName)
+                return
+            }
+        }
 
         // TODO: Improve query capabilities
-        val query = mediaName.replace(yearRegex, "").trim()
+        val query = movieName
 
-        logger.debug("Querying provider for '{}'", query)
+        logger.debug("Querying provider for ({}) '{}'", year, query)
         val results = metadataManager.search(
             QueryMetadata(
                 providerId = null,

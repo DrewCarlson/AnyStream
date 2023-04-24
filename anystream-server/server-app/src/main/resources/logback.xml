@@ -23,4 +23,5 @@
     <logger name="io.ktor.routing.Routing" level="DEBUG"/>
     <logger name="io.ktor.websocket.WebSocket" level="DEBUG"/>
     <logger name="io.ktor.client.plugins" level="DEBUG"/>
+    <logger name="org.flywaydb" level="DEBUG"/>
 </configuration>

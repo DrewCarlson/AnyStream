@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2021 AnyStream Maintainers
+ * Copyright (C) 2023 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -15,17 +15,22 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.media
+package anystream.media.processor.file
 
-import anystream.db.model.MediaLinkDb
-import anystream.media.processor.file.FileNameParser
-import anystream.models.MediaKind
+sealed class ParsedFileNameResult {
 
-interface MediaFileProcessor {
+    sealed class Tv {
+        data class SeasonFolder(val seasonNumber: Int) : ParsedFileNameResult()
+        data class EpisodeFile(
+            val seasonNumber: Int?,
+            val episodeNumber: Int,
+        ) : ParsedFileNameResult()
+    }
 
-    val mediaKinds: List<MediaKind>
+    data class MovieFile(
+        val name: String,
+        val year: Int?,
+    ) : ParsedFileNameResult()
 
-    val fileNameParser: FileNameParser
-
-    suspend fun matchMediaLinkMetadata(mediaLink: MediaLinkDb, userId: Int)
+    object Unknown : ParsedFileNameResult()
 }

@@ -22,7 +22,9 @@ import org.flywaydb.core.api.FlywayException
 import org.slf4j.Logger
 
 fun runMigrations(connectionString: String, logger: Logger? = null): Boolean {
-    val flyway = Flyway.configure().dataSource(connectionString, null, null).load()
+    val flyway = Flyway.configure()
+        .loggers("slf4j")
+        .dataSource(connectionString, null, null).load()
     return try {
         flyway.migrate()
         true

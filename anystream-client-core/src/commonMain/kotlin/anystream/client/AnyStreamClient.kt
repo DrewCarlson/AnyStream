@@ -530,6 +530,11 @@ class AnyStreamClient(
         return response.bodyOrThrow()
     }
 
+    suspend fun scanLibrary(libraryGid: String): Boolean {
+        val response = http.get("$serverUrl/api/media/$libraryGid/scan")
+        return response.status.isSuccess()
+    }
+
     fun createHlsStreamUrl(mediaLinkId: String, token: String): String {
         return "$serverUrl/api/stream/$mediaLinkId/hls/playlist.m3u8?token=$token"
     }
