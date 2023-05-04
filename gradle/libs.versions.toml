@@ -14,7 +14,7 @@ qbittorrent = "1.0.0-beta04"
 mobiuskt = "0.6.0"
 ktor_perm = "0.2.1"
 
-jdbi = "3.37.1"
+jdbi = "3.38.2"
 jdbc_sqlite = "3.41.2.1"
 kjob = "0.6.0"
 
