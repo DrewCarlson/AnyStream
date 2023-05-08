@@ -130,7 +130,7 @@ exoplayer-core = { module = "com.google.android.exoplayer:exoplayer-core", versi
 exoplayer-ui = { module = "com.google.android.exoplayer:exoplayer-ui", version.ref = "exoplayer" }
 exoplayer-hls = { module = "com.google.android.exoplayer:exoplayer-hls", version.ref = "exoplayer" }
 
-torrentSearch = { module = "org.drewcarlson:torrentsearch", version = "0.4.2" }
+torrentSearch = { module = "org.drewcarlson:torrentsearch", version = "0.5.0" }
 
 compose-ui-ui = { module = "androidx.compose.ui:ui", version.ref = "compose" }
 compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
