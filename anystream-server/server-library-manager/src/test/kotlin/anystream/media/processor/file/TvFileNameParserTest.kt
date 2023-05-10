@@ -20,7 +20,6 @@ package anystream.media.processor.file
 import anystream.media.file.ParsedFileNameResult
 import anystream.media.file.TvFileNameParser
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Test
 import kotlin.test.assertIs
 
@@ -85,10 +84,12 @@ class TvFileNameParserTest {
     }
 
     @Test
-    fun `should not parse invalid input`() {
-        val fileName = "invalid.file.name"
+    fun `should parse show folder`() {
+        val fileName = "Friends (1994)"
         val result = fileNameParser.parseFileName(fileName)
 
-        assertTrue(result is ParsedFileNameResult.Unknown)
+        assertIs<ParsedFileNameResult.Tv.ShowFolder>(result)
+        assertEquals("Friends", result.name)
+        assertEquals(1994, result.year)
     }
 }
