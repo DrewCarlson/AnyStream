@@ -15,9 +15,13 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.media.processor.file
+package anystream.models.api
 
-interface FileNameParser {
+import anystream.models.MediaLink
+import kotlinx.serialization.Serializable
 
-    fun parseFileName(fileName: String): ParsedFileNameResult
-}
+@Serializable
+data class MediaLinkResponse(
+    val mediaLink: MediaLink,
+    val metadata: MediaLookupResponse?,
+)

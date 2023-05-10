@@ -97,7 +97,7 @@ data class MediaLinkDb(
                 addedByUserId = addedByUserId,
                 mediaKind = mediaKind,
                 streams = streams.map(StreamEncodingDetailsDb::toModel),
-                infoHash = checkNotNull(hash),
+                infoHash = requireNotNull(hash),
                 fileIndex = fileIndex,
                 filePath = filePath,
                 descriptor = descriptor,
@@ -117,7 +117,7 @@ data class MediaLinkDb(
                 addedByUserId = addedByUserId,
                 mediaKind = mediaKind,
                 streams = streams.map(StreamEncodingDetailsDb::toModel),
-                filePath = checkNotNull(filePath),
+                filePath = requireNotNull(filePath),
                 directory = directory,
                 descriptor = descriptor,
             )

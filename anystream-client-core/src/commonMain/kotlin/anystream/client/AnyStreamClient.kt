@@ -22,7 +22,6 @@ import anystream.models.api.*
 import anystream.torrent.search.TorrentDescription2
 import io.ktor.client.HttpClient
 import io.ktor.client.call.*
-import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.cookies.*
 import io.ktor.client.plugins.websocket.*
@@ -245,28 +244,9 @@ class AnyStreamClient(
     suspend fun getTvShows(page: Int = 1): TvShowsResponse =
         http.get("$serverUrl/api/tv") { pageParam(page) }.bodyOrThrow()
 
-    suspend fun getMovie(id: String): MovieResponse =
-        http.get("$serverUrl/api/movies/$id").bodyOrThrow()
-
-    suspend fun deleteMovie(id: String) {
-        http.delete("$serverUrl/api/movies/$id").orThrow()
-    }
-
-    suspend fun getMediaLinks(): List<MediaLink> =
-        http.get("$serverUrl/api/media/links").bodyOrThrow()
-
-    suspend fun getMediaLink(linkGid: String): MediaLink =
-        http.get("$serverUrl/api/media/links/$linkGid").bodyOrThrow()
-
-    suspend fun getMediaLinksForMovie(movieId: String): List<MediaLink> =
-        http.get("$serverUrl/api/movies/$movieId/links").bodyOrThrow()
-
-    suspend fun getMediaLinksForShow(showId: String): List<MediaLink> =
-        http.get("$serverUrl/api/tv/$showId/links").bodyOrThrow()
-
     suspend fun addLibraryFolder(path: String, mediaKind: MediaKind): AddLibraryFolderResponse {
         return try {
-            http.post("$serverUrl/api/media/library-folders") {
+            http.post("$serverUrl/api/medialink/libraries") {
                 contentType(ContentType.Application.Json)
                 setBody(AddLibraryFolderRequest(path, mediaKind))
             }.bodyOrThrow()
@@ -276,9 +256,9 @@ class AnyStreamClient(
         }
     }
 
-    suspend fun deleteLibraryFolder(gid: String): Boolean {
+    suspend fun removeMediaLink(gid: String): Boolean {
         return try {
-            http.delete("$serverUrl/api/media/library-folders/$gid").orThrow()
+            http.delete("$serverUrl/api/medialink/$gid").orThrow()
             true
         } catch (e: AnyStreamClientException) {
             if (e.response?.status == NotFound) false else throw e
@@ -287,7 +267,7 @@ class AnyStreamClient(
 
     suspend fun getLibraryFolderList(): LibraryFolderList {
         return try {
-            http.get("$serverUrl/api/media/library-folders").bodyOrThrow()
+            http.get("$serverUrl/api/medialink/libraries").bodyOrThrow()
         } catch (e: Exception) {
             e.printStackTrace()
             LibraryFolderList(emptyList())
@@ -295,7 +275,7 @@ class AnyStreamClient(
     }
 
     suspend fun unmappedMedia(mediaScanRequest: MediaScanRequest): List<String> {
-        return http.post("$serverUrl/api/media/unmapped") {
+        return http.post("$serverUrl/api/metadata/libraries/unmapped") {
             contentType(ContentType.Application.Json)
             setBody(mediaScanRequest)
         }.bodyOrThrow()
@@ -311,9 +291,6 @@ class AnyStreamClient(
 
     suspend fun lookupMedia(mediaId: String): MediaLookupResponse =
         http.get("$serverUrl/api/media/$mediaId").bodyOrThrow()
-
-    suspend fun lookupMetadataByMediaLinkGid(linkGid: String): MediaLookupResponse =
-        http.get("$serverUrl/api/media/by-link/$linkGid").bodyOrThrow()
 
     suspend fun getTmdbSources(tmdbId: Int): List<TorrentDescription2> =
         http.get("$serverUrl/api/media/tmdb/$tmdbId/sources").bodyOrThrow()
@@ -518,7 +495,7 @@ class AnyStreamClient(
     }
 
     suspend fun listFiles(path: String? = null, showFiles: Boolean = false): ListFilesResponse? {
-        val response = http.get("$serverUrl/api/media/library-folders/list-files") {
+        val response = http.get("$serverUrl/api/medialink/libraries/list-files") {
             parameter("showFiles", showFiles)
             if (!path.isNullOrBlank()) {
                 parameter("root", path)
@@ -530,9 +507,30 @@ class AnyStreamClient(
         return response.bodyOrThrow()
     }
 
-    suspend fun scanLibrary(libraryGid: String): Boolean {
-        val response = http.get("$serverUrl/api/media/$libraryGid/scan")
-        return response.status.isSuccess()
+    suspend fun scanMediaLink(mediaLinkGid: String): MediaScanResult? {
+        val response = http.get("$serverUrl/api/medialink/$mediaLinkGid/scan")
+        return response.bodyOrThrow()
+    }
+
+    suspend fun matchesFor(mediaLinkGid: String): List<MediaLinkMatchResult> {
+        return http.get("$serverUrl/api/medialink/matches/$mediaLinkGid").bodyOrThrow()
+    }
+
+    suspend fun matchFor(mediaLinkGid: String, match: MetadataMatch) {
+        http.put("$serverUrl/api/medialink/matches/$mediaLinkGid") {
+            contentType(ContentType.Application.Json)
+            setBody(match)
+        }
+    }
+
+    suspend fun findMediaLink(
+        mediaLinkGid: String,
+        includeMetadata: Boolean = true,
+    ): MediaLinkResponse {
+        val response = http.get("$serverUrl/api/medialink/$mediaLinkGid") {
+            parameter("includeMetadata", includeMetadata)
+        }
+        return response.bodyOrThrow()
     }
 
     fun createHlsStreamUrl(mediaLinkId: String, token: String): String {

@@ -35,7 +35,6 @@ fun Application.installWebClientRoutes(config: AnyStreamConfig = get()) {
         log.debug("This instance will serve the web client from jar resources.")
         routing {
             singlePageApplication {
-                ignoreFiles { it.startsWith("/api") }
                 filesPath = "anystream-client-web"
                 useResources = true
             }
@@ -44,7 +43,6 @@ fun Application.installWebClientRoutes(config: AnyStreamConfig = get()) {
         log.debug("This instance will serve the web client from '${config.webClientPath}'.")
         routing {
             singlePageApplication {
-                ignoreFiles { it.startsWith("/api") }
                 filesPath = config.webClientPath
             }
         }

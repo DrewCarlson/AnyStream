@@ -17,7 +17,13 @@
  */
 package anystream.util
 
+import io.ktor.server.application.*
 import io.ktor.server.routing.Route
+import io.ktor.util.pipeline.*
 import org.koin.ktor.ext.get
+import org.koin.ktor.ext.getKoin
 
 inline fun <reified T : Any> Route.koinGet(): T = get()
+
+inline fun <reified T : Any> PipelineContext<Unit, ApplicationCall>.koinGet(): T =
+    context.getKoin().get()

@@ -30,7 +30,7 @@ sealed class MediaScanResult {
 
     @Serializable
     data class Success(
-        val parentMediaLinkGid: String,
+        val parentMediaLinkGid: String?,
         val addedMediaLinkGids: List<String>,
         val removedMediaLinkGids: List<String>,
         val existingMediaLinkGids: List<String>,

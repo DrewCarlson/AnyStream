@@ -88,6 +88,9 @@ interface MediaLinkDao {
     @SqlUpdate("UPDATE mediaLink SET parentMediaLinkId = :parentMediaLinkId, parentMediaLinkGid = :parentMediaLinkGid WHERE gid = :mediaLinkGid")
     fun updateParentMediaLinkId(mediaLinkGid: String, parentMediaLinkId: Int, parentMediaLinkGid: String)
 
+    @SqlQuery("SELECT descriptor FROM mediaLink WHERE gid = ?")
+    fun descriptorForGid(gid: String): MediaLink.Descriptor?
+
     @UseRowReducer(MediaReferenceReducer::class)
     @SqlQuery("$MEDIALINK_SELECT WHERE gid = ?")
     fun findByGid(gid: String): MediaLinkDb?
@@ -127,6 +130,14 @@ interface MediaLinkDao {
         basePath: String,
         @BindList("descriptor") descriptor: List<MediaLink.Descriptor>,
     ): List<MediaLinkDb>
+
+    @UseRowReducer(MediaReferenceReducer::class)
+    @SqlQuery("$MEDIALINK_SELECT WHERE parentMediaLinkId = ?")
+    fun findByParentId(parentId: Int): List<MediaLinkDb>
+
+    @UseRowReducer(MediaReferenceReducer::class)
+    @SqlQuery("$MEDIALINK_SELECT WHERE parentMediaLinkId = ? AND descriptor = ?")
+    fun findByParentIdAndDescriptor(parentId: Int, descriptor: MediaLink.Descriptor): List<MediaLinkDb>
 
     @SqlQuery("SELECT count(id) FROM mediaLink WHERE filePath LIKE ? || '%' AND descriptor = ?")
     fun countInBasePath(basePath: String, descriptor: MediaLink.Descriptor): Int

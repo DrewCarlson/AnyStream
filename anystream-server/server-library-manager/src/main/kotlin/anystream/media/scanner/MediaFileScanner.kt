@@ -15,18 +15,20 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.media
+package anystream.media.scanner
 
 import anystream.db.MediaLinkDao
 import anystream.db.model.MediaLinkDb
+import anystream.media.AUDIO_EXTENSIONS
+import anystream.media.SUBTITLE_EXTENSIONS
+import anystream.media.VIDEO_EXTENSIONS
 import anystream.models.MediaKind
 import anystream.models.MediaLink.Descriptor
 import anystream.models.api.MediaScanResult
+import anystream.models.backend.MediaScannerMessage
 import anystream.models.backend.MediaScannerState
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.*
 import org.jdbi.v3.core.JdbiException
 import org.slf4j.LoggerFactory
 import java.io.File
@@ -48,50 +50,70 @@ class MediaFileScanner(
     private val logger = LoggerFactory.getLogger(this::class.java)
     private val mediaScannerState = MutableStateFlow<MediaScannerState>(MediaScannerState.Idle)
 
+    private val _messages = MutableSharedFlow<MediaScannerMessage>(
+        replay = 0,
+        extraBufferCapacity = Int.MAX_VALUE,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST,
+    )
+    val messages: Flow<MediaScannerMessage> = _messages.asSharedFlow()
     val state: StateFlow<MediaScannerState> = mediaScannerState.asStateFlow()
 
-    fun scanForMedia(userId: Int, libraryLink: MediaLinkDb, childLink: MediaLinkDb?): MediaScanResult {
-        check(libraryLink.descriptor == Descriptor.ROOT_DIRECTORY)
-        logger.debug("Media scan requested by userId=$userId: ${childLink?.filePath ?: libraryLink.filePath}")
-        mediaScannerState.value = MediaScannerState.Starting
-        val rootFolder = File(checkNotNull(libraryLink.filePath))
-        if (!rootFolder.exists() || rootFolder.isFile) {
-            logger.debug("Root content directory not found: ${rootFolder.absolutePath}")
-            mediaScannerState.value = MediaScannerState.Idle
-            return MediaScanResult.ErrorFileNotFound
-        }
-
-        mediaScannerState.value = MediaScannerState.Active(
-            libraryLink = libraryLink.toModel(),
-            currentLink = childLink?.toModel(),
-        )
-        val targetFile = File(childLink?.filePath ?: checkNotNull(libraryLink.filePath))
-        return if (targetFile.isDirectory) {
-            if (childLink == null) {
-                scanMediaFolder(targetFile, libraryLink, userId)
-            } else {
-                scanMediaFolder(targetFile, childLink, userId)
+    fun scan(mediaLink: MediaLinkDb): MediaScanResult {
+        return try {
+            addGidOrSetActiveState(mediaLink.gid)
+            when (mediaLink.descriptor) {
+                Descriptor.ROOT_DIRECTORY -> scanRootDirectoryLink(mediaLink)
+                Descriptor.MEDIA_DIRECTORY -> scanMediaDirectoryLink(mediaLink)
+                Descriptor.CHILD_DIRECTORY -> scanChildDirectoryLink(mediaLink)
+                Descriptor.VIDEO,
+                Descriptor.AUDIO,
+                Descriptor.SUBTITLE,
+                Descriptor.IMAGE,
+                -> scanFileLink(mediaLink) // TODO: Fix this lint rule
             }
-        } else {
-            checkNotNull(childLink)
-            if (targetFile.exists()) {
-                MediaScanResult.ErrorNothingToScan
-            } else {
-                try {
-                    mediaLinkDao.deleteByGid(childLink.gid)
-                } catch (e: JdbiException) {
-                    logger.error("Failed to delete stale MediaLink '${childLink.gid}'", e)
-                }
-                MediaScanResult.ErrorFileNotFound
-            }
-        }.also {
-            mediaScannerState.value = MediaScannerState.Idle
+        } finally {
+            removeGidOrIdleState(mediaLink.gid)
         }
     }
 
-    private fun scanMediaFolder(targetFile: File, libraryLink: MediaLinkDb, userId: Int): MediaScanResult {
+    private fun scanRootDirectoryLink(mediaLink: MediaLinkDb): MediaScanResult {
+        require(mediaLink.descriptor == Descriptor.ROOT_DIRECTORY)
+        return scanMediaFolder(mediaLink, 1)
+    }
+
+    private fun scanMediaDirectoryLink(mediaLink: MediaLinkDb): MediaScanResult {
+        require(mediaLink.descriptor == Descriptor.MEDIA_DIRECTORY)
+        return scanMediaFolder(mediaLink, 1)
+    }
+
+    private fun scanChildDirectoryLink(mediaLink: MediaLinkDb): MediaScanResult {
+        require(mediaLink.descriptor == Descriptor.CHILD_DIRECTORY)
+        return scanMediaFolder(mediaLink, 1)
+    }
+
+    private fun scanFileLink(mediaLink: MediaLinkDb): MediaScanResult {
+        require(!mediaLink.descriptor.isDirectoryLink())
+        val mediaFile = File(checkNotNull(mediaLink.filePath))
+        if (!mediaFile.exists() || mediaFile.isDirectory) {
+            logger.debug("Media link file is missing {}", mediaLink)
+            return MediaScanResult.ErrorFileNotFound
+        }
+        return MediaScanResult.Success(
+            parentMediaLinkGid = mediaLink.parentMediaLinkGid,
+            addedMediaLinkGids = emptyList(),
+            removedMediaLinkGids = emptyList(),
+            existingMediaLinkGids = listOf(mediaLink.gid),
+        )
+    }
+
+    private fun scanMediaFolder(mediaLink: MediaLinkDb, userId: Int): MediaScanResult {
+        val targetFolder = File(checkNotNull(mediaLink.filePath))
+        if (!targetFolder.exists() || targetFolder.isFile) {
+            logger.debug("Root content directory not found: ${targetFolder.absolutePath}")
+            return MediaScanResult.ErrorFileNotFound
+        }
         val (existingFilePaths, removedFilePaths) = try {
-            mediaLinkDao.findFilePathsByBasePath(targetFile.absolutePath)
+            mediaLinkDao.findFilePathsByBasePath(targetFolder.absolutePath)
                 .partition { File(it).exists() }
         } catch (e: JdbiException) {
             logger.error("Failed to find child media links", e)
@@ -106,21 +128,21 @@ class MediaFileScanner(
         logger.debug(
             "Found {} existing media links in {} and removed {} missing links.",
             existingFilePaths.size,
-            targetFile.absolutePath,
+            targetFolder.absolutePath,
             removedCount,
         )
 
-        val descriptorFilters = when (libraryLink.mediaKind) {
+        val descriptorFilters = when (mediaLink.mediaKind) {
             MediaKind.MOVIE, MediaKind.TV -> MOVIE_TV_DESCRIPTOR_EXTENSION_MAP
             MediaKind.AUDIOBOOK, MediaKind.MUSIC -> AUDIOBOOK_MUSIC_DESCRIPTOR_EXTENSION_MAP
             else -> {
-                logger.warn("No supported file extensions for MediaKind ${libraryLink.mediaKind}")
+                logger.warn("No supported file extensions for MediaKind ${mediaLink.mediaKind}")
                 return MediaScanResult.ErrorNothingToScan
             }
         }
         val allFilterExtensions = descriptorFilters.keys.flatten()
-        val processor = Processor(userId, libraryLink, descriptorFilters, existingFilePaths)
-        val mediaFileLinks = targetFile.walk()
+        val processor = Processor(userId, mediaLink, descriptorFilters, existingFilePaths)
+        val mediaFileLinks = targetFolder.walk()
             .onEnter { file ->
                 processor.processDirectory(file)
                 true
@@ -130,8 +152,20 @@ class MediaFileScanner(
                 file.isFile && !existingFilePaths.contains(file.absolutePath) &&
                     file.extension.lowercase().run(allFilterExtensions::contains)
             }
-            .groupBy(File::getParent)
-            .flatMap { (parent, files) -> processor.processFiles(files, parent) }
+            .groupBy { file ->
+                if (targetFolder == file.parentFile) {
+                    targetFolder.absolutePath
+                } else {
+                    var selectedRoot = file
+                    while (selectedRoot.parentFile != targetFolder) {
+                        selectedRoot = selectedRoot.parentFile
+                    }
+                    selectedRoot.absolutePath
+                }
+            }
+            .flatMap { (parent, files) ->
+                processor.processFiles(files, parent)
+            }
             .toList()
 
         return try {
@@ -144,7 +178,7 @@ class MediaFileScanner(
             }
             val addedGids = processor.newDirectoryLinkGids + mediaFileLinks.map(MediaLinkDb::gid)
             return MediaScanResult.Success(
-                parentMediaLinkGid = libraryLink.gid,
+                parentMediaLinkGid = mediaLink.gid,
                 addedMediaLinkGids = addedGids,
                 removedMediaLinkGids = removedGids,
                 existingMediaLinkGids = existing,
@@ -152,6 +186,8 @@ class MediaFileScanner(
         } catch (e: JdbiException) {
             logger.error("Failed to insert new media links", e)
             MediaScanResult.ErrorDatabaseException(e.stackTraceToString())
+        } finally {
+            removeGidOrIdleState(mediaLink.gid)
         }
     }
 
@@ -168,23 +204,16 @@ class MediaFileScanner(
 
         fun processFiles(files: List<File>, parent: String): List<MediaLinkDb> {
             val parentLink = mediaDirectoryLinks.getValue(parent)
-            when (parentLink.descriptor) {
-                Descriptor.MEDIA_DIRECTORY ->
-                    updateActiveState { copy(currentLink = parentLink.toModel()) }
-
-                Descriptor.CHILD_DIRECTORY -> {
-                    val parentFile = File(checkNotNull(parentLink.filePath))
-                    val rootLink = mediaDirectoryLinks.getValue(parentFile.parent)
-                    updateActiveState { copy(currentLink = rootLink.toModel()) }
-                }
-
-                else -> Unit
-            }
             return files.map { file ->
+                val actualParentLink = if (file.parent == parent) {
+                    parentLink
+                } else {
+                    mediaDirectoryLinks.getValue(file.parent)
+                }
                 val descriptor = descriptorFilters.firstNotNullOf { (extensions, descriptor) ->
                     descriptor.takeIf { file.extension.lowercase().run(extensions::contains) }
                 }
-                MediaLinkDb.fromFile(file, libraryLink.mediaKind, userId, descriptor, parentLink)
+                MediaLinkDb.fromFile(file, libraryLink.mediaKind, userId, descriptor, actualParentLink)
             }
         }
 
@@ -207,7 +236,26 @@ class MediaFileScanner(
         }
     }
 
-    private fun updateActiveState(copyFunc: MediaScannerState.Active.() -> MediaScannerState.Active) {
-        mediaScannerState.update { copyFunc(it as MediaScannerState.Active) }
+    private fun addGidOrSetActiveState(mediaLinkGid: String) {
+        mediaScannerState.update { state ->
+            (state as? MediaScannerState.Active ?: MediaScannerState.Active()).run {
+                copy(mediaLinkGids = mediaLinkGids + mediaLinkGid)
+            }
+        }
+    }
+
+    private fun removeGidOrIdleState(mediaLinkGid: String) {
+        mediaScannerState.update { state ->
+            if (state is MediaScannerState.Active) {
+                val updatedGids = state.mediaLinkGids - mediaLinkGid
+                if (updatedGids.isEmpty()) {
+                    MediaScannerState.Idle
+                } else {
+                    state.copy(mediaLinkGids = updatedGids)
+                }
+            } else {
+                MediaScannerState.Idle
+            }
+        }
     }
 }

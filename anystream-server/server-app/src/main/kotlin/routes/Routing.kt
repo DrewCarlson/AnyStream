@@ -38,14 +38,14 @@ fun Application.installRouting() {
                     addMovieRoutes()
                     addSearchRoutes()
                     addMediaViewRoutes()
-                    addMediaLinkViewRotues()
+                    addMediaLinkViewRoutes()
                 }
                 withAnyPermission(Permission.ManageTorrents) {
                     addTorrentRoutes()
                 }
                 withAnyPermission(Permission.ManageCollection) {
                     addMediaManageRoutes()
-                    addMediaLinkManageRotues()
+                    addMediaLinkManageRoutes()
                 }
                 withPermission(Permission.ConfigureSystem) {
                     addAdminRoutes()

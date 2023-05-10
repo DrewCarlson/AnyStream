@@ -24,18 +24,30 @@ import kotlinx.serialization.Serializable
 sealed class MediaScannerState {
 
     @Serializable
-    object Starting : MediaScannerState() {
-        override fun toString(): String = "Starting"
-    }
-
-    @Serializable
     data class Active(
-        val libraryLink: MediaLink,
-        val currentLink: MediaLink?,
+        val mediaLinkGids: Set<String> = emptySet(),
     ) : MediaScannerState()
 
     @Serializable
     object Idle : MediaScannerState() {
         override fun toString(): String = "Idle"
     }
+}
+
+@Serializable
+sealed class MediaScannerMessage {
+
+    @Serializable
+    data class Scanning(
+        val link: MediaLink,
+    ) : MediaScannerMessage()
+
+    @Serializable
+    data class ScanComplete(
+        val link: MediaLink,
+        val updatedLinkGids: List<String>,
+    ) : MediaScannerMessage()
+
+    @Serializable
+    object Idle : MediaScannerMessage()
 }

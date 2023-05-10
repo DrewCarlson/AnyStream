@@ -76,8 +76,8 @@ fun PlayerScreen(mediaLinkId: String) {
     var sessionHandle by remember { mutableStateOf<AnyStreamClient.PlaybackSessionHandle?>(null) }
     val mediaItem = produceState<MediaItem?>(null) {
         value = try {
-            client.lookupMetadataByMediaLinkGid(mediaLinkId).run {
-                movie?.toMediaItem() ?: episode?.toMediaItem()
+            client.findMediaLink(mediaLinkId).let { (_, metadata) ->
+                metadata?.movie?.toMediaItem() ?: metadata?.episode?.toMediaItem()
             }
         } catch (e: Throwable) {
             null

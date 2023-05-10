@@ -17,6 +17,8 @@
  */
 package anystream.media.processor.file
 
+import anystream.media.file.MovieFileNameParser
+import anystream.media.file.ParsedFileNameResult
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import kotlin.test.assertIs

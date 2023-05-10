@@ -17,6 +17,7 @@
  */
 package anystream.models.api
 
+import anystream.models.MediaLink
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -25,4 +26,11 @@ data class MediaLookupResponse(
     val tvShow: TvShowResponse? = null,
     val episode: EpisodeResponse? = null,
     val season: SeasonResponse? = null,
-)
+) {
+    val mediaLinks: List<MediaLink> = listOfNotNull(
+        movie?.mediaLinks,
+        tvShow?.mediaLinks,
+        episode?.mediaLinks,
+        season?.mediaLinks?.values,
+    ).flatten()
+}

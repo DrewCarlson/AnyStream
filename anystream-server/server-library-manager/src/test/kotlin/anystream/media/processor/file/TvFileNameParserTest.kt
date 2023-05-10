@@ -17,6 +17,8 @@
  */
 package anystream.media.processor.file
 
+import anystream.media.file.ParsedFileNameResult
+import anystream.media.file.TvFileNameParser
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test

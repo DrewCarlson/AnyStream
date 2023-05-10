@@ -139,6 +139,12 @@ sealed class MediaLink {
          * on the file extension and known image file extensions.
          */
         IMAGE,
+
+        ;
+
+        fun isDirectoryLink(): Boolean {
+            return name.endsWith("DIRECTORY")
+        }
     }
 }
 

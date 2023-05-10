@@ -26,6 +26,10 @@ class MetadataManager(
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
+    init {
+        logger.debug("Configuring metadata providers {}", providers.map { it.id })
+    }
+
     suspend fun findByRemoteId(remoteId: String): QueryMetadataResult {
         val (providerId, mediaKindString, rawId) = remoteId.split(':')
         val mediaKind = MediaKind.valueOf(mediaKindString.uppercase())
@@ -43,6 +47,7 @@ class MetadataManager(
                     null
                 }
             }
+
             else -> null
         }
 
@@ -57,20 +62,34 @@ class MetadataManager(
     }
 
     suspend fun search(request: QueryMetadata): List<QueryMetadataResult> {
+        logger.debug("Performing metadata search for {}", request)
         return if (request.providerId == null) {
             providers
                 .filter { it.mediaKinds.contains(request.mediaKind) }
                 .map { provider -> provider.search(request) }
+                .also { selectedProviders ->
+                    if (selectedProviders.isEmpty()) {
+                        logger.warn("No providers available for ${request.mediaKind}")
+                    }
+                }
         } else {
             providers.find { it.id == request.providerId }
                 ?.search(request)
                 .run(::listOfNotNull)
+                .also { selectedProviders ->
+                    if (selectedProviders.isEmpty()) {
+                        logger.warn("No providers available for ${request.providerId}")
+                    }
+                }
         }
     }
 
     suspend fun importMetadata(request: ImportMetadata): List<ImportMetadataResult> {
-        val provider = providers.find { provider -> provider.id == request.providerId }
-            ?: return emptyList()
+        logger.debug("Performing metadata import for {}", request)
+        val provider = providers.find { provider -> provider.id == request.providerId } ?: run {
+            logger.warn("No providers available for request {}", request)
+            return emptyList()
+        }
 
         return provider.importMetadata(request)
     }

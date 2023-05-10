@@ -15,26 +15,30 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.media.processor.file
+package anystream.media.file
 
-class MovieFileNameParser : FileNameParser {
+sealed class ParsedFileNameResult {
 
-    private val yearRegex = "\\s\\((\\d{4})\\)\$".toRegex()
+    sealed class Tv {
+        data class ShowFolder(
+            val name: String,
+            val year: Int?,
+        ) : ParsedFileNameResult()
 
-    override fun parseFileName(fileName: String): ParsedFileNameResult {
-        val mediaName = fileName.substringBeforeLast('.').trim()
+        data class SeasonFolder(
+            val seasonNumber: Int,
+        ) : ParsedFileNameResult()
 
-        val match = yearRegex.find(mediaName)
-        val year = match?.groupValues?.lastOrNull()?.toIntOrNull()
-
-        val name = if (year == null) {
-            mediaName
-        } else {
-            mediaName.replace(yearRegex, "")
-        }.trim()
-        return ParsedFileNameResult.MovieFile(
-            name = name,
-            year = year,
-        )
+        data class EpisodeFile(
+            val seasonNumber: Int?,
+            val episodeNumber: Int,
+        ) : ParsedFileNameResult()
     }
+
+    data class MovieFile(
+        val name: String,
+        val year: Int?,
+    ) : ParsedFileNameResult()
+
+    object Unknown : ParsedFileNameResult()
 }

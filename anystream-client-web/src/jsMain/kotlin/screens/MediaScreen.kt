@@ -66,6 +66,7 @@ fun MediaScreen(mediaId: String) {
             }
         }
     }
+    val onFixMatch: (() -> Unit)? = remember(mediaResponse) { null }
     DisposableEffect(mediaId) {
         onDispose { backdropImageUrl.value = null }
     }
@@ -86,6 +87,7 @@ fun MediaScreen(mediaId: String) {
             BaseDetailsView(
                 mediaItem = mediaItem,
                 analyzeFiles = analyzeFiles,
+                onFixMatch = onFixMatch,
             )
         }
 
@@ -94,6 +96,7 @@ fun MediaScreen(mediaId: String) {
             BaseDetailsView(
                 mediaItem = mediaItem,
                 analyzeFiles = analyzeFiles,
+                onFixMatch = onFixMatch,
             )
 
             if (response.seasons.isNotEmpty()) {
@@ -106,6 +109,7 @@ fun MediaScreen(mediaId: String) {
             BaseDetailsView(
                 mediaItem = mediaItem,
                 analyzeFiles = null,
+                onFixMatch = onFixMatch,
             )
 
             if (response.episodes.isNotEmpty()) {
@@ -121,6 +125,7 @@ fun MediaScreen(mediaId: String) {
             BaseDetailsView(
                 mediaItem = mediaItem,
                 analyzeFiles = analyzeFiles,
+                onFixMatch = onFixMatch,
             )
         }
     }
@@ -130,6 +135,7 @@ fun MediaScreen(mediaId: String) {
 private fun BaseDetailsView(
     mediaItem: MediaItem,
     analyzeFiles: (() -> Unit)?,
+    onFixMatch: (() -> Unit)?,
 ) {
     Div({ classes("d-flex") }) {
         Div({ classes("d-flex", "flex-column", "align-items-center", "flex-shrink-0") }) {
@@ -251,6 +257,7 @@ private fun BaseDetailsView(
                         OptionsPopper(
                             element,
                             onAnalyzeFilesClicked = analyzeFiles,
+                            onFixMatch = onFixMatch,
                             onClose = { isMenuVisible = false },
                         )
                     }
@@ -604,7 +611,7 @@ private fun OptionsPopper(
                         A(null, {
                             classes("dropdown-item", "fs-6")
                             style { cursor("pointer") }
-                            onClick { }
+                            onClick { onFixMatch() }
                         }) {
                             Text("Fix Match")
                         }

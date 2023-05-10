@@ -21,14 +21,17 @@ import anystream.db.MediaLinkDao
 import anystream.db.MetadataDao
 import anystream.db.model.MediaLinkDb
 import anystream.db.model.StreamEncodingDetailsDb
+import anystream.media.processor.MediaFileProcessor
+import anystream.media.scanner.MediaFileScanner
 import anystream.media.util.toStreamEncodingDetails
+import anystream.models.LocalMediaLink
 import anystream.models.MediaKind
+import anystream.models.MediaLink
 import anystream.models.MediaLink.Descriptor.*
-import anystream.models.api.MediaAnalyzerResult
-import anystream.models.api.MediaScanRequest
-import anystream.models.api.MediaScanResult
+import anystream.models.api.*
 import anystream.models.backend.MediaScannerState
 import anystream.util.ObjectId
+import anystream.util.toHumanReadableSize
 import com.github.kokorin.jaffree.JaffreeException
 import com.github.kokorin.jaffree.StreamType
 import com.github.kokorin.jaffree.ffprobe.FFprobe
@@ -117,47 +120,140 @@ class LibraryManager(
         }
     }
 
-    fun removeLibraryFolder(gid: String): Boolean {
+    fun removeMediaLink(mediaLink: MediaLinkDb): Boolean {
         return try {
-            val link = mediaLinkDao.findByGid(gid) ?: return false
-            mediaLinkDao.deleteByBasePath(checkNotNull(link.filePath))
+            when (mediaLink.descriptor) {
+                ROOT_DIRECTORY,
+                MEDIA_DIRECTORY,
+                CHILD_DIRECTORY,
+                -> mediaLinkDao.deleteByBasePath(checkNotNull(mediaLink.filePath))
+
+                VIDEO,
+                AUDIO,
+                SUBTITLE,
+                IMAGE,
+                -> {
+                    mediaLinkDao.deleteByGid(mediaLink.gid)
+                }
+            }
+
             true
         } catch (e: JdbiException) {
-            logger.error("Failed to remove library folder '$gid'", e)
+            logger.error("Database error while removing media link ${mediaLink.gid}", e)
             false
         }
     }
 
-    fun scanForMedia(
-        userId: Int,
-        libraryLink: MediaLinkDb,
-        childMediaLink: MediaLinkDb? = null,
-    ): MediaScanResult {
-        return mediaFileScanner.scanForMedia(userId, libraryLink, childMediaLink)
+    suspend fun listFiles(root: String?, showFiles: Boolean): ListFilesResponse {
+        val folders: List<String>
+        var files = emptyList<String>()
+        if (root.isNullOrBlank()) {
+            val rootLinks = mediaLinkDao
+                .findByDescriptor(MediaLink.Descriptor.ROOT_DIRECTORY)
+                .mapNotNull(MediaLinkDb::filePath)
+            val (foldersList, filesList) = File.listRoots().orEmpty().partition(File::isDirectory)
+            folders = rootLinks + foldersList.map(File::getAbsolutePath).filterNot(rootLinks::contains)
+            files = filesList.map(File::getAbsolutePath)
+        } else {
+            val rootDir = try {
+                FileSystems.getDefault().getPath(root)
+            } catch (e: InvalidPathException) {
+                null
+            }
+            if (rootDir == null || rootDir.notExists()) {
+                return ListFilesResponse()
+            }
+            if (rootDir.isDirectory()) {
+                val (folderPaths, filePaths) = withContext(Dispatchers.IO) {
+                    Files.newDirectoryStream(rootDir).use { stream ->
+                        stream.partition { it.isDirectory() }
+                    }
+                }
+                folders = folderPaths.map { it.absolutePathString() }
+                files = filePaths.map { it.absolutePathString() }
+            } else {
+                folders = listOf(rootDir.absolutePathString())
+            }
+        }
+        return ListFilesResponse(folders, if (showFiles) files else emptyList())
     }
 
-    suspend fun refreshMetadata(userId: Int, mediaLinkGid: String) {
-        refreshMetadata(userId, checkNotNull(mediaLinkDao.findByGid(mediaLinkGid)))
+    fun scan(mediaLink: MediaLinkDb): MediaScanResult {
+        return mediaFileScanner.scan(mediaLink)
     }
 
-    suspend fun refreshMetadata(userId: Int, mediaLink: MediaLinkDb) {
+    suspend fun refreshMetadata(userId: Int, mediaLinkGid: String, import: Boolean) {
+        refreshMetadata(userId, requireNotNull(mediaLinkDao.findByGid(mediaLinkGid)), import)
+    }
+
+    suspend fun refreshMetadata(userId: Int, mediaLink: MediaLinkDb, import: Boolean): List<MediaLinkMatchResult> {
+        val processor = processors.firstOrNull { it.mediaKinds.contains(mediaLink.mediaKind) } ?: run {
+            logger.error("No processor found for MediaKind '{}'", mediaLink.mediaKind)
+            return emptyList() // TODO: return no processor result
+        }
+
+        return when (mediaLink.descriptor) {
+            ROOT_DIRECTORY -> {
+                mediaLinkDao.findByBasePathAndDescriptor(mediaLink.filePath.orEmpty(), MEDIA_DIRECTORY)
+            }
+
+            MEDIA_DIRECTORY -> listOf(mediaLink)
+            CHILD_DIRECTORY ->
+                listOfNotNull(mediaLinkDao.findByGid(checkNotNull(mediaLink.parentMediaLinkGid)))
+            VIDEO -> listOf(mediaLink)
+            else -> return emptyList()
+        }.filter { it.mediaKind == mediaLink.mediaKind }
+            .map { childLink ->
+                processor.findMetadataMatches(childLink, import)
+            }
+    }
+
+    suspend fun matchMediaLink(userId: Int, mediaLink: MediaLinkDb, metadataMatch: MetadataMatch) {
         val processor = processors.firstOrNull { it.mediaKinds.contains(mediaLink.mediaKind) } ?: run {
             logger.error("No processor found for MediaKind '{}'", mediaLink.mediaKind)
             return // TODO: return no processor result
         }
 
         when (mediaLink.descriptor) {
-            ROOT_DIRECTORY -> {
-                mediaLinkDao.findByBasePathAndDescriptor(mediaLink.filePath.orEmpty(), MEDIA_DIRECTORY)
-            }
+            ROOT_DIRECTORY -> error("Unsupported mediaLink")
+
             MEDIA_DIRECTORY -> listOf(mediaLink)
             CHILD_DIRECTORY ->
                 listOfNotNull(mediaLinkDao.findByGid(checkNotNull(mediaLink.parentMediaLinkGid)))
+            VIDEO -> listOf(mediaLink)
             else -> return
         }.filter { it.mediaKind == mediaLink.mediaKind }
-            .forEach { childLink ->
-                processor.matchMediaLinkMetadata(childLink, userId)
+            .map { childLink ->
+                processor.importMetadataMatch(childLink, metadataMatch)
             }
+    }
+
+    fun getLibraryFolders(): List<LibraryFolderList.RootFolder> {
+        return try {
+            mediaLinkDao.findByDescriptor(MediaLink.Descriptor.ROOT_DIRECTORY)
+        } catch (e: JdbiException) {
+            logger.error("Failed to load ROOT_DIRECTORY media links", e)
+            emptyList()
+        }.map { mediaLink ->
+            val filePath = checkNotNull(mediaLink.filePath)
+            val (matched, unmatched) = mediaLinkDao
+                .findByBasePathAndDescriptor(filePath, MediaLink.Descriptor.MEDIA_DIRECTORY)
+                .partition { it.metadataId != null || it.rootMetadataId != null }
+            val freeSpace = try {
+                Path(filePath).toFile().freeSpace.toHumanReadableSize()
+            } catch (e: FileSystemException) {
+                e.printStackTrace()
+                null
+            }
+            LibraryFolderList.RootFolder(
+                mediaLink = mediaLink.toModel() as LocalMediaLink,
+                mediaMatchCount = matched.size,
+                unmatchedFileCount = 0, // TODO: Add unmatched files
+                unmatchedFolders = unmatched.mapNotNull(MediaLinkDb::filePath),
+                sizeOnDisk = null,
+                freeSpace = freeSpace,
+            )
+        }
     }
 
     suspend fun analyzeMediaFiles(

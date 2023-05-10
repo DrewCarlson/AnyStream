@@ -21,6 +21,7 @@ import anystream.db.MediaLinkDao
 import anystream.db.mappers.registerMappers
 import anystream.db.model.MediaLinkDb
 import anystream.db.runMigrations
+import anystream.media.scanner.MediaFileScanner
 import anystream.models.MediaKind
 import anystream.models.MediaLink
 import anystream.models.api.MediaScanResult
@@ -88,7 +89,7 @@ class MediaFileScannerTest {
         subtitleFile.createNewFile()
 
         runBlocking {
-            val result = mediaFileScanner.scanForMedia(userId, libraryLink, null)
+            val result = mediaFileScanner.scan(libraryLink)
             assertTrue(result is MediaScanResult.Success)
 
             val successResult = assertIs<MediaScanResult.Success>(result)
@@ -134,7 +135,7 @@ class MediaFileScannerTest {
         tvShow1Episode3.createNewFile()
 
         runBlocking {
-            val result = mediaFileScanner.scanForMedia(userId, libraryLink, null)
+            val result = mediaFileScanner.scan(libraryLink)
             assertTrue(result is MediaScanResult.Success)
 
             val successResult = result as MediaScanResult.Success
@@ -164,7 +165,7 @@ class MediaFileScannerTest {
         mediaLinkDao.insertLink(libraryLink)
 
         runBlocking {
-            val result = mediaFileScanner.scanForMedia(userId, libraryLink, null)
+            val result = mediaFileScanner.scan(libraryLink)
             assertTrue(result is MediaScanResult.Success)
             assertEquals(MediaScannerState.Idle, mediaFileScanner.state.value)
         }
@@ -178,7 +179,7 @@ class MediaFileScannerTest {
         mediaLinkDao.insertLink(childLink)
 
         runBlocking {
-            val result = mediaFileScanner.scanForMedia(userId, libraryLink, childLink)
+            val result = mediaFileScanner.scan(childLink)
             assertTrue(result is MediaScanResult.Success)
             assertEquals(MediaScannerState.Idle, mediaFileScanner.state.value)
         }
@@ -192,7 +193,7 @@ class MediaFileScannerTest {
         mediaLinkDao.insertLink(childLink)
 
         runBlocking {
-            val result = mediaFileScanner.scanForMedia(userId, libraryLink, childLink)
+            val result = mediaFileScanner.scan(childLink)
             assertTrue(result is MediaScanResult.ErrorFileNotFound)
             assertEquals(MediaScannerState.Idle, mediaFileScanner.state.value)
         }

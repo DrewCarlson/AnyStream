@@ -65,43 +65,52 @@ class TmdbMetadataProvider(
     }
 
     private suspend fun importMovie(tmdbId: Int, request: ImportMetadata): ImportMetadataResult {
+        logger.debug("Importing movie by id {}", tmdbId)
         val existingMovie = queries.findMovieByTmdbId(tmdbId)
 
-        val result = if (existingMovie == null || request.refresh) {
-            val movieId = existingMovie?.gid ?: ObjectId.get().toString()
-            val userId = existingMovie?.addedByUserId ?: 1
-            val movieDb = try {
-                checkNotNull(fetchMovie(tmdbId))
-            } catch (e: Throwable) {
-                return ImportMetadataResult.ErrorDataProviderException(e.stackTraceToString())
-            }
-            val movie = movieDb.asMovie(existingMovie?.id ?: -1, movieId, userId)
-            try {
-                val finalMovie = queries.insertMovie(movie).toMovieModel()
-                ImportMetadataResult.Success(
-                    match = MetadataMatch.MovieMatch(
-                        metadataGid = movie.tmdbId.toString(),
-                        remoteId = movieDb.toRemoteId(),
-                        exists = true,
-                        movie = finalMovie,
-                    ),
-                    subresults = emptyList(),
-                )
-            } catch (e: JdbiException) {
-                ImportMetadataResult.ErrorDatabaseException(e.stackTraceToString())
-            }
-        } else {
-            ImportMetadataResult.ErrorMetadataAlreadyExists(
+        if (existingMovie != null && !request.refresh) {
+            return ImportMetadataResult.ErrorMetadataAlreadyExists(
                 existingMediaId = existingMovie.gid,
                 match = MetadataMatch.MovieMatch(
                     metadataGid = existingMovie.tmdbId.toString(),
                     remoteId = "tmdb:movie:${existingMovie.tmdbId}",
                     exists = true,
                     movie = existingMovie,
+                    providerId = this@TmdbMetadataProvider.id,
                 ),
             )
         }
-        return result
+
+        if (existingMovie == null) {
+            logger.debug("Importing metadata record for {}", tmdbId)
+        } else {
+            logger.debug("Refreshing metadata record for {}", existingMovie.gid)
+        }
+        val movieId = existingMovie?.gid ?: ObjectId.get().toString()
+        val userId = existingMovie?.addedByUserId ?: 1
+        val movieDb = try {
+            checkNotNull(fetchMovie(tmdbId))
+        } catch (e: Throwable) {
+            logger.error("Failed to fetch data from Tmdb", e)
+            return ImportMetadataResult.ErrorDataProviderException(e.stackTraceToString())
+        }
+        val movie = movieDb.asMovie(existingMovie?.id ?: -1, movieId, userId)
+        return try {
+            val finalMovie = queries.insertMovie(movie).toMovieModel()
+            ImportMetadataResult.Success(
+                match = MetadataMatch.MovieMatch(
+                    metadataGid = movie.tmdbId.toString(),
+                    remoteId = movieDb.toRemoteId(),
+                    exists = true,
+                    movie = finalMovie,
+                    providerId = this@TmdbMetadataProvider.id,
+                ),
+                subresults = emptyList(),
+            )
+        } catch (e: JdbiException) {
+            logger.error("Failed to insert new movie metadata", e)
+            ImportMetadataResult.ErrorDatabaseException(e.stackTraceToString())
+        }
     }
 
     private suspend fun importTvShow(tmdbId: Int, request: ImportMetadata): ImportMetadataResult {
@@ -113,12 +122,13 @@ class TmdbMetadataProvider(
             return ImportMetadataResult.ErrorMetadataAlreadyExists(
                 existingMediaId = existingTvShow.gid,
                 match = MetadataMatch.TvShowMatch(
-                    metadataGid = existingTvShow.tmdbId.toString(),
+                    metadataGid = existingTvShow.gid,
                     remoteId = "tmdb:tv:${existingTvShow.tmdbId}",
                     exists = true,
                     tvShow = existingTvShow,
                     seasons = existingSeasons.map { it.toTvSeasonModel() },
                     episodes = existingEpisodes,
+                    providerId = this@TmdbMetadataProvider.id,
                 ),
             )
         }
@@ -129,6 +139,7 @@ class TmdbMetadataProvider(
         val tmdbSeries = try {
             checkNotNull(fetchTvSeries(tmdbId))
         } catch (e: Throwable) {
+            logger.error("Failed to fetch tv series data", e)
             return ImportMetadataResult.ErrorDataProviderException(e.stackTraceToString())
         }
         val tmdbSeasons = try {
@@ -136,6 +147,7 @@ class TmdbMetadataProvider(
                 .filter { it.seasonNumber > 0 }
                 .mapNotNull { season -> fetchSeason(tmdbSeries.id, season.seasonNumber) }
         } catch (e: Throwable) {
+            logger.error("Failed to fetch tv season data", e)
             return ImportMetadataResult.ErrorDataProviderException(e.stackTraceToString())
         }
         val existingSeasons = queries.metadataDao
@@ -163,9 +175,11 @@ class TmdbMetadataProvider(
                     tvShow = finalTvShow.toTvShowModel(),
                     seasons = finalSeasons.map(MetadataDb::toTvSeasonModel),
                     episodes = finalEpisodes.map(MetadataDb::toTvEpisodeModel),
+                    providerId = this@TmdbMetadataProvider.id,
                 ),
             )
         } catch (e: JdbiException) {
+            logger.error("Failed to insert tv show data", e)
             ImportMetadataResult.ErrorDatabaseException(e.stackTraceToString())
         }
     }
@@ -274,6 +288,7 @@ class TmdbMetadataProvider(
                     gid = existingMovie?.gid ?: remoteId,
                     userId = existingMovie?.addedByUserId ?: 1,
                 ),
+                providerId = this@TmdbMetadataProvider.id,
             )
         }
         return QueryMetadataResult.Success(id, matches, request.extras)
@@ -311,6 +326,7 @@ class TmdbMetadataProvider(
                     tvShow = tvResponse.tvShow,
                     seasons = tvResponse.seasons,
                     episodes = episodes,
+                    providerId = this@TmdbMetadataProvider.id,
                 ),
             )
             return QueryMetadataResult.Success(id, matchList, request.extras)
@@ -385,6 +401,7 @@ class TmdbMetadataProvider(
                 tvShow = existingShow ?: tvSeries.asTvShow(-1, remoteId).toTvShowModel(),
                 seasons = existingSeasons.map { it.toTvSeasonModel() },
                 episodes = existingEpisodes,
+                providerId = this@TmdbMetadataProvider.id,
             )
         }
         return QueryMetadataResult.Success(id, matches, request.extras)

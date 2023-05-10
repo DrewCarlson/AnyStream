@@ -63,7 +63,7 @@ fun LibraryFoldersScreen() {
                             FolderRow(
                                 folder,
                                 onDeleteClicked = { deleteTarget = it.mediaLink },
-                                onScanClicked = { scope.launch { client.scanLibrary(it.mediaLink.gid) } },
+                                onScanClicked = { scope.launch { client.scanMediaLink(it.mediaLink.gid) } },
                                 onEditClicked = {},
                             )
                         }
@@ -119,7 +119,7 @@ fun LibraryFoldersScreen() {
             deleteTarget,
             onDeleteClicked = {
                 scope.launch {
-                    client.deleteLibraryFolder(checkNotNull(deleteTarget).gid)
+                    client.removeMediaLink(checkNotNull(deleteTarget).gid)
                     folderListUpdate++
                     deleteTarget = null
                     modalRef.hide()

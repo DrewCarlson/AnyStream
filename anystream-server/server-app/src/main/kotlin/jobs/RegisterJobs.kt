@@ -28,5 +28,4 @@ fun Application.registerJobs() {
     val kjob = get<KJob>()
     val ffmpeg = { get<FFmpeg>() }
     GenerateVideoPreviewJob.register(kjob, ffmpeg, config.dataPath, get())
-    RefreshMetadataJob.register(kjob, get(), get())
 }

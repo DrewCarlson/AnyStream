@@ -15,22 +15,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.media.processor.file
+package anystream.media.file
 
-sealed class ParsedFileNameResult {
+interface FileNameParser {
 
-    sealed class Tv {
-        data class SeasonFolder(val seasonNumber: Int) : ParsedFileNameResult()
-        data class EpisodeFile(
-            val seasonNumber: Int?,
-            val episodeNumber: Int,
-        ) : ParsedFileNameResult()
-    }
-
-    data class MovieFile(
-        val name: String,
-        val year: Int?,
-    ) : ParsedFileNameResult()
-
-    object Unknown : ParsedFileNameResult()
+    fun parseFileName(fileName: String): ParsedFileNameResult
 }

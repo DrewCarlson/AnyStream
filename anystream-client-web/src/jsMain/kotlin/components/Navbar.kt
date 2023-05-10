@@ -21,7 +21,6 @@ import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
 import anystream.libs.PopperElement
 import anystream.libs.popperOptions
-import anystream.models.LocalMediaLink
 import anystream.models.Permission
 import anystream.models.api.LibraryActivity
 import anystream.models.api.SearchResponse
@@ -392,11 +391,12 @@ private fun ServerActivityPopper(
                         activeState?.run {
                             Div({ classes("hstack", "gap-1") }) {
                                 LoadingIndicator(small = true)
-                                (currentLink as? LocalMediaLink ?: libraryLink as? LocalMediaLink)?.let {
+                                /* TODO: Restore media scanner details
+                                    (currentLink as? LocalMediaLink ?: libraryLink as? LocalMediaLink)?.let {
                                     Div({ classes("text-nowrap", "overflow-hidden") }) {
                                         Text(it.filename)
                                     }
-                                }
+                                }*/
                             }
                         }
                     }

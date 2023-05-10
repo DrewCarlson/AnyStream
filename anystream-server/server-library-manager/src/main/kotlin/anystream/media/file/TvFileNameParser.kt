@@ -15,10 +15,11 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.media.processor.file
+package anystream.media.file
 
 class TvFileNameParser : FileNameParser {
 
+    private val yearRegex = "\\s\\((\\d{4})\\)\$".toRegex()
     private val seasonFolderRegex = "(\\d{1,2})$".toRegex()
     private val episodeIndexRegex = "\\b[sS](\\d{1,2})[eE](\\d{1,3})\\b".toRegex()
     private val episodeNumberRegex = "() - (\\d{1,3}) - ".toRegex() // NOTE: Keep empty group
@@ -35,7 +36,20 @@ class TvFileNameParser : FileNameParser {
             episodeIndexRegex.containsMatchIn(fileName) -> checkNotNull(episodeIndexRegex.find(fileName))
             episodeNumberRegex.containsMatchIn(fileName) -> checkNotNull(episodeNumberRegex.find(fileName))
             simpleEpisodeIndexRegex.containsMatchIn(fileName) -> checkNotNull(simpleEpisodeIndexRegex.find(fileName))
-            else -> return ParsedFileNameResult.Unknown
+            else -> {
+                val match = yearRegex.find(fileName)
+                val year = match?.groupValues?.lastOrNull()?.toIntOrNull()
+
+                val name = if (year == null) {
+                    fileName
+                } else {
+                    fileName.replace(yearRegex, "")
+                }.trim()
+                return ParsedFileNameResult.Tv.ShowFolder(
+                    name = name,
+                    year = year,
+                )
+            }
         }
 
         val (seasonNumber, episodeNumber) = matchResult.groupValues.drop(1)

@@ -54,16 +54,18 @@ data class QueryMetadata(
 
 @Serializable
 sealed class MetadataMatch {
-    abstract val metadataGid: String
+    abstract val providerId: String
+    abstract val metadataGid: String?
     abstract val remoteId: String
     abstract val exists: Boolean
 
     @Serializable
     data class MovieMatch(
         val movie: Movie,
-        override val metadataGid: String,
+        override val metadataGid: String?,
         override val remoteId: String,
         override val exists: Boolean,
+        override val providerId: String,
     ) : MetadataMatch()
 
     @Serializable
@@ -71,10 +73,37 @@ sealed class MetadataMatch {
         val tvShow: TvShow,
         val seasons: List<TvSeason>,
         val episodes: List<Episode>,
-        override val metadataGid: String,
+        override val metadataGid: String?,
         override val remoteId: String,
         override val exists: Boolean,
+        override val providerId: String,
     ) : MetadataMatch()
+}
+
+@Serializable
+sealed class MediaLinkMatchResult {
+
+    @Serializable
+    data class Success(
+        val mediaLink: MediaLink,
+        val matches: List<MetadataMatch>,
+        val subResults: List<MediaLinkMatchResult>,
+    ) : MediaLinkMatchResult()
+
+    @Serializable
+    data class NoSupportedFiles(
+        val mediaLink: MediaLink,
+    ) : MediaLinkMatchResult()
+
+    @Serializable
+    data class FileNameParseFailed(
+        val mediaLink: MediaLink,
+    ) : MediaLinkMatchResult()
+
+    @Serializable
+    data class NoMatchesFound(
+        val mediaLink: MediaLink,
+    ) : MediaLinkMatchResult()
 }
 
 @Serializable
