@@ -146,7 +146,7 @@ inline fun <reified T : Any> Jdbi.pooled(): T = pooled(T::class.java)
 fun <E> Jdbi.pooled(extensionType: Class<E>): E {
     require(extensionType.isInterface) { "On-demand extensions are only supported for interfaces." }
     if (!getConfig(Extensions::class.java).hasExtensionFor(extensionType)) {
-        throw NoSuchExtensionException("Extension not found: $extensionType")
+        throw NoSuchExtensionException(extensionType)
     }
     return getConfig(PooledExtensions::class.java).create(this, extensionType)
 }

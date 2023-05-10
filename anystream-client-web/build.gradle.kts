@@ -8,6 +8,11 @@ plugins {
 
 val localProperties = gradleLocalProperties(rootDir)
 
+compose {
+    kotlinCompilerPlugin.set(dependencies.compiler.forKotlin("1.8.20"))
+    kotlinCompilerPluginArgs.add("suppressKotlinVersionCompatibilityCheck=${libs.versions.kotlin.get()}")
+}
+
 kotlin {
     js(IR) {
         useCommonJs()
