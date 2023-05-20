@@ -173,7 +173,7 @@ icu4j-localespi = { module = "com.ibm.icu:icu4j-localespi", version.ref = "icu4j
 coil = { module = "io.coil-kt:coil-compose", version = "2.3.0" }
 routingCompose = { module = "app.softwork:routing-compose", version = "0.2.12" }
 
-quickie-bundled = { module = "io.github.g00fy2.quickie:quickie-bundled", version = "1.6.0" }
+quickie-bundled = { module = "io.github.g00fy2.quickie:quickie-bundled", version = "1.7.0" }
 
 leakcanary = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
 
