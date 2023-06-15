@@ -26,7 +26,7 @@ jobs:
           fetch-depth: 0
       - name: Get changed files
         id: android
-        uses: tj-actions/changed-files@v35
+        uses: tj-actions/changed-files@v36
         with:
           files: |
             build.gradle.kts
@@ -38,7 +38,7 @@ jobs:
             **/anystream-data-models/**
       - name: Get changed files
         id: client-core
-        uses: tj-actions/changed-files@v35
+        uses: tj-actions/changed-files@v36
         with:
           files: |
             gradle/libs.versions.toml
@@ -46,14 +46,14 @@ jobs:
             **/anystream-data-models/**
       - name: Get changed files
         id: data-models
-        uses: tj-actions/changed-files@v35
+        uses: tj-actions/changed-files@v36
         with:
           files: |
             gradle/libs.versions.toml
             **/anystream-data-models/**
       - name: Get changed files
         id: server
-        uses: tj-actions/changed-files@v35
+        uses: tj-actions/changed-files@v36
         with:
           files: |
             gradle/libs.versions.toml
@@ -61,7 +61,7 @@ jobs:
             **/anystream-server/**
       - name: Get changed files
         id: ios
-        uses: tj-actions/changed-files@v35
+        uses: tj-actions/changed-files@v36
         with:
           files: |
             gradle/libs.versions.toml
@@ -72,7 +72,7 @@ jobs:
             **/anystream-data-models/**
       - name: Get changed files
         id: web
-        uses: tj-actions/changed-files@v35
+        uses: tj-actions/changed-files@v36
         with:
           files: |
             gradle/libs.versions.toml
@@ -98,7 +98,7 @@ jobs:
       - uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
-          java-version: 11
+          java-version: 17
 
       - name: Cache Build files
         uses: actions/cache@v3
@@ -139,7 +139,7 @@ jobs:
       - uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
-          java-version: 11
+          java-version: 17
 
       - name: Cache Build files
         uses: actions/cache@v3
@@ -186,7 +186,7 @@ jobs:
       - uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
-          java-version: 11
+          java-version: 17
 
       - name: Cache Build files
         uses: actions/cache@v3
@@ -225,7 +225,7 @@ jobs:
       - uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
-          java-version: 11
+          java-version: 17
 
       - name: Cache Build files
         uses: actions/cache@v3

@@ -42,7 +42,7 @@ kotlin {
     }
     target {
         compilations.getByName("test") {
-            compileKotlinTask.doFirst {
+            compileTaskProvider.get().doFirst {
                 file(testGenSrcPath).also { if (!it.exists()) it.mkdirs() }
                 val configFile = file("$testGenSrcPath/config.kt")
                 if (!configFile.exists()) {

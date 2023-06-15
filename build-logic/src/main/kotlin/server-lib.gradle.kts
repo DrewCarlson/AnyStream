@@ -5,6 +5,7 @@ plugins {
 }
 
 kotlin {
+    jvmToolchain(JAVA_TARGET.majorVersion.toInt())
     target {
         compilations.all {
             kotlinOptions {

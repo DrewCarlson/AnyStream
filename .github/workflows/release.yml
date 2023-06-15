@@ -24,7 +24,7 @@ jobs:
           fetch-depth: 0
       - name: Get changed files
         id: check
-        uses: tj-actions/changed-files@v35
+        uses: tj-actions/changed-files@v36
         with:
           files: |
             .github/workflows/release.yml
@@ -39,7 +39,7 @@ jobs:
             Dockerfile-local
       - name: Get changed files
         id: docs
-        uses: tj-actions/changed-files@v35
+        uses: tj-actions/changed-files@v36
         with:
           files: |
             .github/workflows/release.yml
@@ -81,7 +81,7 @@ jobs:
       - uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
-          java-version: 11
+          java-version: 17
 
       - name: Cache Build files
         uses: actions/cache@v3

@@ -24,6 +24,7 @@ if (hasAndroidSdk) {
 }
 
 kotlin {
+    jvmToolchain(JAVA_TARGET.majorVersion.toInt())
     js(IR) {
         browser {
             testTask {

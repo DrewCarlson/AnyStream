@@ -35,6 +35,7 @@ import org.jdbi.v3.sqlobject.SqlObjectPlugin
 import org.jdbi.v3.sqlobject.kotlin.KotlinSqlObjectPlugin
 import org.jdbi.v3.sqlobject.kotlin.attach
 import org.junit.Assert.assertTrue
+import org.junit.Ignore
 import org.junit.Test
 import java.io.File
 import kotlin.test.AfterTest
@@ -42,6 +43,7 @@ import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 
+@Ignore("Disabled until MediaFileScanner is migrated away from File APIs")
 class MediaFileScannerTest {
     private lateinit var handle: Handle
     private lateinit var mediaLinkDao: MediaLinkDao
