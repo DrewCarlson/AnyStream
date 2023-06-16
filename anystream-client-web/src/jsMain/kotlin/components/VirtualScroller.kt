@@ -18,14 +18,13 @@
 package anystream.components
 
 import androidx.compose.runtime.*
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.AttrBuilderContext
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.renderComposable
 import org.w3c.dom.HTMLDivElement
-import org.w3c.dom.get
+import web.dom.observers.ResizeObserver
+import web.dom.observers.ResizeObserverEntry
 import kotlin.math.absoluteValue
 import kotlin.math.ceil
 import kotlin.random.Random
@@ -46,9 +45,11 @@ fun <T> VirtualScroller(
     attrs: AttrBuilderContext<HTMLDivElement>? = null,
     buildItem: @Composable (T) -> Unit,
 ) {
-    val containerId = remember { "vs-container-${Random.nextLong().absoluteValue}" }
+    val instanceId = remember { Random.nextLong().absoluteValue }
+    val parentId = remember { "vs-parent-$instanceId" }
+    val containerId = remember { "vs-container-$instanceId" }
+    val placeHolderId = remember { "vs-placeholder-$instanceId" }
     val itemCount = derivedStateOf { items.size }
-    val scope = rememberCoroutineScope()
     val itemSizeWH = remember { mutableStateOf(0 to 0) }
     val containerViewportWH = remember { mutableStateOf(0 to 0) }
     val scrollOffsetXY = remember { mutableStateOf(0 to 0) }
@@ -73,97 +74,94 @@ fun <T> VirtualScroller(
             verticalI * (containerVpWidth / itemWidth)
         }
     }
-    val itemSlice by derivedStateOf {
-        val (containerVpWidth, containerVpHeight) = containerViewportWH.value
-        val (itemWidth, itemHeight) = itemSizeWH.value
+    val itemSlice by remember {
+        derivedStateOf {
+            val (containerVpWidth, containerVpHeight) = containerViewportWH.value
+            val (itemWidth, itemHeight) = itemSizeWH.value
 
-        val itemsPerRow = (containerVpWidth / itemWidth)
-        val totalYCount = containerVpHeight / itemHeight.toFloat()
-        val remainder = if (totalYCount % 1 > 0) 1 else 0
-        val count = itemsPerRow * (totalYCount.toInt() + remainder)
-        val buffer = ITEM_BUFFER * itemsPerRow
-        val startIndex = renderItemStartIndex.coerceIn(0..items.lastIndex)
-        val finalIndex = (renderItemStartIndex + count + buffer).coerceAtMost(items.size)
+            val itemsPerRow = (containerVpWidth / itemWidth)
+            val totalYCount = containerVpHeight / itemHeight.toFloat()
+            val remainder = if (totalYCount % 1 > 0) 1 else 0
+            val count = itemsPerRow * (totalYCount.toInt() + remainder)
+            val buffer = ITEM_BUFFER * itemsPerRow
+            val startIndex = renderItemStartIndex.coerceIn(0..items.lastIndex)
+            val finalIndex = (renderItemStartIndex + count + buffer).coerceAtMost(items.size)
 
-        items
-            .subList(startIndex, finalIndex)
-            .takeIf { count > 0 }
-            ?.chunked(itemsPerRow)
-            .orEmpty()
+            items
+                .subList(startIndex, finalIndex)
+                .takeIf { count > 0 }
+                ?.chunked(itemsPerRow)
+                .orEmpty()
+        }
     }
-    Div({
-        attrs?.invoke(this)
-        classes("h-100", "w-100")
-        style {
-            position(Position.Relative)
-            overflowY("scroll")
-            overflowX("hidden")
-        }
-        onScroll { event ->
-            val newOffset = (event.target as HTMLDivElement).run {
-                scrollLeft.toInt() to scrollTop.toInt()
+    Div(
+        {
+            id(parentId)
+            attrs?.invoke(this)
+            classes("h-100", "w-100")
+            style {
+                position(Position.Relative)
+                overflowY("scroll")
+                overflowX("hidden")
             }
-            if (scrollOffsetXY.value != newOffset) {
-                scrollOffsetXY.value = newOffset
-            }
-        }
-    }) {
-        DisposableEffect(Unit) {
-            // Frequently check and update the scroll offset to determine
-            // item rendering positions.
-            val job = scope.launch {
-                while (true) {
-                    val newSize = scopeElement.clientWidth to scopeElement.offsetHeight
-                    if (containerViewportWH.value != newSize) {
-                        containerViewportWH.value = newSize
-                    }
-                    delay(25)
+            onScroll { event ->
+                val newOffset = (event.target as HTMLDivElement).run {
+                    scrollLeft.toInt() to scrollTop.toInt()
+                }
+                if (scrollOffsetXY.value != newOffset) {
+                    scrollOffsetXY.value = newOffset
                 }
             }
-            onDispose {
-                job.cancel()
+        },
+    ) {
+        ObserverResize(
+            parentId,
+            onDisposed = {
                 containerViewportWH.value = 0 to 0
                 scrollOffsetXY.value = 0 to 0
+            }
+        ) { entry ->
+            val newWidth = entry.contentRect.width.toInt()
+            val newHeight = entry.contentRect.height.toInt()
+
+            if (newWidth != containerViewportWH.value.first || newHeight != containerViewportWH.value.second) {
+                containerViewportWH.value = newWidth to newHeight
             }
         }
         // Create an invisible dummy item to determine it's size
         items.firstOrNull()?.also { item ->
-            Div({
-                style {
-                    position(Position.Absolute)
-                    opacity(0)
-                    property("z-index", -100)
-                    property("pointer-events", "none")
-                }
-            }) {
-                buildItem(item)
-                DisposableEffect(Unit) {
-                    val job = scope.launch {
-                        while (true) {
-                            val newSize = scopeElement.children[0]
-                                ?.run { clientWidth to clientHeight }
-                                ?: (0 to 0)
-                            if (itemSizeWH.value != newSize) {
-                                itemSizeWH.value = newSize
-                            }
-                            delay(100)
-                        }
+            Div(
+                {
+                    id(placeHolderId)
+                    style {
+                        position(Position.Absolute)
+                        opacity(0)
+                        property("z-index", -100)
+                        property("pointer-events", "none")
                     }
-                    onDispose {
-                        job.cancel()
-                        itemSizeWH.value = 0 to 0
+                },
+            ) {
+                buildItem(item)
+                ObserverResize(placeHolderId) { entry ->
+                    val newWidth = entry.contentRect.width.toInt()
+                    val newHeight = entry.contentRect.height.toInt()
+
+                    if (itemSizeWH.value.first != newWidth || itemSizeWH.value.second != newHeight) {
+                        itemSizeWH.value = newWidth to newHeight
                     }
                 }
             }
         }
-        Div({
-            id(containerId)
-            style {
-                val (w, h) = containerSizeWH.value
-                width(w.px)
-                height(h.px)
-            }
-        }) {
+        Div(
+            {
+                id(containerId)
+                style {
+                    val (w, h) = containerSizeWH.value
+                    width(w.px)
+                    height(h.px)
+                }
+            },
+        ) {
             // Holders with an item are associated by the item here
             val activeHolders = remember { mutableStateMapOf<T, CompositionStateHolder<T>>() }
             // Any unused holders are kept here, waiting for a new item
@@ -186,15 +184,6 @@ fun <T> VirtualScroller(
                 // Find the active holder unless the content is unchanged,
                 // or pull one from the cache, otherwise create a new one.
                 val holder = activeHolders[item]
-                    ?.also { activeHolder ->
-                        if (
-                            activeHolder.itemTop.value == itemTop &&
-                            activeHolder.itemLeft.value == itemLeft &&
-                            activeHolder.itemState.value == item
-                        ) {
-                            return // no change, skip
-                        }
-                    }
                     ?: cachedHolders.removeFirstOrNull()
                     ?: createHolder(containerId, buildItem)
 
@@ -228,21 +217,42 @@ private fun <T> createHolder(
     val itemLeft = mutableStateOf(0)
     val itemState = mutableStateOf<T?>(null)
     val composition = renderComposable(containerId) {
-        Div({
-            style {
-                position(Position.Absolute)
-                property("transform", "translate(${itemLeft.value.px}, ${itemTop.value.px})")
-                property("will-change", "transform")
-                // Hide cached item
-                if (itemState.value == null) {
-                    opacity(0)
-                    property("z-index", -100)
-                    property("pointer-events", "none")
+        Div(
+            {
+                style {
+                    position(Position.Absolute)
+                    property("transform", "translate(${itemLeft.value.px}, ${itemTop.value.px})")
+                    property("will-change", "transform")
+                    // Hide cached item
+                    if (itemState.value == null) {
+                        opacity(0)
+                        property("z-index", -100)
+                        property("pointer-events", "none")
+                    }
                 }
-            }
-        }) {
+            },
+        ) {
             itemState.value?.also { item -> buildItem(item) }
         }
     }
     return CompositionStateHolder(composition, itemTop, itemLeft, itemState)
+}
+
+@Composable
+private fun ObserverResize(
+    id: String,
+    onDisposed: () -> Unit = {},
+    callback: (ResizeObserverEntry) -> Unit
+) {
+    DisposableEffect(Unit) {
+        val observer = ResizeObserver { entries, _ ->
+            entries.forEach(callback)
+        }
+        val target = requireNotNull(web.dom.document.getElementById(id))
+        observer.observe(target)
+        onDispose {
+            observer.unobserve(target)
+            onDisposed()
+        }
+    }
 }

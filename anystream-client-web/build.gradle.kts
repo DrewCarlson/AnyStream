@@ -68,6 +68,7 @@ kotlin {
                 implementation(libs.routingCompose)
 
                 implementation(libs.kotlinjs.extensions)
+                implementation(libs.kotlinjs.browser)
                 implementation(devNpm("jquery", "3.6.4"))
                 implementation(devNpm("bootstrap", "5.3.0-alpha3"))
                 implementation(devNpm("bootstrap-icons", "1.10.4"))
