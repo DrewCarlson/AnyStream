@@ -46,6 +46,7 @@ kotlin {
                 implementation(libs.ktor.client.contentNegotiation)
                 implementation(libs.ktor.client.websockets)
                 implementation(libs.ktor.serialization)
+                implementation(libs.ktor.client.logging)
 
                 api(libs.koin.core)
                 api(libs.objectstore.core)

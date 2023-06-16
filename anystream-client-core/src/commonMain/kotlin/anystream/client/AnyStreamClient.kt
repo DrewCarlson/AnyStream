@@ -24,6 +24,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.cookies.*
+import io.ktor.client.plugins.logging.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -105,6 +106,10 @@ class AnyStreamClient(
         install(ContentNegotiation) {
             json(json)
         }
+        install(Logging) {
+            logger = Logger.SIMPLE
+            level = LogLevel.BODY
+        }
         WebSockets {
             contentConverter = KotlinxWebsocketSerializationConverter(json)
         }
@@ -148,7 +153,8 @@ class AnyStreamClient(
         }
     }
 
-    private val playbackSessionsFlow = createWsStateFlow("/api/ws/admin/sessions", PlaybackSessions())
+    private val playbackSessionsFlow =
+        createWsStateFlow("/api/ws/admin/sessions", PlaybackSessions())
     private val libraryActivityFlow = createWsStateFlow("/api/ws/admin/activity", LibraryActivity())
 
     val playbackSessions: StateFlow<PlaybackSessions> = playbackSessionsFlow
@@ -232,9 +238,11 @@ class AnyStreamClient(
 
     suspend fun getHomeData(): HomeResponse = http.get("$serverUrl/api/home").bodyOrThrow()
 
-    suspend fun getHomeWatching(): CurrentlyWatching = http.get("$serverUrl/api/home/watching").bodyOrThrow()
+    suspend fun getHomeWatching(): CurrentlyWatching =
+        http.get("$serverUrl/api/home/watching").bodyOrThrow()
 
-    suspend fun getHomeRecent(): RecentlyAdded = http.get("$serverUrl/api/home/recent").bodyOrThrow()
+    suspend fun getHomeRecent(): RecentlyAdded =
+        http.get("$serverUrl/api/home/recent").bodyOrThrow()
 
     suspend fun getHomePopular(): Popular = http.get("$serverUrl/api/home/popular").bodyOrThrow()
 
@@ -405,7 +413,11 @@ class AnyStreamClient(
         http.delete("$serverUrl/api/users/$id").orThrow()
     }
 
-    suspend fun login(username: String, password: String, pairing: Boolean = false): CreateSessionResponse {
+    suspend fun login(
+        username: String,
+        password: String,
+        pairing: Boolean = false,
+    ): CreateSessionResponse {
         return http.post("$serverUrl/api/users/session") {
             contentType(ContentType.Application.Json)
             setBody(CreateSessionBody(username, password))
