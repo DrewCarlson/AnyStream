@@ -119,7 +119,7 @@ fun <T> VirtualScroller(
             onDisposed = {
                 containerViewportWH.value = 0 to 0
                 scrollOffsetXY.value = 0 to 0
-            }
+            },
         ) { entry ->
             val newWidth = entry.contentRect.width.toInt()
             val newHeight = entry.contentRect.height.toInt()
@@ -180,12 +180,13 @@ fun <T> VirtualScroller(
                     .onEach(cachedHolders::add)
             }
 
+            val compositionLocalContext = currentCompositionLocalContext
             fun bindHolder(item: T, itemTop: Int, itemLeft: Int) {
                 // Find the active holder unless the content is unchanged,
                 // or pull one from the cache, otherwise create a new one.
                 val holder = activeHolders[item]
                     ?: cachedHolders.removeFirstOrNull()
-                    ?: createHolder(containerId, buildItem)
+                    ?: createHolder(containerId, compositionLocalContext, buildItem)
 
                 activeHolders[item] = holder
                 holder.itemTop.value = itemTop
@@ -211,28 +212,34 @@ fun <T> VirtualScroller(
 
 private fun <T> createHolder(
     containerId: String,
+    compositionLocalContext: CompositionLocalContext,
     buildItem: @Composable (T) -> Unit,
 ): CompositionStateHolder<T> {
     val itemTop = mutableStateOf(0)
     val itemLeft = mutableStateOf(0)
     val itemState = mutableStateOf<T?>(null)
     val composition = renderComposable(containerId) {
-        Div(
-            {
-                style {
-                    position(Position.Absolute)
-                    property("transform", "translate(${itemLeft.value.px}, ${itemTop.value.px})")
-                    property("will-change", "transform")
-                    // Hide cached item
-                    if (itemState.value == null) {
-                        opacity(0)
-                        property("z-index", -100)
-                        property("pointer-events", "none")
+        CompositionLocalProvider(compositionLocalContext) {
+            Div(
+                {
+                    style {
+                        position(Position.Absolute)
+                        property(
+                            "transform",
+                            "translate(${itemLeft.value.px}, ${itemTop.value.px})",
+                        )
+                        property("will-change", "transform")
+                        // Hide cached item
+                        if (itemState.value == null) {
+                            opacity(0)
+                            property("z-index", -100)
+                            property("pointer-events", "none")
+                        }
                     }
-                }
-            },
-        ) {
-            itemState.value?.also { item -> buildItem(item) }
+                },
+            ) {
+                itemState.value?.also { item -> buildItem(item) }
+            }
         }
     }
     return CompositionStateHolder(composition, itemTop, itemLeft, itemState)
@@ -242,7 +249,7 @@ private fun <T> createHolder(
 private fun ObserverResize(
     id: String,
     onDisposed: () -> Unit = {},
-    callback: (ResizeObserverEntry) -> Unit
+    callback: (ResizeObserverEntry) -> Unit,
 ) {
     DisposableEffect(Unit) {
         val observer = ResizeObserver { entries, _ ->
