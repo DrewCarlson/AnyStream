@@ -79,7 +79,7 @@ kotlinjs-extensions = { module = "org.jetbrains.kotlin-wrappers:kotlin-extension
 
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 
-flyway-core = { module = "org.flywaydb:flyway-core", version = "9.19.4" }
+flyway-core = { module = "org.flywaydb:flyway-core", version = "9.20.0" }
 fastObjectPool = { module = "cn.danielw:fast-object-pool", version = "2.2.1" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 
