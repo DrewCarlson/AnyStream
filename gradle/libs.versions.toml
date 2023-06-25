@@ -74,8 +74,8 @@ atomicfu-plugin = { module = "org.jetbrains.kotlinx:atomicfu-gradle-plugin", ver
 
 agp = { module = "com.android.tools.build:gradle", version.ref = "agp" }
 
-kotlinjs-browser = { module = "org.jetbrains.kotlin-wrappers:kotlin-browser", version = "1.0.0-pre.568" }
-kotlinjs-extensions = { module = "org.jetbrains.kotlin-wrappers:kotlin-extensions", version = "1.0.1-pre.568" }
+kotlinjs-browser = { module = "org.jetbrains.kotlin-wrappers:kotlin-browser", version = "1.0.0-pre.574" }
+kotlinjs-extensions = { module = "org.jetbrains.kotlin-wrappers:kotlin-extensions", version = "1.0.1-pre.574" }
 
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 
