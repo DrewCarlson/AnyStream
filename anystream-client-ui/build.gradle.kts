@@ -1,0 +1,44 @@
+plugins {
+    id("multiplatform-lib")
+    id("org.jetbrains.compose")
+}
+
+compose {
+    kotlinCompilerPlugin.set(libs.jbcompose.compiler.get().toString())
+    android {
+        useAndroidX = true
+    }
+}
+
+kotlin {
+    targets.remove(js())
+    sourceSets {
+        configureFramework {
+            baseName = "AnyStreamCore"
+            export(projects.anystreamClientCore)
+            export(projects.anystreamDataModels)
+            export(libs.mobiuskt.core)
+            export(libs.mobiuskt.coroutines)
+            freeCompilerArgs += listOf(
+                "-linker-option", "-framework", "-linker-option", "Metal",
+                "-linker-option", "-framework", "-linker-option", "CoreText",
+                "-linker-option", "-framework", "-linker-option", "CoreGraphics",
+            )
+        }
+
+        val commonMain by getting {
+            dependencies {
+                api(projects.anystreamClientCore)
+                api(projects.anystreamDataModels)
+                api(libs.mobiuskt.core)
+                api(libs.mobiuskt.coroutines)
+                implementation(compose.runtime)
+                implementation(compose.foundation)
+                //@OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
+                //implementation(compose.components.resources)
+                implementation(compose.material3)
+                implementation(compose.materialIconsExtended)
+            }
+        }
+    }
+}

@@ -4,6 +4,7 @@ include(
     ":anystream-client-android",
     ":anystream-client-core",
     ":anystream-client-web",
+    ":anystream-client-ui",
     ":anystream-data-models",
     ":anystream-server:server-app",
     ":anystream-server:server-db-models",
