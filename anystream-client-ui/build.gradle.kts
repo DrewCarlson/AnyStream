@@ -6,9 +6,9 @@ plugins {
 
 compose {
     kotlinCompilerPlugin.set(libs.jbcompose.compiler.get().toString())
-    android {
+    /*android {
         useAndroidX = true
-    }
+    }*/
 }
 
 if (hasAndroidSdk) {
