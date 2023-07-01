@@ -17,14 +17,17 @@ kotlin {
     }
 }
 
-compose.desktop {
-    application {
-        mainClass = "MainKt"
+compose {
+    kotlinCompilerPlugin.set(libs.jbcompose.compiler.get().toString())
+    desktop {
+        application {
+            mainClass = "MainKt"
 
-        nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "KotlinMultiplatformComposeDesktopApplication"
-            packageVersion = "1.0.0"
+            nativeDistributions {
+                targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+                packageName = "KotlinMultiplatformComposeDesktopApplication"
+                packageVersion = "1.0.0"
+            }
         }
     }
 }
