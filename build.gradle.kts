@@ -25,6 +25,7 @@ buildscript {
         classpath(libs.atomicfu.plugin) {
             exclude("org.jetbrains.kotlin", "kotlin-gradle-plugin-api")
         }
+        classpath(libs.resources.generator)
     }
 }
 

@@ -1,6 +1,7 @@
 [versions]
 kotlin = { strictly = "1.8.21" }
 coroutines = "1.7.1"
+resourcesCompose = "0.23.0"
 serialization = "1.5.1"
 ktorio = "2.3.1"
 composejb = "1.4.1"
@@ -80,6 +81,9 @@ kotlinjs-extensions = { module = "org.jetbrains.kotlin-wrappers:kotlin-extension
 
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 
+resources-compose = { module = "dev.icerock.moko:resources-compose", version.ref = "resourcesCompose" }
+resources-generator = { module = "dev.icerock.moko:resources-generator", version.ref = "resourcesCompose" }
+
 flyway-core = { module = "org.flywaydb:flyway-core", version = "9.20.0" }
 fastObjectPool = { module = "cn.danielw:fast-object-pool", version = "2.2.1" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
@@ -141,6 +145,7 @@ compose-foundation = { module = "androidx.compose.foundation:foundation", versio
 compose-icons = { module = "androidx.compose.material:material-icons-extended", version.ref = "compose_material" }
 compose-material = { module = "androidx.compose.material:material", version.ref = "compose_material" }
 compose-livedata = { module = "androidx.compose.runtime:runtime-livedata", version.ref = "compose" }
+compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
 
 jaffree = { module = "com.github.kokorin.jaffree:jaffree", version.ref = "jaffree" }
 
