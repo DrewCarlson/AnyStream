@@ -3,6 +3,7 @@ rootProject.name = "anystream"
 include(
     ":anystream-client-android",
     ":anystream-client-core",
+    ":anystream-client-desktop",
     ":anystream-client-web",
     ":anystream-client-ui",
     ":anystream-data-models",

@@ -21,6 +21,8 @@ if (hasAndroidSdk) {
 
 kotlin {
     targets.remove(js())
+    jvm("desktop")
+
     sourceSets {
         configureFramework {
             baseName = "AnyStreamCore"
@@ -60,6 +62,12 @@ kotlin {
                     implementation(libs.compose.ui.tooling)
                     implementation(libs.compose.ui.tooling.preview)
                 }
+            }
+        }
+
+        val desktopMain by getting {
+            dependencies {
+                implementation(compose.desktop.common)
             }
         }
     }

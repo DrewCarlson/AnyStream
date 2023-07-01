@@ -25,6 +25,8 @@ tasks.findByName("formatKotlinCommonMain")?.apply {
 }
 
 kotlin {
+    jvm("desktop")
+
     configureFramework {
         baseName = "AnyStreamCore"
         export(projects.anystreamDataModels)
@@ -96,6 +98,12 @@ kotlin {
             dependencies {
                 implementation(libs.ktor.client.darwin)
                 implementation(libs.objectstore.secure)
+            }
+        }
+
+        val desktopMain by getting  {
+            dependencies {
+                implementation(libs.ktor.client.cio)
             }
         }
     }
