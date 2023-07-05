@@ -33,6 +33,7 @@ import anystream.ui.home.HomeScreen
 import anystream.ui.login.LoginScreen
 import anystream.ui.movies.MoviesScreen
 import anystream.ui.theme.AppTheme
+import anystream.ui.video.VideoPlayer
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.koin.compose.koinInject
@@ -53,7 +54,7 @@ fun App() {
                     !client.isAuthenticated() -> Routes.Login
                     else -> Routes.Home
                 }
-                Router(defaultRouting = defaultRoute) { stack ->
+                Router(defaultRoute::class.simpleName.orEmpty(), defaultRouting = defaultRoute) { stack ->
                     LaunchedEffect(stack) {
                         router.setBackStack(stack)
                     }
@@ -98,10 +99,10 @@ fun App() {
 //                            client = client,
 //                            backStack = stack,
 //                        )
-//                        is Routes.Player -> PlayerScreen(
-//                            client = client,
-//                            mediaLinkId = route.mediaLinkId,
-//                        )
+                        is Routes.Player -> VideoPlayer(
+                            client = client,
+                            mediaLinkId = route.mediaLinkId,
+                        )
                         Routes.PairingScanner -> TODO()
                         is Routes.Player -> TODO()
                         Routes.Tv -> TODO()
