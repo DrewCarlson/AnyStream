@@ -15,21 +15,10 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import androidx.compose.desktop.ui.tooling.preview.Preview
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.runtime.Composable
+package anystream.ui.util
+
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import anystream.ui.App
-import anystream.ui.login.FormBody
-import anystream.ui.login.LoginScreenModel
 
-@Composable
-fun MainView() = App()
-
-@Preview
-@Composable
-fun AppPreview() {
-    FormBody(
-        LoginScreenModel(""), {}, PaddingValues(0.dp),
-    )
-}
+actual val cardWidth: Dp
+    get() = 130.dp

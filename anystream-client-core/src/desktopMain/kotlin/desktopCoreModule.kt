@@ -15,10 +15,13 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package anystream.client
 
+import anystream.client.anystream.DesktopSessionDataStore
+import io.ktor.client.engine.cio.CIO
 import org.koin.dsl.module
 
 actual fun platformCoreModule() = module {
+    single { CIO.create { } }
+    single<SessionDataStore> { DesktopSessionDataStore() }
 }

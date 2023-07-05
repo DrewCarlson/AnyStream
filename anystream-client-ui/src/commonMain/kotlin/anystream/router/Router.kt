@@ -61,13 +61,13 @@ val LocalRouting: ProvidableCompositionLocal<List<Any>> = compositionLocalOf {
     listOf<Any>()
 }
 
-// @Composable
-// internal inline fun <reified T> Router(
-//    defaultRouting: T,
-//    noinline children: @Composable (BackStack<T>) -> Unit,
-// ) {
-//    Router(T::class.simpleName.orEmpty(), defaultRouting, children)
-// }
+ @Composable
+ internal inline fun <reified T> Router(
+    defaultRouting: T,
+    noinline children: @Composable (BackStack<T>) -> Unit,
+ ) {
+    Router(T::class.simpleName.orEmpty(), defaultRouting, children)
+ }
 
 @Composable
 internal fun <T> Router(

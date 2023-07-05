@@ -90,6 +90,7 @@ open class MainActivity : AppCompatActivity() {
                                         stack.push(Routes.Movies)
                                     },
                                 )
+
                                 Routes.Movies -> MoviesScreen(
                                     client = client,
                                     onMediaClick = { mediaLinkId ->
@@ -99,15 +100,14 @@ open class MainActivity : AppCompatActivity() {
                                     },
                                     backStack = stack,
                                 )
+
                                 Routes.Tv -> TODO("Tv route not implemented")
                                 Routes.PairingScanner -> PairingScanner(
                                     client = client,
                                     backStack = stack,
                                 )
-                                is Routes.Player -> PlayerScreen(
-                                    client = client,
-                                    mediaLinkId = route.mediaLinkId,
-                                )
+
+                                is Routes.Player -> PlayerScreen(client, route.mediaLinkId)
                             }
                         }
                     }
@@ -170,11 +170,7 @@ fun AppTopBar(client: AnyStreamClient?, backStack: BackStack<Routes>?) {
                         }
                     }
 
-                    IconButton(onClick = {
-                        scope.launch {
-                            client.logout()
-                        }
-                    }) {
+                    IconButton(onClick = { scope.launch { client.logout() } }) {
                         Icon(
                             imageVector = Icons.Filled.ExitToApp,
                             contentDescription = "Sign out",
