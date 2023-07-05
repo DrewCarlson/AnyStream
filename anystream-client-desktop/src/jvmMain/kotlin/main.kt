@@ -28,9 +28,9 @@ fun main() = application {
 
     Window(
         onCloseRequest = ::exitApplication,
-        title = "Anystream",
+        title = "AnyStream",
         state = rememberWindowState(width = 1600.dp, height = 1200.dp),
-        icon = painterResource(SharedRes.images.as_logo),
+        icon = painterResource(SharedRes.images.as_icon),
     ) {
         MainView()
     }

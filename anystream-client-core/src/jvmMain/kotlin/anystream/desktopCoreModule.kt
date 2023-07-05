@@ -17,7 +17,10 @@
  */
 package anystream.client
 
+import io.ktor.client.engine.cio.CIO
 import org.koin.dsl.module
 
 internal actual fun platformCoreModule() = module {
+    single { CIO.create { } }
+    single<SessionDataStore> { DesktopSessionDataStore() }
 }

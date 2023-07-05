@@ -21,7 +21,6 @@ if (hasAndroidSdk) {
 
 kotlin {
     targets.remove(js())
-    jvm("desktop")
 
     sourceSets {
         configureFramework {
@@ -67,7 +66,7 @@ kotlin {
             }
         }
 
-        val desktopMain by getting {
+        val jvmMain by getting {
             dependencies {
                 implementation(compose.desktop.common)
             }

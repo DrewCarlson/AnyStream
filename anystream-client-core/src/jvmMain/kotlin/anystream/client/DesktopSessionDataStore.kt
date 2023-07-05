@@ -15,36 +15,24 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.client.anystream
+package anystream.client
 
-import anystream.client.SessionDataStore
 import java.util.prefs.Preferences
 
+
 internal class DesktopSessionDataStore(
-    private val defaults: Preferences = Preferences.userRoot().node("Anystream"),
+    private val prefs: Preferences = Preferences.userRoot().node("AnyStream"),
 ) : SessionDataStore {
 
     override fun write(key: String, value: String) {
-        // Session value too long for jvm
-        if (key == "SESSION_TOKEN") {
-            defaults.put(value.substring(0, 49), key)
-            defaults.put(value.substring(49), "SESSION_TOKEN2")
-            return
-        }
-        defaults.put(value, key)
+        prefs.put(key, value)
     }
 
     override fun read(key: String): String? {
-        // Session value too long for jvm
-        if (key == "SESSION_TOKEN") {
-            val tokenStart = defaults.get(key, null) ?: return null
-            val tokenEnd = defaults.get("SESSION_TOKEN2", null) ?: return null
-            return tokenStart + tokenEnd
-        }
-        return defaults.get(key, null)
+        return prefs.get(key, null)
     }
 
     override fun remove(key: String) {
-        defaults.remove(key)
+        prefs.remove(key)
     }
 }
