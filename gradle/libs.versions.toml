@@ -1,6 +1,6 @@
 [versions]
 kotlin = { strictly = "1.8.21" }
-coroutines = "1.7.1"
+coroutines = "1.7.2"
 resourcesCompose = "0.23.0"
 serialization = "1.5.1"
 ktorio = "2.3.1"
