@@ -85,7 +85,7 @@ jobs:
 
   client-core-tests:
     needs: [ file-changes ]
-    if: needs.file-changes.outputs.core == 'true' || github.ref_name == 'main'
+    if: needs.file-changes.outputs.client-core == 'true' || github.ref_name == 'main'
     strategy:
       matrix:
         os: [ ubuntu-latest, macos-latest ] #windows-latest
