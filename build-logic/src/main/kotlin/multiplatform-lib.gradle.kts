@@ -34,7 +34,7 @@ kotlin {
             }
         }
     }
-    // jvm()
+    jvm()
     if (hasAndroidSdk) {
         android {
             compilations.all {

@@ -14,7 +14,6 @@ include(
     ":anystream-server:server-shared",
     ":anystream-server:server-stream-service",
     ":libs:preferences",
-    ":libs:routing-compose",
     ":libs:sql-generator",
     ":libs:sql-generator-api",
 )

@@ -186,7 +186,6 @@ class AnyStreamClient(
             sessionManager.writeServerUrl(this.serverUrl)
             true
         } catch (e: Throwable) {
-            e.printStackTrace()
             false
         }
     }
