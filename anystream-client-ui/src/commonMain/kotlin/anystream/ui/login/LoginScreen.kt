@@ -1,3 +1,20 @@
+/**
+ * AnyStream
+ * Copyright (C) 2023 AnyStream Maintainers
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package anystream.ui.login
 
 import androidx.compose.foundation.Image
@@ -56,15 +73,11 @@ import kt.mobius.flow.FlowMobius
 import kt.mobius.functions.Consumer
 
 @Composable
-internal fun LoginScreen() {
-    val client = AnyStreamClient(null)
+internal fun LoginScreen(client: AnyStreamClient, router: SharedRouter) {
     val (modelState, eventConsumerState) = createLoopController {
         val factory = FlowMobius.loop(
             LoginScreenUpdate,
-            LoginScreenHandler.create(
-                client,
-                SharedRouter(),
-            ),
+            LoginScreenHandler.create(client, router),
         ).logger(SimpleLogger("Login"))
         val startModel = LoginScreenModel.create(client.serverUrl, supportsPairing = true)
         Mobius.controller(factory, startModel, LoginScreenInit)
@@ -87,7 +100,7 @@ internal fun LoginScreen() {
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-private fun FormBody(
+internal fun FormBody(
     model: LoginScreenModel,
     eventConsumer: Consumer<LoginScreenEvent>,
     paddingValues: PaddingValues,
@@ -209,10 +222,7 @@ fun AppTopBar(client: AnyStreamClient?, backStack: BackStack<Routes>? = null) {
                         IconButton(
                             onClick = { backStack?.push(Routes.PairingScanner) },
                         ) {
-                            Icon(
-                                imageVector = Icons.Filled.QrCodeScanner,
-                                contentDescription = "Pair a device.",
-                            )
+                            Icon(Icons.Filled.QrCodeScanner, contentDescription = "Pair a device.")
                         }
                     }
 
@@ -223,10 +233,7 @@ fun AppTopBar(client: AnyStreamClient?, backStack: BackStack<Routes>? = null) {
                             }
                         },
                     ) {
-                        Icon(
-                            imageVector = Icons.Filled.Logout,
-                            contentDescription = "Sign out",
-                        )
+                        Icon(Icons.Filled.Logout, contentDescription = "Sign out")
                     }
                 }
             }

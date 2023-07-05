@@ -44,6 +44,8 @@ kotlin {
                 api(libs.mobiuskt.core)
                 api(libs.mobiuskt.coroutines)
 
+                implementation(libs.kamel.image)
+                implementation(libs.koin.compose)
                 implementation(compose.runtime)
                 implementation(compose.foundation)
                 implementation(compose.material)
@@ -51,7 +53,7 @@ kotlin {
 //                @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
 //                implementation(compose.components.resources)
 
-                implementation(libs.resources.compose)
+                api(libs.resources.compose)
             }
         }
 

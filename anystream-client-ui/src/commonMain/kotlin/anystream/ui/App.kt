@@ -18,12 +18,96 @@
 package anystream.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import anystream.client.AnyStreamClient
+import anystream.router.BackPressHandler
+import anystream.router.BundleScope
+import anystream.router.LocalBackPressHandler
+import anystream.router.Router
+import anystream.router.SharedRouter
+import anystream.routing.Routes
+import anystream.ui.home.HomeScreen
 import anystream.ui.login.LoginScreen
+import anystream.ui.movies.MoviesScreen
 import anystream.ui.theme.AppTheme
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import org.koin.compose.koinInject
+
+private val router = SharedRouter()
 
 @Composable
 fun App() {
-    AppTheme {
-        LoginScreen()
+    val client: AnyStreamClient = koinInject()
+    val scope = rememberCoroutineScope()
+
+    val backPressHandler = BackPressHandler()
+
+    CompositionLocalProvider(LocalBackPressHandler provides backPressHandler) {
+        AppTheme {
+            BundleScope(null) {
+                val defaultRoute = when {
+                    !client.isAuthenticated() -> Routes.Login
+                    else -> Routes.Home
+                }
+                Router(defaultRouting = defaultRoute) { stack ->
+                    LaunchedEffect(stack) {
+                        router.setBackStack(stack)
+                    }
+                    remember {
+                        client.authenticated
+                            .onEach { authed ->
+                                val isLoginRoute = stack.last() == Routes.Login
+                                if (authed && isLoginRoute) {
+                                    stack.replace(Routes.Home)
+                                } else if (!authed && !isLoginRoute) {
+                                    stack.replace(Routes.Login)
+                                }
+                            }
+                            .launchIn(scope)
+                    }
+                    when (val route = stack.last()) {
+                        Routes.Login -> LoginScreen(client, router)
+                        Routes.Home -> HomeScreen(
+                            client = client,
+                            backStack = stack,
+                            onMediaClick = { mediaLinkId ->
+                                if (mediaLinkId != null) {
+                                    stack.push(Routes.Player(mediaLinkId))
+                                }
+                            },
+                            onViewMoviesClicked = {
+                                stack.push(Routes.Movies)
+                            },
+                        )
+
+                        Routes.Movies -> MoviesScreen(
+                            client = client,
+                            onMediaClick = { mediaLinkId ->
+                                if (mediaLinkId != null) {
+                                    stack.replace(Routes.Player(mediaLinkId))
+                                }
+                            },
+                            backStack = stack,
+                        )
+//                        Routes.Tv -> TODO("Tv route not implemented")
+//                        Routes.PairingScanner -> PairingScanner(
+//                            client = client,
+//                            backStack = stack,
+//                        )
+//                        is Routes.Player -> PlayerScreen(
+//                            client = client,
+//                            mediaLinkId = route.mediaLinkId,
+//                        )
+                        Routes.PairingScanner -> TODO()
+                        is Routes.Player -> TODO()
+                        Routes.Tv -> TODO()
+                    }
+                }
+            }
+        }
     }
 }

@@ -38,6 +38,7 @@ koin = "3.4.2"
 koinAndroid = "3.4.2"
 koinAndroidxCompose = "3.4.5"
 koinKtor = "3.4.1"
+kamelImage = "0.6.0"
 
 okhttp = "5.0.0-alpha.11"
 
@@ -169,6 +170,7 @@ koin-android-compat = { module = "io.insert-koin:koin-android-compat", version.r
 koin-android-workmanager = { module = "io.insert-koin:koin-android-navigation", version.ref = "koinAndroid" }
 koin-android-navigation = { module = "io.insert-koin:koin-android-navigation", version.ref = "koinAndroid" }
 koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koinAndroidxCompose" }
+koin-compose = { module = "io.insert-koin:koin-compose", version = "1.0.3" }
 koin-ktor = { module = "io.insert-koin:koin-ktor", version.ref = "koinKtor" }
 koin-slf4j = { module = "io.insert-koin:koin-logger-slf4j", version.ref = "koinKtor" }
 
@@ -177,6 +179,7 @@ icu4j-charset = { module = "com.ibm.icu:icu4j-charset", version.ref = "icu4j" }
 icu4j-localespi = { module = "com.ibm.icu:icu4j-localespi", version.ref = "icu4j" }
 
 coil = { module = "io.coil-kt:coil-compose", version = "2.4.0" }
+kamel-image = { module = "media.kamel:kamel-image", version.ref = "kamelImage" }
 routingCompose = { module = "app.softwork:routing-compose", version = "0.2.12" }
 
 quickie-bundled = { module = "io.github.g00fy2.quickie:quickie-bundled", version = "1.7.0" }

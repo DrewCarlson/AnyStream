@@ -6,7 +6,9 @@ plugins {
 }
 
 kotlin {
-    jvm()
+    jvm {
+        withJava()
+    }
     sourceSets {
         val jvmMain by getting  {
             dependencies {
@@ -25,7 +27,7 @@ compose {
 
             nativeDistributions {
                 targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-                packageName = "KotlinMultiplatformComposeDesktopApplication"
+                packageName = "AnystreamDesktopApplication"
                 packageVersion = "1.0.0"
             }
         }
