@@ -20,7 +20,7 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import anystream.SharedRes
-import anystream.configure
+import anystream.client.configure
 import dev.icerock.moko.resources.compose.painterResource
 
 fun main() = application {

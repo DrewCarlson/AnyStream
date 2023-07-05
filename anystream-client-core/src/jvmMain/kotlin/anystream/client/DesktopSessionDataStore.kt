@@ -19,7 +19,6 @@ package anystream.client
 
 import java.util.prefs.Preferences
 
-
 internal class DesktopSessionDataStore(
     private val prefs: Preferences = Preferences.userRoot().node("AnyStream"),
 ) : SessionDataStore {
