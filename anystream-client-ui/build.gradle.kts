@@ -22,6 +22,13 @@ if (hasAndroidSdk) {
 kotlin {
     targets.remove(js())
 
+    listOf(iosX64(),
+        iosArm64(),
+        iosSimulatorArm64()).forEach {
+        val main by it.compilations.getting
+        val observer by main.cinterops.creating
+    }
+
     sourceSets {
         configureFramework {
             baseName = "AnyStreamCore"
@@ -62,6 +69,7 @@ kotlin {
                 dependencies {
                     implementation(libs.compose.ui.tooling)
                     implementation(libs.compose.ui.tooling.preview)
+                    implementation(libs.bundles.exoplayer)
                 }
             }
         }
