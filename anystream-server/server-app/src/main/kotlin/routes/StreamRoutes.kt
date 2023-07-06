@@ -101,15 +101,14 @@ fun Route.addStreamRoutes(
                     if (playlist == null) {
                         call.respond(NotFound)
                     } else {
-                        call.respondText(playlist, ContentType("application", "vnd.apple.mpegurl"))
+                        call.respondText(playlist, ContentType("application", "vnd.apple.mpegURL"))
                     }
                 }
 
                 get("/{segmentFile}") {
-                    val segmentFile = call.parameters["segmentFile"]
+                    val segmentFilePath = call.parameters["segmentFile"]
                         ?: return@get call.respond(NotFound)
-                    val token = call.request.queryParameters["token"]
-                        ?: return@get call.respond(Unauthorized)
+                    val (token, segmentFile) = segmentFilePath.split('-', limit = 2)
 
                     val filePath = streamService.getFilePathForSegment(token, segmentFile)
                     if (filePath == null) {

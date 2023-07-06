@@ -520,7 +520,6 @@ class StreamService(
         val (segmentCount, finalSegLength) = getSegmentCountAndFinalLength(runtime, segmentDuration)
 
         val segmentExtension = segmentContainer
-        val queryString = "?token=$token"
 
         logger.debug("Creating $segmentCount segments at $segmentDuration, final length $finalSegLength")
 
@@ -534,9 +533,10 @@ class StreamService(
 
             if (isHlsInFmp4) {
                 append("#EXT-X-MAP:URI=\"")
+                append(token)
+                append('-')
                 append("$name-1.")
                 append(segmentExtension)
-                append(queryString)
                 appendLine('"')
             }
             repeat(segmentCount) { i ->
@@ -547,12 +547,13 @@ class StreamService(
                     append(segLenFormatter.format(segmentDuration.toDouble(SECONDS)))
                 }
                 appendLine(", nodesc")
+                append(token)
+                append('-')
                 append(name)
                 append('-')
                 append(i)
                 append('.')
                 append(segmentExtension)
-                append(queryString)
                 appendLine()
             }
             appendLine("#EXT-X-ENDLIST")
