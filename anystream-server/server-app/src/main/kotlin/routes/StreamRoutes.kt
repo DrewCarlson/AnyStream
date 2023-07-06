@@ -114,12 +114,7 @@ fun Route.addStreamRoutes(
                     if (filePath == null) {
                         call.respond(NotFound)
                     } else {
-                        call.respond(
-                            LocalFileContent(
-                                File(filePath),
-                                ContentType.Application.OctetStream,
-                            ),
-                        )
+                        call.respond(LocalFileContent(File(filePath), ContentType.Video.MPEG))
                     }
                 }
             }
