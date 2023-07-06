@@ -68,8 +68,8 @@ private val KEY_INTERNAL_ERROR = AttributeKey<Throwable>("INTERNAL_ERROR")
 class AnyStreamClient(
     /** The AnyStream server URL, ex. `http://localhost:3000`. */
     serverUrl: String?,
-    httpClient: HttpClient = HttpClient(),
-    private val sessionManager: SessionManager = SessionManager(SessionDataStore),
+    httpClient: HttpClient,
+    private val sessionManager: SessionManager,
 ) {
     companion object {
         const val SESSION_KEY = "as_user_session"
@@ -89,8 +89,8 @@ class AnyStreamClient(
             val trimmedUrl = value.trimEnd('/')
             _serverUrl.value = trimmedUrl
             _serverUrlWss.value = trimmedUrl
-                .replace("https://", "wss://")
-                .replace("http://", "ws://")
+                .replace("https://", "wss://", ignoreCase = true)
+                .replace("http://", "ws://", ignoreCase = true)
         }
     private val serverUrlWs: String
         get() = _serverUrlWss.value
