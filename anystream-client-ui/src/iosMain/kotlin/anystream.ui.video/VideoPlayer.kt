@@ -52,9 +52,6 @@ import platform.UIKit.UIColor.Companion.blackColor
 import platform.UIKit.UIView
 import platform.darwin.NSObject
 
-private const val PLAYER_STATE_UPDATE_INTERVAL = 250L
-private const val PLAYER_STATE_REMOTE_UPDATE_INTERVAL = 5_000L
-
 @Composable
 internal actual fun VideoPlayer(modifier: Modifier, mediaLinkId: String) {
     val client = remember { getClient() }
