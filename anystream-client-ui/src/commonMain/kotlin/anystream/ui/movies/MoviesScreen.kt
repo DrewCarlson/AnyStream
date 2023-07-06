@@ -95,7 +95,10 @@ private fun MovieGrid(
     ) {
         items(movies) { movie ->
             val mediaLink by produceState<MediaLink?>(null, movie) {
-                value = mediaLinks.find { it.metadataGid == movie.gid }
+                value = mediaLinks.find {
+                    it.metadataGid == movie.gid &&
+                            it.descriptor == MediaLink.Descriptor.VIDEO
+                }
             }
             PosterCard(
                 title = movie.title,

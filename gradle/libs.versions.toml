@@ -203,6 +203,8 @@ ksp = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = 
 
 jbcompose-compiler = { module = "org.jetbrains.compose.compiler:compiler", version.ref = "composejb_compile" }
 
+vlcj = { module = "uk.co.caprica:vlcj", version = "4.8.2" }
+
 [bundles]
 exoplayer = ["exoplayer-core", "exoplayer-ui", "exoplayer-hls"]
 compose = ["compose-ui-ui", "compose-ui-tooling", "compose-foundation", "compose-material", "compose-livedata"]

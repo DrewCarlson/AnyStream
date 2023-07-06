@@ -22,9 +22,11 @@ if (hasAndroidSdk) {
 kotlin {
     targets.remove(js())
 
-    listOf(iosX64(),
+    listOf(
+        iosX64(),
         iosArm64(),
-        iosSimulatorArm64()).forEach {
+        iosSimulatorArm64(),
+    ).forEach {
         val main by it.compilations.getting
         val observer by main.cinterops.creating
     }
@@ -77,6 +79,7 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation(compose.desktop.common)
+                implementation(libs.vlcj)
             }
         }
     }

@@ -29,3 +29,5 @@ fun configure() {
         }
     }
 }
+
+fun getClient(): AnyStreamClient = checkNotNull(koinApp).koin.get()
