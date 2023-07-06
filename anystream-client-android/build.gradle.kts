@@ -16,7 +16,7 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = libs.versions.composeCompiler.get()
     }
-    packagingOptions {
+    packaging {
         resources.excludes.add("META-INF/versions/*/*.bin")
     }
     signingConfigs {
