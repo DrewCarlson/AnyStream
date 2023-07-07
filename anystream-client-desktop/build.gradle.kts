@@ -9,7 +9,7 @@ plugins {
 }
 
 javafx {
-    version = "20"
+    version = libs.versions.javafx.get()
     modules("javafx.swing", "javafx.controls")
 }
 

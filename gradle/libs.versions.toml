@@ -49,6 +49,7 @@ objectstore = "0.2.0"
 mockk = "1.13.5"
 
 vlc = "3.0.18"
+javafx = "20.0.1"
 
 [plugins]
 multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }

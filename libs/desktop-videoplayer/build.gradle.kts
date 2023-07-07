@@ -5,7 +5,7 @@ plugins {
 }
 
 javafx {
-    version = "20"
+    version = libs.versions.javafx.get()
     modules("javafx.swing", "javafx.controls")
 }
 
@@ -14,9 +14,12 @@ kotlin {
         withJava()
     }
     sourceSets {
+        all {
+            explicitApi()
+        }
         val jvmMain by getting  {
             dependencies {
-                implementation(compose.desktop.common)
+                implementation(compose.desktop.currentOs)
                 implementation(projects.anystreamClientCore)
                 implementation(libs.vlcj)
                 implementation(libs.vlcj.javafx)

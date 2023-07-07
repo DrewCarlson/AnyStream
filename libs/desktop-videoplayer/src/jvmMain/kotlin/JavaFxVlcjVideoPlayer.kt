@@ -17,8 +17,11 @@
  */
 package anystream.ui.video
 
+import androidx.compose.foundation.background
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.ProvidableCompositionLocal
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -26,11 +29,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.awt.SwingPanel
+import androidx.compose.ui.awt.ComposeWindow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.round
 import anystream.client.getClient
 import anystream.models.PlaybackState
-import com.sun.jna.NativeLibrary
 import javafx.application.Platform
 import javafx.embed.swing.JFXPanel
 import javafx.scene.Scene
@@ -42,33 +49,28 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import uk.co.caprica.vlcj.binding.lib.LibC
-import uk.co.caprica.vlcj.binding.support.runtime.RuntimeUtil
-import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery
 import uk.co.caprica.vlcj.javafx.videosurface.ImageViewVideoSurface
 import uk.co.caprica.vlcj.player.component.EmbeddedMediaPlayerComponent
 import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer
-import java.io.File
+import java.awt.BorderLayout
+import java.awt.Container
+import javax.swing.JPanel
 
 private const val PLAYER_STATE_REMOTE_UPDATE_INTERVAL = 5_000L
+private const val STYLES = "-fx-background-color: #000000;"
+
+public val LocalAppWindow: ProvidableCompositionLocal<ComposeWindow> =
+    compositionLocalOf { error("LocalAppWindow not provided") }
 
 // TODO: Move anystream logic into the anystream-client-ui VideoPlayer
 //  Rely on this module for simple playback and controls to hide VLCJ
 @Composable
-fun JavaFxVlcjVideoPlayer(modifier: Modifier, mediaLinkId: String) {
+public fun JavaFxVlcjVideoPlayer(modifier: Modifier, mediaLinkId: String) {
     val client = getClient()
     var position by rememberSaveable { mutableStateOf(0L) }
     val surfaceReady = remember { MutableStateFlow(false) }
     val mediaPlayerComponent = remember { EmbeddedMediaPlayerComponent() }
     val mediaPlayer = remember { mediaPlayerComponent.mediaPlayer() }
-
-    val factory = remember {
-        {
-            JFXVideoPlayer(mediaPlayer) {
-                surfaceReady.value = true
-            }
-        }
-    }
 
     produceState<PlaybackState?>(null) {
         surfaceReady.filter { it }.first()
@@ -97,34 +99,84 @@ fun JavaFxVlcjVideoPlayer(modifier: Modifier, mediaLinkId: String) {
         awaitDispose { handle.cancel() }
     }
     DisposableEffect(Unit) { onDispose(mediaPlayer::release) }
-    SwingPanel(
-        factory = factory,
-        background = Color.Black,
-        modifier = modifier,
+
+    JavaFXPanel(
+        root = LocalAppWindow.current,
+        modifier = modifier.background(Color.Black),
+        onCreate = { panel ->
+            Platform.runLater {
+                val root = JFXVideoPlayer(mediaPlayer) {
+                    surfaceReady.value = true
+                }
+                val scene = Scene(root)
+                panel.scene = scene
+            }
+        },
     )
 }
 
-private const val STYLES = "-fx-background-color: #000000;"
+@Composable
+public fun JavaFXPanel(
+    root: Container,
+    modifier: Modifier,
+    onCreate: (panel: JFXPanel) -> Unit,
+) {
+    val panel = remember { JFXPanel() }
+    val container = remember {
+        JPanel().apply {
+            background = java.awt.Color.BLACK
+        }
+    }
+    val density = LocalDensity.current.density
+
+    Layout(
+        content = {},
+        modifier = modifier.onGloballyPositioned { childCoordinates ->
+            val coordinates = childCoordinates.parentCoordinates!!
+            val location = coordinates.localToWindow(Offset.Zero).round()
+            val size = coordinates.size
+            container.setBounds(
+                (location.x / density).toInt(),
+                (location.y / density).toInt(),
+                (size.width / density).toInt(),
+                (size.height / density).toInt(),
+            )
+            container.validate()
+            container.repaint()
+        },
+        measurePolicy = { _, _ ->
+            layout(0, 0) {}
+        },
+    )
+
+    DisposableEffect(Unit) {
+        container.apply {
+            layout = BorderLayout(0, 0)
+            add(panel)
+        }
+        root.add(container)
+        onCreate.invoke(panel)
+        onDispose {
+            root.remove(container)
+        }
+    }
+}
 
 private class JFXVideoPlayer(
-    private val embeddedPlayer: EmbeddedMediaPlayer,
-    private val surfaceReady: () -> Unit,
-) : JFXPanel() {
-    init {
-        Platform.runLater(::initialize)
-    }
+    embeddedPlayer: EmbeddedMediaPlayer,
+    surfaceReady: () -> Unit,
+) : BorderPane() {
 
-    private fun initialize() {
-        val root = BorderPane().apply { style = STYLES }
+    init {
+        style = STYLES
         val imageView = ImageView().apply {
             isPreserveRatio = true
             style = STYLES
         }
-        imageView.fitWidthProperty().bind(root.widthProperty())
-        imageView.fitHeightProperty().bind(root.heightProperty())
-        root.center = imageView
         embeddedPlayer.videoSurface().set(ImageViewVideoSurface(imageView))
-        scene = Scene(root)
+        imageView.fitWidthProperty().bind(widthProperty())
+        imageView.fitHeightProperty().bind(heightProperty())
+        center = imageView
         surfaceReady()
     }
 }

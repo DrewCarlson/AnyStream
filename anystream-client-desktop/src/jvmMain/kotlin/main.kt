@@ -15,27 +15,50 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import anystream.SharedRes
 import anystream.client.configure
+import anystream.ui.video.LocalAppWindow
 import anystream.ui.video.prepareLibvlc
+import com.sun.javafx.application.PlatformImpl
 import dev.icerock.moko.resources.compose.painterResource
+import javafx.application.Platform
 
 fun main() = application {
     configure()
 
-    LaunchedEffect(Unit) { prepareLibvlc() }
+    val finishListener = remember {
+        object : PlatformImpl.FinishListener {
+            override fun idle(implicitExit: Boolean) {}
+            override fun exitCalled() {}
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        PlatformImpl.addListener(finishListener)
+        prepareLibvlc()
+    }
 
     Window(
-        onCloseRequest = ::exitApplication,
+        onCloseRequest = {
+            PlatformImpl.removeListener(finishListener)
+            Platform.exit()
+            exitApplication()
+        },
         title = "AnyStream",
         state = rememberWindowState(width = 1600.dp, height = 1200.dp),
         icon = painterResource(SharedRes.images.as_icon),
     ) {
-        MainView()
+        CompositionLocalProvider(LocalAppWindow provides window) {
+            MainView()
+        }
     }
 }
