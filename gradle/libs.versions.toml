@@ -48,6 +48,8 @@ icu4j = "73.2"
 objectstore = "0.2.0"
 mockk = "1.13.5"
 
+vlc = "3.0.18"
+
 [plugins]
 multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
@@ -59,6 +61,8 @@ shadowjar = { id = "com.github.johnrengelman.shadow", version.ref = "shadowjar" 
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 kotlinter = { id = "org.jmailen.kotlinter", version = "3.15.0" }
+javafx = { id = "org.openjfx.javafxplugin", version = "0.0.14" }
+downloadPlugin = { id = "de.undercouch.download", version = "5.4.0" }
 
 [libraries]
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
@@ -204,6 +208,9 @@ ksp = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = 
 jbcompose-compiler = { module = "org.jetbrains.compose.compiler:compiler", version.ref = "composejb_compile" }
 
 vlcj = { module = "uk.co.caprica:vlcj", version = "4.8.2" }
+vlcj-javafx = { module = "uk.co.caprica:vlcj-javafx", version = "1.2.0" }
+
+jna = { module = "net.java.dev.jna:jna", version = "5.13.0" }
 
 [bundles]
 exoplayer = ["exoplayer-core", "exoplayer-ui", "exoplayer-hls"]

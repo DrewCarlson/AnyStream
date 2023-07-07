@@ -12,6 +12,8 @@ plugins {
     alias(libs.plugins.spotless)
     alias(libs.plugins.kotlinter) apply false
     alias(libs.plugins.kover)
+    alias(libs.plugins.javafx) apply false
+    alias(libs.plugins.downloadPlugin) apply false
 }
 
 buildscript {
