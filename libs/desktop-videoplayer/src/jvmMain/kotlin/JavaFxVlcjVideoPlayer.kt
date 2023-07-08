@@ -105,11 +105,10 @@ public fun JavaFxVlcjVideoPlayer(modifier: Modifier, mediaLinkId: String) {
         modifier = modifier.background(Color.Black),
         onCreate = { panel ->
             Platform.runLater {
-                val root = JFXVideoPlayer(mediaPlayer) {
-                    surfaceReady.value = true
-                }
+                val root = JFXVideoPlayer(mediaPlayer)
                 val scene = Scene(root)
                 panel.scene = scene
+                surfaceReady.value = true
             }
         },
     )
@@ -163,20 +162,17 @@ public fun JavaFXPanel(
 }
 
 private class JFXVideoPlayer(
-    embeddedPlayer: EmbeddedMediaPlayer,
-    surfaceReady: () -> Unit,
+    embeddedPlayer: EmbeddedMediaPlayer
 ) : BorderPane() {
 
     init {
         style = STYLES
-        val imageView = ImageView().apply {
-            isPreserveRatio = true
-            style = STYLES
+        center = ImageView().also { imageView ->
+            imageView.isPreserveRatio = true
+            imageView.style = STYLES
+            imageView.fitWidthProperty().bind(widthProperty())
+            imageView.fitHeightProperty().bind(heightProperty())
+            embeddedPlayer.videoSurface().set(ImageViewVideoSurface(imageView))
         }
-        embeddedPlayer.videoSurface().set(ImageViewVideoSurface(imageView))
-        imageView.fitWidthProperty().bind(widthProperty())
-        imageView.fitHeightProperty().bind(heightProperty())
-        center = imageView
-        surfaceReady()
     }
 }
