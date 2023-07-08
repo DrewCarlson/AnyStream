@@ -17,9 +17,7 @@
  */
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
@@ -35,10 +33,11 @@ import javafx.application.Platform
 fun main() = application {
     configure()
 
+    // NOTE: This listener is only set to keep the JavaFX Platform thread alive
     val finishListener = remember {
         object : PlatformImpl.FinishListener {
-            override fun idle(implicitExit: Boolean) {}
-            override fun exitCalled() {}
+            override fun idle(implicitExit: Boolean) = Unit
+            override fun exitCalled() = Unit
         }
     }
 
