@@ -38,7 +38,7 @@ data class TranscodeSession(
     val transcodedSegments: List<Int>,
 ) {
     enum class State {
-        IDLE, RUNNING, COMPLETE
+        IDLE, RUNNING, PAUSED, COMPLETE
     }
 
     fun isSegmentComplete(segment: Int): Boolean {

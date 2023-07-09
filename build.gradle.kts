@@ -32,6 +32,7 @@ allprojects {
     }
 
     repositories {
+        mavenLocal()
         maven("https://repo1.maven.org/maven2/")
         google()
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
