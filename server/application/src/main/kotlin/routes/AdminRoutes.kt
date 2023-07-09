@@ -48,16 +48,12 @@ fun Route.addAdminWsRoutes(
     streamService: StreamService = koinGet(),
 ) {
     val sessionsFlow = callbackFlow<PlaybackSessions> {
-        var previousSessions: PlaybackSessions? = null
         while (true) {
-            val nextSessions = streamService.getPlaybackSessions()
-            if (previousSessions != nextSessions) {
-                previousSessions = nextSessions
-                trySend(nextSessions)
-            }
+            trySend(streamService.getPlaybackSessions())
             delay(2.seconds)
         }
-    }.shareIn(application, SharingStarted.WhileSubscribed(), 1)
+    }.distinctUntilChanged()
+        .shareIn(application, SharingStarted.WhileSubscribed(), 1)
 
     webSocket("/ws/admin/sessions") {
         val session = checkNotNull(extractUserSession())

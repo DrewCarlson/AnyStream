@@ -22,6 +22,10 @@ import anystream.client.AnyStreamClient
 import anystream.components.NavLink
 import anystream.models.api.EpisodeResponse
 import anystream.models.api.MovieResponse
+import anystream.models.PlaybackState
+import anystream.models.TranscodeSession
+import anystream.models.User
+import anystream.models.api.MediaLookupResponse
 import anystream.models.api.PlaybackSessions
 import anystream.models.toMediaItem
 import anystream.screens.settings.library.LibrariesScreen
@@ -51,23 +55,27 @@ fun RouteBuilder.SettingsScreen(subscreen: String) {
 
 @Composable
 fun SettingsSideMenu() {
-    Div({
-        classes("d-inline-block", "mx-2", "py-2")
-        style {
-            property("transition", "width .2s ease-in-out 0s")
-            width(250.px)
-            minWidth(250.px)
-        }
-    }) {
-        Ul({
-            classes(
-                "nav", "nav-pills", "bg-dark-translucent", "flex-column",
-                "h-100", "py-2", "mb-auto", "rounded", "shadow",
-            )
+    Div(
+        {
+            classes("d-inline-block", "mx-2", "py-2")
             style {
-                overflow("hidden")
+                property("transition", "width .2s ease-in-out 0s")
+                width(250.px)
+                minWidth(250.px)
             }
-        }) {
+        },
+    ) {
+        Ul(
+            {
+                classes(
+                    "nav", "nav-pills", "bg-dark-translucent", "flex-column",
+                    "h-100", "py-2", "mb-auto", "rounded", "shadow",
+                )
+                style {
+                    overflow("hidden")
+                }
+            },
+        ) {
             Li({ classes("nav-item") }) {
                 NavLink("Activity", "bi-activity", "/settings/activity", true) {
                     classes("fs-6")
@@ -91,59 +99,90 @@ fun SettingsSideMenu() {
 private fun ActiveStreamsList() {
     val client = get<AnyStreamClient>()
     val sessionsResponse by client.playbackSessions.collectAsState(PlaybackSessions())
+    val transcodeSessions = sessionsResponse.transcodeSessions
+    val mediaLookups = sessionsResponse.mediaLookups
+    val playbackStates = sessionsResponse.playbackStates
+    val users = sessionsResponse.users
 
     Div({ classes("d-flex", "flex-column", "pt-2", "ps-2") }) {
         Div { H3 { Text("Activity") } }
         Div({ classes("d-flex", "flex-row", "gap-1") }) {
-            sessionsResponse.playbackStates.forEach { playbackState ->
-                val user = sessionsResponse.users.getValue(playbackState.userId)
-                val mediaLookup = sessionsResponse.mediaLookups.getValue(playbackState.metadataId)
-                val mediaItem = checkNotNull(
-                    (mediaLookup as? MovieResponse)?.toMediaItem()
-                        ?: (mediaLookup as? EpisodeResponse)?.toMediaItem()
+            playbackStates.forEach { playbackState ->
+                PlaybackSessionCard(
+                    playbackState = playbackState,
+                    user = users.getValue(playbackState.userId),
+                    mediaLookup = mediaLookups.getValue(playbackState.metadataId),
+                    transcodeSession = transcodeSessions.getValue(playbackState.id),
                 )
-                Div({
-                    classes("d-flex", "flex-column", "p-3", "rounded")
-                    style {
-                        backgroundColor(rgba(0, 0, 0, 0.2))
-                        width(300.px)
-                    }
-                }) {
-                    Div({
-                        classes("d-flex", "flex-row", "align-items-center", "justify-content-between")
-                    }) {
-                        Div { Text(mediaItem.contentTitle) }
-                        Div {
-                            I({
-                                classes("bi", "bi-filetype-json")
-                                onClick {
-                                    console.log("playbackState", playbackState)
-                                    console.log("transcoding", sessionsResponse.transcodeSessions[playbackState.id])
-                                }
-                            })
-                        }
-                    }
-                    Div({
-                        classes("overflow-hidden", "text-nowrap")
-                        style {
-                            property("text-overflow", "ellipsis")
-                        }
-                    }) {
-                        mediaItem.subtitle1?.let { subtitle1 ->
-                            Text(subtitle1.replace("Season ", "S"))
-                        }
-                        mediaItem.subtitle2?.let { subtitle2 ->
-                            Text(subtitle2.replace("Episode ", "E"))
-                        }
-                    }
-                    Div { Text("User: ${user.displayName}") }
-                    Div {
-                        val progress = playbackState.position.seconds
-                        val runtime = playbackState.runtime.seconds
-                        Text(formatProgressAndRuntime(progress, runtime))
-                    }
-                }
             }
+        }
+    }
+}
+
+@Composable
+private fun PlaybackSessionCard(
+    user: User,
+    transcodeSession: TranscodeSession,
+    mediaLookup: MediaLookupResponse,
+    playbackState: PlaybackState,
+) {
+    val mediaItem = remember {
+        checkNotNull(
+            (mediaLookup as? MovieResponse)?.toMediaItem()
+                ?: (mediaLookup as? EpisodeResponse)?.toMediaItem()
+        )
+    }
+    Div(
+        {
+            classes("d-flex", "flex-column", "p-3", "rounded")
+            style {
+                backgroundColor(rgba(0, 0, 0, 0.2))
+                width(300.px)
+            }
+        },
+    ) {
+        Div(
+            {
+                classes("d-flex", "flex-row", "align-items-center", "justify-content-between")
+            },
+        ) {
+            Div { Text(mediaItem.contentTitle) }
+            Div {
+                I(
+                    {
+                        classes("bi", "bi-filetype-json")
+                        onClick {
+                            console.log("playbackState", playbackState.toString())
+                            console.log(
+                                "transcoding",
+                                transcodeSession.toString(),
+                            )
+                        }
+                    },
+                )
+            }
+        }
+        Div(
+            {
+                classes("overflow-hidden", "text-nowrap")
+                style {
+                    property("text-overflow", "ellipsis")
+                }
+            },
+        ) {
+            mediaItem.subtitle1?.let { subtitle1 ->
+                Text(subtitle1.replace("Season ", "S"))
+            }
+            mediaItem.subtitle2?.let { subtitle2 ->
+                Text(subtitle2.replace("Episode ", "E"))
+            }
+        }
+        Div { Text("User: ${user.displayName}") }
+        Div { Text("Transcoding: ${transcodeSession.state}") }
+        Div {
+            val progress = playbackState.position.seconds
+            val runtime = playbackState.runtime.seconds
+            Text(formatProgressAndRuntime(progress, runtime))
         }
     }
 }
