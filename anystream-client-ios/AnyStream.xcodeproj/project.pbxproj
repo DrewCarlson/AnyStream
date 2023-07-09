@@ -314,6 +314,7 @@
 /* Begin PBXShellScriptBuildPhase section */
 		3AA9F5F627A4D7140002D864 /* Build Anystream Client Core */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
