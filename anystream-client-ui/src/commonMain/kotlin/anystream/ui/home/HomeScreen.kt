@@ -23,6 +23,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -61,8 +62,9 @@ import anystream.models.api.CurrentlyWatching
 import anystream.models.api.HomeResponse
 import anystream.router.BackStack
 import anystream.routing.Routes
+import anystream.ui.components.AppTopBar
+import anystream.ui.components.LoadingScreen
 import anystream.ui.components.PosterCard
-import anystream.ui.login.AppTopBar
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
 import io.ktor.http.Url
@@ -82,64 +84,76 @@ fun HomeScreen(
     Scaffold(
         topBar = { AppTopBar(client = client, backStack = backStack) },
     ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .padding(paddingValues)
-                .padding(horizontal = 8.dp),
-        ) {
-            item {
-                val homeData by produceState<HomeResponse?>(null) {
-                    value = client.getHomeData()
-                }
+        val homeData by produceState<HomeResponse?>(null) {
+            value = client.getHomeData()
+        }
 
-                homeData?.run {
-                    Spacer(modifier = Modifier.size(4.dp))
+        homeData?.let {
+            HomScreenContent(paddingValues, it, onMediaClick, onViewMoviesClicked)
+        } ?: run {
+            LoadingScreen(paddingValues)
+        }
+    }
+}
 
-                    if (currentlyWatching.playbackStates.isNotEmpty()) {
-                        RowTitle(text = "Continue Watching")
-                        ContinueWatchingRow(currentlyWatching, onClick = onMediaClick)
-                        RowSpace()
-                    }
-
-                    if (recentlyAdded.movies.isNotEmpty()) {
-                        Row(
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            RowTitle(text = "Recently Added Movies")
-                            TextButton(onClick = onViewMoviesClicked) {
-                                Text(text = "All Movies")
-                            }
-                        }
-                        MovieRow(movies = recentlyAdded.movies, onClick = onMediaClick)
-                        RowSpace()
-                    }
-
-                    if (recentlyAdded.tvShows.isNotEmpty()) {
-                        Row(
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            RowTitle(text = "Recently Added TV")
-                            TextButton(onClick = onViewMoviesClicked) {
-                                Text(text = "All Shows")
-                            }
-                        }
-                        TvRow(shows = recentlyAdded.tvShows, onClick = onMediaClick)
-                        RowSpace()
-                    }
-
-                    RowTitle(text = "Popular Movies")
-                    MovieRow(movies = popular.movies, onClick = onMediaClick)
-                    RowSpace()
-
-                    RowTitle(text = "Popular TV")
-                    TvRow(shows = popular.tvShows, onClick = { })
-                    RowSpace()
-                }
+@Composable
+private fun HomScreenContent(
+    paddingValues: PaddingValues,
+    homeData: HomeResponse,
+    onMediaClick: (mediaLinkId: String?) -> Unit,
+    onViewMoviesClicked: () -> Unit,
+) {
+    LazyColumn(
+        modifier = Modifier
+            .padding(paddingValues)
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        val (currentlyWatching, recentlyAdded, popular) = homeData
+        item {
+            if (currentlyWatching.playbackStates.isNotEmpty()) {
+                RowTitle(text = "Continue Watching")
+                ContinueWatchingRow(currentlyWatching, onClick = onMediaClick)
+                RowSpace()
             }
+
+            if (recentlyAdded.movies.isNotEmpty()) {
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    RowTitle(text = "Recently Added Movies")
+                    TextButton(onClick = onViewMoviesClicked) {
+                        Text(text = "All Movies")
+                    }
+                }
+                MovieRow(movies = recentlyAdded.movies, onClick = onMediaClick)
+                RowSpace()
+            }
+
+            if (recentlyAdded.tvShows.isNotEmpty()) {
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    RowTitle(text = "Recently Added TV")
+                    TextButton(onClick = onViewMoviesClicked) {
+                        Text(text = "All Shows")
+                    }
+                }
+                TvRow(shows = recentlyAdded.tvShows, onClick = onMediaClick)
+                RowSpace()
+            }
+
+            RowTitle(text = "Popular Movies")
+            MovieRow(movies = popular.movies, onClick = onMediaClick)
+            RowSpace()
+
+            RowTitle(text = "Popular TV")
+            TvRow(shows = popular.tvShows, onClick = { })
+            RowSpace()
         }
     }
 }
@@ -150,9 +164,7 @@ private fun ContinueWatchingRow(
     onClick: (mediaLinkId: String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val playbackStates = currentlyWatching.playbackStates
-    val currentlyWatchingMovies = currentlyWatching.movies
-    val currentlyWatchingTv = currentlyWatching.tvShows
+    val (playbackStates, currentlyWatchingMovies, currentlyWatchingTv, _) = currentlyWatching
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(CARD_SPACING),
         modifier = modifier,

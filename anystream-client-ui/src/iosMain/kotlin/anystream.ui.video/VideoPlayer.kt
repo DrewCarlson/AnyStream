@@ -29,9 +29,7 @@ import androidx.compose.ui.interop.UIKitView
 import anystream.getClient
 import anystream.models.PlaybackState
 import kotlinx.cinterop.COpaquePointer
-import kotlinx.cinterop.cValue
 import kotlinx.cinterop.readValue
-import kotlinx.cinterop.useContents
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
@@ -39,7 +37,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import observer.ObserverProtocol
 import platform.AVFoundation.*
-import platform.CoreMedia.CMTime
 import platform.CoreMedia.CMTimeGetSeconds
 import platform.CoreMedia.CMTimeMakeWithSeconds
 import platform.CoreMedia.kCMTimeZero

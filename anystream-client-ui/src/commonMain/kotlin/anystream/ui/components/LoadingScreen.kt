@@ -15,18 +15,25 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.ui.video
+package anystream.ui.components
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
-internal const val PLAYER_STATE_UPDATE_INTERVAL = 250L
-internal const val PLAYER_STATE_REMOTE_UPDATE_INTERVAL = 5_000L
-
-data class Progress(
-    val fraction: Float,
-    val timeMillis: Long,
-)
-
 @Composable
-internal expect fun VideoPlayer(modifier: Modifier = Modifier, mediaLinkId: String)
+fun LoadingScreen(paddingValues: PaddingValues) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .padding(paddingValues)
+            .fillMaxSize(),
+    ) {
+        CircularProgressIndicator()
+    }
+}

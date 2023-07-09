@@ -35,9 +35,11 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
 import io.ktor.http.Url
@@ -50,10 +52,10 @@ fun PosterCard(
     modifier: Modifier = Modifier,
     preferredWidth: Dp = 130.dp,
 ) {
-    Card(modifier.clickable(onClick = onClick), shape = RoundedCornerShape(size = 2.dp)) {
+    Card(modifier.clickable(onClick = onClick), shape = RoundedCornerShape(size = 4.dp)) {
         Column(Modifier.width(preferredWidth), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Surface(
-                shape = RoundedCornerShape(bottomStart = 2.dp, bottomEnd = 2.dp),
+                shape = RoundedCornerShape(bottomStart = 4.dp, bottomEnd = 4.dp),
                 modifier = Modifier.aspectRatio(ratio = 0.69f),
             ) {
                 Box(modifier = Modifier.fillMaxSize()) {
@@ -74,13 +76,14 @@ fun PosterCard(
                 }
             }
 
-            Box(modifier = Modifier.padding(all = 4.dp)) {
+            Box(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)) {
                 Text(
                     text = title,
-                    maxLines = 1,
+                    maxLines = 2,
+                    minLines = 2,
+                    style = TextStyle(fontSize = 14.sp),
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier
-                        .fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
         }
