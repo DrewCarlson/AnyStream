@@ -17,32 +17,21 @@
  */
 package anystream.ui.login
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Logout
-import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -57,16 +46,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import anystream.SharedRes
 import anystream.client.AnyStreamClient
-import anystream.router.BackStack
 import anystream.router.SharedRouter
-import anystream.routing.Routes
+import anystream.ui.components.AppTopBar
 import anystream.ui.components.AutofillInput
 import anystream.ui.components.onFocusStateChanged
 import anystream.util.createLoopController
-import dev.icerock.moko.resources.compose.painterResource
-import kotlinx.coroutines.launch
 import kt.mobius.Mobius
 import kt.mobius.SimpleLogger
 import kt.mobius.flow.FlowMobius
@@ -189,54 +174,6 @@ internal fun FormBody(
             },
         ) {
             Text(text = "Submit")
-        }
-    }
-}
-
-@Composable
-fun AppTopBar(client: AnyStreamClient?, backStack: BackStack<Routes>? = null) {
-    TopAppBar {
-        val scope = rememberCoroutineScope()
-        Image(
-            painter = painterResource(SharedRes.images.as_logo),
-            modifier = Modifier
-                .padding(all = 8.dp)
-                .size(width = 150.dp, height = 50.dp),
-            contentDescription = null,
-        )
-
-        if (client != null) {
-            val authed by client.authenticated.collectAsState(initial = client.isAuthenticated())
-            if (authed) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.End,
-                    modifier = Modifier.fillMaxSize(),
-                ) {
-//                    val packageManager = LocalContext.current.packageManager
-//                    val hasCamera = remember {
-//                        packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)
-//                    }
-                    // TODO Re-enable camera detection
-                    if (false) {
-                        IconButton(
-                            onClick = { backStack?.push(Routes.PairingScanner) },
-                        ) {
-                            Icon(Icons.Filled.QrCodeScanner, contentDescription = "Pair a device.")
-                        }
-                    }
-
-                    IconButton(
-                        onClick = {
-                            scope.launch {
-                                client.logout()
-                            }
-                        },
-                    ) {
-                        Icon(Icons.Filled.Logout, contentDescription = "Sign out")
-                    }
-                }
-            }
         }
     }
 }

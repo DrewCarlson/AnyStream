@@ -17,19 +17,16 @@
  */
 package anystream.ui.movies
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import anystream.client.AnyStreamClient
@@ -38,8 +35,9 @@ import anystream.models.Movie
 import anystream.models.api.MoviesResponse
 import anystream.router.BackStack
 import anystream.routing.Routes
+import anystream.ui.components.AppTopBar
+import anystream.ui.components.LoadingScreen
 import anystream.ui.components.PosterCard
-import anystream.ui.login.AppTopBar
 import anystream.ui.util.cardWidth
 
 @Composable
@@ -49,7 +47,7 @@ fun MoviesScreen(
     backStack: BackStack<Routes>,
 ) {
     Scaffold(
-        topBar = { AppTopBar(client = client, backStack = backStack) },
+        topBar = { AppTopBar(client = client, backStack = backStack, showBackButton = true) },
     ) { padding ->
         val response = produceState<MoviesResponse?>(null) {
             value = client.getMovies()
@@ -64,18 +62,6 @@ fun MoviesScreen(
                 paddingValues = padding,
             )
         }
-    }
-}
-
-@Composable
-private fun LoadingScreen(paddingValues: PaddingValues) {
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier
-            .padding(paddingValues)
-            .fillMaxSize(),
-    ) {
-        CircularProgressIndicator()
     }
 }
 
