@@ -26,15 +26,14 @@ import anystream.util.ObjectId
 import com.github.kokorin.jaffree.LogLevel
 import com.github.kokorin.jaffree.StreamType
 import com.github.kokorin.jaffree.ffmpeg.FFmpeg
-import com.github.kokorin.jaffree.ffmpeg.FFmpegResult
 import com.github.kokorin.jaffree.ffmpeg.UrlInput
 import com.github.kokorin.jaffree.ffmpeg.UrlOutput
 import com.github.kokorin.jaffree.ffprobe.FFprobe
+import com.github.kokorin.jaffree.process.CommandSender
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.future.await
 import kotlinx.datetime.Clock
 import org.slf4j.LoggerFactory
 import java.io.File
@@ -42,7 +41,6 @@ import java.io.IOException
 import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.nio.file.StandardWatchEventKinds.ENTRY_CREATE
-import java.text.DecimalFormat
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import kotlin.io.path.name
@@ -50,13 +48,11 @@ import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.ZERO
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit.SECONDS
 import kotlin.time.times
 
-private const val DEFAULT_BUFFER_PERCENT = 0.1
-private const val DEFAULT_WAIT_FOR_SEGMENTS = 3
+private val DEFAULT_THROTTLE_SECONDS = 120.seconds
 private val DEFAULT_SEGMENT_DURATION = 6.seconds
 
 /** The required playback seconds to store PlaybackStates. */
@@ -71,9 +67,11 @@ class StreamService(
     private val transcodePath: String,
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
+    private val hlsPlaylistFactory = HlsPlaylistFactory()
     private val scope = CoroutineScope(Dispatchers.IO + scope.coroutineContext)
     private val sessionMap = ConcurrentHashMap<String, TranscodeSession>()
-    private val transcodeJobs = ConcurrentHashMap<String, Job>()
+    private val transcodeJobs = ConcurrentHashMap<String, TranscodeJobHolder>()
+    private val newPlaybackStates = ConcurrentHashMap<String, PlaybackState>()
     private val sessionUpdates = MutableSharedFlow<TranscodeSession>(
         extraBufferCapacity = 50,
         onBufferOverflow = BufferOverflow.DROP_OLDEST,
@@ -84,7 +82,17 @@ class StreamService(
     }
 
     suspend fun getPlaybackSessions(): PlaybackSessions {
-        val playbackStates = queries.fetchPlaybackStatesByIds(sessionMap.keys().toList())
+        val sessionKeys = sessionMap.keys().toList()
+        val storedPlaybackStates = queries.fetchPlaybackStatesByIds(sessionKeys)
+        val newPlaybackStates = newPlaybackStates.mapNotNull { (id, state) ->
+            if (storedPlaybackStates.any { it.id == id }) {
+                newPlaybackStates.remove(id)
+                null
+            } else {
+                state
+            }
+        }
+        val playbackStates = storedPlaybackStates + newPlaybackStates
         val userIds = playbackStates.map(PlaybackState::userId).distinct()
         val users = queries.fetchUsersByIds(userIds)
         val mediaIds = playbackStates.map(PlaybackState::metadataId).distinct()
@@ -125,7 +133,7 @@ class StreamService(
                 runtime = runtime.toDouble(SECONDS),
                 createdAt = Clock.System.now(),
                 updatedAt = Clock.System.now(),
-            )
+            ).also { newPlaybackStates[it.id] = it }
         } else {
             checkNotNull(state)
         }
@@ -141,9 +149,8 @@ class StreamService(
                 outputDir = output,
                 runtime = runtimeSeconds,
                 startAt = positionSeconds,
-                stopAt = positionSeconds + (runtimeSeconds * DEFAULT_BUFFER_PERCENT),
+                stopAt = positionSeconds + DEFAULT_THROTTLE_SECONDS,
                 segmentDuration = DEFAULT_SEGMENT_DURATION,
-                waitForSegments = 1,
             )
         }
         return newState
@@ -185,11 +192,10 @@ class StreamService(
                 outputDir = output,
                 runtime = runtime,
                 segmentDuration = segmentDuration,
-                waitForSegments = 0,
             )
         }
 
-        return createVariantPlaylist(
+        return hlsPlaylistFactory.createVariantPlaylist(
             name = mediaLinkId,
             mediaFile = file,
             token = token,
@@ -216,7 +222,7 @@ class StreamService(
 
         // Delete the PlaybackState if playback hasn't reached threshold
         val state = queries.fetchPlaybackStateById(session.token)
-        if (state?.run { position.seconds < REMEMBER_STATE_THRESHOLD } == true) {
+        if (state?.isPastThreshold() == false) {
             queries.deletePlaybackState(state.id)
         }
 
@@ -251,11 +257,17 @@ class StreamService(
         segmentDuration: Duration,
         startAt: Duration = ZERO,
         stopAt: Duration = runtime,
-        waitForSegments: Int = DEFAULT_WAIT_FOR_SEGMENTS,
     ): TranscodeSession {
-        logger.debug("Start Transcode: $name, runtime=$runtime, startAt=$startAt, stopAt=$stopAt, waitForSegments=$waitForSegments, token=$token")
+        logger.debug(
+            "Start Transcode: {}, runtime={}, startAt={}, stopAt={}, token={}",
+            name,
+            runtime,
+            startAt,
+            stopAt,
+            token,
+        )
         val existingSession = sessionMap[token]
-        if (existingSession?.isRunning() == true) {
+        if (existingSession?.isActive() == true) {
             stopTranscoding(token)
         }
 
@@ -264,10 +276,8 @@ class StreamService(
             setWritable(true)
         }
 
-        val (segmentCount, lastSegmentDuration) = getSegmentCountAndFinalLength(
-            runtime,
-            segmentDuration,
-        )
+        val (segmentCount, lastSegmentDuration) =
+            hlsPlaylistFactory.getSegmentCountAndFinalLength(runtime, segmentDuration)
         val transcodedSegments = findExistingSegments(outputDir, name)
         val requestedStartTime = startAt.coerceIn(ZERO, (runtime - segmentDuration))
         val requestedStartSegment =
@@ -294,7 +304,7 @@ class StreamService(
         val endTime = if (stopAt < runtime) {
             ((startOffset + endSegment) * segmentDuration).coerceAtMost(runtime)
         } else {
-            null
+            runtime
         }
 
         logger.debug(
@@ -302,7 +312,7 @@ class StreamService(
             startSegment,
             endSegment,
             startTime,
-            endTime ?: runtime,
+            endTime,
         )
 
         if (startSegment > lastSegmentIndex) {
@@ -328,7 +338,7 @@ class StreamService(
                     lastTranscodedSegment = startSegment,
                     state = TranscodeSession.State.COMPLETE,
                     startTime = startTime.toDouble(SECONDS),
-                    endTime = endTime?.toDouble(SECONDS) ?: runtime.toDouble(SECONDS),
+                    endTime = endTime.toDouble(SECONDS),
                     startSegment = startSegment,
                     endSegment = endSegment,
                     transcodedSegments = transcodedSegments,
@@ -360,29 +370,28 @@ class StreamService(
                 UrlInput.fromPath(mediaFile.toPath()).apply {
                     addArgument("-noaccurate_seek")
                     addArguments("-ss", startSeconds)
-                    if (endTime != null) {
-                        addArguments("-to", endTime.toDouble(SECONDS).toString())
-                    }
                 },
             )
             addOutput(
                 UrlOutput.toPath(File(outputDir, "$name.m3u8").toPath()).apply {
                     setCodec(StreamType.VIDEO, "libx264")
                     setCodec(StreamType.AUDIO, "aac")
+                    addArguments("-profile:v", "main")
+                    addArguments("-pix_fmt", "yuv420p")
                     // copyCodec(StreamType.VIDEO)
                     // copyCodec(StreamType.AUDIO)
                 },
             )
             setOverwriteOutput(false)
         }
-        logger.debug("Constructed FFmpeg command: ${command.buildCommandString()}")
+        logger.debug("Constructed FFmpeg command: {}", command.buildCommandString())
 
         val startSession = sessionMap.compute(token) { _, session ->
             session?.copy(
                 startSegment = startSegment,
                 endSegment = endSegment,
                 startTime = startTime.toDouble(SECONDS),
-                endTime = endTime?.toDouble(SECONDS) ?: runtime.toDouble(SECONDS),
+                endTime = endTime.toDouble(SECONDS),
                 lastTranscodedSegment = startSegment,
                 ffmpegCommand = command.buildCommandString(),
                 state = TranscodeSession.State.RUNNING,
@@ -398,77 +407,89 @@ class StreamService(
                 lastTranscodedSegment = startSegment,
                 state = TranscodeSession.State.RUNNING,
                 startTime = startTime.toDouble(SECONDS),
-                endTime = endTime?.toDouble(SECONDS) ?: runtime.toDouble(SECONDS),
+                endTime = endTime.toDouble(SECONDS),
                 startSegment = startSegment,
                 endSegment = endSegment,
                 transcodedSegments = transcodedSegments,
             )
-        }.run(::checkNotNull)
-        transcodeJobs[token] =
-            createTranscodeJob(name, outputDir, endSegment, lastSegmentIndex, token, command)
+        }
+        transcodeJobs[token] = createTranscodeJob(name, outputDir, token, command)
 
-        return if (waitForSegments == 0) {
-            checkNotNull(sessionMap[token])
+        val waitForSegment = (startSegment + 1).coerceAtMost(endSegment)
+        return if (checkNotNull(startSession).isSegmentComplete(waitForSegment)) {
+            logger.debug("Target segment already completed")
+            startSession
         } else {
-            val targetSegmentIndex = (startSegment + waitForSegments).coerceAtMost(endSegment)
-            if (startSession.isSegmentComplete(targetSegmentIndex)) {
-                logger.debug("Target segment already completed")
-                startSession
-            } else {
-                logger.debug("Target segment not complete, waiting")
-                sessionUpdates
-                    .onStart { sessionMap[token]?.let { emit(it) } }
-                    .first { session ->
-                        if (session.isSegmentComplete(targetSegmentIndex)) {
-                            logger.debug("Target segment completed, unlocking")
-                            true
-                        } else {
-                            false
-                        }
+            logger.debug("Target segment not complete, waiting")
+            sessionUpdates
+                .onStart { sessionMap[token]?.let { emit(it) } }
+                .first { session ->
+                    if (session.isSegmentComplete(waitForSegment)) {
+                        logger.debug("Target segment completed, unlocking")
+                        true
+                    } else {
+                        false
                     }
-            }
+                }
         }
     }
 
     private fun createTranscodeJob(
         name: String,
         outputDir: File,
-        endSegment: Int,
-        lastSegmentIndex: Int,
         token: String,
         command: FFmpeg,
-    ) = scope.launch {
+    ): TranscodeJobHolder {
+        val commandSender = CommandSender()
         val nameRegex = "$name-(\\d+)\\.ts\$".toRegex()
-        val segmentWatchJob = createSegmentWatcher(outputDir.toPath(), nameRegex)
-            .onEach { completedSegment ->
-                logger.trace("Finished transcoding segment: $completedSegment of $endSegment total=$lastSegmentIndex, token=$token")
-                val session = sessionMap.compute(token) { _, session ->
-                    session?.copy(
-                        transcodedSegments = session.transcodedSegments + completedSegment,
-                        lastTranscodedSegment = completedSegment,
+        val transcodeJob = scope.launch {
+            createSegmentWatcher(outputDir.toPath(), nameRegex)
+                .onEach { completedSegmentIndex ->
+                    val currentSession = checkNotNull(sessionMap[token])
+                    val endSegment = currentSession.endSegment
+                    logger.trace(
+                        "Finished transcoding segment: {} of {} total={}, token={}",
+                        completedSegmentIndex,
+                        endSegment,
+                        currentSession.segmentCount,
+                        token,
                     )
+                    val pause = endSegment == completedSegmentIndex
+                    if (pause) {
+                        logger.debug("Pausing transcode {}", token)
+                        checkNotNull(commandSender.sendCommand("p"))
+                    }
+                    val session = sessionMap.compute(token) { _, session ->
+                        session?.copy(
+                            transcodedSegments = session.transcodedSegments + completedSegmentIndex,
+                            lastTranscodedSegment = completedSegmentIndex,
+                            state = if (pause) TranscodeSession.State.PAUSED else session.state,
+                        )
+                    }
+                    sessionUpdates.tryEmit(checkNotNull(session))
                 }
-                sessionUpdates.tryEmit(checkNotNull(session))
+                .onCompletion {
+                    logger.debug("Progress tracking completed.")
+                }
+                .flowOn(Dispatchers.Default)
+                .launchIn(this)
+            try {
+                command.executeAwait(commandSender)
+                logger.debug("FFmpeg process completed: token={}", token)
+            } catch (e: CancellationException) {
+                logger.debug("FFmpeg process cancelled: token={}", token)
+                throw e
+            } catch (e: Throwable) {
+                logger.error("FFmpeg process failed: token=$token", e)
+                stopSession(token, false)
+            } finally {
+                sessionMap.compute(token) { _, session ->
+                    session?.copy(state = TranscodeSession.State.IDLE)
+                }
+                cancel()
             }
-            .onCompletion {
-                logger.debug("Progress tracking completed.")
-            }
-            .flowOn(Dispatchers.Default)
-            .launchIn(this)
-        try {
-            command.executeAwait()
-            logger.debug("FFmpeg process completed: token=$token")
-        } catch (_: CancellationException) {
-            logger.debug("FFmpeg process cancelled: token=$token")
-        } catch (e: Throwable) {
-            logger.error("FFmpeg process failed: token=$token", e)
-            stopSession(token, false)
-        } finally {
-            sessionMap.compute(token) { _, session ->
-                session?.copy(state = TranscodeSession.State.IDLE)
-            }
-            segmentWatchJob.cancel()
         }
+        return TranscodeJobHolder(transcodeJob, commandSender)
     }
 
     private fun findExistingSegments(outputDir: File, name: String): List<Int> {
@@ -480,8 +501,10 @@ class StreamService(
 
     private suspend fun setSegmentTarget(token: String, segment: Int) {
         val session = sessionMap[token] ?: return
+        val transcodeJob = transcodeJobs[token] ?: return
         val segmentTime = (session.segmentLength * segment).seconds
         val runtime = session.runtime.seconds
+        val stopAt = segmentTime + DEFAULT_THROTTLE_SECONDS
 
         suspend fun restartTranscode() = startTranscode(
             token = session.token,
@@ -491,109 +514,70 @@ class StreamService(
             runtime = runtime,
             segmentDuration = session.segmentLength.seconds,
             startAt = segmentTime,
-            stopAt = segmentTime + (session.runtime * DEFAULT_BUFFER_PERCENT).seconds,
+            stopAt = stopAt,
         )
 
         if (session.isSegmentComplete(segment)) {
-            if (segment > session.endSegment) {
-                logger.debug("Transcoding will resume from the first unavailable segment after $segment, endSegment=${session.endSegment}, token=$token")
+            if (segment > session.lastTranscodedSegment && session.state != TranscodeSession.State.PAUSED) {
+                logger.debug(
+                    "Transcoding will resume from the first unavailable segment after {}, endSegment={}, token={}",
+                    segment,
+                    session.endSegment,
+                    token,
+                )
                 restartTranscode()
             }
             return
         }
 
-        if (session.state == TranscodeSession.State.RUNNING) {
-            if (segment in session.startSegment..session.endSegment) {
-                logger.debug("Segment $segment for $token is in range, waiting")
-                sessionUpdates
-                    .filter { it.token == token }
-                    .onStart { sessionMap[token]?.let { emit(it) } }
-                    .onEach { sessionUpdate ->
-                        if (sessionUpdate.state == TranscodeSession.State.IDLE) {
-                            logger.debug("Session became idle, restarting transcode.")
-                            restartTranscode()
-                        }
-                    }
-                    .first { sessionUpdate ->
-                        sessionUpdate.token == token && sessionUpdate.isSegmentComplete(segment)
-                    }
+        when (session.state) {
+            TranscodeSession.State.IDLE,
+            TranscodeSession.State.COMPLETE -> Unit
 
-                logger.debug("Segment $segment ready for $token")
+            TranscodeSession.State.RUNNING -> {
+                if (segment in session.startSegment..session.endSegment) {
+                    logger.debug("Segment {} for {} is in range, waiting", segment, token)
+                    sessionUpdates
+                        .filter { it.token == token }
+                        .onStart { sessionMap[token]?.let { emit(it) } }
+                        .onEach { sessionUpdate ->
+                            if (sessionUpdate.state == TranscodeSession.State.IDLE) {
+                                logger.debug("Session became idle, restarting transcode.")
+                                restartTranscode()
+                            }
+                        }
+                        .first { sessionUpdate ->
+                            sessionUpdate.token == token && sessionUpdate.isSegmentComplete(segment)
+                        }
+
+                    logger.debug("Segment {} ready for {}", segment, token)
+                    return
+                }
+
+            }
+
+            TranscodeSession.State.PAUSED -> {
+                val updatedSession = sessionMap.compute(token) { _, currentSession ->
+                    currentSession?.run {
+                        val endSegment = currentSession.run {
+                            lastTranscodedSegment + (endSegment - startSegment)
+                        }.coerceAtMost(currentSession.segmentCount)
+                        val endTime = (endSegment * currentSession.segmentLength.toDouble())
+                            .coerceAtMost(runtime.toDouble(SECONDS))
+                        copy(
+                            state = TranscodeSession.State.RUNNING,
+                            endSegment = endSegment,
+                            endTime = endTime,
+                        )
+                    }
+                }
+                logger.debug("Resuming transcode, retargeting {}", updatedSession?.endSegment)
+                transcodeJob.resume()
                 return
             }
         }
-        logger.debug("Segment request out of range, retargeting $segment")
+        logger.debug("Segment request out of range, retargeting {}", segment)
         restartTranscode()
-    }
-
-    private fun createVariantPlaylist(
-        name: String,
-        mediaFile: File,
-        token: String,
-        runtime: Duration,
-        segmentDuration: Duration,
-    ): String {
-        logger.debug("Creating variant playlist for {}", mediaFile)
-
-        val segmentContainer = null ?: "ts"
-        val isHlsInFmp4 = segmentContainer.equals("mp4", ignoreCase = true)
-        val hlsVersion = if (isHlsInFmp4) "7" else "3"
-
-        val (segmentCount, finalSegLength) = getSegmentCountAndFinalLength(runtime, segmentDuration)
-
-        val segmentExtension = segmentContainer
-
-        logger.debug("Creating $segmentCount segments at $segmentDuration, final length $finalSegLength")
-
-        return buildString(128) {
-            appendLine("#EXTM3U")
-            append("#EXT-X-VERSION:")
-            appendLine(hlsVersion)
-            append("#EXT-X-TARGETDURATION:")
-            appendLine(segmentDuration.toInt(SECONDS))
-            appendLine("#EXT-X-MEDIA-SEQUENCE:0")
-
-            if (isHlsInFmp4) {
-                append("#EXT-X-MAP:URI=\"")
-                append(token)
-                append('-')
-                append("$name-1.")
-                append(segmentExtension)
-                appendLine('"')
-            }
-            repeat(segmentCount) { i ->
-                append("#EXTINF:")
-                if (i == segmentCount - 1) {
-                    append(segLenFormatter.format(finalSegLength.toDouble(SECONDS)))
-                } else {
-                    append(segLenFormatter.format(segmentDuration.toDouble(SECONDS)))
-                }
-                appendLine(", nodesc")
-                append(token)
-                append('-')
-                append(name)
-                append('-')
-                append(i)
-                append('.')
-                append(segmentExtension)
-                appendLine()
-            }
-            appendLine("#EXT-X-ENDLIST")
-        }
-    }
-
-    private fun getSegmentCountAndFinalLength(
-        runtime: Duration,
-        segmentLength: Duration,
-    ): Pair<Int, Duration> {
-        val segments = ceil(runtime / segmentLength).toInt()
-        val lastPartialSegmentLength =
-            (runtime.inWholeMilliseconds % segmentLength.inWholeMilliseconds).milliseconds
-        return if (lastPartialSegmentLength == ZERO) {
-            segments to segmentLength
-        } else {
-            segments to lastPartialSegmentLength
-        }
     }
 
     private fun createSegmentWatcher(directory: Path, fileMatchRegex: Regex): Flow<Int> {
@@ -622,27 +606,8 @@ class StreamService(
             }
         }.distinctUntilChanged().flowOn(Dispatchers.IO)
     }
-
-    private fun FFmpeg.buildCommandString(): String {
-        val buildArguments = FFmpeg::class.java.getDeclaredMethod("buildArguments")
-            .apply { isAccessible = true }
-        @Suppress("UNCHECKED_CAST")
-        return (buildArguments(this) as List<String>).joinToString(
-            separator = " ",
-            prefix = "ffmpeg ",
-        ) { if (it.contains(' ')) "\"$it\"" else it }
-    }
 }
 
 private fun PlaybackState.isPastThreshold(): Boolean {
-    return position.seconds < REMEMBER_STATE_THRESHOLD
-}
-
-suspend fun FFmpeg.executeAwait(): FFmpegResult {
-    return executeAsync().toCompletableFuture().await()
-}
-
-private val segLenFormatter = DecimalFormat().apply {
-    minimumFractionDigits = 4
-    maximumFractionDigits = 4
+    return position.seconds > REMEMBER_STATE_THRESHOLD
 }

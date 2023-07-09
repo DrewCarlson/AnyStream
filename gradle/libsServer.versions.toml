@@ -4,7 +4,7 @@ jdbc_sqlite = "3.49.1.0"
 jooq = "3.20.3"
 kjob = "0.6.0"
 bouncy_castle = "1.70"
-jaffree = "2023.09.10"
+jaffree = "0.0.1"
 logback = "1.5.18"
 koinKtor = "4.0.4"
 icu4j = "77.1"
@@ -31,7 +31,7 @@ qbittorrent-client = { module = "org.drewcarlson:qbittorrent-client", version.re
 
 torrentSearch = { module = "org.drewcarlson:torrentsearch", version = "0.9.0" }
 
-jaffree = { module = "com.github.kokorin.jaffree:jaffree", version.ref = "jaffree" }
+jaffree = { module = "org.drewcarlson:jaffree", version.ref = "jaffree" }
 
 bouncyCastle = { module = "org.bouncycastle:bcprov-jdk15on", version.ref = "bouncy_castle" }
 
