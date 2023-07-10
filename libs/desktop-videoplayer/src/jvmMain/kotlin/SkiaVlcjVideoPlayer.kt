@@ -41,7 +41,6 @@ import androidx.compose.ui.graphics.asComposeImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import anystream.client.getClient
 import anystream.models.PlaybackState
-import io.ktor.util.moveToByteArray
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
@@ -149,7 +148,7 @@ public class SkiaBitmapVideoSurface : VideoSurface(VideoSurfaceAdapters.getVideo
         }
 
         override fun allocatedBuffers(buffers: Array<ByteBuffer>) {
-            frameBytes = buffers[0].moveToByteArray()
+            frameBytes = buffers[0].run { ByteArray(remaining()).also(::get) }
             imageInfo = ImageInfo(
                 sourceWidth,
                 sourceHeight,
