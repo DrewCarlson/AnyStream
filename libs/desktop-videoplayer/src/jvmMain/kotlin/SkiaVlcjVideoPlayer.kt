@@ -18,6 +18,7 @@
 package anystream.ui.video
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -34,11 +35,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asComposeImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import anystream.client.getClient
 import anystream.models.PlaybackState
+import io.ktor.util.moveToByteArray
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
@@ -52,13 +55,13 @@ import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.component.EmbeddedMediaPlayerComponent
 import uk.co.caprica.vlcj.player.embedded.videosurface.CallbackVideoSurface
 import uk.co.caprica.vlcj.player.embedded.videosurface.VideoSurface
-import uk.co.caprica.vlcj.player.embedded.videosurface.VideoSurfaceAdapter
 import uk.co.caprica.vlcj.player.embedded.videosurface.VideoSurfaceAdapters
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.BufferFormat
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.BufferFormatCallback
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.RenderCallback
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.format.RV32BufferFormat
 import java.nio.ByteBuffer
+import javax.swing.SwingUtilities
 
 
 private const val PLAYER_STATE_REMOTE_UPDATE_INTERVAL = 5_000L
@@ -110,7 +113,9 @@ public fun SkiaVlcjVideoPlayer(modifier: Modifier, mediaLinkId: String) {
         surface.bitmap.value?.let { bitmap ->
             Image(
                 bitmap,
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .background(Color.Black)
+                    .fillMaxSize(),
                 contentDescription = null,
                 contentScale = ContentScale.FillWidth,
                 alignment = Alignment.Center,
@@ -119,28 +124,19 @@ public fun SkiaVlcjVideoPlayer(modifier: Modifier, mediaLinkId: String) {
     }
 }
 
-public class SkiaBitmapVideoSurface(
-    private val adapter: VideoSurfaceAdapter = VideoSurfaceAdapters.getVideoSurfaceAdapter(),
-) : VideoSurface(adapter) {
+public class SkiaBitmapVideoSurface : VideoSurface(VideoSurfaceAdapters.getVideoSurfaceAdapter()) {
 
-    public var sourceWidth: Int = 0
-    public var sourceHeight: Int = 0
+    private val videoSurface = SkiaBitmapVideoSurface()
 
+    private var sourceWidth: Int = 0
+    private var sourceHeight: Int = 0
     private lateinit var imageInfo: ImageInfo
 
-    private var useFrame1 = true
-    private lateinit var frameBytes1: ByteArray
-    private lateinit var frameBytes2: ByteArray
-    private val skiaBitmap1: Bitmap = Bitmap()
-    private val skiaBitmap2: Bitmap = Bitmap()
-
+    private lateinit var frameBytes: ByteArray
+    private val skiaBitmap: Bitmap = Bitmap()
     private val composeBitmap = mutableStateOf<ImageBitmap?>(null)
 
     public val bitmap: State<ImageBitmap?> = composeBitmap
-
-    private val bufferFormatCallback = SkiaBitmapBufferFormatCallback()
-    private val renderCallback = SkiaBitmapRenderCallback()
-    private val videoSurface = SkiaBitmapVideoSurface()
 
     override fun attach(mediaPlayer: MediaPlayer) {
         videoSurface.attach(mediaPlayer)
@@ -154,8 +150,7 @@ public class SkiaBitmapVideoSurface(
         }
 
         override fun allocatedBuffers(buffers: Array<ByteBuffer>) {
-            frameBytes1 = ByteArray(sourceWidth * sourceHeight * 4)
-            frameBytes2 = frameBytes1.copyOf()
+            frameBytes = buffers[0].moveToByteArray()
             imageInfo = ImageInfo(
                 sourceWidth,
                 sourceHeight,
@@ -171,25 +166,19 @@ public class SkiaBitmapVideoSurface(
             nativeBuffers: Array<ByteBuffer>,
             bufferFormat: BufferFormat,
         ) {
-            nativeBuffers[0].rewind()
-            val rowBytes = sourceWidth * 4
-            composeBitmap.value = if (useFrame1) {
-                nativeBuffers[0].get(frameBytes1)
-                skiaBitmap1.installPixels(imageInfo, frameBytes1, rowBytes)
-                skiaBitmap1.asComposeImageBitmap()
-            } else {
-                nativeBuffers[0].get(frameBytes2)
-                skiaBitmap2.installPixels(imageInfo, frameBytes2, rowBytes)
-                skiaBitmap2.asComposeImageBitmap()
+            SwingUtilities.invokeLater {
+                nativeBuffers[0].rewind()
+                nativeBuffers[0].get(frameBytes)
+                skiaBitmap.installPixels(imageInfo, frameBytes, sourceWidth * 4)
+                composeBitmap.value = skiaBitmap.asComposeImageBitmap()
             }
-            useFrame1 = !useFrame1
         }
     }
 
     private inner class SkiaBitmapVideoSurface : CallbackVideoSurface(
-        bufferFormatCallback,
-        renderCallback,
+        SkiaBitmapBufferFormatCallback(),
+        SkiaBitmapRenderCallback(),
         true,
-        adapter,
+        videoSurfaceAdapter,
     )
 }
