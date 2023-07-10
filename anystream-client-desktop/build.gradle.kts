@@ -72,6 +72,15 @@ compose {
             mainClass = "MainKt"
 
             nativeDistributions {
+                modules(
+                    "java.instrument",
+                    "java.net.http",
+                    "jdk.jfr",
+                    "jdk.jsobject",
+                    "jdk.unsupported",
+                    "jdk.unsupported.desktop",
+                    "jdk.xml.dom",
+                )
                 targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
                 packageName = "AnyStream"
                 packageVersion = "1.0.0"
