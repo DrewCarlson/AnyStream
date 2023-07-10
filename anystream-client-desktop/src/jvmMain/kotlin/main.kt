@@ -17,7 +17,6 @@
  */
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
@@ -26,32 +25,18 @@ import anystream.SharedRes
 import anystream.client.configure
 import anystream.ui.video.LocalAppWindow
 import anystream.ui.video.prepareLibvlc
-import com.sun.javafx.application.PlatformImpl
 import dev.icerock.moko.resources.compose.painterResource
-import javafx.application.Platform
+import kotlinx.coroutines.launch
 
 fun main() = application {
     configure()
 
-    // NOTE: This listener is only set to keep the JavaFX Platform thread alive
-    val finishListener = remember {
-        object : PlatformImpl.FinishListener {
-            override fun idle(implicitExit: Boolean) = Unit
-            override fun exitCalled() = Unit
-        }
-    }
-
     LaunchedEffect(Unit) {
-        PlatformImpl.addListener(finishListener)
-        prepareLibvlc()
+        launch { prepareLibvlc() }
     }
 
     Window(
-        onCloseRequest = {
-            PlatformImpl.removeListener(finishListener)
-            Platform.exit()
-            exitApplication()
-        },
+        onCloseRequest = ::exitApplication,
         title = "AnyStream",
         state = rememberWindowState(width = 1600.dp, height = 1200.dp),
         icon = painterResource(SharedRes.images.as_icon),

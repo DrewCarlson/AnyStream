@@ -4,13 +4,7 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 plugins {
     kotlin("multiplatform")
     id("org.jetbrains.compose")
-    id("org.openjfx.javafxplugin")
     id("de.undercouch.download")
-}
-
-javafx {
-    version = libs.versions.javafx.get()
-    modules("javafx.swing", "javafx.controls")
 }
 
 kotlin {
@@ -78,15 +72,6 @@ compose {
             mainClass = "MainKt"
 
             nativeDistributions {
-                modules(
-                    "java.instrument",
-                    "java.net.http",
-                    "jdk.jfr",
-                    "jdk.jsobject",
-                    "jdk.unsupported",
-                    "jdk.unsupported.desktop",
-                    "jdk.xml.dom",
-                )
                 targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
                 packageName = "AnyStream"
                 packageVersion = "1.0.0"

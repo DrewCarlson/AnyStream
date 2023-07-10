@@ -1,12 +1,6 @@
 plugins {
     kotlin("multiplatform")
     id("org.jetbrains.compose")
-    id("org.openjfx.javafxplugin")
-}
-
-javafx {
-    version = libs.versions.javafx.get()
-    modules("javafx.swing", "javafx.controls")
 }
 
 kotlin {
@@ -22,7 +16,6 @@ kotlin {
                 implementation(compose.desktop.currentOs)
                 implementation(projects.anystreamClientCore)
                 implementation(libs.vlcj)
-                implementation(libs.vlcj.javafx)
             }
         }
     }

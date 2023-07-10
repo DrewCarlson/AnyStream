@@ -38,9 +38,7 @@ import anystream.client.AnyStreamClient
 import anystream.router.BackStack
 import anystream.routing.Routes
 import anystream.ui.components.AppTopBar
-import anystream.ui.util.ComposePlatform
 import anystream.ui.util.PLAYER_CONTROLS_VISIBILITY
-import anystream.ui.util.composePlatform
 import anystream.ui.util.noRippleClickable
 import kotlinx.coroutines.delay
 
@@ -50,15 +48,6 @@ internal fun SharedVideoPlayer(
     stack: BackStack<Routes>,
     client: AnyStreamClient,
 ) {
-    if (composePlatform == ComposePlatform.DESKTOP) {
-        VideoPlayer(
-            modifier = Modifier.fillMaxSize(),
-            mediaLinkId = route.mediaLinkId,
-            backStack = stack,
-        )
-        return
-    }
-
     var shouldShowControls by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = shouldShowControls) {
