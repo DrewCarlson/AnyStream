@@ -127,11 +127,7 @@ public fun SkiaVlcjVideoPlayer(modifier: Modifier, mediaLinkId: String) {
 public class SkiaBitmapVideoSurface : VideoSurface(VideoSurfaceAdapters.getVideoSurfaceAdapter()) {
 
     private val videoSurface = SkiaBitmapVideoSurface()
-
-    private var sourceWidth: Int = 0
-    private var sourceHeight: Int = 0
     private lateinit var imageInfo: ImageInfo
-
     private lateinit var frameBytes: ByteArray
     private val skiaBitmap: Bitmap = Bitmap()
     private val composeBitmap = mutableStateOf<ImageBitmap?>(null)
@@ -143,9 +139,12 @@ public class SkiaBitmapVideoSurface : VideoSurface(VideoSurfaceAdapters.getVideo
     }
 
     private inner class SkiaBitmapBufferFormatCallback : BufferFormatCallback {
+        private var sourceWidth: Int = 0
+        private var sourceHeight: Int = 0
+
         override fun getBufferFormat(sourceWidth: Int, sourceHeight: Int): BufferFormat {
-            this@SkiaBitmapVideoSurface.sourceWidth = sourceWidth
-            this@SkiaBitmapVideoSurface.sourceHeight = sourceHeight
+            this.sourceWidth = sourceWidth
+            this.sourceHeight = sourceHeight
             return RV32BufferFormat(sourceWidth, sourceHeight)
         }
 
@@ -169,7 +168,7 @@ public class SkiaBitmapVideoSurface : VideoSurface(VideoSurfaceAdapters.getVideo
             SwingUtilities.invokeLater {
                 nativeBuffers[0].rewind()
                 nativeBuffers[0].get(frameBytes)
-                skiaBitmap.installPixels(imageInfo, frameBytes, sourceWidth * 4)
+                skiaBitmap.installPixels(imageInfo, frameBytes, bufferFormat.width * 4)
                 composeBitmap.value = skiaBitmap.asComposeImageBitmap()
             }
         }
