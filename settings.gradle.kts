@@ -16,7 +16,6 @@ include(
     ":libs:preferences",
     ":libs:sql-generator",
     ":libs:sql-generator-api",
-    ":libs:desktop-videoplayer",
 )
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")

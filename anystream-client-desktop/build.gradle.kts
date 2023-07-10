@@ -16,7 +16,6 @@ kotlin {
             dependencies {
                 implementation(compose.desktop.currentOs)
                 implementation(projects.anystreamClientUi)
-                implementation(projects.libs.desktopVideoplayer)
                 implementation(libs.jna)
             }
         }
