@@ -17,13 +17,11 @@
  */
 package anystream.ui
 
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Modifier
 import anystream.client.AnyStreamClient
 import anystream.router.BackPressHandler
 import anystream.router.BundleScope
@@ -35,7 +33,7 @@ import anystream.ui.home.HomeScreen
 import anystream.ui.login.LoginScreen
 import anystream.ui.movies.MoviesScreen
 import anystream.ui.theme.AppTheme
-import anystream.ui.video.VideoPlayer
+import anystream.ui.video.SharedVideoPlayer
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.koin.compose.koinInject
@@ -56,7 +54,7 @@ fun App() {
                     !client.isAuthenticated() -> Routes.Login
                     else -> Routes.Home
                 }
-                Router(defaultRoute::class.simpleName.orEmpty(), defaultRouting = defaultRoute) { stack ->
+                Router(defaultRoute::class.simpleName.orEmpty(), defaultRouting = defaultRoute,) { stack ->
                     LaunchedEffect(stack) {
                         router.setBackStack(stack)
                     }
@@ -101,10 +99,7 @@ fun App() {
 //                            client = client,
 //                            backStack = stack,
 //                        )
-                        is Routes.Player -> VideoPlayer(
-                            modifier = Modifier.fillMaxSize(),
-                            mediaLinkId = route.mediaLinkId,
-                        )
+                        is Routes.Player -> SharedVideoPlayer(route, stack, client)
                         Routes.PairingScanner -> TODO()
                         Routes.Tv -> TODO()
                     }

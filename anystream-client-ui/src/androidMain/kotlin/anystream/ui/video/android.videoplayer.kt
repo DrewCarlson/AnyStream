@@ -17,11 +17,8 @@
  */
 package anystream.ui.video
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -32,9 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
@@ -42,6 +37,8 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import anystream.client.AnyStreamClient
 import anystream.models.PlaybackState
+import anystream.router.BackStack
+import anystream.routing.Routes
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
@@ -60,7 +57,9 @@ import org.koin.compose.rememberKoinInject
 internal actual fun VideoPlayer(
     modifier: Modifier,
     mediaLinkId: String,
+    backStack: BackStack<Routes>,
 ) {
+    BackHandler { backStack.pop() }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val lifecycle = LocalLifecycleOwner.current.lifecycle
@@ -129,7 +128,7 @@ internal actual fun VideoPlayer(
         position = player.contentPosition.coerceAtLeast(0L)
     }
 
-    val playerView = remember { StyledPlayerView(context) }
+    val playerView = remember { StyledPlayerView(context).apply { useController = false } }
     LaunchedEffect(playerView) {
         playerView.apply {
             lifecycle.addObserver(
@@ -158,21 +157,7 @@ internal actual fun VideoPlayer(
         }
     }
 
-    Scaffold(modifier = modifier) { padding ->
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier
-                .padding(padding)
-                .background(Color.Black)
-                .fillMaxSize(),
-        ) {
-            AndroidView(
-                factory = { playerView },
-                modifier = Modifier
-                    .fillMaxSize(),
-            ) {
-                playerView.player = player
-            }
-        }
+    AndroidView(factory = { playerView }, modifier = Modifier.fillMaxSize()) {
+        playerView.player = player
     }
 }
