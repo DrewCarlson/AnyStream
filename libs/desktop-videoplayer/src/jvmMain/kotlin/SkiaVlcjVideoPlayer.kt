@@ -125,10 +125,17 @@ public class SkiaBitmapVideoSurface(
 
     public var sourceWidth: Int = 0
     public var sourceHeight: Int = 0
-    private lateinit var frameBytes: ByteArray
+
     private lateinit var imageInfo: ImageInfo
-    private val skiaBitmap: Bitmap = Bitmap()
+
+    private var useFrame1 = true
+    private lateinit var frameBytes1: ByteArray
+    private lateinit var frameBytes2: ByteArray
+    private val skiaBitmap1: Bitmap = Bitmap()
+    private val skiaBitmap2: Bitmap = Bitmap()
+
     private val composeBitmap = mutableStateOf<ImageBitmap?>(null)
+
     public val bitmap: State<ImageBitmap?> = composeBitmap
 
     private val bufferFormatCallback = SkiaBitmapBufferFormatCallback()
@@ -147,7 +154,8 @@ public class SkiaBitmapVideoSurface(
         }
 
         override fun allocatedBuffers(buffers: Array<ByteBuffer>) {
-            frameBytes = ByteArray(sourceWidth * sourceHeight * 4)
+            frameBytes1 = ByteArray(sourceWidth * sourceHeight * 4)
+            frameBytes2 = frameBytes1.copyOf()
             imageInfo = ImageInfo(
                 sourceWidth,
                 sourceHeight,
@@ -164,9 +172,17 @@ public class SkiaBitmapVideoSurface(
             bufferFormat: BufferFormat,
         ) {
             nativeBuffers[0].rewind()
-            nativeBuffers[0].get(frameBytes)
-            skiaBitmap.installPixels(imageInfo, frameBytes, sourceWidth * 4)
-            composeBitmap.value = skiaBitmap.asComposeImageBitmap()
+            val rowBytes = sourceWidth * 4
+            composeBitmap.value = if (useFrame1) {
+                nativeBuffers[0].get(frameBytes1)
+                skiaBitmap1.installPixels(imageInfo, frameBytes1, rowBytes)
+                skiaBitmap1.asComposeImageBitmap()
+            } else {
+                nativeBuffers[0].get(frameBytes2)
+                skiaBitmap2.installPixels(imageInfo, frameBytes2, rowBytes)
+                skiaBitmap2.asComposeImageBitmap()
+            }
+            useFrame1 = !useFrame1
         }
     }
 
