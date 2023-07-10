@@ -15,18 +15,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.ui.video
+package anystream.ui.util
 
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import anystream.router.BackStack
-import anystream.routing.Routes
-
-@Composable
-internal actual fun VideoPlayer(
-    modifier: Modifier,
-    mediaLinkId: String,
-    backStack: BackStack<Routes>,
-) {
-    JavaFxVlcjVideoPlayer(modifier, mediaLinkId)
-}
+internal actual val composePlatform = ComposePlatform.DESKTOP

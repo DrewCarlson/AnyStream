@@ -28,6 +28,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.interop.UIKitView
 import anystream.getClient
 import anystream.models.PlaybackState
+import anystream.router.BackStack
+import anystream.routing.Routes
 import kotlinx.cinterop.COpaquePointer
 import kotlinx.cinterop.readValue
 import kotlinx.coroutines.delay
@@ -50,7 +52,12 @@ import platform.UIKit.UIView
 import platform.darwin.NSObject
 
 @Composable
-internal actual fun VideoPlayer(modifier: Modifier, mediaLinkId: String) {
+internal actual fun VideoPlayer(
+    modifier: Modifier,
+    mediaLinkId: String,
+    backStack: BackStack<Routes>,
+) {
+    var shouldShowControls by remember { mutableStateOf(false) }
     val client = remember { getClient() }
     var autoPlay by rememberSaveable { mutableStateOf(true) }
     var position by rememberSaveable { mutableStateOf(0L) }

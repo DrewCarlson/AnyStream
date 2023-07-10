@@ -45,12 +45,13 @@ import dev.icerock.moko.resources.compose.painterResource
 import kotlinx.coroutines.launch
 
 @Composable
-fun AppTopBar(
+internal fun AppTopBar(
     client: AnyStreamClient?,
     backStack: BackStack<Routes>? = null,
     showBackButton: Boolean = false,
+    modifier: Modifier = Modifier
 ) {
-    TopAppBar {
+    TopAppBar(modifier) {
         if (showBackButton) {
             IconButton(onClick = { backStack?.pop() }) {
                 Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = "Back")

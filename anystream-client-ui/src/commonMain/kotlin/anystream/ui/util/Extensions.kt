@@ -15,18 +15,22 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.ui.video
+package anystream.ui.util
 
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import anystream.router.BackStack
-import anystream.routing.Routes
+import androidx.compose.ui.composed
 
-@Composable
-internal actual fun VideoPlayer(
-    modifier: Modifier,
-    mediaLinkId: String,
-    backStack: BackStack<Routes>,
-) {
-    JavaFxVlcjVideoPlayer(modifier, mediaLinkId)
+internal fun Modifier.noRippleClickable(enabled: Boolean = true, onClick: () -> Unit): Modifier = composed {
+    clickable(
+        indication = null,
+        enabled = enabled,
+        interactionSource = remember { MutableInteractionSource() },
+    ) {
+        onClick()
+    }
 }
+
+internal const val PLAYER_CONTROLS_VISIBILITY = 5 * 1000L //5 seconds

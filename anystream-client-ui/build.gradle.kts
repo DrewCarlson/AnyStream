@@ -72,6 +72,8 @@ kotlin {
                     implementation(libs.compose.ui.tooling)
                     implementation(libs.compose.ui.tooling.preview)
                     implementation(libs.bundles.exoplayer)
+                    implementation(libs.androidx.activity.ktx)
+                    implementation(libs.androidx.activity.compose)
                 }
             }
         }
