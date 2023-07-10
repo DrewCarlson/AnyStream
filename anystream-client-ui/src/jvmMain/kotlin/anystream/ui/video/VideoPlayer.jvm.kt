@@ -17,10 +17,40 @@
  */
 package anystream.ui.video
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import anystream.client.getClient
+import anystream.models.PlaybackState
 import anystream.router.BackStack
 import anystream.routing.Routes
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import uk.co.caprica.vlcj.factory.MediaPlayerFactory
+
+// Same as MediaPlayerComponentDefaults.EMBEDDED_MEDIA_PLAYER_ARGS
+private val PLAYER_ARGS = listOf(
+    "--video-title=vlcj video output",
+    "--no-snapshot-preview",
+    "--quiet",
+    "--intf=dummy",
+)
 
 @Composable
 internal actual fun VideoPlayer(
@@ -28,5 +58,62 @@ internal actual fun VideoPlayer(
     mediaLinkId: String,
     backStack: BackStack<Routes>,
 ) {
-    SkiaVlcjVideoPlayer(modifier, mediaLinkId)
+    val client = getClient()
+    var position by rememberSaveable { mutableStateOf(0L) }
+    val mediaPlayerFactory = remember { MediaPlayerFactory(PLAYER_ARGS) }
+    val mediaPlayer = remember {
+        mediaPlayerFactory
+            .mediaPlayers()
+            .newEmbeddedMediaPlayer()
+    }
+    val surface = remember {
+        SkiaBitmapVideoSurface().also {
+            mediaPlayer.videoSurface().set(it)
+        }
+    }
+    DisposableEffect(Unit) {
+        onDispose {
+            mediaPlayer.release()
+            mediaPlayerFactory.release()
+        }
+    }
+    produceState<PlaybackState?>(null) {
+        val initialState = MutableStateFlow<PlaybackState?>(null)
+        val handle = client.playbackSession(mediaLinkId) { state ->
+            println("[player] $state")
+            initialState.value = state
+            position = (state.position * 1000).toLong()
+            value = state
+        }
+        val state = initialState.filterNotNull().first()
+        val url = client.createHlsStreamUrl(mediaLinkId, state.id)
+        println("[player] $url")
+        check(mediaPlayer.media().prepare(url))
+        mediaPlayer.controls().play()
+        mediaPlayer.controls().setTime(position)
+        launch {
+            while (true) {
+                if (mediaPlayer.status().isPlaying) {
+                    val currentTime = mediaPlayer.status().time() / 1000.0
+                    handle.update.tryEmit(currentTime.coerceAtLeast(0.0))
+                }
+                delay(PLAYER_STATE_REMOTE_UPDATE_INTERVAL)
+            }
+        }
+        awaitDispose { handle.cancel() }
+    }
+
+    Box(modifier = modifier) {
+        surface.bitmap.value?.let { bitmap ->
+            Image(
+                bitmap,
+                modifier = Modifier
+                    .background(Color.Black)
+                    .fillMaxSize(),
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                alignment = Alignment.Center,
+            )
+        }
+    }
 }

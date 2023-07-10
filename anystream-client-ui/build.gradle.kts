@@ -81,7 +81,7 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation(compose.desktop.common)
-                implementation(projects.libs.desktopVideoplayer)
+                implementation(libs.vlcj)
             }
         }
     }
