@@ -28,5 +28,5 @@ internal actual fun VideoPlayer(
     mediaLinkId: String,
     backStack: BackStack<Routes>,
 ) {
-    JavaFxVlcjVideoPlayer(modifier, mediaLinkId)
+    SkiaVlcjVideoPlayer(modifier, mediaLinkId)
 }
