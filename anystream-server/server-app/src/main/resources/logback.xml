@@ -18,7 +18,7 @@
     <logger name="io.netty" level="INFO"/>
     <logger name="org.jdbi" level="ERROR"/>
     <logger name="info.movito.themoviedbapi" level="INFO"/>
-    <logger name="com.github.kokorin.jaffree" level="ERROR"/>
+    <logger name="com.github.kokorin.jaffree" level="TRACE"/>
     <logger name="kjob" level="ERROR"/>
     <logger name="io.ktor.routing.Routing" level="DEBUG"/>
     <logger name="io.ktor.websocket.WebSocket" level="DEBUG"/>

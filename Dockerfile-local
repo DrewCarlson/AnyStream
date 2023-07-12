@@ -1,8 +1,33 @@
 FROM mcr.microsoft.com/java/jre:11-zulu-alpine
 
-RUN apk add --update --no-cache bash ffmpeg
+RUN apk add --update --no-cache \
+    bash \
+    wget \
+    unzip \
+    x264-libs \
+    x265-libs \
+    libvpx \
+    lame \
+    libass \
+    libxcb \
+    libwebp \
+    sdl \
+    libtheora \
+    libvorbis \
+    opus \
+    sdl2
 
 WORKDIR /app
+
+RUN wget https://github.com/DrewCarlson/AnyStream-FFmpeg/releases/download/placeholder/alpine-build.zip && \
+    unzip alpine-build.zip && \
+    rm alpine-build.zip && \
+    chmod u+x bin/ffprobe && \
+    chmod u+x bin/ffmpeg && \
+    mv bin/* /usr/bin && \
+    mv lib/* /usr/lib && \
+    rm -r bin && \
+    rm -r lib
 
 COPY anystream-server/server-app/build/install ./install/
 COPY anystream-client-web/build/dist/js/productionExecutable ./client-web/
