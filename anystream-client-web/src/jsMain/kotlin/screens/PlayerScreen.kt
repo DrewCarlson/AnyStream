@@ -22,8 +22,8 @@ import anystream.client.AnyStreamClient
 import anystream.frontend.libs.VideoJs
 import anystream.frontend.libs.VjsOptions
 import anystream.frontend.libs.VjsPlayer
-import anystream.frontend.models.MediaItem
-import anystream.frontend.models.toMediaItem
+import anystream.models.frontend.MediaItem
+import anystream.models.frontend.toMediaItem
 import anystream.models.PlaybackState
 import app.softwork.routingcompose.BrowserRouter
 import kotlinx.browser.document

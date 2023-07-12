@@ -3,7 +3,23 @@ plugins {
     kotlin("plugin.serialization")
 }
 
+if (hasAndroidSdk) {
+    apply(plugin = "com.android.library")
+    configure<com.android.build.gradle.LibraryExtension> {
+        compileSdk = 31
+        defaultConfig {
+            minSdk = 23
+            targetSdk = 31
+            testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        }
+        namespace = "anystream.models"
+    }
+}
+
 kotlin {
+    if (hasAndroidSdk) {
+        android()
+    }
     jvm()
     js(IR) {
         browser()

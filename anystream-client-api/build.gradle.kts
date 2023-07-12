@@ -5,7 +5,23 @@ plugins {
 
 apply(plugin = "kotlinx-atomicfu")
 
+if (hasAndroidSdk) {
+    apply(plugin = "com.android.library")
+    configure<com.android.build.gradle.LibraryExtension> {
+        compileSdk = 31
+        defaultConfig {
+            minSdk = 23
+            targetSdk = 31
+            testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        }
+        namespace = "anystream.client.api"
+    }
+}
+
 kotlin {
+    if (hasAndroidSdk) {
+        android()
+    }
     jvm()
     js(IR) {
         browser {
@@ -61,6 +77,12 @@ kotlin {
             dependencies {
                 implementation(kotlin("test"))
                 implementation(kotlin("test-junit"))
+            }
+        }
+
+        if (hasAndroidSdk) {
+            val androidTest by getting {
+                dependsOn(jvmTest)
             }
         }
 

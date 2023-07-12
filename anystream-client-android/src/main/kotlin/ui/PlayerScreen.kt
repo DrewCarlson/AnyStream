@@ -31,6 +31,10 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.*
 import anystream.client.AnyStreamClient
+import anystream.models.frontend.MediaItem
+import anystream.models.frontend.toMediaItem
+import anystream.models.MediaReference
+import anystream.models.Movie
 import anystream.models.PlaybackState
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.Player

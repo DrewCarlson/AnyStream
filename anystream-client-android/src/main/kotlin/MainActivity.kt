@@ -103,7 +103,7 @@ open class MainActivity : AppCompatActivity() {
                                     backStack = stack,
                                     onMediaClick = { mediaRefId ->
                                         if (mediaRefId != null) {
-                                            stack.push(Routes.Player(mediaRefId))
+                                            stack.push(Routes.Details(mediaRefId))
                                         }
                                     },
                                     onViewMoviesClicked = {
@@ -114,7 +114,17 @@ open class MainActivity : AppCompatActivity() {
                                     client = client,
                                     onMediaClick = { mediaRefId ->
                                         if (mediaRefId != null) {
-                                            stack.replace(Routes.Player(mediaRefId))
+                                            stack.replace(Routes.Details(mediaRefId))
+                                        }
+                                    },
+                                    backStack = stack
+                                )
+                                is Routes.Details -> MediaScreen(
+                                    client = client,
+                                    mediaId = route.mediaRefId,
+                                    onPlayClick = { mediaRefId ->
+                                        if (mediaRefId != null) {
+                                            stack.push(Routes.Player(mediaRefId))
                                         }
                                     },
                                     backStack = stack

@@ -21,8 +21,8 @@ import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
 import anystream.frontend.components.*
 import anystream.frontend.libs.PopperElement
-import anystream.frontend.models.MediaItem
-import anystream.frontend.models.toMediaItem
+import anystream.models.frontend.MediaItem
+import anystream.models.frontend.toMediaItem
 import anystream.frontend.util.ExternalClickMask
 import anystream.models.*
 import anystream.models.api.*

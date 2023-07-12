@@ -37,9 +37,9 @@ import anystream.android.AppTopBar
 import anystream.android.AppTypography
 import anystream.android.router.BackStack
 import anystream.client.AnyStreamClient
-import anystream.frontend.models.*
 import anystream.models.*
 import anystream.models.api.HomeResponse
+import anystream.models.frontend.MediaItem
 import anystream.routing.Routes
 import coil.compose.ImagePainter
 import coil.compose.rememberImagePainter
@@ -257,7 +257,7 @@ private fun MovieRow(
                 PosterCard(
                     title = movie.title,
                     imagePath = movie.posterPath,
-                    onClick = { mediaRef?.run { onClick(id) } },
+                    onClick = { mediaRef?.run { onClick(contentId) } },
                 )
             }
         }
@@ -276,7 +276,7 @@ private fun TvRow(
                 PosterCard(
                     title = show.name,
                     imagePath = show.posterPath,
-                    onClick = { },
+                    onClick = { onClick(show.id) },
                 )
             }
         }

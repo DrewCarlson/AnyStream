@@ -95,7 +95,7 @@ private fun MovieGrid(
             PosterCard(
                 title = movie.title,
                 imagePath = movie.posterPath,
-                onClick = { onMediaClick(mediaRef?.id) },
+                onClick = { onMediaClick(mediaRef?.contentId) },
                 preferredWidth = cardWidth,
                 modifier = Modifier
                     .padding(all = 8.dp)

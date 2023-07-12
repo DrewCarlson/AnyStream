@@ -19,7 +19,7 @@ package anystream.frontend.screens
 
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
-import anystream.frontend.models.toMediaItem
+import anystream.models.frontend.toMediaItem
 import anystream.models.MediaKind
 import anystream.models.api.ImportMedia
 import anystream.models.api.PlaybackSessionsResponse

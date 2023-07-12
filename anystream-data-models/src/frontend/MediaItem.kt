@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.frontend.models
+package anystream.models.frontend
 
 import anystream.models.MediaReference
 import anystream.models.PlaybackState
