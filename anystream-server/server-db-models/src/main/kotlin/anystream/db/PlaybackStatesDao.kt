@@ -42,6 +42,10 @@ interface PlaybackStatesDao {
     @SqlQuery("SELECT * FROM playbackStates WHERE userId = ? ORDER BY updatedAt DESC LIMIT ?")
     fun findByUserId(userId: Int, limit: Int): List<PlaybackStateDb>
 
+    @SqlQuery
+    @UseClasspathSqlLocator
+    fun findWithUniqueRootByUserId(userId: Int, limit: Int): List<PlaybackStateDb>
+
     @SqlQuery("SELECT * FROM playbackStates WHERE userId = ? AND metadataGid = ?")
     fun findByUserIdAndMediaGid(userId: Int, metadataGid: String): PlaybackStateDb?
 

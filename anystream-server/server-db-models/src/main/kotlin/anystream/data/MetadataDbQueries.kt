@@ -188,10 +188,7 @@ class MetadataDbQueries(
     }
 
     fun findCurrentlyWatching(userId: Int, limit: Int): CurrentlyWatchingQueryResults {
-        // TODO: Limit is not correctly applied as playbackStates for different episodes
-        //  of the same tv show are returned by the query and filtered later.
-        //  The find query should select playbackStates with a unique root id.
-        val playbackStates = playbackStatesDao.findByUserId(userId, limit)
+        val playbackStates = playbackStatesDao.findWithUniqueRootByUserId(userId, limit)
             .map(PlaybackStateDb::toStateModel)
             .associateBy(PlaybackState::metadataGid)
 
@@ -206,8 +203,6 @@ class MetadataDbQueries(
 
         val episodes = metadataDao.findAllByGidsAndType(playbackMediaIds, MetadataDb.Type.TV_EPISODE)
             .map(MetadataDb::toTvEpisodeModel)
-            .sortedByDescending { playbackStates.getValue(it.gid).updatedAt }
-            .distinctBy(Episode::showId)
 
         val tvShowIds = episodes.map(Episode::showId)
         val tvShows = if (tvShowIds.isNotEmpty()) {
@@ -217,16 +212,12 @@ class MetadataDbQueries(
             emptyList()
         }
 
-        val filteredPlaybackStates = playbackStates.values.filter { state ->
-            episodes.any { it.gid == state.metadataGid } || movies.any { it.gid == state.metadataGid }
-        }
-
         val episodeAndShowPairs = episodes.map { episode ->
             episode to tvShows.first { it.gid == episode.showId }
         }
 
         return CurrentlyWatchingQueryResults(
-            playbackStates = filteredPlaybackStates,
+            playbackStates = playbackStates.values.toList(),
             currentlyWatchingMovies = movies.associateBy { playbackStates.getValue(it.gid).id },
             currentlyWatchingTv = episodeAndShowPairs.associateBy { (episode, _) ->
                 playbackStates.getValue(episode.gid).id
@@ -404,6 +395,10 @@ class MetadataDbQueries(
         return metadataDao.findAllByGidsAndType(tvSeasonIds, MetadataDb.Type.TV_SEASON)
     }
 
+    /**
+     * @param currentlyWatchingMovies A map of PlaybackState ids to their Movie metadata.
+     * @param currentlyWatchingTv A map of PlaybackState ids to their Tv show metadata.
+     */
     data class CurrentlyWatchingQueryResults(
         val playbackStates: List<PlaybackState>,
         val currentlyWatchingMovies: Map<String, Movie>,
