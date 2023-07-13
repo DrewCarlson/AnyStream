@@ -56,8 +56,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit.SECONDS
 import kotlin.time.times
 
-private const val DEFAULT_BUFFER_PERCENT = 0.1
-private const val DEFAULT_WAIT_FOR_SEGMENTS = 3
+private val DEFAULT_THROTTLE_SECONDS = 120.seconds
 private val DEFAULT_SEGMENT_DURATION = 6.seconds
 
 /** The required playback seconds to store PlaybackStates. */
@@ -145,9 +144,8 @@ class StreamService(
                 outputDir = output,
                 runtime = runtimeSeconds,
                 startAt = positionSeconds,
-                stopAt = positionSeconds + (runtimeSeconds * DEFAULT_BUFFER_PERCENT),
+                stopAt = positionSeconds + DEFAULT_THROTTLE_SECONDS,
                 segmentDuration = DEFAULT_SEGMENT_DURATION,
-                waitForSegments = 1,
             )
         }
         return newState
@@ -192,7 +190,6 @@ class StreamService(
                 outputDir = output,
                 runtime = runtime,
                 segmentDuration = segmentDuration,
-                waitForSegments = 0,
             )
         }
 
@@ -258,15 +255,13 @@ class StreamService(
         segmentDuration: Duration,
         startAt: Duration = ZERO,
         stopAt: Duration = runtime,
-        waitForSegments: Int = DEFAULT_WAIT_FOR_SEGMENTS,
     ): TranscodeSession {
         logger.debug(
-            "Start Transcode: {}, runtime={}, startAt={}, stopAt={}, waitForSegments={}, token={}",
+            "Start Transcode: {}, runtime={}, startAt={}, stopAt={}, token={}",
             name,
             runtime,
             startAt,
             stopAt,
-            waitForSegments,
             token,
         )
         val existingSession = sessionMap[token]
@@ -307,7 +302,7 @@ class StreamService(
         val endTime = if (stopAt < runtime) {
             ((startOffset + endSegment) * segmentDuration).coerceAtMost(runtime)
         } else {
-            null
+            runtime
         }
 
         logger.debug(
@@ -315,7 +310,7 @@ class StreamService(
             startSegment,
             endSegment,
             startTime,
-            endTime ?: runtime,
+            endTime,
         )
 
         if (startSegment > lastSegmentIndex) {
@@ -341,7 +336,7 @@ class StreamService(
                     lastTranscodedSegment = startSegment,
                     state = TranscodeSession.State.COMPLETE,
                     startTime = startTime.toDouble(SECONDS),
-                    endTime = endTime?.toDouble(SECONDS) ?: runtime.toDouble(SECONDS),
+                    endTime = endTime.toDouble(SECONDS),
                     startSegment = startSegment,
                     endSegment = endSegment,
                     transcodedSegments = transcodedSegments,
@@ -373,15 +368,14 @@ class StreamService(
                 UrlInput.fromPath(mediaFile.toPath()).apply {
                     addArgument("-noaccurate_seek")
                     addArguments("-ss", startSeconds)
-                    if (endTime != null) {
-                        //addArguments("-to", endTime.toDouble(SECONDS).toString())
-                    }
                 },
             )
             addOutput(
                 UrlOutput.toPath(File(outputDir, "$name.m3u8").toPath()).apply {
                     setCodec(StreamType.VIDEO, "libx264")
                     setCodec(StreamType.AUDIO, "aac")
+                    addArguments("-profile:v", "main")
+                    addArguments("-pix_fmt", "yuv420p")
                     // copyCodec(StreamType.VIDEO)
                     // copyCodec(StreamType.AUDIO)
                 },
@@ -395,7 +389,7 @@ class StreamService(
                 startSegment = startSegment,
                 endSegment = endSegment,
                 startTime = startTime.toDouble(SECONDS),
-                endTime = endTime?.toDouble(SECONDS) ?: runtime.toDouble(SECONDS),
+                endTime = endTime.toDouble(SECONDS),
                 lastTranscodedSegment = startSegment,
                 ffmpegCommand = command.buildCommandString(),
                 state = TranscodeSession.State.RUNNING,
@@ -411,35 +405,15 @@ class StreamService(
                 lastTranscodedSegment = startSegment,
                 state = TranscodeSession.State.RUNNING,
                 startTime = startTime.toDouble(SECONDS),
-                endTime = endTime?.toDouble(SECONDS) ?: runtime.toDouble(SECONDS),
+                endTime = endTime.toDouble(SECONDS),
                 startSegment = startSegment,
                 endSegment = endSegment,
                 transcodedSegments = transcodedSegments,
             )
-        }.run(::checkNotNull)
+        }
         transcodeJobs[token] = createTranscodeJob(name, outputDir, token, command)
 
-        return if (waitForSegments == 0) {
-            checkNotNull(sessionMap[token])
-        } else {
-            val targetSegmentIndex = (startSegment + waitForSegments).coerceAtMost(endSegment)
-            if (startSession.isSegmentComplete(targetSegmentIndex)) {
-                logger.debug("Target segment already completed")
-                startSession
-            } else {
-                logger.debug("Target segment not complete, waiting")
-                sessionUpdates
-                    .onStart { sessionMap[token]?.let { emit(it) } }
-                    .first { session ->
-                        if (session.isSegmentComplete(targetSegmentIndex)) {
-                            logger.debug("Target segment completed, unlocking")
-                            true
-                        } else {
-                            false
-                        }
-                    }
-            }
-        }
+        return checkNotNull(startSession)
     }
 
     private fun createTranscodeJob(
@@ -483,9 +457,9 @@ class StreamService(
         val job = scope.launch {
             try {
                 command.executeAwait(commandSender)
-                logger.debug("FFmpeg process completed: token=$token")
+                logger.debug("FFmpeg process completed: token={}", token)
             } catch (_: CancellationException) {
-                logger.debug("FFmpeg process cancelled: token=$token")
+                logger.debug("FFmpeg process cancelled: token={}", token)
             } catch (e: Throwable) {
                 logger.error("FFmpeg process failed: token=$token", e)
                 stopSession(token, false)
@@ -511,7 +485,7 @@ class StreamService(
         val transcodeJob = transcodeJobs[token] ?: return
         val segmentTime = (session.segmentLength * segment).seconds
         val runtime = session.runtime.seconds
-        val stopAt = segmentTime + (session.runtime * DEFAULT_BUFFER_PERCENT).seconds
+        val stopAt = segmentTime + DEFAULT_THROTTLE_SECONDS
 
         suspend fun restartTranscode() = startTranscode(
             token = session.token,
@@ -526,7 +500,12 @@ class StreamService(
 
         if (session.isSegmentComplete(segment)) {
             if (segment > session.endSegment) {
-                logger.debug("Transcoding will resume from the first unavailable segment after $segment, endSegment=${session.endSegment}, token=$token")
+                logger.debug(
+                    "Transcoding will resume from the first unavailable segment after {}, endSegment={}, token={}",
+                    segment,
+                    session.endSegment,
+                    token,
+                )
                 restartTranscode()
             }
             return

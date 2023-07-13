@@ -11,10 +11,15 @@ RUN apk add --update --no-cache \
     libass \
     libxcb \
     libwebp \
-    sdl \
     libtheora \
     libvorbis \
     opus \
+    gnu-libiconv \
+    libbluray \
+    fribidi \
+    freetype \
+    xz \
+    zlib \
     sdl2
 
 WORKDIR /app
