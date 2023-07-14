@@ -33,6 +33,9 @@ interface PlaybackStatesDao {
     @SqlQuery("SELECT * FROM playbackStates WHERE id = ?")
     fun findById(id: Int): PlaybackStateDb?
 
+    @SqlQuery("SELECT * FROM playbackStates WHERE gid = ?")
+    fun findByGid(id: String): PlaybackStateDb?
+
     @SqlQuery("SELECT * FROM playbackStates WHERE id IN (<ids>)")
     fun findByIds(@BindList("ids") ids: List<Int>): List<PlaybackStateDb>
 
@@ -56,7 +59,7 @@ interface PlaybackStatesDao {
     fun findByUserIdAndMediaGids(userId: Int, @BindList("metadataGids") metadataGids: List<String>): List<PlaybackStateDb>
 
     @SqlUpdate("UPDATE playbackStates SET position = :position, updatedAt = :updatedAt WHERE gid = :gid")
-    fun updatePosition(gid: String, position: Double, updatedAt: Instant)
+    fun updatePosition(gid: String, position: Double, updatedAt: Instant): Int
 
     @SqlUpdate("DELETE FROM playbackStates WHERE gid = ?")
     fun deleteByGid(gid: String)

@@ -87,21 +87,30 @@ class StreamServiceQueriesJdbi(
         return try {
             mediaLinkDao.findByGid(mediaLinkId)?.toModel()
         } catch (e: JdbiException) {
-            logger.error("Failed to find MediaReference '$mediaLinkId'")
+            logger.error("Failed to find MediaReference '$mediaLinkId'", e)
             null
         }
     }
 
-    override suspend fun fetchPlaybackState(mediaLinkId: String, userId: Int): PlaybackState? {
+    override fun fetchPlaybackStateById(id: String): PlaybackState? {
+        return try {
+            playbackStatesDao.findByGid(id)?.toStateModel()
+        } catch (e: JdbiException) {
+            logger.error("Failed to load PlaybackState id='$id'", e)
+            null
+        }
+    }
+
+    override fun fetchPlaybackState(mediaLinkId: String, userId: Int): PlaybackState? {
         return try {
             playbackStatesDao.findByUserIdAndMediaRefGid(userId, mediaLinkId)?.toStateModel()
         } catch (e: JdbiException) {
-            logger.error("Failed to load PlaybackState, mediaLinkId='$mediaLinkId' userId='$userId'")
+            logger.error("Failed to load PlaybackState, mediaLinkId='$mediaLinkId' userId='$userId'", e)
             null
         }
     }
 
-    override suspend fun insertPlaybackState(playbackState: PlaybackState): Boolean {
+    override fun insertPlaybackState(playbackState: PlaybackState): Boolean {
         return try {
             playbackStatesDao.insertState(PlaybackStateDb.from(playbackState), Clock.System.now())
             true
@@ -111,17 +120,16 @@ class StreamServiceQueriesJdbi(
         }
     }
 
-    override suspend fun updatePlaybackState(stateId: String, position: Double): Boolean {
+    override fun updatePlaybackState(stateId: String, position: Double): Boolean {
         return try {
-            playbackStatesDao.updatePosition(stateId, position, Clock.System.now())
-            true
+            playbackStatesDao.updatePosition(stateId, position, Clock.System.now()) == 1
         } catch (e: JdbiException) {
             logger.error("Failed to update PlaybackState position", e)
             false
         }
     }
 
-    override suspend fun deletePlaybackState(playbackStateId: String): Boolean {
+    override fun deletePlaybackState(playbackStateId: String): Boolean {
         return try {
             playbackStatesDao.deleteByGid(playbackStateId)
             true

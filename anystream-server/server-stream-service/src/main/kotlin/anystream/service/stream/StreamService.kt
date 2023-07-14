@@ -59,6 +59,9 @@ private const val DEFAULT_BUFFER_PERCENT = 0.1
 private const val DEFAULT_WAIT_FOR_SEGMENTS = 3
 private val DEFAULT_SEGMENT_DURATION = 6.seconds
 
+/** The required playback seconds to store PlaybackStates. */
+private val REMEMBER_STATE_THRESHOLD = 60.seconds
+
 // HLS Spec https://datatracker.ietf.org/doc/html/rfc8216
 class StreamService(
     scope: CoroutineScope,
@@ -125,9 +128,7 @@ class StreamService(
                 metadataGid = metadataGid.orEmpty(),
                 runtime = runtime.toDouble(SECONDS),
                 updatedAt = Clock.System.now(),
-            ).also { newState ->
-                queries.insertPlaybackState(newState)
-            }
+            )
         } else {
             checkNotNull(state)
         }
@@ -151,12 +152,25 @@ class StreamService(
         return newState
     }
 
-    suspend fun deletePlaybackState(playbackStateId: String): Boolean {
+    fun deletePlaybackState(playbackStateId: String): Boolean {
         return queries.deletePlaybackState(playbackStateId)
     }
 
-    suspend fun updateStatePosition(stateId: String, position: Double): Boolean {
-        return queries.updatePlaybackState(stateId, position)
+    fun updateStatePosition(state: PlaybackState, position: Double): Boolean {
+        if (position.seconds < REMEMBER_STATE_THRESHOLD) {
+            return false
+        }
+
+        return if (queries.updatePlaybackState(state.id, position)) {
+            true
+        } else {
+            queries.insertPlaybackState(
+                state.copy(
+                    position = position,
+                    updatedAt = Clock.System.now(),
+                ),
+            )
+        }
     }
 
     suspend fun getPlaylist(mediaLinkId: String, token: String): String? {
@@ -202,11 +216,18 @@ class StreamService(
     }
 
     fun stopSession(token: String, deleteOutput: Boolean) {
-        sessionMap.remove(token)?.also { session ->
-            transcodeJobs.remove(token)?.cancel()
-            if (deleteOutput) {
-                File(session.outputPath).delete()
-            }
+        val session = sessionMap.remove(token) ?: return
+        // Stop ffmpeg and associated file tracking if still running
+        transcodeJobs.remove(token)?.cancel()
+
+        // Delete the PlaybackState if playback hasn't reached threshold
+        val state = queries.fetchPlaybackStateById(session.token)
+        if (state?.run { position.seconds < REMEMBER_STATE_THRESHOLD } == true) {
+            queries.deletePlaybackState(state.id)
+        }
+
+        if (deleteOutput) {
+            File(session.outputPath).delete()
         }
     }
 
@@ -249,10 +270,14 @@ class StreamService(
             setWritable(true)
         }
 
-        val (segmentCount, lastSegmentDuration) = getSegmentCountAndFinalLength(runtime, segmentDuration)
+        val (segmentCount, lastSegmentDuration) = getSegmentCountAndFinalLength(
+            runtime,
+            segmentDuration,
+        )
         val transcodedSegments = findExistingSegments(outputDir, name)
         val requestedStartTime = startAt.coerceIn(ZERO, (runtime - segmentDuration))
-        val requestedStartSegment = floor(requestedStartTime / segmentDuration).toInt().coerceAtLeast(0)
+        val requestedStartSegment =
+            floor(requestedStartTime / segmentDuration).toInt().coerceAtLeast(0)
         val lastSegmentIndex = segmentCount - 1
         val startSegment = if (transcodedSegments.contains(requestedStartSegment)) {
             var nextRequiredSegment = requestedStartSegment + 1
@@ -270,7 +295,8 @@ class StreamService(
             lastSegmentIndex
         }
 
-        val startTime = (startSegment * segmentDuration).coerceIn(ZERO, runtime - lastSegmentDuration)
+        val startTime =
+            (startSegment * segmentDuration).coerceIn(ZERO, runtime - lastSegmentDuration)
         val endTime = if (stopAt < runtime) {
             ((startOffset + endSegment) * segmentDuration).coerceAtMost(runtime)
         } else {
@@ -384,7 +410,8 @@ class StreamService(
                 transcodedSegments = transcodedSegments,
             )
         }.run(::checkNotNull)
-        transcodeJobs[token] = createTranscodeJob(name, outputDir, endSegment, lastSegmentIndex, token, command)
+        transcodeJobs[token] =
+            createTranscodeJob(name, outputDir, endSegment, lastSegmentIndex, token, command)
 
         return if (waitForSegments == 0) {
             checkNotNull(sessionMap[token])
@@ -453,7 +480,8 @@ class StreamService(
     private fun findExistingSegments(outputDir: File, name: String): List<Int> {
         val segmentFiles = outputDir.listFiles()?.toList().orEmpty()
         val nameRegex = "$name-(\\d+)\\.ts\$".toRegex()
-        return segmentFiles.mapNotNull { nameRegex.find(it.name)?.groupValues?.last()?.toInt() }.sorted()
+        return segmentFiles.mapNotNull { nameRegex.find(it.name)?.groupValues?.last()?.toInt() }
+            .sorted()
     }
 
     private suspend fun setSegmentTarget(token: String, segment: Int) {
@@ -565,7 +593,8 @@ class StreamService(
         segmentLength: Duration,
     ): Pair<Int, Duration> {
         val segments = ceil(runtime / segmentLength).toInt()
-        val lastPartialSegmentLength = (runtime.inWholeMilliseconds % segmentLength.inWholeMilliseconds).milliseconds
+        val lastPartialSegmentLength =
+            (runtime.inWholeMilliseconds % segmentLength.inWholeMilliseconds).milliseconds
         return if (lastPartialSegmentLength == ZERO) {
             segments to segmentLength
         } else {
@@ -583,7 +612,8 @@ class StreamService(
                     val targetPath = (event.context() as? Path) ?: return@forEach
                     val fileName = directory.resolve(targetPath).name
                     if (fileMatchRegex.containsMatchIn(fileName)) {
-                        val segmentIndex = checkNotNull(fileMatchRegex.find(fileName)).groupValues.last().toInt()
+                        val segmentIndex =
+                            checkNotNull(fileMatchRegex.find(fileName)).groupValues.last().toInt()
                         send(segmentIndex)
                     }
                 }
@@ -608,6 +638,10 @@ class StreamService(
             prefix = "ffmpeg ",
         ) { if (it.contains(' ')) "\"$it\"" else it }
     }
+}
+
+private fun PlaybackState.isPastThreshold(): Boolean {
+    return position.seconds < REMEMBER_STATE_THRESHOLD
 }
 
 suspend fun FFmpeg.executeAwait(): FFmpegResult {

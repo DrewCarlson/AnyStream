@@ -85,7 +85,7 @@ fun Route.addStreamRoutes(
                             call.respond(NotFound)
                         } else {
                             val success =
-                                streamService.updateStatePosition(actualState.id, state.position)
+                                streamService.updateStatePosition(actualState, state.position)
                             call.respond(if (success) OK else InternalServerError)
                         }
                     }
@@ -143,18 +143,17 @@ fun Route.addStreamWsRoutes(
 
         send(Frame.Text(json.encodeToString(state)))
 
-        val finalPosition = incoming.receiveAsFlow()
+        val finalState = incoming.receiveAsFlow()
             .takeWhile { it !is Frame.Close }
             .filterIsInstance<Frame.Text>()
             .map { frame ->
                 val newState = json.decodeFromString<PlaybackState>(frame.readText())
-                streamService.updateStatePosition(state.id, newState.position)
-                newState.position
+                streamService.updateStatePosition(state, newState.position)
+                newState
             }
-            .lastOrNull() ?: state.position
+            .lastOrNull() ?: state
 
-        val completePercent = ((finalPosition / state.runtime) * 100).roundToInt()
-        val isComplete = completePercent >= PLAYBACK_COMPLETE_PERCENT
+        val isComplete = finalState.completedPercent >= PLAYBACK_COMPLETE_PERCENT
         if (isComplete) {
             streamService.deletePlaybackState(state.id)
         }

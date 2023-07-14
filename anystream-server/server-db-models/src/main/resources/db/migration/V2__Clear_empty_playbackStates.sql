@@ -1,0 +1,1 @@
+DELETE FROM playbackStates WHERE position < 60;

@@ -26,8 +26,8 @@ data class PlaybackState(
     val mediaLinkGid: String,
     val metadataGid: String, // TODO: Make optional
     val userId: Int,
-    val position: Double,
-    val runtime: Double,
+    val position: Double, // TODO: Use Duration
+    val runtime: Double, // TODO: Use Duration
     val updatedAt: Instant,
 ) {
     val completedPercent: Float
