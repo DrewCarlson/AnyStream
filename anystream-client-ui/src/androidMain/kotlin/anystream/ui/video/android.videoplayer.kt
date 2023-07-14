@@ -17,7 +17,6 @@
  */
 package anystream.ui.video
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -35,14 +34,12 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.PlayerView
 import anystream.client.AnyStreamClient
 import anystream.models.PlaybackState
-import anystream.router.BackStack
-import anystream.routing.Routes
-import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.ui.StyledPlayerView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -57,15 +54,13 @@ import org.koin.compose.rememberKoinInject
 internal actual fun VideoPlayer(
     modifier: Modifier,
     mediaLinkId: String,
-    backStack: BackStack<Routes>,
+    isPlaying: Boolean,
 ) {
-    BackHandler { backStack.pop() }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     val client = rememberKoinInject<AnyStreamClient>()
 
-    var autoPlay by rememberSaveable { mutableStateOf(true) }
     var window by rememberSaveable { mutableStateOf(0) }
     var position by rememberSaveable { mutableStateOf(0L) }
     val player = remember { ExoPlayer.Builder(context).build() }
@@ -88,7 +83,7 @@ internal actual fun VideoPlayer(
                     }
                 },
             )
-            playWhenReady = autoPlay
+            playWhenReady = isPlaying
             prepare()
         }
     }
@@ -123,12 +118,11 @@ internal actual fun VideoPlayer(
     }
 
     fun updateState() {
-        autoPlay = player.playWhenReady
         window = player.currentMediaItemIndex
         position = player.contentPosition.coerceAtLeast(0L)
     }
 
-    val playerView = remember { StyledPlayerView(context).apply { useController = false } }
+    val playerView = remember { PlayerView(context).apply { useController = false } }
     LaunchedEffect(playerView) {
         playerView.apply {
             lifecycle.addObserver(
@@ -136,7 +130,7 @@ internal actual fun VideoPlayer(
                     override fun onStart(owner: LifecycleOwner) {
                         super.onStart(owner)
                         onResume()
-                        player.playWhenReady = autoPlay
+                        player.playWhenReady = isPlaying
                     }
 
                     override fun onStop(owner: LifecycleOwner) {

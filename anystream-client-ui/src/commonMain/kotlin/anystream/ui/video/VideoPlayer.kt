@@ -34,5 +34,5 @@ data class Progress(
 internal expect fun VideoPlayer(
     modifier: Modifier = Modifier,
     mediaLinkId: String,
-    backStack: BackStack<Routes>,
+    isPlaying: Boolean,
 )
