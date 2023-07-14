@@ -21,22 +21,14 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import anystream.client.getClient
 import anystream.models.PlaybackState
-import anystream.router.BackStack
-import anystream.routing.Routes
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
@@ -56,7 +48,7 @@ private val PLAYER_ARGS = listOf(
 internal actual fun VideoPlayer(
     modifier: Modifier,
     mediaLinkId: String,
-    backStack: BackStack<Routes>,
+    isPlaying: Boolean,
 ) {
     val client = getClient()
     var position by rememberSaveable { mutableStateOf(0L) }
@@ -77,6 +69,9 @@ internal actual fun VideoPlayer(
             mediaPlayerFactory.release()
         }
     }
+    LaunchedEffect(isPlaying) {
+        mediaPlayer.controls().setPause(!isPlaying)
+    }
     produceState<PlaybackState?>(null) {
         val initialState = MutableStateFlow<PlaybackState?>(null)
         val handle = client.playbackSession(mediaLinkId) { state ->
@@ -91,6 +86,7 @@ internal actual fun VideoPlayer(
         check(mediaPlayer.media().prepare(url))
         mediaPlayer.controls().play()
         mediaPlayer.controls().setTime(position)
+        mediaPlayer.controls().setPause(!isPlaying)
         launch {
             while (true) {
                 if (mediaPlayer.status().isPlaying) {

@@ -21,13 +21,13 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.Scaffold
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PauseCircleFilled
+import androidx.compose.material.icons.filled.PlayCircleFilled
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -53,6 +53,7 @@ internal fun SharedVideoPlayer(
     client: AnyStreamClient,
 ) {
     var shouldShowControls by remember { mutableStateOf(false) }
+    var isPlaying by remember { mutableStateOf(true) }
 
     LaunchedEffect(key1 = shouldShowControls) {
         if (shouldShowControls) {
@@ -70,7 +71,7 @@ internal fun SharedVideoPlayer(
                 .fillMaxSize()
                 .noRippleClickable(onClick = { shouldShowControls = !shouldShowControls }),
         ) {
-            VideoPlayer(Modifier.fillMaxSize(), route.mediaLinkId, stack)
+            VideoPlayer(Modifier.fillMaxSize(), route.mediaLinkId, isPlaying)
 
             AnimatedVisibility(
                 visible = shouldShowControls,
@@ -91,9 +92,19 @@ internal fun SharedVideoPlayer(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(150.dp)
-                        .background(Color.Black.copy(alpha = 0.7f))
+                        .background(Color.Black.copy(alpha = 0.7f)),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-
+                    IconButton({
+                        isPlaying = !isPlaying
+                    }) {
+                        Icon(
+                            if (isPlaying) Icons.Filled.PauseCircleFilled else Icons.Filled.PlayCircleFilled,
+                            contentDescription = null,
+                            modifier = Modifier.size(40.dp)
+                        )
+                    }
                 }
             }
         }

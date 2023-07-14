@@ -22,8 +22,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asComposeImageBitmap
 import org.jetbrains.skia.Bitmap
-import org.jetbrains.skia.ColorAlphaType
-import org.jetbrains.skia.ColorType
+import org.jetbrains.skia.ColorAlphaType.OPAQUE
+import org.jetbrains.skia.ColorType.BGRA_8888
 import org.jetbrains.skia.ImageInfo
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.embedded.videosurface.CallbackVideoSurface
@@ -62,13 +62,8 @@ class SkiaBitmapVideoSurface : VideoSurface(VideoSurfaceAdapters.getVideoSurface
         }
 
         override fun allocatedBuffers(buffers: Array<ByteBuffer>) {
-            frameBytes = buffers[0].run { ByteArray(remaining()).also(::get) }
-            imageInfo = ImageInfo(
-                sourceWidth,
-                sourceHeight,
-                ColorType.BGRA_8888,
-                ColorAlphaType.PREMUL,
-            )
+            frameBytes = ByteArray(buffers[0].limit())
+            imageInfo = ImageInfo(sourceWidth, sourceHeight, BGRA_8888, OPAQUE)
         }
     }
 
@@ -81,7 +76,7 @@ class SkiaBitmapVideoSurface : VideoSurface(VideoSurfaceAdapters.getVideoSurface
             SwingUtilities.invokeLater {
                 nativeBuffers[0].rewind()
                 nativeBuffers[0].get(frameBytes)
-                skiaBitmap.installPixels(imageInfo, frameBytes, bufferFormat.width * 4)
+                skiaBitmap.installPixels(imageInfo, frameBytes, imageInfo.minRowBytes)
                 composeBitmap.value = skiaBitmap.asComposeImageBitmap()
             }
         }

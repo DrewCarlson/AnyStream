@@ -17,19 +17,12 @@
  */
 package anystream.ui.video
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.interop.UIKitView
 import anystream.getClient
 import anystream.models.PlaybackState
-import anystream.router.BackStack
-import anystream.routing.Routes
 import kotlinx.cinterop.COpaquePointer
 import kotlinx.cinterop.readValue
 import kotlinx.coroutines.delay
@@ -55,11 +48,9 @@ import platform.darwin.NSObject
 internal actual fun VideoPlayer(
     modifier: Modifier,
     mediaLinkId: String,
-    backStack: BackStack<Routes>,
+    isPlaying: Boolean,
 ) {
-    var shouldShowControls by remember { mutableStateOf(false) }
     val client = remember { getClient() }
-    var autoPlay by rememberSaveable { mutableStateOf(true) }
     var position by rememberSaveable { mutableStateOf(0L) }
     val player = remember { AVPlayer() }
     produceState<PlaybackState?>(null) {
@@ -76,7 +67,9 @@ internal actual fun VideoPlayer(
                 val time = CMTimeMakeWithSeconds(state.position, 1)
                 val zero = kCMTimeZero.readValue()
                 player.seekToTime(time, zero, zero)
-                player.play()
+                if (isPlaying) {
+                    player.play()
+                }
             }
         }
         val url = client.createHlsStreamUrl(mediaLinkId, state.id)
@@ -102,6 +95,9 @@ internal actual fun VideoPlayer(
             }
         }
         awaitDispose { handle.cancel() }
+    }
+    LaunchedEffect(isPlaying) {
+        if (isPlaying) player.play() else player.pause()
     }
     UIKitView(
         modifier = modifier,

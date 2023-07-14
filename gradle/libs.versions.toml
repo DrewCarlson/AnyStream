@@ -31,6 +31,7 @@ compose_material = "1.4.3"
 compose_foundation = "1.4.3"
 composeCompiler = "1.4.7"
 exoplayer = "2.19.0"
+media3 = "1.1.0"
 ax_runner = "1.5.2"
 agp = "8.0.2"
 leakcanary = "2.12"
@@ -143,6 +144,13 @@ exoplayer-core = { module = "com.google.android.exoplayer:exoplayer-core", versi
 exoplayer-ui = { module = "com.google.android.exoplayer:exoplayer-ui", version.ref = "exoplayer" }
 exoplayer-hls = { module = "com.google.android.exoplayer:exoplayer-hls", version.ref = "exoplayer" }
 
+media3-core = { module = "androidx.media3:media3-exoplayer", version.ref = "media3" }
+media3-ui = { module = "androidx.media3:media3-ui", version.ref = "media3" }
+media3-hls = { module = "androidx.media3:media3-exoplayer-hls", version.ref = "media3" }
+media3-okhttp = { module = "androidx.media3:media3-datasource-okhttp", version.ref = "media3" }
+media3-session = { module = "androidx.media3:media3-session", version.ref = "media3" }
+media3-cast = { module = "androidx.media3:media3-cast", version.ref = "media3" }
+
 torrentSearch = { module = "org.drewcarlson:torrentsearch", version = "0.5.0" }
 
 compose-ui-ui = { module = "androidx.compose.ui:ui", version.ref = "compose" }
@@ -215,5 +223,6 @@ jna = { module = "net.java.dev.jna:jna", version = "5.13.0" }
 
 [bundles]
 exoplayer = ["exoplayer-core", "exoplayer-ui", "exoplayer-hls"]
+media3 = ["media3-core", "media3-ui", "media3-hls", "media3-okhttp", "media3-cast", "media3-session"]
 compose = ["compose-ui-ui", "compose-ui-tooling", "compose-foundation", "compose-material", "compose-livedata"]
 icu4j = ["icu4j", "icu4j-charset", "icu4j-localespi"]

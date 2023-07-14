@@ -71,7 +71,7 @@ kotlin {
                 dependencies {
                     implementation(libs.compose.ui.tooling)
                     implementation(libs.compose.ui.tooling.preview)
-                    implementation(libs.bundles.exoplayer)
+                    implementation(libs.bundles.media3)
                     implementation(libs.androidx.activity.ktx)
                     implementation(libs.androidx.activity.compose)
                 }
