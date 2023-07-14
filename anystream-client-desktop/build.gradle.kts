@@ -29,36 +29,40 @@ fun getOSAndArch(): Pair<String, String> {
     )
 }
 
-fun getLibvlcForHost(): String {
+fun getLibvlcForHost(): String? {
     val (osName, osArch) = getOSAndArch()
     return when {
         osName.contains("win") && osArch.contains("64") -> "win64"
         osName.contains("mac") && osArch.contains("x86_64") -> "macos-intel64"
         osName.contains("mac") && osArch.contains("aarch64") -> "macos-arm64"
-        else -> throw IllegalStateException("Unsupported OS/architecture: $osName/$osArch")
+        else -> {
+            System.err.println("Unsupported OS/architecture: $osName/$osArch")
+            return null
+        }
     }
 }
 
 tasks {
-    val libvlcUrl = buildString {
-        append("https://github.com/DrewCarlson/libvlc-bin/releases/download/")
-        append(libs.versions.vlc.get())
-        append('/')
-        append(getLibvlcForHost())
-        append(".zip")
-    }
-
     val downloadLibvlc by registering(de.undercouch.gradle.tasks.download.Download::class) {
         val outFile = buildDir.resolve("libvlc-${getLibvlcForHost()}.zip")
-        src(libvlcUrl)
+        src(
+            buildString {
+                append("https://github.com/DrewCarlson/libvlc-bin/releases/download/")
+                append(libs.versions.vlc.get())
+                append('/')
+                append(getLibvlcForHost().orEmpty())
+                append(".zip")
+            }
+        )
         dest(outFile)
-        enabled = !outFile.exists()
+        enabled = !getLibvlcForHost().isNullOrBlank() && !outFile.exists()
     }
 
     val unpackLibvlc by registering(Copy::class) {
         dependsOn(downloadLibvlc)
         from(zipTree(downloadLibvlc.get().dest))
         into("build/compose/tmp/prepareAppResources/libvlc")
+        enabled = !getLibvlcForHost().isNullOrBlank()
     }
 
     kotlin.jvm().compilations["main"].compileTaskProvider.dependsOn(unpackLibvlc)
