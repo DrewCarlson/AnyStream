@@ -245,8 +245,14 @@ class AnyStreamClient(
 
     suspend fun getHomePopular(): Popular = http.get("$serverUrl/api/home/popular").bodyOrThrow()
 
-    suspend fun getMovies(page: Int = 1): MoviesResponse =
-        http.get("$serverUrl/api/movies") { pageParam(page) }.bodyOrThrow()
+    suspend fun getMovies(): MoviesResponse =
+        http.get("$serverUrl/api/movies").bodyOrThrow()
+
+    suspend fun getMovies(offset: Int, limit: Int = 30): MoviesResponse =
+        http.get("$serverUrl/api/movies") {
+            parameter("offset", offset)
+            parameter("limit", limit)
+        }.bodyOrThrow()
 
     suspend fun getTvShows(page: Int = 1): TvShowsResponse =
         http.get("$serverUrl/api/tv") { pageParam(page) }.bodyOrThrow()

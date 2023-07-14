@@ -32,8 +32,17 @@ class MetadataDbQueries(
     val playbackStatesDao: PlaybackStatesDao,
 ) {
 
-    fun findMovies(includeLinks: Boolean = false): MoviesResponse {
-        val mediaRecords = metadataDao.findAllByTypeSortedByTitle(MetadataDb.Type.MOVIE)
+    fun findMovies(
+        includeLinks: Boolean = false,
+        limit: Int = 0,
+        offset: Int = 0,
+    ): MoviesResponse {
+        val recordCount = metadataDao.countByType(MetadataDb.Type.MOVIE)
+        val mediaRecords = if (limit == 0) {
+            metadataDao.findAllByTypeSortedByTitle(MetadataDb.Type.MOVIE)
+        } else {
+            metadataDao.findByTypeSortedByTitle(MetadataDb.Type.MOVIE, limit, offset)
+        }
         val mediaLinkRecords = if (includeLinks && mediaRecords.isNotEmpty()) {
             mediaLinkDao.findByMetadataGids(mediaRecords.map(MetadataDb::gid))
         } else {
@@ -43,6 +52,9 @@ class MetadataDbQueries(
         return MoviesResponse(
             movies = mediaRecords.map(MetadataDb::toMovieModel),
             mediaLinks = mediaLinkRecords.map(MediaLinkDb::toModel),
+            limit = limit,
+            offset = offset,
+            total = recordCount.toInt()
         )
     }
 

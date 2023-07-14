@@ -32,8 +32,16 @@ fun Route.addMovieRoutes(
 ) {
     route("/movies") {
         get {
+            val offset = call.parameters["offset"]?.toIntOrNull() ?: 0
+            val limit = call.parameters["limit"]?.toIntOrNull() ?: 0
             val includeLinks = call.parameters["includeLinks"]?.toBoolean() ?: true
-            call.respond(queries.findMovies(includeLinks = includeLinks))
+            call.respond(
+                queries.findMovies(
+                    includeLinks = includeLinks,
+                    offset = offset,
+                    limit = limit,
+                )
+            )
         }
 
         route("/{movie_id}") {

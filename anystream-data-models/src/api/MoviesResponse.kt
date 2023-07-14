@@ -25,4 +25,9 @@ import kotlinx.serialization.Serializable
 data class MoviesResponse(
     val movies: List<Movie>,
     val mediaLinks: List<MediaLink>,
-)
+    val total: Int,
+    val offset: Int,
+    val limit: Int,
+) {
+    val nextOffset = (offset + limit).coerceIn(0, total)
+}

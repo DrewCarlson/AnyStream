@@ -184,6 +184,23 @@ interface MetadataDao {
     @UseRowReducer(MediaReducer::class)
     @SqlQuery(
         """
+            SELECT $MEDIA_COLUMNS, $GENRE_COLUMNS, $COMPANIES_COLUMNS FROM (
+                SELECT * FROM metadata
+                WHERE mediaType = ?
+                ORDER BY title
+                LIMIT ? OFFSET ?
+            ) AS metadata $JOIN_GENRES $JOIN_COMPANIES
+        """,
+    )
+    fun findByTypeSortedByTitle(
+        type: MetadataDb.Type,
+        limit: Int,
+        offset: Int
+    ): List<MetadataDb>
+
+    @UseRowReducer(MediaReducer::class)
+    @SqlQuery(
+        """
             SELECT $MEDIA_COLUMNS, $GENRE_COLUMNS, $COMPANIES_COLUMNS FROM metadata $JOIN_GENRES $JOIN_COMPANIES
             WHERE metadata.tmdbId = ? AND metadata.mediaType = ?
         """,
@@ -204,6 +221,9 @@ interface MetadataDao {
 
     @SqlQuery("SELECT COUNT(id) FROM metadata")
     fun count(): Long
+
+    @SqlQuery("SELECT COUNT(id) FROM metadata WHERE mediaType = ?")
+    fun countByType(type: MetadataDb.Type): Long
 
     @SqlQuery("SELECT COUNT(id) FROM metadata WHERE parentGid = ? AND 'index' > 0")
     fun countSeasonsForTvShow(showId: String): Int
