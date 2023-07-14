@@ -38,11 +38,9 @@ import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.flow.*
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import org.drewcarlson.ktor.permissions.withPermission
 import java.io.File
-import kotlin.math.roundToInt
 
 private const val PLAYBACK_COMPLETE_PERCENT = 90
 
