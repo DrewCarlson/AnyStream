@@ -61,7 +61,6 @@ val LocalRouting: ProvidableCompositionLocal<List<Any>> = compositionLocalOf {
     listOf<Any>()
 }
 
-
 @Composable
 internal fun <T> Router(
     contextId: String,

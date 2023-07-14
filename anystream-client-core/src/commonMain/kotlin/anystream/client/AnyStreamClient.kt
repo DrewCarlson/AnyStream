@@ -559,14 +559,14 @@ class AnyStreamClient(
         val cancel: () -> Unit,
     )
 
-    internal suspend fun HttpResponse.orThrow() {
+    private suspend fun HttpResponse.orThrow() {
         if (!status.isSuccess()) {
             throw call.attributes.takeOrNull(KEY_INTERNAL_ERROR)?.run(::AnyStreamClientException)
                 ?: AnyStreamClientException(this, bodyAsText())
         }
     }
 
-    internal suspend inline fun <reified T> HttpResponse.bodyOrThrow(): T {
+    private suspend inline fun <reified T> HttpResponse.bodyOrThrow(): T {
         return if (status.isSuccess()) {
             when (T::class) {
                 String::class -> bodyAsText() as T
