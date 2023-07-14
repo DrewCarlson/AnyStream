@@ -195,7 +195,7 @@ interface MetadataDao {
     fun findByTypeSortedByTitle(
         type: MetadataDb.Type,
         limit: Int,
-        offset: Int
+        offset: Int,
     ): List<MetadataDb>
 
     @UseRowReducer(MediaReducer::class)

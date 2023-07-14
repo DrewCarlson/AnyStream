@@ -54,7 +54,7 @@ class MetadataDbQueries(
             mediaLinks = mediaLinkRecords.map(MediaLinkDb::toModel),
             limit = limit,
             offset = offset,
-            total = recordCount.toInt()
+            total = recordCount.toInt(),
         )
     }
 
