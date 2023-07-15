@@ -57,7 +57,11 @@ fun MediaScreen(mediaId: String) {
         lookupIdFlow.filterNotNull().filter { !updateLock.isLocked }.collect {
             updateLock.withLock {
                 try {
-                    client.analyzeMediaLinks(mediaId)
+                    value?.mediaLinks
+                        ?.filter { it.descriptor.isMediaFileLink() }
+                        ?.forEach { mediaLink ->
+                            client.analyzeMediaLink(mediaLink.gid)
+                        }
                     value = client.lookupMedia(mediaId)
                 } catch (e: Throwable) {
                     e.printStackTrace()

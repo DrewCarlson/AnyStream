@@ -23,6 +23,7 @@ import anystream.db.MediaLinkDao
 import anystream.db.model.MediaLinkDb
 import anystream.media.AddLibraryFolderResult
 import anystream.media.LibraryManager
+import anystream.models.MediaLink
 import anystream.models.api.*
 import anystream.util.koinGet
 import anystream.util.logger
@@ -42,6 +43,7 @@ import org.jdbi.v3.core.JdbiException
 
 fun Route.addMediaLinkManageRoutes(
     libraryManager: LibraryManager = koinGet(),
+    mediaLinkDao: MediaLinkDao = koinGet(),
 ) {
     route("/medialink") {
         route("/libraries") {
@@ -59,27 +61,28 @@ fun Route.addMediaLinkManageRoutes(
                 }
 
                 val (path, mediaKind) = request
-                val response = when (val result = libraryManager.addLibraryFolder(userId, path, mediaKind)) {
-                    is AddLibraryFolderResult.Success -> {
-                        application.launch {
-                            libraryManager.scan(result.mediaLink)
-                            libraryManager.refreshMetadata(userId, result.mediaLink, true)
+                val response =
+                    when (val result = libraryManager.addLibraryFolder(userId, path, mediaKind)) {
+                        is AddLibraryFolderResult.Success -> {
+                            application.launch {
+                                libraryManager.scan(result.mediaLink)
+                                libraryManager.refreshMetadata(userId, result.mediaLink, true)
+                            }
+
+                            AddLibraryFolderResponse.Success(result.mediaLink.toModel())
                         }
 
-                        AddLibraryFolderResponse.Success(result.mediaLink.toModel())
+                        is AddLibraryFolderResult.DatabaseError ->
+                            AddLibraryFolderResponse.DatabaseError(result.exception.stackTraceToString())
+
+                        is AddLibraryFolderResult.FileError ->
+                            AddLibraryFolderResponse.FileError(
+                                exists = result.exists,
+                                isDirectory = result.isDirectory,
+                            )
+
+                        AddLibraryFolderResult.LinkAlreadyExists -> AddLibraryFolderResponse.LibraryFolderExists
                     }
-
-                    is AddLibraryFolderResult.DatabaseError ->
-                        AddLibraryFolderResponse.DatabaseError(result.exception.stackTraceToString())
-
-                    is AddLibraryFolderResult.FileError ->
-                        AddLibraryFolderResponse.FileError(
-                            exists = result.exists,
-                            isDirectory = result.isDirectory,
-                        )
-
-                    AddLibraryFolderResult.LinkAlreadyExists -> AddLibraryFolderResponse.LibraryFolderExists
-                }
                 call.respond(response)
             }
 
@@ -118,11 +121,35 @@ fun Route.addMediaLinkManageRoutes(
             }
 
             delete {
-                val mediaLink = mediaLink() ?: return@delete
+                val mediaLink = mediaLink() ?: return@delete call.respond(NotFound)
                 if (libraryManager.removeMediaLink(mediaLink)) {
                     call.respond(OK)
                 } else {
                     call.respond(NotFound)
+                }
+            }
+
+            get("/analyze") {
+                val waitForResult = call.parameters["waitForResult"]?.toBoolean() ?: false
+                val mediaLink = mediaLink() ?: return@get call.respond(UnprocessableEntity)
+
+                val descriptors = listOf(MediaLink.Descriptor.VIDEO, MediaLink.Descriptor.AUDIO)
+                val mediaLinkIds = if (mediaLink.descriptor == MediaLink.Descriptor.ROOT_DIRECTORY) {
+                    val basePath = checkNotNull(mediaLink.filePath)
+                    mediaLinkDao.findGidsByBasePathAndDescriptors(basePath, descriptors)
+                } else {
+                    mediaLinkDao
+                        .findGidsByMediaLinkGidAndDescriptors(mediaLink.gid, descriptors)
+                }.takeIf { it.isNotEmpty() }
+                    ?: return@get call.respond(NotFound)
+
+                if (waitForResult) {
+                    call.respond(libraryManager.analyzeMediaFiles(mediaLinkIds, overwrite = true))
+                } else {
+                    application.launch {
+                        libraryManager.analyzeMediaFiles(mediaLinkIds, overwrite = true)
+                    }
+                    call.respond(OK)
                 }
             }
         }

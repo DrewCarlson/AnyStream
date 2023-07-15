@@ -131,6 +131,12 @@ interface MediaLinkDao {
         @BindList("descriptor") descriptor: List<MediaLink.Descriptor>,
     ): List<MediaLinkDb>
 
+    @SqlQuery("SELECT gid FROM medialink WHERE filePath LIKE :basePath || '%' AND descriptor IN (<descriptor>)")
+    fun findGidsByBasePathAndDescriptors(
+        basePath: String,
+        @BindList("descriptor") descriptor: List<MediaLink.Descriptor>,
+    ): List<String>
+
     @UseRowReducer(MediaReferenceReducer::class)
     @SqlQuery("$MEDIALINK_SELECT WHERE parentMediaLinkId = ?")
     fun findByParentId(parentId: Int): List<MediaLinkDb>
@@ -165,6 +171,23 @@ interface MediaLinkDao {
     @SqlQuery("SELECT gid FROM mediaLink WHERE (metadataGid = :metadataGid OR rootMetadataGid = :metadataGid) AND descriptor IN (<descriptors>)")
     fun findGidsByMetadataGidAndDescriptors(
         metadataGid: String,
+        @BindList("descriptors") descriptors: List<MediaLink.Descriptor>,
+    ): List<String>
+
+    @SqlQuery("SELECT gid FROM mediaLink WHERE (gid = :mediaLinkGid OR parentMediaLinkGid = :mediaLinkGid) AND descriptor IN (<descriptors>)")
+    fun findGidsByMediaLinkGidAndDescriptors(
+        mediaLinkGid: String,
+        @BindList("descriptors") descriptors: List<MediaLink.Descriptor>,
+    ): List<String>
+
+    @SqlQuery("SELECT gid FROM mediaLink WHERE (gid IN (<mediaLinkGids>) OR parentMediaLinkGid IN (<mediaLinkGids>)) AND descriptor IN (<descriptors>)")
+    fun findGidsByMediaLinkGidsAndDescriptors(
+        @BindList("mediaLinkGids") mediaLinkGids: List<String>,
+        @BindList("descriptors") descriptors: List<MediaLink.Descriptor>,
+    ): List<String>
+
+    @SqlQuery("SELECT gid FROM mediaLink WHERE descriptor IN (<descriptors>)")
+    fun findGidsByDescriptors(
         @BindList("descriptors") descriptors: List<MediaLink.Descriptor>,
     ): List<String>
 

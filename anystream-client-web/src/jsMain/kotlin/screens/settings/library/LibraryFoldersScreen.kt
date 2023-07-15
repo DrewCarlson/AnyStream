@@ -65,6 +65,7 @@ fun LibraryFoldersScreen() {
                                 onDeleteClicked = { deleteTarget = it.mediaLink },
                                 onScanClicked = { scope.launch { client.scanMediaLink(it.mediaLink.gid) } },
                                 onEditClicked = {},
+                                onAnalyzeClicked = { scope.launch { client.analyzeMediaLinksAsync(it.mediaLink.gid) } },
                             )
                         }
                     }
@@ -177,6 +178,7 @@ private fun FolderRow(
     onDeleteClicked: (LibraryFolderList.RootFolder) -> Unit,
     onScanClicked: (LibraryFolderList.RootFolder) -> Unit,
     onEditClicked: (LibraryFolderList.RootFolder) -> Unit,
+    onAnalyzeClicked: (LibraryFolderList.RootFolder) -> Unit,
 ) {
     Tr {
         Td {
@@ -184,6 +186,7 @@ private fun FolderRow(
                 FolderAction("Delete Library", "trash") { onDeleteClicked(folder) }
                 FolderAction("Scan Files", "arrow-clockwise") { onScanClicked(folder) }
                 FolderAction("Edit Library", "gear-wide") { onEditClicked(folder) }
+                FolderAction("Analyze Files", "file-earmark-play") { onAnalyzeClicked(folder) }
             }
         }
         Th({ scope(Scope.Row) }) { Text(folder.mediaLink.filePath) }

@@ -76,7 +76,6 @@ import io.ktor.http.Url
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 
 @Composable
@@ -97,12 +96,15 @@ fun MediaScreen(
             null
         }
         lookupIdFlow
-            .onEach { it }
             .filterNotNull()
             .debounce(1_000L)
             .collect {
                 try {
-                    client.analyzeMediaLinks(mediaId)
+                    value?.mediaLinks
+                        ?.filter { it.descriptor.isMediaFileLink() }
+                        ?.forEach { mediaLink ->
+                            client.analyzeMediaLink(mediaLink.gid)
+                        }
                     value = client.refreshMetadata(mediaId)
                 } catch (_: Throwable) {
                 }

@@ -145,6 +145,10 @@ sealed class MediaLink {
         fun isDirectoryLink(): Boolean {
             return name.endsWith("DIRECTORY")
         }
+
+        fun isMediaFileLink(): Boolean {
+            return this == AUDIO || this == VIDEO
+        }
     }
 }
 

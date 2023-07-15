@@ -275,7 +275,8 @@ class LibraryManager(
                 !extension.isNullOrBlank() && VIDEO_EXTENSIONS.contains(extension)
             }
             .mapNotNull { mediaLink ->
-                val hasDetails = mediaLinkDao.countStreamDetails(checkNotNull(mediaLink.id)) > 0
+                val mediaLinkId = checkNotNull(mediaLink.id)
+                val hasDetails = mediaLinkDao.countStreamDetails(mediaLinkId) > 0
                 if (!hasDetails || overwrite) {
                     val result = processMediaFileStreams(mediaLink)
                     val streamDetails = (result as? MediaAnalyzerResult.Success)?.streams.orEmpty()
@@ -284,7 +285,10 @@ class LibraryManager(
                         if (streamDetails.isNotEmpty()) {
                             mediaLinkDao.insertStreamDetails(streamDetails)
                         }
-                        result
+                        val updatedStreams = checkNotNull(mediaLinkDao.findByGid(mediaLink.gid))
+                            .streams
+                            .map { it.toModel() }
+                        MediaAnalyzerResult.Success(mediaLink.gid, updatedStreams)
                     } catch (e: JdbiException) {
                         logger.error("Failed to update stream data", e)
                         MediaAnalyzerResult.ErrorDatabaseException(e.stackTraceToString())

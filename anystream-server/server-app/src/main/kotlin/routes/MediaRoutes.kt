@@ -18,37 +18,22 @@
 package anystream.routes
 
 import anystream.data.*
-import anystream.media.LibraryManager
 import anystream.metadata.MetadataManager
-import anystream.models.MediaLink
 import anystream.models.api.*
 import anystream.util.isRemoteId
 import anystream.util.koinGet
 import anystream.util.logger
 import io.ktor.http.HttpStatusCode.Companion.NotFound
-import io.ktor.http.HttpStatusCode.Companion.UnprocessableEntity
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
 fun Route.addMediaManageRoutes(
-    libraryManager: LibraryManager = koinGet(),
     queries: MetadataDbQueries = koinGet(),
 ) {
     route("/media") {
         route("/{metadataGid}") {
-            get("/analyze") {
-                val metadataGid = call.parameters["metadataGid"]?.takeIf(String::isNotBlank)
-                    ?: return@get call.respond(UnprocessableEntity)
-                val descriptors = listOf(MediaLink.Descriptor.VIDEO, MediaLink.Descriptor.AUDIO)
-                val mediaLinkIds = queries.mediaLinkDao
-                    .findGidsByMetadataGidAndDescriptors(metadataGid, descriptors)
-                    .takeIf { it.isNotEmpty() }
-                    ?: return@get call.respond(NotFound)
-
-                call.respond(libraryManager.analyzeMediaFiles(mediaLinkIds, overwrite = true))
-            }
             get("/refresh-metadata") {
                 val metadataGid = call.parameters["metadataGid"] ?: ""
                 val result = queries.findMediaById(metadataGid)

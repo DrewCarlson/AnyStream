@@ -298,8 +298,16 @@ class AnyStreamClient(
         return http.get("$serverUrl/api/media/$metadataGid/refresh-metadata").bodyOrThrow()
     }
 
-    suspend fun analyzeMediaLinks(metadataGid: String): List<MediaAnalyzerResult> {
-        return http.get("$serverUrl/api/media/$metadataGid/analyze").bodyOrThrow()
+    suspend fun analyzeMediaLink(mediaLinkGid: String): List<MediaAnalyzerResult> {
+        return http.get("$serverUrl/api/medialink/$mediaLinkGid/analyze") {
+            parameter("waitForResult", true)
+        }.bodyOrThrow()
+    }
+
+    suspend fun analyzeMediaLinksAsync(mediaLinkGid: String) {
+        http.get("$serverUrl/api/medialink/$mediaLinkGid/analyze") {
+            parameter("waitForResult", false)
+        }.bodyOrThrow<String>()
     }
 
     suspend fun lookupMedia(mediaId: String): MediaLookupResponse =
