@@ -15,6 +15,7 @@ jobs:
     outputs:
       android: ${{ steps.android.outputs.any_changed }}
       client-core: ${{ steps.client-core.outputs.any_changed }}
+      client-ui: ${{ steps.client-ui.outputs.any_changed }}
       data-models: ${{ steps.data-models.outputs.any_changed }}
       ios: ${{ steps.ios.outputs.any_changed }}
       web: ${{ steps.web.outputs.any_changed }}
@@ -44,6 +45,13 @@ jobs:
             gradle/libs.versions.toml
             **/anystream-client-core/**
             **/anystream-data-models/**
+      - name: Get changed files
+        id: client-ui
+        uses: tj-actions/changed-files@v37
+        with:
+          files: |
+            gradle/libs.versions.toml
+            **/anystream-client-ui/**
       - name: Get changed files
         id: data-models
         uses: tj-actions/changed-files@v37
@@ -113,6 +121,50 @@ jobs:
         name: All Tests
         with:
           arguments: anystream-client-core:allTests anystream-client-core:koverXmlReport
+
+      - name: Archive Reports
+        uses: actions/upload-artifact@v3
+        if: ${{ always() }}
+        with:
+          name: reports
+          path: '**/build/reports/*'
+
+      - name: Publish Unit Test Results
+        uses: mikepenz/action-junit-report@v3
+        if: ${{ always() }}
+        with:
+          report_paths: '**/TEST-*.xml'
+
+  client-ui-tests:
+    needs: [ file-changes ]
+    if: needs.file-changes.outputs.client-ui == 'true' || github.ref_name == 'main'
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, macos-latest ] #windows-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: 17
+
+      - name: Cache Build files
+        uses: actions/cache@v3
+        if: ${{ !startsWith(matrix.os, 'windows') }}
+        with:
+          path: |
+            ~/.konan
+            ~/.gradle
+          key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
+
+      - uses: gradle/gradle-build-action@v2
+        name: All Tests
+        with:
+          arguments: anystream-client-ui:allTests anystream-client-ui:koverXmlReport
 
       - name: Archive Reports
         uses: actions/upload-artifact@v3

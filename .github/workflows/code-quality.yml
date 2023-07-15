@@ -12,7 +12,7 @@ jobs:
     outputs:
       android: ${{ steps.android.outputs.any_changed }}
       client-core: ${{ steps.client-core.outputs.any_changed }}
-      client-api: ${{ steps.client-api.outputs.any_changed }}
+      client-ui: ${{ steps.client-ui.outputs.any_changed }}
       data-models: ${{ steps.data-models.outputs.any_changed }}
       ios: ${{ steps.ios.outputs.any_changed }}
       web: ${{ steps.web.outputs.any_changed }}
@@ -45,6 +45,14 @@ jobs:
             **/anystream-data-models/**/*.kt
             **/anystream-data-models/**/*.kts
       - name: Get changed files
+        id: client-ui
+        uses: tj-actions/changed-files@v37
+        with:
+          files: |
+            gradle/libs.versions.toml
+            **/anystream-client-ui/**/*.kt
+            **/anystream-client-ui/**/*.kts
+      - name: Get changed files
         id: server
         uses: tj-actions/changed-files@v37
         with:
@@ -68,6 +76,33 @@ jobs:
             gradle/libs.versions.toml
             **/anystream-client-web/**/*.kt
             **/anystream-client-web/**/*.kts
+
+  client-ui:
+    runs-on: ubuntu-latest
+    needs: [ file-changes ]
+    if: needs.file-changes.outputs.client-ui == 'true' || github.ref_name == 'main'
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: 17
+
+      - name: Cache Build files
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.konan
+            ~/.gradle
+          key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
+
+      - uses: gradle/gradle-build-action@v2
+        name: Spotless Check
+        with:
+          arguments: -p anystream-client-ui spotlessCheck lintKotlin
 
   client-android:
     runs-on: ubuntu-latest

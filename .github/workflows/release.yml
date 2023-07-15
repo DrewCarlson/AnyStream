@@ -32,8 +32,9 @@ jobs:
             gradle/libs.versions.toml
             gradle/kotlin-js-store/**
             **/anystream-client-web/**
+            **/anystream-client-ui/**
+            **/anystream-client-core/**
             **/anystream-data-models/**
-            **/anystream-data-core/**
             **/anystream-server/**
             Dockerfile
             Dockerfile-local
