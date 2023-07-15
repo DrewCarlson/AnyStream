@@ -44,6 +44,7 @@ import anystream.ui.util.cardWidth
 fun MoviesScreen(
     client: AnyStreamClient,
     onMediaClick: (mediaLinkId: String?) -> Unit,
+    onPlayMediaClick: (mediaLinkId: String?) -> Unit,
     backStack: BackStack<Routes>,
 ) {
     Scaffold(
@@ -60,6 +61,7 @@ fun MoviesScreen(
                 mediaLinks = response.value!!.mediaLinks,
                 onMediaClick = onMediaClick,
                 paddingValues = padding,
+                onPlayMediaClick = onPlayMediaClick,
             )
         }
     }
@@ -70,6 +72,7 @@ private fun MovieGrid(
     movies: List<Movie>,
     mediaLinks: List<MediaLink>,
     onMediaClick: (mediaLinkId: String?) -> Unit,
+    onPlayMediaClick: (mediaLinkId: String?) -> Unit,
     paddingValues: PaddingValues,
 ) {
     LazyVerticalGrid(
@@ -92,6 +95,7 @@ private fun MovieGrid(
                 onClick = { onMediaClick(mediaLink?.metadataGid) },
                 preferredWidth = cardWidth,
                 modifier = Modifier.padding(all = 8.dp),
+                onPlayClick = { onPlayMediaClick(mediaLink?.gid) },
             )
         }
     }

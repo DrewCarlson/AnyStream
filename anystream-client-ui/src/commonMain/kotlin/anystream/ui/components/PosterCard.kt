@@ -17,7 +17,10 @@
  */
 package anystream.ui.components
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -27,12 +30,23 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
+import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
@@ -40,6 +54,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import anystream.ui.util.cardWidth
+import anystream.ui.util.pointerMover
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
 import io.ktor.http.Url
@@ -49,10 +65,18 @@ fun PosterCard(
     title: String,
     imagePath: String?,
     onClick: () -> Unit,
+    onPlayClick: () -> Unit,
     modifier: Modifier = Modifier,
     preferredWidth: Dp = 130.dp,
 ) {
-    Card(modifier.clickable(onClick = onClick), shape = RoundedCornerShape(size = 4.dp)) {
+    var showPlayButtonOverlay by remember { mutableStateOf(false) }
+
+    Card(
+        modifier
+            .clickable(onClick = onClick)
+            .pointerMover { showPlayButtonOverlay = it },
+        shape = RoundedCornerShape(size = 4.dp),
+    ) {
         Column(Modifier.width(preferredWidth), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Surface(
                 shape = RoundedCornerShape(bottomStart = 4.dp, bottomEnd = 4.dp),
@@ -69,10 +93,31 @@ fun PosterCard(
                                     .background(Color.DarkGray),
                             )
                         },
-                        onFailure = { exception ->
-                        },
+                        onFailure = { },
                         animationSpec = tween(),
                     )
+
+                    Column(
+                        Modifier.matchParentSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        AnimatedVisibility(
+                            showPlayButtonOverlay,
+                            enter = fadeIn(tween(600)),
+                            exit = fadeOut(tween(1500)),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.PlayCircle,
+                                contentDescription = null,
+                                modifier = Modifier.size(cardWidth / 4)
+                                    .background(MaterialTheme.colors.background, CircleShape)
+                                    .clickable(showPlayButtonOverlay, onClick = onPlayClick)
+                                    .padding(2.dp),
+                                tint = Color.Red,
+                            )
+                        }
+                    }
                 }
             }
 

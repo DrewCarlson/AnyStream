@@ -17,6 +17,9 @@
  */
 package anystream.ui.util
 
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 
 expect val cardWidth: Dp
+
+internal expect fun Modifier.pointerMover(onHover: (Boolean) -> Unit): Modifier

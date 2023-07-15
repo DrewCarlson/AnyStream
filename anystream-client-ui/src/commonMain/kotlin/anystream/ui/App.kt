@@ -101,6 +101,11 @@ fun App() {
                                     stack.push(Routes.Details(mediaLinkId))
                                 }
                             },
+                            onPlayMediaClick = { mediaLinkId ->
+                                if (mediaLinkId != null) {
+                                    stack.push(Routes.Player(mediaLinkId))
+                                }
+                            },
                             backStack = stack,
                         )
 //                        Routes.Tv -> TODO("Tv route not implemented")
