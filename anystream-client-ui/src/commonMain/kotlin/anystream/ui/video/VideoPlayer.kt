@@ -20,14 +20,6 @@ package anystream.ui.video
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
-internal const val PLAYER_STATE_UPDATE_INTERVAL = 250L
-internal const val PLAYER_STATE_REMOTE_UPDATE_INTERVAL = 5_000L
-
-data class Progress(
-    val fraction: Float,
-    val timeMillis: Long,
-)
-
 @Composable
 internal expect fun VideoPlayer(
     modifier: Modifier = Modifier,
