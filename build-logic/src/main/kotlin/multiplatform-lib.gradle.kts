@@ -23,13 +23,17 @@ if (hasAndroidSdk) {
     }
 }
 
+val enableJsTarget = project.name != "anystream-client-ui"
+
 kotlin {
     jvmToolchain(JAVA_TARGET.majorVersion.toInt())
-    js(IR) {
-        browser {
-            testTask {
-                useKarma {
-                    useFirefoxHeadless()
+    if (enableJsTarget) {
+        js(IR) {
+            browser {
+                testTask {
+                    useKarma {
+                        useFirefoxHeadless()
+                    }
                 }
             }
         }
@@ -96,9 +100,11 @@ kotlin {
             }
         }
 
-        val jsTest by getting {
-            dependencies {
-                implementation(kotlin("test-js"))
+        if (enableJsTarget) {
+            val jsTest by getting {
+                dependencies {
+                    implementation(kotlin("test-js"))
+                }
             }
         }
 
