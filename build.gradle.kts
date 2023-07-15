@@ -1,5 +1,7 @@
+import com.diffplug.gradle.spotless.SpotlessApply
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
+import org.jmailen.gradle.kotlinter.tasks.ConfigurableKtLintTask
 
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
@@ -51,7 +53,13 @@ allprojects {
     }
 }
 
+val moduleGroupFolders = listOf("libs", "anystream-server")
+
 subprojects {
+    if (moduleGroupFolders.contains(name)) {
+        return@subprojects
+    }
+
     apply(plugin = "org.jetbrains.kotlinx.kover")
     kover {}
 
@@ -69,7 +77,11 @@ subprojects {
     }
 
     val generatedDir = File(buildDir, "generated").absolutePath
-    tasks.withType<org.jmailen.gradle.kotlinter.tasks.ConfigurableKtLintTask> {
+    tasks.withType<ConfigurableKtLintTask> {
         exclude { it.file.absolutePath.startsWith(generatedDir) }
+    }
+
+    tasks.withType<SpotlessApply> {
+        dependsOn("formatKotlin")
     }
 }
