@@ -17,9 +17,11 @@
  */
 package anystream.ui.video
 
+import androidx.compose.foundation.background
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.interop.UIKitView
 import anystream.getClient
 import anystream.models.PlaybackState
@@ -99,20 +101,25 @@ internal actual fun VideoPlayer(
     LaunchedEffect(isPlaying) {
         if (isPlaying) player.play() else player.pause()
     }
-    UIKitView(
-        modifier = modifier,
-        factory = {
+    val factory = remember {
+        {
             UIView().apply {
                 backgroundColor = blackColor
+                val playerLayer = AVPlayerLayer.playerLayerWithPlayer(player)
+                    .apply { backgroundColor = UIColor.blackColor.CGColor }
+                layer.addSublayer(playerLayer)
             }
-        },
+        }
+    }
+    UIKitView(
+        modifier = modifier.background(Color.Black),
+        factory = factory,
         onResize = { view, size ->
-            val layer = AVPlayerLayer.playerLayerWithPlayer(player).apply {
-                setFrame(size)
-                backgroundColor = UIColor.blackColor.CGColor
-            }
-            view.layer.addSublayer(layer)
+            view.layer.sublayers.orEmpty()
+                .filterIsInstance<AVPlayerLayer>()
+                .forEach { it.setFrame(size) }
         },
+        interactive = false,
     )
 }
 

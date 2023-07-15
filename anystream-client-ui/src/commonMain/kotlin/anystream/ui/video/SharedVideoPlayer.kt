@@ -68,10 +68,15 @@ internal fun SharedVideoPlayer(
             modifier = Modifier
                 .padding(padding)
                 .background(Color.Black)
-                .fillMaxSize()
-                .noRippleClickable(onClick = { shouldShowControls = !shouldShowControls }),
+                .fillMaxSize(),
         ) {
-            VideoPlayer(Modifier.fillMaxSize(), route.mediaLinkId, isPlaying)
+            VideoPlayer(
+                Modifier
+                    .fillMaxSize()
+                    .noRippleClickable(onClick = { shouldShowControls = !shouldShowControls }),
+                route.mediaLinkId,
+                isPlaying,
+            )
 
             AnimatedVisibility(
                 visible = shouldShowControls,
@@ -96,9 +101,11 @@ internal fun SharedVideoPlayer(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    IconButton({
-                        isPlaying = !isPlaying
-                    }) {
+                    IconButton(
+                        {
+                            isPlaying = !isPlaying
+                        },
+                    ) {
                         Icon(
                             if (isPlaying) Icons.Filled.PauseCircleFilled else Icons.Filled.PlayCircleFilled,
                             contentDescription = null,
