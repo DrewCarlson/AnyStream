@@ -21,6 +21,8 @@ import anystream.models.api.EpisodeResponse
 import anystream.models.api.MovieResponse
 import anystream.models.api.SeasonResponse
 import anystream.models.api.TvShowResponse
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 data class MediaItem(
     val mediaId: String,
@@ -44,6 +46,20 @@ data class MediaItem(
             it.descriptor == MediaLink.Descriptor.VIDEO ||
                 it.descriptor == MediaLink.Descriptor.AUDIO
         }
+
+    val tmdbBackdropUrl: String
+        get() = "https://image.tmdb.org/t/p/w500$backdropPath"
+
+    val tmdbPosterUrl: String
+        get() = "https://image.tmdb.org/t/p/w500$posterPath"
+
+    val releaseYear: String
+        get() = releaseDate?.split("-")?.firstOrNull()?.toString().orEmpty()
+
+    val runtimeFormatted: String
+        get() = runtime?.toDuration(DurationUnit.MINUTES)?.let {
+            "${it.inWholeHours}h ${it.inWholeMinutes % 60}m"
+        }.orEmpty()
 }
 
 fun MovieResponse.toMediaItem(): MediaItem {

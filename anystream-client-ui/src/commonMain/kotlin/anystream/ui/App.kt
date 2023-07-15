@@ -31,6 +31,7 @@ import anystream.router.SharedRouter
 import anystream.routing.Routes
 import anystream.ui.home.HomeScreen
 import anystream.ui.login.LoginScreen
+import anystream.ui.media.MediaScreen
 import anystream.ui.movies.MoviesScreen
 import anystream.ui.theme.AppTheme
 import anystream.ui.video.SharedVideoPlayer
@@ -54,7 +55,10 @@ fun App() {
                     !client.isAuthenticated() -> Routes.Login
                     else -> Routes.Home
                 }
-                Router(defaultRoute::class.simpleName.orEmpty(), defaultRouting = defaultRoute,) { stack ->
+                Router(
+                    defaultRoute::class.simpleName.orEmpty(),
+                    defaultRouting = defaultRoute,
+                ) { stack ->
                     LaunchedEffect(stack) {
                         router.setBackStack(stack)
                     }
@@ -77,6 +81,11 @@ fun App() {
                             backStack = stack,
                             onMediaClick = { mediaLinkId ->
                                 if (mediaLinkId != null) {
+                                    stack.push(Routes.Details(mediaLinkId))
+                                }
+                            },
+                            onContinueWatchingClick = { mediaLinkId ->
+                                if (mediaLinkId != null) {
                                     stack.push(Routes.Player(mediaLinkId))
                                 }
                             },
@@ -89,7 +98,7 @@ fun App() {
                             client = client,
                             onMediaClick = { mediaLinkId ->
                                 if (mediaLinkId != null) {
-                                    stack.replace(Routes.Player(mediaLinkId))
+                                    stack.push(Routes.Details(mediaLinkId))
                                 }
                             },
                             backStack = stack,
@@ -99,6 +108,17 @@ fun App() {
 //                            client = client,
 //                            backStack = stack,
 //                        )
+                        is Routes.Details -> MediaScreen(
+                            client = client,
+                            mediaId = route.mediaRefId,
+                            onPlayClick = { mediaLinkId ->
+                                if (mediaLinkId != null) {
+                                    stack.push(Routes.Player(mediaLinkId))
+                                }
+                            },
+                            backStack = stack,
+                        )
+
                         is Routes.Player -> SharedVideoPlayer(route, stack, client)
                         Routes.PairingScanner -> TODO()
                         Routes.Tv -> TODO()

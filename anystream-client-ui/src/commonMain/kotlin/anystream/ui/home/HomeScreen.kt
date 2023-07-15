@@ -79,6 +79,7 @@ fun HomeScreen(
     client: AnyStreamClient,
     backStack: BackStack<Routes>,
     onMediaClick: (mediaLinkId: String?) -> Unit,
+    onContinueWatchingClick: (mediaLinkId: String?) -> Unit,
     onViewMoviesClicked: () -> Unit,
 ) {
     Scaffold(
@@ -89,7 +90,13 @@ fun HomeScreen(
         }
 
         homeData?.let {
-            HomScreenContent(paddingValues, it, onMediaClick, onViewMoviesClicked)
+            HomScreenContent(
+                paddingValues = paddingValues,
+                homeData = it,
+                onMediaClick = onMediaClick,
+                onViewMoviesClicked = onViewMoviesClicked,
+                onContinueWatchingClick = onContinueWatchingClick,
+            )
         } ?: run {
             LoadingScreen(paddingValues)
         }
@@ -102,6 +109,7 @@ private fun HomScreenContent(
     homeData: HomeResponse,
     onMediaClick: (mediaLinkId: String?) -> Unit,
     onViewMoviesClicked: () -> Unit,
+    onContinueWatchingClick: (mediaLinkId: String?) -> Unit,
 ) {
     LazyColumn(
         modifier = Modifier
@@ -113,7 +121,7 @@ private fun HomScreenContent(
         item {
             if (currentlyWatching.playbackStates.isNotEmpty()) {
                 RowTitle(text = "Continue Watching")
-                ContinueWatchingRow(currentlyWatching, onClick = onMediaClick)
+                ContinueWatchingRow(currentlyWatching, onClick = onContinueWatchingClick)
                 RowSpace()
             }
 
@@ -287,7 +295,7 @@ private fun MovieRow(
                 PosterCard(
                     title = movie.title,
                     imagePath = movie.posterPath,
-                    onClick = { mediaLink?.run { onClick(gid) } },
+                    onClick = { mediaLink?.run { onClick(metadataGid) } },
                 )
             }
         },

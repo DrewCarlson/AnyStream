@@ -101,6 +101,7 @@ open class MainActivity : AppCompatActivity() {
                                     backStack = stack,
                                 )
 
+                                is Routes.Details -> TODO("Details route not implemented")
                                 Routes.Tv -> TODO("Tv route not implemented")
                                 Routes.PairingScanner -> PairingScanner(
                                     client = client,
