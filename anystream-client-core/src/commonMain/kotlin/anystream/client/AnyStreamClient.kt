@@ -160,6 +160,7 @@ class AnyStreamClient(
     val playbackSessions: StateFlow<PlaybackSessions> = playbackSessionsFlow
     val libraryActivity: StateFlow<LibraryActivity> = libraryActivityFlow
 
+    @OptIn(DelicateCoroutinesApi::class)
     private inline fun <reified T> createWsStateFlow(path: String, default: T): StateFlow<T> {
         return callbackFlow<T> {
             http.wss("$serverUrlWs$path") {
@@ -221,6 +222,7 @@ class AnyStreamClient(
         }
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     fun globalInfoChanges(): Flow<GlobalTransferInfo> = callbackFlow {
         http.wss("$serverUrlWs/api/ws/torrents/global") {
             send(sessionManager.fetchToken()!!)
@@ -484,6 +486,7 @@ class AnyStreamClient(
         return response
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     suspend fun createPairingSession(): Flow<PairingMessage> = flow {
         http.wss("$serverUrlWs/api/ws/users/pair") {
             while (!incoming.isClosedForReceive) {
