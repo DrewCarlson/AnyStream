@@ -21,6 +21,5 @@ import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.awt.ComposeWindow
 
-
 val LocalAppWindow: ProvidableCompositionLocal<ComposeWindow> =
     compositionLocalOf { error("LocalAppWindow not provided") }

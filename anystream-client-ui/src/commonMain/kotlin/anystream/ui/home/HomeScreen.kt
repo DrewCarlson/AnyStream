@@ -90,7 +90,7 @@ fun HomeScreen(
         }
 
         homeData?.let {
-            HomScreenContent(
+            HomeScreenContent(
                 paddingValues = paddingValues,
                 homeData = it,
                 onMediaClick = onMediaClick,
@@ -104,7 +104,7 @@ fun HomeScreen(
 }
 
 @Composable
-private fun HomScreenContent(
+private fun HomeScreenContent(
     paddingValues: PaddingValues,
     homeData: HomeResponse,
     onMediaClick: (mediaLinkId: String?) -> Unit,

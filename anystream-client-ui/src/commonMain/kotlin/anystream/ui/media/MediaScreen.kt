@@ -173,7 +173,6 @@ private fun BaseDetailsView(
                         .fillMaxWidth()
                         .fillMaxHeight(.8f),
                 ) {
-
                 }
                 Column(Modifier.fillMaxSize()) {
                     Row(Modifier.fillMaxWidth()) {

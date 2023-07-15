@@ -19,8 +19,6 @@ package anystream.ui.video
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import anystream.router.BackStack
-import anystream.routing.Routes
 
 internal const val PLAYER_STATE_UPDATE_INTERVAL = 250L
 internal const val PLAYER_STATE_REMOTE_UPDATE_INTERVAL = 5_000L

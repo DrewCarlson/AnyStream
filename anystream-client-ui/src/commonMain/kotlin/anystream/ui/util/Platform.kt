@@ -20,7 +20,7 @@ package anystream.ui.util
 internal enum class ComposePlatform {
     IOS,
     ANDROID,
-    DESKTOP
+    DESKTOP,
 }
 
 internal expect val composePlatform: ComposePlatform

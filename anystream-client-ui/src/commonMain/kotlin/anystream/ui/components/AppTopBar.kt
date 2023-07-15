@@ -49,7 +49,7 @@ internal fun AppTopBar(
     client: AnyStreamClient?,
     backStack: BackStack<Routes>? = null,
     showBackButton: Boolean = false,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     TopAppBar(modifier) {
         if (showBackButton) {

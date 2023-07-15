@@ -102,7 +102,7 @@ internal fun SharedVideoPlayer(
                         Icon(
                             if (isPlaying) Icons.Filled.PauseCircleFilled else Icons.Filled.PlayCircleFilled,
                             contentDescription = null,
-                            modifier = Modifier.size(40.dp)
+                            modifier = Modifier.size(40.dp),
                         )
                     }
                 }

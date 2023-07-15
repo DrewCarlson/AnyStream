@@ -23,7 +23,6 @@ import uk.co.caprica.vlcj.binding.support.runtime.RuntimeUtil
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery
 import java.io.File
 
-
 public fun prepareLibvlc() {
     try {
         prepareInternalLibvlc()

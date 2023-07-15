@@ -30,6 +30,8 @@ fun MainView() = App()
 @Composable
 fun AppPreview() {
     FormBody(
-        LoginScreenModel(""), {}, PaddingValues(0.dp),
+        LoginScreenModel(""),
+        {},
+        PaddingValues(0.dp),
     )
 }

@@ -36,7 +36,6 @@ import uk.co.caprica.vlcj.player.embedded.videosurface.callback.format.RV32Buffe
 import java.nio.ByteBuffer
 import javax.swing.SwingUtilities
 
-
 class SkiaBitmapVideoSurface : VideoSurface(VideoSurfaceAdapters.getVideoSurfaceAdapter()) {
 
     private val videoSurface = SkiaBitmapVideoSurface()
