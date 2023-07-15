@@ -68,7 +68,7 @@ internal fun LoginScreen(client: AnyStreamClient, router: SharedRouter) {
             LoginScreenUpdate,
             LoginScreenHandler.create(client, router),
         ).logger(SimpleLogger("Login"))
-        val startModel = LoginScreenModel.create(client.serverUrl, supportsPairing = true)
+        val startModel = LoginScreenModel.create(client.serverUrl, supportsPairing = false)
         Mobius.controller(factory, startModel, LoginScreenInit)
     }
 
