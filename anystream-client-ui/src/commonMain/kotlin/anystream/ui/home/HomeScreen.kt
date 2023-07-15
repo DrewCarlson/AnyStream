@@ -136,7 +136,11 @@ private fun HomScreenContent(
                         Text(text = "All Movies")
                     }
                 }
-                MovieRow(movies = recentlyAdded.movies, onClick = onMediaClick)
+                MovieRow(
+                    movies = recentlyAdded.movies,
+                    onClick = onMediaClick,
+                    onPlayClick = onContinueWatchingClick,
+                )
                 RowSpace()
             }
 
@@ -156,7 +160,11 @@ private fun HomScreenContent(
             }
 
             RowTitle(text = "Popular Movies")
-            MovieRow(movies = popular.movies, onClick = onMediaClick)
+            MovieRow(
+                movies = popular.movies,
+                onClick = onMediaClick,
+                onPlayClick = onContinueWatchingClick,
+            )
             RowSpace()
 
             RowTitle(text = "Popular TV")
@@ -287,6 +295,7 @@ private fun WatchingCard(
 private fun MovieRow(
     movies: Map<Movie, MediaLink?>,
     onClick: (mediaLinkId: String?) -> Unit,
+    onPlayClick: (mediaLinkId: String?) -> Unit,
 ) {
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(CARD_SPACING),
@@ -296,6 +305,7 @@ private fun MovieRow(
                     title = movie.title,
                     imagePath = movie.posterPath,
                     onClick = { mediaLink?.run { onClick(metadataGid) } },
+                    onPlayClick = { mediaLink?.run { onPlayClick(gid) } },
                 )
             }
         },
@@ -315,6 +325,7 @@ private fun TvRow(
                     title = show.name,
                     imagePath = show.posterPath,
                     onClick = { onClick(show.gid) },
+                    onPlayClick = { onClick(show.gid) },
                 )
             }
         },

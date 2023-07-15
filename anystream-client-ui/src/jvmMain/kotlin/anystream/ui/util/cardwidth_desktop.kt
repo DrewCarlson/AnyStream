@@ -17,6 +17,12 @@
  */
 package anystream.ui.util
 
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.onPointerEvent
+import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import java.awt.Toolkit
@@ -27,3 +33,11 @@ actual val cardWidth: Dp
         val screenWidth: Int = screenSize.width
         return (screenWidth.dp / 5).coerceAtMost(250.dp)
     }
+
+@OptIn(ExperimentalComposeUiApi::class)
+actual fun Modifier.pointerMover(
+    onHover: (Boolean) -> Unit,
+): Modifier = composed {
+    onPointerEvent(PointerEventType.Enter) { onHover(true) }
+        .onPointerEvent(PointerEventType.Exit) { onHover(false) }
+}
