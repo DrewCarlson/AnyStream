@@ -218,7 +218,7 @@ class TmdbMetadataProvider(
         }
     }
 
-    private suspend fun fetchSeason(seriesTmdbId: Int, seasonNumber: Int): TmdbSeasonDetail? {
+    private suspend fun fetchSeason(seriesTmdbId: Int, seasonNumber: Int): TmdbSeason? {
         return try {
             tmdbApi.showSeasons.getDetails(
                 seriesTmdbId,

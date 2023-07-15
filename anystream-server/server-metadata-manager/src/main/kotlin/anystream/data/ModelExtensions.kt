@@ -60,7 +60,7 @@ fun TmdbMovieDetail.asMovie(
 )
 
 fun TmdbShowDetail.asTvShow(
-    tmdbSeasons: List<TmdbSeasonDetail>,
+    tmdbSeasons: List<TmdbSeason>,
     id: Int,
     gid: String,
     userId: Int,
@@ -130,25 +130,6 @@ fun TmdbSeason.asTvSeason(id: Int, gid: String, userId: Int = 1): MetadataDb {
         tmdbId = this.id,
         title = name,
         overview = overview.orEmpty(),
-        index = seasonNumber,
-        firstAvailableAt = airDate?.atStartOfDayIn(TimeZone.UTC),
-        posterPath = posterPath,
-        addedByUserId = userId,
-        createdAt = now,
-        updatedAt = now,
-        mediaKind = MediaKind.TV,
-        mediaType = MetadataDb.Type.TV_SEASON,
-    )
-}
-
-fun TmdbSeasonDetail.asTvSeason(id: Int, gid: String, userId: Int = 1): MetadataDb {
-    val now = Clock.System.now()
-    return MetadataDb(
-        id = id,
-        gid = gid,
-        tmdbId = this.id,
-        title = name,
-        overview = overview,
         index = seasonNumber,
         firstAvailableAt = airDate?.atStartOfDayIn(TimeZone.UTC),
         posterPath = posterPath,
