@@ -167,7 +167,7 @@ bouncyCastle = { module = "org.bouncycastle:bcprov-jdk15on", version.ref = "boun
 
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 
-tmdbapi = { module = "app.moviebase:tmdb-api", version = "1.0.0" }
+tmdbapi = { module = "app.moviebase:tmdb-api", version = "1.1.0" }
 
 androidx-core-ktx = { module = "androidx.core:core-ktx", version = "1.10.1" }
 androidx-appcompat-core = { module = "androidx.appcompat:appcompat", version = "1.6.1" }
