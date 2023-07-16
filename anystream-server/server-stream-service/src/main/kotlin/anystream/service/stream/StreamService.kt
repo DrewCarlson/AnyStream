@@ -220,7 +220,7 @@ class StreamService(
 
         // Delete the PlaybackState if playback hasn't reached threshold
         val state = queries.fetchPlaybackStateById(session.token)
-        if (state?.run { position.seconds < REMEMBER_STATE_THRESHOLD } == true) {
+        if (state?.isPastThreshold() == true) {
             queries.deletePlaybackState(state.id)
         }
 
@@ -265,7 +265,7 @@ class StreamService(
             token,
         )
         val existingSession = sessionMap[token]
-        if (existingSession?.isRunning() == true) {
+        if (existingSession?.isActive() == true) {
             stopTranscoding(token)
         }
 
@@ -440,37 +440,37 @@ class StreamService(
     ): TranscodeJobHolder {
         val commandSender = CommandSender()
         val nameRegex = "$name-(\\d+)\\.ts\$".toRegex()
-        val segmentWatchJob = createSegmentWatcher(outputDir.toPath(), nameRegex)
-            .onEach { completedSegmentIndex ->
-                val currentSession = checkNotNull(sessionMap[token])
-                val endSegment = currentSession.endSegment
-                logger.trace(
-                    "Finished transcoding segment: {} of {} total={}, token={}",
-                    completedSegmentIndex,
-                    endSegment,
-                    currentSession.segmentCount,
-                    token,
-                )
-                val pause = endSegment == completedSegmentIndex
-                if (pause) {
-                    logger.debug("Pausing transcode {}", token)
-                    checkNotNull(commandSender.sendCommand("p"))
-                }
-                val session = sessionMap.compute(token) { _, session ->
-                    session?.copy(
-                        transcodedSegments = session.transcodedSegments + completedSegmentIndex,
-                        lastTranscodedSegment = completedSegmentIndex,
-                        state = if (pause) TranscodeSession.State.PAUSED else session.state,
+        val transcodeJob = scope.launch {
+            createSegmentWatcher(outputDir.toPath(), nameRegex)
+                .onEach { completedSegmentIndex ->
+                    val currentSession = checkNotNull(sessionMap[token])
+                    val endSegment = currentSession.endSegment
+                    logger.trace(
+                        "Finished transcoding segment: {} of {} total={}, token={}",
+                        completedSegmentIndex,
+                        endSegment,
+                        currentSession.segmentCount,
+                        token,
                     )
+                    val pause = endSegment == completedSegmentIndex
+                    if (pause) {
+                        logger.debug("Pausing transcode {}", token)
+                        checkNotNull(commandSender.sendCommand("p"))
+                    }
+                    val session = sessionMap.compute(token) { _, session ->
+                        session?.copy(
+                            transcodedSegments = session.transcodedSegments + completedSegmentIndex,
+                            lastTranscodedSegment = completedSegmentIndex,
+                            state = if (pause) TranscodeSession.State.PAUSED else session.state,
+                        )
+                    }
+                    sessionUpdates.tryEmit(checkNotNull(session))
                 }
-                sessionUpdates.tryEmit(checkNotNull(session))
-            }
-            .onCompletion {
-                logger.debug("Progress tracking completed.")
-            }
-            .flowOn(Dispatchers.Default)
-            .launchIn(scope)
-        val job = scope.launch {
+                .onCompletion {
+                    logger.debug("Progress tracking completed.")
+                }
+                .flowOn(Dispatchers.Default)
+                .launchIn(this)
             try {
                 command.executeAwait(commandSender)
                 logger.debug("FFmpeg process completed: token={}", token)
@@ -483,10 +483,10 @@ class StreamService(
                 sessionMap.compute(token) { _, session ->
                     session?.copy(state = TranscodeSession.State.IDLE)
                 }
-                segmentWatchJob.cancel()
+                cancel()
             }
         }
-        return TranscodeJobHolder(job, commandSender)
+        return TranscodeJobHolder(transcodeJob, commandSender)
     }
 
     private fun findExistingSegments(outputDir: File, name: String): List<Int> {

@@ -45,5 +45,5 @@ data class TranscodeSession(
         return transcodedSegments.contains(segment)
     }
 
-    fun isRunning(): Boolean = state == State.RUNNING
+    fun isActive(): Boolean = state == State.RUNNING || state == State.PAUSED
 }
