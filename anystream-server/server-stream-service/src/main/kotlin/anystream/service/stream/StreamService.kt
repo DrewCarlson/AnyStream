@@ -220,7 +220,7 @@ class StreamService(
 
         // Delete the PlaybackState if playback hasn't reached threshold
         val state = queries.fetchPlaybackStateById(session.token)
-        if (state?.isPastThreshold() == true) {
+        if (state?.isPastThreshold() == false) {
             queries.deletePlaybackState(state.id)
         }
 
@@ -680,7 +680,7 @@ class StreamService(
 }
 
 private fun PlaybackState.isPastThreshold(): Boolean {
-    return position.seconds < REMEMBER_STATE_THRESHOLD
+    return position.seconds > REMEMBER_STATE_THRESHOLD
 }
 
 suspend fun FFmpeg.executeAwait(): FFmpegResult {
