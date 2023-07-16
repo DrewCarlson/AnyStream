@@ -413,7 +413,23 @@ class StreamService(
         }
         transcodeJobs[token] = createTranscodeJob(name, outputDir, token, command)
 
-        return checkNotNull(startSession)
+        val waitForSegment = (startSegment + 1).coerceAtMost(endSegment)
+        return if (checkNotNull(startSession).isSegmentComplete(waitForSegment)) {
+            logger.debug("Target segment already completed")
+            startSession
+        } else {
+            logger.debug("Target segment not complete, waiting")
+            sessionUpdates
+                .onStart { sessionMap[token]?.let { emit(it) } }
+                .first { session ->
+                    if (session.isSegmentComplete(waitForSegment)) {
+                        logger.debug("Target segment completed, unlocking")
+                        true
+                    } else {
+                        false
+                    }
+                }
+        }
     }
 
     private fun createTranscodeJob(
@@ -531,23 +547,25 @@ class StreamService(
                 return
             }
         } else if (session.state == TranscodeSession.State.PAUSED) {
-            val updatedSession = sessionMap.compute(token) { _, currentSession ->
-                currentSession?.run {
-                    val endSegment = currentSession.run {
-                        lastTranscodedSegment + (endSegment - startSegment)
-                    }.coerceAtMost(currentSession.segmentCount)
-                    val endTime = (endSegment * currentSession.segmentLength.toDouble())
-                        .coerceAtMost(runtime.toDouble(SECONDS))
-                    copy(
-                        state = TranscodeSession.State.RUNNING,
-                        endSegment = endSegment,
-                        endTime = endTime,
-                    )
+            if (session.endSegment == segment + 1) {
+                val updatedSession = sessionMap.compute(token) { _, currentSession ->
+                    currentSession?.run {
+                        val endSegment = currentSession.run {
+                            lastTranscodedSegment + (endSegment - startSegment)
+                        }.coerceAtMost(currentSession.segmentCount)
+                        val endTime = (endSegment * currentSession.segmentLength.toDouble())
+                            .coerceAtMost(runtime.toDouble(SECONDS))
+                        copy(
+                            state = TranscodeSession.State.RUNNING,
+                            endSegment = endSegment,
+                            endTime = endTime,
+                        )
+                    }
                 }
+                logger.debug("Resuming transcode, retargeting {}", updatedSession?.endSegment)
+                transcodeJob.sendCommand("u")
+                return
             }
-            logger.debug("Resuming transcode, retargeting {}", updatedSession?.endSegment)
-            transcodeJob.sendCommand("u")
-            return
         }
         logger.debug("Segment request out of range, retargeting {}", segment)
         restartTranscode()
