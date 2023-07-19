@@ -18,14 +18,14 @@ kotlin {
         useCommonJs()
         browser {
             binaries.executable()
-            commonWebpackConfig {
+            commonWebpackConfig(Action {
                 cssSupport {
                     enabled.set(true)
                 }
-            }
-            runTask {
+            })
+            runTask(Action {
                 val anystreamUrl = localProperties.getProperty("anystream.serverUrl", "http://localhost:8888")
-                outputFileName = "main.bundle.js"
+                mainOutputFileName.set("main.bundle.js")
                 devtool = "eval-source-map"
                 devServer = DevServer(
                     open = false,
@@ -41,11 +41,11 @@ kotlin {
                         )
                     ),
                 )
-            }
-            webpackTask {
-                outputFileName = "main.bundle.js"
+            })
+            webpackTask(Action {
+                mainOutputFileName.set("main.bundle.js")
                 //devtool = "eval-source-map"
-            }
+            })
         }
     }
 

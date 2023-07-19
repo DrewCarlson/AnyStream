@@ -30,17 +30,17 @@ kotlin {
     if (enableJsTarget) {
         js(IR) {
             browser {
-                testTask {
+                testTask(Action {
                     useKarma {
                         useFirefoxHeadless()
                     }
-                }
+                })
             }
         }
     }
     jvm()
     if (hasAndroidSdk) {
-        android {
+        androidTarget {
             compilations.all {
                 kotlinOptions {
                     jvmTarget = JAVA_TARGET.majorVersion
