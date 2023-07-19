@@ -26,7 +26,6 @@ import anystream.util.ObjectId
 import com.github.kokorin.jaffree.LogLevel
 import com.github.kokorin.jaffree.StreamType
 import com.github.kokorin.jaffree.ffmpeg.FFmpeg
-import com.github.kokorin.jaffree.ffmpeg.FFmpegResult
 import com.github.kokorin.jaffree.ffmpeg.UrlInput
 import com.github.kokorin.jaffree.ffmpeg.UrlOutput
 import com.github.kokorin.jaffree.ffprobe.FFprobe
@@ -35,7 +34,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.future.await
 import kotlinx.datetime.Clock
 import org.slf4j.LoggerFactory
 import java.io.File
@@ -43,7 +41,6 @@ import java.io.IOException
 import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.nio.file.StandardWatchEventKinds.ENTRY_CREATE
-import java.text.DecimalFormat
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import kotlin.io.path.name
@@ -51,7 +48,6 @@ import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.ZERO
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit.SECONDS
 import kotlin.time.times
@@ -71,6 +67,7 @@ class StreamService(
     private val transcodePath: String,
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
+    private val hlsPlaylistFactory = HlsPlaylistFactory()
     private val scope = CoroutineScope(Dispatchers.IO + scope.coroutineContext)
     private val sessionMap = ConcurrentHashMap<String, TranscodeSession>()
     private val transcodeJobs = ConcurrentHashMap<String, TranscodeJobHolder>()
@@ -193,7 +190,7 @@ class StreamService(
             )
         }
 
-        return createVariantPlaylist(
+        return hlsPlaylistFactory.createVariantPlaylist(
             name = mediaLinkId,
             mediaFile = file,
             token = token,
@@ -275,7 +272,7 @@ class StreamService(
         }
 
         val (segmentCount, lastSegmentDuration) =
-            getSegmentCountAndFinalLength(runtime, segmentDuration)
+            hlsPlaylistFactory.getSegmentCountAndFinalLength(runtime, segmentDuration)
         val transcodedSegments = findExistingSegments(outputDir, name)
         val requestedStartTime = startAt.coerceIn(ZERO, (runtime - segmentDuration))
         val requestedStartSegment =
@@ -571,76 +568,6 @@ class StreamService(
         restartTranscode()
     }
 
-    private fun createVariantPlaylist(
-        name: String,
-        mediaFile: File,
-        token: String,
-        runtime: Duration,
-        segmentDuration: Duration,
-    ): String {
-        logger.debug("Creating variant playlist for {}", mediaFile)
-
-        val segmentContainer = null ?: "ts"
-        val isHlsInFmp4 = segmentContainer.equals("mp4", ignoreCase = true)
-        val hlsVersion = if (isHlsInFmp4) "7" else "3"
-
-        val (segmentCount, finalSegLength) = getSegmentCountAndFinalLength(runtime, segmentDuration)
-
-        val segmentExtension = segmentContainer
-
-        logger.debug("Creating $segmentCount segments at $segmentDuration, final length $finalSegLength")
-
-        return buildString(128) {
-            appendLine("#EXTM3U")
-            append("#EXT-X-VERSION:")
-            appendLine(hlsVersion)
-            append("#EXT-X-TARGETDURATION:")
-            appendLine(segmentDuration.toInt(SECONDS))
-            appendLine("#EXT-X-MEDIA-SEQUENCE:0")
-
-            if (isHlsInFmp4) {
-                append("#EXT-X-MAP:URI=\"")
-                append(token)
-                append('-')
-                append("$name-1.")
-                append(segmentExtension)
-                appendLine('"')
-            }
-            repeat(segmentCount) { i ->
-                append("#EXTINF:")
-                if (i == segmentCount - 1) {
-                    append(segLenFormatter.format(finalSegLength.toDouble(SECONDS)))
-                } else {
-                    append(segLenFormatter.format(segmentDuration.toDouble(SECONDS)))
-                }
-                appendLine(", nodesc")
-                append(token)
-                append('-')
-                append(name)
-                append('-')
-                append(i)
-                append('.')
-                append(segmentExtension)
-                appendLine()
-            }
-            appendLine("#EXT-X-ENDLIST")
-        }
-    }
-
-    private fun getSegmentCountAndFinalLength(
-        runtime: Duration,
-        segmentLength: Duration,
-    ): Pair<Int, Duration> {
-        val segments = ceil(runtime / segmentLength).toInt()
-        val lastPartialSegmentLength =
-            (runtime.inWholeMilliseconds % segmentLength.inWholeMilliseconds).milliseconds
-        return if (lastPartialSegmentLength == ZERO) {
-            segments to segmentLength
-        } else {
-            segments to lastPartialSegmentLength
-        }
-    }
-
     private fun createSegmentWatcher(directory: Path, fileMatchRegex: Regex): Flow<Int> {
         return callbackFlow {
             val watchService = FileSystems.getDefault().newWatchService()
@@ -667,31 +594,8 @@ class StreamService(
             }
         }.distinctUntilChanged().flowOn(Dispatchers.IO)
     }
-
-    private fun FFmpeg.buildCommandString(): String {
-        val buildArguments = FFmpeg::class.java.getDeclaredMethod("buildArguments")
-            .apply { isAccessible = true }
-        @Suppress("UNCHECKED_CAST")
-        return (buildArguments(this) as List<String>).joinToString(
-            separator = " ",
-            prefix = "ffmpeg ",
-        ) { if (it.contains(' ')) "\"$it\"" else it }
-    }
 }
 
 private fun PlaybackState.isPastThreshold(): Boolean {
     return position.seconds > REMEMBER_STATE_THRESHOLD
-}
-
-suspend fun FFmpeg.executeAwait(): FFmpegResult {
-    return executeAsync().toCompletableFuture().await()
-}
-
-suspend fun FFmpeg.executeAwait(commandSender: CommandSender): FFmpegResult {
-    return executeAsync(commandSender).toCompletableFuture().await()
-}
-
-private val segLenFormatter = DecimalFormat().apply {
-    minimumFractionDigits = 4
-    maximumFractionDigits = 4
 }
