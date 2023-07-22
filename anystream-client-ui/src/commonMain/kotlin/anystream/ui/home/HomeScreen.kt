@@ -17,6 +17,8 @@
  */
 package anystream.ui.home
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -74,6 +76,7 @@ private val CARD_SPACING = 12.dp
 @Composable
 private fun RowSpace() = Spacer(modifier = Modifier.size(8.dp))
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun HomeScreen(
     client: AnyStreamClient,
@@ -89,16 +92,20 @@ fun HomeScreen(
             value = client.getHomeData()
         }
 
-        homeData?.let {
-            HomeScreenContent(
-                paddingValues = paddingValues,
-                homeData = it,
-                onMediaClick = onMediaClick,
-                onViewMoviesClicked = onViewMoviesClicked,
-                onContinueWatchingClick = onContinueWatchingClick,
-            )
-        } ?: run {
-            LoadingScreen(paddingValues)
+        AnimatedContent(
+            targetState = homeData,
+        ) { targetState ->
+            // Make sure to use `targetState`, not `state`.
+            when (targetState) {
+                null -> LoadingScreen(paddingValues)
+                else -> HomeScreenContent(
+                    paddingValues = paddingValues,
+                    homeData = targetState,
+                    onMediaClick = onMediaClick,
+                    onViewMoviesClicked = onViewMoviesClicked,
+                    onContinueWatchingClick = onContinueWatchingClick,
+                )
+            }
         }
     }
 }
