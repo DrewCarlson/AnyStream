@@ -27,20 +27,20 @@ kotlin {
         val main by it.compilations.getting
         val observer by main.cinterops.creating
     }
+    configureFramework {
+        baseName = "AnyStreamCore"
+        export(projects.anystreamClientCore)
+        export(projects.anystreamDataModels)
+        export(libs.mobiuskt.core)
+        export(libs.mobiuskt.coroutines)
+        freeCompilerArgs += listOf(
+            "-linker-option", "-framework", "-linker-option", "Metal",
+            "-linker-option", "-framework", "-linker-option", "CoreText",
+            "-linker-option", "-framework", "-linker-option", "CoreGraphics",
+        )
+    }
 
     sourceSets {
-        configureFramework {
-            baseName = "AnyStreamCore"
-            export(projects.anystreamClientCore)
-            export(projects.anystreamDataModels)
-            export(libs.mobiuskt.core)
-            export(libs.mobiuskt.coroutines)
-            freeCompilerArgs += listOf(
-                "-linker-option", "-framework", "-linker-option", "Metal",
-                "-linker-option", "-framework", "-linker-option", "CoreText",
-                "-linker-option", "-framework", "-linker-option", "CoreGraphics",
-            )
-        }
 
         val commonMain by getting {
             dependencies {
