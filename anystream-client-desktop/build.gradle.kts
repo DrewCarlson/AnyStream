@@ -89,6 +89,11 @@ compose {
                 packageVersion = "1.0.0"
 
                 appResourcesRootDir.set(project.layout.projectDirectory.dir("resources"))
+
+                val iconsRoot = project.file("../anystream-client-ui/src/commonMain/resources/images")
+                macOS {
+                    iconFile.set(iconsRoot.resolve("as_icon.icns"))
+                }
             }
         }
     }
