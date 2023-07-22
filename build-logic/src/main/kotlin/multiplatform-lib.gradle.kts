@@ -30,17 +30,17 @@ kotlin {
     if (enableJsTarget) {
         js(IR) {
             browser {
-                testTask {
+                testTask(Action {
                     useKarma {
                         useFirefoxHeadless()
                     }
-                }
+                })
             }
         }
     }
     jvm()
     if (hasAndroidSdk) {
-        android {
+        androidTarget {
             compilations.all {
                 kotlinOptions {
                     jvmTarget = JAVA_TARGET.majorVersion
@@ -48,9 +48,13 @@ kotlin {
             }
         }
     }
-    iosArm64()
-    iosSimulatorArm64()
-    iosX64()
+    // Note: Workaround build script errors when configuring frameworks
+    // "Could not create task of type 'KotlinNativeLink'."
+    if (project.name != "anystream-client-ui") {
+        iosArm64()
+        iosSimulatorArm64()
+        iosX64()
+    }
 
     @Suppress("UNUSED_VARIABLE")
     sourceSets {
@@ -108,26 +112,10 @@ kotlin {
             }
         }
 
-        val iosMain by creating {
-            dependsOn(commonMain)
-        }
-
-        val iosTest by creating {
-            dependsOn(commonTest)
-        }
-
-        sourceSets.filter { sourceSet ->
-            sourceSet.name.run {
-                startsWith("iosX64") ||
-                        startsWith("iosArm") ||
-                        startsWith("iosSimulator")
-            }
-        }.forEach { sourceSet ->
-            if (sourceSet.name.endsWith("Main")) {
-                sourceSet.dependsOn(iosMain)
-            } else {
-                sourceSet.dependsOn(iosTest)
-            }
+        // Note: Workaround build script errors when configuring frameworks
+        // "Could not create task of type 'KotlinNativeLink'."
+        if (project.name != "anystream-client-ui") {
+            configureCommonIosSourceSets()
         }
     }
 }
@@ -139,4 +127,3 @@ if (tasks.any { it.name == "kspCommonMainKotlinMetadata" }) {
         }
     }
 }
-

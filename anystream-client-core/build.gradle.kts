@@ -25,13 +25,6 @@ tasks.findByName("formatKotlinCommonMain")?.apply {
 }
 
 kotlin {
-    configureFramework {
-        baseName = "AnyStreamCore"
-        export(projects.anystreamDataModels)
-        export(libs.mobiuskt.core)
-        export(libs.mobiuskt.coroutines)
-    }
-
     sourceSets {
         val commonMain by getting {
             kotlin.srcDir("build/generated/ksp/metadata/$name/kotlin")
