@@ -26,7 +26,7 @@ tasks.withType<ShadowJar> {
     manifest {
         attributes(mapOf("Main-Class" to application.mainClass.get()))
     }
-    from(rootProject.file("anystream-client-web/build/distributions")) {
+    from(rootProject.file("anystream-client-web/build/dist/js/productionExecutable")) {
         into("anystream-client-web")
     }
 }

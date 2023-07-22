@@ -11,7 +11,7 @@ RUN apk add --update --no-cache bash ffmpeg
 WORKDIR /app
 
 COPY --from=0 /build-project/anystream-server/server-app/build/install ./install/
-COPY --from=0 /build-project/anystream-client-web/build/distributions ./client-web/
+COPY --from=0 /build-project/anystream-client-web/build/dist/js/productionExecutable ./client-web/
 
 ENV DATA_PATH=/app/storage/
 ENV DATABASE_URL=sqlite:/app/storage/config/anystream.db

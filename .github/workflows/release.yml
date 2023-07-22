@@ -133,5 +133,5 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           prerelease: ${{ contains(github.ref, '-') }}
           files: |
-            anystream-server/server-app/build/distributions/*.zip
-            anystream-server/server-app/build/distributions/*.tar
+            anystream-server/server-app/build/dist/js/productionExecutable/*.zip
+            anystream-server/server-app/build/dist/js/productionExecutable/*.tar
