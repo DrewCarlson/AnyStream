@@ -65,7 +65,7 @@ dependencies {
     implementation(libsAndroid.bundles.exoplayer)
     implementation(libsAndroid.zxing.core)
     implementation(libsAndroid.quickie.bundled)
-    implementation(libsClient.okhttp)
+    implementation(libsAndroid.okhttp)
     implementation(libsCommon.ktor.client.cio)
     implementation(libsCommon.koin.core)
     implementation(libsAndroid.koin.android)
