@@ -4,6 +4,6 @@ plugins {
 }
 
 dependencies {
-    implementation(libs.ksp)
+    implementation(libsCommon.ksp)
     implementation(projects.libs.sqlGeneratorApi)
 }

@@ -8,24 +8,24 @@ dependencies {
     implementation(projects.anystreamServer.serverDbModels)
     implementation(projects.anystreamServer.serverShared)
 
-    implementation(libs.datetime)
-    implementation(libs.serialization.json)
-    implementation(libs.coroutines.core)
-    implementation(libs.coroutines.jdk8)
+    implementation(libsCommon.datetime)
+    implementation(libsCommon.serialization.json)
+    implementation(libsCommon.coroutines.core)
+    implementation(libsCommon.coroutines.jdk8)
 
-    implementation(libs.ktor.client.core)
+    implementation(libsCommon.ktor.client.core)
 
-    implementation(libs.logback)
+    implementation(libsServer.logback)
 
-    implementation(libs.jdbc.sqlite)
-    implementation(libs.jdbi.core)
-    implementation(libs.jdbi.sqlobject)
-    implementation(libs.jdbi.kotlin)
-    implementation(libs.jdbi.kotlin.sqlobject)
+    implementation(libsServer.jdbc.sqlite)
+    implementation(libsServer.jdbi.core)
+    implementation(libsServer.jdbi.sqlobject)
+    implementation(libsServer.jdbi.kotlin)
+    implementation(libsServer.jdbi.kotlin.sqlobject)
 
-    implementation(libs.tmdbapi)
+    implementation(libsServer.tmdbapi)
 
-    testImplementation(libs.ktor.client.cio)
+    testImplementation(libsCommon.ktor.client.cio)
     testImplementation(kotlin("reflect"))
     testImplementation(kotlin("test"))
     testImplementation(kotlin("test-junit"))

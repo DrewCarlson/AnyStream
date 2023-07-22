@@ -6,20 +6,20 @@ plugins {
 dependencies {
     implementation(projects.anystreamDataModels)
 
-    implementation(libs.datetime)
-    implementation(libs.serialization.json)
-    implementation(libs.coroutines.core)
-    implementation(libs.coroutines.jdk8)
+    implementation(libsCommon.datetime)
+    implementation(libsCommon.serialization.json)
+    implementation(libsCommon.coroutines.core)
+    implementation(libsCommon.coroutines.jdk8)
 
-    implementation(libs.ktor.client.core)
+    implementation(libsCommon.ktor.client.core)
 
-    implementation(libs.bouncyCastle)
+    implementation(libsServer.bouncyCastle)
 
-    implementation(libs.logback)
+    implementation(libsServer.logback)
 
-    implementation(libs.jdbi.core)
+    implementation(libsServer.jdbi.core)
 
-    implementation(libs.jaffree)
+    implementation(libsServer.jaffree)
 
     testImplementation(kotlin("test"))
     testImplementation(kotlin("test-junit"))

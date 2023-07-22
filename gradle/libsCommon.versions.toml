@@ -1,0 +1,80 @@
+[versions]
+kotlin = { strictly = "1.9.0" }
+coroutines = "1.7.2"
+serialization = "1.5.1"
+ktorio = "2.3.2"
+ksp = "1.9.0-1.0.12"
+atomicfu = "0.21.0"
+kover = "0.7.2"
+datetime = "0.4.0"
+spotless = "6.20.0"
+ktlint = "0.48.2"
+ktor_perm = "0.2.1"
+koin = "3.4.2"
+koinKtor = "3.4.1"
+agp = "8.0.2"
+
+[plugins]
+multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
+androidkt = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
+kotlinter = { id = "org.jmailen.kotlinter", version = "3.15.0" }
+downloadPlugin = { id = "de.undercouch.download", version = "5.4.0" }
+
+[libraries]
+kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+
+coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+coroutines-jdk8 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8", version.ref = "coroutines" }
+coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
+
+serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "serialization" }
+serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
+
+datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "datetime" }
+
+atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu" }
+atomicfu-plugin = { module = "org.jetbrains.kotlinx:atomicfu-gradle-plugin", version.ref = "atomicfu" }
+
+agp = { module = "com.android.tools.build:gradle", version.ref = "agp" }
+
+ktor-serialization = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktorio" }
+
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktorio" }
+ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktorio" }
+ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktorio" }
+ktor-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktorio" }
+ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktorio" }
+ktor-client-contentNegotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktorio" }
+ktor-client-websockets = { module = "io.ktor:ktor-client-websockets", version.ref = "ktorio" }
+ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktorio" }
+
+ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktorio" }
+ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktorio" }
+ktor-server-sessions = { module = "io.ktor:ktor-server-sessions", version.ref = "ktorio" }
+ktor-server-tests = { module = "io.ktor:ktor-server-tests", version.ref = "ktorio" }
+ktor-server-metrics = { module = "io.ktor:ktor-server-metrics", version.ref = "ktorio" }
+ktor-server-partialContent = { module = "io.ktor:ktor-server-partial-content", version.ref = "ktorio" }
+ktor-server-contentNegotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktorio" }
+ktor-server-autoHeadResponse = { module = "io.ktor:ktor-server-auto-head-response", version.ref = "ktorio" }
+ktor-server-defaultHeaders = { module = "io.ktor:ktor-server-default-headers", version.ref = "ktorio" }
+ktor-server-cachingHeaders = { module = "io.ktor:ktor-server-caching-headers", version.ref = "ktorio" }
+ktor-server-callLogging = { module = "io.ktor:ktor-server-call-logging", version.ref = "ktorio" }
+ktor-server-statusPages = { module = "io.ktor:ktor-server-status-pages", version.ref = "ktorio" }
+ktor-server-compression = { module = "io.ktor:ktor-server-compression", version.ref = "ktorio" }
+ktor-server-cors = { module = "io.ktor:ktor-server-cors", version.ref = "ktorio" }
+ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktorio" }
+ktor-server-authJwt = { module = "io.ktor:ktor-server-auth-jwt", version.ref = "ktorio" }
+ktor-server-websockets = { module = "io.ktor:ktor-server-websockets", version.ref = "ktorio" }
+ktor-server-permissions = { module = "org.drewcarlson:ktor-permissions", version.ref = "ktor_perm" }
+
+ksp = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }
+
+koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
+koin-compose = { module = "io.insert-koin:koin-compose", version = "1.0.3" }
+koin-ktor = { module = "io.insert-koin:koin-ktor", version.ref = "koinKtor" }
+koin-slf4j = { module = "io.insert-koin:koin-logger-slf4j", version.ref = "koinKtor" }

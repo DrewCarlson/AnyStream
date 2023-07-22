@@ -23,10 +23,10 @@ java {
 sourceSets {
     main { java.srcDir(buildDir.resolve("generated/ksp/$name/kotlin")) }
 
-    val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
+    val libsServer = extensions.getByType<VersionCatalogsExtension>().named("libsServer")
     test {
         dependencies {
-            implementation(libs.findLibrary("mockk").get())
+            implementation(libsServer.findLibrary("mockk").get())
         }
     }
 }

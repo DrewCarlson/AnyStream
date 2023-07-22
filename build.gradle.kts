@@ -5,16 +5,16 @@ import org.jmailen.gradle.kotlinter.tasks.ConfigurableKtLintTask
 
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
-    alias(libs.plugins.multiplatform) apply false
-    alias(libs.plugins.jvm) apply false
-    alias(libs.plugins.serialization) apply false
-    alias(libs.plugins.composejb) apply false
-    alias(libs.plugins.shadowjar) apply false
-    alias(libs.plugins.ksp) apply false
-    alias(libs.plugins.spotless)
-    alias(libs.plugins.kotlinter) apply false
-    alias(libs.plugins.kover)
-    alias(libs.plugins.downloadPlugin) apply false
+    alias(libsCommon.plugins.multiplatform) apply false
+    alias(libsCommon.plugins.jvm) apply false
+    alias(libsCommon.plugins.serialization) apply false
+    alias(libsClient.plugins.composejb) apply false
+    alias(libsServer.plugins.shadowjar) apply false
+    alias(libsCommon.plugins.ksp) apply false
+    alias(libsCommon.plugins.spotless)
+    alias(libsCommon.plugins.kotlinter) apply false
+    alias(libsCommon.plugins.kover)
+    alias(libsCommon.plugins.downloadPlugin) apply false
 }
 
 buildscript {
@@ -24,8 +24,8 @@ buildscript {
         google()
     }
     dependencies {
-        classpath(libs.agp)
-        classpath(libs.atomicfu.plugin) {
+        classpath(libsCommon.agp)
+        classpath(libsCommon.atomicfu.plugin) {
             exclude("org.jetbrains.kotlin", "kotlin-gradle-plugin-api")
         }
     }

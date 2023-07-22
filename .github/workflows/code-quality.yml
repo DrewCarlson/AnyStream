@@ -41,7 +41,6 @@ jobs:
         uses: tj-actions/changed-files@v37
         with:
           files: |
-            gradle/libs.versions.toml
             **/anystream-data-models/**/*.kt
             **/anystream-data-models/**/*.kts
       - name: Get changed files
@@ -49,7 +48,6 @@ jobs:
         uses: tj-actions/changed-files@v37
         with:
           files: |
-            gradle/libs.versions.toml
             **/anystream-client-ui/**/*.kt
             **/anystream-client-ui/**/*.kts
       - name: Get changed files
@@ -57,7 +55,6 @@ jobs:
         uses: tj-actions/changed-files@v37
         with:
           files: |
-            gradle/libs.versions.toml
             **/anystream-server/**/*.kt
             **/anystream-server/**/*.kts
       - name: Get changed files
@@ -65,15 +62,12 @@ jobs:
         uses: tj-actions/changed-files@v37
         with:
           files: |
-            gradle/libs.versions.toml
-            **/anystream-client-ios/**/*.kt
-            **/anystream-client-ios/**/*.kts
+            **/anystream-client-ios/**
       - name: Get changed files
         id: web
         uses: tj-actions/changed-files@v37
         with:
           files: |
-            gradle/libs.versions.toml
             **/anystream-client-web/**/*.kt
             **/anystream-client-web/**/*.kts
 

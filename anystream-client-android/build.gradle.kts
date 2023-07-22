@@ -14,7 +14,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = libs.versions.composeCompiler.get()
+        kotlinCompilerExtensionVersion = libsAndroid.versions.composeCompiler.get()
     }
     packaging {
         resources.excludes.add("META-INF/versions/*/*.bin")
@@ -54,28 +54,28 @@ android {
 dependencies {
     implementation(projects.anystreamClientCore)
     implementation(projects.anystreamClientUi)
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.appcompat.core)
-    implementation(libs.androidx.leanback.core)
-    implementation(libs.androidx.activity.ktx)
-    implementation(libs.androidx.activity.compose)
-    implementation(libs.androidx.lifecycle.viewmodel.compose)
-    implementation(libs.bundles.compose)
-    implementation(libs.coil)
-    implementation(libs.bundles.exoplayer)
-    implementation(libs.zxing.core)
-    implementation(libs.quickie.bundled)
-    implementation(libs.okhttp)
-    implementation(libs.ktor.client.cio)
-    implementation(libs.koin.core)
-    implementation(libs.koin.android)
-    implementation(libs.koin.android.compat)
-    implementation(libs.koin.androidx.compose)
+    implementation(libsAndroid.androidx.core.ktx)
+    implementation(libsAndroid.androidx.appcompat.core)
+    implementation(libsAndroid.androidx.leanback.core)
+    implementation(libsAndroid.androidx.activity.ktx)
+    implementation(libsAndroid.androidx.activity.compose)
+    implementation(libsAndroid.androidx.lifecycle.viewmodel.compose)
+    implementation(libsAndroid.bundles.compose)
+    implementation(libsAndroid.coil)
+    implementation(libsAndroid.bundles.exoplayer)
+    implementation(libsAndroid.zxing.core)
+    implementation(libsAndroid.quickie.bundled)
+    implementation(libsClient.okhttp)
+    implementation(libsCommon.ktor.client.cio)
+    implementation(libsCommon.koin.core)
+    implementation(libsAndroid.koin.android)
+    implementation(libsAndroid.koin.android.compat)
+    implementation(libsAndroid.koin.androidx.compose)
 
-    debugImplementation(libs.anrWatchdog)
-    debugImplementation(libs.leakcanary)
+    debugImplementation(libsAndroid.anrWatchdog)
+    debugImplementation(libsAndroid.leakcanary)
 
-    androidTestImplementation(libs.coroutines.test) {
+    androidTestImplementation(libsCommon.coroutines.test) {
         // conflicts with mockito due to direct inclusion of byte buddy
         exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-coroutines-debug")
     }

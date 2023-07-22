@@ -4,7 +4,7 @@ plugins {
 }
 
 compose {
-    kotlinCompilerPlugin.set(libs.jbcompose.compiler.get().toString())
+    kotlinCompilerPlugin.set(libsClient.jbcompose.compiler.get().toString())
     /*android {
         useAndroidX = true
     }*/
@@ -33,8 +33,6 @@ kotlin {
                 baseName = "AnyStreamCore"
                 export(projects.anystreamClientCore)
                 export(projects.anystreamDataModels)
-                export(libs.mobiuskt.core)
-                export(libs.mobiuskt.coroutines)
                 freeCompilerArgs += listOf(
                     "-linker-option", "-framework", "-linker-option", "Metal",
                     "-linker-option", "-framework", "-linker-option", "CoreText",
@@ -55,11 +53,11 @@ kotlin {
             dependencies {
                 api(projects.anystreamClientCore)
                 api(projects.anystreamDataModels)
-                api(libs.mobiuskt.core)
-                api(libs.mobiuskt.coroutines)
+                api(libsClient.mobiuskt.core)
+                api(libsClient.mobiuskt.coroutines)
 
-                implementation(libs.kamel.image)
-                implementation(libs.koin.compose)
+                implementation(libsClient.kamel.image)
+                implementation(libsClient.koin.compose)
                 implementation(compose.runtime)
                 implementation(compose.foundation)
                 implementation(compose.material)
@@ -73,11 +71,11 @@ kotlin {
             val androidMain by getting {
                 dependsOn(commonMain)
                 dependencies {
-                    implementation(libs.compose.ui.tooling)
-                    implementation(libs.compose.ui.tooling.preview)
-                    implementation(libs.bundles.media3)
-                    implementation(libs.androidx.activity.ktx)
-                    implementation(libs.androidx.activity.compose)
+                    implementation(libsAndroid.compose.ui.tooling)
+                    implementation(libsAndroid.compose.ui.tooling.preview)
+                    implementation(libsAndroid.bundles.media3)
+                    implementation(libsAndroid.androidx.activity.ktx)
+                    implementation(libsAndroid.androidx.activity.compose)
                 }
             }
         }
@@ -85,7 +83,7 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation(compose.desktop.common)
-                implementation(libs.vlcj)
+                implementation(libsClient.vlcj)
             }
         }
 

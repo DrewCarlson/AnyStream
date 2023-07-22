@@ -1,7 +1,7 @@
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     id("server-lib")
-    alias(libs.plugins.ksp)
+    alias(libsCommon.plugins.ksp)
 }
 
 sourceSets {
@@ -14,18 +14,18 @@ dependencies {
     implementation(projects.anystreamDataModels)
     implementation(projects.anystreamServer.serverShared)
 
-    implementation(libs.datetime)
-    implementation(libs.serialization.json)
-    implementation(libs.coroutines.core)
+    implementation(libsCommon.datetime)
+    implementation(libsCommon.serialization.json)
+    implementation(libsCommon.coroutines.core)
 
-    implementation(libs.logback)
+    implementation(libsServer.logback)
 
-    implementation(libs.flyway.core)
-    implementation(libs.fastObjectPool)
-    implementation(libs.jdbi.core)
-    implementation(libs.jdbi.sqlobject)
-    implementation(libs.jdbi.kotlin)
-    implementation(libs.jdbi.kotlin.sqlobject)
+    implementation(libsServer.flyway.core)
+    implementation(libsServer.fastObjectPool)
+    implementation(libsServer.jdbi.core)
+    implementation(libsServer.jdbi.sqlobject)
+    implementation(libsServer.jdbi.kotlin)
+    implementation(libsServer.jdbi.kotlin.sqlobject)
 
     testImplementation(kotlin("test"))
     testImplementation(kotlin("test-junit"))

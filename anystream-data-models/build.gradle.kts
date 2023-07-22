@@ -10,10 +10,10 @@ kotlin {
         val commonMain by getting {
             kotlin.srcDirs("src")
             dependencies {
-                implementation(libs.serialization.core)
-                implementation(libs.serialization.json)
-                api(libs.datetime)
-                api(libs.qbittorrent.models)
+                implementation(libsCommon.serialization.core)
+                implementation(libsCommon.serialization.json)
+                api(libsCommon.datetime)
+                api(libsServer.qbittorrent.models)
             }
         }
     }

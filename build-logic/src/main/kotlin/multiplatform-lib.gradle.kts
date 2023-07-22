@@ -65,7 +65,8 @@ kotlin {
             }
         }
 
-        val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
+        val libsCommon = extensions.getByType<VersionCatalogsExtension>().named("libsCommon")
+        val libsAndroid = extensions.getByType<VersionCatalogsExtension>().named("libsAndroid")
 
         val commonMain by getting {
             kotlin.srcDir("build/generated/ksp/metadata/$name/kotlin")
@@ -84,13 +85,13 @@ kotlin {
         if (hasAndroidSdk) {
             val androidMain by getting {
                 dependencies {
-                    implementation(libs.findLibrary("androidx-core-ktx").get())
+                    implementation(libsAndroid.findLibrary("androidx-core-ktx").get())
                 }
             }
 
             val androidUnitTest by getting {
                 dependencies {
-                    implementation(libs.findLibrary("androidx-test-runner").get())
+                    implementation(libsAndroid.findLibrary("androidx-test-runner").get())
                     implementation(kotlin("test"))
                     implementation(kotlin("test-junit"))
                 }

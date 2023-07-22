@@ -8,22 +8,22 @@ dependencies {
     implementation(projects.anystreamServer.serverDbModels)
     implementation(projects.anystreamServer.serverShared)
 
-    implementation(libs.datetime)
-    implementation(libs.serialization.json)
-    implementation(libs.coroutines.core)
-    implementation(libs.coroutines.jdk8)
+    implementation(libsCommon.datetime)
+    implementation(libsCommon.serialization.json)
+    implementation(libsCommon.coroutines.core)
+    implementation(libsCommon.coroutines.jdk8)
 
-    implementation(libs.logback)
+    implementation(libsServer.logback)
 
-    implementation(libs.jdbi.core)
-    implementation(libs.jdbi.sqlobject)
-    implementation(libs.jdbi.kotlin)
-    implementation(libs.jdbi.kotlin.sqlobject)
+    implementation(libsServer.jdbi.core)
+    implementation(libsServer.jdbi.sqlobject)
+    implementation(libsServer.jdbi.kotlin)
+    implementation(libsServer.jdbi.kotlin.sqlobject)
 
-    implementation(libs.kjob.core)
-    implementation(libs.kjob.jdbi)
+    implementation(libsServer.kjob.core)
+    implementation(libsServer.kjob.jdbi)
 
-    implementation(libs.jaffree)
+    implementation(libsServer.jaffree)
 
     testImplementation(kotlin("test"))
     testImplementation(kotlin("test-junit"))

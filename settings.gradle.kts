@@ -28,3 +28,20 @@ pluginManagement {
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev/")
     }
 }
+
+dependencyResolutionManagement {
+    versionCatalogs {
+        create("libsServer") {
+            from(files("gradle/libsServer.versions.toml"))
+        }
+        create("libsCommon") {
+            from(files("gradle/libsCommon.versions.toml"))
+        }
+        create("libsClient") {
+            from(files("gradle/libsClient.versions.toml"))
+        }
+        create("libsAndroid") {
+            from(files("gradle/libsAndroid.versions.toml"))
+        }
+    }
+}

@@ -9,7 +9,7 @@ plugins {
 val localProperties = gradleLocalProperties(rootDir)
 
 compose {
-    kotlinCompilerPlugin.set(libs.jbcompose.compiler.get().toString())
+    kotlinCompilerPlugin.set(libsClient.jbcompose.compiler.get().toString())
     //kotlinCompilerPluginArgs.add("suppressKotlinVersionCompatibilityCheck=${libs.versions.kotlin.get()}")
 }
 
@@ -60,15 +60,15 @@ kotlin {
         named("jsMain") {
             dependencies {
                 implementation(projects.anystreamClientCore)
-                implementation(libs.coroutines.core)
-                implementation(libs.ktor.client.js)
+                implementation(libsCommon.coroutines.core)
+                implementation(libsCommon.ktor.client.js)
 
                 implementation(compose.html.core)
                 implementation(compose.runtime)
-                implementation(libs.routingCompose)
+                implementation(libsClient.routingCompose)
 
-                implementation(libs.kotlinjs.extensions)
-                implementation(libs.kotlinjs.browser)
+                implementation(libsClient.kotlinjs.extensions)
+                implementation(libsClient.kotlinjs.browser)
                 implementation(devNpm("jquery", "3.6.4"))
                 implementation(devNpm("bootstrap", "5.3.0-alpha3"))
                 implementation(devNpm("bootstrap-icons", "1.10.4"))

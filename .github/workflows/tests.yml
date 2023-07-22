@@ -31,7 +31,9 @@ jobs:
         with:
           files: |
             build.gradle.kts
-            gradle/libs.versions.toml
+            gradle/libsCommon.versions.toml
+            gradle/libsClient.versions.toml
+            gradle/libsAndroid.versions.toml
             **/anystream-client-android/**
             **/anystream-client-core/src/commonMain/**
             **/anystream-client-core/src/commonTest/**
@@ -42,7 +44,8 @@ jobs:
         uses: tj-actions/changed-files@v37
         with:
           files: |
-            gradle/libs.versions.toml
+            gradle/libsCommon.versions.toml
+            gradle/libsClient.versions.toml
             **/anystream-client-core/**
             **/anystream-data-models/**
       - name: Get changed files
@@ -50,21 +53,24 @@ jobs:
         uses: tj-actions/changed-files@v37
         with:
           files: |
-            gradle/libs.versions.toml
+            gradle/libsCommon.versions.toml
+            gradle/libsClient.versions.toml
+            gradle/libsAndroid.versions.toml
             **/anystream-client-ui/**
       - name: Get changed files
         id: data-models
         uses: tj-actions/changed-files@v37
         with:
           files: |
-            gradle/libs.versions.toml
+            gradle/libsCommon.versions.toml
             **/anystream-data-models/**
       - name: Get changed files
         id: server
         uses: tj-actions/changed-files@v37
         with:
           files: |
-            gradle/libs.versions.toml
+            gradle/libsCommon.versions.toml
+            gradle/libsServer.versions.toml
             **/anystream-data-models/**
             **/anystream-server/**
       - name: Get changed files
@@ -72,7 +78,8 @@ jobs:
         uses: tj-actions/changed-files@v37
         with:
           files: |
-            gradle/libs.versions.toml
+            gradle/libsCommon.versions.toml
+            gradle/libsClient.versions.toml
             **/anystream-client-ios/**
             **/anystream-client-core/src/commonMain/**
             **/anystream-client-core/src/commonTest/**
@@ -83,7 +90,8 @@ jobs:
         uses: tj-actions/changed-files@v37
         with:
           files: |
-            gradle/libs.versions.toml
+            gradle/libsCommon.versions.toml
+            gradle/libsClient.versions.toml
             gradle/kotlin-js-store/**
             **/anystream-client-web/**
             **/anystream-client-core/src/commonMain/**

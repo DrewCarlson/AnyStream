@@ -16,7 +16,7 @@ kotlin {
             dependencies {
                 implementation(compose.desktop.currentOs)
                 implementation(projects.anystreamClientUi)
-                implementation(libs.jna)
+                implementation(libsClient.jna)
             }
         }
     }
@@ -48,7 +48,7 @@ tasks {
         src(
             buildString {
                 append("https://github.com/DrewCarlson/libvlc-bin/releases/download/")
-                append(libs.versions.vlc.get())
+                append(libsClient.versions.vlc.get())
                 append('/')
                 append(getLibvlcForHost().orEmpty())
                 append(".zip")
@@ -69,7 +69,7 @@ tasks {
 }
 
 compose {
-    kotlinCompilerPlugin.set(libs.jbcompose.compiler.get().toString())
+    kotlinCompilerPlugin.set(libsClient.jbcompose.compiler.get().toString())
     desktop {
         application {
             mainClass = "MainKt"
@@ -90,7 +90,7 @@ compose {
 
                 appResourcesRootDir.set(project.layout.projectDirectory.dir("resources"))
 
-                val iconsRoot = project.file("../anystream-client-ui/src/commonMain/resources/images")
+                val iconsRoot = rootProject.file("anystream-client-ui/src/commonMain/resources/images")
                 macOS {
                     iconFile.set(iconsRoot.resolve("as_icon.icns"))
                 }

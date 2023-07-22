@@ -1,7 +1,13 @@
 dependencyResolutionManagement {
     versionCatalogs {
-        create("libs") {
-            from(files("../gradle/libs.versions.toml"))
+        create("libsServer") {
+            from(files("../gradle/libsServer.versions.toml"))
+        }
+        create("libsCommon") {
+            from(files("../gradle/libsCommon.versions.toml"))
+        }
+        create("libsClient") {
+            from(files("../gradle/libsClient.versions.toml"))
         }
     }
 }

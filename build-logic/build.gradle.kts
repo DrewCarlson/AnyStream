@@ -3,9 +3,9 @@ plugins {
 }
 
 dependencies {
-    implementation(libs.agp)
-    implementation(libs.kotlin.gradle.plugin)
-    implementation(libs.ksp)
+    implementation(libsCommon.agp)
+    implementation(libsCommon.kotlin.gradle.plugin)
+    implementation(libsCommon.ksp)
     implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.8.0")
 }
 
