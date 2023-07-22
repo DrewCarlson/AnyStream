@@ -19,28 +19,37 @@ if (hasAndroidSdk) {
 }
 
 kotlin {
-    listOf(
-        iosX64(),
-        iosArm64(),
-        iosSimulatorArm64(),
-    ).forEach {
-        val main by it.compilations.getting
-        val observer by main.cinterops.creating
-    }
-    configureFramework {
-        baseName = "AnyStreamCore"
-        export(projects.anystreamClientCore)
-        export(projects.anystreamDataModels)
-        export(libs.mobiuskt.core)
-        export(libs.mobiuskt.coroutines)
-        freeCompilerArgs += listOf(
-            "-linker-option", "-framework", "-linker-option", "Metal",
-            "-linker-option", "-framework", "-linker-option", "CoreText",
-            "-linker-option", "-framework", "-linker-option", "CoreGraphics",
+    configure(
+        listOf(
+            iosX64(),
+            iosArm64(),
+            iosSimulatorArm64(),
         )
+    ) {
+        val main by compilations.getting
+        val observer by main.cinterops.creating
+        binaries {
+            framework {
+                baseName = "AnyStreamCore"
+                export(projects.anystreamClientCore)
+                export(projects.anystreamDataModels)
+                export(libs.mobiuskt.core)
+                export(libs.mobiuskt.coroutines)
+                freeCompilerArgs += listOf(
+                    "-linker-option", "-framework", "-linker-option", "Metal",
+                    "-linker-option", "-framework", "-linker-option", "CoreText",
+                    "-linker-option", "-framework", "-linker-option", "CoreGraphics",
+                )
+            }
+        }
     }
 
     sourceSets {
+        all {
+            languageSettings {
+                optIn("kotlinx.cinterop.ExperimentalForeignApi")
+            }
+        }
 
         val commonMain by getting {
             dependencies {
@@ -79,5 +88,7 @@ kotlin {
                 implementation(libs.vlcj)
             }
         }
+
+        configureCommonIosSourceSets()
     }
 }
