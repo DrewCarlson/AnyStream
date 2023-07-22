@@ -17,15 +17,14 @@
  */
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
-import anystream.SharedRes
 import anystream.client.configure
 import anystream.ui.video.LocalAppWindow
 import anystream.ui.video.prepareLibvlc
-import dev.icerock.moko.resources.compose.painterResource
 import kotlinx.coroutines.launch
 
 fun main() = application {
@@ -39,7 +38,7 @@ fun main() = application {
         onCloseRequest = ::exitApplication,
         title = "AnyStream",
         state = rememberWindowState(width = 1600.dp, height = 1200.dp),
-        icon = painterResource(SharedRes.images.as_icon),
+        icon = painterResource("as_logo.xml"),
     ) {
         CompositionLocalProvider(LocalAppWindow provides window) {
             MainView()

@@ -1,9 +1,6 @@
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
-
 plugins {
     id("multiplatform-lib")
     id("org.jetbrains.compose")
-    id("dev.icerock.mobile.multiplatform-resources")
 }
 
 compose {
@@ -58,10 +55,8 @@ kotlin {
                 implementation(compose.foundation)
                 implementation(compose.material)
                 implementation(compose.materialIconsExtended)
-//                @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
-//                implementation(compose.components.resources)
-
-                api(libs.resources.compose)
+                @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
+                api(compose.components.resources)
             }
         }
 
@@ -84,33 +79,5 @@ kotlin {
                 implementation(libs.vlcj)
             }
         }
-    }
-}
-
-multiplatformResources {
-    multiplatformResourcesPackage = "anystream"
-    multiplatformResourcesClassName = "SharedRes"
-    iosBaseLocalizationRegion = "en"
-}
-
-tasks.matching { it.name == "iosX64ProcessResources" }.configureEach {
-    dependsOn("generateMRcommonMain")
-
-    if (DefaultNativePlatform.getCurrentOperatingSystem().isMacOsX) {
-        dependsOn("generateMRiosX64Main")
-    }
-}
-
-tasks.matching { it.name == "iosSimulatorArm64ProcessResources" }.configureEach {
-    dependsOn("generateMRcommonMain")
-    if (DefaultNativePlatform.getCurrentOperatingSystem().isMacOsX) {
-        dependsOn("generateMRiosSimulatorArm64Main")
-    }
-}
-
-tasks.matching { it.name == "iosArm64ProcessResources" }.configureEach {
-    dependsOn("generateMRcommonMain")
-    if (DefaultNativePlatform.getCurrentOperatingSystem().isMacOsX) {
-        dependsOn("generateMRiosArm64Main")
     }
 }

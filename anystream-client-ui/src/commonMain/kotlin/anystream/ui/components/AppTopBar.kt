@@ -37,13 +37,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import anystream.SharedRes
 import anystream.client.AnyStreamClient
 import anystream.router.BackStack
 import anystream.routing.Routes
-import dev.icerock.moko.resources.compose.painterResource
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.painterResource
 
+@OptIn(ExperimentalResourceApi::class)
 @Composable
 internal fun AppTopBar(
     client: AnyStreamClient?,
@@ -60,7 +61,7 @@ internal fun AppTopBar(
 
         val scope = rememberCoroutineScope()
         Image(
-            painter = painterResource(SharedRes.images.as_logo),
+            painter = painterResource("as_logo.xml"),
             modifier = Modifier
                 .padding(all = 8.dp)
                 .size(width = 150.dp, height = 50.dp),
