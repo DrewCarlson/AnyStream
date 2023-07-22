@@ -18,14 +18,23 @@
 package anystream.ui.video
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Scaffold
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Fullscreen
 import androidx.compose.material.icons.filled.PauseCircleFilled
 import androidx.compose.material.icons.filled.PlayCircleFilled
 import androidx.compose.runtime.Composable
@@ -33,6 +42,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,11 +61,17 @@ internal fun SharedVideoPlayer(
     route: Routes.Player,
     stack: BackStack<Routes>,
     client: AnyStreamClient,
+    toggleFullScreen: (Boolean) -> Unit,
 ) {
     var shouldShowControls by remember { mutableStateOf(false) }
     var isPlaying by remember { mutableStateOf(true) }
+    var isFullScreen by rememberSaveable { mutableStateOf(false) }
 
-    LaunchedEffect(key1 = shouldShowControls) {
+    LaunchedEffect(key1 = shouldShowControls, key2 = isPlaying) {
+//        if (!isPlaying) {
+//            shouldShowControls = true
+//        }
+
         if (shouldShowControls) {
             delay(PLAYER_CONTROLS_VISIBILITY)
             shouldShowControls = false
@@ -68,15 +84,12 @@ internal fun SharedVideoPlayer(
             modifier = Modifier
                 .padding(padding)
                 .background(Color.Black)
-                .fillMaxSize(),
+                .fillMaxSize()
+                .noRippleClickable(onClick = { shouldShowControls = !shouldShowControls }),
         ) {
-            VideoPlayer(
-                Modifier
-                    .fillMaxSize()
-                    .noRippleClickable(onClick = { shouldShowControls = !shouldShowControls }),
-                route.mediaLinkId,
-                isPlaying,
-            )
+            VideoPlayer(Modifier.fillMaxSize(), route.mediaLinkId, isPlaying) {
+                toggleFullScreen(false)
+            }
 
             AnimatedVisibility(
                 visible = shouldShowControls,
@@ -84,7 +97,9 @@ internal fun SharedVideoPlayer(
                 enter = slideInVertically(),
                 exit = slideOutVertically(),
             ) {
-                AppTopBar(client = client, backStack = stack, showBackButton = true)
+                AppTopBar(client = client, backStack = stack, showBackButton = true) {
+                    toggleFullScreen(false)
+                }
             }
 
             AnimatedVisibility(
@@ -93,23 +108,39 @@ internal fun SharedVideoPlayer(
                 enter = slideInVertically { it },
                 exit = slideOutVertically { it },
             ) {
-                Row(
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(150.dp)
+                        .fillMaxHeight(.15f)
                         .background(Color.Black.copy(alpha = 0.7f)),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically,
+                    contentAlignment = Alignment.Center,
                 ) {
                     IconButton(
-                        {
-                            isPlaying = !isPlaying
+                        onClick = { isPlaying = !isPlaying },
+                    ) {
+                        Crossfade(targetState = isPlaying) { isPlaying ->
+                            // note that it's required to use the value passed by Crossfade
+                            // instead of your state value=
+                            Icon(
+                                imageVector = if (isPlaying) Icons.Default.PauseCircleFilled else Icons.Filled.PlayCircleFilled,
+                                contentDescription = null,
+                                modifier = Modifier.size(40.dp),
+                            )
+                        }
+                    }
+
+                    IconButton(
+                        onClick = {
+                            isFullScreen = !isFullScreen
+                            toggleFullScreen(isFullScreen)
                         },
+                        modifier = Modifier.align(Alignment.CenterEnd),
                     ) {
                         Icon(
-                            if (isPlaying) Icons.Filled.PauseCircleFilled else Icons.Filled.PlayCircleFilled,
+                            imageVector = Icons.Default.Fullscreen,
                             contentDescription = null,
-                            modifier = Modifier.size(40.dp),
+                            modifier = Modifier.size(40.dp).background(Color.White, CircleShape),
+                            tint = Color.Red
                         )
                     }
                 }

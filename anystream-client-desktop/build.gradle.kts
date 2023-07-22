@@ -94,6 +94,9 @@ compose {
                 macOS {
                     iconFile.set(iconsRoot.resolve("as_icon.icns"))
                 }
+                linux {
+                    iconFile.set(iconsRoot.resolve("as_icon.png"))
+                }
             }
         }
     }

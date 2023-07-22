@@ -17,6 +17,22 @@
  */
 import androidx.compose.ui.window.ComposeUIViewController
 import anystream.ui.App
+import platform.UIKit.UIApplication
+import platform.UIKit.UIDevice
+import platform.UIKit.UIInterfaceOrientation
+import platform.UIKit.UIInterfaceOrientationPortrait
 
 @Suppress("FunctionName") // called from Swift
-fun MainViewController() = ComposeUIViewController { App() }
+fun MainViewController() = ComposeUIViewController {
+//    UIInterfaceOrientation currentOrientation = [UIApplication sharedApplication].statusBarOrientation;
+//    NSNumber *value = [NSNumber numberWithInt:UIInterfaceOrientationPortrait];
+//    [[UIDevice currentDevice] setValue:value forKey:@"orientation"];
+//    [UIViewController attemptRotationToDeviceOrientation];
+    App {
+        val currentOrientation = UIApplication.sharedApplication.statusBarOrientation
+        val num = UIInterfaceOrientationPortrait
+
+        UIDevice.currentDevice.orientation()
+//        currenDec
+    }
+}

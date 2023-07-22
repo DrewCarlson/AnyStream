@@ -51,10 +51,14 @@ internal fun AppTopBar(
     backStack: BackStack<Routes>? = null,
     showBackButton: Boolean = false,
     modifier: Modifier = Modifier,
+    onBackClicked: (() -> Unit)? = null
 ) {
     TopAppBar(modifier) {
         if (showBackButton) {
-            IconButton(onClick = { backStack?.pop() }) {
+            IconButton(onClick = {
+                backStack?.pop()
+                onBackClicked?.invoke()
+            }) {
                 Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = "Back")
             }
         }

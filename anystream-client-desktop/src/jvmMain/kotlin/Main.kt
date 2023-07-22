@@ -17,9 +17,14 @@
  */
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import anystream.client.configure
@@ -41,7 +46,9 @@ fun main() = application {
         icon = painterResource("as_logo.xml"),
     ) {
         CompositionLocalProvider(LocalAppWindow provides window) {
-            MainView()
+            MainView {
+                window.placement = if (it) WindowPlacement.Fullscreen else WindowPlacement.Floating
+            }
         }
     }
 }

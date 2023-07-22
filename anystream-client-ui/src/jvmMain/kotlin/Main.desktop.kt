@@ -24,7 +24,7 @@ import anystream.ui.login.FormBody
 import anystream.ui.login.LoginScreenModel
 
 @Composable
-fun MainView() = App()
+fun MainView(toggleFullScreen: (Boolean) -> Unit) = App(toggleFullScreen)
 
 @Preview
 @Composable

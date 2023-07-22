@@ -25,4 +25,5 @@ internal expect fun VideoPlayer(
     modifier: Modifier = Modifier,
     mediaLinkId: String,
     isPlaying: Boolean,
+    onDispose: () -> Unit
 )

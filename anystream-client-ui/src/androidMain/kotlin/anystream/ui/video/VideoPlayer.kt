@@ -22,7 +22,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -55,14 +56,15 @@ internal actual fun VideoPlayer(
     modifier: Modifier,
     mediaLinkId: String,
     isPlaying: Boolean,
+    onDispose: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     val client = rememberKoinInject<AnyStreamClient>()
 
-    var window by rememberSaveable { mutableStateOf(0) }
-    var position by rememberSaveable { mutableStateOf(0L) }
+    var window by rememberSaveable { mutableIntStateOf(0) }
+    var position by rememberSaveable { mutableLongStateOf(0L) }
     val player = remember { ExoPlayer.Builder(context).build() }
     LaunchedEffect(player) {
         player.apply {
@@ -86,6 +88,9 @@ internal actual fun VideoPlayer(
             playWhenReady = isPlaying
             prepare()
         }
+    }
+    LaunchedEffect(isPlaying) {
+        if (isPlaying) player.play() else player.pause()
     }
     produceState<PlaybackState?>(null) {
         val initialState = MutableStateFlow<PlaybackState?>(null)

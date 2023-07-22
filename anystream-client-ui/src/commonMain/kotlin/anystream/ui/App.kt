@@ -42,7 +42,7 @@ import org.koin.compose.koinInject
 private val router = SharedRouter()
 
 @Composable
-fun App() {
+fun App(toggleFullScreen: (Boolean) -> Unit) {
     val client: AnyStreamClient = koinInject()
     val scope = rememberCoroutineScope()
 
@@ -124,7 +124,7 @@ fun App() {
                             backStack = stack,
                         )
 
-                        is Routes.Player -> SharedVideoPlayer(route, stack, client)
+                        is Routes.Player -> SharedVideoPlayer(route, stack, client, toggleFullScreen)
                         Routes.PairingScanner -> TODO()
                         Routes.Tv -> TODO()
                     }

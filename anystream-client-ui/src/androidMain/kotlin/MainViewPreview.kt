@@ -21,4 +21,4 @@ import anystream.ui.App
 
 @Preview
 @Composable
-fun MainViewPreview() = App()
+fun MainViewPreview() = App {}

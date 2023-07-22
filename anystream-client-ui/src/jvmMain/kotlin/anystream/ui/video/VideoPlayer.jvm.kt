@@ -49,6 +49,7 @@ internal actual fun VideoPlayer(
     modifier: Modifier,
     mediaLinkId: String,
     isPlaying: Boolean,
+    onDispose: () -> Unit
 ) {
     val client = getClient()
     var position by rememberSaveable { mutableStateOf(0L) }
