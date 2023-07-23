@@ -64,11 +64,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import anystream.client.AnyStreamClient
-import anystream.models.MediaItem
+import anystream.models.*
 import anystream.models.api.MediaLookupResponse
-import anystream.models.toMediaItem
 import anystream.router.BackStack
 import anystream.routing.Routes
+import anystream.ui.components.PosterCard
 import anystream.ui.util.cardWidth
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
@@ -77,6 +77,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.update
+import kotlin.time.DurationUnit.MINUTES
+import kotlin.time.toDuration
 
 @Composable
 fun MediaScreen(
@@ -110,25 +112,64 @@ fun MediaScreen(
                 }
             }
     }
+    Scaffold {
+        Column(modifier = Modifier.fillMaxSize()) {
+            mediaResponse?.movie?.let { response ->
+                BaseDetailsView(
+                    mediaItem = response.toMediaItem(),
+                    refreshMetadata = refreshMetadata,
+                    client = client,
+                    backStack = backStack,
+                    onPlayClick = onPlayClick,
+                )
+            }
 
-    mediaResponse?.movie?.let { response ->
-        BaseDetailsView(
-            mediaItem = response.toMediaItem(),
-            refreshMetadata = refreshMetadata,
-            client = client,
-            backStack = backStack,
-            onPlayClick = onPlayClick,
-        )
-    }
+            mediaResponse?.tvShow?.let { response ->
+                BaseDetailsView(
+                    mediaItem = response.toMediaItem(),
+                    refreshMetadata = refreshMetadata,
+                    client = client,
+                    backStack = backStack,
+                    onPlayClick = onPlayClick,
+                ) {
+                    if (response.seasons.isNotEmpty()) {
+                        SeasonRow(
+                            seasons = response.seasons,
+                            backStack = backStack,
+                        )
+                    }
+                }
+            }
 
-    mediaResponse?.tvShow?.let { response ->
-        BaseDetailsView(
-            mediaItem = response.toMediaItem(),
-            refreshMetadata = refreshMetadata,
-            client = client,
-            backStack = backStack,
-            onPlayClick = onPlayClick,
-        )
+            mediaResponse?.season?.let { response ->
+                BaseDetailsView(
+                    mediaItem = response.toMediaItem(),
+                    refreshMetadata = refreshMetadata,
+                    client = client,
+                    backStack = backStack,
+                    onPlayClick = onPlayClick,
+                ) {
+                    if (response.episodes.isNotEmpty()) {
+                        EpisodeGrid(
+                            episodes = response.episodes,
+                            mediaLinks = response.mediaLinks,
+                            backStack = backStack,
+                        )
+                    }
+                }
+            }
+
+            mediaResponse?.episode?.let { response ->
+                val mediaItem = remember(response) { response.toMediaItem() }
+                BaseDetailsView(
+                    mediaItem = mediaItem,
+                    refreshMetadata = refreshMetadata,
+                    client = client,
+                    backStack = backStack,
+                    onPlayClick = onPlayClick,
+                )
+            }
+        }
     }
 }
 
@@ -139,119 +180,125 @@ private fun BaseDetailsView(
     client: AnyStreamClient,
     backStack: BackStack<Routes>,
     onPlayClick: (mediaRefId: String?) -> Unit,
+    subcontainer: @Composable () -> Unit = {},
 ) {
-    Scaffold {
-        Column(Modifier.fillMaxSize()) {
-            Box(
-                Modifier
+    Column(Modifier.fillMaxSize()) {
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(.37f),
+        ) {
+            KamelImage(
+                resource = asyncPainterResource(data = mediaItem.tmdbBackdropUrl),
+                contentDescription = "",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(.37f),
-            ) {
-                KamelImage(
-                    resource = asyncPainterResource(data = mediaItem.tmdbBackdropUrl),
-                    contentDescription = "",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight(.7f),
-                    onLoading = {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(Color.DarkGray),
-                        )
-                    },
-                    onFailure = { },
-                    animationSpec = tween(),
-                )
+                    .fillMaxHeight(.7f),
+                onLoading = {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.DarkGray),
+                    )
+                },
+                onFailure = { },
+                animationSpec = tween(),
+            )
 
-                Column(
-                    modifier = Modifier
-                        .background(
-                            brush = Brush.verticalGradient(
-                                colors = listOf(Color(0x99000000), Color(0x10000000)),
-                            ),
+            Column(
+                modifier = Modifier
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(Color(0x99000000), Color(0x10000000)),
+                        ),
+                    )
+                    .fillMaxWidth()
+                    .fillMaxHeight(.8f),
+            ) {
+            }
+            Column(Modifier.fillMaxSize()) {
+                Row(Modifier.fillMaxWidth()) {
+                    IconButton(onClick = { backStack.pop() }) {
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            contentDescription = "",
+                            tint = MaterialTheme.colors.onSurface,
                         )
-                        .fillMaxWidth()
-                        .fillMaxHeight(.8f),
-                ) {
-                }
-                Column(Modifier.fillMaxSize()) {
-                    Row(Modifier.fillMaxWidth()) {
-                        IconButton(onClick = { backStack.pop() }) {
-                            Icon(
-                                Icons.Default.ArrowBack,
-                                contentDescription = "",
-                                tint = MaterialTheme.colors.onSurface,
-                            )
-                        }
-                        Spacer(modifier = Modifier.weight(1f))
-                        IconButton(onClick = { /*TODO*/ }) {
-                            Icon(
-                                Icons.Default.Search,
-                                contentDescription = "",
-                                tint = MaterialTheme.colors.onSurface,
-                            )
-                        }
                     }
                     Spacer(modifier = Modifier.weight(1f))
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(top = 32.dp, start = 16.dp, end = 16.dp),
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .width(cardWidth)
-                                .align(Alignment.Bottom),
-                        ) {
-                            Card(elevation = 2.dp, shape = RectangleShape) {
-                                KamelImage(
-                                    resource = asyncPainterResource(data = Url(mediaItem.tmdbPosterUrl)),
-                                    contentDescription = "",
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier.fillMaxWidth(),
-                                    onLoading = {
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxSize()
-                                                .background(Color.DarkGray),
-                                        )
-                                    },
-                                    onFailure = { },
-                                    animationSpec = tween(),
-                                    contentAlignment = Alignment.BottomCenter,
-                                )
-                            }
-                        }
-
-                        MediaMetadata(mediaItem)
+                    IconButton(onClick = { /*TODO*/ }) {
+                        Icon(
+                            Icons.Default.Search,
+                            contentDescription = "",
+                            tint = MaterialTheme.colors.onSurface,
+                        )
                     }
                 }
-            }
+                Spacer(modifier = Modifier.weight(1f))
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(top = 32.dp)
+                        .padding(horizontal = 16.dp),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .width(cardWidth)
+                            .align(Alignment.Bottom),
+                    ) {
+                        Card(elevation = 2.dp, shape = RectangleShape) {
+                            KamelImage(
+                                resource = asyncPainterResource(data = Url(mediaItem.tmdbPosterUrl)),
+                                contentDescription = "",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxWidth(),
+                                onLoading = {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .background(Color.DarkGray),
+                                    )
+                                },
+                                onFailure = { },
+                                animationSpec = tween(),
+                                contentAlignment = Alignment.BottomCenter,
+                            )
+                        }
+                    }
 
-            Button(
-                onClick = {
-                    onPlayClick(mediaItem.playableMediaLink?.gid)
-                },
-                colors = ButtonDefaults.buttonColors(backgroundColor = Color.Red),
-                modifier = Modifier
-                    .padding(top = 24.dp, start = 16.dp)
-                    .width(cardWidth),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.PlayArrow,
-                    contentDescription = "",
-                    modifier = Modifier.size(26.dp),
-                )
-                Text(
-                    if (mediaItem.playbackState != null) "Resume" else "Play",
-                    Modifier.padding(start = 4.dp),
-                )
+                    MediaMetadata(mediaItem)
+                }
             }
+        }
 
-            ExpandableText(mediaItem.overview)
+        Button(
+            onClick = {
+                onPlayClick(mediaItem.playableMediaLink?.gid)
+            },
+            colors = ButtonDefaults.buttonColors(backgroundColor = Color.Red),
+            modifier = Modifier
+                .padding(top = 24.dp, start = 16.dp)
+                .width(cardWidth),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
+        ) {
+            Icon(
+                imageVector = Icons.Filled.PlayArrow,
+                contentDescription = "",
+                modifier = Modifier.size(26.dp),
+            )
+            Text(
+                if (mediaItem.playbackState != null) "Resume" else "Play",
+                Modifier.padding(start = 4.dp),
+            )
+        }
+
+        ExpandableText(mediaItem.overview)
+
+        Spacer(Modifier.height(12.dp))
+
+        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+            subcontainer()
         }
     }
 }
@@ -271,38 +318,107 @@ private fun MediaMetadata(mediaItem: MediaItem) {
         )
         Spacer(Modifier.height(4.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            val items = remember(mediaItem) {
+                listOfNotNull(
+                    mediaItem.releaseYear,
+                    mediaItem.runtime?.toDuration(MINUTES)?.asFriendlyString(),
+                    mediaItem.contentRating,
+                )
+            }
+            items.forEachIndexed { index, item ->
+                if (index > 0) {
+                    Text(
+                        text = "•",
+                        color = Color(0x80FFFFFF),
+                        style = MaterialTheme.typography.caption,
+                    )
+                }
+                Text(
+                    text = item,
+                    color = Color(0x80FFFFFF),
+                    style = MaterialTheme.typography.caption,
+                )
+            }
+        }
+        Spacer(Modifier.height(2.dp))
+        val tmdbRating = mediaItem.tmdbRating?.toString()
+        if (tmdbRating != null) {
             Text(
-                text = mediaItem.releaseYear,
-                color = Color(0x80FFFFFF),
-                style = MaterialTheme.typography.caption,
-            )
-            Text(
-                text = "•",
-                color = Color(0x80FFFFFF),
-                style = MaterialTheme.typography.caption,
-            )
-            Text(
-                text = mediaItem.runtimeFormatted,
-                color = Color(0x80FFFFFF),
-                style = MaterialTheme.typography.caption,
-            )
-            Text(
-                text = "•",
-                color = Color(0x80FFFFFF),
-                style = MaterialTheme.typography.caption,
-            )
-            Text(
-                text = mediaItem.contentRating.orEmpty(),
+                text = "$tmdbRating%",
                 color = Color(0x80FFFFFF),
                 style = MaterialTheme.typography.caption,
             )
         }
-        Spacer(Modifier.height(2.dp))
+    }
+}
+
+@Composable
+private fun SeasonRow(
+    seasons: List<TvSeason>,
+    backStack: BackStack<Routes>,
+) {
+    BaseRow(
+        title = "${seasons.size} Seasons",
+    ) {
+        seasons.forEach { season ->
+            PosterCard(
+                title = season.name,
+                imagePath = season.posterPath,
+                onClick = {
+                    backStack.push(Routes.Details(season.gid))
+                },
+                onPlayClick = {},
+            )
+        }
+    }
+}
+
+@Composable
+private fun EpisodeGrid(
+    episodes: List<Episode>,
+    mediaLinks: Map<String, MediaLink>,
+    backStack: BackStack<Routes>,
+) {
+    BaseRow(
+        title = "${episodes.size} Episodes",
+    ) {
+        episodes.forEach { episode ->
+            val link = mediaLinks[episode.gid]
+            PosterCard(
+                title = episode.name,
+                /*subtitle1 = {
+                    LinkedText("/media/${episode.gid}") {
+                        Text("Episode ${episode.number}")
+                    }
+                },*/
+                imagePath = episode.stillPath,
+                // heightAndWidth = 178.px to 318.px,
+                onPlayClick = {
+                },
+                onClick = {
+                    backStack.push(Routes.Details(episode.gid))
+                },
+            )
+        }
+    }
+}
+
+@Composable
+private fun BaseRow(
+    title: String,
+    buildItems: @Composable () -> Unit,
+) {
+    Column {
         Text(
-            text = "${mediaItem.tmdbRating?.toString().orEmpty()}%",
-            color = Color(0x80FFFFFF),
-            style = MaterialTheme.typography.caption,
+            text = title,
+            style = MaterialTheme.typography.h5,
         )
+        Spacer(modifier = Modifier.height(6.dp))
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            buildItems()
+        }
     }
 }
 
