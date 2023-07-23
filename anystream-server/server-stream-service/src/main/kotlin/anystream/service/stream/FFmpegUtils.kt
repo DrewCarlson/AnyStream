@@ -32,10 +32,10 @@ internal fun FFmpeg.buildCommandString(): String {
     ) { if (it.contains(' ')) "\"$it\"" else it }
 }
 
-internal suspend fun FFmpeg.executeAwait(): FFmpegResult {
+suspend fun FFmpeg.executeAwait(): FFmpegResult {
     return executeAsync().toCompletableFuture().await()
 }
 
-internal suspend fun FFmpeg.executeAwait(commandSender: CommandSender): FFmpegResult {
+suspend fun FFmpeg.executeAwait(commandSender: CommandSender): FFmpegResult {
     return executeAsync(commandSender).toCompletableFuture().await()
 }
