@@ -41,6 +41,7 @@ import platform.Foundation.NSError
 import platform.Foundation.NSKeyValueObservingOptionNew
 import platform.Foundation.NSURL
 import platform.Foundation.addObserver
+import platform.Foundation.removeObserver
 import platform.UIKit.UIColor
 import platform.UIKit.UIColor.Companion.blackColor
 import platform.UIKit.UIView
@@ -96,7 +97,10 @@ internal actual fun VideoPlayer(
                 delay(PLAYER_STATE_REMOTE_UPDATE_INTERVAL)
             }
         }
-        awaitDispose { handle.cancel() }
+        awaitDispose {
+            handle.cancel()
+            newItem.removeObserver(observer, forKeyPath = "status")
+        }
     }
     LaunchedEffect(isPlaying) {
         if (isPlaying) player.play() else player.pause()
