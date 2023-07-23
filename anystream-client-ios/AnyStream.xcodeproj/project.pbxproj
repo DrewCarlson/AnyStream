@@ -14,12 +14,6 @@
 		3AA9F5DB27A4CAE50002D864 /* AnyStreamTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AA9F5DA27A4CAE50002D864 /* AnyStreamTests.swift */; };
 		3AA9F5E527A4CAE50002D864 /* AnyStreamUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AA9F5E427A4CAE50002D864 /* AnyStreamUITests.swift */; };
 		3AA9F5E727A4CAE50002D864 /* AnyStreamUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AA9F5E627A4CAE50002D864 /* AnyStreamUITestsLaunchTests.swift */; };
-		3AA9F5F527A4CC160002D864 /* Router.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AA9F5F427A4CC160002D864 /* Router.swift */; };
-		3AA9F5F927A4DAA90002D864 /* ActivityIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AA9F5F827A4DAA80002D864 /* ActivityIndicator.swift */; };
-		3AA9F5FB27A4DACB0002D864 /* LoadingScrim.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AA9F5FA27A4DACB0002D864 /* LoadingScrim.swift */; };
-		3AA9F5FE27A4DBB20002D864 /* LoginScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AA9F5FD27A4DBB20002D864 /* LoginScreen.swift */; };
-		3AA9F60127A4DD360002D864 /* UIConnectable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AA9F60027A4DD360002D864 /* UIConnectable.swift */; };
-		3AA9F60327A4DD5A0002D864 /* LoopControllerBinder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AA9F60227A4DD5A0002D864 /* LoopControllerBinder.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -50,12 +44,6 @@
 		3AA9F5E027A4CAE50002D864 /* AnyStreamUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AnyStreamUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3AA9F5E427A4CAE50002D864 /* AnyStreamUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnyStreamUITests.swift; sourceTree = "<group>"; };
 		3AA9F5E627A4CAE50002D864 /* AnyStreamUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnyStreamUITestsLaunchTests.swift; sourceTree = "<group>"; };
-		3AA9F5F427A4CC160002D864 /* Router.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Router.swift; sourceTree = "<group>"; };
-		3AA9F5F827A4DAA80002D864 /* ActivityIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityIndicator.swift; sourceTree = "<group>"; };
-		3AA9F5FA27A4DACB0002D864 /* LoadingScrim.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingScrim.swift; sourceTree = "<group>"; };
-		3AA9F5FD27A4DBB20002D864 /* LoginScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginScreen.swift; sourceTree = "<group>"; };
-		3AA9F60027A4DD360002D864 /* UIConnectable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIConnectable.swift; sourceTree = "<group>"; };
-		3AA9F60227A4DD5A0002D864 /* LoopControllerBinder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoopControllerBinder.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -147,7 +135,6 @@
 				3AA9F5FF27A4DD2B0002D864 /* Util */,
 				3AA9F5FC27A4DBA90002D864 /* Screens */,
 				3AA9F5F727A4DA930002D864 /* Components */,
-				3AA9F5F427A4CC160002D864 /* Router.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -155,8 +142,6 @@
 		3AA9F5F727A4DA930002D864 /* Components */ = {
 			isa = PBXGroup;
 			children = (
-				3AA9F5F827A4DAA80002D864 /* ActivityIndicator.swift */,
-				3AA9F5FA27A4DACB0002D864 /* LoadingScrim.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -164,7 +149,6 @@
 		3AA9F5FC27A4DBA90002D864 /* Screens */ = {
 			isa = PBXGroup;
 			children = (
-				3AA9F5FD27A4DBB20002D864 /* LoginScreen.swift */,
 			);
 			path = Screens;
 			sourceTree = "<group>";
@@ -172,8 +156,6 @@
 		3AA9F5FF27A4DD2B0002D864 /* Util */ = {
 			isa = PBXGroup;
 			children = (
-				3AA9F60027A4DD360002D864 /* UIConnectable.swift */,
-				3AA9F60227A4DD5A0002D864 /* LoopControllerBinder.swift */,
 			);
 			path = Util;
 			sourceTree = "<group>";
@@ -338,14 +320,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3AA9F5F927A4DAA90002D864 /* ActivityIndicator.swift in Sources */,
 				3AA9F5CC27A4CAE30002D864 /* ContentView.swift in Sources */,
-				3AA9F5F527A4CC160002D864 /* Router.swift in Sources */,
-				3AA9F5FB27A4DACB0002D864 /* LoadingScrim.swift in Sources */,
-				3AA9F60127A4DD360002D864 /* UIConnectable.swift in Sources */,
 				3AA9F5CA27A4CAE30002D864 /* AnyStreamApp.swift in Sources */,
-				3AA9F5FE27A4DBB20002D864 /* LoginScreen.swift in Sources */,
-				3AA9F60327A4DD5A0002D864 /* LoopControllerBinder.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
