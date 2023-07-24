@@ -24,8 +24,8 @@ vlc = "3.0.18"
 composejb = { id = "org.jetbrains.compose", version.ref = "composejb" }
 
 [libraries]
-kotlinjs-browser = { module = "org.jetbrains.kotlin-wrappers:kotlin-browser", version = "1.0.0-pre.598" }
-kotlinjs-extensions = { module = "org.jetbrains.kotlin-wrappers:kotlin-extensions", version = "1.0.1-pre.598" }
+kotlinjs-browser = { module = "org.jetbrains.kotlin-wrappers:kotlin-browser", version = "1.0.0-pre.599" }
+kotlinjs-extensions = { module = "org.jetbrains.kotlin-wrappers:kotlin-extensions", version = "1.0.1-pre.599" }
 
 anrWatchdog = { module = "com.github.anrwatchdog:anrwatchdog", version.ref = "anr_watchdog" }
 zxing-core = { module = "com.google.zxing:core", version.ref = "zxing" }
