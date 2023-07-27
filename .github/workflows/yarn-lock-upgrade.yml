@@ -1,0 +1,39 @@
+name: Yarn Lock Sync
+
+on:
+  push:
+    branches:
+      - 'renovate/**'
+
+jobs:
+  yarn-lock-upgrade:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: 17
+
+      - name: Cache Build files
+        uses: actions/cache@v3
+        if: ${{ !startsWith(matrix.os, 'windows') }}
+        with:
+          path: |
+            ~/.konan
+            ~/.gradle
+          key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
+
+      - uses: gradle/gradle-build-action@v2
+        name: Yarn Lock Upgrade
+        with:
+          arguments: kotlinUpgradeYarnLock
+
+      - uses: EndBug/add-and-commit@v9
+        with:
+          author_name: renovate[bot]
+          author_email: 29139614+renovate[bot]@users.noreply.github.com
+          message: Upgrade yarn.lock file
