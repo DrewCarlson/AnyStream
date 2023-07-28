@@ -10,7 +10,7 @@ media3 = "1.1.0"
 ax_runner = "1.5.2"
 leakcanary = "2.12"
 koinAndroid = "3.4.3"
-koinAndroidxCompose = "3.4.5"
+koinAndroidxCompose = "3.4.6"
 
 okhttp = "5.0.0-alpha.11"
 
