@@ -9,7 +9,7 @@ exoplayer = "2.19.0"
 media3 = "1.1.0"
 ax_runner = "1.5.2"
 leakcanary = "2.12"
-koinAndroid = "3.4.2"
+koinAndroid = "3.4.3"
 koinAndroidxCompose = "3.4.5"
 
 okhttp = "5.0.0-alpha.11"
