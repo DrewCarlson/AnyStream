@@ -60,7 +60,7 @@ androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-
 androidx-test-runner = { module = "androidx.test:runner", version.ref = "ax_runner" }
 
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
-koin-compose = { module = "io.insert-koin:koin-compose", version = "1.0.3" }
+koin-compose = { module = "io.insert-koin:koin-compose", version = "1.0.4" }
 koin-ktor = { module = "io.insert-koin:koin-ktor", version.ref = "koinKtor" }
 koin-slf4j = { module = "io.insert-koin:koin-logger-slf4j", version.ref = "koinKtor" }
 
