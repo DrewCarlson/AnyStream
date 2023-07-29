@@ -13,8 +13,8 @@ compose {
 if (hasAndroidSdk) {
     configure<com.android.build.gradle.LibraryExtension> {
         sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
-        sourceSets["main"].res.srcDirs("src/androidMain/res")
         sourceSets["main"].resources.srcDirs("src/commonMain/resources")
+        sourceSets["main"].res.srcDirs("src/androidMain/res", "src/commonMain/resources")
     }
 }
 
@@ -38,6 +38,12 @@ kotlin {
                     "-linker-option", "-framework", "-linker-option", "CoreText",
                     "-linker-option", "-framework", "-linker-option", "CoreGraphics",
                 )
+            }
+        }
+
+        compilations.configureEach {
+            compilerOptions.configure {
+                freeCompilerArgs.add("-Xallocator=custom")
             }
         }
     }

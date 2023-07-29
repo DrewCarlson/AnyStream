@@ -117,6 +117,20 @@ kotlin {
         // "Could not create task of type 'KotlinNativeLink'."
         if (project.name != "anystream-client-ui") {
             configureCommonIosSourceSets()
+
+            configure(
+                listOf(
+                    iosArm64(),
+                    iosSimulatorArm64(),
+                    iosX64(),
+                ),
+            ) {
+                compilations.configureEach {
+                    compilerOptions.configure {
+                        freeCompilerArgs.add("-Xallocator=custom")
+                    }
+                }
+            }
         }
     }
 }
