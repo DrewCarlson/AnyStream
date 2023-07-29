@@ -15,23 +15,25 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.ui.theme
+package anystream.ui.util
 
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.darkColors
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import kotlinx.coroutines.runBlocking
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.resource
 
+private val cache: MutableMap<String, Font> = mutableMapOf()
+
+@OptIn(ExperimentalResourceApi::class)
 @Composable
-internal fun AppTheme(content: @Composable () -> Unit) {
-    MaterialTheme(
-        colors = colors,
-        content = content,
-        typography = AppTypography,
-    )
+actual fun font(name: String, res: String, weight: FontWeight, style: FontStyle): Font {
+    return cache.getOrPut(res) {
+        val byteArray = runBlocking {
+            resource("font/$res.ttf").readBytes()
+        }
+        androidx.compose.ui.text.platform.Font(res, byteArray, weight, style)
+    }
 }
-
-internal val colors = darkColors(
-    primary = Color.Red,
-    background = Color(0xFF181A20),
-)

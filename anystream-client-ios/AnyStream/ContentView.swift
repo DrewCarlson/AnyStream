@@ -1,7 +1,6 @@
 import AnyStreamCore
 import SwiftUI
 
-
 let gradient = LinearGradient(
     colors: [
         Color.black.opacity(0.6),

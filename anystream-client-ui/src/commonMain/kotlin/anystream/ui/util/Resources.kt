@@ -15,23 +15,12 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.ui.theme
+package anystream.ui.util
 
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.darkColors
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 
 @Composable
-internal fun AppTheme(content: @Composable () -> Unit) {
-    MaterialTheme(
-        colors = colors,
-        content = content,
-        typography = AppTypography,
-    )
-}
-
-internal val colors = darkColors(
-    primary = Color.Red,
-    background = Color(0xFF181A20),
-)
+internal expect fun font(name: String, res: String, weight: FontWeight, style: FontStyle): Font
