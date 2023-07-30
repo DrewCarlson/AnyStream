@@ -1,5 +1,5 @@
 [versions]
-zxing = "3.5.1"
+zxing = "3.5.2"
 anr_watchdog = "1.4.0"
 composeCompiler = "1.5.4"
 exoplayer = "2.19.1"
