@@ -18,7 +18,6 @@
 package anystream.ui.home
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -46,7 +45,6 @@ import androidx.compose.material.TextButton
 import androidx.compose.material.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -67,18 +65,21 @@ import anystream.routing.Routes
 import anystream.ui.components.AppTopBar
 import anystream.ui.components.LoadingScreen
 import anystream.ui.components.PosterCard
+import anystream.util.createLoopController
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
 import io.ktor.http.Url
+import kt.mobius.Mobius
+import kt.mobius.SimpleLogger
+import kt.mobius.flow.FlowMobius
 
 private val CARD_SPACING = 12.dp
 
 @Composable
 private fun RowSpace() = Spacer(modifier = Modifier.size(8.dp))
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun HomeScreen(
+internal fun HomeScreen(
     client: AnyStreamClient,
     backStack: BackStack<Routes>,
     onMediaClick: (mediaLinkId: String?) -> Unit,
@@ -88,23 +89,33 @@ fun HomeScreen(
     Scaffold(
         topBar = { AppTopBar(client = client, backStack = backStack) },
     ) { paddingValues ->
-        val homeData by produceState<HomeResponse?>(null) {
-            value = client.getHomeData()
+        val (modelState, eventConsumerState) = createLoopController {
+            val factory = FlowMobius.loop(
+                HomeScreenUpdate,
+                HomeScreenHandler.create(client),
+            ).logger(SimpleLogger("HomeScreen"))
+            val startModel = HomeScreenModel()
+            Mobius.controller(factory, startModel, HomeScreenInit)
         }
 
         AnimatedContent(
-            targetState = homeData,
+            targetState = modelState.value.homeResponse,
         ) { targetState ->
             // Make sure to use `targetState`, not `state`.
             when (targetState) {
-                null -> LoadingScreen(paddingValues)
-                else -> HomeScreenContent(
-                    paddingValues = paddingValues,
-                    homeData = targetState,
-                    onMediaClick = onMediaClick,
-                    onViewMoviesClicked = onViewMoviesClicked,
-                    onContinueWatchingClick = onContinueWatchingClick,
-                )
+                is LoadableDataState.Loading -> LoadingScreen(paddingValues)
+                is LoadableDataState.Loaded ->
+                    HomeScreenContent(
+                        paddingValues = paddingValues,
+                        homeData = targetState.data,
+                        onMediaClick = onMediaClick,
+                        onViewMoviesClicked = onViewMoviesClicked,
+                        onContinueWatchingClick = onContinueWatchingClick,
+                    )
+
+                is LoadableDataState.Error -> Unit // TODO: add error view
+
+                LoadableDataState.Empty -> Unit // TODO: add empty view
             }
         }
     }
