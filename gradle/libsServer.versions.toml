@@ -30,7 +30,7 @@ kjob-jdbi = { module = "org.drewcarlson:kjob-jdbi", version.ref = "kjob" }
 qbittorrent-models = { module = "org.drewcarlson:qbittorrent-models", version.ref = "qbittorrent" }
 qbittorrent-client = { module = "org.drewcarlson:qbittorrent-client", version.ref = "qbittorrent" }
 
-torrentSearch = { module = "org.drewcarlson:torrentsearch", version = "0.6.0" }
+torrentSearch = { module = "org.drewcarlson:torrentsearch", version = "0.7.0" }
 
 jaffree = { module = "com.github.kokorin.jaffree:jaffree", version.ref = "jaffree" }
 
