@@ -18,11 +18,11 @@
 package anystream
 
 fun main() {
-    kotlinext.js.require("./scss/anystream.scss")
-    kotlinext.js.require("@popperjs/core/dist/umd/popper.min.js")
-    kotlinext.js.require("bootstrap/dist/js/bootstrap.min.js")
-    kotlinext.js.require("bootstrap-icons/font/bootstrap-icons.css")
-    kotlinext.js.require("@fontsource/open-sans/index.css")
-    kotlinext.js.require("video.js/dist/video-js.min.css")
+    kotlinext.js.require<Any>("./scss/anystream.scss")
+    kotlinext.js.require<Any>("@popperjs/core/dist/umd/popper.min.js")
+    kotlinext.js.require<Any>("bootstrap/dist/js/bootstrap.min.js")
+    kotlinext.js.require<Any>("bootstrap-icons/font/bootstrap-icons.css")
+    kotlinext.js.require<Any>("@fontsource/open-sans/index.css")
+    kotlinext.js.require<Any>("video.js/dist/video-js.min.css")
     webApp()
 }
