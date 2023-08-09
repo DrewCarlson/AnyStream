@@ -131,7 +131,7 @@ tasks.getByName<JavaExec>("run") {
     environment(
         "WEB_CLIENT_PATH",
         properties["webClientPath"] ?: environment["WEB_CLIENT_PATH"]
-        ?: clientWeb.buildDir.resolve("developmentExecutable").absolutePath
+        ?: clientWeb.buildDir.resolve("dist/js/developmentExecutable").absolutePath
     )
     environment(
         "DATABASE_URL",
