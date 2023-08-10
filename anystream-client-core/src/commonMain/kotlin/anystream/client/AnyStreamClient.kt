@@ -75,6 +75,8 @@ class AnyStreamClient(
         const val SESSION_KEY = "as_user_session"
     }
 
+    private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+
     val authenticated: Flow<Boolean> = sessionManager.tokenFlow.map { it != null }
     val permissions: Flow<Set<Permission>?> = sessionManager.permissionsFlow
     val user: Flow<User?> = sessionManager.userFlow
@@ -163,20 +165,26 @@ class AnyStreamClient(
     @OptIn(DelicateCoroutinesApi::class)
     private inline fun <reified T> createWsStateFlow(path: String, default: T): StateFlow<T> {
         return callbackFlow<T> {
-            http.wss("$serverUrlWs$path") {
-                send(sessionManager.fetchToken()!!)
-                while (!incoming.isClosedForReceive) {
-                    try {
-                        trySend(receiveDeserialized())
-                    } catch (e: WebsocketDeserializeException) {
-                        // ignored
-                    } catch (e: ClosedReceiveChannelException) {
-                        // ignored
+            launch {
+                try {
+                    http.wss("$serverUrlWs$path") {
+                        send(sessionManager.fetchToken()!!)
+                        while (!incoming.isClosedForReceive && isActive) {
+                            try {
+                                trySend(receiveDeserialized())
+                            } catch (e: WebsocketDeserializeException) {
+                                // ignored
+                            } catch (e: ClosedReceiveChannelException) {
+                                // ignored
+                            }
+                        }
                     }
+                } catch (e: WebSocketException) {
+                    // ignored
                 }
-                awaitClose()
             }
-        }.stateIn(http, SharingStarted.WhileSubscribed(), default)
+            awaitClose()
+        }.stateIn(scope, SharingStarted.WhileSubscribed(), default)
     }
 
     suspend fun verifyAndSetServerUrl(serverUrl: String): Boolean {
