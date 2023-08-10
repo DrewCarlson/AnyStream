@@ -18,25 +18,23 @@
 package anystream.util
 
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.time.Duration
 
 fun <T> Flow<T>.throttleLatest(
     timeout: Duration,
 ): Flow<T> = channelFlow {
-    coroutineScope {
-        val nextValue = Channel<T>(Channel.CONFLATED)
-        val sender = launch {
-            while (true) {
-                send(nextValue.receive())
-                delay(timeout)
-            }
+    val nextValue = Channel<T>(Channel.CONFLATED)
+    val sender = launch {
+        while (isActive) {
+            send(nextValue.receive())
+            delay(timeout)
         }
-        collect(nextValue::send)
-        sender.cancel()
     }
+    collect(nextValue::trySend)
+    sender.cancel()
 }
