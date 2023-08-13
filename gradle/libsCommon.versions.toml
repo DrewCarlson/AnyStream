@@ -22,7 +22,7 @@ kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 androidkt = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
-kotlinter = { id = "org.jmailen.kotlinter", version = "3.15.0" }
+kotlinter = { id = "org.jmailen.kotlinter", version = "3.16.0" }
 downloadPlugin = { id = "de.undercouch.download", version = "5.4.0" }
 
 [libraries]
