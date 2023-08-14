@@ -25,33 +25,28 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Card
 import androidx.compose.material.LinearProgressIndicator
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
-import androidx.compose.material.TextButton
-import androidx.compose.material.Typography
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import anystream.client.AnyStreamClient
 import anystream.models.MediaItem
 import anystream.models.MediaLink
@@ -62,8 +57,9 @@ import anystream.models.api.CurrentlyWatching
 import anystream.models.api.HomeResponse
 import anystream.router.BackStack
 import anystream.routing.Routes
-import anystream.ui.components.AppTopBar
+import anystream.ui.components.CarouselAutoPlayHandler
 import anystream.ui.components.LoadingScreen
+import anystream.ui.components.PagerIndicator
 import anystream.ui.components.PosterCard
 import anystream.util.createLoopController
 import io.kamel.image.KamelImage
@@ -73,22 +69,17 @@ import kt.mobius.Mobius
 import kt.mobius.SimpleLogger
 import kt.mobius.flow.FlowMobius
 
-private val CARD_SPACING = 12.dp
+private val CARD_SPACING = 8.dp
 
 @Composable
-private fun RowSpace() = Spacer(modifier = Modifier.size(8.dp))
-
-@Composable
-internal fun HomeScreen(
+fun HomeScreen(
     client: AnyStreamClient,
     backStack: BackStack<Routes>,
     onMediaClick: (mediaLinkId: String?) -> Unit,
     onContinueWatchingClick: (mediaLinkId: String?) -> Unit,
     onViewMoviesClicked: () -> Unit,
 ) {
-    Scaffold(
-        topBar = { AppTopBar(client = client, backStack = backStack) },
-    ) { paddingValues ->
+    Scaffold { paddingValues ->
         val (modelState, eventConsumerState) = createLoopController {
             val factory = FlowMobius.loop(
                 HomeScreenUpdate,
@@ -98,16 +89,14 @@ internal fun HomeScreen(
             Mobius.controller(factory, startModel, HomeScreenInit)
         }
 
-        AnimatedContent(
-            targetState = modelState.value.homeResponse,
-        ) { targetState ->
-            // Make sure to use `targetState`, not `state`.
+        AnimatedContent(targetState = modelState.value.homeResponse) { targetState ->
             when (targetState) {
                 is LoadableDataState.Loading -> LoadingScreen(paddingValues)
                 is LoadableDataState.Loaded ->
                     HomeScreenContent(
                         paddingValues = paddingValues,
                         homeData = targetState.data,
+                        populars = modelState.value.popular,
                         onMediaClick = onMediaClick,
                         onViewMoviesClicked = onViewMoviesClicked,
                         onContinueWatchingClick = onContinueWatchingClick,
@@ -125,69 +114,63 @@ internal fun HomeScreen(
 private fun HomeScreenContent(
     paddingValues: PaddingValues,
     homeData: HomeResponse,
+    populars: List<Pair<Movie, MediaLink?>>,
     onMediaClick: (mediaLinkId: String?) -> Unit,
     onViewMoviesClicked: () -> Unit,
     onContinueWatchingClick: (mediaLinkId: String?) -> Unit,
 ) {
-    LazyColumn(
+    Column(
         modifier = Modifier
-            .padding(paddingValues)
-            .padding(horizontal = 8.dp, vertical = 4.dp),
+            .verticalScroll(rememberScrollState())
+            .padding(paddingValues),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         val (currentlyWatching, recentlyAdded, popular) = homeData
-        item {
-            if (currentlyWatching.playbackStates.isNotEmpty()) {
-                RowTitle(text = "Continue Watching")
-                ContinueWatchingRow(currentlyWatching, onClick = onContinueWatchingClick)
-                RowSpace()
-            }
+        val pagerState = rememberPagerState() { populars.count() }
 
-            if (recentlyAdded.movies.isNotEmpty()) {
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    RowTitle(text = "Recently Added Movies")
-                    TextButton(onClick = onViewMoviesClicked) {
-                        Text(text = "All Movies")
-                    }
+        Box(Modifier.height(375.dp).fillMaxWidth()) {
+            MediaCarousel(pagerState = pagerState, media = populars)
+            PagerIndicator(count = populars.count(), currentPage = pagerState.currentPage)
+        }
+
+        CarouselAutoPlayHandler(pagerState, populars.count())
+
+        if (currentlyWatching.playbackStates.isNotEmpty()) {
+            Column(Modifier.padding(start = 20.dp)) {
+                SectionHeader(title = "Continue Watching")
+                ContinueWatchingRow(currentlyWatching, onClick = onContinueWatchingClick)
+            }
+        }
+
+        if (recentlyAdded.movies.isNotEmpty()) {
+            Column(Modifier.padding(start = 20.dp)) {
+                SectionHeader(title = "Recently Added Movies", ctaText = "All Movies") {
+                    onViewMoviesClicked()
                 }
                 MovieRow(
-                    movies = recentlyAdded.movies,
+                    movies = recentlyAdded.movies.toList(),
                     onClick = onMediaClick,
                     onPlayClick = onContinueWatchingClick,
                 )
-                RowSpace()
             }
+        }
 
-            if (recentlyAdded.tvShows.isNotEmpty()) {
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    RowTitle(text = "Recently Added TV")
-                    TextButton(onClick = onViewMoviesClicked) {
-                        Text(text = "All Shows")
-                    }
+        if (recentlyAdded.tvShows.isNotEmpty()) {
+            Column(Modifier.padding(start = 20.dp)) {
+                SectionHeader(title = "Recently Added TV", ctaText = "All Shows") {
+                    onViewMoviesClicked()
                 }
                 TvRow(shows = recentlyAdded.tvShows, onClick = onMediaClick)
-                RowSpace()
             }
+        }
 
-            RowTitle(text = "Popular Movies")
+        Column(Modifier.padding(start = 20.dp)) {
+            SectionHeader(title = "Popular Movies")
             MovieRow(
-                movies = popular.movies,
+                movies = popular.movies.toList(),
                 onClick = onMediaClick,
                 onPlayClick = onContinueWatchingClick,
             )
-            RowSpace()
-
-            RowTitle(text = "Popular TV")
-            TvRow(shows = popular.tvShows, onClick = { })
-            RowSpace()
         }
     }
 }
@@ -203,19 +186,14 @@ private fun ContinueWatchingRow(
         horizontalArrangement = Arrangement.spacedBy(CARD_SPACING),
         modifier = modifier,
         content = {
-            items(playbackStates) { playbackState ->
+            itemsIndexed(playbackStates) { index, playbackState ->
                 currentlyWatchingMovies[playbackState.id]?.also { movie ->
-                    val mediaItem = MediaItem(
-                        mediaId = movie.gid,
-                        contentTitle = movie.title,
-                        backdropPath = movie.backdropPath,
-                        posterPath = movie.posterPath,
-                        mediaLinks = emptyList(),
-                        releaseDate = movie.releaseDate,
-                        subtitle1 = movie.releaseDate?.split("-")?.first(),
-                        overview = "",
+                    PosterCard(
+                        title = movie.title,
+                        imagePath = movie.posterPath,
+                        onClick = { onClick(playbackState.metadataGid) },
+                        onPlayClick = { onClick(playbackState.mediaLinkGid) },
                     )
-                    WatchingCard(mediaItem, playbackState, onClick)
                 }
                 currentlyWatchingTv[playbackState.id]?.also { (episode, show) ->
                     val mediaItem = MediaItem(
@@ -231,6 +209,10 @@ private fun ContinueWatchingRow(
                     )
                     WatchingCard(mediaItem, playbackState, onClick)
                 }
+
+                if (index == playbackStates.lastIndex) {
+                    Spacer(Modifier.width(24.dp))
+                }
             }
         },
     )
@@ -242,7 +224,6 @@ private fun WatchingCard(
     playbackState: PlaybackState,
     onClick: (mediaLinkId: String) -> Unit,
 ) {
-    val coroutineScope = rememberCoroutineScope()
     Card(
         shape = RoundedCornerShape(2.dp),
         modifier = Modifier
@@ -256,7 +237,7 @@ private fun WatchingCard(
                     .fillMaxWidth(),
             ) {
                 KamelImage(
-                    resource = asyncPainterResource(data = Url("https://image.tmdb.org/t/p/w300${mediaItem.backdropPath}")),
+                    resource = asyncPainterResource(data = Url("https://image.tmdb.org/t/p/w300${mediaItem.posterPath}")),
                     contentDescription = null,
                     onLoading = {
                         Box(
@@ -311,20 +292,23 @@ private fun WatchingCard(
 
 @Composable
 private fun MovieRow(
-    movies: Map<Movie, MediaLink?>,
+    movies: List<Pair<Movie, MediaLink?>>,
     onClick: (mediaLinkId: String?) -> Unit,
     onPlayClick: (mediaLinkId: String?) -> Unit,
 ) {
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(CARD_SPACING),
         content = {
-            items(movies.toList()) { (movie, mediaLink) ->
+            itemsIndexed(movies) { index, (movie, mediaLink) ->
                 PosterCard(
                     title = movie.title,
                     imagePath = movie.posterPath,
-                    onClick = { mediaLink?.run { onClick(metadataGid) } },
+                    onClick = { onClick(movie.gid) },
                     onPlayClick = { mediaLink?.run { onPlayClick(gid) } },
                 )
+                if (index == movies.lastIndex) {
+                    Spacer(Modifier.width(24.dp))
+                }
             }
         },
     )
@@ -338,24 +322,17 @@ private fun TvRow(
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(CARD_SPACING),
         content = {
-            items(shows) { show ->
+            itemsIndexed(shows) { index, show ->
                 PosterCard(
                     title = show.name,
                     imagePath = show.posterPath,
                     onClick = { onClick(show.gid) },
                     onPlayClick = { onClick(show.gid) },
                 )
+                if (index == shows.lastIndex) {
+                    Spacer(Modifier.width(24.dp))
+                }
             }
         },
-    )
-}
-
-@Composable
-private fun RowTitle(text: String) {
-    Text(
-        text = text,
-        fontSize = 24.sp,
-        style = Typography().h3,
-        modifier = Modifier.padding(vertical = 8.dp),
     )
 }

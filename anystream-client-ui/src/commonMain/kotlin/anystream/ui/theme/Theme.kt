@@ -27,11 +27,11 @@ internal fun AppTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         colors = colors,
         content = content,
-        typography = AppTypography,
+        typography = getTypography(),
     )
 }
 
 internal val colors = darkColors(
-    primary = Color.Red,
+    primary = Color(0xFFE21221),
     background = Color(0xFF181A20),
 )

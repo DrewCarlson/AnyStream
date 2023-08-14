@@ -20,23 +20,23 @@ package anystream.routing
 sealed class Routes {
     abstract val path: String
 
-    object Login : Routes() {
+    data object Login : Routes() {
         override val path: String = "login"
     }
 
-    object Home : Routes() {
+    data object Home : Routes() {
         override val path: String = "home"
     }
 
-    object PairingScanner : Routes() {
+    data object PairingScanner : Routes() {
         override val path: String = "pairing-scanner"
     }
 
-    object Movies : Routes() {
+    data object Movies : Routes() {
         override val path: String = "movies"
     }
 
-    object Tv : Routes() {
+    data object Tv : Routes() {
         override val path: String = "tv"
     }
 

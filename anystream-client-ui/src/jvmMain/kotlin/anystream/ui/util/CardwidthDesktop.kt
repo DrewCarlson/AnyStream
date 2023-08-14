@@ -17,7 +17,6 @@
  */
 package anystream.ui.util
 
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.input.pointer.PointerEventType
@@ -33,7 +32,6 @@ actual val cardWidth: Dp
         return (screenWidth.dp / 5).coerceAtMost(250.dp)
     }
 
-@OptIn(ExperimentalComposeUiApi::class)
 actual fun Modifier.pointerMover(
     onHover: (Boolean) -> Unit,
 ): Modifier = composed {

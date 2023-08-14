@@ -37,7 +37,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.autofill.AutofillType
 import androidx.compose.ui.focus.onFocusChanged
@@ -87,7 +86,6 @@ internal fun LoginScreen(client: AnyStreamClient, router: SharedRouter) {
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 internal fun FormBody(
     model: LoginScreenModel,

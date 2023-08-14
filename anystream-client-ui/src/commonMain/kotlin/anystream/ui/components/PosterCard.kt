@@ -21,6 +21,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -28,17 +29,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Card
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.runtime.Composable
@@ -48,89 +45,92 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import anystream.ui.util.cardWidth
+import anystream.ui.theme.AppTheme
 import anystream.ui.util.pointerMover
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
 import io.ktor.http.Url
 
 @Composable
-fun PosterCard(
+internal fun PosterCard(
     title: String,
     imagePath: String?,
     onClick: () -> Unit,
     onPlayClick: () -> Unit,
     modifier: Modifier = Modifier,
-    preferredWidth: Dp = 130.dp,
+    preferredWidth: Dp = 150.dp,
+    aspectRatio: Float = .75f,
 ) {
     var showPlayButtonOverlay by remember { mutableStateOf(false) }
 
-    Card(
-        modifier
+    Column(
+        modifier = Modifier.widthIn(0.dp, preferredWidth)
             .clickable(onClick = onClick)
             .pointerMover { showPlayButtonOverlay = it },
-        shape = RoundedCornerShape(size = 4.dp),
+        verticalArrangement = Arrangement.spacedBy(0.dp),
     ) {
-        Column(Modifier.width(preferredWidth), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Surface(
-                shape = RoundedCornerShape(bottomStart = 4.dp, bottomEnd = 4.dp),
-                modifier = Modifier.aspectRatio(ratio = 0.69f),
-            ) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    KamelImage(
-                        resource = asyncPainterResource(data = Url("https://image.tmdb.org/t/p/w200$imagePath")),
-                        contentDescription = "Profile",
-                        onLoading = {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(Color.DarkGray),
-                            )
-                        },
-                        onFailure = { },
-                        animationSpec = tween(),
+        Box(modifier = Modifier.fillMaxSize()) {
+            KamelImage(
+                resource = asyncPainterResource(data = Url("https://image.tmdb.org/t/p/w200$imagePath")),
+                contentDescription = "Profile",
+                onLoading = {
+                    Box(
+                        modifier = Modifier
+                            .aspectRatio(aspectRatio)
+                            .background(
+                                color = Color(0xFFBDBDBD),
+                                shape = RoundedCornerShape(size = 6.dp),
+                            ),
                     )
+                },
+                onFailure = { },
+                animationSpec = tween(),
+                modifier = Modifier
+                    .aspectRatio(aspectRatio)
+                    .shadow(elevation = 8.dp, RoundedCornerShape(6.dp))
+                    .background(Color.White, RoundedCornerShape(6.dp))
+                    .clip(RoundedCornerShape(6.dp)),
+                contentScale = ContentScale.FillBounds,
+            )
 
-                    Column(
-                        Modifier.matchParentSize(),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
-                        AnimatedVisibility(
-                            showPlayButtonOverlay,
-                            enter = fadeIn(tween(600)),
-                            exit = fadeOut(tween(1500)),
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.PlayCircle,
-                                contentDescription = null,
-                                modifier = Modifier.size(cardWidth / 4)
-                                    .background(MaterialTheme.colors.background, CircleShape)
-                                    .clickable(showPlayButtonOverlay, onClick = onPlayClick)
-                                    .padding(2.dp),
-                                tint = Color.Red,
-                            )
-                        }
-                    }
+            Column(
+                modifier = Modifier.matchParentSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                AnimatedVisibility(
+                    visible = showPlayButtonOverlay,
+                    enter = fadeIn(tween(600)),
+                    exit = fadeOut(tween(1500)),
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.PlayCircle,
+                        contentDescription = null,
+                        modifier = Modifier.size(preferredWidth / 4)
+                            .background(MaterialTheme.colors.background, CircleShape)
+                            .clickable(showPlayButtonOverlay, onClick = onPlayClick)
+                            .padding(2.dp),
+                        tint = Color.Red,
+                    )
                 }
-            }
-
-            Box(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)) {
-                Text(
-                    text = title,
-                    maxLines = 2,
-                    minLines = 2,
-                    style = TextStyle(fontSize = 14.sp),
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.fillMaxWidth(),
-                )
             }
         }
     }
+}
+
+@Preview
+@Composable
+private fun PosterCardPreview() = AppTheme {
+    PosterCard(
+        title = "Gremlins",
+        imagePath = "",
+        onClick = {},
+        onPlayClick = {},
+    )
 }

@@ -15,16 +15,11 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.ui.util
+package androidx.compose.desktop.ui.tooling.preview
 
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
-
-actual val cardWidth: Dp
-    @Composable
-    get() = (LocalConfiguration.current.screenWidthDp / 2).coerceAtMost(180).dp
-
-actual fun Modifier.pointerMover(onHover: (Boolean) -> Unit): Modifier = this
+// Allows DesktopPreview in CommonMain
+@Retention(AnnotationRetention.SOURCE)
+@Target(
+    AnnotationTarget.FUNCTION,
+)
+annotation class Preview
