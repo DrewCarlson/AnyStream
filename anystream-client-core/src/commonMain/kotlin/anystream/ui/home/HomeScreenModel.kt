@@ -17,25 +17,15 @@
  */
 package anystream.ui.home
 
+import anystream.models.MediaLink
+import anystream.models.Movie
 import anystream.models.api.HomeResponse
-import anystream.ui.login.LoginScreenModel
 
 data class HomeScreenModel(
     val homeResponse: LoadableDataState<HomeResponse> = LoadableDataState.Loading,
 ) {
-    companion object {
-        fun create(): HomeScreenModel {
-            return HomeScreenModel()
-        }
-
-        fun create(serverUrl: String, supportsPairing: Boolean): LoginScreenModel {
-            return LoginScreenModel(
-                serverUrl = serverUrl,
-                supportsPairing = supportsPairing,
-                serverValidation = LoginScreenModel.ServerValidation.VALID,
-            )
-        }
-    }
+    val popular: List<Pair<Movie, MediaLink?>>
+        get() = homeResponse.dataOrNull?.popular?.movies?.toList()?.take(7).orEmpty()
 }
 
 sealed class LoadableDataState<out T> {

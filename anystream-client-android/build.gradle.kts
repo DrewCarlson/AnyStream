@@ -5,10 +5,10 @@ plugins {
 
 android {
     namespace = "anystream.android"
-    compileSdk = 33
+    compileSdk = 34
     defaultConfig {
         minSdk = 24
-        targetSdk = 33
+        targetSdk = 34
     }
     buildFeatures {
         compose = true

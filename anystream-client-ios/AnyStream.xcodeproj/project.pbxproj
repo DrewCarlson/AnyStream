@@ -94,7 +94,6 @@
 		3AA9F5C827A4CAE30002D864 /* AnyStream */ = {
 			isa = PBXGroup;
 			children = (
-				3AA9F5F327A4CC060002D864 /* UI */,
 				3AA9F5C927A4CAE30002D864 /* AnyStreamApp.swift */,
 				3AA9F5CB27A4CAE30002D864 /* ContentView.swift */,
 				3AA9F60427A4E2130002D864 /* Resources */,
@@ -127,37 +126,6 @@
 				3AA9F5E627A4CAE50002D864 /* AnyStreamUITestsLaunchTests.swift */,
 			);
 			path = AnyStreamUITests;
-			sourceTree = "<group>";
-		};
-		3AA9F5F327A4CC060002D864 /* UI */ = {
-			isa = PBXGroup;
-			children = (
-				3AA9F5FF27A4DD2B0002D864 /* Util */,
-				3AA9F5FC27A4DBA90002D864 /* Screens */,
-				3AA9F5F727A4DA930002D864 /* Components */,
-			);
-			path = UI;
-			sourceTree = "<group>";
-		};
-		3AA9F5F727A4DA930002D864 /* Components */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Components;
-			sourceTree = "<group>";
-		};
-		3AA9F5FC27A4DBA90002D864 /* Screens */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Screens;
-			sourceTree = "<group>";
-		};
-		3AA9F5FF27A4DD2B0002D864 /* Util */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Util;
 			sourceTree = "<group>";
 		};
 		3AA9F60427A4E2130002D864 /* Resources */ = {

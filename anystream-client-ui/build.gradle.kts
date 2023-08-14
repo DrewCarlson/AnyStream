@@ -15,6 +15,14 @@ if (hasAndroidSdk) {
         sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
         sourceSets["main"].resources.srcDirs("src/commonMain/resources")
         sourceSets["main"].res.srcDirs("src/androidMain/res", "src/commonMain/resources")
+
+        // needed for @Preview
+        buildFeatures {
+            compose = true
+        }
+        composeOptions {
+            kotlinCompilerExtensionVersion = "1.5.0"
+        }
     }
 }
 
@@ -52,6 +60,10 @@ kotlin {
         all {
             languageSettings {
                 optIn("kotlinx.cinterop.ExperimentalForeignApi")
+                optIn("androidx.compose.foundation.ExperimentalFoundationApi")
+                optIn("org.jetbrains.compose.resources.ExperimentalResourceApi")
+                optIn("androidx.compose.material.ExperimentalMaterialApi")
+                optIn("androidx.compose.ui.ExperimentalComposeUiApi")
             }
         }
 

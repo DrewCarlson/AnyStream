@@ -288,8 +288,8 @@ private fun BaseDetailsView(
                 modifier = Modifier.size(26.dp),
             )
             Text(
-                if (mediaItem.playbackState != null) "Resume" else "Play",
-                Modifier.padding(start = 4.dp),
+                text = if (mediaItem.playbackState != null) "Resume" else "Play",
+                modifier = Modifier.padding(start = 4.dp),
             )
         }
 
@@ -311,11 +311,7 @@ private fun MediaMetadata(mediaItem: MediaItem) {
             .padding(start = 16.dp),
     ) {
         Spacer(modifier = Modifier.weight(1f))
-        Text(
-            text = mediaItem.contentTitle,
-            color = Color(0xFFFFFFFF),
-            style = MaterialTheme.typography.body1,
-        )
+        Text(text = mediaItem.contentTitle, style = MaterialTheme.typography.body1)
         Spacer(Modifier.height(4.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             val items = remember(mediaItem) {
@@ -433,7 +429,6 @@ internal fun ExpandableText(overview: String) {
         Text(
             text = overview,
             modifier = Modifier.padding(16.dp).animateContentSize(),
-            color = MaterialTheme.colors.onSurface,
             style = MaterialTheme.typography.body1,
             maxLines = if (isExpanded) Int.MAX_VALUE else 3,
             overflow = TextOverflow.Ellipsis,

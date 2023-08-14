@@ -18,7 +18,7 @@
 package anystream.ui.movies
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -42,7 +42,6 @@ import anystream.ui.components.LoadingScreen
 import anystream.ui.components.PosterCard
 import anystream.ui.util.cardWidth
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun MoviesScreen(
     client: AnyStreamClient,
@@ -57,9 +56,7 @@ fun MoviesScreen(
             value = client.getMovies()
         }
 
-        AnimatedContent(
-            targetState = response,
-        ) { targetState ->
+        AnimatedContent(targetState = response) { targetState ->
             // Make sure to use `targetState`, not `state`.
             when (targetState.value) {
                 null -> LoadingScreen(padding)
@@ -88,7 +85,9 @@ private fun MovieGrid(
         modifier = Modifier
             .padding(paddingValues)
             .fillMaxSize(),
-        contentPadding = PaddingValues(all = 8.dp),
+        contentPadding = PaddingValues(20.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         items(movies) { movie ->
             val mediaLink by produceState<MediaLink?>(null, movie) {

@@ -22,6 +22,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 actual val cardWidth: Dp
-    get() = 130.dp
+    get() = 180.dp
 
 actual fun Modifier.pointerMover(onHover: (Boolean) -> Unit): Modifier = this

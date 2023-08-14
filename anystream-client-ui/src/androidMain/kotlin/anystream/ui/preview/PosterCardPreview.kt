@@ -15,16 +15,28 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.ui.util
+package anystream.ui.preview
 
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.tooling.preview.Preview
+import anystream.ui.components.PosterCard
+import anystream.ui.home.MediaCarousel
+import anystream.ui.theme.AppTheme
 
-actual val cardWidth: Dp
-    @Composable
-    get() = (LocalConfiguration.current.screenWidthDp / 2).coerceAtMost(180).dp
+@Preview
+@Composable
+private fun PosterCardPreview() = AppTheme {
+    PosterCard(
+        title = "Gremlins",
+        imagePath = "",
+        onClick = {},
+        onPlayClick = {},
+    )
+}
 
-actual fun Modifier.pointerMover(onHover: (Boolean) -> Unit): Modifier = this
+@Preview
+@Composable
+private fun MediaCarousel_Preview() = AppTheme {
+    MediaCarousel(rememberPagerState(0) { 5 }, media = listOf())
+}

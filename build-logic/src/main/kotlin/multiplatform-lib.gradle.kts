@@ -10,7 +10,7 @@ apply(plugin = "kotlinx-atomicfu")
 if (hasAndroidSdk) {
     apply(plugin = "com.android.library")
     configure<LibraryExtension> {
-        compileSdk = 33
+        compileSdk = 34
         defaultConfig {
             minSdk = 23
             testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
