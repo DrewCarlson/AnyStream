@@ -175,7 +175,9 @@ private fun RecentlyAdded.RecentlyAddedMovies(sizeMultiplier: Float) {
                     }
                 },
                 subtitle1 = movie.releaseDate?.run {
-                    { Text(substringBefore("-")) }
+                    {
+                        Text(substringBefore("-"))
+                    }
                 },
                 posterPath = movie.posterPath,
                 isAdded = true,
@@ -225,7 +227,9 @@ private fun Popular.PopularMovies(sizeMultiplier: Float) {
                     }
                 },
                 subtitle1 = movie.releaseDate?.run {
-                    { Text(substringBefore("-")) }
+                    {
+                        Text(substringBefore("-"))
+                    }
                 },
                 posterPath = movie.posterPath,
                 isAdded = link != null,
@@ -252,7 +256,9 @@ private fun Popular.PopularTvShows(sizeMultiplier: Float) {
                     }
                 },
                 subtitle1 = tvShow.firstAirDate?.run {
-                    { Text(substringBefore("-")) }
+                    {
+                        Text(substringBefore("-"))
+                    }
                 },
                 posterPath = tvShow.posterPath,
                 isAdded = tvShow.isAdded,

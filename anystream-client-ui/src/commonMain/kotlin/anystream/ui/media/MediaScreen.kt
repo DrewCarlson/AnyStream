@@ -89,7 +89,9 @@ fun MediaScreen(
 ) {
     val lookupIdFlow = remember(mediaId) { MutableStateFlow<Int?>(null) }
     val refreshMetadata: () -> Unit = remember {
-        { lookupIdFlow.update { (it ?: 0) + 1 } }
+        {
+            lookupIdFlow.update { (it ?: 0) + 1 }
+        }
     }
     val mediaResponse by produceState<MediaLookupResponse?>(null, mediaId) {
         value = try {

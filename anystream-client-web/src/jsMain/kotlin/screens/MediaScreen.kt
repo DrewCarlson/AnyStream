@@ -215,7 +215,10 @@ private fun BaseDetailsView(
                         }
                     }) {
                         Img("/images/tmdb-small.svg") {
-                            style { width(21.px); height(21.px) }
+                            style {
+                                width(21.px)
+                                height(21.px)
+                            }
                         }
                         Div { Text("$tmdbRating%") }
                     }

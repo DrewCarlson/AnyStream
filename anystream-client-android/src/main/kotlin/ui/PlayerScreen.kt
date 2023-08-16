@@ -34,7 +34,6 @@ import androidx.lifecycle.*
 import anystream.client.AnyStreamClient
 import anystream.models.PlaybackState
 import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.MediaItem as ExoMediaItem
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.ui.StyledPlayerView
 import kotlinx.coroutines.Dispatchers.Main
@@ -45,6 +44,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.google.android.exoplayer2.MediaItem as ExoMediaItem
 
 private const val PLAYER_STATE_UPDATE_INTERVAL = 250L
 private const val PLAYER_STATE_REMOTE_UPDATE_INTERVAL = 5_000L
