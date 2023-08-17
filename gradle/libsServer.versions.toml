@@ -1,6 +1,6 @@
 [versions]
 qbittorrent = "1.0.0-beta04"
-jdbi = "3.40.0"
+jdbi = "3.41.0"
 jdbc_sqlite = "3.42.0.0"
 kjob = "0.6.0"
 bouncy_castle = "1.70"
