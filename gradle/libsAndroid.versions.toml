@@ -57,7 +57,7 @@ koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose", versi
 
 coil = { module = "io.coil-kt:coil-compose", version = "2.4.0" }
 
-quickie-bundled = { module = "io.github.g00fy2.quickie:quickie-bundled", version = "1.7.0" }
+quickie-bundled = { module = "io.github.g00fy2.quickie:quickie-bundled", version = "1.8.0" }
 
 leakcanary = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
 
