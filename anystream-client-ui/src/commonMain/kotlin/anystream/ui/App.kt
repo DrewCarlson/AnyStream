@@ -31,6 +31,7 @@ import anystream.router.SharedRouter
 import anystream.routing.Routes
 import anystream.ui.home.HomeScreen
 import anystream.ui.login.LoginScreen
+import anystream.ui.login.WelcomeScreen
 import anystream.ui.media.MediaScreen
 import anystream.ui.movies.MoviesScreen
 import anystream.ui.theme.AppTheme
@@ -52,11 +53,11 @@ fun App() {
         AppTheme {
             BundleScope(null) {
                 val defaultRoute = when {
-                    !client.isAuthenticated() -> Routes.Login
+                    !client.isAuthenticated() -> Routes.Welcome
                     else -> Routes.Home
                 }
                 Router(
-                    defaultRoute::class.simpleName.orEmpty(),
+                    contextId = defaultRoute::class.simpleName.orEmpty(),
                     defaultRouting = defaultRoute,
                 ) { stack ->
                     LaunchedEffect(stack) {
@@ -65,7 +66,7 @@ fun App() {
                     remember {
                         client.authenticated
                             .onEach { authed ->
-                                val isLoginRoute = stack.last() == Routes.Login
+                                val isLoginRoute = stack.last() == Routes.Welcome
                                 if (authed && isLoginRoute) {
                                     stack.replace(Routes.Home)
                                 } else if (!authed && !isLoginRoute) {
@@ -75,6 +76,7 @@ fun App() {
                             .launchIn(scope)
                     }
                     when (val route = stack.last()) {
+                        Routes.Welcome -> WelcomeScreen { stack.push(Routes.Login) }
                         Routes.Login -> LoginScreen(client, router)
                         Routes.Home -> HomeScreen(
                             client = client,
@@ -108,11 +110,7 @@ fun App() {
                             },
                             backStack = stack,
                         )
-//                        Routes.Tv -> TODO("Tv route not implemented")
-//                        Routes.PairingScanner -> PairingScanner(
-//                            client = client,
-//                            backStack = stack,
-//                        )
+
                         is Routes.Details -> MediaScreen(
                             client = client,
                             mediaId = route.mediaRefId,
@@ -126,7 +124,11 @@ fun App() {
 
                         is Routes.Player -> SharedVideoPlayer(route, stack, client)
                         Routes.PairingScanner -> TODO()
-                        Routes.Tv -> TODO()
+//                        Routes.PairingScanner -> PairingScanner(
+//                            client = client,
+//                            backStack = stack,
+//                        )
+                        Routes.Tv -> TODO("Tv route not implemented")
                     }
                 }
             }

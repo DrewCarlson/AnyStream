@@ -20,6 +20,10 @@ package anystream.routing
 sealed class Routes {
     abstract val path: String
 
+    data object Welcome : Routes() {
+        override val path: String = "welcome"
+    }
+
     data object Login : Routes() {
         override val path: String = "login"
     }

@@ -17,20 +17,35 @@
  */
 package anystream.ui.login
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Button
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
+import androidx.compose.material.TextFieldDefaults
+import androidx.compose.material.TopAppBar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,25 +55,33 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.autofill.AutofillType
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalAutofill
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import anystream.client.AnyStreamClient
 import anystream.router.SharedRouter
-import anystream.ui.components.AppTopBar
 import anystream.ui.components.AutofillInput
+import anystream.ui.components.PrimaryButton
 import anystream.ui.components.onFocusStateChanged
 import anystream.util.createLoopController
 import kt.mobius.Mobius
 import kt.mobius.SimpleLogger
 import kt.mobius.flow.FlowMobius
 import kt.mobius.functions.Consumer
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 internal fun LoginScreen(client: AnyStreamClient, router: SharedRouter) {
@@ -72,16 +95,49 @@ internal fun LoginScreen(client: AnyStreamClient, router: SharedRouter) {
     }
 
     Scaffold(
-        topBar = { AppTopBar(client = null) },
-    ) { padding ->
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize(),
-        ) {
-            item {
-                FormBody(modelState.value, eventConsumerState.value, padding)
+        topBar = {
+            TopAppBar(backgroundColor = Color.Transparent, elevation = 0.dp) {
+                IconButton(
+                    onClick = { router.popCurrentRoute() },
+                    content = {
+                        Icon(
+                            imageVector = Icons.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = MaterialTheme.colors.onBackground,
+                        )
+                    },
+                )
             }
+        },
+    ) { padding ->
+        val imePadding = with(LocalDensity.current) {
+            WindowInsets.ime.getBottom(this).div(2).toDp()
+        }
+        val animatedImePadding by animateDpAsState(imePadding)
+        val focusManager = LocalFocusManager.current
+        Column(
+            modifier = Modifier.fillMaxSize()
+                .padding(vertical = 16.dp, horizontal = 24.dp)
+                .padding(bottom = animatedImePadding)
+                .verticalScroll(rememberScrollState())
+                .pointerInput(Unit) {
+                    detectTapGestures {
+                        focusManager.clearFocus(force = true)
+                    }
+                },
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Image(
+                painter = painterResource("logo_login.xml"),
+                contentDescription = null,
+                modifier = Modifier.size(120.dp),
+            )
+            Text(
+                text = "Login to Your Account",
+                style = MaterialTheme.typography.h3.copy(textAlign = TextAlign.Center),
+                modifier = Modifier.padding(vertical = 16.dp),
+            )
+            FormBody(modelState.value, eventConsumerState.value, padding)
         }
     }
 }
@@ -96,77 +152,52 @@ internal fun FormBody(
     var usernameValue by remember { mutableStateOf(TextFieldValue(model.username)) }
     var passwordValue by remember { mutableStateOf(TextFieldValue(model.password)) }
 
-    val imePadding = with(LocalDensity.current) {
-        WindowInsets.ime.getBottom(this).toDp()
-    }
-    val animatedImePadding by animateDpAsState(imePadding)
     Column(
-        verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(paddingValues)
-            .padding(bottom = animatedImePadding),
+        modifier = Modifier.fillMaxSize()
+            .padding(paddingValues),
     ) {
-        OutlinedTextField(
-            value = serverUrlValue,
-            placeholder = { Text("Server Url") },
+        OutlineTextField(
+            textFieldValue = serverUrlValue,
             onValueChange = {
                 serverUrlValue = it
                 eventConsumer.accept(LoginScreenEvent.OnServerUrlChanged(it.text))
             },
-            readOnly = model.isInputLocked(),
+            leadingIconId = "ic_discovery.xml",
+            placeHolder = "Server URL",
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Uri,
                 imeAction = ImeAction.Next,
             ),
-            singleLine = true,
+            isError = model.serverValidation == LoginScreenModel.ServerValidation.INVALID,
+            readOnly = model.isInputLocked(),
+        )
+        ErrorText(
+            isError = model.serverValidation == LoginScreenModel.ServerValidation.INVALID,
+            errorText = model.loginError?.usernameError?.name.orEmpty(),
+            label = "Server URL is",
         )
 
+        Spacer(Modifier.height(24.dp))
         AutofillInput(
             autofillTypes = listOf(AutofillType.EmailAddress, AutofillType.Username),
             onFill = { eventConsumer.accept(LoginScreenEvent.OnUsernameChanged(it)) },
         ) { node ->
             val autofill = LocalAutofill.current
-            OutlinedTextField(
-                value = usernameValue,
-                placeholder = { Text(text = "Username") },
+            OutlineTextField(
+                textFieldValue = usernameValue,
                 onValueChange = {
                     usernameValue = it
                     eventConsumer.accept(LoginScreenEvent.OnUsernameChanged(it.text))
                 },
-                singleLine = true,
-                readOnly = model.isInputLocked(),
+                leadingIconId = "ic_message.xml",
+                placeHolder = "Username",
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Next,
                 ),
-                modifier = Modifier.onGloballyPositioned {
-                    node.boundingBox = it.boundsInWindow()
-                }.onFocusChanged {
-                    autofill?.onFocusStateChanged(it, node)
-                },
-            )
-        }
-        AutofillInput(
-            autofillTypes = listOf(AutofillType.Password),
-            onFill = { eventConsumer.accept(LoginScreenEvent.OnPasswordChanged(it)) },
-        ) { node ->
-            val autofill = LocalAutofill.current
-            OutlinedTextField(
-                value = passwordValue,
-                placeholder = { Text(text = "Password") },
-                visualTransformation = PasswordVisualTransformation(),
-                onValueChange = {
-                    passwordValue = it
-                    eventConsumer.accept(LoginScreenEvent.OnPasswordChanged(it.text))
-                },
-                singleLine = true,
+                isError = model.loginError?.usernameError != null,
                 readOnly = model.isInputLocked(),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Password,
-                    imeAction = ImeAction.Go,
-                ),
                 modifier = Modifier.onGloballyPositioned {
                     node.boundingBox = it.boundsInWindow()
                 }.onFocusChanged {
@@ -175,12 +206,122 @@ internal fun FormBody(
             )
         }
 
-        Button(
-            onClick = {
-                eventConsumer.accept(LoginScreenEvent.OnLoginSubmit)
-            },
-        ) {
-            Text(text = "Submit")
+        ErrorText(
+            isError = model.loginError?.usernameError != null,
+            errorText = model.loginError?.usernameError?.name.orEmpty(),
+            label = "Username is ",
+        )
+        Spacer(Modifier.height(24.dp))
+
+        AutofillInput(
+            autofillTypes = listOf(AutofillType.Password),
+            onFill = { eventConsumer.accept(LoginScreenEvent.OnPasswordChanged(it)) },
+        ) { node ->
+            val autofill = LocalAutofill.current
+            OutlineTextField(
+                textFieldValue = passwordValue,
+                onValueChange = {
+                    passwordValue = it
+                    eventConsumer.accept(LoginScreenEvent.OnPasswordChanged(it.text))
+                },
+                leadingIconId = "ic_lock.xml",
+                placeHolder = "Password",
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Password,
+                    imeAction = ImeAction.Go,
+                ),
+                visualTransformation = PasswordVisualTransformation(),
+                isError = model.loginError?.passwordError != null,
+                readOnly = model.isInputLocked(),
+                modifier = Modifier.onGloballyPositioned {
+                    node.boundingBox = it.boundsInWindow()
+                }.onFocusChanged {
+                    autofill?.onFocusStateChanged(it, node)
+                },
+            )
         }
+        ErrorText(
+            isError = model.loginError?.passwordError != null,
+            errorText = model.loginError?.passwordError?.name.orEmpty(),
+            label = "Password is",
+        )
+
+        Spacer(Modifier.height(24.dp))
+        PrimaryButton(
+            text = "Sign In",
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+            isLoading = model.state.isAuthenticating,
+            onClick = { eventConsumer.accept(LoginScreenEvent.OnLoginSubmit) },
+        )
     }
+}
+
+@Composable
+private fun ColumnScope.ErrorText(
+    isError: Boolean,
+    errorText: String,
+    label: String,
+) {
+    AnimatedVisibility(
+        visible = isError,
+        modifier = Modifier.align(Alignment.Start),
+    ) {
+        Text(
+            text = "$label ${errorText.lowercase()}",
+            style = MaterialTheme.typography.subtitle2,
+            modifier = Modifier.padding(top = 4.dp),
+            color = MaterialTheme.colors.error,
+        )
+    }
+}
+
+@Composable
+private fun OutlineTextField(
+    textFieldValue: TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit,
+    leadingIconId: String?,
+    placeHolder: String,
+    keyboardOptions: KeyboardOptions,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
+    isError: Boolean,
+    readOnly: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    OutlinedTextField(
+        value = textFieldValue,
+        placeholder = {
+            Text(
+                text = placeHolder,
+                style = MaterialTheme.typography.body2.copy(
+                    letterSpacing = 0.2.sp,
+                    fontWeight = FontWeight.SemiBold,
+                ),
+                color = Color(0xFF9E9E9E),
+            )
+        },
+        onValueChange = onValueChange,
+        textStyle = MaterialTheme.typography.body2.copy(
+            letterSpacing = 0.2.sp,
+            fontWeight = FontWeight.SemiBold,
+        ),
+        readOnly = readOnly,
+        keyboardOptions = keyboardOptions,
+        leadingIcon = {
+            leadingIconId?.let {
+                Icon(painterResource(it), contentDescription = null)
+            }
+        },
+        visualTransformation = visualTransformation,
+        modifier = Modifier.fillMaxWidth().then(modifier),
+        shape = RoundedCornerShape(12.dp),
+        singleLine = true,
+        isError = isError,
+        colors = TextFieldDefaults.outlinedTextFieldColors(
+            focusedBorderColor = MaterialTheme.colors.onBackground,
+            unfocusedBorderColor = Color.Transparent,
+            backgroundColor = if (isError) Color(0x14E21221) else Color(0xFF1F222A),
+            textColor = MaterialTheme.colors.onBackground,
+            errorLeadingIconColor = MaterialTheme.colors.error,
+        ),
+    )
 }
