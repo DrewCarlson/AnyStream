@@ -34,4 +34,5 @@ internal fun AppTheme(content: @Composable () -> Unit) {
 internal val colors = darkColors(
     primary = Color(0xFFE21221),
     background = Color(0xFF181A20),
+    error = Color(0xFFE21221),
 )

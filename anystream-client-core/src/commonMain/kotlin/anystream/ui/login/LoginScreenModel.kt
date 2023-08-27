@@ -30,7 +30,10 @@ data class LoginScreenModel(
     val loginError: CreateSessionResponse.Error? = null,
 ) {
     enum class State {
-        IDLE, AUTHENTICATING, AUTHENTICATED,
+        IDLE, AUTHENTICATING, AUTHENTICATED;
+
+        val isAuthenticating: Boolean
+            get() = this == AUTHENTICATING
     }
 
     enum class ServerValidation {

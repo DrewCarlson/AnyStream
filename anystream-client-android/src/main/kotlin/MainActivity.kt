@@ -77,6 +77,7 @@ open class MainActivity : AppCompatActivity() {
                                     .launchIn(scope)
                             }
                             when (val route = stack.last()) {
+                                Routes.Welcome,
                                 Routes.Login -> LoginScreen(client, androidRouter)
                                 Routes.Home -> HomeScreen(
                                     client = client,
