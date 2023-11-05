@@ -12,7 +12,7 @@ ax_runner = "1.5.2"
 leakcanary = "2.12"
 koin = "3.4.3"
 koinKtor = "3.4.3"
-kamelImage = "0.7.0"
+kamelImage = "0.8.3"
 
 mobiuskt = "0.6.0"
 
