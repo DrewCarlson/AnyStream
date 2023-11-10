@@ -22,7 +22,7 @@ jobs:
       any: ${{ steps.check.outputs.any_changed }}
       docs: ${{ steps.docs.outputs.any_changed }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: 'recursive'
           fetch-depth: 0
@@ -61,7 +61,7 @@ jobs:
         with:
           strip_v: true
           env_var_name: AS_VERSION
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Deploy docs
         uses: mhausenblas/mkdocs-deploy-gh-pages@1.26
         env:
@@ -79,7 +79,7 @@ jobs:
     if: needs.file-changes.outputs.any == 'true' || startsWith(github.ref, 'refs/tags/v')
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: 'recursive'
 
