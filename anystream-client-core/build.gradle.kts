@@ -10,24 +10,9 @@ dependencies {
     add("kspCommonMainMetadata", libsClient.mobiuskt.updateGenerator)
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>>().all {
-    if (name != "kspCommonMainKotlinMetadata") {
-        dependsOn("kspCommonMainKotlinMetadata")
-    }
-}
-
-tasks.findByName("lintKotlinCommonMain")?.apply {
-    dependsOn("kspCommonMainKotlinMetadata")
-}
-
-tasks.findByName("formatKotlinCommonMain")?.apply {
-    dependsOn("kspCommonMainKotlinMetadata")
-}
-
 kotlin {
     sourceSets {
         val commonMain by getting {
-            kotlin.srcDir("build/generated/ksp/metadata/$name/kotlin")
             dependencies {
                 api(projects.anystreamDataModels)
                 implementation(libsCommon.atomicfu)

@@ -83,19 +83,19 @@ class AnyStreamClient(
     val token: String?
         get() = sessionManager.fetchToken()
 
-    private val _serverUrl = atomic("")
-    private val _serverUrlWss = atomic("")
+    private val serverUrlInternal = atomic("")
+    private val serverUrlWssInternal = atomic("")
     var serverUrl: String
-        get() = _serverUrl.value
+        get() = serverUrlInternal.value
         private set(value) {
             val trimmedUrl = value.trimEnd('/')
-            _serverUrl.value = trimmedUrl
-            _serverUrlWss.value = trimmedUrl
+            serverUrlInternal.value = trimmedUrl
+            serverUrlWssInternal.value = trimmedUrl
                 .replace("https://", "wss://", ignoreCase = true)
                 .replace("http://", "ws://", ignoreCase = true)
         }
     private val serverUrlWs: String
-        get() = _serverUrlWss.value
+        get() = serverUrlWssInternal.value
 
     init {
         this.serverUrl = serverUrl ?: sessionManager.fetchServerUrl() ?: ""

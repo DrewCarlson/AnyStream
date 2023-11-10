@@ -1,4 +1,3 @@
-@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     id("server-lib")
     alias(libsCommon.plugins.ksp)
@@ -29,12 +28,4 @@ dependencies {
 
     testImplementation(kotlin("test"))
     testImplementation(kotlin("test-junit"))
-}
-
-tasks.named("formatKotlinMain").configure {
-    dependsOn("kspKotlin")
-}
-
-tasks.named("lintKotlinMain").configure {
-    dependsOn("kspKotlin")
 }

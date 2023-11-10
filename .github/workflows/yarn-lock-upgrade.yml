@@ -6,7 +6,7 @@ on:
       - 'renovate/**'
 
 concurrency:
-  group: ${{ github.head_ref || github.run_id }}
+  group: yarn-upgrade-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
 jobs:

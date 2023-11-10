@@ -1,6 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
-@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     id("server-lib")
     alias(libsCommon.plugins.serialization)

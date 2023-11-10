@@ -1,20 +1,20 @@
 [versions]
 qbittorrent = "1.0.0-beta04"
-jdbi = "3.41.0"
-jdbc_sqlite = "3.42.0.0"
+jdbi = "3.41.3"
+jdbc_sqlite = "3.42.0.1"
 kjob = "0.6.0"
 bouncy_castle = "1.70"
-jaffree = "2022.06.03"
+jaffree = "2023.09.10"
 logback = "1.4.11"
 koinKtor = "3.4.3"
-icu4j = "73.2"
-mockk = "1.13.7"
+icu4j = "74.1"
+mockk = "1.13.8"
 
 [plugins]
 shadowjar = { id = "com.github.johnrengelman.shadow", version = "8.1.1" }
 
 [libraries]
-flyway-core = { module = "org.flywaydb:flyway-core", version = "9.21.2" }
+flyway-core = { module = "org.flywaydb:flyway-core", version = "9.22.3" }
 fastObjectPool = { module = "cn.danielw:fast-object-pool", version = "2.2.1" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 

@@ -52,7 +52,7 @@ fun PairingScanner(
             if (result is QRResult.QRSuccess) {
                 val user = client.user.filterNotNull().first()
                 try {
-                    client.login(user.username, result.content.rawValue, pairing = true)
+                    client.login(user.username, result.content.rawValue.orEmpty(), pairing = true)
                 } catch (e: ClientRequestException) {
                     e.printStackTrace()
                 }

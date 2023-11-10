@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     kotlin("android")
+    alias(libsCommon.plugins.spotless)
 }
 
 android {
@@ -61,7 +62,9 @@ dependencies {
     implementation(libsAndroid.androidx.activity.compose)
     implementation(libsAndroid.androidx.lifecycle.viewmodel.compose)
     implementation(libsAndroid.bundles.compose)
-    implementation(libsAndroid.coil)
+    implementation(libsClient.compose.foundation)
+    implementation(libsClient.compose.material)
+    implementation(libsClient.coil)
     implementation(libsAndroid.bundles.exoplayer)
     implementation(libsAndroid.zxing.core)
     implementation(libsAndroid.quickie.bundled)
@@ -78,5 +81,16 @@ dependencies {
     androidTestImplementation(libsCommon.coroutines.test) {
         // conflicts with mockito due to direct inclusion of byte buddy
         exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-coroutines-debug")
+    }
+}
+
+afterEvaluate {
+    spotless {
+        kotlin {
+            target("**/**.kt")
+            licenseHeaderFile(rootDir.resolve("licenseHeader.txt"))
+            //ktlint(libsCommon.versions.ktlint.get())
+            //    .setEditorConfigPath(rootDir.resolve(".editorconfig"))
+        }
     }
 }

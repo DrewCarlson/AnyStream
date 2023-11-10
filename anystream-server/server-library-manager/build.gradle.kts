@@ -1,4 +1,3 @@
-@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     id("server-lib")
     alias(libsCommon.plugins.serialization)
