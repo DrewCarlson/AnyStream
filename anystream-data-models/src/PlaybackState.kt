@@ -24,10 +24,13 @@ import kotlinx.serialization.Serializable
 data class PlaybackState(
     val id: String,
     val mediaLinkGid: String,
-    val metadataGid: String, // TODO: Make optional
+    // TODO: Make optional
+    val metadataGid: String,
     val userId: Int,
-    val position: Double, // TODO: Use Duration
-    val runtime: Double, // TODO: Use Duration
+    // TODO: Use Duration
+    val position: Double,
+    // TODO: Use Duration
+    val runtime: Double,
     val updatedAt: Instant,
 ) {
     val completedPercent: Float

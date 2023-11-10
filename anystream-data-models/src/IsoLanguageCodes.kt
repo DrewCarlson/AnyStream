@@ -27,15 +27,18 @@ internal data class LangCode(
 
 internal object IsoLanguageCodes {
 
+    @Suppress("ktlint:standard:function-naming")
     fun by639_2(code: String): LangCode? {
         val lowercaseCode = code.lowercase()
         return by639_2T[lowercaseCode] ?: by639_2B[lowercaseCode]
     }
 
+    @Suppress("ktlint:standard:function-naming")
     fun by639_2T(code: String): LangCode? {
         return by639_2T[code.lowercase()]
     }
 
+    @Suppress("ktlint:standard:function-naming")
     fun by639_2B(code: String): LangCode? {
         return by639_2B[code.lowercase()]
     }

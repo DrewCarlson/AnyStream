@@ -6,6 +6,7 @@ dependencies {
     implementation(libsCommon.agp)
     implementation(libsCommon.kotlin.gradle.plugin)
     implementation(libsCommon.ksp)
+    implementation("com.diffplug.spotless:spotless-plugin-gradle:${libsCommon.versions.spotless.get()}")
     implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.8.0")
 }
 

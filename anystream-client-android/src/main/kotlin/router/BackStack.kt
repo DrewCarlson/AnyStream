@@ -53,7 +53,8 @@ class BackStack<T> internal constructor(
         } else {
             onElementRemoved.invoke(lastIndex)
             elements = ArrayList(
-                elements.subList(0, lastIndex), // exclusive
+                // exclusive
+                elements.subList(0, lastIndex),
             )
             true
         }

@@ -1,9 +1,6 @@
-import com.diffplug.gradle.spotless.SpotlessApply
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
-import org.jmailen.gradle.kotlinter.tasks.ConfigurableKtLintTask
 
-@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     alias(libsCommon.plugins.multiplatform) apply false
     alias(libsCommon.plugins.jvm) apply false
@@ -11,8 +8,6 @@ plugins {
     alias(libsClient.plugins.composejb) apply false
     alias(libsServer.plugins.shadowjar) apply false
     alias(libsCommon.plugins.ksp) apply false
-    alias(libsCommon.plugins.spotless)
-    alias(libsCommon.plugins.kotlinter) apply false
     alias(libsCommon.plugins.kover)
     alias(libsCommon.plugins.downloadPlugin) apply false
 }
@@ -60,26 +55,4 @@ subprojects {
 
     apply(plugin = "org.jetbrains.kotlinx.kover")
     kover {}
-
-    apply(plugin = "com.diffplug.spotless")
-    configure<com.diffplug.gradle.spotless.SpotlessExtension> {
-        kotlin {
-            target("**/**.kt")
-            licenseHeaderFile(rootDir.resolve("licenseHeader.txt"))
-        }
-    }
-
-    apply(plugin = "org.jmailen.kotlinter")
-
-    configure<org.jmailen.gradle.kotlinter.KotlinterExtension> {
-    }
-
-    val generatedDir = File(buildDir, "generated").absolutePath
-    tasks.withType<ConfigurableKtLintTask> {
-        exclude { it.file.absolutePath.startsWith(generatedDir) }
-    }
-
-    tasks.withType<SpotlessApply> {
-        dependsOn("formatKotlin")
-    }
 }

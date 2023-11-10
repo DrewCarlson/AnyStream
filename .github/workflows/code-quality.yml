@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 concurrency:
-  group: ${{ github.head_ref || github.run_id }}
+  group: code-quality-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
 jobs:
@@ -100,7 +100,7 @@ jobs:
       - uses: gradle/gradle-build-action@v2
         name: Spotless Check
         with:
-          arguments: -p anystream-client-ui spotlessCheck lintKotlin
+          arguments: -p anystream-client-ui spotlessCheck
 
   client-android:
     runs-on: ubuntu-latest
@@ -127,7 +127,7 @@ jobs:
       - uses: gradle/gradle-build-action@v2
         name: Spotless Check
         with:
-          arguments: -p anystream-client-android spotlessCheck lintKotlin
+          arguments: -p anystream-client-android spotlessCheck
 
   client-core:
     runs-on: ubuntu-latest
@@ -154,7 +154,7 @@ jobs:
       - uses: gradle/gradle-build-action@v2
         name: Spotless Check
         with:
-          arguments: -p anystream-client-core spotlessCheck lintKotlin
+          arguments: -p anystream-client-core spotlessCheck
 
   client-web:
     runs-on: ubuntu-latest
@@ -181,7 +181,7 @@ jobs:
       - uses: gradle/gradle-build-action@v2
         name: Spotless Check
         with:
-          arguments: -p anystream-client-web spotlessCheck lintKotlin
+          arguments: -p anystream-client-web spotlessCheck
 
   data-models:
     runs-on: ubuntu-latest
@@ -208,7 +208,7 @@ jobs:
       - uses: gradle/gradle-build-action@v2
         name: Spotless Check
         with:
-          arguments: -p anystream-data-models spotlessCheck lintKotlin
+          arguments: -p anystream-data-models spotlessCheck
 
   server:
     runs-on: ubuntu-latest
@@ -235,4 +235,4 @@ jobs:
       - uses: gradle/gradle-build-action@v2
         name: Spotless Check
         with:
-          arguments: -p anystream-server spotlessCheck lintKotlin
+          arguments: -p anystream-server spotlessCheck

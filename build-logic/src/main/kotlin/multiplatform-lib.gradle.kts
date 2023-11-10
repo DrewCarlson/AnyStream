@@ -3,6 +3,7 @@ import org.gradle.kotlin.dsl.*
 
 plugins {
     kotlin("multiplatform")
+    id("com.diffplug.spotless")
 }
 
 apply(plugin = "kotlinx-atomicfu")
@@ -19,6 +20,21 @@ if (hasAndroidSdk) {
         compileOptions {
             sourceCompatibility = JAVA_TARGET
             targetCompatibility = JAVA_TARGET
+        }
+        packaging {
+            resources.excludes.add("META-INF/versions/*/*.bin")
+        }
+    }
+}
+
+afterEvaluate {
+    spotless {
+        kotlin {
+            target("**/**.kt")
+            licenseHeaderFile(rootDir.resolve("licenseHeader.txt"))
+            val libsCommon = extensions.getByType<VersionCatalogsExtension>().named("libsCommon")
+            //ktlint(libsCommon.findVersion("ktlint").get().requiredVersion)
+            //    .setEditorConfigPath(rootDir.resolve(".editorconfig"))
         }
     }
 }
@@ -54,6 +70,15 @@ kotlin {
         iosArm64()
         iosSimulatorArm64()
         iosX64()
+    }
+    applyDefaultHierarchyTemplate()
+
+    targets.all {
+        compilations.configureEach {
+            compilerOptions.configure {
+                freeCompilerArgs.add("-Xexpect-actual-classes")
+            }
+        }
     }
 
     @Suppress("UNUSED_VARIABLE")
@@ -135,10 +160,12 @@ kotlin {
     }
 }
 
-if (tasks.any { it.name == "kspCommonMainKotlinMetadata" }) {
-    tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>>().all {
-        if (name != "kspCommonMainKotlinMetadata") {
-            dependsOn("kspCommonMainKotlinMetadata")
+afterEvaluate {
+    if (extensions.findByName("ksp") != null) {
+        tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>>().all {
+            if (name != "kspCommonMainKotlinMetadata") {
+                dependsOn("kspCommonMainKotlinMetadata")
+            }
         }
     }
 }

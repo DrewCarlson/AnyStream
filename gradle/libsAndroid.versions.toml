@@ -1,16 +1,14 @@
 [versions]
 zxing = "3.5.1"
 anr_watchdog = "1.4.0"
-compose = "1.5.0"
-compose_material = "1.5.0"
-compose_foundation = "1.5.0"
-composeCompiler = "1.5.0"
+compose = "1.5.4"
+composeCompiler = "1.5.4"
 exoplayer = "2.19.1"
 media3 = "1.1.1"
 ax_runner = "1.5.2"
 leakcanary = "2.12"
-koinAndroid = "3.4.3"
-koinAndroidxCompose = "3.4.6"
+koinAndroid = "3.5.0"
+koinAndroidxCompose = "3.5.0"
 
 okhttp = "5.0.0-alpha.11"
 
@@ -35,18 +33,15 @@ media3-cast = { module = "androidx.media3:media3-cast", version.ref = "media3" }
 
 compose-ui-ui = { module = "androidx.compose.ui:ui", version.ref = "compose" }
 compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
-compose-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "compose_foundation" }
-compose-icons = { module = "androidx.compose.material:material-icons-extended", version.ref = "compose_material" }
-compose-material = { module = "androidx.compose.material:material", version.ref = "compose_material" }
 compose-livedata = { module = "androidx.compose.runtime:runtime-livedata", version.ref = "compose" }
 compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
 
-androidx-core-ktx = { module = "androidx.core:core-ktx", version = "1.10.1" }
+androidx-core-ktx = { module = "androidx.core:core-ktx", version = "1.12.0" }
 androidx-appcompat-core = { module = "androidx.appcompat:appcompat", version = "1.6.1" }
 androidx-leanback-core = { module = "androidx.leanback:leanback", version = "1.1.0-rc02" }
-androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version = "1.7.2" }
-androidx-activity-compose = { module = "androidx.activity:activity-compose", version = "1.7.2" }
-androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version = "2.6.1" }
+androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version = "1.8.0" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version = "1.8.0" }
+androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version = "2.6.2" }
 androidx-test-runner = { module = "androidx.test:runner", version.ref = "ax_runner" }
 
 koin-android = { module = "io.insert-koin:koin-android", version.ref = "koinAndroid" }
@@ -55,13 +50,11 @@ koin-android-workmanager = { module = "io.insert-koin:koin-android-navigation", 
 koin-android-navigation = { module = "io.insert-koin:koin-android-navigation", version.ref = "koinAndroid" }
 koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koinAndroidxCompose" }
 
-coil = { module = "io.coil-kt:coil-compose", version = "2.4.0" }
-
-quickie-bundled = { module = "io.github.g00fy2.quickie:quickie-bundled", version = "1.7.0" }
+quickie-bundled = { module = "io.github.g00fy2.quickie:quickie-bundled", version = "1.8.0" }
 
 leakcanary = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
 
 [bundles]
 exoplayer = ["exoplayer-core", "exoplayer-ui", "exoplayer-hls"]
 media3 = ["media3-core", "media3-ui", "media3-hls", "media3-okhttp", "media3-cast", "media3-session"]
-compose = ["compose-ui-ui", "compose-ui-tooling", "compose-foundation", "compose-material", "compose-livedata"]
+compose = ["compose-ui-ui", "compose-ui-tooling", "compose-livedata"]

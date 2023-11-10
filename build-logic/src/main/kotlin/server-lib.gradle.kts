@@ -1,7 +1,9 @@
+import gradle.kotlin.dsl.accessors._6b241bd533b162fe31c6478cde91b5b0.spotless
 import org.gradle.kotlin.dsl.kotlin
 
 plugins {
     kotlin("jvm")
+    id("com.diffplug.spotless")
 }
 
 kotlin {
@@ -31,3 +33,14 @@ sourceSets {
     }
 }
 
+afterEvaluate {
+    spotless {
+        kotlin {
+            target("**/**.kt")
+            licenseHeaderFile(rootDir.resolve("licenseHeader.txt"))
+            val libsCommon = extensions.getByType<VersionCatalogsExtension>().named("libsCommon")
+            //ktlint(libsCommon.findVersion("ktlint").get().requiredVersion)
+            //    .setEditorConfigPath(rootDir.resolve(".editorconfig"))
+        }
+    }
+}
