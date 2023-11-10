@@ -4,6 +4,7 @@ import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig.*
 plugins {
     kotlin("multiplatform")
     id("org.jetbrains.compose")
+    alias(libsCommon.plugins.spotless)
 }
 
 val localProperties = gradleLocalProperties(rootDir)
@@ -18,12 +19,12 @@ kotlin {
         useCommonJs()
         browser {
             binaries.executable()
-            commonWebpackConfig(Action {
+            commonWebpackConfig {
                 cssSupport {
                     enabled.set(true)
                 }
-            })
-            runTask(Action {
+            }
+            runTask {
                 val anystreamUrl = localProperties.getProperty("anystream.serverUrl", "http://localhost:8888")
                 mainOutputFileName.set("main.bundle.js")
                 devtool = "eval-source-map"
@@ -41,11 +42,11 @@ kotlin {
                         )
                     ),
                 )
-            })
-            webpackTask(Action {
+            }
+            webpackTask {
                 mainOutputFileName.set("main.bundle.js")
                 //devtool = "eval-source-map"
-            })
+            }
         }
     }
 
@@ -85,6 +86,17 @@ kotlin {
                 implementation(devNpm("postcss-loader", "7.2.4"))
                 implementation(devNpm("autoprefixer", "10.4.14"))
             }
+        }
+    }
+}
+
+afterEvaluate {
+    spotless {
+        kotlin {
+            target("**/**.kt")
+            licenseHeaderFile(rootDir.resolve("licenseHeader.txt"))
+            //ktlint(libsCommon.versions.ktlint.get())
+            //    .setEditorConfigPath(rootDir.resolve(".editorconfig"))
         }
     }
 }
