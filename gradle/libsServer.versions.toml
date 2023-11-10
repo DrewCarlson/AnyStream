@@ -6,7 +6,7 @@ kjob = "0.6.0"
 bouncy_castle = "1.70"
 jaffree = "2023.09.10"
 logback = "1.4.11"
-koinKtor = "3.4.3"
+koinKtor = "3.5.1"
 icu4j = "74.1"
 mockk = "1.13.8"
 
