@@ -1,17 +1,16 @@
 [versions]
-zxing = "3.5.1"
+zxing = "3.5.2"
 anr_watchdog = "1.4.0"
-compose = "1.5.0"
+compose = "1.5.4"
 compose_material = "1.5.4"
 compose_foundation = "1.5.4"
-composejb = "1.5.0-rc01"
+composejb = "1.5.10"
 composejb_compile = "1.5.3"
 exoplayer = "2.19.1"
 media3 = "1.1.1"
 ax_runner = "1.5.2"
 leakcanary = "2.12"
-koin = "3.4.3"
-koinKtor = "3.4.3"
+koinKtor = "3.5.1"
 kamelImage = "0.8.3"
 
 mobiuskt = "0.6.0"
@@ -58,8 +57,6 @@ koin-slf4j = { module = "io.insert-koin:koin-logger-slf4j", version.ref = "koinK
 coil = { module = "io.coil-kt:coil-compose", version = "2.5.0" }
 kamel-image = { module = "media.kamel:kamel-image", version.ref = "kamelImage" }
 routingCompose = { module = "app.softwork:routing-compose", version = "0.2.12" }
-
-quickie-bundled = { module = "io.github.g00fy2.quickie:quickie-bundled", version = "1.7.0" }
 
 leakcanary = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
 

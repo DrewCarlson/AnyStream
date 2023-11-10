@@ -89,8 +89,8 @@ kotlin {
             val androidMain by getting {
                 dependsOn(commonMain)
                 dependencies {
-                    implementation(libsAndroid.compose.ui.tooling)
-                    implementation(libsAndroid.compose.ui.tooling.preview)
+                    implementation(libsClient.compose.ui.tooling)
+                    implementation(libsClient.compose.ui.tooling.preview)
                     implementation(libsAndroid.bundles.media3)
                     implementation(libsAndroid.androidx.activity.ktx)
                     implementation(libsAndroid.androidx.activity.compose)

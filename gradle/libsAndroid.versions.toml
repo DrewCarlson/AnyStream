@@ -1,7 +1,6 @@
 [versions]
 zxing = "3.5.1"
 anr_watchdog = "1.4.0"
-compose = "1.5.4"
 composeCompiler = "1.5.4"
 exoplayer = "2.19.1"
 media3 = "1.1.1"
@@ -31,10 +30,6 @@ media3-okhttp = { module = "androidx.media3:media3-datasource-okhttp", version.r
 media3-session = { module = "androidx.media3:media3-session", version.ref = "media3" }
 media3-cast = { module = "androidx.media3:media3-cast", version.ref = "media3" }
 
-compose-ui-ui = { module = "androidx.compose.ui:ui", version.ref = "compose" }
-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
-compose-livedata = { module = "androidx.compose.runtime:runtime-livedata", version.ref = "compose" }
-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
 
 androidx-core-ktx = { module = "androidx.core:core-ktx", version = "1.12.0" }
 androidx-appcompat-core = { module = "androidx.appcompat:appcompat", version = "1.6.1" }
@@ -46,7 +41,7 @@ androidx-test-runner = { module = "androidx.test:runner", version.ref = "ax_runn
 
 koin-android = { module = "io.insert-koin:koin-android", version.ref = "koinAndroid" }
 koin-android-compat = { module = "io.insert-koin:koin-android-compat", version.ref = "koinAndroid" }
-koin-android-workmanager = { module = "io.insert-koin:koin-android-navigation", version.ref = "koinAndroid" }
+koin-android-workmanager = { module = "io.insert-koin:koin-android-workmanager", version.ref = "koinAndroid" }
 koin-android-navigation = { module = "io.insert-koin:koin-android-navigation", version.ref = "koinAndroid" }
 koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koinAndroidxCompose" }
 
@@ -57,4 +52,3 @@ leakcanary = { module = "com.squareup.leakcanary:leakcanary-android", version.re
 [bundles]
 exoplayer = ["exoplayer-core", "exoplayer-ui", "exoplayer-hls"]
 media3 = ["media3-core", "media3-ui", "media3-hls", "media3-okhttp", "media3-cast", "media3-session"]
-compose = ["compose-ui-ui", "compose-ui-tooling", "compose-livedata"]
