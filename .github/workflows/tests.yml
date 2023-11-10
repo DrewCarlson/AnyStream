@@ -25,7 +25,7 @@ jobs:
       web: ${{ steps.web.outputs.any_changed }}
       server: ${{ steps.server.outputs.any_changed }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: 'recursive'
           fetch-depth: 0
@@ -111,7 +111,7 @@ jobs:
         os: [ ubuntu-latest, macos-latest ] #windows-latest
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: 'recursive'
 
@@ -155,7 +155,7 @@ jobs:
         os: [ ubuntu-latest, macos-latest ] #windows-latest
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: 'recursive'
 
@@ -196,7 +196,7 @@ jobs:
     if: needs.file-changes.outputs.android == 'true' || github.ref_name == 'main'
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: 'recursive'
 
@@ -243,7 +243,7 @@ jobs:
         os: [ ubuntu-latest ] # macos-latest, windows-latest
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: 'recursive'
 
@@ -282,7 +282,7 @@ jobs:
   server-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: 'recursive'
 
@@ -327,7 +327,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ server-tests, client-core-tests, client-web-tests ]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Download kover reports
         uses: actions/download-artifact@v3
         with:
