@@ -19,19 +19,20 @@ package anystream.client
 
 import java.util.prefs.Preferences
 
+// Note: All keys are lowercased for Windows registry storage
 internal class DesktopSessionDataStore(
-    private val prefs: Preferences = Preferences.userRoot().node("AnyStream"),
+    private val prefs: Preferences = Preferences.userRoot().node("anystream.client"),
 ) : SessionDataStore {
 
     override fun write(key: String, value: String) {
-        prefs.put(key, value)
+        prefs.put(key.lowercase(), value)
     }
 
     override fun read(key: String): String? {
-        return prefs.get(key, null)
+        return prefs.get(key.lowercase(), null)
     }
 
     override fun remove(key: String) {
-        prefs.remove(key)
+        prefs.remove(key.lowercase())
     }
 }
