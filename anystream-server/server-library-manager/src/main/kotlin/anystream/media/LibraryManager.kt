@@ -40,7 +40,6 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
 import org.jdbi.v3.core.JdbiException
 import org.slf4j.LoggerFactory
-import java.io.File
 import java.io.IOException
 import java.nio.file.*
 import java.util.concurrent.TimeUnit
@@ -70,6 +69,7 @@ class LibraryManager(
     private val processors: List<MediaFileProcessor>,
     private val mediaLinkDao: MediaLinkDao,
     private val metadataDao: MetadataDao,
+    private val fs: FileSystem = FileSystems.getDefault()
 ) {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
@@ -84,12 +84,12 @@ class LibraryManager(
     val mediaScannerState: StateFlow<MediaScannerState> = mediaFileScanner.state
 
     fun addLibraryFolder(userId: Int, path: String, mediaKind: MediaKind): AddLibraryFolderResult {
-        val libraryFile = File(path)
-        if (!libraryFile.exists() || !libraryFile.isDirectory) {
+        val libraryFile = Path(path)
+        if (!libraryFile.exists() || !libraryFile.isDirectory()) {
             logger.debug("Invalid library folder path '{}'", path)
             return AddLibraryFolderResult.FileError(
                 exists = libraryFile.exists(),
-                isDirectory = libraryFile.isDirectory,
+                isDirectory = false,
             )
         }
 
@@ -151,9 +151,9 @@ class LibraryManager(
             val rootLinks = mediaLinkDao
                 .findByDescriptor(MediaLink.Descriptor.ROOT_DIRECTORY)
                 .mapNotNull(MediaLinkDb::filePath)
-            val (foldersList, filesList) = File.listRoots().orEmpty().partition(File::isDirectory)
-            folders = rootLinks + foldersList.map(File::getAbsolutePath).filterNot(rootLinks::contains)
-            files = filesList.map(File::getAbsolutePath)
+            val (foldersList, filesList) = fs.rootDirectories.partition { it.isDirectory() }
+            folders = rootLinks + foldersList.map(Path::absolutePathString).filterNot(rootLinks::contains)
+            files = filesList.map(Path::absolutePathString)
         } else {
             val rootDir = try {
                 FileSystems.getDefault().getPath(root)
@@ -302,7 +302,7 @@ class LibraryManager(
     }
 
     private suspend fun processMediaFileStreams(mediaLink: MediaLinkDb): MediaAnalyzerResult {
-        if (!File(mediaLink.filePath.orEmpty()).exists()) {
+        if (!Path(mediaLink.filePath.orEmpty()).exists()) {
             logger.error("Media file reference path does not exist: {} {}", mediaLink.id, mediaLink.filePath)
             return MediaAnalyzerResult.ErrorFileNotFound
         }
@@ -339,15 +339,14 @@ class LibraryManager(
 
     // Within a specified content directory, find all content unknown to anystream
     fun findUnmappedFiles(request: MediaScanRequest): List<String> {
-        val contentFile = File(request.filePath)
-        if (!contentFile.exists()) {
+        val contentFile = Path(request.filePath)
+        if (!contentFile.exists() || !contentFile.isDirectory()) {
             return emptyList()
         }
 
         val mediaLinkPaths = mediaLinkDao.findAllFilePaths()
-        return contentFile.listFiles()
-            .orEmpty()
-            .map(File::getAbsolutePath)
+        return contentFile.listDirectoryEntries()
+            .map(Path::absolutePathString)
             .filter { filePath ->
                 mediaLinkPaths.none { ref ->
                     ref.startsWith(filePath)
@@ -399,7 +398,7 @@ class LibraryManager(
         directories: List<Path>,
         onEach: suspend (Path, unregister: (Path) -> Unit) -> Unit,
     ): Flow<Path> {
-        val watchService = FileSystems.getDefault().newWatchService()
+        val watchService = fs.newWatchService()
         val watchKeys = mutableMapOf<WatchKey, Path>()
         val unregisterPath = { path: Path ->
             val pathString = path.absolutePathString()
@@ -439,22 +438,4 @@ class LibraryManager(
         }.flowOn(Dispatchers.IO)
             .onEach { onEach(it, unregisterPath) }
     }
-}
-
-sealed class AddLibraryFolderResult {
-
-    data class Success(
-        val mediaLink: MediaLinkDb,
-    ) : AddLibraryFolderResult()
-
-    data class FileError(
-        val exists: Boolean,
-        val isDirectory: Boolean,
-    ) : AddLibraryFolderResult()
-
-    object LinkAlreadyExists : AddLibraryFolderResult()
-
-    data class DatabaseError(
-        val exception: JdbiException,
-    ) : AddLibraryFolderResult()
 }

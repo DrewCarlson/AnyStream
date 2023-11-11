@@ -69,7 +69,7 @@ class MediaFileScanner(
                 Descriptor.AUDIO,
                 Descriptor.SUBTITLE,
                 Descriptor.IMAGE,
-                -> scanFileLink(mediaLink) // TODO: Fix this lint rule
+                -> scanFileLink(mediaLink)
             }
         } finally {
             removeGidOrIdleState(mediaLink.gid)
@@ -150,7 +150,7 @@ class MediaFileScanner(
             .filter { file ->
                 // Ignore files with existing links or unrecognized file types
                 file.isFile && !existingFilePaths.contains(file.absolutePath) &&
-                    file.extension.lowercase().run(allFilterExtensions::contains)
+                        file.extension.lowercase().run(allFilterExtensions::contains)
             }
             .groupBy { file ->
                 if (targetFolder == file.parentFile) {

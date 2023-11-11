@@ -29,7 +29,9 @@ import anystream.models.MediaLink
 import anystream.models.Movie
 import anystream.models.api.*
 import org.slf4j.LoggerFactory
-import java.io.File
+import kotlin.io.path.Path
+import kotlin.io.path.extension
+import kotlin.io.path.nameWithoutExtension
 
 class MovieFileProcessor(
     private val metadataManager: MetadataManager,
@@ -131,7 +133,7 @@ class MovieFileProcessor(
     }
 
     private suspend fun findMatchesForFile(mediaLink: MediaLinkDb, import: Boolean): MediaLinkMatchResult {
-        val movieFile = File(requireNotNull(mediaLink.filePath))
+        val movieFile = Path(requireNotNull(mediaLink.filePath))
         if (!VIDEO_EXTENSIONS.contains(movieFile.extension)) {
             return MediaLinkMatchResult.NoSupportedFiles(mediaLink.toModel())
         }

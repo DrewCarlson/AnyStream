@@ -26,7 +26,11 @@ import anystream.metadata.MetadataManager
 import anystream.models.*
 import anystream.models.api.*
 import org.slf4j.LoggerFactory
-import java.io.File
+import java.nio.file.Path
+import kotlin.io.path.Path
+import kotlin.io.path.absolutePathString
+import kotlin.io.path.name
+import kotlin.io.path.nameWithoutExtension
 
 class TvFileProcessor(
     private val metadataManager: MetadataManager,
@@ -88,7 +92,7 @@ class TvFileProcessor(
             return MediaLinkMatchResult.NoSupportedFiles(mediaLink.toModel())
         }
 
-        val mediaName = File(path).name
+        val mediaName = Path(path).name
         val (movieName, year) = when (val result = fileNameParser.parseFileName(mediaName)) {
             is ParsedFileNameResult.Tv.ShowFolder -> result
             else -> {
@@ -167,7 +171,7 @@ class TvFileProcessor(
         match: MetadataMatch.TvShowMatch,
         show: TvShow,
     ) {
-        val file = File(checkNotNull(childDirLink.filePath))
+        val file = Path(checkNotNull(childDirLink.filePath))
         when (val result = fileNameParser.parseFileName(file.name)) {
             is ParsedFileNameResult.Tv.SeasonFolder -> {
                 mediaLinkDao.updateRootMetadataIds(
@@ -194,7 +198,7 @@ class TvFileProcessor(
             }
 
             else -> {
-                logger.warn("Expected '{}' to be a season folder but parsed {}", file.absolutePath, result)
+                logger.warn("Expected '{}' to be a season folder but parsed {}", file.absolutePathString(), result)
             }
         }
     }
@@ -204,10 +208,10 @@ class TvFileProcessor(
         match: MetadataMatch.TvShowMatch,
         seasonMatch: TvSeason,
         show: TvShow,
-        file: File,
+        file: Path,
         result: ParsedFileNameResult,
     ) {
-        val videoFile = File(checkNotNull(videoFileLink.filePath))
+        val videoFile = Path(checkNotNull(videoFileLink.filePath))
         when (val videoParseResult = fileNameParser.parseFileName(videoFile.nameWithoutExtension)) {
             is ParsedFileNameResult.Tv.EpisodeFile -> {
                 val episodeMatch = match.episodes.find {
@@ -229,7 +233,7 @@ class TvFileProcessor(
             }
 
             else -> {
-                logger.warn("Expected '{}' to be an episode file but parsed {}", file.absolutePath, result)
+                logger.warn("Expected '{}' to be an episode file but parsed {}", file.absolutePathString(), result)
             }
         }
     }
@@ -397,7 +401,7 @@ class TvFileProcessor(
         return //
     }*/
 
-    private suspend fun findOrImportShow(metadataGid: String?, rootFolder: File): MetadataMatch.TvShowMatch? {
+    private suspend fun findOrImportShow(metadataGid: String?, rootFolder: Path): MetadataMatch.TvShowMatch? {
         val results = if (metadataGid == null) {
             logger.debug("Searching for TV Show by folder name '{}'.", rootFolder.name)
             queryShowTitle(rootFolder.name)
