@@ -70,6 +70,8 @@ jobs:
           architecture: x64
           cache: 'pip'
           cache-dependency-path: 'docs/requirements.txt'
+      - name: Install Python dependencies
+        run: python3 -m pip install -r ./docs/requirements.txt
       - name: Deploy with mike (release)
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
