@@ -56,6 +56,7 @@ kotlin {
                 optIn("kotlinx.coroutines.ExperimentalCoroutinesApi")
                 optIn("kotlinx.coroutines.FlowPreview")
                 optIn("kotlin.time.ExperimentalTime")
+                optIn("kt.mobius.compose.ExperimentalMobiusktComposeApi")
             }
         }
         named("jsMain") {
@@ -66,6 +67,7 @@ kotlin {
 
                 implementation(compose.html.core)
                 implementation(compose.runtime)
+                implementation(libsClient.mobiuskt.compose)
                 implementation(libsClient.routingCompose)
 
                 implementation(libsClient.kotlinjs.extensions)

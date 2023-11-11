@@ -61,12 +61,11 @@ import anystream.ui.components.CarouselAutoPlayHandler
 import anystream.ui.components.LoadingScreen
 import anystream.ui.components.PagerIndicator
 import anystream.ui.components.PosterCard
-import anystream.util.createLoopController
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
 import io.ktor.http.Url
-import kt.mobius.Mobius
 import kt.mobius.SimpleLogger
+import kt.mobius.compose.rememberMobiusLoop
 import kt.mobius.flow.FlowMobius
 
 private val CARD_SPACING = 8.dp
@@ -80,13 +79,11 @@ fun HomeScreen(
     onViewMoviesClicked: () -> Unit,
 ) {
     Scaffold { paddingValues ->
-        val (modelState, eventConsumerState) = createLoopController {
-            val factory = FlowMobius.loop(
+        val (modelState, eventConsumer) = rememberMobiusLoop(HomeScreenModel(), HomeScreenInit) {
+            FlowMobius.loop(
                 HomeScreenUpdate,
                 HomeScreenHandler.create(client),
             ).logger(SimpleLogger("HomeScreen"))
-            val startModel = HomeScreenModel()
-            Mobius.controller(factory, startModel, HomeScreenInit)
         }
 
         AnimatedContent(targetState = modelState.value.homeResponse) { targetState ->

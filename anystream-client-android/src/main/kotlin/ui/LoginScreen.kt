@@ -49,10 +49,10 @@ import anystream.android.router.AndroidRouter
 import anystream.android.ui.components.AutofillInput
 import anystream.android.ui.components.QrImage
 import anystream.android.ui.components.onFocusStateChanged
-import anystream.android.util.createLoopController
 import anystream.client.AnyStreamClient
 import anystream.ui.login.*
 import kt.mobius.android.AndroidLogger
+import kt.mobius.compose.rememberMobiusLoop
 import kt.mobius.flow.FlowMobius
 import kt.mobius.functions.Consumer
 
@@ -68,7 +68,7 @@ fun LoginScreen(
             ?.run { currentModeType == Configuration.UI_MODE_TYPE_TELEVISION }
             ?: false
     }
-    val (modelState, eventConsumer) = createLoopController(
+    val (modelState, eventConsumer) = rememberMobiusLoop(
         LoginScreenModel.create(supportsPairing = supportsPairing),
         LoginScreenInit,
     ) {

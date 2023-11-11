@@ -41,6 +41,7 @@ android {
         "-opt-in=androidx.compose.ui.ExperimentalComposeUiApi",
         "-opt-in=androidx.compose.foundation.ExperimentalFoundationApi",
         "-opt-in=coil.annotation.ExperimentalCoilApi",
+        "-opt-in=kt.mobius.compose.ExperimentalMobiusktComposeApi",
     )
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

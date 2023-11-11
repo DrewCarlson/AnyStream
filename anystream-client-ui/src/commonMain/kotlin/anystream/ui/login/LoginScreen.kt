@@ -76,22 +76,22 @@ import anystream.router.SharedRouter
 import anystream.ui.components.AutofillInput
 import anystream.ui.components.PrimaryButton
 import anystream.ui.components.onFocusStateChanged
-import anystream.util.createLoopController
-import kt.mobius.Mobius
 import kt.mobius.SimpleLogger
+import kt.mobius.compose.rememberMobiusLoop
 import kt.mobius.flow.FlowMobius
 import kt.mobius.functions.Consumer
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
 internal fun LoginScreen(client: AnyStreamClient, router: SharedRouter) {
-    val (modelState, eventConsumerState) = createLoopController {
-        val factory = FlowMobius.loop(
+    val (modelState, eventConsumer) = rememberMobiusLoop(
+        LoginScreenModel.create(client.serverUrl, supportsPairing = false),
+        LoginScreenInit
+    ) {
+        FlowMobius.loop(
             LoginScreenUpdate,
             LoginScreenHandler.create(client, router),
         ).logger(SimpleLogger("Login"))
-        val startModel = LoginScreenModel.create(client.serverUrl, supportsPairing = false)
-        Mobius.controller(factory, startModel, LoginScreenInit)
     }
 
     Scaffold(
@@ -137,7 +137,7 @@ internal fun LoginScreen(client: AnyStreamClient, router: SharedRouter) {
                 style = MaterialTheme.typography.h3.copy(textAlign = TextAlign.Center),
                 modifier = Modifier.padding(vertical = 16.dp),
             )
-            FormBody(modelState.value, eventConsumerState.value, padding)
+            FormBody(modelState.value, eventConsumer, padding)
         }
     }
 }

@@ -7,7 +7,7 @@ plugins {
 apply(plugin = "kotlinx-atomicfu")
 
 dependencies {
-    add("kspCommonMainMetadata", libsClient.mobiuskt.updateGenerator)
+    add("kspCommonMainMetadata", libsClient.mobiuskt.codegen)
 }
 
 kotlin {
@@ -33,7 +33,7 @@ kotlin {
                 api(libsClient.mobiuskt.core)
                 api(libsClient.mobiuskt.extras)
                 api(libsClient.mobiuskt.coroutines)
-                implementation(libsClient.mobiuskt.updateGenerator.api)
+                implementation(libsClient.mobiuskt.codegen.api)
 
                 api(libsCommon.ktor.client.core)
                 api(libsCommon.ktor.client.websockets)

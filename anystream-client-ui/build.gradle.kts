@@ -64,6 +64,7 @@ kotlin {
                 optIn("org.jetbrains.compose.resources.ExperimentalResourceApi")
                 optIn("androidx.compose.material.ExperimentalMaterialApi")
                 optIn("androidx.compose.ui.ExperimentalComposeUiApi")
+                optIn("kt.mobius.compose.ExperimentalMobiusktComposeApi")
             }
         }
 
@@ -73,6 +74,7 @@ kotlin {
                 api(projects.anystreamDataModels)
                 api(libsClient.mobiuskt.core)
                 api(libsClient.mobiuskt.coroutines)
+                api(libsClient.mobiuskt.compose)
 
                 implementation(libsClient.kamel.image)
                 implementation(libsClient.koin.compose)

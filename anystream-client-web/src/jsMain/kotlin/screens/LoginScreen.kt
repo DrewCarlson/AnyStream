@@ -22,11 +22,10 @@ import anystream.client.AnyStreamClient
 import anystream.libs.QRCodeImage
 import anystream.routing.WebRouter
 import anystream.ui.login.*
-import anystream.util.createLoopController
 import anystream.util.get
 import app.softwork.routingcompose.Router
-import kt.mobius.Mobius
 import kt.mobius.SimpleLogger
+import kt.mobius.compose.rememberMobiusLoop
 import kt.mobius.flow.FlowMobius
 import org.jetbrains.compose.web.attributes.*
 import org.jetbrains.compose.web.css.*
@@ -36,17 +35,17 @@ import org.jetbrains.compose.web.dom.*
 fun LoginScreen() {
     val router = Router.current
     val client = get<AnyStreamClient>()
-    val (modelState, eventConsumerState) = createLoopController {
-        val factory = FlowMobius.loop(
+    val (modelState, eventConsumer) = rememberMobiusLoop(
+        LoginScreenModel.create(client.serverUrl, supportsPairing = true),
+        LoginScreenInit
+    ) {
+        FlowMobius.loop(
             LoginScreenUpdate,
             LoginScreenHandler.create(client, WebRouter(router)),
         ).logger(SimpleLogger("Login"))
-        val startModel = LoginScreenModel.create(client.serverUrl, supportsPairing = true)
-        Mobius.controller(factory, startModel, LoginScreenInit)
     }
 
     val model by remember { modelState }
-    val eventConsumer by remember { eventConsumerState }
 
     Div({
         classes("d-flex", "flex-column", "justify-content-center", "align-items-center", "py-4")
@@ -57,7 +56,7 @@ fun LoginScreen() {
         Div { H3 { Text("Login") } }
         Div {
             Input(InputType.Text) {
-                onInput { eventConsumer.accept(LoginScreenEvent.OnUsernameChanged(it.value)) }
+                onInput { eventConsumer(LoginScreenEvent.OnUsernameChanged(it.value)) }
                 classes("form-control")
                 placeholder("Username")
                 type(InputType.Text)
@@ -66,7 +65,7 @@ fun LoginScreen() {
         }
         Div {
             Input(InputType.Text) {
-                onInput { eventConsumer.accept(LoginScreenEvent.OnPasswordChanged(it.value)) }
+                onInput { eventConsumer(LoginScreenEvent.OnPasswordChanged(it.value)) }
                 classes("form-control")
                 placeholder("Password")
                 type(InputType.Password)
@@ -81,7 +80,7 @@ fun LoginScreen() {
                 classes("btn", "btn-primary")
                 type(ButtonType.Button)
                 if (model.isInputLocked()) disabled()
-                onClick { eventConsumer.accept(LoginScreenEvent.OnLoginSubmit) }
+                onClick { eventConsumer(LoginScreenEvent.OnLoginSubmit) }
             }) {
                 Text("Confirm")
             }

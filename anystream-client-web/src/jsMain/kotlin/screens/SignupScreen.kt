@@ -24,13 +24,12 @@ import anystream.models.api.CreateUserResponse
 import anystream.routing.WebRouter
 import anystream.ui.signup.*
 import anystream.ui.signup.SignupScreenModel.State
-import anystream.util.createLoopController
 import anystream.util.get
 import app.softwork.routingcompose.Router
 import io.ktor.http.*
 import kotlinx.browser.window
-import kt.mobius.Mobius
 import kt.mobius.SimpleLogger
+import kt.mobius.compose.rememberMobiusLoop
 import kt.mobius.flow.FlowMobius
 import org.jetbrains.compose.web.attributes.*
 import org.jetbrains.compose.web.css.*
@@ -40,20 +39,18 @@ import org.jetbrains.compose.web.dom.*
 fun SignupScreen() {
     val router = Router.current
     val client = get<AnyStreamClient>()
-    val (modelState, eventConsumerState) = createLoopController {
-        val launchInviteCode = Url(window.location.href).parameters["inviteCode"]
-        Mobius.controller(
-            FlowMobius.loop(
-                SignupScreenUpdate,
-                SignupScreenHandler.create(client, WebRouter(router)),
-            ).logger(SimpleLogger("Signup")),
-            SignupScreenModel.create(client.serverUrl, launchInviteCode.orEmpty()),
-            SignupScreenInit,
-        )
+    val launchInviteCode = remember { Url(window.location.href).parameters["inviteCode"] }
+    val (modelState, eventConsumer) = rememberMobiusLoop(
+        SignupScreenModel.create(client.serverUrl, launchInviteCode.orEmpty()),
+        SignupScreenInit
+    ) {
+        FlowMobius.loop(
+            SignupScreenUpdate,
+            SignupScreenHandler.create(client, WebRouter(router)),
+        ).logger(SimpleLogger("Signup"))
     }
 
     val model by remember { modelState }
-    val eventConsumer by remember { eventConsumerState }
 
     Div({
         classes("d-flex", "flex-column", "justify-content-center", "align-items-center", "py-4")
@@ -64,7 +61,7 @@ fun SignupScreen() {
         Div { H3 { Text("Signup") } }
         Div {
             Input(InputType.Text) {
-                onInput { eventConsumer.accept(SignupScreenEvent.OnUsernameChanged(it.value)) }
+                onInput { eventConsumer(SignupScreenEvent.OnUsernameChanged(it.value)) }
                 classes("form-control")
                 placeholder("Username")
                 type(InputType.Text)
@@ -73,7 +70,7 @@ fun SignupScreen() {
         }
         Div {
             Input(InputType.Text) {
-                onInput { eventConsumer.accept(SignupScreenEvent.OnPasswordChanged(it.value)) }
+                onInput { eventConsumer(SignupScreenEvent.OnPasswordChanged(it.value)) }
                 classes("form-control")
                 placeholder("Password")
                 type(InputType.Password)
@@ -87,7 +84,7 @@ fun SignupScreen() {
                     if (model.isInviteCodeLocked) {
                         return@onInput it.preventDefault()
                     }
-                    eventConsumer.accept(SignupScreenEvent.OnInviteCodeChanged(it.value))
+                    eventConsumer(SignupScreenEvent.OnInviteCodeChanged(it.value))
                 }
                 classes("form-control")
                 placeholder("Invite Code")
@@ -106,7 +103,7 @@ fun SignupScreen() {
                 type(ButtonType.Button)
                 if (model.isInputLocked()) disabled()
                 onClick {
-                    eventConsumer.accept(SignupScreenEvent.OnSignupSubmit)
+                    eventConsumer(SignupScreenEvent.OnSignupSubmit)
                 }
             }) {
                 Text("Confirm")
