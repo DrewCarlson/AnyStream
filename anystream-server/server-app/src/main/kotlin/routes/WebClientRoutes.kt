@@ -22,14 +22,15 @@ import io.ktor.server.application.*
 import io.ktor.server.http.content.*
 import io.ktor.server.routing.*
 import org.koin.ktor.ext.get
-import java.io.File
+import kotlin.io.path.Path
+import kotlin.io.path.exists
 
 fun Application.installWebClientRoutes(config: AnyStreamConfig = get()) {
     if (config.disableWebClient) {
         log.debug("Web client disabled, this instance will serve the API only.")
     } else if (
         config.webClientPath.isNullOrBlank() ||
-        !File(config.webClientPath).exists() &&
+        !Path(config.webClientPath).exists() &&
         checkNotNull(javaClass.classLoader).getResource("anystream-client-web") != null
     ) {
         log.debug("This instance will serve the web client from jar resources.")
@@ -39,7 +40,7 @@ fun Application.installWebClientRoutes(config: AnyStreamConfig = get()) {
                 useResources = true
             }
         }
-    } else if (File(config.webClientPath).exists()) {
+    } else if (Path(config.webClientPath).exists()) {
         log.debug("This instance will serve the web client from '${config.webClientPath}'.")
         routing {
             singlePageApplication {

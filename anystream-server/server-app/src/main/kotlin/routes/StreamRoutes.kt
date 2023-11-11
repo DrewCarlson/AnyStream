@@ -40,7 +40,7 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.flow.*
 import kotlinx.serialization.encodeToString
 import org.drewcarlson.ktor.permissions.withPermission
-import java.io.File
+import kotlin.io.path.Path
 
 private const val PLAYBACK_COMPLETE_PERCENT = 90
 
@@ -112,7 +112,7 @@ fun Route.addStreamRoutes(
                     if (filePath == null) {
                         call.respond(NotFound)
                     } else {
-                        call.respond(LocalFileContent(File(filePath), ContentType.Video.MPEG))
+                        call.respond(LocalFileContent(Path(filePath).toFile(), ContentType.Video.MPEG))
                     }
                 }
             }

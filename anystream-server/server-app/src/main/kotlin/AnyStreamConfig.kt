@@ -18,7 +18,6 @@
 package anystream
 
 import io.ktor.server.config.*
-import java.io.File
 import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.createDirectories
@@ -26,19 +25,22 @@ import kotlin.io.path.exists
 
 class AnyStreamConfig(config: ApplicationConfig) {
 
+    private val configPath by lazy { Path(dataPath, "config").createDirectories() }
     val disableWebClient: Boolean = config.property("app.disableWebClient").getString().toBoolean()
     val webClientPath: String? = config.propertyOrNull("app.webClientPath")?.getString()
 
     val dataPath: String = config.propertyOrNull("app.dataPath")?.getString().let { path ->
-        val pathOrDefault = path.orEmpty().ifBlank { "${System.getProperty("user.home")}${File.separator}anystream" }
+        val pathOrDefault = path.orEmpty().ifBlank {
+            Path(System.getProperty("user.home"), "anystream").absolutePathString()
+        }
         Path(pathOrDefault).createDirectories().absolutePathString()
     }
 
-    val databaseUrl: String = "jdbc:" + config.property("app.databaseUrl").getString().ifBlank {
-        Path("${dataPath}${File.separator}config${File.separator}").run {
-            createDirectories()
-            "sqlite:${resolve("anystream.db").absolutePathString()}"
-        }
+    val databaseUrl: String = buildString {
+        append("jdbc:")
+        val databaseUrl = config.property("app.databaseUrl").getString()
+            .ifBlank { "sqlite:${configPath.resolve("anystream.db").absolutePathString()}" }
+        append(databaseUrl)
     }
 
     val transcodePath: String = config.property("app.transcodePath").getString()
