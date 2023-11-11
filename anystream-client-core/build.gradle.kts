@@ -12,6 +12,12 @@ dependencies {
 
 kotlin {
     sourceSets {
+        all {
+            languageSettings {
+                optIn("kt.mobius.gen.ExperimentalCodegenApi")
+            }
+        }
+
         val commonMain by getting {
             dependencies {
                 api(projects.anystreamDataModels)
@@ -68,7 +74,7 @@ kotlin {
             }
         }
 
-        val jvmMain by getting  {
+        val jvmMain by getting {
             dependencies {
                 implementation(libsClient.objectstore.fs)
                 implementation(libsCommon.ktor.client.cio)

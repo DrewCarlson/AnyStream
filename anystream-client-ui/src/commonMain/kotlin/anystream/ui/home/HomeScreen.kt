@@ -78,14 +78,13 @@ fun HomeScreen(
     onContinueWatchingClick: (mediaLinkId: String?) -> Unit,
     onViewMoviesClicked: () -> Unit,
 ) {
+    val (modelState, eventConsumer) = rememberMobiusLoop(HomeScreenModel(), HomeScreenInit) {
+        FlowMobius.loop(
+            HomeScreenUpdate,
+            HomeScreenHandler.create(client),
+        ).logger(SimpleLogger("HomeScreen"))
+    }
     Scaffold { paddingValues ->
-        val (modelState, eventConsumer) = rememberMobiusLoop(HomeScreenModel(), HomeScreenInit) {
-            FlowMobius.loop(
-                HomeScreenUpdate,
-                HomeScreenHandler.create(client),
-            ).logger(SimpleLogger("HomeScreen"))
-        }
-
         AnimatedContent(targetState = modelState.value.homeResponse) { targetState ->
             when (targetState) {
                 is LoadableDataState.Loading -> LoadingScreen(paddingValues)

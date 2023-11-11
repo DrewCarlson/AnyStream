@@ -19,5 +19,5 @@ package anystream.ui.home
 
 sealed class HomeScreenEffect {
 
-    object GetHomeData : HomeScreenEffect()
+    data object GetHomeData : HomeScreenEffect()
 }

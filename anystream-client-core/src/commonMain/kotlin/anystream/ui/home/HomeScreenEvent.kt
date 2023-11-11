@@ -25,5 +25,5 @@ sealed class HomeScreenEvent {
         val homeDate: HomeResponse,
     ) : HomeScreenEvent()
 
-    object OnHomeDataFetchError : HomeScreenEvent()
+    data object OnHomeDataFetchError : HomeScreenEvent()
 }

@@ -29,9 +29,9 @@ data class HomeScreenModel(
 }
 
 sealed class LoadableDataState<out T> {
-    object Loading : LoadableDataState<Nothing>()
-    object Empty : LoadableDataState<Nothing>()
-    object Error : LoadableDataState<Nothing>()
+    data object Loading : LoadableDataState<Nothing>()
+    data object Empty : LoadableDataState<Nothing>()
+    data object Error : LoadableDataState<Nothing>()
 
     data class Loaded<out T>(val data: T) : LoadableDataState<T>()
 
