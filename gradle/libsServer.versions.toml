@@ -14,7 +14,7 @@ mockk = "1.13.8"
 shadowjar = { id = "com.github.johnrengelman.shadow", version = "8.1.1" }
 
 [libraries]
-flyway-core = { module = "org.flywaydb:flyway-core", version = "9.22.2" }
+flyway-core = { module = "org.flywaydb:flyway-core", version = "9.22.3" }
 fastObjectPool = { module = "cn.danielw:fast-object-pool", version = "2.2.1" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 
