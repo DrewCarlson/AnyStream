@@ -144,9 +144,9 @@ Newer versions of Windows 10 include `curl` and `tar`, if you're running an olde
 
 ??? info "Manual Download"
 
-    1. Download [anystream-server-{{ version }}.zip](https://github.com/DrewCarlson/AnyStream/releases/download/v{{ version }}/anystream-server-{{ version }}.zip)
-    1. Right click `anystream-server-{{ version }}.zip`, click "Extract All...", then click "Extract" when the window appears
-    1. Open the `anystream-server-{{ version }}/bin` folder
+    1. Download [anystream-server-{{ as_version }}.zip](https://github.com/DrewCarlson/AnyStream/releases/download/v{{ as_version }}/anystream-server-{{ as_version }}.zip)
+    1. Right click `anystream-server-{{ as_version }}.zip`, click "Extract All...", then click "Extract" when the window appears
+    1. Open the `anystream-server-{{ as_version }}/bin` folder
     1. Double click on `anystream.bat`
 
     You will see a Command Prompt window appear, displaying log messages from AnyStream.
@@ -154,9 +154,9 @@ Newer versions of Windows 10 include `curl` and `tar`, if you're running an olde
 ??? info "Command Prompt Download"
 
     ```shell
-    > curl -LO https://github.com/DrewCarlson/AnyStream/releases/download/v{{ version }}/anystream-server-{{ version }}.tar
-    > tar -xvf anystream-server-{{ version }}.tar
-    > cd anystream-{{ version }}/bin
+    > curl -LO https://github.com/DrewCarlson/AnyStream/releases/download/v{{ as_version }}/anystream-server-{{ as_version }}.tar
+    > tar -xvf anystream-server-{{ as_version }}.tar
+    > cd anystream-{{ as_version }}/bin
     > anystream -port=8888 -P:app.ffmpegPath="C:\Users\<user>\Downloads\ffmpeg"
     ```
 
@@ -167,9 +167,9 @@ Newer versions of Windows 10 include `curl` and `tar`, if you're running an olde
 ??? info "anystream from Terminal example"
 
     ```shell
-    $ curl -LO https://github.com/DrewCarlson/AnyStream/releases/download/v{{ version }}/anystream-server-{{ version }}.tar
-    $ tar -xvf anystream-server-{{ version }}.tar
-    $ cd anystream-{{ version }}/bin
+    $ curl -LO https://github.com/DrewCarlson/AnyStream/releases/download/v{{ as_version }}/anystream-server-{{ as_version }}.tar
+    $ tar -xvf anystream-server-{{ as_version }}.tar
+    $ cd anystream-{{ as_version }}/bin
     $ ./anystream -port=8888
     ```
 

@@ -1,6 +1,10 @@
 site_name: AnyStream
+site_description: A self-hosted streaming service for your media collection.
 site_url: https://docs.anystream.dev/
 repo_url: https://github.com/drewcarlson/anystream
+remote_branch: gh-pages
+docs_dir: docs
+copyright: 'Copyright &copy; 2023 AnyStream Maintainers'
 
 theme:
   name: material
@@ -8,11 +12,11 @@ theme:
   logo: /img/as-emblem.svg
   icon:
     repo: fontawesome/brands/github
+  features:
+    - content.action.edit
 
 extra_css:
   - stylesheets/extra.css
-
-docs_dir: docs
 
 markdown_extensions:
   - admonition
@@ -23,15 +27,18 @@ markdown_extensions:
   - pymdownx.snippets
   - pymdownx.superfences
   - pymdownx.emoji:
-      emoji_index: !!python/name:materialx.emoji.twemoji
-      emoji_generator: !!python/name:materialx.emoji.to_svg
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
 
 plugins:
   - search
+  - mike
   - markdownextradata: {}
 
 extra:
-  version: !ENV [VERSION, '0.0.1-test']
+  as_version: !ENV [VERSION, '0.0.1-test']
+  version:
+    provider: mike
   social:
     - icon: fontawesome/solid/heart
       link: https://github.com/sponsors/DrewCarlson
