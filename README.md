@@ -29,8 +29,8 @@
 <details>
 <summary>Screenshots</summary>
 
-![](media/screenshot-android-home.png)
-![](media/screenshot-web-home.png)
+![](docs/img/screenshot-android-home.png)
+![](docs/img/screenshot-web-home.png)
 
 </details>
 

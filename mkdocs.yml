@@ -31,7 +31,7 @@ plugins:
   - markdownextradata: {}
 
 extra:
-  version: !ENV [AS_VERSION, '0.0.1-test']
+  version: !ENV [VERSION, '0.0.1-test']
   social:
     - icon: fontawesome/solid/heart
       link: https://github.com/sponsors/DrewCarlson
