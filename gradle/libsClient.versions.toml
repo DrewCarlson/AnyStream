@@ -17,7 +17,7 @@ mobiuskt = "1.1.0"
 
 objectstore = "0.2.0"
 
-vlc = "3.0.18"
+vlc = "3.0.19"
 
 [plugins]
 composejb = { id = "org.jetbrains.compose", version.ref = "composejb" }
