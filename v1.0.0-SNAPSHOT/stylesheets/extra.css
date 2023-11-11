@@ -1,0 +1,34 @@
+/* https://github.com/squidfunk/mkdocs-material/blob/master/src/assets/stylesheets/main/_colors.scss */
+:root > * {
+    --md-default-bg-color: #212121 !important;
+    --md-primary-fg-color: #000 !important;
+    --md-accent-fg-color: rgb(255, 8, 28) !important;
+
+    --md-typeset-color: #FFF !important;
+    --md-typeset-a-color: rgb(255, 8, 28) !important;
+
+    --md-code-fg-color: #000 !important;
+    --md-code-bg-color: #A9A9A9 !important;
+
+    --md-text-color: #FFF !important;
+    --md-code-hl-color:                #000 !important;
+    --md-code-hl-number-color:         hsla(0, 67%, 50%, 1);
+    --md-code-hl-special-color:        hsla(340, 83%, 47%, 1);
+    --md-code-hl-function-color:       hsla(291, 45%, 50%, 1);
+    --md-code-hl-constant-color:       hsla(250, 63%, 60%, 1);
+    --md-code-hl-keyword-color:        hsla(219, 54%, 51%, 1);
+    --md-code-hl-string-color:         hsla(150, 63%, 30%, 1);
+    --md-code-hl-name-color:           var(--md-code-fg-color);
+    --md-code-hl-operator-color:       var(--md-default-fg-color--light);
+    --md-code-hl-punctuation-color:    #000 !important;
+    --md-code-hl-comment-color:        var(--md-default-fg-color--light);
+    --md-code-hl-generic-color:        var(--md-default-fg-color--light);
+    --md-code-hl-variable-color:       var(--md-default-fg-color--light);
+
+    --md-typeset-table-color: #A9A9A9 !important;
+
+    --md-default-fg-color: #FFF !important;
+    --md-default-fg-color--light: #A9A9A9 !important;
+    --md-default-fg-color--lighter: #D3D3D3 !important;
+    --md-default-fg-color--lightest: #FFF !important;
+}
