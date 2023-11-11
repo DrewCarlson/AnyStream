@@ -8,8 +8,8 @@ copyright: 'Copyright &copy; 2023 AnyStream Maintainers'
 
 theme:
   name: material
-  favicon: /img/favicon.ico
-  logo: /img/as-emblem.svg
+  favicon: img/favicon.ico
+  logo: img/as-emblem.svg
   icon:
     repo: fontawesome/brands/github
   features:
