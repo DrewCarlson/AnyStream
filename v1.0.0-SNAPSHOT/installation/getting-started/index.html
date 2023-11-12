@@ -10,16 +10,16 @@
       
       
       
-        <link rel="canonical" href="https://docs.anystream.dev/v1.0.0-SNAPSHOT/1-getting-started/">
+        <link rel="canonical" href="https://docs.anystream.dev/v1.0.0-SNAPSHOT/installation/getting-started/">
       
       
-        <link rel="prev" href="..">
+        <link rel="prev" href="../..">
       
       
-        <link rel="next" href="../2-library-management/">
+        <link rel="next" href="../docker/">
       
       
-      <link rel="icon" href="../img/favicon.ico">
+      <link rel="icon" href="../../img/favicon.ico">
       <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.8">
     
     
@@ -28,7 +28,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.4b4a2bd9.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.4b4a2bd9.min.css">
       
       
 
@@ -47,9 +47,9 @@
       
     
     
-      <link rel="stylesheet" href="../stylesheets/extra.css">
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -91,9 +91,9 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="AnyStream" class="md-header__button md-logo" aria-label="AnyStream" data-md-component="logo">
+    <a href="../.." title="AnyStream" class="md-header__button md-logo" aria-label="AnyStream" data-md-component="logo">
       
-  <img src="../img/as-emblem.svg" alt="logo">
+  <img src="../../img/as-emblem.svg" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -194,9 +194,9 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="AnyStream" class="md-nav__button md-logo" aria-label="AnyStream" data-md-component="logo">
+    <a href="../.." title="AnyStream" class="md-nav__button md-logo" aria-label="AnyStream" data-md-component="logo">
       
-  <img src="../img/as-emblem.svg" alt="logo">
+  <img src="../../img/as-emblem.svg" alt="logo">
 
     </a>
     AnyStream
@@ -222,7 +222,7 @@
   
   
     <li class="md-nav__item">
-      <a href=".." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -237,6 +237,44 @@
     
       
       
+  
+  
+    
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Installation
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Installation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
   
   
     
@@ -361,19 +399,19 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#download-anystream" class="md-nav__link">
+    Download AnyStream
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#installation" class="md-nav__link">
     Installation
   </a>
   
     <nav class="md-nav" aria-label="Installation">
       <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#download-anystream" class="md-nav__link">
-    Download AnyStream
-  </a>
-  
-</li>
         
           <li class="md-nav__item">
   <a href="#run-on-windows" class="md-nav__link">
@@ -389,62 +427,69 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#docker-cli" class="md-nav__link">
-    Docker CLI
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#docker-compose" class="md-nav__link">
-    Docker Compose
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#setup-anystream" class="md-nav__link">
-    Setup AnyStream
+  <a href="#configure-server" class="md-nav__link">
+    Configure Server
   </a>
-  
-    <nav class="md-nav" aria-label="Setup AnyStream">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#create-an-admin-user" class="md-nav__link">
-    Create an Admin User
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#importing-media" class="md-nav__link">
-    Importing Media
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#inviting-users" class="md-nav__link">
-    Inviting Users
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
     </ul>
   
 </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Docker Setup
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configure-server/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Configure Server
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
       
     </li>
   
@@ -456,7 +501,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../2-library-management/" class="md-nav__link">
+      <a href="../../2-library-management/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -475,7 +520,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../3-clients-and-mobile/" class="md-nav__link">
+      <a href="../../3-clients-and-mobile/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -494,7 +539,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../4-connecting-qbittorrent/" class="md-nav__link">
+      <a href="../../4-connecting-qbittorrent/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -549,7 +594,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../development/documentation/" class="md-nav__link">
+      <a href="../../development/documentation/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -671,19 +716,19 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#download-anystream" class="md-nav__link">
+    Download AnyStream
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#installation" class="md-nav__link">
     Installation
   </a>
   
     <nav class="md-nav" aria-label="Installation">
       <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#download-anystream" class="md-nav__link">
-    Download AnyStream
-  </a>
-  
-</li>
         
           <li class="md-nav__item">
   <a href="#run-on-windows" class="md-nav__link">
@@ -699,56 +744,15 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#docker-cli" class="md-nav__link">
-    Docker CLI
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#docker-compose" class="md-nav__link">
-    Docker Compose
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#setup-anystream" class="md-nav__link">
-    Setup AnyStream
+  <a href="#configure-server" class="md-nav__link">
+    Configure Server
   </a>
-  
-    <nav class="md-nav" aria-label="Setup AnyStream">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#create-an-admin-user" class="md-nav__link">
-    Create an Admin User
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#importing-media" class="md-nav__link">
-    Importing Media
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#inviting-users" class="md-nav__link">
-    Inviting Users
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -767,7 +771,7 @@
                   
 
   
-    <a href="https://github.com/drewcarlson/anystream/edit/master/docs/1-getting-started.md" title="Edit this page" class="md-content__button md-icon">
+    <a href="https://github.com/drewcarlson/anystream/edit/master/docs/installation/getting-started.md" title="Edit this page" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4v-2m10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1 2.1 2.1Z"/></svg>
     </a>
@@ -776,6 +780,8 @@
 
 
 <h1 id="getting-started">Getting started</h1>
+<p>This page covers running the AnyStream server manually.
+See <a href="../docker/">Installation &gt; Docker</a> to use the containerized server.</p>
 <h3 id="read-this-first">Read this first</h3>
 <p>AnyStream is a private streaming service for your media files. Third party APIs and optional external applications are
 used to improve the quality of your collection. You are responsible for operating any external applications that
@@ -783,8 +789,6 @@ AnyStream communicates with while managing your collection.</p>
 <p><strong>To maintain privacy it is recommended that you run AnyStream with a VPN like <a href="https://airvpn.org/">AirVPN</a>
 or <a href="https://mullvad.net/">Mullvad</a>.</strong></p>
 <h2 id="requirements">Requirements</h2>
-<p>When installing without <a href="https://podman.io/">Podman</a> or <a href="https://www.docker.com/">Docker</a>, extra software is required
-before running AnyStream.</p>
 <h3 id="java-11">Java 11+</h3>
 <h4 id="windows">Windows</h4>
 <details class="info">
@@ -847,6 +851,33 @@ Extract both files into <code>/usr/local/bin</code></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>sudo<span class="w"> </span>port<span class="w"> </span>install<span class="w"> </span>ffmpeg
 </code></pre></div>
 </details>
+<h2 id="download-anystream">Download AnyStream</h2>
+<details class="tip" open="open">
+<summary>Stay up-to-date</summary>
+<p>It is recommended the latest version of AnyStream is used at all times, but older versions are available on the
+<a href="https://github.com/DrewCarlson/AnyStream/releases">Releases</a> page if required.</p>
+</details>
+<details class="tip">
+<summary>One download for any Operating System</summary>
+<p>The AnyStream server runs on Linux, macOS, or Windows with one download, you do not need a version specifically
+for your operating system.</p>
+</details>
+<p>The latest release can be viewed on the <a href="https://github.com/drewcarlson/AnyStream/releases/latest">Github Release</a> page
+or choose your preferred format below:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;"><strong>Download ZIP</strong></th>
+<th style="text-align: center;">Download TAR</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;"><a href="https://github.com/DrewCarlson/AnyStream/releases/download/v1.0.0-SNAPSHOT/anystream-server-1.0.0-SNAPSHOT.zip"><span style="font-size:45pt;"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 17v-2h2v2h-2m2-4v-2h-2v2h2m0-4V7h-2v2h2m-4 2h2V9h-2v2m0 4h2v-2h-2v2M21 5v14c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V5c0-1.1.9-2 2-2h14c1.1 0 2 .9 2 2m-2 0h-7v2h-2V5H5v14h14V5Z"/></svg></span></span><br/>anystream-server-1.0.0-SNAPSHOT.zip</a></td>
+<td style="text-align: center;"><a href="https://github.com/DrewCarlson/AnyStream/releases/download/v1.0.0-SNAPSHOT/anystream-server-1.0.0-SNAPSHOT.tar"><span style="font-size:45pt;"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 17v-2h2v2h-2m2-4v-2h-2v2h2m0-4V7h-2v2h2m-4 2h2V9h-2v2m0 4h2v-2h-2v2M21 5v14c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V5c0-1.1.9-2 2-2h14c1.1 0 2 .9 2 2m-2 0h-7v2h-2V5H5v14h14V5Z"/></svg></span></span><br/>anystream-server-1.0.0-SNAPSHOT.tar</a></td>
+</tr>
+</tbody>
+</table>
 <h2 id="installation">Installation</h2>
 <p>AnyStream tries to provide optimal default configuration and can be run without any configuration.</p>
 <details class="info">
@@ -924,33 +955,6 @@ The table below maps the Environment variable name to the CLI argument, see "Con
 </tbody>
 </table>
 </details>
-<h3 id="download-anystream">Download AnyStream</h3>
-<details class="tip" open="open">
-<summary>Stay up-to-date</summary>
-<p>It is recommended the latest version of AnyStream is used at all times, but older versions are available on the
-<a href="https://github.com/DrewCarlson/AnyStream/releases">Releases</a> page if required.</p>
-</details>
-<details class="tip">
-<summary>One download for any Operating System</summary>
-<p>The AnyStream server runs on Linux, macOS, or Windows with one download, you do not need a version specifically
-for your operating system.</p>
-</details>
-<p>The latest release can be viewed on the <a href="https://github.com/drewcarlson/AnyStream/releases/latest">Github Release</a> page
-or choose your preferred format below:</p>
-<table>
-<thead>
-<tr>
-<th style="text-align: center;"><strong>Download ZIP</strong></th>
-<th style="text-align: center;">Download TAR</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: center;"><a href="https://github.com/DrewCarlson/AnyStream/releases/download/v{'provider': 'mike'}/anystream-server-{'provider': 'mike'}.zip"><span style="font-size:45pt;"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 17v-2h2v2h-2m2-4v-2h-2v2h2m0-4V7h-2v2h2m-4 2h2V9h-2v2m0 4h2v-2h-2v2M21 5v14c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V5c0-1.1.9-2 2-2h14c1.1 0 2 .9 2 2m-2 0h-7v2h-2V5H5v14h14V5Z"/></svg></span></span><br/>anystream-server-{'provider': 'mike'}.zip</a></td>
-<td style="text-align: center;"><a href="https://github.com/DrewCarlson/AnyStream/releases/download/v{'provider': 'mike'}/anystream-server-{'provider': 'mike'}.tar"><span style="font-size:45pt;"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 17v-2h2v2h-2m2-4v-2h-2v2h2m0-4V7h-2v2h2m-4 2h2V9h-2v2m0 4h2v-2h-2v2M21 5v14c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V5c0-1.1.9-2 2-2h14c1.1 0 2 .9 2 2m-2 0h-7v2h-2V5H5v14h14V5Z"/></svg></span></span><br/>anystream-server-{'provider': 'mike'}.tar</a></td>
-</tr>
-</tbody>
-</table>
 <h3 id="run-on-windows">Run on Windows</h3>
 <p>Newer versions of Windows 10 include <code>curl</code> and <code>tar</code>, if you're running an older version of Windows, follow the
 "Manual Download" section. Otherwise, see the "Command Prompt Download" section.</p>
@@ -982,97 +986,9 @@ or choose your preferred format below:</p>
 <a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>$<span class="w"> </span>./anystream<span class="w"> </span>-port<span class="o">=</span><span class="m">8888</span>
 </code></pre></div>
 </details>
-<h3 id="docker-cli">Docker CLI</h3>
-<p>A small Alpine based docker image is provided
-at <a href="https://github.com/DrewCarlson/AnyStream/pkgs/container/anystream">ghcr.io/drewcarlson/anystream</a>.</p>
-<details class="example">
-<summary>Docker CLI example</summary>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>docker<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </span>--name<span class="w"> </span>anystream<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">    </span>-v<span class="w"> </span>/path/to/anystream:/app/storage<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">    </span>-v<span class="w"> </span>/path/to/media:/app/media<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">    </span>-p<span class="w"> </span><span class="m">8888</span>:8888<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">    </span>ghcr.io/drewcarlson/anystream:main
-</code></pre></div>
-</details>
-<h3 id="docker-compose">Docker Compose</h3>
-<p>Create a <code>docker-compose.yml</code> copy one of the following examples:</p>
-<details class="example">
-<summary>Without qBittorrent</summary>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;3.1&#39;</span>
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="nt">services</span><span class="p">:</span>
-<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">  </span><span class="nt">anystream</span><span class="p">:</span>
-<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">    </span><span class="nt">container_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">anystream</span>
-<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ghcr.io/drewcarlson/anystream:main</span>
-<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">    </span><span class="nt">restart</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">unless-stopped</span>
-<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">    </span><span class="nt">ports</span><span class="p">:</span>
-<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;8888:8888&quot;</span>
-<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="w">    </span><span class="nt">volumes</span><span class="p">:</span>
-<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/path/to/anystream:/app/storage</span>
-<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/path/to/media:/app/media</span>
-</code></pre></div>
-</details>
-<details class="example">
-<summary>With qBittorrent</summary>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;3.1&#39;</span>
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="nt">services</span><span class="p">:</span>
-<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">  </span><span class="nt">anystream</span><span class="p">:</span>
-<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">    </span><span class="nt">container_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">anystream</span>
-<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ghcr.io/drewcarlson/anystream:main</span>
-<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">    </span><span class="nt">restart</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">unless-stopped</span>
-<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="w">    </span><span class="nt">ports</span><span class="p">:</span>
-<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;8888:8888&quot;</span>
-<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="w">    </span><span class="nt">environment</span><span class="p">:</span>
-<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="w">      </span><span class="nt">QBT_URL</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">http://qbittorrent:9090</span>
-<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="w">      </span><span class="nt">QBT_USER</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">admin</span>
-<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="w">      </span><span class="nt">QBT_PASSWORD</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">adminadmin</span>
-<a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="w">    </span><span class="nt">volumes</span><span class="p">:</span>
-<a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/path/to/anystream:/app/storage</span>
-<a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/path/to/media:/app/media</span>
-<a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/path/to/qbittorrent/downloads:/app/downloads</span>
-<a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a><span class="w">    </span><span class="nt">links</span><span class="p">:</span>
-<a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">qbittorrent</span>
-<a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a><span class="w">    </span><span class="nt">depends_on</span><span class="p">:</span>
-<a id="__codelineno-10-20" name="__codelineno-10-20" href="#__codelineno-10-20"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">qbittorrent</span>
-<a id="__codelineno-10-21" name="__codelineno-10-21" href="#__codelineno-10-21"></a>
-<a id="__codelineno-10-22" name="__codelineno-10-22" href="#__codelineno-10-22"></a><span class="w">  </span><span class="nt">qbittorrent</span><span class="p">:</span>
-<a id="__codelineno-10-23" name="__codelineno-10-23" href="#__codelineno-10-23"></a><span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drewcarlson/docker-qbittorrentvpn</span>
-<a id="__codelineno-10-24" name="__codelineno-10-24" href="#__codelineno-10-24"></a><span class="w">    </span><span class="nt">container_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">qbittorrent</span>
-<a id="__codelineno-10-25" name="__codelineno-10-25" href="#__codelineno-10-25"></a><span class="w">    </span><span class="nt">restart</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">unless-stopped</span>
-<a id="__codelineno-10-26" name="__codelineno-10-26" href="#__codelineno-10-26"></a><span class="w">    </span><span class="nt">cap_add</span><span class="p">:</span>
-<a id="__codelineno-10-27" name="__codelineno-10-27" href="#__codelineno-10-27"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">NET_ADMIN</span>
-<a id="__codelineno-10-28" name="__codelineno-10-28" href="#__codelineno-10-28"></a><span class="w">    </span><span class="nt">sysctls</span><span class="p">:</span>
-<a id="__codelineno-10-29" name="__codelineno-10-29" href="#__codelineno-10-29"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">net.ipv6.conf.all.disable_ipv6=0</span>
-<a id="__codelineno-10-30" name="__codelineno-10-30" href="#__codelineno-10-30"></a><span class="w">    </span><span class="nt">privileged</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-<a id="__codelineno-10-31" name="__codelineno-10-31" href="#__codelineno-10-31"></a><span class="w">    </span><span class="nt">environment</span><span class="p">:</span>
-<a id="__codelineno-10-32" name="__codelineno-10-32" href="#__codelineno-10-32"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">VPN_ENABLED=yes</span>
-<a id="__codelineno-10-33" name="__codelineno-10-33" href="#__codelineno-10-33"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">NAME_SERVERS=1.1.1.1,8.8.8.8</span>
-<a id="__codelineno-10-34" name="__codelineno-10-34" href="#__codelineno-10-34"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">WEBUI_PORT=9090</span>
-<a id="__codelineno-10-35" name="__codelineno-10-35" href="#__codelineno-10-35"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">TZ=America/Los_Angeles</span>
-<a id="__codelineno-10-36" name="__codelineno-10-36" href="#__codelineno-10-36"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">UMASK_SET=022</span>
-<a id="__codelineno-10-37" name="__codelineno-10-37" href="#__codelineno-10-37"></a><span class="w">    </span><span class="nt">volumes</span><span class="p">:</span>
-<a id="__codelineno-10-38" name="__codelineno-10-38" href="#__codelineno-10-38"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/path/to/qbittorrent/config:/config</span>
-<a id="__codelineno-10-39" name="__codelineno-10-39" href="#__codelineno-10-39"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/path/to/qbittorrent/downloads:/downloads</span>
-<a id="__codelineno-10-40" name="__codelineno-10-40" href="#__codelineno-10-40"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/path/to/media:/content</span>
-</code></pre></div>
-</details>
-<p>Once you've configured the <code>docker-compose.yml</code> file, start it with:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>docker-compose<span class="w"> </span>up<span class="w"> </span>-d
-</code></pre></div>
-<h2 id="setup-anystream">Setup AnyStream</h2>
-<p>Assuming your instance started without errors, the web client will be available
-at <a href="https://localhost:8888">localhost:8888</a>.</p>
-<h3 id="create-an-admin-user">Create an Admin User</h3>
-<p>After starting a new AnyStream instance, the first user signup does not require an invitation code and will be granted
-global permissions.</p>
-<div class="admonition danger">
-<p class="admonition-title">Danger</p>
-<p>It is important to register an admin user immediately after starting AnyStream for the first time.
-If left incomplete, unauthorized users my be able to modify system files via AnyStream.</p>
-</div>
-<h3 id="importing-media">Importing Media</h3>
-<h3 id="inviting-users">Inviting Users</h3>
-<p>Navigate to Settings &gt; Users, then click "Manage Invites". Select the permissions required by the new User, then click
-"Create Invite". The new invite will be added to the list and a sharable signup link will be copied to your clipboard.</p>
+<h2 id="configure-server">Configure Server</h2>
+<p>Now your server is running and ready to be used!
+See <a href="../configure-server/">Installation &gt; Configure Server</a> for what to do next.</p>
 
 
 
@@ -1152,10 +1068,10 @@ If left incomplete, unauthorized users my be able to modify system files via Any
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["content.action.edit"], "search": "../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["content.action.edit"], "search": "../../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.81fa17fe.min.js"></script>
+      <script src="../../assets/javascripts/bundle.81fa17fe.min.js"></script>
       
     
   </body>

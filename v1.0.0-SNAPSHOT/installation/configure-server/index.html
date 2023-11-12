@@ -10,25 +10,25 @@
       
       
       
-        <link rel="canonical" href="https://docs.anystream.dev/v1.0.0-SNAPSHOT/4-connecting-qbittorrent/">
+        <link rel="canonical" href="https://docs.anystream.dev/v1.0.0-SNAPSHOT/installation/configure-server/">
       
       
-        <link rel="prev" href="../3-clients-and-mobile/">
+        <link rel="prev" href="../docker/">
       
       
-        <link rel="next" href="../development/documentation/">
+        <link rel="next" href="../../2-library-management/">
       
       
-      <link rel="icon" href="../img/favicon.ico">
+      <link rel="icon" href="../../img/favicon.ico">
       <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.8">
     
     
       
-        <title>Connecting qBittorrent - AnyStream</title>
+        <title>Configure Server - AnyStream</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.4b4a2bd9.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.4b4a2bd9.min.css">
       
       
 
@@ -47,9 +47,9 @@
       
     
     
-      <link rel="stylesheet" href="../stylesheets/extra.css">
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -71,7 +71,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#connecting-qbittorrent" class="md-skip">
+        <a href="#configure-server" class="md-skip">
           Skip to content
         </a>
       
@@ -91,9 +91,9 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="AnyStream" class="md-header__button md-logo" aria-label="AnyStream" data-md-component="logo">
+    <a href="../.." title="AnyStream" class="md-header__button md-logo" aria-label="AnyStream" data-md-component="logo">
       
-  <img src="../img/as-emblem.svg" alt="logo">
+  <img src="../../img/as-emblem.svg" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -110,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Connecting qBittorrent
+              Configure Server
             
           </span>
         </div>
@@ -194,9 +194,9 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="AnyStream" class="md-nav__button md-logo" aria-label="AnyStream" data-md-component="logo">
+    <a href="../.." title="AnyStream" class="md-nav__button md-logo" aria-label="AnyStream" data-md-component="logo">
       
-  <img src="../img/as-emblem.svg" alt="logo">
+  <img src="../../img/as-emblem.svg" alt="logo">
 
     </a>
     AnyStream
@@ -222,7 +222,7 @@
   
   
     <li class="md-nav__item">
-      <a href=".." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -239,18 +239,20 @@
       
   
   
+    
+  
   
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
           <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
@@ -264,7 +266,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             Installation
@@ -277,7 +279,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../installation/getting-started/" class="md-nav__link">
+      <a href="../getting-started/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -297,7 +299,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../installation/docker/" class="md-nav__link">
+      <a href="../docker/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -315,9 +317,29 @@
                 
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="../installation/configure-server/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Configure Server
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -326,6 +348,47 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#create-an-admin-user" class="md-nav__link">
+    Create an Admin User
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#importing-media" class="md-nav__link">
+    Importing Media
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#inviting-users" class="md-nav__link">
+    Inviting Users
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -344,7 +407,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../2-library-management/" class="md-nav__link">
+      <a href="../../2-library-management/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -363,7 +426,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../3-clients-and-mobile/" class="md-nav__link">
+      <a href="../../3-clients-and-mobile/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -380,18 +443,9 @@
       
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../4-connecting-qbittorrent/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -400,7 +454,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -447,7 +500,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../development/documentation/" class="md-nav__link">
+      <a href="../../development/documentation/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -488,6 +541,35 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#create-an-admin-user" class="md-nav__link">
+    Create an Admin User
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#importing-media" class="md-nav__link">
+    Importing Media
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#inviting-users" class="md-nav__link">
+    Inviting Users
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -501,7 +583,7 @@
                   
 
   
-    <a href="https://github.com/drewcarlson/anystream/edit/master/docs/4-connecting-qbittorrent.md" title="Edit this page" class="md-content__button md-icon">
+    <a href="https://github.com/drewcarlson/anystream/edit/master/docs/installation/configure-server.md" title="Edit this page" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4v-2m10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1 2.1 2.1Z"/></svg>
     </a>
@@ -509,16 +591,28 @@
   
 
 
-<h1 id="connecting-qbittorrent">Connecting qBittorrent</h1>
-<p><em><a href="https://www.qbittorrent.org/">qBittorrent</a> is a free and reliable P2P Bittorrent client.</em></p>
-<p>AnyStream can communicate with qBittorrent to manage importing and organizing new media into your library.</p>
-<details class="warning" open="open">
-<summary>Warning</summary>
-<p>You assume all responsibility and risk when using qBittorrent.
-The <a href="https://en.wikipedia.org/wiki/BitTorrent">BitTorrent</a> protocol is not designed
-for privacy, ensure you've configured qBittorrent and network firewalls correctly.
-<strong>It is recommended to use a VPN service like <a href="https://airvpn.org/">AirVPN</a> or <a href="https://mullvad.net/">Mullvad</a> with qBittorrent.</strong></p>
-</details>
+<h1 id="configure-server">Configure Server</h1>
+<p><em>Is your server running? See <a href="../getting-started/">Installation &gt; Getting Started</a> first.</em></p>
+<p>When the server has started without errors, the web client will be available
+at <a href="https://localhost:8888">localhost:8888</a> or whatever port you've specified.</p>
+<h2 id="create-an-admin-user">Create an Admin User</h2>
+<p>After starting a new AnyStream instance, the first user signup does not require an invitation code and will be granted
+global permissions.</p>
+<div class="admonition danger">
+<p class="admonition-title">Danger</p>
+<p>It is important to register an admin user immediately after starting AnyStream for the first time.
+If left incomplete, unauthorized users my be able to modify system files via AnyStream.</p>
+</div>
+<h2 id="importing-media">Importing Media</h2>
+<h2 id="inviting-users">Inviting Users</h2>
+<p>You can add new users manually or create unique URLs to share which allow a single person to create an account with the
+desired permissions.</p>
+<p>To create an invitation URL:</p>
+<ul>
+<li>Navigate to Settings &gt; Users, then click "Manage Invites".</li>
+<li>Select the permissions required by the new User, then click "Create Invite".</li>
+<li>The new invite will be added to the list and a sharable signup link will be copied to your clipboard.</li>
+</ul>
 
 
 
@@ -598,10 +692,10 @@ for privacy, ensure you've configured qBittorrent and network firewalls correctl
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["content.action.edit"], "search": "../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["content.action.edit"], "search": "../../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.81fa17fe.min.js"></script>
+      <script src="../../assets/javascripts/bundle.81fa17fe.min.js"></script>
       
     
   </body>
