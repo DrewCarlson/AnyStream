@@ -21,3 +21,5 @@ AnyStream is [free and open-source](https://en.wikipedia.org/wiki/Open-source_so
 manage and stream your media library from anywhere, on any device.
 Once running, share access to your collection privately and securely with friends and family.
 Find missing and newly released content for your collection.
+
+<span style="font-size:18pt;font-weight:bold;">[Getting Started](installation/getting-started.md)</span>

@@ -1,5 +1,8 @@
 # Getting started
 
+This page covers running the AnyStream server manually.
+See [Installation > Docker](docker.md) to use the containerized server.
+
 ### Read this first
 
 AnyStream is a private streaming service for your media files. Third party APIs and optional external applications are
@@ -10,9 +13,6 @@ AnyStream communicates with while managing your collection.
 or [Mullvad](https://mullvad.net/).**
 
 ## Requirements
-
-When installing without [Podman](https://podman.io/) or [Docker](https://www.docker.com/), extra software is required
-before running AnyStream.
 
 ### Java 11+
 
@@ -59,12 +59,12 @@ when streaming to certain devices and analyzing media files.
 #### Windows
 
 ??? info "Install Manually"
-    
+
     [Click here](https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n4.4-latest-win64-gpl-4.4.zip) to download FFmpeg.
     Extract `fmpeg-n4.4-latest-win64-gpl-4.4.zip` and rename the `bin` folder to `ffmpeg` and move it to `C:\Program Files\ffmpeg`.
 
 ??? info "Install with Chocolatey"
-    
+
     ```shell
     choco install ffmpeg
     ```
@@ -72,22 +72,41 @@ when streaming to certain devices and analyzing media files.
 #### macOS
 
 ??? info "Install Manually"
-    
+
     [Click here](https://evermeet.cx/pub/ffmpeg/ffmpeg-4.4.1.zip) to download FFmpeg and
     [here](https://evermeet.cx/pub/ffprobe/ffprobe-4.4.1.zip) to download FFprobe.
     Extract both files into `/usr/local/bin`
 
 ??? info "Install with Homebrew"
-    
+
     ```shell
     brew install ffmpeg
     ```
 
 ??? info "Install with MacPorts"
-    
+
     ```shell
     sudo port install ffmpeg
     ```
+
+## Download AnyStream
+
+???+ tip "Stay up-to-date"
+
+    It is recommended the latest version of AnyStream is used at all times, but older versions are available on the
+    [Releases](https://github.com/DrewCarlson/AnyStream/releases) page if required.
+
+??? tip "One download for any Operating System"
+
+    The AnyStream server runs on Linux, macOS, or Windows with one download, you do not need a version specifically
+    for your operating system.
+
+The latest release can be viewed on the [Github Release](https://github.com/drewcarlson/AnyStream/releases/latest) page
+or choose your preferred format below:
+
+|                                                                                                     **Download ZIP**                                                                                                      |                                                                                                       Download TAR                                                                                                        |
+|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| [<span style="font-size:45pt;">:material-zip-box-outline:</span><br/>anystream-server-{{as_version}}.zip](https://github.com/DrewCarlson/AnyStream/releases/download/v{{as_version}}/anystream-server-{{as_version}}.zip) | [<span style="font-size:45pt;">:material-zip-box-outline:</span><br/>anystream-server-{{as_version}}.tar](https://github.com/DrewCarlson/AnyStream/releases/download/v{{as_version}}/anystream-server-{{as_version}}.tar) |
 
 ## Installation
 
@@ -117,25 +136,6 @@ AnyStream tries to provide optimal default configuration and can be run without 
     | `DATABASE_URL`    | `-app.databaseUrl="..."`   |
     | `FFMPEG_PATH`     | `-app.ffmpegPath="..."`    |
     | `WEB_CLIENT_PATH` | `-app.webClientPath="..."` |
-
-### Download AnyStream
-
-???+ tip "Stay up-to-date"
-
-    It is recommended the latest version of AnyStream is used at all times, but older versions are available on the
-    [Releases](https://github.com/DrewCarlson/AnyStream/releases) page if required.
-
-??? tip "One download for any Operating System"
-
-    The AnyStream server runs on Linux, macOS, or Windows with one download, you do not need a version specifically
-    for your operating system.
-
-The latest release can be viewed on the [Github Release](https://github.com/drewcarlson/AnyStream/releases/latest) page
-or choose your preferred format below:
-
-|                                                                                                     **Download ZIP**                                                                                                      |                                                                                                       Download TAR                                                                                                        |
-|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
-| [<span style="font-size:45pt;">:material-zip-box-outline:</span><br/>anystream-server-{{as_version}}.zip](https://github.com/DrewCarlson/AnyStream/releases/download/v{{as_version}}/anystream-server-{{as_version}}.zip) | [<span style="font-size:45pt;">:material-zip-box-outline:</span><br/>anystream-server-{{as_version}}.tar](https://github.com/DrewCarlson/AnyStream/releases/download/v{{as_version}}/anystream-server-{{as_version}}.tar) |
 
 ### Run on Windows
 
@@ -173,111 +173,7 @@ Newer versions of Windows 10 include `curl` and `tar`, if you're running an olde
     $ ./anystream -port=8888
     ```
 
-### Docker CLI
+## Configure Server
 
-A small Alpine based docker image is provided
-at [ghcr.io/drewcarlson/anystream](https://github.com/DrewCarlson/AnyStream/pkgs/container/anystream).
-
-??? example "Docker CLI example"
-
-    ```shell
-    docker run -d --name anystream \
-        -v /path/to/anystream:/app/storage \
-        -v /path/to/media:/app/media \
-        -p 8888:8888 \
-        ghcr.io/drewcarlson/anystream:main
-    ```
-
-### Docker Compose
-
-Create a `docker-compose.yml` copy one of the following examples:
-
-??? example "Without qBittorrent"
-
-    ```yaml
-    version: '3.1'
-    services:
-      anystream:
-        container_name: anystream
-        image: ghcr.io/drewcarlson/anystream:main
-        restart: unless-stopped
-        ports:
-          - "8888:8888"
-        volumes:
-          - /path/to/anystream:/app/storage
-          - /path/to/media:/app/media
-    ```
-
-??? example "With qBittorrent"
-
-    ```yaml
-    version: '3.1'
-    services:
-      anystream:
-        container_name: anystream
-        image: ghcr.io/drewcarlson/anystream:main
-        restart: unless-stopped
-        ports:
-          - "8888:8888"
-        environment:
-          QBT_URL: http://qbittorrent:9090
-          QBT_USER: admin
-          QBT_PASSWORD: adminadmin
-        volumes:
-          - /path/to/anystream:/app/storage
-          - /path/to/media:/app/media
-          - /path/to/qbittorrent/downloads:/app/downloads
-        links:
-          - qbittorrent
-        depends_on:
-          - qbittorrent
-    
-      qbittorrent:
-        image: drewcarlson/docker-qbittorrentvpn
-        container_name: qbittorrent
-        restart: unless-stopped
-        cap_add:
-          - NET_ADMIN
-        sysctls:
-          - net.ipv6.conf.all.disable_ipv6=0
-        privileged: true
-        environment:
-          - VPN_ENABLED=yes
-          - NAME_SERVERS=1.1.1.1,8.8.8.8
-          - WEBUI_PORT=9090
-          - TZ=America/Los_Angeles
-          - UMASK_SET=022
-        volumes:
-          - /path/to/qbittorrent/config:/config
-          - /path/to/qbittorrent/downloads:/downloads
-          - /path/to/media:/content
-    ```
-
-Once you've configured the `docker-compose.yml` file, start it with:
-
-```shell
-docker-compose up -d
-```
-
-## Setup AnyStream
-
-Assuming your instance started without errors, the web client will be available
-at [localhost:8888](https://localhost:8888).
-
-### Create an Admin User
-
-After starting a new AnyStream instance, the first user signup does not require an invitation code and will be granted
-global permissions.
-
-!!! danger
-
-    It is important to register an admin user immediately after starting AnyStream for the first time.
-    If left incomplete, unauthorized users my be able to modify system files via AnyStream.
-
-### Importing Media
-
-### Inviting Users
-
-Navigate to Settings > Users, then click "Manage Invites". Select the permissions required by the new User, then click
-"Create Invite". The new invite will be added to the list and a sharable signup link will be copied to your clipboard.
-
+Now your server is running and ready to be used!
+See [Installation > Configure Server](configure-server.md) for what to do next.
