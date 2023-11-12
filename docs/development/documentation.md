@@ -36,7 +36,7 @@ documentation source is stored in the `docs` folder.
 Open a new Terminal or Command Prompt window.
 
 ```shell
-pip install mkdocs mkdocs-material mkdocs-markdownextradata-plugin
+pip install -r docs/requirements.txt
 ```
 
 For more information see the MkDocs [Installation Guide](https://www.mkdocs.org/getting-started/#installation) and the
