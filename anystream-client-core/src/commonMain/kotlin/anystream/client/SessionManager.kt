@@ -22,17 +22,14 @@ import anystream.models.User
 import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlin.native.concurrent.SharedImmutable
 
 private const val STORAGE_KEY = "SESSION_TOKEN"
 private const val PERMISSIONS_KEY = "PERMISSIONS_KEY"
 private const val USER_KEY = "USER_KEY"
 private const val SERVER_URL_KEY = "SERVER_URL_KEY"
 
-@SharedImmutable
 private val json = Json {
     isLenient = true
     encodeDefaults = true
