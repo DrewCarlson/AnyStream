@@ -4,6 +4,7 @@ site_url: https://docs.anystream.dev/
 repo_url: https://github.com/drewcarlson/anystream
 remote_branch: gh-pages
 docs_dir: docs
+edit_uri: edit/main/docs/
 copyright: 'Copyright &copy; 2023 AnyStream Maintainers'
 
 theme:
