@@ -38,7 +38,7 @@ fun main() = application {
         onCloseRequest = ::exitApplication,
         title = "AnyStream",
         state = rememberWindowState(width = 1600.dp, height = 1200.dp),
-        icon = painterResource("as_logo.xml"),
+        icon = painterResource("images/as_icon.xml"),
     ) {
         CompositionLocalProvider(LocalAppWindow provides window) {
             MainView()

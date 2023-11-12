@@ -91,6 +91,9 @@ compose {
                 appResourcesRootDir.set(project.layout.projectDirectory.dir("resources"))
 
                 val iconsRoot = rootProject.file("anystream-client-ui/src/jvmMain/resources/images")
+                windows {
+                    iconFile.set(iconsRoot.resolve("as_icon.ico"))
+                }
                 macOS {
                     iconFile.set(iconsRoot.resolve("as_icon.icns"))
                 }
