@@ -26,6 +26,7 @@ dependencies {
     implementation(libsServer.tmdbapi)
 
     testImplementation(libsCommon.ktor.client.cio)
+    testImplementation(libsCommon.ktor.client.logging)
     testImplementation(kotlin("reflect"))
     testImplementation(kotlin("test"))
     testImplementation(kotlin("test-junit"))

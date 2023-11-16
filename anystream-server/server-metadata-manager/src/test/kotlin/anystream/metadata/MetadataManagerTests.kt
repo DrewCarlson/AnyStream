@@ -24,6 +24,7 @@ import anystream.metadata.providers.TmdbMetadataProvider
 import anystream.models.MediaKind
 import anystream.models.api.*
 import app.moviebase.tmdb.Tmdb3
+import io.ktor.client.plugins.logging.*
 import kotlinx.coroutines.runBlocking
 import org.jdbi.v3.core.Handle
 import org.jdbi.v3.core.Jdbi
@@ -56,7 +57,16 @@ class MetadataManagerTests {
         val searchableContentDao = handle.attach<SearchableContentDao>().apply { createTable() }
 
         val queries = MetadataDbQueries(searchableContentDao, mediaDao, tagsDao, mediaLinkDao, playbackStatesDao)
-        val provider = TmdbMetadataProvider(Tmdb3("c1e9e8ade306dd9cbc5e17b05ed4badd"), queries)
+        val tmdb = Tmdb3 {
+            tmdbApiKey = "c1e9e8ade306dd9cbc5e17b05ed4badd"
+            this.httpClient {
+                install(Logging) {
+                    level = LogLevel.ALL
+                    logger = Logger.SIMPLE
+                }
+            }
+        }
+        val provider = TmdbMetadataProvider(tmdb, queries)
         manager = MetadataManager(listOf(provider))
     }
 
