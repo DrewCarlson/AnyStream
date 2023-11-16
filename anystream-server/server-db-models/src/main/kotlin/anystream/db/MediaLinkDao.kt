@@ -142,6 +142,10 @@ interface MediaLinkDao {
     fun findByParentId(parentId: Int): List<MediaLinkDb>
 
     @UseRowReducer(MediaReferenceReducer::class)
+    @SqlQuery("$MEDIALINK_SELECT WHERE parentMediaLinkGid = ?")
+    fun findByParentGid(parentGid: String): List<MediaLinkDb>
+
+    @UseRowReducer(MediaReferenceReducer::class)
     @SqlQuery("$MEDIALINK_SELECT WHERE parentMediaLinkId = ? AND descriptor = ?")
     fun findByParentIdAndDescriptor(parentId: Int, descriptor: MediaLink.Descriptor): List<MediaLinkDb>
 

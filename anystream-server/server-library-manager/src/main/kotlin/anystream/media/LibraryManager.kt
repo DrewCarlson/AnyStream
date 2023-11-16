@@ -48,7 +48,7 @@ import kotlin.io.path.*
 internal val VIDEO_EXTENSIONS = listOf(
     "webm", "mpg", "mp2", "mpeg", "mov", "mkv",
     "avi", "m4p", "mp4", "ogg", "mts", "m2ts",
-    "ts", "wmv", "mpe", "mpv",
+    "ts", "wmv", "mpe", "mpv", "m4v"
 )
 
 internal val AUDIO_EXTENSIONS = listOf(
@@ -200,6 +200,7 @@ class LibraryManager(
             MEDIA_DIRECTORY -> listOf(mediaLink)
             CHILD_DIRECTORY ->
                 listOfNotNull(mediaLinkDao.findByGid(checkNotNull(mediaLink.parentMediaLinkGid)))
+
             VIDEO -> listOf(mediaLink)
             else -> return emptyList()
         }.filter { it.mediaKind == mediaLink.mediaKind }
@@ -220,6 +221,7 @@ class LibraryManager(
             MEDIA_DIRECTORY -> listOf(mediaLink)
             CHILD_DIRECTORY ->
                 listOfNotNull(mediaLinkDao.findByGid(checkNotNull(mediaLink.parentMediaLinkGid)))
+
             VIDEO -> listOf(mediaLink)
             else -> return
         }.filter { it.mediaKind == mediaLink.mediaKind }
@@ -235,22 +237,37 @@ class LibraryManager(
             logger.error("Failed to load ROOT_DIRECTORY media links", e)
             emptyList()
         }.map { mediaLink ->
-            val filePath = checkNotNull(mediaLink.filePath)
-            val (matched, unmatched) = mediaLinkDao
-                .findByBasePathAndDescriptor(filePath, MediaLink.Descriptor.MEDIA_DIRECTORY)
-                .partition { it.metadataId != null || it.rootMetadataId != null }
+            val filePathString = checkNotNull(mediaLink.filePath)
+            val filePath = Path(filePathString)
+            // TODO: Use count query to get matched/unmatched numbers
+            val links = mediaLinkDao
+                .findByBasePathAndDescriptor(filePathString, MediaLink.Descriptor.MEDIA_DIRECTORY)
+            val (matched, unmatched) = links.partition { it.metadataId != null || it.rootMetadataId != null }
+            val fileStore = filePath.fileStore()
             val freeSpace = try {
-                Path(filePath).toFile().freeSpace.toHumanReadableSize()
+                fileStore.usableSpace.toHumanReadableSize()
             } catch (e: FileSystemException) {
                 e.printStackTrace()
                 null
             }
+            val sizeOnDisk: String? = try {
+                // TODO: calculate this elsewhere or get the size estimate from OS apis
+                /*filePath
+                    .walk()
+                    .filter(Path::isRegularFile)
+                    .sumOf { it.fileSize() }
+                    .toHumanReadableSize()*/
+                null
+            } catch (e: IOException) {
+                e.printStackTrace()
+                null
+            }
+
             LibraryFolderList.RootFolder(
                 mediaLink = mediaLink.toModel() as LocalMediaLink,
                 mediaMatchCount = matched.size,
-                unmatchedFileCount = 0, // TODO: Add unmatched files
-                unmatchedFolders = unmatched.mapNotNull(MediaLinkDb::filePath),
-                sizeOnDisk = null,
+                unmatchedCount = unmatched.size,
+                sizeOnDisk = sizeOnDisk,
                 freeSpace = freeSpace,
             )
         }

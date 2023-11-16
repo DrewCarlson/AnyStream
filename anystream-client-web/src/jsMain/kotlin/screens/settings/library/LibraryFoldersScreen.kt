@@ -26,6 +26,7 @@ import anystream.models.backend.MediaScannerState
 import anystream.util.Bootstrap
 import anystream.util.get
 import anystream.util.tooltip
+import app.softwork.routingcompose.Router
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.web.attributes.Scope
@@ -38,6 +39,7 @@ import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun LibraryFoldersScreen() {
+    val router = Router.current
     val scope = rememberCoroutineScope()
     val addFolderModalId = remember { "addFolderModal" }
     var folderListUpdate by remember { mutableStateOf(0) }
@@ -64,7 +66,7 @@ fun LibraryFoldersScreen() {
                                 folder,
                                 onDeleteClicked = { deleteTarget = it.mediaLink },
                                 onScanClicked = { scope.launch { client.scanMediaLink(it.mediaLink.gid) } },
-                                onEditClicked = {},
+                                onEditClicked = { router.navigate("/settings/library-folders/${it.mediaLink.gid}") },
                                 onAnalyzeClicked = { scope.launch { client.analyzeMediaLinksAsync(it.mediaLink.gid) } },
                             )
                         }
@@ -166,6 +168,7 @@ private fun FolderHeaderRow() {
         Th { }
         Th({ scope(Scope.Col) }) { Text("Path") }
         Th({ scope(Scope.Col) }) { Text("Type") }
+        Th({ scope(Scope.Col) }) { Text("Size") }
         Th({ scope(Scope.Col) }) { Text("Free Space") }
         Th({ scope(Scope.Col) }) { Text("Matched") }
         Th({ scope(Scope.Col) }) { Text("Unmatched") }
@@ -191,9 +194,10 @@ private fun FolderRow(
         }
         Th({ scope(Scope.Row) }) { Text(folder.mediaLink.filePath) }
         Td { Text(folder.mediaLink.mediaKind.name) }
+        Td { Text(folder.sizeOnDisk.orEmpty()) }
         Td { Text(folder.freeSpace.orEmpty()) }
         Td { Text(folder.mediaMatchCount.toString()) }
-        Td { Text(folder.run { unmatchedFileCount + unmatchedFolders.size }.toString()) }
+        Td { Text(folder.unmatchedCount.toString()) }
     }
 }
 

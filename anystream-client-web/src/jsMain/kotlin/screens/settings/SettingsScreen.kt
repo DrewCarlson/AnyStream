@@ -23,19 +23,26 @@ import anystream.components.NavLink
 import anystream.models.api.PlaybackSessions
 import anystream.models.toMediaItem
 import anystream.screens.settings.library.LibraryFoldersScreen
+import anystream.screens.settings.library.LibraryMediaLinkListScreen
 import anystream.util.formatProgressAndRuntime
 import anystream.util.get
+import app.softwork.routingcompose.RouteBuilder
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 import kotlin.time.Duration.Companion.seconds
 
 @Composable
-fun SettingsScreen(subscreen: String) {
+fun RouteBuilder.SettingsScreen(subscreen: String) {
     Div({ classes("d-flex", "p-2", "h-100") }) {
         when (subscreen) {
             "activity" -> ActiveStreamsList()
             "users" -> UserManagerScreen()
-            "library-folders" -> LibraryFoldersScreen()
+            "library-folders" -> {
+                string { gid -> LibraryMediaLinkListScreen(libraryGid = gid) }
+                noMatch { LibraryFoldersScreen() }
+            }
+
+            else -> Text("Not found")
         }
     }
 }

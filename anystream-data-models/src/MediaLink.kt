@@ -95,6 +95,8 @@ sealed class MediaLink {
      */
     abstract val streams: List<StreamEncodingDetails>
 
+    abstract val filePath: String?
+
     /**
      * [Descriptor] identifies the file contents of a [MediaLink].
      */
@@ -150,6 +152,16 @@ sealed class MediaLink {
             return this == AUDIO || this == VIDEO
         }
     }
+
+    open val filename: String
+        get() = (filePath ?: "(no name)")
+            .substringAfterLast('/')
+            .substringAfterLast('\\')
+
+    open val fileExtension: String?
+        get() = filename
+            .substringAfterLast('.', "")
+            .takeIf(String::isNotBlank)
 }
 
 /**
@@ -171,17 +183,9 @@ data class LocalMediaLink(
     override val mediaKind: MediaKind,
     override val descriptor: Descriptor,
     override val streams: List<StreamEncodingDetails> = emptyList(),
-    val filePath: String,
+    override val filePath: String,
     val directory: Boolean,
-) : MediaLink() {
-    val filename: String = filePath
-        .substringAfterLast('/')
-        .substringAfterLast('\\')
-
-    val fileExtension: String? = filename
-        .substringAfterLast('.', "")
-        .takeIf(String::isNotBlank)
-}
+) : MediaLink()
 
 /**
  * A [MediaLink] that refers to a [fileIndex] within a
@@ -205,5 +209,5 @@ data class DownloadMediaLink(
     override val streams: List<StreamEncodingDetails> = emptyList(),
     val infoHash: String,
     val fileIndex: Int?,
-    val filePath: String?,
+    override val filePath: String?,
 ) : MediaLink()

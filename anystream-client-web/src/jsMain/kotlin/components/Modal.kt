@@ -25,6 +25,7 @@ import org.jetbrains.compose.web.attributes.ButtonType
 import org.jetbrains.compose.web.attributes.type
 import org.jetbrains.compose.web.dom.*
 import org.w3c.dom.HTMLDivElement
+import org.w3c.dom.events.Event
 
 @Composable
 fun Modal(
@@ -34,6 +35,7 @@ fun Modal(
     contentAttrs: (AttrsScope<HTMLDivElement>.() -> Unit)? = null,
     size: String? = null,
     scrollable: Boolean = false,
+    onHide: (() -> Unit)? = null,
     header: (@Composable ElementScope<HTMLDivElement>.(labelId: String) -> Unit)? = null,
     footer: (@Composable ElementScope<HTMLDivElement>.() -> Unit)? = null,
     body: @Composable ElementScope<HTMLDivElement>.(modalRef: Bootstrap.ModalInstance) -> Unit,
@@ -45,6 +47,14 @@ fun Modal(
         tabIndex(-1)
         classes("modal", "fade")
         attr("aria-hidden", "true")
+        ref { ref ->
+            val callback = { _: Event ->
+                onHide?.invoke()
+                Unit
+            }
+            ref.addEventListener("hide.bs.modal", callback)
+            onDispose { ref.removeEventListener("hide.bs.modal", callback) }
+        }
     }) {
         DisposableEffect(Unit) {
             modal = Bootstrap.Modal.getOrCreateInstance(scopeElement)

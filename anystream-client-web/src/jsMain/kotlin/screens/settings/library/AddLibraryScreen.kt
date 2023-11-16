@@ -188,7 +188,7 @@ fun AddLibraryScreen(
                                 closeScreen()
                             }
                             is AddLibraryFolderResponse.LibraryFolderExists -> {
-                                message = "This folder already belonds to a library."
+                                message = "This folder already belongs to a library."
                             }
                             is AddLibraryFolderResponse.FileError -> {
                                 message = if (!response.exists) {

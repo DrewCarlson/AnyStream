@@ -20,7 +20,7 @@ package anystream.media.file
 class TvFileNameParser : FileNameParser {
 
     private val yearRegex = "\\s\\((\\d{4})\\)\$".toRegex()
-    private val seasonFolderRegex = "(\\d{1,2})$".toRegex()
+    private val seasonFolderRegex = "[S|s]eason (\\d{1,2})\$".toRegex()
     private val episodeIndexRegex = "\\b[sS](\\d{1,2})[eE](\\d{1,3})\\b".toRegex()
     private val episodeNumberRegex = "() - (\\d{1,3}) - ".toRegex() // NOTE: Keep empty group
     private val simpleEpisodeIndexRegex = "\\b(\\d{1,3})[xX](\\d{1,3})\\b".toRegex()

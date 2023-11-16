@@ -27,7 +27,6 @@ import anystream.models.MediaLink
 import anystream.models.api.*
 import anystream.util.koinGet
 import anystream.util.logger
-import io.ktor.http.*
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.UnprocessableEntity
@@ -46,6 +45,17 @@ fun Route.addMediaLinkManageRoutes(
     mediaLinkDao: MediaLinkDao = koinGet(),
 ) {
     route("/medialink") {
+        get {
+            val parent = call.parameters["parent"]
+            val result = when {
+                !parent.isNullOrBlank() -> mediaLinkDao.findByParentGid(parent)
+                else -> mediaLinkDao.all()
+            }.map { it.toModel() }
+                // TODO: Sort in query
+                .sortedBy { it.filename }
+            call.respond(result)
+        }
+
         route("/libraries") {
             get {
                 call.respond(LibraryFolderList(libraryManager.getLibraryFolders()))
@@ -101,22 +111,24 @@ fun Route.addMediaLinkManageRoutes(
             }
         }
 
-        get("/matches/{mediaLinkGid}") {
-            val mediaLink = mediaLink() ?: return@get
-            val matches = libraryManager.refreshMetadata(1, mediaLink, false)
-            call.respond(matches)
-        }
-
-        put("/matches/{mediaLinkGid}") {
-            val mediaLink = mediaLink() ?: return@put
-            val match = call.receive<MetadataMatch>()
-            libraryManager.matchMediaLink(1, mediaLink, match)
-            call.respond(OK)
-        }
-
         route("/{mediaLinkGid}") {
+            route("/matches") {
+                get {
+                    val mediaLink = mediaLink() ?: return@get call.respond(NotFound)
+                    val matches = libraryManager.refreshMetadata(1, mediaLink, false)
+                    call.respond(matches)
+                }
+
+                put {
+                    val mediaLink = mediaLink() ?: return@put call.respond(NotFound)
+                    val match = call.receive<MetadataMatch>()
+                    libraryManager.matchMediaLink(1, mediaLink, match)
+                    call.respond(OK)
+                }
+            }
+
             get("/scan") {
-                val mediaLink = mediaLink() ?: return@get
+                val mediaLink = mediaLink() ?: return@get call.respond(NotFound)
                 call.respond(libraryManager.scan(mediaLink))
             }
 

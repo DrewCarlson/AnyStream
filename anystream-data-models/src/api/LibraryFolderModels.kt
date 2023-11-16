@@ -37,7 +37,7 @@ sealed class AddLibraryFolderResponse {
     ) : AddLibraryFolderResponse()
 
     @Serializable
-    object LibraryFolderExists : AddLibraryFolderResponse()
+    data object LibraryFolderExists : AddLibraryFolderResponse()
 
     @Serializable
     data class FileError(
@@ -64,8 +64,7 @@ data class LibraryFolderList(
     data class RootFolder(
         val mediaLink: LocalMediaLink,
         val mediaMatchCount: Int,
-        val unmatchedFileCount: Int,
-        val unmatchedFolders: List<String>,
+        val unmatchedCount: Int,
         val sizeOnDisk: String? = null,
         val freeSpace: String? = null,
     )

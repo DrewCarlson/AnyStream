@@ -93,17 +93,17 @@ class TvFileProcessor(
         }
 
         val mediaName = Path(path).name
-        val (movieName, year) = when (val result = fileNameParser.parseFileName(mediaName)) {
+        val (tvShowName, year) = when (val result = fileNameParser.parseFileName(mediaName)) {
             is ParsedFileNameResult.Tv.ShowFolder -> result
             else -> {
-                logger.debug("Expected to find show folder but could not parse '{}'", mediaName)
+                logger.debug("Expected to find show folder but could not parse '{}' {}", mediaName, result)
                 return MediaLinkMatchResult.FileNameParseFailed(mediaLink.toModel())
             }
         }
-        logger.debug("Querying provider for '{}' (year {})", movieName, year)
+        logger.debug("Querying provider for '{}' (year {})", tvShowName, year)
         val query = QueryMetadata(
             providerId = null,
-            query = movieName,
+            query = tvShowName,
             mediaKind = MediaKind.TV,
             year = year,
             extras = null,

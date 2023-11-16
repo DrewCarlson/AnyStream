@@ -27,6 +27,10 @@ data class MediaLookupResponse(
     val episode: EpisodeResponse? = null,
     val season: SeasonResponse? = null,
 ) {
+    val title = movie?.movie?.title
+        ?: episode?.episode?.name
+        ?: season?.season?.name
+        ?: tvShow?.tvShow?.name
     val mediaLinks: List<MediaLink> = listOfNotNull(
         movie?.mediaLinks,
         tvShow?.mediaLinks,

@@ -549,14 +549,20 @@ class AnyStreamClient(
     }
 
     suspend fun matchesFor(mediaLinkGid: String): List<MediaLinkMatchResult> {
-        return http.get("$serverUrl/api/medialink/matches/$mediaLinkGid").bodyOrThrow()
+        return http.get("$serverUrl/api/medialink/$mediaLinkGid/matches").bodyOrThrow()
     }
 
     suspend fun matchFor(mediaLinkGid: String, match: MetadataMatch) {
-        http.put("$serverUrl/api/medialink/matches/$mediaLinkGid") {
+        http.put("$serverUrl/api/medialink/$mediaLinkGid/matches") {
             contentType(ContentType.Application.Json)
             setBody(match)
         }
+    }
+
+    suspend fun getMediaLinks(parentGid: String? = null): List<MediaLink> {
+        return http.get("$serverUrl/api/medialink") {
+            parameter("parent", parentGid)
+        }.bodyOrThrow()
     }
 
     suspend fun findMediaLink(
