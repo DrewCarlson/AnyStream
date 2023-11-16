@@ -27,6 +27,8 @@ import kotlinx.serialization.Serializable
 data class TvShowResponse(
     val tvShow: TvShow,
     val seasons: List<TvSeason>,
-    val mediaLinks: List<MediaLink> = emptyList(),
+    override val mediaLinks: List<MediaLink> = emptyList(),
     val playbackState: PlaybackState? = null,
-)
+) : MediaLookupResponse {
+    override val title: String = tvShow.name
+}

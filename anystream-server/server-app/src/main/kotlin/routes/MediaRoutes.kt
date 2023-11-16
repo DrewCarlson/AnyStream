@@ -40,7 +40,7 @@ fun Route.addMediaManageRoutes(
 
                 if (result.hasResult()) {
                     logger.warn("No media found for $metadataGid")
-                    return@get call.respond(MediaLookupResponse())
+                    return@get call.respond(NotFound)
                 }
             }
         }
@@ -66,47 +66,43 @@ fun Route.addMediaViewRoutes(
                     when (val queryResult = metadataManager.findByRemoteId(metadataGid)) {
                         is QueryMetadataResult.Success -> {
                             if (queryResult.results.isEmpty()) {
-                                return@get call.respond(MediaLookupResponse())
+                                return@get call.respond(NotFound)
                             }
                             val response = when (val match = queryResult.results.first()) {
-                                is MetadataMatch.MovieMatch -> {
-                                    MediaLookupResponse(movie = MovieResponse(match.movie))
-                                }
-
+                                is MetadataMatch.MovieMatch -> MovieResponse(match.movie)
                                 is MetadataMatch.TvShowMatch -> {
                                     val tvExtras = queryResult.extras?.asTvShowExtras()
                                     when {
-                                        tvExtras?.episodeNumber != null -> MediaLookupResponse(
-                                            episode = EpisodeResponse(match.episodes.first(), match.tvShow),
-                                        )
+                                        tvExtras?.episodeNumber != null ->
+                                            EpisodeResponse(match.episodes.first(), match.tvShow)
 
-                                        tvExtras?.seasonNumber != null -> MediaLookupResponse(
-                                            season = SeasonResponse(
+                                        tvExtras?.seasonNumber != null ->
+                                            SeasonResponse(
                                                 match.tvShow,
                                                 match.seasons.first(),
                                                 match.episodes,
-                                            ),
-                                        )
+                                            )
 
-                                        else -> MediaLookupResponse(
-                                            tvShow = TvShowResponse(match.tvShow, match.seasons),
-                                        )
+                                        else -> TvShowResponse(match.tvShow, match.seasons)
                                     }
                                 }
                             }
                             call.respond(response)
                         }
 
-                        else -> call.respond(MediaLookupResponse())
+                        else -> call.respond(NotFound)
                     }
                 } else {
-                    call.respond(
-                        queries.findMediaById(
-                            metadataGid,
-                            includeLinks = includeLinks,
-                            includePlaybackStateForUser = playbackStateUserId,
-                        ),
+                    val response = queries.findMediaById(
+                        metadataGid,
+                        includeLinks = includeLinks,
+                        includePlaybackStateForUser = playbackStateUserId,
                     )
+                    if (response == null) {
+                        call.respond(NotFound)
+                    } else {
+                        call.respond(response)
+                    }
                 }
             }
         }

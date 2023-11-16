@@ -25,6 +25,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class MovieResponse(
     val movie: Movie,
-    val mediaLinks: List<MediaLink> = emptyList(),
+    override val mediaLinks: List<MediaLink> = emptyList(),
     val playbackState: PlaybackState? = null,
-)
+) : MediaLookupResponse {
+    override val title: String = movie.title
+}

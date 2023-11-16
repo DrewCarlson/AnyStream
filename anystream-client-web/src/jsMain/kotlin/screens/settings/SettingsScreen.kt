@@ -20,6 +20,8 @@ package anystream.screens.settings
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
 import anystream.components.NavLink
+import anystream.models.api.EpisodeResponse
+import anystream.models.api.MovieResponse
 import anystream.models.api.PlaybackSessions
 import anystream.models.toMediaItem
 import anystream.screens.settings.library.LibraryFoldersScreen
@@ -97,7 +99,8 @@ private fun ActiveStreamsList() {
                 val user = sessionsResponse.users.getValue(playbackState.userId)
                 val mediaLookup = sessionsResponse.mediaLookups.getValue(playbackState.metadataGid)
                 val mediaItem = checkNotNull(
-                    mediaLookup.run { movie?.toMediaItem() ?: episode?.toMediaItem() },
+                    (mediaLookup as? MovieResponse)?.toMediaItem()
+                        ?: (mediaLookup as? EpisodeResponse)?.toMediaItem()
                 )
                 Div({
                     classes("d-flex", "flex-column", "p-3", "rounded")

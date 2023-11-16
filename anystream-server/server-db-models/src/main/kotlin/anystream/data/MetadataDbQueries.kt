@@ -62,21 +62,13 @@ class MetadataDbQueries(
         mediaId: String,
         includeLinks: Boolean = false,
         includePlaybackStateForUser: Int? = null,
-    ): MediaLookupResponse {
-        return when (metadataDao.findTypeByGid(mediaId)) {
-            MetadataDb.Type.MOVIE -> MediaLookupResponse(
-                movie = findMovieById(mediaId, includeLinks, includePlaybackStateForUser),
-            )
-            MetadataDb.Type.TV_SHOW -> MediaLookupResponse(
-                tvShow = findShowById(mediaId, includeLinks, includePlaybackStateForUser),
-            )
-            MetadataDb.Type.TV_EPISODE -> MediaLookupResponse(
-                episode = findEpisodeById(mediaId, includeLinks, includePlaybackStateForUser),
-            )
-            MetadataDb.Type.TV_SEASON -> MediaLookupResponse(
-                season = findSeasonById(mediaId, includeLinks, includePlaybackStateForUser),
-            )
-            else -> MediaLookupResponse()
+    ): MediaLookupResponse? {
+        return when (val type = metadataDao.findTypeByGid(mediaId)) {
+            MetadataDb.Type.MOVIE -> findMovieById(mediaId, includeLinks, includePlaybackStateForUser)
+            MetadataDb.Type.TV_SHOW -> findShowById(mediaId, includeLinks, includePlaybackStateForUser)
+            MetadataDb.Type.TV_EPISODE -> findEpisodeById(mediaId, includeLinks, includePlaybackStateForUser)
+            MetadataDb.Type.TV_SEASON -> findSeasonById(mediaId, includeLinks, includePlaybackStateForUser)
+            else -> error("Unhandled MetadataDb.Type '$type'")
         }
     }
 
@@ -169,7 +161,7 @@ class MetadataDbQueries(
             season = seasonRecord.toTvSeasonModel(),
             show = tvShowRecord.toTvShowModel(),
             episodes = episodeRecords.map(MetadataDb::toTvEpisodeModel),
-            mediaLinks = mediaLinks.map(MediaLinkDb::toModel)
+            mediaLinkMap = mediaLinks.map(MediaLinkDb::toModel)
                 .filter { !it.metadataGid.isNullOrBlank() }
                 .associateBy { it.metadataGid!! },
             playbackState = playbackStateRecord?.toStateModel(),

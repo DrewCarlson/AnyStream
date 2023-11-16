@@ -22,6 +22,8 @@ import anystream.client.AnyStreamClient
 import anystream.libs.*
 import anystream.models.MediaItem
 import anystream.models.PlaybackState
+import anystream.models.api.EpisodeResponse
+import anystream.models.api.MovieResponse
 import anystream.models.toMediaItem
 import anystream.util.formatProgressAndRuntime
 import anystream.util.formatted
@@ -77,7 +79,8 @@ fun PlayerScreen(mediaLinkId: String) {
     val mediaItem = produceState<MediaItem?>(null) {
         value = try {
             client.findMediaLink(mediaLinkId).let { (_, metadata) ->
-                metadata?.movie?.toMediaItem() ?: metadata?.episode?.toMediaItem()
+                (metadata as? MovieResponse)?.toMediaItem()
+                    ?: (metadata as? EpisodeResponse)?.toMediaItem()
             }
         } catch (e: Throwable) {
             null

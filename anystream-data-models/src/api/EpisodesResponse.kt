@@ -33,6 +33,8 @@ data class EpisodesResponse(
 data class EpisodeResponse(
     val episode: Episode,
     val show: TvShow,
-    val mediaLinks: List<MediaLink> = emptyList(),
+    override val mediaLinks: List<MediaLink> = emptyList(),
     val playbackState: PlaybackState? = null,
-)
+) : MediaLookupResponse {
+    override val title: String = episode.name
+}

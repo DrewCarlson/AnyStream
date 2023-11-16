@@ -24,7 +24,7 @@ import anystream.libs.PopperElement
 import anystream.libs.popperOptions
 import anystream.models.*
 import anystream.models.MediaItem
-import anystream.models.api.MediaLookupResponse
+import anystream.models.api.*
 import anystream.models.toMediaItem
 import anystream.util.ExternalClickMask
 import anystream.util.get
@@ -79,58 +79,58 @@ fun MediaScreen(mediaId: String) {
         classes("d-flex", "flex-column", "h-100")
         style { overflow("hidden scroll") }
     }) {
-        if (mediaResponse == null) {
-            FullSizeCenteredLoader()
-        }
-        mediaResponse?.movie?.let { response ->
-            val mediaItem = remember(response) {
-                response.toMediaItem().also {
-                    backdropImageUrl.value = "https://image.tmdb.org/t/p/w1280/${it.backdropPath}"
+        when (val response = mediaResponse) {
+            null -> FullSizeCenteredLoader()
+            is MovieResponse -> {
+                val mediaItem = remember(response) {
+                    response.toMediaItem().also {
+                        backdropImageUrl.value = "https://image.tmdb.org/t/p/w1280/${it.backdropPath}"
+                    }
                 }
-            }
-            BaseDetailsView(
-                mediaItem = mediaItem,
-                analyzeFiles = analyzeFiles,
-                onFixMatch = onFixMatch,
-            )
-        }
-
-        mediaResponse?.tvShow?.let { response ->
-            val mediaItem = remember(response) { response.toMediaItem() }
-            BaseDetailsView(
-                mediaItem = mediaItem,
-                analyzeFiles = analyzeFiles,
-                onFixMatch = onFixMatch,
-            )
-
-            if (response.seasons.isNotEmpty()) {
-                SeasonRow(response.seasons)
-            }
-        }
-
-        mediaResponse?.season?.let { response ->
-            val mediaItem = remember(response) { response.toMediaItem() }
-            BaseDetailsView(
-                mediaItem = mediaItem,
-                analyzeFiles = null,
-                onFixMatch = onFixMatch,
-            )
-
-            if (response.episodes.isNotEmpty()) {
-                EpisodeGrid(
-                    response.episodes,
-                    response.mediaLinks,
+                BaseDetailsView(
+                    mediaItem = mediaItem,
+                    analyzeFiles = analyzeFiles,
+                    onFixMatch = onFixMatch,
                 )
             }
-        }
 
-        mediaResponse?.episode?.let { response ->
-            val mediaItem = remember(response) { response.toMediaItem() }
-            BaseDetailsView(
-                mediaItem = mediaItem,
-                analyzeFiles = analyzeFiles,
-                onFixMatch = onFixMatch,
-            )
+            is TvShowResponse -> {
+                val mediaItem = remember(response) { response.toMediaItem() }
+                BaseDetailsView(
+                    mediaItem = mediaItem,
+                    analyzeFiles = analyzeFiles,
+                    onFixMatch = onFixMatch,
+                )
+
+                if (response.seasons.isNotEmpty()) {
+                    SeasonRow(response.seasons)
+                }
+            }
+
+            is SeasonResponse -> {
+                val mediaItem = remember(response) { response.toMediaItem() }
+                BaseDetailsView(
+                    mediaItem = mediaItem,
+                    analyzeFiles = null,
+                    onFixMatch = onFixMatch,
+                )
+
+                if (response.episodes.isNotEmpty()) {
+                    EpisodeGrid(
+                        response.episodes,
+                        response.mediaLinkMap,
+                    )
+                }
+            }
+
+            is EpisodeResponse -> {
+                val mediaItem = remember(response) { response.toMediaItem() }
+                BaseDetailsView(
+                    mediaItem = mediaItem,
+                    analyzeFiles = analyzeFiles,
+                    onFixMatch = onFixMatch,
+                )
+            }
         }
     }
 }

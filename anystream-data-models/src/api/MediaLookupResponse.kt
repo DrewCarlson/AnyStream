@@ -18,23 +18,8 @@
 package anystream.models.api
 
 import anystream.models.MediaLink
-import kotlinx.serialization.Serializable
 
-@Serializable
-data class MediaLookupResponse(
-    val movie: MovieResponse? = null,
-    val tvShow: TvShowResponse? = null,
-    val episode: EpisodeResponse? = null,
-    val season: SeasonResponse? = null,
-) {
-    val title = movie?.movie?.title
-        ?: episode?.episode?.name
-        ?: season?.season?.name
-        ?: tvShow?.tvShow?.name
-    val mediaLinks: List<MediaLink> = listOfNotNull(
-        movie?.mediaLinks,
-        tvShow?.mediaLinks,
-        episode?.mediaLinks,
-        season?.mediaLinks?.values,
-    ).flatten()
+interface MediaLookupResponse {
+    val title: String?
+    val mediaLinks: List<MediaLink>
 }

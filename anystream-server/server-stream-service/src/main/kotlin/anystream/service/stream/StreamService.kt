@@ -89,18 +89,17 @@ class StreamService(
         val users = queries.fetchUsersByIds(userIds)
         val mediaIds = playbackStates.map(PlaybackState::metadataGid).distinct()
         val mediaLookups = mediaIds.associateWith { id ->
-            MediaLookupResponse(
-                movie = queries.fetchMovieById(id)?.run(::MovieResponse),
-                episode = queries.fetchEpisodeById(id)?.let { (episode, show) ->
+            queries.fetchMovieById(id)?.run(::MovieResponse)
+                ?: queries.fetchEpisodeById(id)?.let { (episode, show) ->
                     EpisodeResponse(episode, show)
-                },
-            )
+                }
         }
+        @Suppress("UNCHECKED_CAST")
         return PlaybackSessions(
             playbackStates = playbackStates,
             transcodeSessions = sessionMap,
             users = users.associateBy(User::id),
-            mediaLookups = mediaLookups,
+            mediaLookups = mediaLookups.filterValues { it != null } as Map<String, MediaLookupResponse>,
         )
     }
 
