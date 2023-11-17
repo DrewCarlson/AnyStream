@@ -65,7 +65,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import anystream.client.AnyStreamClient
 import anystream.models.*
-import anystream.models.api.MediaLookupResponse
+import anystream.models.api.*
 import anystream.router.BackStack
 import anystream.routing.Routes
 import anystream.ui.components.PosterCard
@@ -116,60 +116,60 @@ fun MediaScreen(
     }
     Scaffold {
         Column(modifier = Modifier.fillMaxSize()) {
-            mediaResponse?.movie?.let { response ->
-                BaseDetailsView(
-                    mediaItem = response.toMediaItem(),
-                    refreshMetadata = refreshMetadata,
-                    client = client,
-                    backStack = backStack,
-                    onPlayClick = onPlayClick,
-                )
-            }
-
-            mediaResponse?.tvShow?.let { response ->
-                BaseDetailsView(
-                    mediaItem = response.toMediaItem(),
-                    refreshMetadata = refreshMetadata,
-                    client = client,
-                    backStack = backStack,
-                    onPlayClick = onPlayClick,
-                ) {
-                    if (response.seasons.isNotEmpty()) {
-                        SeasonRow(
-                            seasons = response.seasons,
-                            backStack = backStack,
-                        )
+            when (val response = mediaResponse) {
+                is EpisodeResponse -> {
+                    val mediaItem = remember(response) { response.toMediaItem() }
+                    BaseDetailsView(
+                        mediaItem = mediaItem,
+                        refreshMetadata = refreshMetadata,
+                        client = client,
+                        backStack = backStack,
+                        onPlayClick = onPlayClick,
+                    )
+                }
+                is MovieResponse -> {
+                    BaseDetailsView(
+                        mediaItem = response.toMediaItem(),
+                        refreshMetadata = refreshMetadata,
+                        client = client,
+                        backStack = backStack,
+                        onPlayClick = onPlayClick,
+                    )
+                }
+                is SeasonResponse -> {
+                    BaseDetailsView(
+                        mediaItem = response.toMediaItem(),
+                        refreshMetadata = refreshMetadata,
+                        client = client,
+                        backStack = backStack,
+                        onPlayClick = onPlayClick,
+                    ) {
+                        if (response.episodes.isNotEmpty()) {
+                            EpisodeGrid(
+                                episodes = response.episodes,
+                                mediaLinks = response.mediaLinkMap,
+                                backStack = backStack,
+                            )
+                        }
                     }
                 }
-            }
-
-            mediaResponse?.season?.let { response ->
-                BaseDetailsView(
-                    mediaItem = response.toMediaItem(),
-                    refreshMetadata = refreshMetadata,
-                    client = client,
-                    backStack = backStack,
-                    onPlayClick = onPlayClick,
-                ) {
-                    if (response.episodes.isNotEmpty()) {
-                        EpisodeGrid(
-                            episodes = response.episodes,
-                            mediaLinks = response.mediaLinks,
-                            backStack = backStack,
-                        )
+                is TvShowResponse -> {
+                    BaseDetailsView(
+                        mediaItem = response.toMediaItem(),
+                        refreshMetadata = refreshMetadata,
+                        client = client,
+                        backStack = backStack,
+                        onPlayClick = onPlayClick,
+                    ) {
+                        if (response.seasons.isNotEmpty()) {
+                            SeasonRow(
+                                seasons = response.seasons,
+                                backStack = backStack,
+                            )
+                        }
                     }
                 }
-            }
-
-            mediaResponse?.episode?.let { response ->
-                val mediaItem = remember(response) { response.toMediaItem() }
-                BaseDetailsView(
-                    mediaItem = mediaItem,
-                    refreshMetadata = refreshMetadata,
-                    client = client,
-                    backStack = backStack,
-                    onPlayClick = onPlayClick,
-                )
+                null -> Unit
             }
         }
     }
