@@ -39,7 +39,7 @@ import org.jdbi.v3.sqlobject.statement.UseRowReducer
 interface MediaLinkDao {
 
     @UseRowReducer(MediaReferenceReducer::class)
-    @SqlQuery(MEDIALINK_SELECT)
+    @SqlQuery("SELECT * FROM mediaLinkView")
     fun all(): List<MediaLinkDb>
 
     @SqlUpdate
@@ -92,40 +92,39 @@ interface MediaLinkDao {
     fun descriptorForGid(gid: String): MediaLink.Descriptor?
 
     @UseRowReducer(MediaReferenceReducer::class)
-    @SqlQuery("$MEDIALINK_SELECT WHERE gid = ?")
+    @SqlQuery("SELECT * FROM mediaLinkView WHERE mediaLink_gid = ?")
     fun findByGid(gid: String): MediaLinkDb?
 
     @UseRowReducer(MediaReferenceReducer::class)
-    @SqlQuery("$MEDIALINK_SELECT WHERE gid IN (<gids>)")
+    @SqlQuery("SELECT * FROM mediaLinkView WHERE mediaLink_gid IN (<gids>)")
     fun findByGids(@BindList("gids") gids: List<String>): List<MediaLinkDb>
 
     @UseRowReducer(MediaReferenceReducer::class)
-    @SqlQuery("$MEDIALINK_SELECT WHERE metadataGid = ?")
+    @SqlQuery("SELECT * FROM mediaLinkView WHERE mediaLink_metadataGid = ?")
     fun findByMetadataGid(metadataGid: String): List<MediaLinkDb>
 
-    @RegisterJoinRowMapper(StreamEncodingDetailsDb::class)
     @UseRowReducer(MediaReferenceReducer::class)
-    @SqlQuery("$MEDIALINK_SELECT WHERE metadataGid IN (<gids>)")
+    @SqlQuery("SELECT * FROM mediaLinkView WHERE mediaLink_metadataGid IN (<gids>)")
     fun findByMetadataGids(@BindList("gids") gids: List<String>): List<MediaLinkDb>
 
     @UseRowReducer(MediaReferenceReducer::class)
-    @SqlQuery("$MEDIALINK_SELECT WHERE rootMetadataGid = ?")
+    @SqlQuery("SELECT * FROM mediaLinkView WHERE mediaLink_rootMetadataGid = ?")
     fun findByRootMetadataGid(metadataGid: String): List<MediaLinkDb>
 
     @UseRowReducer(MediaReferenceReducer::class)
-    @SqlQuery("$MEDIALINK_SELECT WHERE rootMetadataGid IN (<gids>)")
+    @SqlQuery("SELECT * FROM mediaLinkView WHERE mediaLink_rootMetadataGid IN (<gids>)")
     fun findByRootMetadataGids(@BindList("gids") gids: List<String>): List<MediaLinkDb>
 
     @UseRowReducer(MediaReferenceReducer::class)
-    @SqlQuery("$MEDIALINK_SELECT WHERE filePath LIKE ? || '%'")
+    @SqlQuery("SELECT * FROM mediaLinkView WHERE mediaLink_filePath LIKE ? || '%'")
     fun findByBasePath(basePath: String): List<MediaLinkDb>
 
     @UseRowReducer(MediaReferenceReducer::class)
-    @SqlQuery("$MEDIALINK_SELECT WHERE filePath LIKE ? || '%' AND descriptor = ?")
+    @SqlQuery("SELECT * FROM mediaLinkView WHERE mediaLink_filePath LIKE ? || '%' AND mediaLink_descriptor = ?")
     fun findByBasePathAndDescriptor(basePath: String, descriptor: MediaLink.Descriptor): List<MediaLinkDb>
 
     @UseRowReducer(MediaReferenceReducer::class)
-    @SqlQuery("$MEDIALINK_SELECT WHERE filePath LIKE :basePath || '%' AND descriptor IN (<descriptor>)")
+    @SqlQuery("SELECT * FROM mediaLinkView WHERE mediaLink_filePath LIKE :basePath || '%' AND mediaLink_descriptor IN (<descriptor>)")
     fun findByBasePathAndDescriptors(
         basePath: String,
         @BindList("descriptor") descriptor: List<MediaLink.Descriptor>,
@@ -138,26 +137,26 @@ interface MediaLinkDao {
     ): List<String>
 
     @UseRowReducer(MediaReferenceReducer::class)
-    @SqlQuery("$MEDIALINK_SELECT WHERE parentMediaLinkId = ?")
+    @SqlQuery("SELECT * FROM mediaLinkView WHERE mediaLink_parentMediaLinkId = ?")
     fun findByParentId(parentId: Int): List<MediaLinkDb>
 
     @UseRowReducer(MediaReferenceReducer::class)
-    @SqlQuery("$MEDIALINK_SELECT WHERE parentMediaLinkGid = ?")
+    @SqlQuery("SELECT * FROM mediaLinkView WHERE mediaLink_parentMediaLinkGid = ?")
     fun findByParentGid(parentGid: String): List<MediaLinkDb>
 
     @UseRowReducer(MediaReferenceReducer::class)
-    @SqlQuery("$MEDIALINK_SELECT WHERE parentMediaLinkId = ? AND descriptor = ?")
+    @SqlQuery("SELECT * FROM mediaLinkView WHERE mediaLink_parentMediaLinkId = ? AND mediaLink_descriptor = ?")
     fun findByParentIdAndDescriptor(parentId: Int, descriptor: MediaLink.Descriptor): List<MediaLinkDb>
 
     @SqlQuery("SELECT count(id) FROM mediaLink WHERE filePath LIKE ? || '%' AND descriptor = ?")
     fun countInBasePath(basePath: String, descriptor: MediaLink.Descriptor): Int
 
     @UseRowReducer(MediaReferenceReducer::class)
-    @SqlQuery("$MEDIALINK_SELECT WHERE filePath = ?")
+    @SqlQuery("SELECT * FROM mediaLinkView WHERE mediaLink_filePath = ?")
     fun findByFilePath(filePath: String): MediaLinkDb?
 
     @UseRowReducer(MediaReferenceReducer::class)
-    @SqlQuery("$MEDIALINK_SELECT WHERE filePath IN (<filePaths>)")
+    @SqlQuery("SELECT * FROM mediaLinkView WHERE mediaLink_filePath IN (<filePaths>)")
     fun findByFilePaths(@BindList("filePaths") filePaths: List<String>): List<MediaLinkDb>
 
     @SqlQuery("SELECT gid FROM mediaLink WHERE filePath LIKE ?")
@@ -202,7 +201,7 @@ interface MediaLinkDao {
     fun findFilePathsByGids(@BindList("mediaLinkGids") gids: List<String>): List<String>
 
     @UseRowReducer(MediaReferenceReducer::class)
-    @SqlQuery("$MEDIALINK_SELECT WHERE descriptor = ?")
+    @SqlQuery("SELECT * FROM mediaLinkView WHERE mediaLink_descriptor = ?")
     fun findByDescriptor(descriptor: MediaLink.Descriptor): List<MediaLinkDb>
 
     @SqlQuery("SELECT filePath FROM mediaLink WHERE length(mediaLink.filePath) > 0")
