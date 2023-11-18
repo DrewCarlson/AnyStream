@@ -24,6 +24,7 @@ fun LibraryMediaLinkListScreen(libraryGid: String) {
         value = client.getMediaLinks(libraryGid)
     }
     var matchMediaLinkGid by remember { mutableStateOf<String?>(null) }
+    val selectedMediaLinks = remember { mutableStateListOf<String>() }
 
     Div({ classes("vstack", "h-100", "w-100", "gap-1", "p-2") }) {
         Div {
@@ -40,6 +41,14 @@ fun LibraryMediaLinkListScreen(libraryGid: String) {
             VerticalScroller(mediaLinks) { mediaLink ->
                 MediaLinkRow(
                     mediaLink = mediaLink as LocalMediaLink,
+                    isSelected = selectedMediaLinks.contains(mediaLink.gid),
+                    onSelect = {
+                        if (selectedMediaLinks.contains(it.gid)) {
+                            selectedMediaLinks.remove(it.gid)
+                        } else {
+                            selectedMediaLinks.add(it.gid)
+                        }
+                    },
                     onScanClicked = { },
                     onMatchMetadata = { matchMediaLinkGid = it.gid },
                 )
@@ -98,29 +107,33 @@ private fun MediaLinkHeaderRow() {
 @Composable
 private fun MediaLinkRow(
     mediaLink: LocalMediaLink,
+    isSelected: Boolean,
+    onSelect: (LocalMediaLink) -> Unit,
     onScanClicked: (LocalMediaLink) -> Unit,
     onMatchMetadata: (LocalMediaLink) -> Unit,
 ) {
-    Div({ classes("hstack", "m-2", "gap-2") }) {
-        Div {
-            Div({ classes("hstack", "gap-1") }) {
-                MediaLinkAction("Scan Files", "arrow-clockwise") { onScanClicked(mediaLink) }
-                MediaLinkAction("Match Metadata", "binoculars") { onMatchMetadata(mediaLink) }
+    Div({ classes("hstack", "m-2", "gap-3") }) {
+        Div({ classes("me-2") }) {
+            CheckboxInput(checked = isSelected) {
+                classes("form-check-input")
+                onChange {
+                    onSelect(mediaLink)
+                }
             }
         }
-        Div({ classes("text-center") }) {
+        Div({ classes("hstack", "gap-2") }) {
+            MediaLinkAction("Scan Files", "arrow-clockwise") { onScanClicked(mediaLink) }
+            MediaLinkAction("Match Metadata", "binoculars") { onMatchMetadata(mediaLink) }
+        }
+        Div { Text(mediaLink.mediaKind.name) }
+        Div {
             if (mediaLink.metadataId == null) {
                 I({ classes("bi", "bi-exclamation-triangle") })
             } else {
                 I({ classes("bi", "bi-check-circle-fill") })
             }
         }
-        Div({ classes("text-center") }) {
-            Text(mediaLink.mediaKind.name)
-        }
-        Div({
-            classes("w-100")
-        }) {
+        Div({ classes("w-100") }) {
             if (mediaLink.metadataId == null) {
                 Text(mediaLink.filename)
             } else {

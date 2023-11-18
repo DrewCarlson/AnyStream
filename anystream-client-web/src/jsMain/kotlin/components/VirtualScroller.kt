@@ -32,7 +32,8 @@ import kotlin.math.ceil
 import kotlin.random.Random
 
 private const val DEFAULT_BUFFER_PAGES = 1
-private const val MAX_CACHED_ITEMS = 100
+// TODO: Use a stable dynamic pool size selection
+private const val HOLDER_POOL_SIZE = 100
 
 private data class CompositionStateHolder<T>(
     val composition: Composition,
@@ -387,7 +388,7 @@ private fun <T> VirtualScroller(
                 // returning them to the cache up to the max cache size.
                 (activeHolders.keys - itemSlice.flatten().toSet())
                     .mapNotNull(activeHolders::remove)
-                    .take(MAX_CACHED_ITEMS - cachedHolders.size)
+                    .take(HOLDER_POOL_SIZE - cachedHolders.size)
                     .onEach { holder ->
                         holder.itemLeft.value = -500
                         holder.itemTop.value = -500

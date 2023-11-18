@@ -42,16 +42,18 @@ class MetadataDbQueries(
             metadataDao.findAllByTypeSortedByTitle(MetadataDb.Type.MOVIE)
         } else {
             metadataDao.findByTypeSortedByTitle(MetadataDb.Type.MOVIE, limit, offset)
-        }
+        }.map(MetadataDb::toMovieModel)
         val mediaLinkRecords = if (includeLinks && mediaRecords.isNotEmpty()) {
-            mediaLinkDao.findByMetadataGids(mediaRecords.map(MetadataDb::gid))
+            mediaLinkDao.findByMetadataGids(mediaRecords.map(Movie::gid))
+                .map(MediaLinkDb::toModel)
+                .associateBy { it.metadataGid!! }
         } else {
-            emptyList()
+            emptyMap()
         }
 
         return MoviesResponse(
-            movies = mediaRecords.map(MetadataDb::toMovieModel),
-            mediaLinks = mediaLinkRecords.map(MediaLinkDb::toModel),
+            movies = mediaRecords,
+            mediaLinks = mediaLinkRecords,
             limit = limit,
             offset = offset,
             total = recordCount.toInt(),

@@ -24,7 +24,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class MoviesResponse(
     val movies: List<Movie>,
-    val mediaLinks: List<MediaLink>,
+    val mediaLinks: Map<String, MediaLink>,
     val total: Int,
     val offset: Int,
     val limit: Int,
