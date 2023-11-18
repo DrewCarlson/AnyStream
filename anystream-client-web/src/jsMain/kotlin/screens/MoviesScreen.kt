@@ -46,7 +46,7 @@ fun MoviesScreen() {
                 }
             } else {
                 val router = Router.current
-                VirtualScroller(movies) { movie ->
+                VerticalGridScroller(movies) { movie ->
                     val mediaLink = mediaLinks.find { it.metadataGid == movie.gid }
                     MovieCard(router, movie, mediaLink)
                 }

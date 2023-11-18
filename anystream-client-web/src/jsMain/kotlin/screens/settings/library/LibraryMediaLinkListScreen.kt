@@ -2,8 +2,7 @@ package anystream.screens.settings.library
 
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
-import anystream.components.LinkedText
-import anystream.components.Modal
+import anystream.components.*
 import anystream.models.LocalMediaLink
 import anystream.models.MediaLink
 import anystream.util.get
@@ -36,20 +35,14 @@ fun LibraryMediaLinkListScreen(libraryGid: String) {
                 }
             }
         }
-        Div({ classes("table-responsive") }) {
-            Table({ classes("table", "table-hover", "table-striped") }) {
-                Thead { MediaLinkHeaderRow() }
-                Tbody {
-                    if (libraryLink != null) {
-                        mediaLinks.forEach { mediaLink ->
-                            MediaLinkRow(
-                                mediaLink = mediaLink as LocalMediaLink,
-                                onScanClicked = { },
-                                onMatchMetadata = { matchMediaLinkGid = it.gid },
-                            )
-                        }
-                    }
-                }
+        if (mediaLinks.isNotEmpty()) {
+            MediaLinkHeaderRow()
+            VerticalScroller(mediaLinks) { mediaLink ->
+                MediaLinkRow(
+                    mediaLink = mediaLink as LocalMediaLink,
+                    onScanClicked = { },
+                    onMatchMetadata = { matchMediaLinkGid = it.gid },
+                )
             }
         }
         /*Div({ classes("d-flex", "gap-1") }) {
@@ -108,25 +101,24 @@ private fun MediaLinkRow(
     onScanClicked: (LocalMediaLink) -> Unit,
     onMatchMetadata: (LocalMediaLink) -> Unit,
 ) {
-    Tr {
-        Td {
-            Div({ classes("hstack", "gap-3") }) {
+    Div({ classes("hstack", "m-2", "gap-2") }) {
+        Div {
+            Div({ classes("hstack", "gap-1") }) {
                 MediaLinkAction("Scan Files", "arrow-clockwise") { onScanClicked(mediaLink) }
                 MediaLinkAction("Match Metadata", "binoculars") { onMatchMetadata(mediaLink) }
             }
         }
-        Td({ classes("text-center") }) {
+        Div({ classes("text-center") }) {
             if (mediaLink.metadataId == null) {
                 I({ classes("bi", "bi-exclamation-triangle") })
             } else {
                 I({ classes("bi", "bi-check-circle-fill") })
             }
         }
-        Td({ classes("text-center") }) {
+        Div({ classes("text-center") }) {
             Text(mediaLink.mediaKind.name)
         }
-        Th({
-            scope(Scope.Row)
+        Div({
             classes("w-100")
         }) {
             if (mediaLink.metadataId == null) {

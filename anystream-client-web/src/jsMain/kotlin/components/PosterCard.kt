@@ -185,6 +185,9 @@ private fun CardOverlay(
             }
         }) {
             val isPlaySelected = remember { mutableStateOf(onPlayClicked == null) }
+            LaunchedEffect(onPlayClicked) {
+                isPlaySelected.value = onPlayClicked == null
+            }
             I({
                 classes("d-flex", "align-self-end", "bi", "bi-three-dots-vertical")
                 style {

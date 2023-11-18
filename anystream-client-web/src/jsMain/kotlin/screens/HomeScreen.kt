@@ -20,6 +20,7 @@ package anystream.screens
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
 import anystream.components.FullSizeCenteredLoader
+import anystream.components.HorizontalScroller
 import anystream.components.LinkedText
 import anystream.components.PosterCard
 import anystream.models.api.CurrentlyWatching
@@ -108,174 +109,169 @@ fun HomeScreen() {
 @Composable
 private fun CurrentlyWatching.ContinueWatchingRow(sizeMultiplier: Float) {
     val router = Router.current
-    MovieRow(title = { Text("Continue Watching") }) {
-        playbackStates.forEach { state ->
-            val movie = movies[state.id]
-            val (episode, show) = tvShows[state.id] ?: (null to null)
-            PosterCard(
-                sizeMultiplier = sizeMultiplier,
-                title = (movie?.title ?: show?.name)?.let { title ->
-                    {
-                        LinkedText(url = "/media/${movie?.gid ?: show?.gid}") {
-                            Text(title)
-                        }
+    MovieRow(title = { Text("Continue Watching") })
+    HorizontalScroller(playbackStates, scrollbars = false) { state ->
+        val movie = movies[state.id]
+        val (episode, show) = tvShows[state.id] ?: (null to null)
+        PosterCard(
+            sizeMultiplier = sizeMultiplier,
+            title = (movie?.title ?: show?.name)?.let { title ->
+                {
+                    LinkedText(url = "/media/${movie?.gid ?: show?.gid}") {
+                        Text(title)
                     }
-                },
-                completedPercent = state.completedPercent,
-                subtitle1 = {
-                    movie?.releaseDate?.run {
-                        Text(substringBefore("-"))
+                }
+            },
+            completedPercent = state.completedPercent,
+            subtitle1 = {
+                movie?.releaseDate?.run {
+                    Text(substringBefore("-"))
+                }
+                episode?.run {
+                    LinkedText(url = "/media/${episode.gid}") {
+                        Text(name)
                     }
-                    episode?.run {
-                        LinkedText(url = "/media/${episode.gid}") {
-                            Text(name)
-                        }
-                    }
-                },
-                subtitle2 = {
-                    episode?.run {
-                        "S$seasonNumber"
-                        Div({ classes("d-flex", "flex-row") }) {
+                }
+            },
+            subtitle2 = {
+                episode?.run {
+                    "S$seasonNumber"
+                    Div({ classes("d-flex", "flex-row") }) {
+                        tvSeasons
+                        LinkedText(
                             tvSeasons
-                            LinkedText(
-                                tvSeasons
-                                    .first { it.seasonNumber == seasonNumber }
-                                    .run { "/media/$gid" },
-                            ) { Text("S$seasonNumber") }
-                            Div { Text(" · ") }
-                            LinkedText(url = "/media/${episode.gid}") {
-                                Text("E$number")
-                            }
+                                .first { it.seasonNumber == seasonNumber }
+                                .run { "/media/$gid" },
+                        ) { Text("S$seasonNumber") }
+                        Div { Text(" · ") }
+                        LinkedText(url = "/media/${episode.gid}") {
+                            Text("E$number")
                         }
                     }
-                },
-                posterPath = movie?.posterPath ?: show?.posterPath,
-                isAdded = true,
-                onPlayClicked = {
-                    window.location.hash = "!play:${state.mediaLinkGid}"
-                },
-                onBodyClicked = {
-                    router.navigate("/media/${movie?.gid ?: episode?.gid}")
-                },
-            )
-        }
+                }
+            },
+            posterPath = movie?.posterPath ?: show?.posterPath,
+            isAdded = true,
+            onPlayClicked = {
+                window.location.hash = "!play:${state.mediaLinkGid}"
+            },
+            onBodyClicked = {
+                router.navigate("/media/${movie?.gid ?: episode?.gid}")
+            },
+        )
     }
 }
 
 @Composable
 private fun RecentlyAdded.RecentlyAddedMovies(sizeMultiplier: Float) {
     val router = Router.current
-    MovieRow(title = { Text("Recently Added Movies") }) {
-        movies.forEach { (movie, mediaLink) ->
-            PosterCard(
-                sizeMultiplier = sizeMultiplier,
-                title = {
-                    LinkedText(url = "/media/${movie.gid}") {
-                        Text(movie.title)
-                    }
-                },
-                subtitle1 = movie.releaseDate?.run {
-                    {
-                        Text(substringBefore("-"))
-                    }
-                },
-                posterPath = movie.posterPath,
-                isAdded = true,
-                onPlayClicked = {
-                    window.location.hash = "!play:${mediaLink?.gid}"
-                }.takeIf { mediaLink != null },
-                onBodyClicked = {
-                    router.navigate("/media/${movie.gid}")
-                },
-            )
-        }
+    MovieRow(title = { Text("Recently Added Movies") })
+    HorizontalScroller(movies.toList(), scrollbars = false) { (movie, mediaLink) ->
+        PosterCard(
+            sizeMultiplier = sizeMultiplier,
+            title = {
+                LinkedText(url = "/media/${movie.gid}") {
+                    Text(movie.title)
+                }
+            },
+            subtitle1 = movie.releaseDate?.run {
+                {
+                    Text(substringBefore("-"))
+                }
+            },
+            posterPath = movie.posterPath,
+            isAdded = true,
+            onPlayClicked = {
+                window.location.hash = "!play:${mediaLink?.gid}"
+            }.takeIf { mediaLink != null },
+            onBodyClicked = {
+                router.navigate("/media/${movie.gid}")
+            },
+        )
     }
 }
 
 @Composable
 private fun RecentlyAdded.RecentlyAddedTv(sizeMultiplier: Float) {
     val router = Router.current
-    MovieRow(title = { Text("Recently Added TV") }) {
-        tvShows.forEach { show ->
-            PosterCard(
-                sizeMultiplier = sizeMultiplier,
-                title = {
-                    LinkedText(url = "/media/${show.gid}") {
-                        Text(show.name)
-                    }
-                },
-                posterPath = show.posterPath,
-                isAdded = true,
-                onBodyClicked = {
-                    router.navigate("/media/${show.gid}")
-                },
-            )
-        }
+    MovieRow(title = { Text("Recently Added TV") })
+    HorizontalScroller(tvShows, scrollbars = false) { show ->
+        PosterCard(
+            sizeMultiplier = sizeMultiplier,
+            title = {
+                LinkedText(url = "/media/${show.gid}") {
+                    Text(show.name)
+                }
+            },
+            posterPath = show.posterPath,
+            isAdded = true,
+            onBodyClicked = {
+                router.navigate("/media/${show.gid}")
+            },
+        )
     }
 }
 
 @Composable
 private fun Popular.PopularMovies(sizeMultiplier: Float) {
     val router = Router.current
-    MovieRow(title = { Text("Popular Movies") }) {
-        movies.forEach { (movie, link) ->
-            PosterCard(
-                sizeMultiplier = sizeMultiplier,
-                title = {
-                    LinkedText(url = "/media/${link?.metadataGid ?: movie.gid}") {
-                        Text(movie.title)
-                    }
-                },
-                subtitle1 = movie.releaseDate?.run {
-                    {
-                        Text(substringBefore("-"))
-                    }
-                },
-                posterPath = movie.posterPath,
-                isAdded = link != null,
-                onPlayClicked = { window.location.hash = "!play:${link?.gid}" }
-                    .takeIf { link != null },
-                onBodyClicked = {
-                    router.navigate("/media/${movie.gid}")
-                },
-            )
-        }
+    MovieRow(title = { Text("Popular Movies") })
+    HorizontalScroller(movies.toList(), scrollbars = false) { (movie, link) ->
+        PosterCard(
+            sizeMultiplier = sizeMultiplier,
+            title = {
+                LinkedText(url = "/media/${link?.metadataGid ?: movie.gid}") {
+                    Text(movie.title)
+                }
+            },
+            subtitle1 = movie.releaseDate?.run {
+                {
+                    Text(substringBefore("-"))
+                }
+            },
+            posterPath = movie.posterPath,
+            isAdded = link != null,
+            onPlayClicked = { window.location.hash = "!play:${link?.gid}" }
+                .takeIf { link != null },
+            onBodyClicked = {
+                router.navigate("/media/${movie.gid}")
+            },
+        )
     }
+
 }
 
 @Composable
 private fun Popular.PopularTvShows(sizeMultiplier: Float) {
     val router = Router.current
-    MovieRow(title = { Text("Popular TV") }) {
-        tvShows.forEach { tvShow ->
-            PosterCard(
-                sizeMultiplier = sizeMultiplier,
-                title = {
-                    LinkedText(url = "/media/${tvShow.gid}") {
-                        Text(tvShow.name)
-                    }
-                },
-                subtitle1 = tvShow.firstAirDate?.run {
-                    {
-                        Text(substringBefore("-"))
-                    }
-                },
-                posterPath = tvShow.posterPath,
-                isAdded = tvShow.isAdded,
-                /*onPlayClicked = { window.location.hash = "!play:${ref?.id}" }
-                    .takeIf { ref != null },*/
-                onBodyClicked = {
-                    router.navigate("/media/${tvShow.gid}")
-                },
-            )
-        }
+    MovieRow(title = { Text("Popular TV") })
+    HorizontalScroller(tvShows, scrollbars = false) { tvShow ->
+        PosterCard(
+            sizeMultiplier = sizeMultiplier,
+            title = {
+                LinkedText(url = "/media/${tvShow.gid}") {
+                    Text(tvShow.name)
+                }
+            },
+            subtitle1 = tvShow.firstAirDate?.run {
+                {
+                    Text(substringBefore("-"))
+                }
+            },
+            posterPath = tvShow.posterPath,
+            isAdded = tvShow.isAdded,
+            /*onPlayClicked = { window.location.hash = "!play:${ref?.id}" }
+                .takeIf { ref != null },*/
+            onBodyClicked = {
+                router.navigate("/media/${tvShow.gid}")
+            },
+        )
     }
 }
 
 @Composable
 private fun MovieRow(
     title: @Composable () -> Unit,
-    buildItems: @Composable () -> Unit,
 ) {
     Div {
         H4({
@@ -283,15 +279,6 @@ private fun MovieRow(
         }) {
             title()
         }
-    }
-    Div({
-        classes("d-flex", "flex-row")
-        style {
-            property("overflow-x", "auto")
-            property("scrollbar-width", "none")
-        }
-    }) {
-        buildItems()
     }
 }
 

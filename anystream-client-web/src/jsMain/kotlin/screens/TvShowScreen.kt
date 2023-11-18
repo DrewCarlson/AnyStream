@@ -48,7 +48,7 @@ fun TvShowScreen() {
                 }
             } else {
                 val router = Router.current
-                VirtualScroller(shows) { show ->
+                VerticalGridScroller(shows) { show ->
                     val mediaLink = mediaLinks.find { it.metadataGid == show.gid }
                     TvShowCard(router, show, mediaLink)
                 }
