@@ -25,6 +25,7 @@ import anystream.torrent.search.TorrentDescription2
 import anystream.util.extractUserSession
 import anystream.util.koinGet
 import io.ktor.client.plugins.*
+import io.ktor.client.utils.*
 import io.ktor.http.HttpStatusCode.Companion.Conflict
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
@@ -38,7 +39,9 @@ import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.flow.*
 import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.buildJsonObject
 import qbittorrent.QBittorrentClient
+import qbittorrent.QBittorrentException
 import qbittorrent.models.TorrentFile
 
 fun Route.addTorrentRoutes(
@@ -47,7 +50,12 @@ fun Route.addTorrentRoutes(
 ) {
     route("/torrents") {
         get {
-            call.respond(qbClient.getTorrents())
+            val response = try {
+                qbClient.getTorrents()
+            } catch (e: Exception) {
+                emptyList()
+            }
+            call.respond(response)
         }
 
         post {
@@ -112,7 +120,11 @@ fun Route.addTorrentRoutes(
 
         route("/global") {
             get {
-                call.respond(qbClient.getGlobalTransferInfo())
+                try {
+                    call.respond(qbClient.getGlobalTransferInfo())
+                } catch (e: QBittorrentException) {
+                    call.respond(EmptyContent)
+                }
             }
         }
 
