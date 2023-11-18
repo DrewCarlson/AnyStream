@@ -25,7 +25,7 @@ import anystream.models.api.MovieResponse
 import anystream.models.api.PlaybackSessions
 import anystream.models.toMediaItem
 import anystream.screens.settings.library.LibraryFoldersScreen
-import anystream.screens.settings.library.LibraryMediaLinkListScreen
+import anystream.screens.settings.library.MediaLinkListScreen
 import anystream.util.formatProgressAndRuntime
 import anystream.util.get
 import app.softwork.routingcompose.RouteBuilder
@@ -40,7 +40,7 @@ fun RouteBuilder.SettingsScreen(subscreen: String) {
             "activity" -> ActiveStreamsList()
             "users" -> UserManagerScreen()
             "library-folders" -> {
-                string { gid -> LibraryMediaLinkListScreen(libraryGid = gid) }
+                string { gid -> MediaLinkListScreen(libraryGid = gid) }
                 noMatch { LibraryFoldersScreen() }
             }
 

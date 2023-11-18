@@ -15,11 +15,8 @@ import org.jetbrains.compose.web.css.vh
 import org.jetbrains.compose.web.dom.*
 
 @Composable
-fun LibraryMediaLinkListScreen(libraryGid: String) {
+fun MediaLinkListScreen(libraryGid: String) {
     val client = get<AnyStreamClient>()
-    val libraryLink by produceState<LocalMediaLink?>(null) {
-        value = client.findMediaLink(libraryGid, includeMetadata = false).mediaLink as LocalMediaLink
-    }
     val mediaLinks by produceState(emptyList<MediaLink>()) {
         value = client.getMediaLinks(libraryGid)
     }
@@ -43,9 +40,7 @@ fun LibraryMediaLinkListScreen(libraryGid: String) {
                     mediaLink = mediaLink as LocalMediaLink,
                     isSelected = selectedMediaLinks.contains(mediaLink.gid),
                     onSelect = {
-                        if (selectedMediaLinks.contains(it.gid)) {
-                            selectedMediaLinks.remove(it.gid)
-                        } else {
+                        if (!selectedMediaLinks.remove(it.gid)) {
                             selectedMediaLinks.add(it.gid)
                         }
                     },
