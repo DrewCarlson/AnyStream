@@ -176,7 +176,7 @@ interface MetadataDao {
     @SqlQuery(
         """
             SELECT $MEDIA_COLUMNS, $GENRE_COLUMNS, $COMPANIES_COLUMNS FROM metadata $JOIN_GENRES $JOIN_COMPANIES
-            WHERE metadata.mediaType = ? ORDER BY metadata.title
+            WHERE metadata.mediaType = ? ORDER BY lower(metadata.title)
         """,
     )
     fun findAllByTypeSortedByTitle(type: MetadataDb.Type): List<MetadataDb>
@@ -187,7 +187,7 @@ interface MetadataDao {
             SELECT $MEDIA_COLUMNS, $GENRE_COLUMNS, $COMPANIES_COLUMNS FROM (
                 SELECT * FROM metadata
                 WHERE mediaType = ?
-                ORDER BY title
+                ORDER BY lower(title)
                 LIMIT ? OFFSET ?
             ) AS metadata $JOIN_GENRES $JOIN_COMPANIES
         """,
