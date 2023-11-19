@@ -17,7 +17,8 @@ import org.jetbrains.compose.web.dom.*
 @Composable
 fun MediaLinkListScreen(libraryGid: String) {
     val client = get<AnyStreamClient>()
-    val mediaLinks by produceState(emptyList<MediaLink>()) {
+    var updateIndex by remember { mutableStateOf(0) }
+    val mediaLinks by produceState(emptyList<MediaLink>(), updateIndex) {
         value = client.getMediaLinks(libraryGid)
     }
     var matchMediaLinkGid by remember { mutableStateOf<String?>(null) }
@@ -79,11 +80,15 @@ fun MediaLinkListScreen(libraryGid: String) {
         }
         MetadataMatchScreen(
             mediaLinkGid = matchMediaLinkGid,
-            onLoadingStatChanged = {
-                modalRef._config.backdrop = if (it) "static" else "true"
-                modalRef._config.keyboard = !it
+            onLoadingStatChanged = { loading ->
+                modalRef._config.backdrop = if (loading) "static" else "true"
+                modalRef._config.keyboard = !loading
             },
-            closeScreen = { modalRef.hide() }
+            closeScreen = {
+                matchMediaLinkGid = null
+                updateIndex += 1
+                modalRef.hide()
+            }
         )
     }
 }

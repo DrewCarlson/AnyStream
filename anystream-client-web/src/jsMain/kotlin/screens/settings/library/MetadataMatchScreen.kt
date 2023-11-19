@@ -1,15 +1,12 @@
 package anystream.screens.settings.library
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
+import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
-import anystream.models.Movie
-import anystream.models.TvShow
 import anystream.models.api.MediaLinkMatchResult
 import anystream.models.api.MediaLinkResponse
 import anystream.models.api.MetadataMatch
 import anystream.util.get
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 
@@ -21,6 +18,7 @@ fun MetadataMatchScreen(
     closeScreen: () -> Unit,
 ) {
     val client = get<AnyStreamClient>()
+    val scope = rememberCoroutineScope()
     val mediaLinkResponse by produceState<MediaLinkResponse?>(null, mediaLinkGid) {
         value = if (mediaLinkGid == null) {
             null
@@ -38,7 +36,6 @@ fun MetadataMatchScreen(
 
     Div({ classes("vstack", "h-100", "gap-2") }) {
         Div { Text("Location: ${mediaLinkResponse?.mediaLink?.filePath}") }
-        //Div { Text("Current Match: ${mediaLinkResponse?.metadata?.title}") }
         Div({
             classes("vstack")
             style {
@@ -46,7 +43,18 @@ fun MetadataMatchScreen(
             }
         }) {
             matches.forEach { result ->
-                MatchResultContainer(result, mediaLinkResponse?.mediaLink?.metadataGid)
+                MatchResultContainer(
+                    result,
+                    mediaLinkResponse?.mediaLink?.metadataGid,
+                    onMatchSelected = { match ->
+                        scope.launch {
+                            onLoadingStatChanged(true)
+                            client.matchFor(mediaLinkResponse?.mediaLink?.gid!!, match.remoteId)
+                            onLoadingStatChanged(false)
+                            closeScreen()
+                        }
+                    }
+                )
             }
         }
     }
@@ -55,10 +63,21 @@ fun MetadataMatchScreen(
 @Composable
 private fun MatchResultContainer(
     result: MediaLinkMatchResult,
-    currentMetadataGid: String?
+    currentMetadataGid: String?,
+    onMatchSelected: (MetadataMatch) -> Unit
 ) {
     when (result) {
-        is MediaLinkMatchResult.Success -> MatchListTable(result, currentMetadataGid)
+        is MediaLinkMatchResult.Success -> {
+            MatchListTable(result) { match ->
+                MatchListRow(
+                    match,
+                    onMatchSelected.takeIf {
+                        match.exists && match.metadataGid == currentMetadataGid
+                    }
+                )
+            }
+        }
+
         is MediaLinkMatchResult.FileNameParseFailed,
         is MediaLinkMatchResult.NoMatchesFound,
         is MediaLinkMatchResult.NoSupportedFiles -> {
@@ -70,20 +89,39 @@ private fun MatchResultContainer(
 @Composable
 private fun MatchListTable(
     result: MediaLinkMatchResult.Success,
-    currentMetadataGid: String?
+    buildRow: @Composable (MetadataMatch) -> Unit,
 ) {
     Table({
         classes("table", "table-striped")
     }) {
         Tbody {
             result.matches.forEach { match ->
-                Tr {
-                    Td {
-                        when (match) {
-                            is MetadataMatch.MovieMatch -> MovieMatchResult(match.movie, currentMetadataGid)
-                            is MetadataMatch.TvShowMatch -> TvShowMatchResult(match.tvShow, currentMetadataGid)
-                        }
-                    }
+                buildRow(match)
+            }
+        }
+    }
+}
+
+@Composable
+private fun MatchListRow(
+    match: MetadataMatch,
+    onMatchSelected: ((MetadataMatch) -> Unit)? = null
+) {
+    Tr({
+        style {
+            if (onMatchSelected != null) {
+                cursor("pointer")
+            }
+        }
+    }) {
+        Td {
+            when (match) {
+                is MetadataMatch.MovieMatch -> {
+                    MovieMatchResult(match, onMatchSelected)
+                }
+
+                is MetadataMatch.TvShowMatch -> {
+                    TvShowMatchResult(match, onMatchSelected)
                 }
             }
         }
@@ -92,39 +130,37 @@ private fun MatchListTable(
 
 @Composable
 private fun MovieMatchResult(
-    movie: Movie,
-    currentMetadataGid: String?
+    match: MetadataMatch.MovieMatch,
+    onClick: ((match: MetadataMatch) -> Unit)? = null
 ) {
-    val isSelected = if (currentMetadataGid == null) {
-        false
-    } else {
-        currentMetadataGid == movie.gid
-    }
     MatchResultContainer(
-        title = movie.title,
-        year = movie.releaseDate?.substringBefore('-').orEmpty(),
-        overview = movie.overview,
-        posterUrl = "https://image.tmdb.org/t/p/w300${movie.posterPath}",
-        isSelected = isSelected,
+        title = match.movie.title,
+        year = match.movie.releaseDate?.substringBefore('-').orEmpty(),
+        overview = match.movie.overview,
+        posterUrl = "https://image.tmdb.org/t/p/w300${match.movie.posterPath}",
+        onClick = if (onClick == null) {
+            null
+        } else {
+            { onClick(match) }
+        }
     )
 }
 
 @Composable
 private fun TvShowMatchResult(
-    tvShow: TvShow,
-    currentMetadataGid: String?
+    match: MetadataMatch.TvShowMatch,
+    onClick: ((match: MetadataMatch) -> Unit)? = null
 ) {
-    val isSelected = if (currentMetadataGid == null) {
-        false
-    } else {
-        currentMetadataGid == tvShow.gid
-    }
     MatchResultContainer(
-        title = tvShow.name,
-        year = tvShow.firstAirDate?.substringBefore('-').orEmpty(),
-        overview = tvShow.overview,
-        posterUrl = "https://image.tmdb.org/t/p/w300${tvShow.posterPath}",
-        isSelected = isSelected,
+        title = match.tvShow.name,
+        year = match.tvShow.firstAirDate?.substringBefore('-').orEmpty(),
+        overview = match.tvShow.overview,
+        posterUrl = "https://image.tmdb.org/t/p/w300${match.tvShow.posterPath}",
+        onClick = if (onClick == null) {
+            null
+        } else {
+            { onClick(match) }
+        }
     )
 }
 
@@ -134,10 +170,14 @@ private fun MatchResultContainer(
     year: String,
     overview: String,
     posterUrl: String,
-    isSelected: Boolean,
+    onClick: (() -> Unit)? = null,
 ) {
+    val isSelected = remember(onClick) { onClick == null }
     Div({
         classes("vstack")
+        if (onClick != null) {
+            onClick { onClick() }
+        }
     }) {
         Div({
             classes("hstack", "m-1", "gap-3")

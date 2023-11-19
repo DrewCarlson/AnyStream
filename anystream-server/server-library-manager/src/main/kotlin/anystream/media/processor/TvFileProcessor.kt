@@ -138,6 +138,15 @@ class TvFileProcessor(
         TODO("Support matching metadata for individual episode files")
     }
 
+    override suspend fun findMetadata(mediaLink: MediaLinkDb, remoteId: String): MetadataMatch? {
+        return when (val result =  metadataManager.findByRemoteId(remoteId)) {
+            is QueryMetadataResult.Success -> result.results.firstOrNull()
+            is QueryMetadataResult.ErrorDataProviderException,
+            is QueryMetadataResult.ErrorDatabaseException,
+            QueryMetadataResult.ErrorProviderNotFound -> null
+        }
+    }
+
     override suspend fun importMetadataMatch(mediaLink: MediaLinkDb, metadataMatch: MetadataMatch) {
         val match = (metadataMatch as? MetadataMatch.TvShowMatch)
             ?.let { getOrImportMetadata(it) }

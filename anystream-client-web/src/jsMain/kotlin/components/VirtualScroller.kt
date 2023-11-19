@@ -281,6 +281,7 @@ private fun <T> VirtualScroller(
     val scroller = remember { VirtualScrollerImpl<T>(layout, direction, bufferPages) }
     val containerSizeWH by produceState(
         0 to 0,
+        items,
         scroller.itemSizeWH.value,
         scroller.viewportWH.value
     ) {
@@ -289,6 +290,7 @@ private fun <T> VirtualScroller(
 
     val itemSlice by produceState(
         emptyList<List<T>>(),
+        items,
         scroller.renderItemStartIndex.value,
         scroller.bufferedItemStartIndex.value,
         scroller.viewportWH.value,

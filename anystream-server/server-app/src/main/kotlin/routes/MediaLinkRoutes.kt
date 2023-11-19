@@ -38,6 +38,9 @@ import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import io.ktor.util.pipeline.*
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonPrimitive
 import org.jdbi.v3.core.JdbiException
 
 fun Route.addMediaLinkManageRoutes(
@@ -121,8 +124,12 @@ fun Route.addMediaLinkManageRoutes(
 
                 put {
                     val mediaLink = mediaLink() ?: return@put call.respond(NotFound)
-                    val match = call.receive<MetadataMatch>()
-                    libraryManager.matchMediaLink(1, mediaLink, match)
+                    val body = call.receive<JsonObject>()
+                    val remoteId = body["remoteId"]
+                        ?.jsonPrimitive
+                        ?.contentOrNull
+                        ?: return@put call.respond(UnprocessableEntity)
+                    libraryManager.matchMediaLink(1, mediaLink, remoteId)
                     call.respond(OK)
                 }
             }

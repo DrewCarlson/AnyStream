@@ -209,6 +209,18 @@ class LibraryManager(
             }
     }
 
+    suspend fun matchMediaLink(userId: Int, mediaLink: MediaLinkDb, remoteId: String) {
+        val processor = processors.firstOrNull { it.mediaKinds.contains(mediaLink.mediaKind) } ?: run {
+            logger.error("No processor found for MediaKind '{}'", mediaLink.mediaKind)
+            return // TODO: return no processor result
+        }
+        val metadataMatch = processor.findMetadata(mediaLink, remoteId) ?: run {
+            logger.warn("Metadata not found for remoteId: {}", remoteId)
+            return
+        }
+        matchMediaLink(userId, mediaLink, metadataMatch)
+    }
+
     suspend fun matchMediaLink(userId: Int, mediaLink: MediaLinkDb, metadataMatch: MetadataMatch) {
         val processor = processors.firstOrNull { it.mediaKinds.contains(mediaLink.mediaKind) } ?: run {
             logger.error("No processor found for MediaKind '{}'", mediaLink.mediaKind)

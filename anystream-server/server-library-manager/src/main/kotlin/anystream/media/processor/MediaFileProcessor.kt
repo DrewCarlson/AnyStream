@@ -33,6 +33,8 @@ interface MediaFileProcessor {
 
     suspend fun importMetadataMatch(mediaLink: MediaLinkDb, metadataMatch: MetadataMatch)
 
+    suspend fun findMetadata(mediaLink: MediaLinkDb, remoteId: String): MetadataMatch?
+
     fun scoreString(source: String, target: String): Int {
         val s1 = source.lowercase().filter { it.isLetterOrDigit() }
         val s2 = target.lowercase().filter { it.isLetterOrDigit() }

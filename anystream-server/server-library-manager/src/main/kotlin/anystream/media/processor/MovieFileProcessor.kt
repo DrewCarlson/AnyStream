@@ -29,9 +29,7 @@ import anystream.models.MediaLink
 import anystream.models.Movie
 import anystream.models.api.*
 import org.slf4j.LoggerFactory
-import kotlin.io.path.Path
-import kotlin.io.path.extension
-import kotlin.io.path.nameWithoutExtension
+import kotlin.io.path.*
 
 class MovieFileProcessor(
     private val metadataManager: MetadataManager,
@@ -81,6 +79,15 @@ class MovieFileProcessor(
 
         mediaLinkDao.updateMetadataIds(checkNotNull(mediaLink.id), movie.id, movie.gid)
         // TODO: Update supplementary files (SUBTITLE/IMAGE)
+    }
+
+    override suspend fun findMetadata(mediaLink: MediaLinkDb, remoteId: String): MetadataMatch? {
+        return when (val result =  metadataManager.findByRemoteId(remoteId)) {
+            is QueryMetadataResult.Success -> result.results.firstOrNull()
+            is QueryMetadataResult.ErrorDataProviderException,
+            is QueryMetadataResult.ErrorDatabaseException,
+            QueryMetadataResult.ErrorProviderNotFound -> null
+        }
     }
 
     private suspend fun findMatchesForRootDir(mediaLink: MediaLinkDb, import: Boolean): MediaLinkMatchResult {
@@ -145,7 +152,7 @@ class MovieFileProcessor(
                 return MediaLinkMatchResult.FileNameParseFailed(mediaLink.toModel())
             }
         }
-        logger.debug("Querying provider for '{}' (year {})", movieName, year)
+        logger.debug("Querying provider for '{}' (year {})", mediaName, year)
         val query = QueryMetadata(
             providerId = null,
             query = movieName,

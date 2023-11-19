@@ -22,15 +22,13 @@ class MovieFileNameParser : FileNameParser {
     private val yearRegex = "\\s\\((\\d{4})\\)\$".toRegex()
 
     override fun parseFileName(fileName: String): ParsedFileNameResult {
-        val mediaName = fileName.substringBeforeLast('.').trim()
-
-        val match = yearRegex.find(mediaName)
+        val match = yearRegex.find(fileName)
         val year = match?.groupValues?.lastOrNull()?.toIntOrNull()
 
         val name = if (year == null) {
-            mediaName
+            fileName
         } else {
-            mediaName.replace(yearRegex, "")
+            fileName.replace(yearRegex, "")
         }.trim()
         return ParsedFileNameResult.MovieFile(
             name = name,

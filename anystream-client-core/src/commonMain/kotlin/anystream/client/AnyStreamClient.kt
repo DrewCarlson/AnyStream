@@ -48,6 +48,8 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import qbittorrent.models.GlobalTransferInfo
 import qbittorrent.models.Torrent
 import qbittorrent.models.TorrentFile
@@ -552,10 +554,13 @@ class AnyStreamClient(
         return http.get("$serverUrl/api/medialink/$mediaLinkGid/matches").bodyOrThrow()
     }
 
-    suspend fun matchFor(mediaLinkGid: String, match: MetadataMatch) {
+    suspend fun matchFor(mediaLinkGid: String, remoteId: String) {
+        val body = buildJsonObject {
+            put("remoteId", remoteId)
+        }
         http.put("$serverUrl/api/medialink/$mediaLinkGid/matches") {
             contentType(ContentType.Application.Json)
-            setBody(match)
+            setBody(body)
         }
     }
 
