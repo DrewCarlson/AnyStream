@@ -62,7 +62,7 @@ fun MoviesScreen(
                 null -> LoadingScreen(padding)
                 else -> MovieGrid(
                     movies = targetState.value!!.movies,
-                    mediaLinks = targetState.value!!.mediaLinks,
+                    mediaLinks = targetState.value!!.mediaLinks.values.toList(),
                     onMediaClick = onMediaClick,
                     paddingValues = padding,
                     onPlayMediaClick = onPlayMediaClick,

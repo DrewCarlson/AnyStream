@@ -53,7 +53,7 @@ fun MoviesScreen(
         } else {
             MovieGrid(
                 movies = response.value!!.movies,
-                mediaLinks = response.value!!.mediaLinks,
+                mediaLinks = response.value!!.mediaLinks.values.toList(),
                 onMediaClick = onMediaClick,
                 paddingValues = padding,
             )
