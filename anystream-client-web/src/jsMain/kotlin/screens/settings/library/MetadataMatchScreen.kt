@@ -71,7 +71,7 @@ private fun MatchResultContainer(
             MatchListTable(result) { match ->
                 MatchListRow(
                     match,
-                    onMatchSelected.takeIf {
+                    onMatchSelected.takeUnless {
                         match.exists && match.metadataGid == currentMetadataGid
                     }
                 )
