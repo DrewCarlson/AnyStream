@@ -29,6 +29,7 @@ data class TvShow(
     val tagline: String? = null,
     val firstAirDate: String?,
     val posterPath: String,
+    val backdropPath: String?,
     val added: Long,
     val addedByUserId: Int,
     val tmdbRating: Int? = null,

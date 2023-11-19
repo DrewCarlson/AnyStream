@@ -132,6 +132,7 @@ data class MetadataDb(
             overview = overview.orEmpty(),
             firstAirDate = firstAvailableAt?.instantToTmdbDate(),
             posterPath = posterPath.orEmpty(),
+            backdropPath = backdropPath,
             added = createdAt.epochSeconds,
             addedByUserId = addedByUserId,
             tagline = tagline,
@@ -156,6 +157,7 @@ data class MetadataDb(
             number = checkNotNull(index),
             seasonNumber = checkNotNull(parentIndex),
             stillPath = posterPath.orEmpty(),
+            backdropPath = backdropPath,
             tmdbRating = tmdbRating,
         )
     }

@@ -94,7 +94,7 @@ fun TvShowResponse.toMediaItem(): MediaItem {
         mediaId = tvShow.gid,
         contentTitle = tvShow.name,
         posterPath = tvShow.posterPath,
-        backdropPath = tvShow.posterPath,
+        backdropPath = tvShow.backdropPath,
         overview = tvShow.overview,
         releaseDate = tvShow.firstAirDate,
         mediaLinks = mediaLinks,

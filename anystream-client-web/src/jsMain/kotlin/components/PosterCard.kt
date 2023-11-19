@@ -121,12 +121,33 @@ fun PosterCard(
                 }
             }
 
-            if (!posterPath.isNullOrBlank()) {
+            var opacity by remember { mutableStateOf(0) }
+            val posterUrl: String by produceState("", posterPath) {
+                opacity = 0
+                value = ""
+                if (!posterPath.isNullOrBlank()) {
+                    value = "https://image.tmdb.org/t/p/w300$posterPath"
+                }
+            }
+            Div({ classes("bg-dark-translucent", "rounded", "h-100", "w-100") }) {
                 Img(
-                    src = "https://image.tmdb.org/t/p/w300$posterPath",
+                    src = posterUrl,
                     attrs = {
-                        classes("rounded", "h-100", "w-100")
+                        classes("fade-in", "rounded", "h-100", "w-100")
                         attr("loading", "lazy")
+                        style {
+                            opacity(opacity)
+                            backgroundColor(Color.transparent)
+                        }
+                        ref { ref ->
+                            ref.onload = {
+                                opacity = 1
+                                null
+                            }
+                            onDispose {
+                                ref.onload = null
+                            }
+                        }
                     },
                 )
             }

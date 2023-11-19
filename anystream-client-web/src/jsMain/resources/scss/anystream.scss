@@ -7,9 +7,11 @@
 .btn-primary {
   @extend .btn-primary;
   color: white;
+
   &:hover {
     color: darken(white, 10%);
   }
+
   &:focus {
     color: darken(white, 10%);
   }
@@ -18,9 +20,11 @@
 .media-kind-link {
   color: white;
   text-decoration: none;
+
   &:hover {
     background-color: transparentize(white, 0.9);
   }
+
   &:focus {
     background-color: transparentize(white, 0.9);
   }
@@ -87,5 +91,58 @@ video {
     opacity: 1;
     margin-top: 0;
     scale: 1;
+  }
+}
+
+.fade-in {
+  transition: opacity 0.5s ease;
+  -webkit-transition: opacity 0.5s ease;
+  -moz-transition: opacity 0.5s ease;
+  -o-transition: opacity 0.5s ease;
+  -ms-transition: opacity 0.5s ease;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@-moz-keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@-webkit-keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@-o-keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@-ms-keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
   }
 }

@@ -152,6 +152,7 @@ fun TmdbSeasonDetail.asTvSeason(id: Int, gid: String, userId: Int = 1): Metadata
         index = seasonNumber,
         firstAvailableAt = airDate?.atStartOfDayIn(TimeZone.UTC),
         posterPath = posterPath,
+        backdropPath = images?.backdrops?.firstOrNull()?.filePath,
         addedByUserId = userId,
         createdAt = now,
         updatedAt = now,
@@ -179,6 +180,7 @@ fun TmdbShowDetail.asTvShow(
         addedByUserId = userId,
         tmdbRating = (voteAverage * 10).roundToInt(),
         tagline = null,
+        backdropPath = images?.backdrops?.firstOrNull()?.filePath,
         contentRating = contentRatings?.getContentRating(Locale.getDefault().country),
         genres = genres.map { Genre(-1, it.name, it.id) },
         companies = productionCompanies.orEmpty().map { tmdbCompany ->

@@ -62,20 +62,21 @@ fun webApp() = renderComposable(rootElementId = "root") {
 
         val backgroundUrl by backdropImageUrl.collectAsState(null)
 
-        if (backgroundUrl != null) {
-            Div({
-                classes("position-absolute", "h-100", "w-100")
-                style {
+        Div({
+            classes("position-absolute", "h-100", "w-100", "fade-in")
+            style {
+                if (backgroundUrl == null) {
+                    opacity(0)
+                } else {
                     opacity(0.1)
                     backgroundImage("url('$backgroundUrl')")
-                    backgroundPosition("center center")
-                    backgroundSize("cover")
-                    backgroundRepeat("no-repeat")
-                    property("transition", "background 0.8s linear")
-                    property("pointer-events", "none")
                 }
-            })
-        }
+                backgroundPosition("center center")
+                backgroundSize("cover")
+                backgroundRepeat("no-repeat")
+                property("pointer-events", "none")
+            }
+        })
 
         ContentContainer()
     }

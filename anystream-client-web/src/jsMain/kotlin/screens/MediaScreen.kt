@@ -95,7 +95,11 @@ fun MediaScreen(mediaId: String) {
             }
 
             is TvShowResponse -> {
-                val mediaItem = remember(response) { response.toMediaItem() }
+                val mediaItem = remember(response) {
+                    response.toMediaItem().also {
+                        backdropImageUrl.value = "https://image.tmdb.org/t/p/w1280/${it.backdropPath}"
+                    }
+                }
                 BaseDetailsView(
                     mediaItem = mediaItem,
                     analyzeFiles = analyzeFiles,
@@ -108,7 +112,11 @@ fun MediaScreen(mediaId: String) {
             }
 
             is SeasonResponse -> {
-                val mediaItem = remember(response) { response.toMediaItem() }
+                val mediaItem = remember(response) {
+                    response.toMediaItem().also {
+                        backdropImageUrl.value = "https://image.tmdb.org/t/p/w1280/${response.show.backdropPath}"
+                    }
+                }
                 BaseDetailsView(
                     mediaItem = mediaItem,
                     analyzeFiles = null,
@@ -124,7 +132,11 @@ fun MediaScreen(mediaId: String) {
             }
 
             is EpisodeResponse -> {
-                val mediaItem = remember(response) { response.toMediaItem() }
+                val mediaItem = remember(response) {
+                    response.toMediaItem().also {
+                        backdropImageUrl.value = "https://image.tmdb.org/t/p/w1280/${response.show.backdropPath}"
+                    }
+                }
                 BaseDetailsView(
                     mediaItem = mediaItem,
                     analyzeFiles = analyzeFiles,

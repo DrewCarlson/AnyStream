@@ -292,7 +292,6 @@ private fun <T> VirtualScroller(
         emptyList<List<T>>(),
         items,
         scroller.renderItemStartIndex.value,
-        scroller.bufferedItemStartIndex.value,
         scroller.viewportWH.value,
         scroller.itemSizeWH.value
     ) {
@@ -392,10 +391,9 @@ private fun <T> VirtualScroller(
                     .mapNotNull(activeHolders::remove)
                     .take(HOLDER_POOL_SIZE - cachedHolders.size)
                     .onEach { holder ->
-                        holder.itemLeft.value = -500
-                        holder.itemTop.value = -500
+                        holder.itemState.value = null
+                        cachedHolders.add(holder)
                     }
-                    .onEach(cachedHolders::add)
             }
 
             val compositionLocalContext = currentCompositionLocalContext
@@ -410,9 +408,9 @@ private fun <T> VirtualScroller(
                     ?: createHolder(scroller.containerId, compositionLocalContext, buildItem)
 
                 activeHolders[item] = holder
+                holder.itemState.value = item
                 holder.itemTop.value = itemTop
                 holder.itemLeft.value = itemLeft
-                holder.itemState.value = item
             }
 
             // Determine where each item should be and bind a holder
@@ -514,7 +512,7 @@ private fun ObserverResize(
     onDisposed: () -> Unit = {},
     callback: (ResizeObserverEntry) -> Unit,
 ) {
-    DisposableEffect(Unit) {
+    DisposableEffect(id, onDisposed, callback) {
         val observer = ResizeObserver { entries, _ ->
             entries.forEach(callback)
         }
