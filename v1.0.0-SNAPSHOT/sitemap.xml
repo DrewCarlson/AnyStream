@@ -2,42 +2,42 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://docs.anystream.dev/v1.0.0-SNAPSHOT/</loc>
-         <lastmod>2023-11-12</lastmod>
+         <lastmod>2023-11-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.anystream.dev/v1.0.0-SNAPSHOT/2-library-management/</loc>
-         <lastmod>2023-11-12</lastmod>
+         <lastmod>2023-11-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.anystream.dev/v1.0.0-SNAPSHOT/3-clients-and-mobile/</loc>
-         <lastmod>2023-11-12</lastmod>
+         <lastmod>2023-11-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.anystream.dev/v1.0.0-SNAPSHOT/4-connecting-qbittorrent/</loc>
-         <lastmod>2023-11-12</lastmod>
+         <lastmod>2023-11-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.anystream.dev/v1.0.0-SNAPSHOT/development/documentation/</loc>
-         <lastmod>2023-11-12</lastmod>
+         <lastmod>2023-11-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.anystream.dev/v1.0.0-SNAPSHOT/installation/configure-server/</loc>
-         <lastmod>2023-11-12</lastmod>
+         <lastmod>2023-11-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.anystream.dev/v1.0.0-SNAPSHOT/installation/docker/</loc>
-         <lastmod>2023-11-12</lastmod>
+         <lastmod>2023-11-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.anystream.dev/v1.0.0-SNAPSHOT/installation/getting-started/</loc>
-         <lastmod>2023-11-12</lastmod>
+         <lastmod>2023-11-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
 </urlset>
