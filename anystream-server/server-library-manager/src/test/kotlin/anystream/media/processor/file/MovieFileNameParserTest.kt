@@ -21,6 +21,7 @@ import anystream.media.file.MovieFileNameParser
 import anystream.media.file.ParsedFileNameResult
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import kotlin.io.path.Path
 import kotlin.test.assertIs
 import kotlin.test.assertNull
 
@@ -30,7 +31,7 @@ class MovieFileNameParserTest {
 
     @Test
     fun `should parse movie file`() {
-        val fileName = "The Shawshank Redemption (1994)"
+        val fileName = Path("The Shawshank Redemption (1994).mp4")
         val result = fileNameParser.parseFileName(fileName)
 
         assertIs<ParsedFileNameResult.MovieFile>(result)
@@ -40,7 +41,7 @@ class MovieFileNameParserTest {
 
     @Test
     fun `should parse movie file without year`() {
-        val fileName = "Inception"
+        val fileName = Path("Inception.mkv")
         val result = fileNameParser.parseFileName(fileName)
 
         assertIs<ParsedFileNameResult.MovieFile>(result)

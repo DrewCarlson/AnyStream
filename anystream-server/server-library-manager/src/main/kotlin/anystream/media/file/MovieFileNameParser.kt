@@ -17,11 +17,21 @@
  */
 package anystream.media.file
 
+import java.nio.file.Path
+import kotlin.io.path.isDirectory
+import kotlin.io.path.name
+import kotlin.io.path.nameWithoutExtension
+
 class MovieFileNameParser : FileNameParser {
 
     private val yearRegex = "\\s\\((\\d{4})\\)\$".toRegex()
 
-    override fun parseFileName(fileName: String): ParsedFileNameResult {
+    override fun parseFileName(path: Path): ParsedFileNameResult {
+        val fileName = if (path.isDirectory()) {
+            path.name
+        } else {
+            path.nameWithoutExtension
+        }
         val match = yearRegex.find(fileName)
         val year = match?.groupValues?.lastOrNull()?.toIntOrNull()
 

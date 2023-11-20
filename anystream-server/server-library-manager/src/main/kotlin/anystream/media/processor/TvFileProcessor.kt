@@ -92,11 +92,10 @@ class TvFileProcessor(
             return MediaLinkMatchResult.NoSupportedFiles(mediaLink.toModel())
         }
 
-        val mediaName = Path(path).name
-        val (tvShowName, year) = when (val result = fileNameParser.parseFileName(mediaName)) {
+        val (tvShowName, year) = when (val result = fileNameParser.parseFileName(Path(path))) {
             is ParsedFileNameResult.Tv.ShowFolder -> result
             else -> {
-                logger.debug("Expected to find show folder but could not parse '{}' {}", mediaName, result)
+                logger.debug("Expected to find show folder but could not parse '{}' {}", path, result)
                 return MediaLinkMatchResult.FileNameParseFailed(mediaLink.toModel())
             }
         }
@@ -118,7 +117,7 @@ class TvFileProcessor(
             return MediaLinkMatchResult.NoMatchesFound(mediaLink.toModel())
         }
 
-        val metadataMatch = matches.sortedBy { scoreString(mediaName, it.tvShow.name) }
+        val metadataMatch = matches.sortedBy { scoreString(tvShowName, it.tvShow.name) }
 
         if (import && metadataMatch.isNotEmpty()) {
             importMetadataMatch(mediaLink, metadataMatch.first())
@@ -181,7 +180,7 @@ class TvFileProcessor(
         show: TvShow,
     ) {
         val file = Path(checkNotNull(childDirLink.filePath))
-        when (val result = fileNameParser.parseFileName(file.name)) {
+        when (val result = fileNameParser.parseFileName(file)) {
             is ParsedFileNameResult.Tv.SeasonFolder -> {
                 mediaLinkDao.updateRootMetadataIds(
                     checkNotNull(childDirLink.id),
@@ -221,7 +220,7 @@ class TvFileProcessor(
         result: ParsedFileNameResult,
     ) {
         val videoFile = Path(checkNotNull(videoFileLink.filePath))
-        when (val videoParseResult = fileNameParser.parseFileName(videoFile.nameWithoutExtension)) {
+        when (val videoParseResult = fileNameParser.parseFileName(videoFile)) {
             is ParsedFileNameResult.Tv.EpisodeFile -> {
                 val episodeMatch = match.episodes.find {
                     it.seasonNumber == seasonMatch.seasonNumber &&

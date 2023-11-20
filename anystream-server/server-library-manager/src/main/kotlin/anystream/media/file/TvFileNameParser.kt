@@ -17,6 +17,11 @@
  */
 package anystream.media.file
 
+import java.nio.file.Path
+import kotlin.io.path.isDirectory
+import kotlin.io.path.name
+import kotlin.io.path.nameWithoutExtension
+
 class TvFileNameParser : FileNameParser {
 
     private val yearRegex = "\\s\\((\\d{4})\\)\$".toRegex()
@@ -25,7 +30,12 @@ class TvFileNameParser : FileNameParser {
     private val episodeNumberRegex = "() - (\\d{1,3}) - ".toRegex() // NOTE: Keep empty group
     private val simpleEpisodeIndexRegex = "\\b(\\d{1,3})[xX](\\d{1,3})\\b".toRegex()
 
-    override fun parseFileName(fileName: String): ParsedFileNameResult {
+    override fun parseFileName(path: Path): ParsedFileNameResult {
+        val fileName = if (path.isDirectory()) {
+            path.name
+        } else {
+            path.nameWithoutExtension
+        }
         if (seasonFolderRegex.containsMatchIn(fileName)) {
             val matchResult = checkNotNull(seasonFolderRegex.find(fileName))
             val seasonNumber = matchResult.groupValues[1].toInt()

@@ -144,15 +144,14 @@ class MovieFileProcessor(
         if (!VIDEO_EXTENSIONS.contains(movieFile.extension)) {
             return MediaLinkMatchResult.NoSupportedFiles(mediaLink.toModel())
         }
-        val mediaName = movieFile.nameWithoutExtension
-        val (movieName, year) = when (val result = fileNameParser.parseFileName(mediaName)) {
+        val (movieName, year) = when (val result = fileNameParser.parseFileName(movieFile)) {
             is ParsedFileNameResult.MovieFile -> result
             else -> {
-                logger.debug("Expected to find movie file but could not parse '{}'", mediaName)
+                logger.debug("Expected to find movie file but could not parse '{}'", movieFile)
                 return MediaLinkMatchResult.FileNameParseFailed(mediaLink.toModel())
             }
         }
-        logger.debug("Querying provider for '{}' (year {})", mediaName, year)
+        logger.debug("Querying provider for '{}' (year {})", movieName, year)
         val query = QueryMetadata(
             providerId = null,
             query = movieName,

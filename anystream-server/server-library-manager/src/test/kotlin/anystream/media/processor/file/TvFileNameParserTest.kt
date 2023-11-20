@@ -21,6 +21,7 @@ import anystream.media.file.ParsedFileNameResult
 import anystream.media.file.TvFileNameParser
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import kotlin.io.path.Path
 import kotlin.test.assertIs
 
 class TvFileNameParserTest {
@@ -29,7 +30,7 @@ class TvFileNameParserTest {
 
     @Test
     fun `should parse season folder with number`() {
-        val fileName = "1"
+        val fileName = Path("1")
         val result = fileNameParser.parseFileName(fileName)
 
         assertIs<ParsedFileNameResult.Tv.SeasonFolder>(result)
@@ -38,7 +39,7 @@ class TvFileNameParserTest {
 
     @Test
     fun `should parse season folder with padded number`() {
-        val fileName = "01"
+        val fileName = Path("01")
         val result = fileNameParser.parseFileName(fileName)
 
         assertIs<ParsedFileNameResult.Tv.SeasonFolder>(result)
@@ -47,7 +48,7 @@ class TvFileNameParserTest {
 
     @Test
     fun `should parse season folder with Season and number`() {
-        val fileName = "Season 1"
+        val fileName = Path("Season 1")
         val result = fileNameParser.parseFileName(fileName)
 
         assertIs<ParsedFileNameResult.Tv.SeasonFolder>(result)
@@ -56,7 +57,7 @@ class TvFileNameParserTest {
 
     @Test
     fun `should parse season folder with Season and padded number`() {
-        val fileName = "Season 01"
+        val fileName = Path("Season 01")
         val result = fileNameParser.parseFileName(fileName)
 
         assertIs<ParsedFileNameResult.Tv.SeasonFolder>(result)
@@ -65,7 +66,7 @@ class TvFileNameParserTest {
 
     @Test
     fun `should parse simple episode file`() {
-        val fileName = "Friends.S1E1.mkv"
+        val fileName = Path("Friends.S1E1.mkv")
         val result = fileNameParser.parseFileName(fileName)
 
         assertIs<ParsedFileNameResult.Tv.EpisodeFile>(result)
@@ -75,7 +76,7 @@ class TvFileNameParserTest {
 
     @Test
     fun `should parse simple episode file with padded numbers`() {
-        val fileName = "Friends.S01E01.mkv"
+        val fileName = Path("Friends.S01E01.mkv")
         val result = fileNameParser.parseFileName(fileName)
 
         assertIs<ParsedFileNameResult.Tv.EpisodeFile>(result)
@@ -85,7 +86,7 @@ class TvFileNameParserTest {
 
     @Test
     fun `should parse show folder`() {
-        val fileName = "Friends (1994)"
+        val fileName = Path("Friends (1994)")
         val result = fileNameParser.parseFileName(fileName)
 
         assertIs<ParsedFileNameResult.Tv.ShowFolder>(result)
