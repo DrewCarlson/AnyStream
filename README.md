@@ -10,7 +10,7 @@
 </a>
 <img alt="Tests" src="https://github.com/DrewCarlson/AnyStream/workflows/Tests/badge.svg"/>
 <a href="https://codecov.io/gh/DrewCarlson/AnyStream">
-  <img alt="Codecov" src="https://img.shields.io/codecov/c/github/drewcarlson/anystream?token=X4G9RL8QZF">
+<img alt="Codecov" src="https://img.shields.io/codecov/c/github/drewcarlson/anystream?token=X4G9RL8QZF">
 </a>
 <a href="https://raw.githubusercontent.com/DrewCarlson/AnyStream/main/LICENSE" style="text-decoration: none !important;">
 <img alt="AGPL 3.0 License" src="https://img.shields.io/github/license/drewcarlson/anystream"/>
