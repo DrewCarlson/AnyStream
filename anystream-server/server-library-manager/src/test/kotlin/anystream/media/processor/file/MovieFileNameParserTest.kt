@@ -30,7 +30,7 @@ class MovieFileNameParserTest {
 
     @Test
     fun `should parse movie file`() {
-        val fileName = "The Shawshank Redemption (1994).mkv"
+        val fileName = "The Shawshank Redemption (1994)"
         val result = fileNameParser.parseFileName(fileName)
 
         assertIs<ParsedFileNameResult.MovieFile>(result)
@@ -40,7 +40,7 @@ class MovieFileNameParserTest {
 
     @Test
     fun `should parse movie file without year`() {
-        val fileName = "Inception.mkv"
+        val fileName = "Inception"
         val result = fileNameParser.parseFileName(fileName)
 
         assertIs<ParsedFileNameResult.MovieFile>(result)

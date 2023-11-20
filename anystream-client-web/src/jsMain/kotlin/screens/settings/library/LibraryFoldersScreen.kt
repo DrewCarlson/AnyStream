@@ -55,7 +55,16 @@ fun LibraryFoldersScreen() {
             .collect { value = client.getLibraryFolderList() }
     }
     Div({ classes("vstack", "h-100", "w-100", "gap-1", "p-2") }) {
-        Div { H3 { Text("Library Folders") } }
+        H3 { Text("Library Folders") }
+        Div({ classes("d-flex", "gap-1") }) {
+            Button({
+                classes("btn", "btn-primary")
+                onClick { modal?.show() }
+            }) {
+                I({ classes("bi", "bi-folder-plus", "pe-1") })
+                Text("Add Folder")
+            }
+        }
         Div({ classes("table-responsive") }) {
             Table({ classes("table", "table-hover") }) {
                 Thead { FolderHeaderRow() }
@@ -72,15 +81,6 @@ fun LibraryFoldersScreen() {
                         }
                     }
                 }
-            }
-        }
-        Div({ classes("d-flex", "gap-1") }) {
-            Button({
-                classes("btn", "btn-primary")
-                onClick { modal?.show() }
-            }) {
-                I({ classes("bi", "bi-folder-plus", "pe-1") })
-                Text("Add Folder")
             }
         }
     }

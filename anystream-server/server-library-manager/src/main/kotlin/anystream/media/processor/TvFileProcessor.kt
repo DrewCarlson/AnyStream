@@ -259,7 +259,7 @@ class TvFileProcessor(
             logger.debug("Importing new metadata for '{}'", show.name)
             val importResults = metadataManager.importMetadata(
                 ImportMetadata(
-                    metadataIds = listOfNotNull(metadataMatch.metadataGid),
+                    metadataIds = listOfNotNull(metadataMatch.remoteMetadataId),
                     providerId = metadataMatch.providerId,
                     mediaKind = MediaKind.TV,
                 ),
@@ -441,7 +441,7 @@ class TvFileProcessor(
             logger.debug("Importing metadata for new media.")
             val importResults = metadataManager.importMetadata(
                 ImportMetadata(
-                    metadataIds = listOfNotNull(match.metadataGid),
+                    metadataIds = listOfNotNull(match.remoteMetadataId),
                     providerId = result.providerId,
                     mediaKind = MediaKind.TV,
                 ),
@@ -453,7 +453,7 @@ class TvFileProcessor(
             if (importResults.isEmpty() || successResult == null) {
                 logger.debug(
                     "Failed to import metadata for '{}' on '{}', ignoring file.",
-                    match.metadataGid,
+                    match.remoteMetadataId,
                     result.providerId,
                 )
                 return null // TODO: Return metadata import error result

@@ -194,7 +194,7 @@ class MovieFileProcessor(
             logger.debug("Importing new metadata for '{}'", movie.title)
             val importResults = metadataManager.importMetadata(
                 ImportMetadata(
-                    metadataIds = listOfNotNull(metadataMatch.metadataGid),
+                    metadataIds = listOfNotNull(metadataMatch.remoteMetadataId),
                     providerId = metadataMatch.providerId,
                     mediaKind = MediaKind.MOVIE,
                 ),

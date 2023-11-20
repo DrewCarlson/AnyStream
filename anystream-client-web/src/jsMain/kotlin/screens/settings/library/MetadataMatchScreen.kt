@@ -2,6 +2,7 @@ package anystream.screens.settings.library
 
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
+import anystream.components.LoadingIndicator
 import anystream.models.api.MediaLinkMatchResult
 import anystream.models.api.MediaLinkResponse
 import anystream.models.api.MetadataMatch
@@ -34,27 +35,33 @@ fun MetadataMatchScreen(
         }
     }
 
-    Div({ classes("vstack", "h-100", "gap-2") }) {
-        Div { Text("Location: ${mediaLinkResponse?.mediaLink?.filePath}") }
-        Div({
-            classes("vstack")
-            style {
-                overflowY("scroll")
-            }
-        }) {
-            matches.forEach { result ->
-                MatchResultContainer(
-                    result,
-                    mediaLinkResponse?.mediaLink?.metadataGid,
-                    onMatchSelected = { match ->
-                        scope.launch {
-                            onLoadingStatChanged(true)
-                            client.matchFor(mediaLinkResponse?.mediaLink?.gid!!, match.remoteId)
-                            onLoadingStatChanged(false)
-                            closeScreen()
+    Div({ classes("vstack", "w-100", "h-100", "align-items-center", "gap-2") }) {
+        Div({ classes("w-100") }) {
+            Text("Location: ${mediaLinkResponse?.mediaLink?.filePath}")
+        }
+        if (mediaLinkGid != null && matches.isEmpty()) {
+            LoadingIndicator()
+        } else {
+            Div({
+                classes("vstack", "w-100")
+                style {
+                    overflowY("scroll")
+                }
+            }) {
+                matches.forEach { result ->
+                    MatchResultContainer(
+                        result,
+                        mediaLinkResponse?.mediaLink?.metadataGid,
+                        onMatchSelected = { match ->
+                            scope.launch {
+                                onLoadingStatChanged(true)
+                                client.matchFor(mediaLinkResponse?.mediaLink?.gid!!, match.remoteId)
+                                onLoadingStatChanged(false)
+                                closeScreen()
+                            }
                         }
-                    }
-                )
+                    )
+                }
             }
         }
     }
@@ -72,7 +79,7 @@ private fun MatchResultContainer(
                 MatchListRow(
                     match,
                     onMatchSelected.takeUnless {
-                        match.exists && match.metadataGid == currentMetadataGid
+                        match.metadataGid == currentMetadataGid
                     }
                 )
             }

@@ -72,7 +72,7 @@ class TmdbMetadataProvider(
             return ImportMetadataResult.ErrorMetadataAlreadyExists(
                 existingMediaId = existingMovie.gid,
                 match = MetadataMatch.MovieMatch(
-                    metadataGid = existingMovie.tmdbId.toString(),
+                    remoteMetadataId = existingMovie.tmdbId.toString(),
                     remoteId = "tmdb:movie:${existingMovie.tmdbId}",
                     exists = true,
                     movie = existingMovie,
@@ -99,7 +99,7 @@ class TmdbMetadataProvider(
             val finalMovie = queries.insertMovie(movie).toMovieModel()
             ImportMetadataResult.Success(
                 match = MetadataMatch.MovieMatch(
-                    metadataGid = movie.tmdbId.toString(),
+                    remoteMetadataId = movie.tmdbId.toString(),
                     remoteId = movieDb.toRemoteId(),
                     exists = true,
                     movie = finalMovie,
@@ -122,7 +122,7 @@ class TmdbMetadataProvider(
             return ImportMetadataResult.ErrorMetadataAlreadyExists(
                 existingMediaId = existingTvShow.gid,
                 match = MetadataMatch.TvShowMatch(
-                    metadataGid = existingTvShow.gid,
+                    remoteMetadataId = existingTvShow.tmdbId.toString(),
                     remoteId = "tmdb:tv:${existingTvShow.tmdbId}",
                     exists = true,
                     tvShow = existingTvShow,
@@ -169,7 +169,7 @@ class TmdbMetadataProvider(
             val (finalTvShow, finalSeasons, finalEpisodes) = queries.insertTvShow(tvShow, tvSeasons, episodes)
             ImportMetadataResult.Success(
                 match = MetadataMatch.TvShowMatch(
-                    metadataGid = tmdbSeries.id.toString(),
+                    remoteMetadataId = tmdbSeries.id.toString(),
                     remoteId = "tmdb:tv:${tmdbSeries.id}",
                     exists = true,
                     tvShow = finalTvShow.toTvShowModel(),
@@ -280,7 +280,7 @@ class TmdbMetadataProvider(
             val existingMovie = existingMovies.find { it.tmdbId == movieDb.id }
             val remoteId = movieDb.toRemoteId()
             MetadataMatch.MovieMatch(
-                metadataGid = movieDb.id.toString(),
+                remoteMetadataId = movieDb.id.toString(),
                 remoteId = remoteId,
                 exists = existingMovie != null,
                 movie = movieDb.asMovie(
@@ -320,7 +320,7 @@ class TmdbMetadataProvider(
             val episodes = queries.findEpisodesByShow(metadataGid)
             val matchList = listOf(
                 MetadataMatch.TvShowMatch(
-                    metadataGid = tvResponse.tvShow.gid,
+                    remoteMetadataId = tvResponse.tvShow.tmdbId.toString(),
                     remoteId = "tmdb:tv:${tvResponse.tvShow.tmdbId}",
                     exists = true,
                     tvShow = tvResponse.tvShow,
@@ -395,7 +395,7 @@ class TmdbMetadataProvider(
             }
 
             MetadataMatch.TvShowMatch(
-                metadataGid = tvSeries.id.toString(),
+                remoteMetadataId = tvSeries.id.toString(),
                 remoteId = remoteId,
                 exists = existingShow != null,
                 tvShow = existingShow ?: tvSeries.asTvShow(-1, remoteId).toTvShowModel(),

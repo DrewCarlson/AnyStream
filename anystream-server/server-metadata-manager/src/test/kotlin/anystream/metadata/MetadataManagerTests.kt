@@ -90,7 +90,7 @@ class MetadataManagerTests {
         val metadataMatch = assertIs<MetadataMatch.MovieMatch>(importResult.match)
 
         assertNotEquals(-1, metadataMatch.movie.id)
-        assertEquals("77", metadataMatch.metadataGid)
+        assertEquals("77", metadataMatch.remoteMetadataId)
         assertEquals("tmdb:movie:77", metadataMatch.remoteId)
         assertEquals("Memento", metadataMatch.movie.title)
         assertTrue(metadataMatch.exists)
@@ -114,7 +114,7 @@ class MetadataManagerTests {
         val metadataMatch = assertIs<MetadataMatch.TvShowMatch>(importResult.match)
 
         assertNotEquals(-1, metadataMatch.tvShow.id)
-        assertEquals("63333", metadataMatch.metadataGid)
+        assertEquals("63333", metadataMatch.remoteMetadataId)
         assertEquals("tmdb:tv:63333", metadataMatch.remoteId)
         assertEquals("The Last Kingdom", metadataMatch.tvShow.name)
         assertTrue(metadataMatch.exists)
@@ -173,7 +173,7 @@ class MetadataManagerTests {
 
         assertEquals(remoteId, result.remoteId)
         assertEquals(remoteId, result.tvShow.gid)
-        assertEquals("456", result.metadataGid)
+        assertEquals("456", result.remoteMetadataId)
 
         assertEquals("The Simpsons", result.tvShow.name)
     }
@@ -193,7 +193,7 @@ class MetadataManagerTests {
 
         assertEquals(remoteId, result.remoteId)
         assertEquals(remoteId, result.movie.gid)
-        assertEquals("77", result.metadataGid)
+        assertEquals("77", result.remoteMetadataId)
 
         assertEquals("Memento", result.movie.title)
     }
