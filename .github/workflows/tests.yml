@@ -38,11 +38,11 @@ jobs:
             gradle/libsCommon.versions.toml
             gradle/libsClient.versions.toml
             gradle/libsAndroid.versions.toml
-            **/anystream-client-android/**
-            **/anystream-client-core/src/commonMain/**
-            **/anystream-client-core/src/commonTest/**
-            **/anystream-client-core/src/androidMain/**
-            **/anystream-data-models/**
+            **/client/android/**
+            **/client/core/src/commonMain/**
+            **/client/core/src/commonTest/**
+            **/client/core/src/androidMain/**
+            **/client/data-models/**
       - name: Get changed files
         id: client-core
         uses: tj-actions/changed-files@v40
@@ -50,8 +50,8 @@ jobs:
           files: |
             gradle/libsCommon.versions.toml
             gradle/libsClient.versions.toml
-            **/anystream-client-core/**
-            **/anystream-data-models/**
+            **/client/core/**
+            **/client/data-models/**
       - name: Get changed files
         id: client-ui
         uses: tj-actions/changed-files@v40
@@ -60,14 +60,14 @@ jobs:
             gradle/libsCommon.versions.toml
             gradle/libsClient.versions.toml
             gradle/libsAndroid.versions.toml
-            **/anystream-client-ui/**
+            **/client/ui/**
       - name: Get changed files
         id: data-models
         uses: tj-actions/changed-files@v40
         with:
           files: |
             gradle/libsCommon.versions.toml
-            **/anystream-data-models/**
+            **/client/data-models/**
       - name: Get changed files
         id: server
         uses: tj-actions/changed-files@v40
@@ -75,8 +75,8 @@ jobs:
           files: |
             gradle/libsCommon.versions.toml
             gradle/libsServer.versions.toml
-            **/anystream-data-models/**
-            **/anystream-server/**
+            **/client/data-models/**
+            **/server/**
       - name: Get changed files
         id: ios
         uses: tj-actions/changed-files@v40
@@ -84,11 +84,11 @@ jobs:
           files: |
             gradle/libsCommon.versions.toml
             gradle/libsClient.versions.toml
-            **/anystream-client-ios/**
-            **/anystream-client-core/src/commonMain/**
-            **/anystream-client-core/src/commonTest/**
-            **/anystream-client-core/src/iosMain/**
-            **/anystream-data-models/**
+            **/client/ios/**
+            **/client/core/src/commonMain/**
+            **/client/core/src/commonTest/**
+            **/client/core/src/iosMain/**
+            **/client/data-models/**
       - name: Get changed files
         id: web
         uses: tj-actions/changed-files@v40
@@ -97,11 +97,11 @@ jobs:
             gradle/libsCommon.versions.toml
             gradle/libsClient.versions.toml
             gradle/kotlin-js-store/**
-            **/anystream-client-web/**
-            **/anystream-client-core/src/commonMain/**
-            **/anystream-client-core/src/commonTest/**
-            **/anystream-client-core/src/androidMain/**
-            **/anystream-data-models/**
+            **/client/web/**
+            **/client/core/src/commonMain/**
+            **/client/core/src/commonTest/**
+            **/client/core/src/androidMain/**
+            **/client/data-models/**
 
   client-core-tests:
     needs: [ file-changes ]
@@ -132,7 +132,7 @@ jobs:
       - uses: gradle/gradle-build-action@v2
         name: All Tests
         with:
-          arguments: anystream-client-core:allTests anystream-client-core:koverXmlReport
+          arguments: client:core:allTests client:core:koverXmlReport
 
       - name: Archive Reports
         uses: actions/upload-artifact@v3
@@ -176,7 +176,7 @@ jobs:
       - uses: gradle/gradle-build-action@v2
         name: All Tests
         with:
-          arguments: anystream-client-ui:allTests anystream-client-ui:koverXmlReport
+          arguments: client:ui:allTests client:ui:koverXmlReport
 
       - name: Archive Reports
         uses: actions/upload-artifact@v3
@@ -264,7 +264,7 @@ jobs:
       - uses: gradle/gradle-build-action@v2
         name: Web Tests
         with:
-          arguments: anystream-client-web:jsBrowserTest anystream-client-web:koverXmlReport
+          arguments: client:web:jsBrowserTest client:web:koverXmlReport
 
       - name: Archive Reports
         uses: actions/upload-artifact@v3
@@ -303,12 +303,12 @@ jobs:
         name: Run Server Tests
         with:
           arguments: >
-            anystream-server:server-app:test anystream-server:server-app:koverXmlReport
-            anystream-server:server-db-models:test anystream-server:server-db-models:koverXmlReport
-            anystream-server:server-library-manager:test anystream-server:server-library-manager:koverXmlReport
-            anystream-server:server-metadata-manager:test anystream-server:server-metadata-manager:koverXmlReport
-            anystream-server:server-shared:test anystream-server:server-shared:koverXmlReport
-            anystream-server:server-stream-service:test anystream-server:server-stream-service:koverXmlReport
+            server:application:test server:application:koverXmlReport
+            server:db-models:test server:db-models:koverXmlReport
+            server:library-manager:test server:library-manager:koverXmlReport
+            server:metadata-manager:test server:metadata-manager:koverXmlReport
+            server:shared:test server:shared:koverXmlReport
+            server:stream-service:test server:stream-service:koverXmlReport
 
       - name: Archive Reports
         uses: actions/upload-artifact@v3

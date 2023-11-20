@@ -35,12 +35,12 @@ kotlin {
         )
     ) {
         val main by compilations.getting
-        val observer by main.cinterops.creating
+        main.cinterops.create("observer")
         binaries {
             framework {
                 baseName = "AnyStreamCore"
-                export(projects.anystreamClientCore)
-                export(projects.anystreamDataModels)
+                export(projects.client.core)
+                export(projects.client.dataModels)
                 freeCompilerArgs += listOf(
                     "-linker-option", "-framework", "-linker-option", "Metal",
                     "-linker-option", "-framework", "-linker-option", "CoreText",
@@ -70,8 +70,8 @@ kotlin {
 
         val commonMain by getting {
             dependencies {
-                api(projects.anystreamClientCore)
-                api(projects.anystreamDataModels)
+                api(projects.client.core)
+                api(projects.client.dataModels)
                 api(libsClient.mobiuskt.core)
                 api(libsClient.mobiuskt.coroutines)
                 api(libsClient.mobiuskt.compose)
@@ -88,7 +88,7 @@ kotlin {
         }
 
         if (hasAndroidSdk) {
-            val androidMain by getting {
+            named("androidMain") {
                 dependsOn(commonMain)
                 dependencies {
                     implementation(libsClient.compose.ui.tooling)
@@ -100,7 +100,7 @@ kotlin {
             }
         }
 
-        val jvmMain by getting {
+        named("jvmMain") {
             dependencies {
                 implementation(compose.desktop.common)
                 implementation(libsClient.vlcj)

@@ -41,7 +41,7 @@ afterEvaluate {
         kotlin {
             target("**/**.kt")
             licenseHeaderFile(rootDir.resolve("licenseHeader.txt"))
-            val libsCommon = extensions.getByType<VersionCatalogsExtension>().named("libsCommon")
+            //val libsCommon = extensions.getByType<VersionCatalogsExtension>().named("libsCommon")
             //ktlint(libsCommon.findVersion("ktlint").get().requiredVersion)
             //    .setEditorConfigPath(rootDir.resolve(".editorconfig"))
         }

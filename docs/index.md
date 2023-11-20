@@ -9,12 +9,8 @@
 ---
 
 <p align="center">
-<a href="https://github.com/drewcarlson/AnyStream/releases/latest" style="text-decoration: none !important;">
-<img alt="Latest Release" src="https://img.shields.io/github/v/tag/drewcarlson/anystream?label=release&sort=semver">
-</a>
-<a href="https://raw.githubusercontent.com/DrewCarlson/AnyStream/main/LICENSE" style="text-decoration: none !important;">
-<img alt="AGPL 3.0 License" src="https://img.shields.io/github/license/drewcarlson/anystream"/>
-</a>
+<a href="https://github.com/drewcarlson/AnyStream/releases/latest" style="text-decoration: none !important;"><img alt="Latest Release" src="https://img.shields.io/github/v/tag/drewcarlson/anystream?label=release&sort=semver"></a>
+<a href="https://raw.githubusercontent.com/DrewCarlson/AnyStream/main/LICENSE" style="text-decoration: none !important;"><img alt="AGPL 3.0 License" src="https://img.shields.io/github/license/drewcarlson/anystream"/></a>
 </p>
 
 AnyStream is [free and open-source](https://en.wikipedia.org/wiki/Open-source_software) software that makes it easy to

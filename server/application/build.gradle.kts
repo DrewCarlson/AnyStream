@@ -17,7 +17,7 @@ distributions.configureEach {
 }
 
 tasks.withType<ShadowJar> {
-    val clientWeb = projects.anystreamClientWeb.dependencyProject
+    val clientWeb = projects.client.web.dependencyProject
     dependsOn(clientWeb.tasks.getByName("jsBrowserDistribution"))
     archiveFileName.set("anystream.jar")
     archiveBaseName.set("anystream")
@@ -25,7 +25,7 @@ tasks.withType<ShadowJar> {
     manifest {
         attributes(mapOf("Main-Class" to application.mainClass.get()))
     }
-    from(rootProject.file("anystream-client-web/build/dist/js/productionExecutable")) {
+    from(rootProject.file("client/web/build/dist/js/productionExecutable")) {
         into("anystream-client-web")
     }
 }
@@ -58,12 +58,12 @@ kotlin {
 }
 
 dependencies {
-    implementation(projects.anystreamDataModels)
-    implementation(projects.anystreamServer.serverDbModels)
-    implementation(projects.anystreamServer.serverLibraryManager)
-    implementation(projects.anystreamServer.serverMetadataManager)
-    implementation(projects.anystreamServer.serverShared)
-    implementation(projects.anystreamServer.serverStreamService)
+    implementation(projects.client.dataModels)
+    implementation(projects.server.dbModels)
+    implementation(projects.server.libraryManager)
+    implementation(projects.server.metadataManager)
+    implementation(projects.server.shared)
+    implementation(projects.server.streamService)
 
     implementation(libsCommon.datetime)
     implementation(libsCommon.serialization.json)
@@ -125,7 +125,7 @@ dependencies {
 }
 
 tasks.getByName<JavaExec>("run") {
-    val clientWeb = projects.anystreamClientWeb.dependencyProject
+    val clientWeb = projects.client.web.dependencyProject
     dependsOn(clientWeb.tasks.getByName("jsBrowserDevelopmentExecutableDistribution"))
     environment(
         "WEB_CLIENT_PATH",

@@ -4,7 +4,7 @@ plugins {
 }
 
 dependencies {
-    implementation(projects.anystreamDataModels)
+    implementation(projects.client.dataModels)
 
     implementation(libsCommon.datetime)
     implementation(libsCommon.serialization.json)

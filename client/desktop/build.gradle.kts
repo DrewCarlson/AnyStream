@@ -12,10 +12,10 @@ kotlin {
         withJava()
     }
     sourceSets {
-        val jvmMain by getting {
+        named("jvmMain") {
             dependencies {
                 implementation(compose.desktop.currentOs)
-                implementation(projects.anystreamClientUi)
+                implementation(projects.client.ui)
                 implementation(libsClient.jna)
             }
         }
@@ -90,7 +90,7 @@ compose {
 
                 appResourcesRootDir.set(project.layout.projectDirectory.dir("resources"))
 
-                val iconsRoot = rootProject.file("anystream-client-ui/src/jvmMain/resources/images")
+                val iconsRoot = rootProject.file("client/ui/src/jvmMain/resources/images")
                 windows {
                     iconFile.set(iconsRoot.resolve("as_icon.ico"))
                 }

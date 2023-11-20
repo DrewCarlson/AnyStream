@@ -35,11 +35,11 @@ jobs:
             build.gradle.kts
             gradle/*.versions.toml
             gradle/kotlin-js-store/**
-            **/anystream-client-web/**
-            **/anystream-client-ui/**
-            **/anystream-client-core/**
-            **/anystream-data-models/**
-            **/anystream-server/**
+            **/client/web/**
+            **/client/ui/**
+            **/client/core/**
+            **/client/data-models/**
+            **/server/**
             Dockerfile
             Dockerfile-local
       - name: Get changed files

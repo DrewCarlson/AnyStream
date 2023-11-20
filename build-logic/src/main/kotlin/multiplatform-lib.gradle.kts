@@ -16,7 +16,7 @@ if (hasAndroidSdk) {
             minSdk = 23
             testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         }
-        namespace = "anystream.${project.name.substringAfter("anystream-").replace("-", "")}"
+        namespace = "anystream.${project.name.replace("-", "")}"
         compileOptions {
             sourceCompatibility = JAVA_TARGET
             targetCompatibility = JAVA_TARGET
@@ -39,7 +39,7 @@ afterEvaluate {
     }
 }
 
-val enableJsTarget = project.name != "anystream-client-ui"
+val enableJsTarget = project.name != "ui"
 
 kotlin {
     jvmToolchain(JAVA_TARGET.majorVersion.toInt())
@@ -66,7 +66,7 @@ kotlin {
     }
     // Note: Workaround build script errors when configuring frameworks
     // "Could not create task of type 'KotlinNativeLink'."
-    if (project.name != "anystream-client-ui") {
+    if (project.name != "ui") {
         iosArm64()
         iosSimulatorArm64()
         iosX64()
@@ -140,7 +140,7 @@ kotlin {
 
         // Note: Workaround build script errors when configuring frameworks
         // "Could not create task of type 'KotlinNativeLink'."
-        if (project.name != "anystream-client-ui") {
+        if (project.name != "ui") {
             configureCommonIosSourceSets()
 
             configure(

@@ -30,14 +30,14 @@
 
 ### Project Structure
 
-- [anystream-server](anystream-server) &mdash; Web server for managing and streaming media built with [Ktor](https://github.com/ktorio/ktor)
-- [anystream-data-models](anystream-data-models) &mdash; Data models shared between the server and clients
-- [anystream-client-core](anystream-client-core) &mdash; Multiplatform infrastructure for AnyStream client applications built with [Mobius.kt](https://github.com/DrewCarlson/mobius.kt)
-- [anystream-client-web](anystream-client-web) &mdash; Web client implementation built with [Compose HTML](https://github.com/JetBrains/compose-multiplatform#libraries)
-- [anystream-client-ui](anystream-client-ui) &mdash; Shared [Compose Multiplatform](https://github.com/JetBrains/compose-multiplatform/) UI for Mobile & Desktop
-- [anystream-client-android](anystream-client-android) &mdash; Android client implementation built with [Jetpack Compose](https://developer.android.com/jetpack/compose)
-- [anystream-client-ios](anystream-client-ios) &mdash; iOS client implementation built with [Compose Multiplatform](https://github.com/JetBrains/compose-multiplatform/) & [SwiftUI](https://developer.apple.com/xcode/swiftui/)
-- [anystream-client-desktop](anystream-client-desktop) &mdash; Experimental Desktop client implementation with [Compose Multiplatform](https://github.com/JetBrains/compose-multiplatform/)
+- [server](server) &mdash; Web server for managing and streaming media built with [Ktor](https://github.com/ktorio/ktor)
+- [client/data-models](client/data-models) &mdash; Data models shared between the server and clients
+- [client/core](client/core) &mdash; Multiplatform infrastructure for AnyStream client applications built with [Mobius.kt](https://github.com/DrewCarlson/mobius.kt)
+- [client/web](client/web) &mdash; Web client implementation built with [Compose HTML](https://github.com/JetBrains/compose-multiplatform#libraries)
+- [client/ui](client/ui) &mdash; Shared [Compose Multiplatform](https://github.com/JetBrains/compose-multiplatform/) UI for Mobile & Desktop
+- [client/android](client/android) &mdash; Android client implementation built with [Jetpack Compose](https://developer.android.com/jetpack/compose)
+- [client/ios](client/ios) &mdash; iOS client implementation built with [Compose Multiplatform](https://github.com/JetBrains/compose-multiplatform/) & [SwiftUI](https://developer.apple.com/xcode/swiftui/)
+- [client/desktop](client/desktop) &mdash; Experimental Desktop client implementation with [Compose Multiplatform](https://github.com/JetBrains/compose-multiplatform/)
 
 ### Development Setup
 

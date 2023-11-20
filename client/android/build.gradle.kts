@@ -54,8 +54,8 @@ android {
 }
 
 dependencies {
-    implementation(projects.anystreamClientCore)
-    implementation(projects.anystreamClientUi)
+    implementation(projects.client.core)
+    implementation(projects.client.ui)
     implementation(libsAndroid.androidx.core.ktx)
     implementation(libsAndroid.androidx.appcompat.core)
     implementation(libsAndroid.androidx.leanback.core)

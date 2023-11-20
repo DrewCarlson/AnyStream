@@ -20,7 +20,7 @@ kotlin {
 
         val commonMain by getting {
             dependencies {
-                api(projects.anystreamDataModels)
+                api(projects.client.dataModels)
                 implementation(libsCommon.atomicfu)
                 implementation(libsCommon.coroutines.core)
                 implementation(libsCommon.serialization.core)
