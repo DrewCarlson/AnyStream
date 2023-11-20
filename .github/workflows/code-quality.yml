@@ -100,7 +100,7 @@ jobs:
       - uses: gradle/gradle-build-action@v2
         name: Spotless Check
         with:
-          arguments: -p client:ui spotlessCheck
+          arguments: -p client/ui spotlessCheck
 
   client-android:
     runs-on: ubuntu-latest
@@ -127,7 +127,7 @@ jobs:
       - uses: gradle/gradle-build-action@v2
         name: Spotless Check
         with:
-          arguments: -p client:android spotlessCheck
+          arguments: -p client/android spotlessCheck
 
   client-core:
     runs-on: ubuntu-latest
@@ -154,7 +154,7 @@ jobs:
       - uses: gradle/gradle-build-action@v2
         name: Spotless Check
         with:
-          arguments: -p client:core spotlessCheck
+          arguments: -p client/core spotlessCheck
 
   client-web:
     runs-on: ubuntu-latest
@@ -181,7 +181,7 @@ jobs:
       - uses: gradle/gradle-build-action@v2
         name: Spotless Check
         with:
-          arguments: -p client:web spotlessCheck
+          arguments: -p client/web spotlessCheck
 
   data-models:
     runs-on: ubuntu-latest
@@ -208,7 +208,7 @@ jobs:
       - uses: gradle/gradle-build-action@v2
         name: Spotless Check
         with:
-          arguments: -p client:data-models spotlessCheck
+          arguments: -p client/data-models spotlessCheck
 
   server:
     runs-on: ubuntu-latest
