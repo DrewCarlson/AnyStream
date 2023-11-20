@@ -26,11 +26,11 @@ import anystream.models.*
 import anystream.models.MediaItem
 import anystream.models.api.*
 import anystream.models.toMediaItem
+import anystream.playerMediaGid
 import anystream.util.ExternalClickMask
 import anystream.util.get
 import anystream.util.tooltip
 import app.softwork.routingcompose.Router
-import kotlinx.browser.window
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.sync.Mutex
@@ -166,7 +166,7 @@ private fun BaseDetailsView(
                 },
                 completedPercent = mediaItem.playbackState?.completedPercent,
                 onPlayClicked = {
-                    window.location.hash = "!play:${mediaItem.playableMediaLink?.gid}"
+                    playerMediaGid.value = mediaItem.playableMediaLink?.gid
                 }.takeUnless { mediaItem.playableMediaLink == null },
             )
 
@@ -243,7 +243,7 @@ private fun BaseDetailsView(
                     Button({
                         classes("btn", "btn-sm", "btn-primary")
                         onClick {
-                            window.location.hash = "!play:${mediaLink.gid}"
+                            playerMediaGid.value = mediaLink.gid
                         }
                     }) {
                         I({
@@ -536,7 +536,7 @@ private fun EpisodeGrid(
                 onPlayClicked = if (link == null) {
                     null
                 } else {
-                    { window.location.hash = "!play:${link.gid}" }
+                    { playerMediaGid.value = link.gid }
                 },
                 onBodyClicked = {
                     router.navigate("/media/${episode.gid}")

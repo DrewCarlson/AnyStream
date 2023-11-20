@@ -28,16 +28,14 @@ import anystream.screens.settings.SettingsSideMenu
 import anystream.util.get
 import app.softwork.routingcompose.BrowserRouter
 import app.softwork.routingcompose.Router
-import kotlinx.browser.window
 import kotlinx.coroutines.flow.*
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 import org.jetbrains.compose.web.renderComposable
 import org.koin.core.context.startKoin
 import org.w3c.dom.HTMLDivElement
-import org.w3c.dom.HashChangeEvent
 
-private val urlHashFlow = MutableStateFlow(window.location.hash)
+val playerMediaGid = MutableStateFlow<String?>(null)
 
 fun webApp() = renderComposable(rootElementId = "root") {
     startKoin {
@@ -49,17 +47,6 @@ fun webApp() = renderComposable(rootElementId = "root") {
             classes("d-flex", "flex-column", "h-100", "w-100")
         },
     ) {
-        DisposableEffect(Unit) {
-            val listener = { event: HashChangeEvent ->
-                urlHashFlow.value = event.newURL.substringAfter("!")
-                true
-            }
-            window.onhashchange = listener
-            onDispose {
-                window.onhashchange = null
-            }
-        }
-
         val backgroundUrl by backdropImageUrl.collectAsState(null)
 
         Div({
@@ -84,16 +71,6 @@ fun webApp() = renderComposable(rootElementId = "root") {
 
 @Composable
 private fun ContentContainer(client: AnyStreamClient = get()) {
-    val hashValue by urlHashFlow
-        .map { hash ->
-            if (hash.contains("close")) {
-                null
-            } else {
-                hash.substringAfter(":")
-                    .takeIf(String::isNotBlank)
-            }
-        }
-        .collectAsState(null)
     BrowserRouter("/") {
         route("home") {
             noMatch { ScreenContainer { HomeScreen() } }
@@ -126,7 +103,8 @@ private fun ContentContainer(client: AnyStreamClient = get()) {
         }
         noMatch { redirect(if (client.isAuthenticated()) "/home" else "/login") }
 
-        hashValue?.run { PlayerScreen(this) }
+        val metadataGid by playerMediaGid.collectAsState()
+        metadataGid?.let { PlayerScreen(it) }
     }
 }
 

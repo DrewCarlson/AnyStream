@@ -25,9 +25,9 @@ import anystream.components.*
 import anystream.models.MediaLink
 import anystream.models.TvShow
 import anystream.models.api.TvShowsResponse
+import anystream.playerMediaGid
 import anystream.util.get
 import app.softwork.routingcompose.Router
-import kotlinx.browser.window
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.Text
 
@@ -72,7 +72,7 @@ fun TvShowCard(
         posterPath = show.posterPath,
         isAdded = true,
         onPlayClicked = {
-            window.location.hash = "!play:${link?.gid}"
+            playerMediaGid.value = link?.gid
         }.takeIf { link != null },
         onBodyClicked = {
             router.navigate("/media/${show.gid}")

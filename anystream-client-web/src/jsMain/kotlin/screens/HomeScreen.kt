@@ -27,10 +27,10 @@ import anystream.models.api.CurrentlyWatching
 import anystream.models.api.HomeResponse
 import anystream.models.api.Popular
 import anystream.models.api.RecentlyAdded
+import anystream.playerMediaGid
 import anystream.util.get
 import app.softwork.routingcompose.Router
 import kotlinx.browser.localStorage
-import kotlinx.browser.window
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.web.attributes.InputType
 import org.jetbrains.compose.web.attributes.max
@@ -153,7 +153,7 @@ private fun CurrentlyWatching.ContinueWatchingRow(sizeMultiplier: Float) {
             posterPath = movie?.posterPath ?: show?.posterPath,
             isAdded = true,
             onPlayClicked = {
-                window.location.hash = "!play:${state.mediaLinkGid}"
+                playerMediaGid.value = state.mediaLinkGid
             },
             onBodyClicked = {
                 router.navigate("/media/${movie?.gid ?: episode?.gid}")
@@ -182,7 +182,7 @@ private fun RecentlyAdded.RecentlyAddedMovies(sizeMultiplier: Float) {
             posterPath = movie.posterPath,
             isAdded = true,
             onPlayClicked = {
-                window.location.hash = "!play:${mediaLink?.gid}"
+                playerMediaGid.value = mediaLink?.gid
             }.takeIf { mediaLink != null },
             onBodyClicked = {
                 router.navigate("/media/${movie.gid}")
@@ -231,7 +231,7 @@ private fun Popular.PopularMovies(sizeMultiplier: Float) {
             },
             posterPath = movie.posterPath,
             isAdded = link != null,
-            onPlayClicked = { window.location.hash = "!play:${link?.gid}" }
+            onPlayClicked = { playerMediaGid.value = link?.gid }
                 .takeIf { link != null },
             onBodyClicked = {
                 router.navigate("/media/${movie.gid}")
