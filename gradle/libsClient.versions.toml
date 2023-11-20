@@ -7,7 +7,7 @@ compose_foundation = "1.5.4"
 composejb = "1.5.10"
 composejb_compile = "1.5.3"
 exoplayer = "2.19.1"
-media3 = "1.1.1"
+media3 = "1.2.0"
 ax_runner = "1.5.2"
 leakcanary = "2.12"
 koinKtor = "3.5.1"
@@ -23,8 +23,8 @@ vlc = "3.0.19"
 composejb = { id = "org.jetbrains.compose", version.ref = "composejb" }
 
 [libraries]
-kotlinjs-browser = { module = "org.jetbrains.kotlin-wrappers:kotlin-browser", version = "1.0.0-pre.640" }
-kotlinjs-extensions = { module = "org.jetbrains.kotlin-wrappers:kotlin-extensions", version = "1.0.1-pre.640" }
+kotlinjs-browser = { module = "org.jetbrains.kotlin-wrappers:kotlin-browser", version = "1.0.0-pre.646" }
+kotlinjs-extensions = { module = "org.jetbrains.kotlin-wrappers:kotlin-extensions", version = "1.0.1-pre.646" }
 
 anrWatchdog = { module = "com.github.anrwatchdog:anrwatchdog", version.ref = "anr_watchdog" }
 zxing-core = { module = "com.google.zxing:core", version.ref = "zxing" }
