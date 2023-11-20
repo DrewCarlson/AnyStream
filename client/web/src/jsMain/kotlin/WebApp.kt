@@ -48,16 +48,17 @@ fun webApp() = renderComposable(rootElementId = "root") {
         },
     ) {
         val backgroundUrl by backdropImageUrl.collectAsState(null)
+        var visible by remember { mutableStateOf(false) }
+        val actualBackgroundUrl by produceState(backgroundUrl, backgroundUrl) {
+            visible = backgroundUrl != null
+            value = backgroundUrl ?: value
+        }
 
         Div({
             classes("position-absolute", "h-100", "w-100", "fade-in")
             style {
-                if (backgroundUrl == null) {
-                    opacity(0)
-                } else {
-                    opacity(0.1)
-                    backgroundImage("url('$backgroundUrl')")
-                }
+                opacity(if (visible) 0.1 else 0)
+                backgroundImage("url('$actualBackgroundUrl')")
                 backgroundPosition("center center")
                 backgroundSize("cover")
                 backgroundRepeat("no-repeat")
