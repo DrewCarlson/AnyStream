@@ -5,16 +5,10 @@
 
 <p align="center">
 <img alt="Status" src="https://img.shields.io/static/v1?label=status&message=wip&color=red"/>
-<a href="https://github.com/drewcarlson/AnyStream/releases/latest" style="text-decoration: none !important;">
-<img alt="Latest Release" src="https://img.shields.io/github/v/tag/drewcarlson/anystream?label=release&sort=semver">
-</a>
+<a href="https://github.com/drewcarlson/AnyStream/releases/latest" style="text-decoration: none !important;"><img alt="Latest Release" src="https://img.shields.io/github/v/tag/drewcarlson/anystream?label=release&sort=semver"></a>
 <img alt="Tests" src="https://github.com/DrewCarlson/AnyStream/workflows/Tests/badge.svg"/>
-<a href="https://codecov.io/gh/DrewCarlson/AnyStream">
-<img alt="Codecov" src="https://img.shields.io/codecov/c/github/drewcarlson/anystream?token=X4G9RL8QZF">
-</a>
-<a href="https://raw.githubusercontent.com/DrewCarlson/AnyStream/main/LICENSE" style="text-decoration: none !important;">
-<img alt="AGPL 3.0 License" src="https://img.shields.io/github/license/drewcarlson/anystream"/>
-</a>
+<a href="https://codecov.io/gh/DrewCarlson/AnyStream"><img alt="Codecov" src="https://img.shields.io/codecov/c/github/drewcarlson/anystream?token=X4G9RL8QZF"></a>
+<a href="https://raw.githubusercontent.com/DrewCarlson/AnyStream/main/LICENSE" style="text-decoration: none !important;"><img alt="AGPL 3.0 License" src="https://img.shields.io/github/license/drewcarlson/anystream"/></a>
 </p>
 
 ### Learn more at [docs.anystream.dev](https://docs.anystream.dev)
