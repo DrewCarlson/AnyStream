@@ -112,7 +112,7 @@ class AnyStreamClient(
         }
         install(Logging) {
             logger = Logger.SIMPLE
-            level = LogLevel.BODY
+            level = LogLevel.INFO
         }
         WebSockets {
             contentConverter = KotlinxWebsocketSerializationConverter(json)
