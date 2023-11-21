@@ -32,45 +32,6 @@ import org.jdbi.v3.sqlobject.statement.SqlQuery
 import org.jdbi.v3.sqlobject.statement.SqlUpdate
 import org.jdbi.v3.sqlobject.statement.UseRowReducer
 
-private const val MEDIA_COLUMNS =
-    """            metadata.id metadata_id,
-            metadata.gid metadata_gid,
-            metadata.rootId metadata_rootId,
-            metadata.rootGid metadata_rootGid,
-            metadata.parentId metadata_parentId,
-            metadata.parentGid metadata_parentGid,
-            metadata.parentIndex metadata_parentIndex,
-            metadata.title metadata_title,
-            metadata.overview metadata_overview,
-            metadata.tmdbId metadata_tmdbId,
-            metadata.imdbId metadata_imdbId,
-            metadata.runtime metadata_runtime,
-            metadata.'index' metadata_index,
-            metadata.contentRating metadata_contentRating,
-            metadata.posterPath metadata_posterPath,
-            metadata.backdropPath metadata_backdropPath,
-            metadata.firstAvailableAt metadata_firstAvailableAt,
-            metadata.createdAt metadata_createdAt,
-            metadata.updatedAt metadata_updatedAt,
-            metadata.addedByUserId metadata_addedByUserId,
-            metadata.mediaKind metadata_mediaKind,
-            metadata.mediaType metadata_mediaType,
-            metadata.tmdbRating metadata_tmdbRating"""
-
-private const val GENRE_COLUMNS = """
-            g.id g_id, g.name g_name, g.tmdbId g_tmdbId"""
-
-private const val COMPANIES_COLUMNS = """
-            c.id c_id, c.name c_name, c.tmdbId c_tmdbId"""
-
-private const val JOIN_GENRES = """
-            LEFT JOIN metadataGenres mg on mg.metadataId = metadata.id
-            LEFT JOIN tags g on g.id = mg.genreId"""
-
-private const val JOIN_COMPANIES = """
-            LEFT JOIN metadataCompanies mc on mc.metadataId = metadata.id
-            LEFT JOIN tags c on c.id = mc.companyId"""
-
 @RegisterKotlinMappers(
     RegisterKotlinMapper(MetadataDb::class, prefix = "metadata"),
     RegisterKotlinMapper(Genre::class, prefix = "g"),
@@ -78,118 +39,74 @@ private const val JOIN_COMPANIES = """
 )
 interface MetadataDao {
 
-    @SqlQuery("SELECT * FROM metadata")
+    @SqlQuery("SELECT * FROM metadataView")
     fun all(): List<MetadataDb>
 
-    @SqlQuery("SELECT * FROM metadata WHERE id IN (<ids>)")
+    @SqlQuery("SELECT * FROM metadataView WHERE id IN (<ids>)")
     fun findByIds(@BindList("ids") ids: List<Int>): List<MetadataDb>
 
     @UseRowReducer(MediaReducer::class)
-    @SqlQuery(
-        """
-            SELECT $MEDIA_COLUMNS, $GENRE_COLUMNS, $COMPANIES_COLUMNS FROM metadata $JOIN_GENRES $JOIN_COMPANIES
-            WHERE metadata.id = ?
-        """,
-    )
+    @SqlQuery("SELECT * FROM metadataView WHERE metadata_id = ?")
     fun findById(metadataId: Int): MetadataDb?
 
     @SqlQuery("SELECT * FROM metadata WHERE parentGid = ?")
     fun findAllByParentGid(parentGid: String): List<MetadataDb>
 
     @UseRowReducer(MediaReducer::class)
-    @SqlQuery(
-        """
-            SELECT $MEDIA_COLUMNS, $GENRE_COLUMNS, $COMPANIES_COLUMNS FROM metadata $JOIN_GENRES $JOIN_COMPANIES
-            WHERE metadata.parentGid = ? AND metadata.mediaType = ?
-        """,
-    )
+    @SqlQuery("SELECT * FROM metadataView WHERE metadata_parentGid = ? AND metadata_mediaType = ?")
     fun findAllByParentGidAndType(parentGid: String, type: MetadataDb.Type): List<MetadataDb>
 
     @SqlQuery("SELECT * FROM metadata WHERE rootGid = ?")
     fun findAllByRootGid(rootGid: String): List<MetadataDb>
 
     @UseRowReducer(MediaReducer::class)
-    @SqlQuery(
-        """
-            SELECT $MEDIA_COLUMNS, $GENRE_COLUMNS, $COMPANIES_COLUMNS FROM metadata $JOIN_GENRES $JOIN_COMPANIES
-            WHERE metadata.rootGid = ? AND metadata.mediaType = ?
-        """,
-    )
+    @SqlQuery("SELECT * FROM metadataView WHERE metadata_rootGid = ? AND metadata_mediaType = ?")
     fun findAllByRootGidAndType(rootGid: String, type: MetadataDb.Type): List<MetadataDb>
 
     @UseRowReducer(MediaReducer::class)
-    @SqlQuery(
-        """
-            SELECT $MEDIA_COLUMNS, $GENRE_COLUMNS, $COMPANIES_COLUMNS FROM metadata $JOIN_GENRES $JOIN_COMPANIES
-            WHERE metadata.rootGid = ? AND metadata.parentIndex = ? AND metadata.mediaType = ?
-        """,
-    )
-    fun findAllByRootGidAndParentIndexAndType(rootGid: String, parentIndex: Int, type: MetadataDb.Type): List<MetadataDb>
+    @SqlQuery("SELECT * FROM metadataView WHERE metadata_rootGid = ? AND metadata_parentIndex = ? AND metadata_mediaType = ?")
+    fun findAllByRootGidAndParentIndexAndType(
+        rootGid: String,
+        parentIndex: Int,
+        type: MetadataDb.Type
+    ): List<MetadataDb>
 
     @UseRowReducer(MediaReducer::class)
-    @SqlQuery(
-        """
-            SELECT $MEDIA_COLUMNS, $GENRE_COLUMNS, $COMPANIES_COLUMNS FROM metadata $JOIN_GENRES $JOIN_COMPANIES
-            WHERE metadata.gid = ? AND metadata.mediaType = ?
-        """,
-    )
+    @SqlQuery("SELECT * FROM metadataView WHERE metadata_gid = ? AND metadata_mediaType = ?")
     fun findByGidAndType(gid: String, type: MetadataDb.Type): MetadataDb?
 
     @SqlQuery("SELECT * FROM metadata WHERE gid = ? AND mediaType = ?")
     fun findAllByGidAndType(gid: String, type: MetadataDb.Type): List<MetadataDb>
 
     @UseRowReducer(MediaReducer::class)
-    @SqlQuery(
-        """
-            SELECT $MEDIA_COLUMNS, $GENRE_COLUMNS, $COMPANIES_COLUMNS FROM metadata $JOIN_GENRES $JOIN_COMPANIES
-            WHERE metadata.gid IN (<gids>) AND metadata.mediaType = :type
-        """,
-    )
+    @SqlQuery("SELECT * FROM metadataView WHERE metadata_gid IN (<gids>) AND metadata_mediaType = :type")
     fun findAllByGidsAndType(@BindList("gids") gids: List<String>, type: MetadataDb.Type): List<MetadataDb>
 
     @UseRowReducer(MediaReducer::class)
-    @SqlQuery(
-        """
-            SELECT $MEDIA_COLUMNS, $GENRE_COLUMNS, $COMPANIES_COLUMNS FROM metadata $JOIN_GENRES $JOIN_COMPANIES
-            WHERE metadata.gid = ?
-        """,
-    )
+    @SqlQuery("SELECT * FROM metadataView WHERE metadata_gid = ?")
     fun findByGid(gid: String): MetadataDb?
 
     @SqlQuery("SELECT mediaType FROM metadata WHERE metadata.gid = ?")
     fun findTypeByGid(gid: String): MetadataDb.Type?
 
-    @SqlQuery("SELECT * FROM metadata WHERE metadata.mediaType = ?")
+    @SqlQuery("SELECT * FROM metadataView WHERE metadata_mediaType = ?")
     fun findAllByType(type: MetadataDb.Type): List<MetadataDb>
 
     @UseRowReducer(MediaReducer::class)
-    @SqlQuery(
-        """
-            SELECT $MEDIA_COLUMNS, $GENRE_COLUMNS, $COMPANIES_COLUMNS FROM
-            (SELECT * FROM metadata WHERE mediaType = ? ORDER BY createdAt DESC LIMIT ?) metadata
-            $JOIN_GENRES $JOIN_COMPANIES
-        """,
-    )
+    @SqlQuery("SELECT * FROM metadataView WHERE metadata_mediaType = ? ORDER BY metadata_createdAt DESC LIMIT ?")
     fun findByType(type: MetadataDb.Type, limit: Int): List<MetadataDb>
 
     @UseRowReducer(MediaReducer::class)
-    @SqlQuery(
-        """
-            SELECT $MEDIA_COLUMNS, $GENRE_COLUMNS, $COMPANIES_COLUMNS FROM metadata $JOIN_GENRES $JOIN_COMPANIES
-            WHERE metadata.mediaType = ? ORDER BY lower(metadata.title)
-        """,
-    )
+    @SqlQuery("SELECT * FROM metadataView WHERE metadata_mediaType = ? ORDER BY lower(metadata_title)")
     fun findAllByTypeSortedByTitle(type: MetadataDb.Type): List<MetadataDb>
 
     @UseRowReducer(MediaReducer::class)
     @SqlQuery(
         """
-            SELECT $MEDIA_COLUMNS, $GENRE_COLUMNS, $COMPANIES_COLUMNS FROM (
-                SELECT * FROM metadata
-                WHERE mediaType = ?
-                ORDER BY lower(title)
-                LIMIT ? OFFSET ?
-            ) AS metadata $JOIN_GENRES $JOIN_COMPANIES
+        SELECT * FROM metadataView
+        WHERE metadata_mediaType = ?
+        ORDER BY lower(metadata_title)
+        LIMIT ? OFFSET ?
         """,
     )
     fun findByTypeSortedByTitle(
@@ -199,21 +116,11 @@ interface MetadataDao {
     ): List<MetadataDb>
 
     @UseRowReducer(MediaReducer::class)
-    @SqlQuery(
-        """
-            SELECT $MEDIA_COLUMNS, $GENRE_COLUMNS, $COMPANIES_COLUMNS FROM metadata $JOIN_GENRES $JOIN_COMPANIES
-            WHERE metadata.tmdbId = ? AND metadata.mediaType = ?
-        """,
-    )
+    @SqlQuery("SELECT * FROM metadataView WHERE metadata_tmdbId = ? AND metadata_mediaType = ?")
     fun findByTmdbIdAndType(tmdbId: Int, type: MetadataDb.Type): MetadataDb?
 
     @UseRowReducer(MediaReducer::class)
-    @SqlQuery(
-        """
-            SELECT $MEDIA_COLUMNS, $GENRE_COLUMNS, $COMPANIES_COLUMNS FROM metadata $JOIN_GENRES $JOIN_COMPANIES
-            WHERE metadata.tmdbId IN (<ids>) AND metadata.mediaType = :type
-        """,
-    )
+    @SqlQuery("SELECT * FROM metadataView WHERE metadata_tmdbId IN (<ids>) AND metadata_mediaType = :type")
     fun findAllByTmdbIdsAndType(@BindList("ids") tmdbId: List<Int>, type: MetadataDb.Type): List<MetadataDb>
 
     @SqlQuery("SELECT * FROM metadata WHERE lower(title) LIKE lower(?) AND mediaType = ? LIMIT ?")
