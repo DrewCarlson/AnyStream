@@ -1,6 +1,5 @@
 plugins {
     id("server-lib")
-    kotlin("plugin.serialization")
 }
 
 dependencies {
@@ -17,10 +16,5 @@ dependencies {
 
     implementation(libsServer.logback)
 
-    implementation(libsServer.jdbi.core)
-
     implementation(libsServer.jaffree)
-
-    testImplementation(kotlin("test"))
-    testImplementation(kotlin("test-junit"))
 }

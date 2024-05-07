@@ -49,7 +49,7 @@ fun TvShowScreen() {
             } else {
                 val router = Router.current
                 VerticalGridScroller(shows) { show ->
-                    val mediaLink = mediaLinks.find { it.metadataGid == show.gid }
+                    val mediaLink = mediaLinks.find { it.metadataId == show.id }
                     TvShowCard(router, show, mediaLink)
                 }
             }
@@ -65,17 +65,17 @@ fun TvShowCard(
 ) {
     PosterCard(
         title = {
-            LinkedText("/media/${show.gid}", router) {
+            LinkedText("/media/${show.id}", router) {
                 Text(show.name)
             }
         },
         posterPath = show.posterPath,
         isAdded = true,
         onPlayClicked = {
-            playerMediaGid.value = link?.gid
+            playerMediaGid.value = link?.id
         }.takeIf { link != null },
         onBodyClicked = {
-            router.navigate("/media/${show.gid}")
+            router.navigate("/media/${show.id}")
         },
     )
 }

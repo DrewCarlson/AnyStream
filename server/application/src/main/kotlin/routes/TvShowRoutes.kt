@@ -28,7 +28,6 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.drewcarlson.ktor.permissions.withAnyPermission
-import org.jdbi.v3.core.JdbiException
 
 fun Route.addTvShowRoutes(
     queries: MetadataDbQueries = koinGet(),
@@ -58,14 +57,14 @@ fun Route.addTvShowRoutes(
                 queries.findShowById(showId, false) ?: return@get call.respond(NotFound)
 
                 val episodes = queries.findEpisodesByShow(showId, seasonNumber = seasonNumber)
-                val episodeIds = episodes.map(Episode::gid)
+                val episodeIds = episodes.map(Episode::id)
                 val mediaLinks = queries.findMediaLinksByMetadataIds(episodeIds)
 
                 call.respond(
                     EpisodesResponse(
                         episodes = episodes,
-                        mediaLinks = mediaLinks.filter { !it.metadataGid.isNullOrBlank() }
-                            .associateBy { it.metadataGid!! },
+                        mediaLinks = mediaLinks.filter { it.metadataId != null }
+                            .associateBy { it.metadataId!! },
                     ),
                 )
             }
@@ -73,36 +72,13 @@ fun Route.addTvShowRoutes(
             withAnyPermission(Permission.ManageCollection) {
                 delete {
                     val result = call.parameters["show_id"]?.let { showId ->
-                        try {
-                            queries.deleteTvShow(showId)
-                            queries.deleteLinksByRootContentId(showId)
-                            OK
-                        } catch (e: JdbiException) {
-                            InternalServerError
-                        }
+                        queries.deleteTvShow(showId)
+                        queries.deleteLinksByRootContentId(showId)
+                        OK
                     }
                     call.respond(result ?: NotFound)
                 }
             }
-        }
-
-        get("/episode/{episode_id}") {
-            val episodeId = call.parameters["episode_id"]
-            if (episodeId.isNullOrBlank()) return@get call.respond(NotFound)
-            val includeLinks = call.parameters["includeLinks"]?.toBoolean() ?: true
-            val response = queries.findEpisodeById(episodeId, includeLinks = includeLinks)
-                ?: return@get call.respond(NotFound)
-            call.respond(response)
-        }
-
-        get("/season/{season_id}") {
-            val seasonId = call.parameters["season_id"]
-            if (seasonId.isNullOrBlank()) return@get call.respond(NotFound)
-            val includeLinks = call.parameters["includeLinks"]?.toBoolean() ?: true
-            val response = queries.findSeasonById(seasonId, includeLinks = includeLinks)
-                ?: return@get call.respond(NotFound)
-
-            call.respond(response)
         }
     }
 }

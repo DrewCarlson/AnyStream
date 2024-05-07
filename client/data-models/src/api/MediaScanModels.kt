@@ -17,7 +17,7 @@
  */
 package anystream.models.api
 
-import anystream.models.StreamEncodingDetails
+import anystream.models.StreamEncoding
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -30,28 +30,19 @@ sealed class MediaScanResult {
 
     @Serializable
     data class Success(
-        val parentMediaLinkGid: String?,
-        val addedMediaLinkGids: List<String>,
-        val removedMediaLinkGids: List<String>,
-        val existingMediaLinkGids: List<String>,
-    ) : MediaScanResult() {
-        val allValidGids = addedMediaLinkGids + existingMediaLinkGids
-    }
+        val addedIds: List<String>,
+        val removedIds: List<String>,
+        val existingIds: List<String>,
+    ) : MediaScanResult()
 
     @Serializable
-    object ErrorNothingToScan : MediaScanResult() {
-        override fun toString(): String = this::class.simpleName.orEmpty()
-    }
+    data object ErrorNothingToScan : MediaScanResult()
 
     @Serializable
-    object ErrorFileNotFound : MediaScanResult() {
-        override fun toString(): String = this::class.simpleName.orEmpty()
-    }
+    data object ErrorFileNotFound : MediaScanResult()
 
     @Serializable
-    object ErrorInvalidConfiguration : MediaScanResult() {
-        override fun toString(): String = this::class.simpleName.orEmpty()
-    }
+    data object ErrorInvalidConfiguration : MediaScanResult()
 
     @Serializable
     data class ErrorDatabaseException(
@@ -64,7 +55,7 @@ sealed class MediaAnalyzerResult {
     @Serializable
     data class Success(
         val mediaLinkId: String,
-        val streams: List<StreamEncodingDetails>,
+        val streams: List<StreamEncoding>,
     ) : MediaAnalyzerResult()
 
     @Serializable
@@ -73,10 +64,10 @@ sealed class MediaAnalyzerResult {
     ) : MediaAnalyzerResult()
 
     @Serializable
-    object ErrorFileNotFound : MediaAnalyzerResult()
+    data object ErrorFileNotFound : MediaAnalyzerResult()
 
     @Serializable
-    object ErrorNothingToImport : MediaAnalyzerResult()
+    data object ErrorNothingToImport : MediaAnalyzerResult()
 
     @Serializable
     data class ErrorDatabaseException(

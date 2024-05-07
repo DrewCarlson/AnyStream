@@ -68,11 +68,11 @@ fun MetadataMatchScreen(
                 matches.forEach { result ->
                     MatchResultContainer(
                         result,
-                        mediaLinkResponse?.mediaLink?.metadataGid,
+                        mediaLinkResponse?.mediaLink?.metadataId,
                         onMatchSelected = { match ->
                             scope.launch {
                                 onLoadingStatChanged(true)
-                                client.matchFor(mediaLinkResponse?.mediaLink?.gid!!, match.remoteId)
+                                client.matchFor(mediaLinkResponse?.mediaLink?.id!!, match.remoteId)
                                 onLoadingStatChanged(false)
                                 closeScreen()
                             }
@@ -87,7 +87,7 @@ fun MetadataMatchScreen(
 @Composable
 private fun MatchResultContainer(
     result: MediaLinkMatchResult,
-    currentMetadataGid: String?,
+    currentMetadataId: String?,
     onMatchSelected: (MetadataMatch) -> Unit
 ) {
     when (result) {
@@ -96,7 +96,7 @@ private fun MatchResultContainer(
                 MatchListRow(
                     match,
                     onMatchSelected.takeUnless {
-                        match.metadataGid == currentMetadataGid
+                        match.exists && match.metadataId == currentMetadataId
                     }
                 )
             }

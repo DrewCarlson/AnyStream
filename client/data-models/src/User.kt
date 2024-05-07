@@ -25,47 +25,20 @@ const val PASSWORD_LENGTH_MIN = 6
 const val PASSWORD_LENGTH_MAX = 64
 
 @Serializable
-data class User(
-    val id: Int,
+data class UserPublic(
+    val id: String,
     val username: String,
     val displayName: String,
 )
 
-@Serializable
-sealed class Permission {
-    @Serializable
-    object Global : Permission() {
-        override fun toString(): String = "Global"
-    }
-
-    @Serializable
-    object ViewCollection : Permission() {
-        override fun toString(): String = "ViewCollection"
-    }
-
-    @Serializable
-    object ManageCollection : Permission() {
-        override fun toString(): String = "ManageCollection"
-    }
-
-    @Serializable
-    object ManageTorrents : Permission() {
-        override fun toString(): String = "ManageTorrents"
-    }
-
-    @Serializable
-    object ConfigureSystem : Permission() {
-        override fun toString(): String = "ConfigureSystem"
-    }
-
-    companion object {
-        val all: List<Permission> = listOf(Global, ViewCollection, ManageCollection, ManageTorrents, ConfigureSystem)
-
-        fun check(permission: Permission, permissions: Set<Permission>): Boolean {
-            return permissions.contains(permission) || permissions.contains(Global)
-        }
-    }
+fun User.toPublic(): UserPublic {
+    return UserPublic(
+        id = id,
+        username = username,
+        displayName = displayName,
+    )
 }
+
 
 @Serializable
 data class UpdateUserBody(

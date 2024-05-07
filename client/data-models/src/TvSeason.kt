@@ -21,12 +21,27 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class TvSeason(
-    val id: Int,
-    val gid: String,
+    val id: String,
     val name: String,
     val overview: String,
     val seasonNumber: Int,
     val airDate: String?,
-    val tmdbId: Int,
+    val tmdbId: Int?,
     val posterPath: String?,
 )
+
+
+fun Metadata.toTvSeasonModel(): TvSeason {
+    check(mediaType == MediaType.TV_SEASON) {
+        "MetadataDb item '$id' is of type '$mediaType', cannot convert to TvSeason model."
+    }
+    return TvSeason(
+        id = id,
+        name = checkNotNull(title),
+        overview = overview.orEmpty(),
+        seasonNumber = checkNotNull(index),
+        airDate = firstAvailableAt, //?.instantToTmdbDate(),
+        tmdbId = tmdbId,
+        posterPath = posterPath,
+    )
+}

@@ -16,12 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package anystream.models
+
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class Episode(
-    val id: Int,
-    val gid: String,
+    val id: String,
     val showId: String,
     val seasonId: String,
     val name: String,
@@ -34,3 +34,24 @@ data class Episode(
     val backdropPath: String?,
     val tmdbRating: Int?,
 )
+
+
+fun Metadata.toTvEpisodeModel(): Episode {
+    check(mediaType == MediaType.TV_EPISODE) {
+        "MetadataDb item '$id' is of type '$mediaType', cannot convert to TvEpisode model."
+    }
+    return Episode(
+        id = id,
+        showId = checkNotNull(rootId),
+        seasonId = checkNotNull(parentId),
+        name = checkNotNull(title),
+        tmdbId = tmdbId ?: -1,
+        overview = overview.orEmpty(),
+        airDate = firstAvailableAt,//?.instantToTmdbDate(),
+        number = checkNotNull(index),
+        seasonNumber = checkNotNull(parentIndex),
+        stillPath = posterPath.orEmpty(),
+        backdropPath = backdropPath,
+        tmdbRating = tmdbRating,
+    )
+}

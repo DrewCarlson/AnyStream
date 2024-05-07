@@ -23,11 +23,11 @@ import kotlinx.serialization.Serializable
 enum class MediaKind {
     MOVIE,
     TV,
+    MUSIC,
+    PHOTO,
     BOOK,
     AUDIOBOOK,
     COMIC,
     GAME,
-    PHOTO,
-    MUSIC,
     PROGRAM,
 }

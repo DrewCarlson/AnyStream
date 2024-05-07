@@ -1,6 +1,5 @@
 plugins {
     id("server-lib")
-    kotlin("plugin.serialization")
 }
 
 dependencies {
@@ -17,17 +16,13 @@ dependencies {
 
     implementation(libsServer.logback)
 
+    implementation(libsServer.jooq)
     implementation(libsServer.jdbc.sqlite)
-    implementation(libsServer.jdbi.core)
-    implementation(libsServer.jdbi.sqlobject)
-    implementation(libsServer.jdbi.kotlin)
-    implementation(libsServer.jdbi.kotlin.sqlobject)
 
     implementation(libsServer.tmdbapi)
 
+    testImplementation(projects.server.dbModels.testing)
     testImplementation(libsCommon.ktor.client.cio)
     testImplementation(libsCommon.ktor.client.logging)
     testImplementation(kotlin("reflect"))
-    testImplementation(kotlin("test"))
-    testImplementation(kotlin("test-junit"))
 }

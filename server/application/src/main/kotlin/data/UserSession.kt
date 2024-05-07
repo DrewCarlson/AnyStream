@@ -24,7 +24,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class UserSession(
-    val userId: Int,
+    val userId: String,
     val permissions: Set<Permission>,
     val sessionStarted: Long = Clock.System.now().epochSeconds,
 ) : Principal {
