@@ -9,6 +9,8 @@ include(
     ":client:data-models",
     ":server:application",
     ":server:db-models",
+    ":server:db-models:testing",
+    ":server:db-models:jooq-generator",
     ":server:library-manager",
     ":server:metadata-manager",
     ":server:shared",

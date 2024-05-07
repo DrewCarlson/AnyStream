@@ -19,18 +19,20 @@ package anystream.media.processor.file
 
 import anystream.media.file.MovieFileNameParser
 import anystream.media.file.ParsedFileNameResult
+import io.kotest.core.spec.style.FunSpec
 import org.junit.Assert.assertEquals
-import org.junit.Test
 import kotlin.io.path.Path
 import kotlin.test.assertIs
 import kotlin.test.assertNull
 
-class MovieFileNameParserTest {
+class MovieFileNameParserTest : FunSpec({
+    lateinit var fileNameParser: MovieFileNameParser
 
-    private val fileNameParser = MovieFileNameParser()
+    beforeTest {
+        fileNameParser = MovieFileNameParser()
+    }
 
-    @Test
-    fun `should parse movie file`() {
+    test("parse movie file") {
         val fileName = Path("The Shawshank Redemption (1994).mp4")
         val result = fileNameParser.parseFileName(fileName)
 
@@ -39,8 +41,7 @@ class MovieFileNameParserTest {
         assertEquals(1994, result.year)
     }
 
-    @Test
-    fun `should parse movie file without year`() {
+    test("parse movie file without year") {
         val fileName = Path("Inception.mkv")
         val result = fileNameParser.parseFileName(fileName)
 
@@ -48,4 +49,4 @@ class MovieFileNameParserTest {
         assertEquals("Inception", result.name)
         assertNull(result.year)
     }
-}
+})

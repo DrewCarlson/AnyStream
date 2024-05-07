@@ -87,7 +87,6 @@ fun Route.addTorrentRoutes(
                         id = downloadId,
                         metadataGid = movieId,
                         hash = description.hash,
-                        addedByUserId = session.userId,
                         added = Instant.now().toEpochMilli(),
                         fileIndex = null,
                         filePath = null,

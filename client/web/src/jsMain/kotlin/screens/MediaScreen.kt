@@ -60,7 +60,7 @@ fun MediaScreen(mediaId: String) {
                     value?.mediaLinks
                         ?.filter { it.descriptor.isMediaFileLink() }
                         ?.forEach { mediaLink ->
-                            client.analyzeMediaLink(mediaLink.gid)
+                            client.analyzeMediaLink(mediaLink.id)
                         }
                     value = client.lookupMedia(mediaId)
                 } catch (e: Throwable) {
@@ -166,7 +166,7 @@ private fun BaseDetailsView(
                 },
                 completedPercent = mediaItem.playbackState?.completedPercent,
                 onPlayClicked = {
-                    playerMediaGid.value = mediaItem.playableMediaLink?.gid
+                    playerMediaGid.value = mediaItem.playableMediaLink?.id
                 }.takeUnless { mediaItem.playableMediaLink == null },
             )
 
@@ -243,7 +243,7 @@ private fun BaseDetailsView(
                     Button({
                         classes("btn", "btn-sm", "btn-primary")
                         onClick {
-                            playerMediaGid.value = mediaLink.gid
+                            playerMediaGid.value = mediaLink.id
                         }
                     }) {
                         I({
@@ -301,7 +301,9 @@ private fun BaseDetailsView(
             }
 
             val hasStreamDetails = remember(mediaItem.mediaLinks) {
-                mediaItem.mediaLinks.flatMap { it.streams }.isNotEmpty()
+                // todo: restore stream details
+               // mediaItem.mediaLinks.flatMap { it.streams }.isNotEmpty()
+                false
             }
             if (hasStreamDetails) {
                 StreamDetails(mediaItem)
@@ -312,20 +314,24 @@ private fun BaseDetailsView(
 
 @Composable
 private fun StreamDetails(mediaItem: MediaItem) {
+    // TODO: Restore stream details
     val videoStreams = remember(mediaItem.mediaLinks) {
-        mediaItem.mediaLinks.flatMap {
-            it.streams.filterIsInstance<StreamEncodingDetails.Video>()
-        }
+        /*mediaItem.mediaLinks.flatMap {
+            it.streams.filterIsInstance<StreamEncoding.Video>()
+        }*/
+        emptyList<VideoStreamEncoding>()
     }
     val audioStreams = remember(mediaItem.mediaLinks) {
-        mediaItem.mediaLinks.flatMap {
-            it.streams.filterIsInstance<StreamEncodingDetails.Audio>()
-        }
+        /*mediaItem.mediaLinks.flatMap {
+            it.streams.filterIsInstance<StreamEncoding.Audio>()
+        }*/
+        emptyList<AudioStreamEncoding>()
     }
     val subtitlesStreams = remember(mediaItem.mediaLinks) {
-        mediaItem.mediaLinks.flatMap {
-            it.streams.filterIsInstance<StreamEncodingDetails.Subtitle>()
-        }
+        /*mediaItem.mediaLinks.flatMap {
+            it.streams.filterIsInstance<StreamEncoding.Subtitle>()
+        }*/
+        emptyList<SubtitleStreamEncoding>()
     }
 
     Div({ classes("d-flex", "flex-column") }) {
@@ -366,7 +372,7 @@ private fun StreamDetails(mediaItem: MediaItem) {
 }
 
 @Composable
-private fun <T : StreamEncodingDetails> EncodingDetailsItem(
+private fun <T : StreamEncodingTyped> EncodingDetailsItem(
     selectedItem: MutableState<T?>,
     title: @Composable (stream: T?) -> Unit,
     value: @Composable (stream: T) -> Unit,
@@ -432,7 +438,7 @@ private fun <T : StreamEncodingDetails> EncodingDetailsItem(
 }
 
 @Composable
-private fun <T : StreamEncodingDetails> StreamSelectionMenu(
+private fun <T : StreamEncodingTyped> StreamSelectionMenu(
     element: HTMLElement,
     isVisible: Boolean,
     closeMenu: () -> Unit,
@@ -495,13 +501,13 @@ private fun SeasonRow(seasons: List<TvSeason>) {
         seasons.forEach { season ->
             PosterCard(
                 title = {
-                    LinkedText("/media/${season.gid}") {
+                    LinkedText("/media/${season.id}") {
                         Text(season.name)
                     }
                 },
                 posterPath = season.posterPath,
                 onBodyClicked = {
-                    router.navigate("/media/${season.gid}")
+                    router.navigate("/media/${season.id}")
                 },
             )
         }
@@ -519,15 +525,15 @@ private fun EpisodeGrid(
         wrap = true,
     ) {
         episodes.forEach { episode ->
-            val link = mediaLinks[episode.gid]
+            val link = mediaLinks[episode.id]
             PosterCard(
                 title = {
-                    LinkedText("/media/${episode.gid}") {
+                    LinkedText("/media/${episode.id}") {
                         Text(episode.name)
                     }
                 },
                 subtitle1 = {
-                    LinkedText("/media/${episode.gid}") {
+                    LinkedText("/media/${episode.id}") {
                         Text("Episode ${episode.number}")
                     }
                 },
@@ -536,10 +542,10 @@ private fun EpisodeGrid(
                 onPlayClicked = if (link == null) {
                     null
                 } else {
-                    { playerMediaGid.value = link.gid }
+                    { playerMediaGid.value = link.id }
                 },
                 onBodyClicked = {
-                    router.navigate("/media/${episode.gid}")
+                    router.navigate("/media/${episode.id}")
                 },
             )
         }

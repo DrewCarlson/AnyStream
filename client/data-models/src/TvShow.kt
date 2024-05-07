@@ -17,12 +17,12 @@
  */
 package anystream.models
 
+import kotlinx.datetime.*
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class TvShow(
-    val id: Int,
-    val gid: String,
+    val id: String,
     val name: String,
     val tmdbId: Int,
     val overview: String,
@@ -31,12 +31,43 @@ data class TvShow(
     val posterPath: String,
     val backdropPath: String?,
     val added: Long,
-    val addedByUserId: Int,
     val tmdbRating: Int? = null,
     val contentRating: String? = null,
     val genres: List<Genre> = emptyList(),
     val companies: List<ProductionCompany> = emptyList(),
 ) {
     val isAdded: Boolean
-        get() = !gid.contains(':')
+        get() = !id.contains(':')
+}
+
+
+fun Metadata.toTvShowModel(): TvShow {
+    check(mediaType == MediaType.TV_SHOW) {
+        "MetadataDb item '$id' is of type '$mediaType', cannot convert to TvShow model."
+    }
+    return TvShow(
+        id = id,
+        name = checkNotNull(title),
+        tmdbId = tmdbId ?: -1,
+        overview = overview.orEmpty(),
+        firstAirDate = firstAvailableAt,//?.instantToTmdbDate(),
+        posterPath = posterPath.orEmpty(),
+        backdropPath = backdropPath,
+        added = createdAt.epochSeconds,
+        tagline = null,//tagline,
+        tmdbRating = tmdbRating,
+        contentRating = contentRating,
+    )
+}
+
+internal fun Instant.instantToTmdbDate(): String {
+    return toLocalDateTime(TimeZone.UTC).run { "$year-$monthNumber-$dayOfMonth" }
+}
+
+internal fun String.tmdbDateToInstant(): Instant? {
+    return split('-')
+        .takeIf { it.size == 3 }
+        ?.let { (year, month, day) ->
+            LocalDate(year.toInt(), month.toInt(), day.toInt()).atStartOfDayIn(TimeZone.UTC)
+        }
 }

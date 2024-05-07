@@ -47,7 +47,7 @@ fun SearchResultsList(
         Div({ classes("d-flex", "flex-column", "flex-wrap", "w-100") }) {
             searchResponse.movies.forEach { movie ->
                 SearchResultItem(
-                    mediaId = movie.gid,
+                    mediaId = movie.id,
                     posterPath = movie.posterPath,
                     title = movie.title,
                     subtitle = movie.releaseDate
@@ -63,7 +63,7 @@ fun SearchResultsList(
         Div({ classes("d-flex", "flex-column", "flex-wrap", "w-100") }) {
             searchResponse.tvShows.forEach { (show, seasonNumber) ->
                 SearchResultItem(
-                    mediaId = show.gid,
+                    mediaId = show.id,
                     posterPath = show.posterPath,
                     title = show.name,
                     subtitle = buildString {
@@ -84,7 +84,7 @@ fun SearchResultsList(
         Div({ classes("d-flex", "flex-column", "flex-wrap", "w-100") }) {
             searchResponse.episodes.forEach { (episode, show) ->
                 SearchResultItem(
-                    mediaId = episode.gid,
+                    mediaId = episode.id,
                     posterPath = episode.stillPath,
                     title = episode.name,
                     subtitle = show.name,

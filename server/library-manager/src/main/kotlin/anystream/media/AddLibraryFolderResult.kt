@@ -17,14 +17,17 @@
  */
 package anystream.media
 
-import anystream.db.model.MediaLinkDb
-import org.jdbi.v3.core.JdbiException
+import anystream.models.Directory
+import anystream.models.Library
 
 
 sealed class AddLibraryFolderResult {
 
+    data object NoLibrary : AddLibraryFolderResult()
+
     data class Success(
-        val mediaLink: MediaLinkDb,
+        val library: Library,
+        val directory: Directory,
     ) : AddLibraryFolderResult()
 
     data class FileError(
@@ -32,9 +35,9 @@ sealed class AddLibraryFolderResult {
         val isDirectory: Boolean,
     ) : AddLibraryFolderResult()
 
-    object LinkAlreadyExists : AddLibraryFolderResult()
+    data object LinkAlreadyExists : AddLibraryFolderResult()
 
     data class DatabaseError(
-        val exception: JdbiException,
+        val exception: Throwable,
     ) : AddLibraryFolderResult()
 }

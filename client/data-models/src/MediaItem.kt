@@ -42,8 +42,8 @@ data class MediaItem(
 ) {
     val playableMediaLink: MediaLink? =
         mediaLinks.firstOrNull {
-            it.descriptor == MediaLink.Descriptor.VIDEO ||
-                it.descriptor == MediaLink.Descriptor.AUDIO
+            it.descriptor == Descriptor.VIDEO ||
+                it.descriptor == Descriptor.AUDIO
         }
 
     val tmdbBackdropUrl: String
@@ -74,7 +74,7 @@ fun Duration.asFriendlyString(): String {
 
 fun MovieResponse.toMediaItem(): MediaItem {
     return MediaItem(
-        mediaId = movie.gid,
+        mediaId = movie.id,
         contentTitle = movie.title,
         posterPath = movie.posterPath,
         backdropPath = movie.backdropPath,
@@ -91,7 +91,7 @@ fun MovieResponse.toMediaItem(): MediaItem {
 
 fun TvShowResponse.toMediaItem(): MediaItem {
     return MediaItem(
-        mediaId = tvShow.gid,
+        mediaId = tvShow.id,
         contentTitle = tvShow.name,
         posterPath = tvShow.posterPath,
         backdropPath = tvShow.backdropPath,
@@ -107,7 +107,7 @@ fun TvShowResponse.toMediaItem(): MediaItem {
 
 fun EpisodeResponse.toMediaItem(): MediaItem {
     return MediaItem(
-        mediaId = episode.gid,
+        mediaId = episode.id,
         contentTitle = show.name,
         posterPath = episode.stillPath,
         backdropPath = null,
@@ -123,7 +123,7 @@ fun EpisodeResponse.toMediaItem(): MediaItem {
 
 fun SeasonResponse.toMediaItem(): MediaItem {
     return MediaItem(
-        mediaId = season.gid,
+        mediaId = season.id,
         contentTitle = show.name,
         posterPath = season.posterPath,
         backdropPath = null,

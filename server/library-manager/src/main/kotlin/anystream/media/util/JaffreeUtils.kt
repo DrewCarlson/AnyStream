@@ -17,19 +17,19 @@
  */
 package anystream.media.util
 
-import anystream.db.model.StreamEncodingDetailsDb
+import anystream.models.StreamEncoding
+import anystream.models.StreamEncodingType
 import com.github.kokorin.jaffree.StreamType
 import com.github.kokorin.jaffree.ffprobe.Stream
 
-internal fun Stream.toStreamEncodingDetails(mediaLinkId: Int): StreamEncodingDetailsDb? {
+internal fun Stream.toStreamEncoding(mediaLinkId: String): StreamEncoding? {
     if (codecType == StreamType.DATA || codecType == StreamType.ATTACHMENT) {
         return null
     }
     val title = getTag("title")
     val language = getTag("language") ?: getTag("LANGUAGE")
-    return StreamEncodingDetailsDb(
-        id = -1,
-        streamId = id?.toIntOrNull(),
+    return StreamEncoding(
+        id = id,
         index = index,
         codecName = codecName.orEmpty(),
         codecLongName = codecLongName.orEmpty(),
@@ -54,9 +54,9 @@ internal fun Stream.toStreamEncodingDetails(mediaLinkId: Int): StreamEncodingDet
         sampleFmt = sampleFmt,
         sampleRate = sampleRate,
         type = when (codecType) {
-            StreamType.VIDEO, StreamType.VIDEO_NOT_PICTURE -> StreamEncodingDetailsDb.Type.VIDEO
-            StreamType.AUDIO -> StreamEncodingDetailsDb.Type.AUDIO
-            StreamType.SUBTITLE -> StreamEncodingDetailsDb.Type.SUBTITLE
+            StreamType.VIDEO, StreamType.VIDEO_NOT_PICTURE -> StreamEncodingType.VIDEO
+            StreamType.AUDIO -> StreamEncodingType.AUDIO
+            StreamType.SUBTITLE -> StreamEncodingType.SUBTITLE
             else -> error("Unsupported codecType '$codecType'")
         },
     )

@@ -17,62 +17,46 @@
  */
 package anystream.media
 
+import anystream.db.LibraryDao
 import anystream.db.MediaLinkDao
-import anystream.db.mappers.registerMappers
-import anystream.db.model.MediaLinkDb
+import anystream.db.createTestDatabase
 import anystream.db.runMigrations
 import anystream.media.scanner.MediaFileScanner
-import anystream.models.MediaKind
-import anystream.models.MediaLink
-import anystream.models.api.MediaScanResult
-import anystream.models.backend.MediaScannerState
-import kotlinx.coroutines.runBlocking
-import kotlinx.datetime.Clock
-import org.jdbi.v3.core.Handle
-import org.jdbi.v3.core.Jdbi
-import org.jdbi.v3.core.kotlin.KotlinPlugin
-import org.jdbi.v3.sqlobject.SqlObjectPlugin
-import org.jdbi.v3.sqlobject.kotlin.KotlinSqlObjectPlugin
-import org.jdbi.v3.sqlobject.kotlin.attach
-import org.junit.Assert.assertTrue
+import io.kotest.matchers.booleans.shouldBeTrue
+import org.jooq.SQLDialect
+import org.jooq.impl.DSL
+import org.jooq.tools.jdbc.SingleConnectionDataSource
 import org.junit.Ignore
-import org.junit.Test
-import java.io.File
+import org.sqlite.SQLiteConfig
+import org.sqlite.javax.SQLiteConnectionPoolDataSource
+import java.sql.Connection
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
-import kotlin.test.assertEquals
-import kotlin.test.assertIs
 
 @Ignore("Disabled until MediaFileScanner is migrated away from File APIs")
 class MediaFileScannerTest {
-    private lateinit var handle: Handle
+
+    private lateinit var closeDb: () -> Unit
     private lateinit var mediaLinkDao: MediaLinkDao
     private lateinit var mediaFileScanner: MediaFileScanner
     private val userId = 1
 
     @BeforeTest
     fun setUp() {
-        runMigrations("jdbc:sqlite:test.db")
-        val jdbi = Jdbi.create("jdbc:sqlite:test.db").apply {
-            installPlugin(SqlObjectPlugin())
-            installPlugin(KotlinSqlObjectPlugin())
-            installPlugin(KotlinPlugin())
-            registerMappers()
-        }
-        handle = jdbi.open()
-        mediaLinkDao = handle.attach<MediaLinkDao>()
-        mediaFileScanner = MediaFileScanner(mediaLinkDao)
+        val (connection, db) = createTestDatabase()
+        closeDb = connection::close
+        mediaLinkDao = MediaLinkDao(db)
+        mediaFileScanner = MediaFileScanner(mediaLinkDao, LibraryDao(db))
     }
 
     @AfterTest
     fun cleanUp() {
-        handle.close()
-        File("test.db").delete()
+        closeDb()
     }
 
-    @Test
+    /*@Test
     fun `test scanForMedia with movie directory`() {
-        val libraryLink = createMediaLinkDbForTesting()
+        val libraryLink = createMediaLinkForTesting()
         mediaLinkDao.insertLink(libraryLink)
         val rootFolder = File(libraryLink.filePath!!)
 
@@ -116,7 +100,7 @@ class MediaFileScannerTest {
 
     @Test
     fun `test scanForMedia with tv show directory`() {
-        val libraryLink = createMediaLinkDbForTesting()
+        val libraryLink = createMediaLinkForTesting()
         mediaLinkDao.insertLink(libraryLink)
         val rootFolder = File(libraryLink.filePath!!)
 
@@ -163,7 +147,7 @@ class MediaFileScannerTest {
 
     @Test
     fun `test scanForMedia with no childLink`() {
-        val libraryLink = createMediaLinkDbForTesting()
+        val libraryLink = createMediaLinkForTesting()
         mediaLinkDao.insertLink(libraryLink)
 
         runBlocking {
@@ -175,8 +159,8 @@ class MediaFileScannerTest {
 
     @Test
     fun `test scanForMedia with existing childLink`() {
-        val libraryLink = createMediaLinkDbForTesting()
-        val childLink = createMediaLinkDbForTesting()
+        val libraryLink = createMediaLinkForTesting()
+        val childLink = createMediaLinkForTesting()
         mediaLinkDao.insertLink(libraryLink)
         mediaLinkDao.insertLink(childLink)
 
@@ -189,8 +173,8 @@ class MediaFileScannerTest {
 
     @Test
     fun `test scanForMedia with non-existing childLink`() {
-        val libraryLink = createMediaLinkDbForTesting()
-        val childLink = createMediaLinkDbForTesting().copy(filePath = "non-existing-file")
+        val libraryLink = createMediaLinkForTesting()
+        val childLink = createMediaLinkForTesting().copy(filePath = "non-existing-file")
         mediaLinkDao.insertLink(libraryLink)
         mediaLinkDao.insertLink(childLink)
 
@@ -201,27 +185,25 @@ class MediaFileScannerTest {
         }
     }
 
-    private fun createMediaLinkDbForTesting(filePath: String? = null): MediaLinkDb {
-        return MediaLinkDb(
+    private fun createMediaLinkForTesting(filePath: String? = null): MediaLink {
+        return MediaLink(
             id = 1,
             gid = "test-gid",
             metadataId = 1,
             metadataGid = "test-metadata-gid",
             rootMetadataId = 1,
             rootMetadataGid = "test-root-metadata-gid",
-            parentMediaLinkId = null,
-            parentMediaLinkGid = null,
+            parentId = null,
+            parentGid = null,
             addedAt = Clock.System.now(),
             updatedAt = Clock.System.now(),
-            addedByUserId = userId,
             mediaKind = MediaKind.MOVIE,
-            type = MediaLinkDb.Type.LOCAL,
+            type = MediaLink.Type.LOCAL,
             filePath = filePath ?: createTempDir().absolutePath,
-            directory = true,
             fileIndex = null,
             hash = null,
-            descriptor = MediaLink.Descriptor.ROOT_DIRECTORY,
+            descriptor = Descriptor.ROOT_DIRECTORY,
             streams = emptyList(),
         )
-    }
+    }*/
 }

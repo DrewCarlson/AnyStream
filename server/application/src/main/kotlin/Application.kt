@@ -20,11 +20,8 @@ package anystream
 import anystream.data.MetadataDbQueries
 import anystream.data.UserSession
 import anystream.db.*
-import anystream.db.extensions.PooledExtensions
-import anystream.db.extensions.pooled
-import anystream.db.mappers.registerMappers
 import anystream.jobs.registerJobs
-import anystream.media.LibraryManager
+import anystream.media.LibraryService
 import anystream.media.processor.MovieFileProcessor
 import anystream.media.processor.TvFileProcessor
 import anystream.metadata.MetadataManager
@@ -34,9 +31,9 @@ import anystream.routes.installRouting
 import anystream.service.search.SearchService
 import anystream.service.stream.StreamService
 import anystream.service.stream.StreamServiceQueries
-import anystream.service.stream.StreamServiceQueriesJdbi
+import anystream.service.stream.StreamServiceQueriesJooq
 import anystream.service.user.UserService
-import anystream.service.user.UserServiceQueriesJdbi
+import anystream.db.UserDao
 import anystream.util.SqlSessionStorage
 import anystream.util.WebsocketAuthorization
 import anystream.util.headerOrQuery
@@ -61,27 +58,25 @@ import io.ktor.server.plugins.partialcontent.*
 import io.ktor.server.response.*
 import io.ktor.server.sessions.*
 import io.ktor.server.websocket.*
-import kjob.core.KJob
-import kjob.core.job.JobExecutionType
-import kjob.core.kjob
-import kjob.jdbi.JdbiKJob
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.bouncycastle.util.encoders.Hex
 import org.drewcarlson.ktor.permissions.PermissionAuthorization
-import org.jdbi.v3.core.Jdbi
-import org.jdbi.v3.core.kotlin.KotlinPlugin
-import org.jdbi.v3.core.statement.Slf4JSqlLogger
-import org.jdbi.v3.sqlobject.SqlObjectPlugin
-import org.jdbi.v3.sqlobject.kotlin.KotlinSqlObjectPlugin
+import org.jooq.SQLDialect
+import org.jooq.impl.DSL
 import org.koin.ktor.ext.get
 import org.koin.ktor.plugin.Koin
 import org.koin.ktor.plugin.koin
 import org.koin.logger.slf4jLogger
 import org.slf4j.event.Level
+import org.sqlite.SQLiteConfig
+import org.sqlite.javax.SQLiteConnectionPoolDataSource
 import qbittorrent.QBittorrentClient
 import java.nio.file.Path
 import java.time.Duration
+import javax.sql.DataSource
 import kotlin.random.Random
+
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
@@ -103,18 +98,16 @@ fun Application.module(testing: Boolean = false) {
                 factory { FFmpeg.atPath(Path.of(config.ffmpegPath)) }
                 factory { FFprobe.atPath(Path.of(config.ffmpegPath)) }
 
-                single {
-                    Jdbi.create(config.databaseUrl).apply {
-                        setSqlLogger(Slf4JSqlLogger())
-                        installPlugin(SqlObjectPlugin())
-                        installPlugin(KotlinSqlObjectPlugin())
-                        installPlugin(KotlinPlugin())
-                        configure(PooledExtensions::class.java) {}
-                        registerMappers()
+                single<DataSource> {
+                    SQLiteConnectionPoolDataSource().apply {
+                        url = config.databaseUrl
+                        this.config = SQLiteConfig().apply {
+                            enforceForeignKeys(true)
+                        }
                     }
                 }
 
-                single { SqlSessionStorage(get()) }
+                single { SqlSessionStorage(get(), get()) }
 
                 single { Tmdb3(config.tmdbApiKey) }
 
@@ -126,48 +119,49 @@ fun Application.module(testing: Boolean = false) {
                     )
                 }
 
-                single {
+                /*single {
                     kjob(JdbiKJob) {
                         this.jdbi = get()
                         defaultJobExecutor = JobExecutionType.NON_BLOCKING
                     }.apply { start() }
-                }
+                }*/
 
-                single { get<Jdbi>().pooled<SessionsDao>() }
-                single { get<Jdbi>().pooled<MetadataDao>() }
-                single { get<Jdbi>().pooled<TagsDao>() }
-                single { get<Jdbi>().pooled<PlaybackStatesDao>() }
-                single { get<Jdbi>().pooled<MediaLinkDao>() }
-                single { get<Jdbi>().pooled<UsersDao>() }
-                single { get<Jdbi>().pooled<InvitesDao>() }
-                single { get<Jdbi>().pooled<PermissionsDao>() }
-                single { get<Jdbi>().pooled<SearchableContentDao>().apply { createTable() } }
+                single { SessionsDao(get()) }
+                single { MetadataDao(get()) }
+                single { UserDao(get()) }
+                single { LibraryDao(get()) }
+                single { InviteCodeDao(get()) }
+                single { TagsDao(get()) }
+                single { PlaybackStatesDao(get()) }
+                single { MediaLinkDao(get()) }
+                single { SearchableContentDao(get()) }
                 single { MetadataDbQueries(get(), get(), get(), get(), get()) }
 
                 single { MetadataManager(listOf(TmdbMetadataProvider(get(), get()))) }
-                single {
+                single<LibraryService> {
                     val processors = listOf(
                         MovieFileProcessor(get(), get()),
                         TvFileProcessor(get(), get()),
                     )
-                    LibraryManager({ get() }, processors, get(), get())
+                    LibraryService({ get() }, processors, get(), get())
                 }
-                single { UserService(UserServiceQueriesJdbi(get(), get(), get())) }
+                single { DSL.using(get<DataSource>(), SQLDialect.SQLITE) }
+                single { UserService(get(), get()) }
 
-                single<StreamServiceQueries> { StreamServiceQueriesJdbi(get(), get(), get(), get()) }
+                single<StreamServiceQueries> { StreamServiceQueriesJooq(get()) }
                 single { StreamService(get(), get(), { get() }, { get() }, get<AnyStreamConfig>().transcodePath) }
                 single { SearchService(get(), get(), get()) }
             },
         )
     }
     environment.monitor.subscribe(ApplicationStopped) {
-        get<Jdbi>().configure(PooledExtensions::class.java) { extension ->
-            extension.shutdown()
-        }
-        get<KJob>().shutdown()
+        //get<KJob>().shutdown()
     }
 
     check(runMigrations(get<AnyStreamConfig>().databaseUrl, log))
+    applicationScope.launch {
+        get<LibraryDao>().createDefaultLibraries()
+    }
     registerJobs()
 
     install(DefaultHeaders) {}

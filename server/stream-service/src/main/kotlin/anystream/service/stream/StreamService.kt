@@ -87,7 +87,7 @@ class StreamService(
         val playbackStates = queries.fetchPlaybackStatesByIds(sessionMap.keys().toList())
         val userIds = playbackStates.map(PlaybackState::userId).distinct()
         val users = queries.fetchUsersByIds(userIds)
-        val mediaIds = playbackStates.map(PlaybackState::metadataGid).distinct()
+        val mediaIds = playbackStates.map(PlaybackState::metadataId).distinct()
         val mediaLookups = mediaIds.associateWith { id ->
             queries.fetchMovieById(id)?.run(::MovieResponse)
                 ?: queries.fetchEpisodeById(id)?.let { (episode, show) ->
@@ -105,34 +105,34 @@ class StreamService(
 
     suspend fun getPlaybackState(
         mediaLinkId: String,
-        userId: Int,
+        userId: String,
         create: Boolean,
     ): PlaybackState? {
         val state = queries.fetchPlaybackState(mediaLinkId, userId)
-        val fileAndMediaGid by lazy {
+        val fileAndMetadataId by lazy {
             val mediaLink = checkNotNull(queries.fetchMediaLink(mediaLinkId))
-            when (mediaLink) {
-                is LocalMediaLink -> mediaLink.filePath
-                is DownloadMediaLink -> mediaLink.filePath
-            }?.let { filePath -> File(filePath) to mediaLink.metadataGid }
+            mediaLink.filePath?.let { filePath ->
+                File(filePath) to checkNotNull(mediaLink.metadataId)
+            }
         }
         val newState = if (create && state == null) {
-            val (file, metadataGid) = fileAndMediaGid ?: return null
+            val (file, metadataId) = fileAndMetadataId ?: return null
             val runtime = getFileDuration(file).seconds
             PlaybackState(
                 id = ObjectId.get().toString(),
-                mediaLinkGid = mediaLinkId,
+                mediaLinkId = mediaLinkId,
                 position = 0.0,
                 userId = userId,
-                metadataGid = metadataGid.orEmpty(),
+                metadataId = metadataId,
                 runtime = runtime.toDouble(SECONDS),
+                createdAt = Clock.System.now(),
                 updatedAt = Clock.System.now(),
             )
         } else {
             checkNotNull(state)
         }
         if (create && !sessionMap.containsKey(newState.id)) {
-            val (file, _) = fileAndMediaGid ?: return null
+            val (file, _) = fileAndMetadataId ?: return null
             val output = File("$transcodePath/${newState.id}/$mediaLinkId")
             val runtimeSeconds = newState.runtime.seconds
             val positionSeconds = newState.position.seconds
@@ -174,10 +174,7 @@ class StreamService(
 
     suspend fun getPlaylist(mediaLinkId: String, token: String): String? {
         val mediaLink = queries.fetchMediaLink(mediaLinkId) ?: return null
-        val file = when (mediaLink) {
-            is LocalMediaLink -> mediaLink.filePath
-            is DownloadMediaLink -> mediaLink.filePath
-        }?.run(::File) ?: return null
+        val file = mediaLink.filePath?.run(::File) ?: return null
 
         val runtime = getFileDuration(file).seconds
         val segmentDuration = DEFAULT_SEGMENT_DURATION

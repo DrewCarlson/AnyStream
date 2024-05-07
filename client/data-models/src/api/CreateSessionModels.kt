@@ -19,6 +19,7 @@ package anystream.models.api
 
 import anystream.models.Permission
 import anystream.models.User
+import anystream.models.UserPublic
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -32,7 +33,7 @@ sealed class CreateSessionResponse {
 
     @Serializable
     data class Success(
-        val user: User,
+        val user: UserPublic,
         val permissions: Set<Permission>,
     ) : CreateSessionResponse()
 

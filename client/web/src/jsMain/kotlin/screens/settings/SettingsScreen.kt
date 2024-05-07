@@ -97,7 +97,7 @@ private fun ActiveStreamsList() {
         Div({ classes("d-flex", "flex-row", "gap-1") }) {
             sessionsResponse.playbackStates.forEach { playbackState ->
                 val user = sessionsResponse.users.getValue(playbackState.userId)
-                val mediaLookup = sessionsResponse.mediaLookups.getValue(playbackState.metadataGid)
+                val mediaLookup = sessionsResponse.mediaLookups.getValue(playbackState.metadataId)
                 val mediaItem = checkNotNull(
                     (mediaLookup as? MovieResponse)?.toMediaItem()
                         ?: (mediaLookup as? EpisodeResponse)?.toMediaItem()

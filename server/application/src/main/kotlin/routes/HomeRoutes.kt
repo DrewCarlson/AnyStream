@@ -21,7 +21,6 @@ import anystream.data.MetadataDbQueries
 import anystream.data.UserSession
 import anystream.data.asMovie
 import anystream.data.asTvShow
-import anystream.db.model.MetadataDb
 import anystream.models.*
 import anystream.models.api.CurrentlyWatching
 import anystream.models.api.HomeResponse
@@ -105,7 +104,7 @@ fun Route.addHomeRoutes(
                 queries.findCurrentlyWatching(session.userId, CURRENTLY_WATCHING_ITEM_LIMIT)
 
             val tvSeasonIds = playbackStateTv.values.map { (episode, _) -> episode.seasonId }.distinct()
-            val tvSeasons = queries.findTvSeasonsByIds(tvSeasonIds).map(MetadataDb::toTvSeasonModel)
+            val tvSeasons = queries.findTvSeasonsByIds(tvSeasonIds).map(Metadata::toTvSeasonModel)
 
             // Recently Added
             val recentlyAddedMovies = queries.findRecentlyAddedMovies(20)
@@ -143,7 +142,7 @@ fun Route.addHomeRoutes(
             val (playbackStates, playbackStateMovies, playbackStateTv) =
                 queries.findCurrentlyWatching(session.userId, CURRENTLY_WATCHING_ITEM_LIMIT)
             val tvSeasonIds = playbackStateTv.values.map { (episode, _) -> episode.seasonId }.distinct()
-            val tvSeasons = queries.findTvSeasonsByIds(tvSeasonIds).map(MetadataDb::toTvSeasonModel)
+            val tvSeasons = queries.findTvSeasonsByIds(tvSeasonIds).map(Metadata::toTvSeasonModel)
             call.respond(CurrentlyWatching(playbackStates, playbackStateMovies, playbackStateTv, tvSeasons))
         }
 
@@ -182,12 +181,12 @@ private suspend fun loadPopularMovies(
     val popularMovies = tmdbPopular.map { dbMovie ->
         val existingIndex = existingMovies.indexOfFirst { it.tmdbId == dbMovie.id }
         if (existingIndex == -1) {
-            dbMovie.asMovie(-1, dbMovie.toRemoteId())
+            dbMovie.asMovie(dbMovie.toRemoteId())
         } else {
             existingMovies.removeAt(existingIndex)
         }
     }
-    val popularMediaLinks = queries.findMediaLinksByMetadataIds(popularMovies.map(Movie::gid))
+    val popularMediaLinks = queries.findMediaLinksByMetadataIds(popularMovies.map(Movie::id))
     val popularMoviesMap = popularMovies.associateWith { m ->
         popularMediaLinks.find { it.metadataId == m.id }
     }
@@ -200,7 +199,7 @@ private suspend fun loadPopularMovies(
         .map { series ->
             val existingIndex = existingShows.indexOfFirst { it.tmdbId == series.id }
             if (existingIndex == -1) {
-                series.asTvShow(-1, series.toRemoteId()).toTvShowModel()
+                series.asTvShow(series.toRemoteId()).toTvShowModel()
             } else {
                 existingShows.removeAt(existingIndex)
             }

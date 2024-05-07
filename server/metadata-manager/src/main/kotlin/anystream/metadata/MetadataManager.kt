@@ -67,20 +67,14 @@ class MetadataManager(
             providers
                 .filter { it.mediaKinds.contains(request.mediaKind) }
                 .map { provider -> provider.search(request) }
-                .also { selectedProviders ->
-                    if (selectedProviders.isEmpty()) {
-                        logger.warn("No providers available for ${request.mediaKind}")
-                    }
-                }
         } else {
             providers.find { it.id == request.providerId }
                 ?.search(request)
                 .run(::listOfNotNull)
-                .also { selectedProviders ->
-                    if (selectedProviders.isEmpty()) {
-                        logger.warn("No providers available for ${request.providerId}")
-                    }
-                }
+        }.also { selectedProviders ->
+            if (selectedProviders.isEmpty()) {
+                logger.warn("No providers available for ${request.providerId}")
+            }
         }
     }
 

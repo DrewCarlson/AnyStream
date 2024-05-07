@@ -2,7 +2,6 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     id("server-lib")
-    alias(libsCommon.plugins.serialization)
     application
     id("com.github.johnrengelman.shadow")
 }
@@ -100,14 +99,11 @@ dependencies {
 
     implementation(libsServer.logback)
 
+    implementation(libsServer.bundles.jooq)
     implementation(libsServer.jdbc.sqlite)
-    implementation(libsServer.jdbi.core)
-    implementation(libsServer.jdbi.sqlobject)
-    implementation(libsServer.jdbi.kotlin)
-    implementation(libsServer.jdbi.kotlin.sqlobject)
 
-    implementation(libsServer.kjob.core)
-    implementation(libsServer.kjob.jdbi)
+    //implementation(libsServer.kjob.core)
+    //implementation(libsServer.kjob.jdbi)
 
     implementation(libsServer.jaffree)
 
@@ -120,8 +116,7 @@ dependencies {
     implementation(libsServer.qbittorrent.client)
     implementation(libsServer.torrentSearch)
     testImplementation(libsCommon.ktor.server.tests)
-    testImplementation(kotlin("test"))
-    testImplementation(kotlin("test-junit"))
+    testImplementation(projects.server.dbModels.testing)
 }
 
 tasks.getByName<JavaExec>("run") {

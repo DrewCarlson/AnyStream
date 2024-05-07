@@ -45,7 +45,9 @@ import kotlin.time.Duration.Companion.seconds
 
 private const val PAIRING_SESSION_SECONDS = 60
 
-fun Route.addUserRoutes(userService: UserService = koinGet()) {
+fun Route.addUserRoutes(
+    userService: UserService = koinGet()
+) {
     route("/users") {
         post {
             val body = runCatching { call.receiveNullable<CreateUserBody>() }
@@ -53,13 +55,13 @@ fun Route.addUserRoutes(userService: UserService = koinGet()) {
             val createSession = call.parameters["createSession"]?.toBoolean() ?: true
 
             val result = userService.createUser(body)
-            if (result == null) {
+            if ((result as? CreateUserResponse.Error)?.signupDisabled == true) {
                 call.respond(Forbidden)
             } else {
                 if (createSession && result is CreateUserResponse.Success) {
                     call.sessions.getOrSet {
                         UserSession(
-                            userId = result.user.id,
+                            userId = checkNotNull(result.user.id),
                             permissions = result.permissions,
                         )
                     }
@@ -122,7 +124,7 @@ fun Route.addUserRoutes(userService: UserService = koinGet()) {
 
                     val result = userService.createSession(body, call.principal())
                     if (result is CreateSessionResponse.Success) {
-                        call.sessions.set(UserSession(result.user.id, result.permissions))
+                        call.sessions.set(UserSession(checkNotNull(result.user.id), result.permissions))
                     }
                     if (result == null) {
                         call.respond(Forbidden)
@@ -140,7 +142,7 @@ fun Route.addUserRoutes(userService: UserService = koinGet()) {
                 if (result is CreateSessionResponse.Success) {
                     call.sessions.set(
                         UserSession(
-                            userId = result.user.id,
+                            userId = checkNotNull(result.user.id),
                             permissions = result.permissions,
                         ),
                     )
@@ -171,14 +173,14 @@ fun Route.addUserRoutes(userService: UserService = koinGet()) {
             route("/{user_id}") {
                 withAnyPermission(Permission.Global) {
                     get {
-                        val userId = call.parameters["user_id"]?.toIntOrNull()!!
+                        val userId = call.parameters["user_id"]!!
                         call.respond(userService.getUser(userId) ?: NotFound)
                     }
                 }
 
                 put {
                     val session = call.sessions.get<UserSession>()!!
-                    val userId = call.parameters["user_id"]?.toIntOrNull()!!
+                    val userId = call.parameters["user_id"]!!
                     val body = runCatching { call.receiveNullable<UpdateUserBody>() }
                         .getOrNull() ?: return@put call.respond(UnprocessableEntity)
 
@@ -192,7 +194,7 @@ fun Route.addUserRoutes(userService: UserService = koinGet()) {
 
                 withAnyPermission(Permission.Global) {
                     delete {
-                        val userId = call.parameters["user_id"]?.toIntOrNull()!!
+                        val userId = call.parameters["user_id"]!!
                         val result = userService.deleteUser(userId)
                         call.respond(if (result) OK else NotFound)
                     }

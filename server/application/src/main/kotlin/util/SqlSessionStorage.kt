@@ -19,17 +19,19 @@ package anystream.util
 
 import anystream.data.UserSession
 import anystream.db.SessionsDao
+import anystream.db.tables.references.SESSION
 import anystream.json
 import io.ktor.server.sessions.*
-import kotlinx.serialization.decodeFromString
+import kotlinx.coroutines.future.await
 import kotlinx.serialization.encodeToString
-import org.jdbi.v3.core.JdbiException
+import org.jooq.DSLContext
 import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.NoSuchElementException
 
 class SqlSessionStorage(
-    private val sessionsDao: SessionsDao,
+    private val db: DSLContext,
+    private val sessionsDao: SessionsDao
 ) : SessionStorage {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
@@ -47,36 +49,41 @@ class SqlSessionStorage(
     }
 
     override suspend fun write(id: String, value: String) {
-        logger.trace("Writing session '$id', $value")
+        logger.trace("Writing session {}, {}", id, value)
         sessionsCache[id] = value
         try {
-            sessionsDao.insertOrUpdate(id, value)
-        } catch (e: JdbiException) {
+            sessionsDao.insertOrUpdate(id, Serializer.deserialize(value).userId, value)
+        } catch (e: Throwable) {
             logger.trace("Failed to write session data", e)
         }
     }
 
     override suspend fun read(id: String): String {
-        logger.trace("Looking for session '$id'")
+        logger.trace("Looking for session {}", id)
         return (sessionsCache[id] ?: findSession(id)).also {
-            logger.trace("Found session $id")
+            logger.trace("Found session {}", id)
         } ?: throw NoSuchElementException()
     }
 
     override suspend fun invalidate(id: String) {
-        logger.trace("Deleting session '$id'")
+        logger.trace("Deleting session {}", id)
         sessionsCache.remove(id)
         try {
-            sessionsDao.delete(id)
-        } catch (e: JdbiException) {
+            db.deleteFrom(SESSION)
+                .where(SESSION.ID.eq(id))
+                .executeAsync()
+                .await()
+        } catch (e: Throwable) {
             logger.error("Failed to delete session '$id' from database", e)
         }
     }
 
     private fun findSession(id: String): String? {
         return try {
-            sessionsDao.find(id)
-        } catch (e: JdbiException) {
+            db.selectFrom(SESSION)
+                .where(SESSION.ID.eq(id))
+                .fetchOne(SESSION.DATA)
+        } catch (e: Throwable) {
             logger.trace("Failed to find session data", e)
             null
         }

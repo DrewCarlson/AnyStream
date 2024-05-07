@@ -1,3 +1,3 @@
 import org.gradle.api.JavaVersion
 
-val JAVA_TARGET = JavaVersion.VERSION_11
+val JAVA_TARGET = JavaVersion.VERSION_17
