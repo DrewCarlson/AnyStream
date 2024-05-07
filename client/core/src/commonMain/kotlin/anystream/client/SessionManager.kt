@@ -19,6 +19,7 @@ package anystream.client
 
 import anystream.models.Permission
 import anystream.models.User
+import anystream.models.UserPublic
 import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -58,11 +59,11 @@ interface SessionDataStore {
 }
 
 class SessionManager(private val dataStore: SessionDataStore) {
-    private val user = MutableSharedFlow<User?>(1, 0, DROP_OLDEST)
+    private val user = MutableSharedFlow<UserPublic?>(1, 0, DROP_OLDEST)
     private val token = MutableSharedFlow<String?>(1, 0, DROP_OLDEST)
     private val permissions = MutableSharedFlow<Set<Permission>?>(1, 0, DROP_OLDEST)
 
-    val userFlow: Flow<User?> = user
+    val userFlow: Flow<UserPublic?> = user
     val tokenFlow: Flow<String?> = token
     val permissionsFlow: Flow<Set<Permission>?> = permissions
 
@@ -76,7 +77,7 @@ class SessionManager(private val dataStore: SessionDataStore) {
         dataStore.write(SERVER_URL_KEY, serverUrl)
     }
 
-    fun writeUser(user: User) {
+    fun writeUser(user: UserPublic) {
         dataStore.write(USER_KEY, json.encodeToString(user))
         this.user.tryEmit(user)
     }
@@ -95,10 +96,10 @@ class SessionManager(private val dataStore: SessionDataStore) {
         return dataStore.read(SERVER_URL_KEY)
     }
 
-    fun fetchUser(): User? {
+    fun fetchUser(): UserPublic? {
         return user.replayCache.singleOrNull()
             ?: dataStore.read(USER_KEY)?.let { data ->
-                json.decodeFromString<User>(data)
+                json.decodeFromString<UserPublic>(data)
                     .also(user::tryEmit)
             }
     }

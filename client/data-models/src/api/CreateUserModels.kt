@@ -19,6 +19,7 @@ package anystream.models.api
 
 import anystream.models.Permission
 import anystream.models.User
+import anystream.models.UserPublic
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -33,14 +34,15 @@ sealed class CreateUserResponse {
 
     @Serializable
     data class Success(
-        val user: User,
+        val user: UserPublic,
         val permissions: Set<Permission>,
     ) : CreateUserResponse()
 
     @Serializable
     data class Error(
-        val usernameError: UsernameError?,
-        val passwordError: PasswordError?,
+        val usernameError: UsernameError? = null,
+        val passwordError: PasswordError? = null,
+        val signupDisabled: Boolean = true,
     ) : CreateUserResponse()
 
     enum class PasswordError {

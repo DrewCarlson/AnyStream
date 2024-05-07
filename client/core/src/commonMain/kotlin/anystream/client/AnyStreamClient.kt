@@ -22,6 +22,7 @@ import anystream.models.api.*
 import anystream.torrent.search.TorrentDescription2
 import io.ktor.client.HttpClient
 import io.ktor.client.call.*
+import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.cookies.*
 import io.ktor.client.plugins.logging.*
@@ -81,7 +82,7 @@ class AnyStreamClient(
 
     val authenticated: Flow<Boolean> = sessionManager.tokenFlow.map { it != null }
     val permissions: Flow<Set<Permission>?> = sessionManager.permissionsFlow
-    val user: Flow<User?> = sessionManager.userFlow
+    val user: Flow<UserPublic?> = sessionManager.userFlow
     val token: String?
         get() = sessionManager.fetchToken()
 
@@ -117,6 +118,13 @@ class AnyStreamClient(
         WebSockets {
             contentConverter = KotlinxWebsocketSerializationConverter(json)
         }
+        defaultRequest {
+            headers {
+                sessionManager.fetchToken()?.let { token ->
+                    header(SESSION_KEY, token)
+                }
+            }
+        }
         install("ErrorTransformer") {
             requestPipeline.intercept(HttpRequestPipeline.State) {
                 try {
@@ -138,11 +146,6 @@ class AnyStreamClient(
             }
         }
         install("TokenHandler") {
-            requestPipeline.intercept(HttpRequestPipeline.Before) {
-                sessionManager.fetchToken()?.let { token ->
-                    context.header(SESSION_KEY, token)
-                }
-            }
             responsePipeline.intercept(HttpResponsePipeline.Receive) {
                 context.response.headers[SESSION_KEY]?.let { token ->
                     if (token != sessionManager.fetchToken()) {
@@ -213,7 +216,7 @@ class AnyStreamClient(
         return userPermissions().run { contains(Permission.Global) || contains(permission) }
     }
 
-    fun authedUser(): User? {
+    fun authedUser(): UserPublic? {
         return sessionManager.fetchUser()
     }
 

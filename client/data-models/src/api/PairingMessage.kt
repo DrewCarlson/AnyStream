@@ -23,7 +23,7 @@ import kotlinx.serialization.Serializable
 sealed class PairingMessage {
 
     @Serializable
-    object Idle : PairingMessage()
+    data object Idle : PairingMessage()
 
     @Serializable
     data class Started(val pairingCode: String) : PairingMessage()
@@ -31,9 +31,9 @@ sealed class PairingMessage {
     @Serializable
     data class Authorized(
         val secret: String,
-        val userId: Int,
+        val userId: String,
     ) : PairingMessage()
 
     @Serializable
-    object Failed : PairingMessage()
+    data object Failed : PairingMessage()
 }

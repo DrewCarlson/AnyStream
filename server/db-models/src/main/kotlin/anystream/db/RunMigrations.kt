@@ -20,11 +20,27 @@ package anystream.db
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.FlywayException
 import org.slf4j.Logger
+import javax.sql.DataSource
 
 fun runMigrations(connectionString: String, logger: Logger? = null): Boolean {
     val flyway = Flyway.configure()
         .loggers("slf4j")
-        .dataSource(connectionString, null, null).load()
+        .dataSource(connectionString, null, null)
+        .load()
+    return try {
+        flyway.migrate()
+        true
+    } catch (e: FlywayException) {
+        logger?.error("Database migrations failed", e)
+        false
+    }
+}
+
+fun runMigrations(dataSource: DataSource, logger: Logger? = null): Boolean {
+    val flyway = Flyway.configure()
+        .loggers("slf4j")
+        .dataSource(dataSource)
+        .load()
     return try {
         flyway.migrate()
         true

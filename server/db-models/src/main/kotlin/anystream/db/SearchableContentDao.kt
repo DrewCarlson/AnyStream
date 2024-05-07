@@ -17,25 +17,44 @@
  */
 package anystream.db
 
-import anystream.db.model.MetadataDb
-import org.jdbi.v3.sqlobject.statement.SqlQuery
-import org.jdbi.v3.sqlobject.statement.SqlUpdate
+import anystream.db.tables.references.SEARCHABLE_CONTENT
+import anystream.db.util.fetchIntoType
+import anystream.models.MediaType
+import org.jooq.Condition
+import org.jooq.DSLContext
+import org.jooq.Record
+import org.jooq.TableField
+import org.jooq.impl.DSL
+import org.jooq.impl.DSL.condition
 
-interface SearchableContentDao {
+class SearchableContentDao(
+    private val db: DSLContext
+) {
+    fun search(query: String): List<String> {
+        return db.select(SEARCHABLE_CONTENT.ID)
+            .where(SEARCHABLE_CONTENT.CONTENT.match(query))
+            .orderBy(DSL.field("rank"))
+            .fetchIntoType()
+    }
 
-    // NOTE: IntelliJ complains about this syntax, but it is valid since SQLite ~3.7.11
-    @SqlUpdate("CREATE VIRTUAL TABLE IF NOT EXISTS searchableContent USING fts5(content, type, gid)")
-    fun createTable()
+    fun search(query: String, type: MediaType): List<String> {
+        return db.select(SEARCHABLE_CONTENT.ID)
+            .where(SEARCHABLE_CONTENT.CONTENT.match(query))
+            .and(SEARCHABLE_CONTENT.MEDIA_TYPE.eq(type))
+            .orderBy(DSL.field("rank"))
+            .fetchIntoType()
+    }
 
-    @SqlUpdate("INSERT INTO searchableContent(gid, type, content) VALUES (:gid, :type, :content)")
-    fun insert(gid: String, type: MetadataDb.Type, content: String)
+    fun search(query: String, type: MediaType, limit: Int): List<String> {
+        return db.select(SEARCHABLE_CONTENT.ID)
+            .where(SEARCHABLE_CONTENT.CONTENT.match(query))
+            .and(SEARCHABLE_CONTENT.MEDIA_TYPE.eq(type))
+            .orderBy(DSL.field("rank"))
+            .limit(limit)
+            .fetchIntoType()
+    }
+}
 
-    @SqlQuery("SELECT gid FROM searchableContent WHERE content MATCH ? ORDER BY rank")
-    fun search(query: String): List<String>
-
-    @SqlQuery("SELECT gid FROM searchableContent WHERE content MATCH ? AND type = ? ORDER BY rank")
-    fun search(query: String, type: MetadataDb.Type): List<String>
-
-    @SqlQuery("SELECT gid FROM searchableContent WHERE content MATCH ? AND type = ? ORDER BY rank LIMIT ?")
-    fun search(query: String, type: MetadataDb.Type, limit: Int): List<String>
+private fun <X : Record> TableField<X, String?>.match(text: String): Condition {
+    return condition("{0} MATCH {1}", this, text)
 }

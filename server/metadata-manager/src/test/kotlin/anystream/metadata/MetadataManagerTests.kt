@@ -19,45 +19,26 @@ package anystream.metadata
 
 import anystream.data.MetadataDbQueries
 import anystream.db.*
-import anystream.db.mappers.registerMappers
 import anystream.metadata.providers.TmdbMetadataProvider
 import anystream.models.MediaKind
 import anystream.models.api.*
 import app.moviebase.tmdb.Tmdb3
+import io.kotest.core.spec.style.FunSpec
 import io.ktor.client.plugins.logging.*
-import kotlinx.coroutines.runBlocking
-import org.jdbi.v3.core.Handle
-import org.jdbi.v3.core.Jdbi
-import org.jdbi.v3.core.kotlin.KotlinPlugin
-import org.jdbi.v3.sqlobject.SqlObjectPlugin
-import org.jdbi.v3.sqlobject.kotlin.KotlinSqlObjectPlugin
-import org.jdbi.v3.sqlobject.kotlin.attach
-import java.io.File
 import kotlin.test.*
 
-class MetadataManagerTests {
+class MetadataManagerTests : FunSpec({
+    val db by bindTestDatabase()
+    val metadataDao by bindForTest({ MetadataDao(db) })
+    val queries by bindForTest({
+        val tagsDao = TagsDao(db)
+        val playbackStatesDao = PlaybackStatesDao(db)
+        val mediaLinkDao = MediaLinkDao(db)
 
-    lateinit var handle: Handle
-    lateinit var manager: MetadataManager
-
-    @BeforeTest
-    fun before() {
-        runMigrations("jdbc:sqlite:test.db")
-        val jdbi = Jdbi.create("jdbc:sqlite:test.db").apply {
-            installPlugin(SqlObjectPlugin())
-            installPlugin(KotlinSqlObjectPlugin())
-            installPlugin(KotlinPlugin())
-            registerMappers()
-        }
-        handle = jdbi.open()
-        val mediaDao = handle.attach<MetadataDao>()
-        val tagsDao = handle.attach<TagsDao>()
-        val playbackStatesDao = handle.attach<PlaybackStatesDao>()
-        val mediaLinkDao = handle.attach<MediaLinkDao>()
-        val searchableContentDao = handle.attach<SearchableContentDao>().apply { createTable() }
-
-        val queries = MetadataDbQueries(searchableContentDao, mediaDao, tagsDao, mediaLinkDao, playbackStatesDao)
-        val tmdb = Tmdb3 {
+        MetadataDbQueries(db, metadataDao, tagsDao, mediaLinkDao, playbackStatesDao)
+    })
+    val tmdb by bindForTest({
+        Tmdb3 {
             tmdbApiKey = "c1e9e8ade306dd9cbc5e17b05ed4badd"
             this.httpClient {
                 install(Logging) {
@@ -66,18 +47,14 @@ class MetadataManagerTests {
                 }
             }
         }
+    })
+
+    val manager by bindForTest({
         val provider = TmdbMetadataProvider(tmdb, queries)
-        manager = MetadataManager(listOf(provider))
-    }
+        MetadataManager(listOf(provider))
+    })
 
-    @AfterTest
-    fun after() {
-        handle.close()
-        File("test.db").delete()
-    }
-
-    @Test
-    fun testMovieImportTmdb() = runBlocking {
+    test("import tmdb movie") {
         val request = ImportMetadata(
             metadataIds = listOf("77"),
             mediaKind = MediaKind.MOVIE,
@@ -89,19 +66,16 @@ class MetadataManagerTests {
         val importResult = assertIs<ImportMetadataResult.Success>(importResults.first())
         val metadataMatch = assertIs<MetadataMatch.MovieMatch>(importResult.match)
 
-        assertNotEquals(-1, metadataMatch.movie.id)
         assertEquals("77", metadataMatch.remoteMetadataId)
         assertEquals("tmdb:movie:77", metadataMatch.remoteId)
         assertEquals("Memento", metadataMatch.movie.title)
         assertTrue(metadataMatch.exists)
 
-        val mediaDao = handle.attach<MetadataDao>()
-        val dbResult = assertNotNull(mediaDao.findByGid(metadataMatch.movie.gid))
+        val dbResult = assertNotNull(metadataDao.findByGid(metadataMatch.movie.id))
         assertEquals(metadataMatch.movie.title, dbResult.title)
     }
 
-    @Test
-    fun testTvShowImportTmdb() = runBlocking {
+    test("import tmdb tv show") {
         val request = ImportMetadata(
             metadataIds = listOf("63333"),
             mediaKind = MediaKind.TV,
@@ -113,19 +87,16 @@ class MetadataManagerTests {
         val importResult = assertIs<ImportMetadataResult.Success>(importResults.first())
         val metadataMatch = assertIs<MetadataMatch.TvShowMatch>(importResult.match)
 
-        assertNotEquals(-1, metadataMatch.tvShow.id)
         assertEquals("63333", metadataMatch.remoteMetadataId)
         assertEquals("tmdb:tv:63333", metadataMatch.remoteId)
         assertEquals("The Last Kingdom", metadataMatch.tvShow.name)
         assertTrue(metadataMatch.exists)
 
-        val mediaDao = handle.attach<MetadataDao>()
-        val dbResult = assertNotNull(mediaDao.findByGid(metadataMatch.tvShow.gid))
+        val dbResult = assertNotNull(metadataDao.findByGid(metadataMatch.tvShow.id))
         assertEquals(metadataMatch.tvShow.name, dbResult.title)
     }
 
-    @Test
-    fun testQueryTmdbMovie() = runBlocking {
+    test("query tmdb movie") {
         val query = QueryMetadata(
             providerId = "tmdb",
             mediaKind = MediaKind.MOVIE,
@@ -141,8 +112,7 @@ class MetadataManagerTests {
         assertEquals("The Avengers", result.movie.title)
     }
 
-    @Test
-    fun testQueryTmdbTvShow() = runBlocking {
+    test("query tmdb tv show") {
         val query = QueryMetadata(
             providerId = "tmdb",
             mediaKind = MediaKind.TV,
@@ -158,8 +128,7 @@ class MetadataManagerTests {
         assertEquals("The Last Kingdom", result.tvShow.name)
     }
 
-    @Test
-    fun testFindTmdbTvShowByRemoteId() = runBlocking {
+    test("find tmdb tv show by remote id") {
         val remoteId = "tmdb:tv:456"
         val queryResult = manager.findByRemoteId(remoteId)
 
@@ -172,14 +141,13 @@ class MetadataManagerTests {
         assertIs<MetadataMatch.TvShowMatch>(result)
 
         assertEquals(remoteId, result.remoteId)
-        assertEquals(remoteId, result.tvShow.gid)
+        assertEquals(remoteId, result.tvShow.id)
         assertEquals("456", result.remoteMetadataId)
 
         assertEquals("The Simpsons", result.tvShow.name)
     }
 
-    @Test
-    fun testFindTmdbMovieByRemoteId() = runBlocking {
+    test("find tmdb movie by remote id") {
         val remoteId = "tmdb:movie:77"
         val queryResult = manager.findByRemoteId(remoteId)
 
@@ -192,9 +160,9 @@ class MetadataManagerTests {
         assertIs<MetadataMatch.MovieMatch>(result)
 
         assertEquals(remoteId, result.remoteId)
-        assertEquals(remoteId, result.movie.gid)
+        assertEquals(remoteId, result.movie.id)
         assertEquals("77", result.remoteMetadataId)
 
         assertEquals("Memento", result.movie.title)
     }
-}
+})

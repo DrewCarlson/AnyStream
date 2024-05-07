@@ -1,20 +1,23 @@
 [versions]
 qbittorrent = "1.0.0-beta04"
 jdbi = "3.41.3"
-jdbc_sqlite = "3.42.0.1"
+jdbc_sqlite = "3.45.3.0"
+jooq = "3.19.8"
 kjob = "0.6.0"
 bouncy_castle = "1.70"
 jaffree = "2023.09.10"
-logback = "1.4.11"
-koinKtor = "3.5.1"
-icu4j = "74.1"
-mockk = "1.13.8"
+logback = "1.5.6"
+koinKtor = "3.5.6"
+icu4j = "74.2"
+mockk = "1.13.10"
 
 [plugins]
 shadowjar = { id = "com.github.johnrengelman.shadow", version = "8.1.1" }
+jooq = { id = "nu.studer.jooq", version = "9.0" }
+flyway = { id = "org.flywaydb.flyway", version = "10.1.0" }
 
 [libraries]
-flyway-core = { module = "org.flywaydb:flyway-core", version = "9.22.3" }
+flyway-core = { module = "org.flywaydb:flyway-core", version = "10.1.0" }
 fastObjectPool = { module = "cn.danielw:fast-object-pool", version = "2.2.1" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 
@@ -30,7 +33,7 @@ kjob-jdbi = { module = "org.drewcarlson:kjob-jdbi", version.ref = "kjob" }
 qbittorrent-models = { module = "org.drewcarlson:qbittorrent-models", version.ref = "qbittorrent" }
 qbittorrent-client = { module = "org.drewcarlson:qbittorrent-client", version.ref = "qbittorrent" }
 
-torrentSearch = { module = "org.drewcarlson:torrentsearch", version = "0.7.0" }
+torrentSearch = { module = "org.drewcarlson:torrentsearch", version = "0.8.0" }
 
 jaffree = { module = "com.github.kokorin.jaffree:jaffree", version.ref = "jaffree" }
 
@@ -47,5 +50,14 @@ icu4j = { module = "com.ibm.icu:icu4j", version.ref = "icu4j" }
 icu4j-charset = { module = "com.ibm.icu:icu4j-charset", version.ref = "icu4j" }
 icu4j-localespi = { module = "com.ibm.icu:icu4j-localespi", version.ref = "icu4j" }
 
+jooq = { module = "org.jooq:jooq", version.ref = "jooq" }
+jooq-codegen = { module = "org.jooq:jooq-codegen", version.ref = "jooq" }
+jooq-kotlin = { module = "org.jooq:jooq-kotlin", version.ref = "jooq" }
+jooq-coroutines = { module = "org.jooq:jooq-kotlin-coroutines", version.ref = "jooq" }
+jooq-test = { module = "org.jooq:jooq-test", version.ref = "jooq" }
+jooq-test-kotlin = { module = "org.jooq:jooq-test-kotlin", version.ref = "jooq" }
+
 [bundles]
 icu4j = ["icu4j", "icu4j-charset", "icu4j-localespi"]
+jooq = ["jooq", "jooq-kotlin", "jooq-coroutines"]
+jooq-test = ["jooq-test", "jooq-test-kotlin"]

@@ -1,6 +1,5 @@
 plugins {
     id("multiplatform-lib")
-    kotlin("plugin.serialization")
     id("com.google.devtools.ksp")
 }
 

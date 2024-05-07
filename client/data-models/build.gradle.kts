@@ -1,6 +1,7 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     id("multiplatform-lib")
-    kotlin("plugin.serialization")
 }
 
 kotlin {
@@ -8,7 +9,10 @@ kotlin {
 
     sourceSets {
         val commonMain by getting {
-            kotlin.srcDirs("src")
+            kotlin.srcDirs(
+                "src",
+                buildDir.resolve("generated-src/jooq/main")
+            )
             dependencies {
                 implementation(libsCommon.serialization.core)
                 implementation(libsCommon.serialization.json)
@@ -17,4 +21,9 @@ kotlin {
             }
         }
     }
+}
+
+tasks.withType<KotlinCompile> {
+    inputs.files(fileTree(layout.buildDirectory.dir("generated-src")).files)
+    dependsOn(":server:db-models:movePojos")
 }

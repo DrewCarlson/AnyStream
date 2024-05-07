@@ -4,6 +4,7 @@ import org.gradle.kotlin.dsl.*
 plugins {
     kotlin("multiplatform")
     id("com.diffplug.spotless")
+    kotlin("plugin.serialization")
 }
 
 apply(plugin = "kotlinx-atomicfu")

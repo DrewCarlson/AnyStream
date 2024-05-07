@@ -20,31 +20,33 @@ package anystream.routes
 import anystream.data.MetadataDbQueries
 import anystream.data.UserSession
 import anystream.db.MediaLinkDao
-import anystream.db.model.MediaLinkDb
 import anystream.media.AddLibraryFolderResult
-import anystream.media.LibraryManager
+import anystream.media.LibraryService
+import anystream.models.Descriptor
 import anystream.models.MediaLink
 import anystream.models.api.*
+import anystream.models.filename
 import anystream.util.koinGet
 import anystream.util.logger
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.UnprocessableEntity
 import io.ktor.server.application.*
-import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import io.ktor.util.pipeline.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonPrimitive
-import org.jdbi.v3.core.JdbiException
+import kotlin.io.path.Path
+import kotlin.time.measureTimedValue
 
 fun Route.addMediaLinkManageRoutes(
-    libraryManager: LibraryManager = koinGet(),
+    libraryService: LibraryService = koinGet(),
     mediaLinkDao: MediaLinkDao = koinGet(),
 ) {
     route("/medialink") {
@@ -53,7 +55,7 @@ fun Route.addMediaLinkManageRoutes(
             val result = when {
                 !parent.isNullOrBlank() -> mediaLinkDao.findByParentGid(parent)
                 else -> mediaLinkDao.all()
-            }.map { it.toModel() }
+            }
                 // TODO: Sort in query
                 .sortedBy { it.filename }
             call.respond(result)
@@ -61,56 +63,21 @@ fun Route.addMediaLinkManageRoutes(
 
         route("/libraries") {
             get {
-                call.respond(LibraryFolderList(libraryManager.getLibraryFolders()))
-            }
-
-            post {
-                val (userId) = checkNotNull(call.principal<UserSession>())
-                val request = try {
-                    call.receive<AddLibraryFolderRequest>()
-                } catch (e: ContentTransformationException) {
-                    logger.error("Failed to parse request body", e)
-                    return@post call.respond(UnprocessableEntity)
-                }
-
-                val (path, mediaKind) = request
-                val response =
-                    when (val result = libraryManager.addLibraryFolder(userId, path, mediaKind)) {
-                        is AddLibraryFolderResult.Success -> {
-                            application.launch {
-                                libraryManager.scan(result.mediaLink)
-                                libraryManager.refreshMetadata(userId, result.mediaLink, true)
-                            }
-
-                            AddLibraryFolderResponse.Success(result.mediaLink.toModel())
-                        }
-
-                        is AddLibraryFolderResult.DatabaseError ->
-                            AddLibraryFolderResponse.DatabaseError(result.exception.stackTraceToString())
-
-                        is AddLibraryFolderResult.FileError ->
-                            AddLibraryFolderResponse.FileError(
-                                exists = result.exists,
-                                isDirectory = result.isDirectory,
-                            )
-
-                        AddLibraryFolderResult.LinkAlreadyExists -> AddLibraryFolderResponse.LibraryFolderExists
-                    }
-                call.respond(response)
+                call.respond(LibraryFolderList(libraryService.getLibraryFolders()))
             }
 
             post("/unmapped") {
                 val import = runCatching { call.receiveNullable<MediaScanRequest>() }
                     .getOrNull() ?: return@post call.respond(UnprocessableEntity)
-
-                call.respond(libraryManager.findUnmappedFiles(import))
+1
+                call.respond(libraryService.findUnmappedFiles(import))
             }
 
             get("/list-files") {
                 val root = call.parameters["root"]
                 val showFiles = call.parameters["showFiles"]?.toBoolean() ?: false
 
-                call.respond(libraryManager.listFiles(root, showFiles))
+                call.respond(libraryService.listFiles(root, showFiles))
             }
         }
 
@@ -118,7 +85,7 @@ fun Route.addMediaLinkManageRoutes(
             route("/matches") {
                 get {
                     val mediaLink = mediaLink() ?: return@get call.respond(NotFound)
-                    val matches = libraryManager.refreshMetadata(1, mediaLink, false)
+                    val matches = libraryService.refreshMetadata(mediaLink, false)
                     call.respond(matches)
                 }
 
@@ -129,19 +96,20 @@ fun Route.addMediaLinkManageRoutes(
                         ?.jsonPrimitive
                         ?.contentOrNull
                         ?: return@put call.respond(UnprocessableEntity)
-                    libraryManager.matchMediaLink(1, mediaLink, remoteId)
+                    libraryService.matchMediaLink(mediaLink, remoteId)
                     call.respond(OK)
                 }
             }
 
             get("/scan") {
                 val mediaLink = mediaLink() ?: return@get call.respond(NotFound)
-                call.respond(libraryManager.scan(mediaLink))
+                //call.respond(libraryManager.scan(mediaLink))
+                // TODO: Restore scan endpoint
             }
 
             delete {
                 val mediaLink = mediaLink() ?: return@delete call.respond(NotFound)
-                if (libraryManager.removeMediaLink(mediaLink)) {
+                if (libraryService.removeMediaLink(mediaLink)) {
                     call.respond(OK)
                 } else {
                     call.respond(NotFound)
@@ -152,21 +120,17 @@ fun Route.addMediaLinkManageRoutes(
                 val waitForResult = call.parameters["waitForResult"]?.toBoolean() ?: false
                 val mediaLink = mediaLink() ?: return@get call.respond(UnprocessableEntity)
 
-                val descriptors = listOf(MediaLink.Descriptor.VIDEO, MediaLink.Descriptor.AUDIO)
-                val mediaLinkIds = if (mediaLink.descriptor == MediaLink.Descriptor.ROOT_DIRECTORY) {
-                    val basePath = checkNotNull(mediaLink.filePath)
-                    mediaLinkDao.findGidsByBasePathAndDescriptors(basePath, descriptors)
-                } else {
-                    mediaLinkDao
-                        .findGidsByMediaLinkGidAndDescriptors(mediaLink.gid, descriptors)
-                }.takeIf { it.isNotEmpty() }
+                val descriptors = listOf(Descriptor.VIDEO, Descriptor.AUDIO)
+                val mediaLinkIds = mediaLinkDao
+                    .findGidsByMediaLinkGidAndDescriptors(mediaLink.id, descriptors)
+                    .takeIf { it.isNotEmpty() }
                     ?: return@get call.respond(NotFound)
 
                 if (waitForResult) {
-                    call.respond(libraryManager.analyzeMediaFiles(mediaLinkIds, overwrite = true))
+                    call.respond(libraryService.analyzeMediaFiles(mediaLinkIds, overwrite = true))
                 } else {
                     application.launch {
-                        libraryManager.analyzeMediaFiles(mediaLinkIds, overwrite = true)
+                        libraryService.analyzeMediaFiles(mediaLinkIds, overwrite = true)
                     }
                     call.respond(OK)
                 }
@@ -184,10 +148,10 @@ fun Route.addMediaLinkViewRoutes(
                 val includeMetadata = call.parameters["includeMetadata"]?.toBoolean() ?: false
                 val mediaLink = mediaLink() ?: return@get
                 val session = call.sessions.get<UserSession>()!!
-                val metadataGid = mediaLink.metadataGid
-                val metadata = if (includeMetadata && metadataGid != null) {
+                val metadataId = mediaLink.metadataId
+                val metadata = if (includeMetadata && metadataId != null) {
                     queries.findMediaById(
-                        mediaId = metadataGid,
+                        metadataId = metadataId,
                         includeLinks = false,
                         includePlaybackStateForUser = session.userId,
                     )
@@ -195,7 +159,7 @@ fun Route.addMediaLinkViewRoutes(
                     null
                 }
                 val response = MediaLinkResponse(
-                    mediaLink = mediaLink.toModel(),
+                    mediaLink = mediaLink,
                     metadata = metadata,
                 )
                 call.respond(response)
@@ -206,18 +170,12 @@ fun Route.addMediaLinkViewRoutes(
 
 private suspend fun PipelineContext<Unit, ApplicationCall>.mediaLink(
     mediaLinkDao: MediaLinkDao = koinGet(),
-): MediaLinkDb? {
+): MediaLink? {
     val mediaLinkGid = call.parameters["mediaLinkGid"]
         ?.takeIf(String::isNotBlank)
         ?: return run {
             call.respond(UnprocessableEntity)
             null
         }
-    return try {
-        mediaLinkDao.findByGid(mediaLinkGid)
-    } catch (e: JdbiException) {
-        logger.error("Failed to load media link", e)
-        call.respond(NotFound)
-        null
-    }
+    return mediaLinkDao.findByGid(mediaLinkGid)
 }

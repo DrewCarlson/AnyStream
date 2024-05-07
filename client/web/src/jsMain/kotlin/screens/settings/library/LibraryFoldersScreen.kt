@@ -20,7 +20,6 @@ package anystream.screens.settings.library
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
 import anystream.components.Modal
-import anystream.models.LocalMediaLink
 import anystream.models.api.LibraryFolderList
 import anystream.models.backend.MediaScannerState
 import anystream.util.Bootstrap
@@ -45,7 +44,7 @@ fun LibraryFoldersScreen() {
     var folderListUpdate by remember { mutableStateOf(0) }
     val client = get<AnyStreamClient>()
     var modal by remember { mutableStateOf<Bootstrap.ModalInstance?>(null) }
-    var deleteTarget by remember { mutableStateOf<LocalMediaLink?>(null) }
+    var deleteTarget by remember { mutableStateOf<String?>(null) }
     val folderList by produceState<LibraryFolderList?>(null, folderListUpdate) {
         value = client.getLibraryFolderList()
         client.libraryActivity
@@ -73,10 +72,10 @@ fun LibraryFoldersScreen() {
                         folders.forEach { folder ->
                             FolderRow(
                                 folder,
-                                onDeleteClicked = { deleteTarget = it.mediaLink },
-                                onScanClicked = { scope.launch { client.scanMediaLink(it.mediaLink.gid) } },
-                                onEditClicked = { router.navigate("/settings/library-folders/${it.mediaLink.gid}") },
-                                onAnalyzeClicked = { scope.launch { client.analyzeMediaLinksAsync(it.mediaLink.gid) } },
+                                onDeleteClicked = { deleteTarget = it.libraryGid },
+                                onScanClicked = { scope.launch { client.scanMediaLink(it.libraryGid) } },
+                                onEditClicked = { router.navigate("/settings/library-folders/${it.libraryGid}") },
+                                onAnalyzeClicked = { scope.launch { client.analyzeMediaLinksAsync(it.libraryGid) } },
                             )
                         }
                     }
@@ -119,10 +118,9 @@ fun LibraryFoldersScreen() {
             onDispose { }
         }
         DeleteFolderDialog(
-            deleteTarget,
             onDeleteClicked = {
                 scope.launch {
-                    client.removeMediaLink(checkNotNull(deleteTarget).gid)
+                    client.removeMediaLink(checkNotNull(deleteTarget))
                     folderListUpdate++
                     deleteTarget = null
                     modalRef.hide()
@@ -138,13 +136,11 @@ fun LibraryFoldersScreen() {
 
 @Composable
 private fun DeleteFolderDialog(
-    mediaLink: LocalMediaLink?,
     onDeleteClicked: () -> Unit,
     onCancelClicked: () -> Unit,
 ) {
     Div({ classes("vstack", "gap-1") }) {
         Div { Text("Are you sure you want to delete this folder?") }
-        Div { Text(mediaLink?.filePath.orEmpty()) }
         Div({ classes("hstack", "justify-content-end", "py-1", "gap-2") }) {
             Button({
                 classes("btn", "btn-primary")
@@ -192,8 +188,8 @@ private fun FolderRow(
                 FolderAction("Analyze Files", "file-earmark-play") { onAnalyzeClicked(folder) }
             }
         }
-        Th({ scope(Scope.Row) }) { Text(folder.mediaLink.filePath) }
-        Td { Text(folder.mediaLink.mediaKind.name) }
+        Th({ scope(Scope.Row) }) { Text(folder.path) }
+        Td { Text(folder.mediaKind.name) }
         Td { Text(folder.sizeOnDisk.orEmpty()) }
         Td { Text(folder.freeSpace.orEmpty()) }
         Td { Text(folder.mediaMatchCount.toString()) }

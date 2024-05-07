@@ -22,6 +22,7 @@ import anystream.client.AnyStreamClient
 import anystream.components.*
 import anystream.models.LocalMediaLink
 import anystream.models.MediaLink
+import anystream.models.typed
 import anystream.util.get
 import anystream.util.tooltip
 import org.jetbrains.compose.web.attributes.Scope
@@ -55,15 +56,15 @@ fun MediaLinkListScreen(libraryGid: String) {
             MediaLinkHeaderRow()
             VerticalScroller(mediaLinks) { mediaLink ->
                 MediaLinkRow(
-                    mediaLink = mediaLink as LocalMediaLink,
-                    isSelected = selectedMediaLinks.contains(mediaLink.gid),
+                    mediaLink = mediaLink.typed() as LocalMediaLink,
+                    isSelected = selectedMediaLinks.contains(mediaLink.id),
                     onSelect = {
-                        if (!selectedMediaLinks.remove(it.gid)) {
-                            selectedMediaLinks.add(it.gid)
+                        if (!selectedMediaLinks.remove(it.id)) {
+                            selectedMediaLinks.add(it.id)
                         }
                     },
                     onScanClicked = { },
-                    onMatchMetadata = { matchMediaLinkGid = it.gid },
+                    onMatchMetadata = { matchMediaLinkGid = it.id },
                 )
             }
         }
@@ -151,13 +152,14 @@ private fun MediaLinkRow(
             }
         }
         Div({ classes("w-100") }) {
-            if (mediaLink.metadataId == null) {
+            //Text(mediaLink.filename)
+            /*if (mediaLink.metadataId == null) {
                 Text(mediaLink.filename)
             } else {
                 LinkedText("/media/${mediaLink.metadataGid}") {
                     Text(mediaLink.filename)
                 }
-            }
+            }*/
         }
     }
 }

@@ -58,7 +58,7 @@ sealed class MetadataMatch {
     abstract val remoteMetadataId: String?
     abstract val remoteId: String
     abstract val exists: Boolean
-    abstract val metadataGid: String?
+    abstract val metadataId: String?
 
     @Serializable
     data class MovieMatch(
@@ -68,7 +68,7 @@ sealed class MetadataMatch {
         override val exists: Boolean,
         override val providerId: String,
     ) : MetadataMatch() {
-        override val metadataGid: String? = if (exists) movie.gid else null
+        override val metadataId: String? = if (exists) movie.id else null
     }
 
     @Serializable
@@ -81,7 +81,7 @@ sealed class MetadataMatch {
         override val exists: Boolean,
         override val providerId: String,
     ) : MetadataMatch() {
-        override val metadataGid: String? = if (exists) tvShow.gid else null
+        override val metadataId:  String? = if (exists) tvShow.id else null
     }
 }
 

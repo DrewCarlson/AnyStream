@@ -21,27 +21,24 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Movie(
-    val id: Int,
-    val gid: String,
+    val id: String,
     val title: String,
     val overview: String,
     val tagline: String? = null,
     val tmdbId: Int,
     val imdbId: String?,
     val runtime: Int,
-    val posters: List<Image>,
     val posterPath: String?,
     val backdropPath: String?,
     val releaseDate: String?,
     val added: Long,
-    val addedByUserId: Int,
     val tmdbRating: Int? = null,
     val genres: List<Genre>,
     val companies: List<ProductionCompany>,
     val contentRating: String?,
 ) {
     val isAdded: Boolean
-        get() = !gid.contains(':')
+        get() = !id.contains(':')
 }
 
 @Serializable
@@ -49,3 +46,26 @@ data class Image(
     val filePath: String,
     val language: String,
 )
+
+fun Metadata.toMovieModel(): Movie {
+    check(mediaType == MediaType.MOVIE) {
+        "MetadataDb item '$id' is of type '$mediaType', cannot convert to Movie model."
+    }
+    return Movie(
+        id = id,
+        title = checkNotNull(title),
+        overview = overview.orEmpty(),
+        tmdbId = tmdbId ?: -1,
+        imdbId = imdbId,
+        runtime = checkNotNull(runtime),
+        posterPath = posterPath,
+        backdropPath = backdropPath,
+        releaseDate = firstAvailableAt,//?.instantToTmdbDate(),
+        added = createdAt.epochSeconds,
+        tagline = null,//tagline,
+        tmdbRating = tmdbRating,
+        genres = emptyList(),
+        companies = emptyList(),
+        contentRating = contentRating,
+    )
+}

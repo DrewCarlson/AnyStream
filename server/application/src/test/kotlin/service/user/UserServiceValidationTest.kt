@@ -17,58 +17,30 @@
  */
 package anystream.service.user
 
-import anystream.db.InvitesDao
-import anystream.db.PermissionsDao
-import anystream.db.UsersDao
-import anystream.db.mappers.registerMappers
-import anystream.db.runMigrations
+import anystream.db.*
 import anystream.models.*
 import anystream.models.api.*
-import kotlinx.coroutines.runBlocking
-import org.jdbi.v3.core.Handle
-import org.jdbi.v3.core.Jdbi
-import org.jdbi.v3.core.kotlin.KotlinPlugin
-import org.jdbi.v3.core.statement.Slf4JSqlLogger
-import org.jdbi.v3.sqlobject.SqlObjectPlugin
-import org.jdbi.v3.sqlobject.kotlin.KotlinSqlObjectPlugin
-import org.jdbi.v3.sqlobject.kotlin.attach
-import java.io.File
+import anystream.util.ObjectId
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldNotBeNull
+import kotlinx.datetime.Clock
+import org.jooq.DSLContext
 import kotlin.test.*
 
-class UserServiceValidationTest {
 
-    private lateinit var dbHandle: Handle
-    private lateinit var queries: UserServiceQueries
-    private lateinit var userService: UserService
+class UserServiceValidationTest : FunSpec({
+    val db: DSLContext by bindTestDatabase()
+    lateinit var dao: UserDao
+    lateinit var inviteDao: InviteCodeDao
+    lateinit var userService: UserService
 
-    @BeforeTest
-    fun setup() {
-        runMigrations("jdbc:sqlite:test.db")
-        val jdbi = Jdbi.create("jdbc:sqlite:test.db").apply {
-            setSqlLogger(Slf4JSqlLogger())
-            installPlugin(SqlObjectPlugin())
-            installPlugin(KotlinSqlObjectPlugin())
-            installPlugin(KotlinPlugin())
-            registerMappers()
-        }
-        dbHandle = jdbi.open()
-        queries = UserServiceQueriesJdbi(
-            usersDao = dbHandle.attach<UsersDao>(),
-            permissionsDao = dbHandle.attach<PermissionsDao>(),
-            invitesDao = dbHandle.attach<InvitesDao>(),
-        )
-        userService = UserService(queries)
+    beforeTest {
+        dao = UserDao(db)
+        inviteDao = InviteCodeDao(db)
+        userService = UserService(dao, inviteDao)
     }
 
-    @AfterTest
-    fun tearDown() {
-        dbHandle.close()
-        File("test.db").delete()
-    }
-
-    // <editor-fold desc="Create User Tests">
-    @Test
-    fun testCreateUserBlankValidations(): Unit = runBlocking {
+    test("create user blank validations") {
         val body = CreateUserBody(
             username = "",
             password = "",
@@ -83,8 +55,7 @@ class UserServiceValidationTest {
         assertEquals(CreateUserResponse.PasswordError.BLANK, response.passwordError)
     }
 
-    @Test
-    fun testCreateUserLengthValidations(): Unit = runBlocking {
+    test("create user length validations") {
         // too short
         val tooShortBody = CreateUserBody(
             username = CharArray(USERNAME_LENGTH_MIN - 1) { '0' }.concatToString(),
@@ -114,14 +85,16 @@ class UserServiceValidationTest {
         assertEquals(CreateUserResponse.PasswordError.TOO_LONG, response2.passwordError)
     }
 
-    @Test
-    fun testCreateUserDuplicateUsernameValidations(): Unit = runBlocking {
+    test("create user duplicate username validations") {
         val existingUser = User(
-            id = 1,
+            id = ObjectId.get().toString(),
             username = "test",
             displayName = "test",
+            passwordHash = "123456",
+            createdAt = Clock.System.now(),
+            updatedAt = Clock.System.now()
         )
-        queries.createUser(existingUser, "", emptySet())
+        dao.insertUser(existingUser, emptySet())
 
         val body = CreateUserBody(
             username = existingUser.username,
@@ -136,8 +109,7 @@ class UserServiceValidationTest {
         assertNull(response.passwordError)
     }
 
-    @Test
-    fun testCreateFirstUserWithoutInviteCodeSucceeds(): Unit = runBlocking {
+    test("create first user without invite code succeeds") {
         val body = CreateUserBody(
             username = "firstUser",
             password = "123456",
@@ -149,14 +121,16 @@ class UserServiceValidationTest {
         assertIs<CreateUserResponse.Success>(response, "Expected success but response was $response")
     }
 
-    @Test
-    fun testCreateSecondUserWithoutInviteCodeFails(): Unit = runBlocking {
+    test("create second user without invite code fails") {
         val existingUser = User(
-            id = 1,
+            id = ObjectId.get().toString(),
             username = "test",
             displayName = "test",
+            passwordHash = "123456",
+            createdAt = Clock.System.now(),
+            updatedAt = Clock.System.now(),
         )
-        queries.createUser(existingUser, "", emptySet())
+        dao.insertUser(existingUser, emptySet())
 
         val body = CreateUserBody(
             username = "seconduser",
@@ -166,18 +140,22 @@ class UserServiceValidationTest {
 
         val response = userService.createUser(body)
 
-        assertNull(response, "Expected null response but was $response")
+        assertIs<CreateUserResponse.Error>(response)
+        assertTrue(response.signupDisabled)
     }
 
-    @Test
-    fun testCreateSecondUserWithInviteCodeSucceeds(): Unit = runBlocking {
+    test("create second user with invite code succeeds") {
         val existingUser = User(
-            id = 1,
+            id = ObjectId.get().toString(),
             username = "test",
             displayName = "test",
+            passwordHash = "",
+            createdAt = Clock.System.now(),
+            updatedAt = Clock.System.now(),
         )
-        queries.createUser(existingUser, "", emptySet())
-        queries.createInviteCode("test", emptySet(), 1)
+        val userId = dao.insertUser(existingUser, emptySet()).shouldNotBeNull().id
+
+        inviteDao.createInviteCode("test", emptySet(), userId)
 
         val body = CreateUserBody(
             username = "seconduser",
@@ -189,11 +167,8 @@ class UserServiceValidationTest {
 
         assertIs<CreateUserResponse.Success>(response, "Expected success response but was $response")
     }
-    // </editor-fold>
 
-    // <editor-fold desc="Create Session Tests">
-    @Test
-    fun testCreateSessionUsernameInvalid(): Unit = runBlocking {
+    test("create session username invalid") {
         val body = CreateSessionBody(
             username = "",
             password = "",
@@ -204,8 +179,7 @@ class UserServiceValidationTest {
         assertEquals(CreateSessionResponse.UsernameError.INVALID, result.usernameError)
     }
 
-    @Test
-    fun testCreateSessionPasswordInvalid(): Unit = runBlocking {
+    test("create session password invalid") {
         val body = CreateSessionBody(
             username = "helloworld",
             password = "",
@@ -216,14 +190,16 @@ class UserServiceValidationTest {
         assertEquals(CreateSessionResponse.PasswordError.INVALID, result.passwordError)
     }
 
-    @Test
-    fun testCreateSessionUsernameNotFound(): Unit = runBlocking {
+    test("create session username not found") {
         val existingUser = User(
-            id = 1,
+            id = ObjectId.get().toString(),
             username = "test",
             displayName = "test",
+            passwordHash = "123456",
+            createdAt = Clock.System.now(),
+            updatedAt = Clock.System.now(),
         )
-        queries.createUser(existingUser, "", emptySet())
+        dao.insertUser(existingUser, emptySet())
         val body = CreateSessionBody(
             username = "test1",
             password = "123456",
@@ -235,14 +211,16 @@ class UserServiceValidationTest {
         assertEquals(CreateSessionResponse.UsernameError.NOT_FOUND, result.usernameError)
     }
 
-    @Test
-    fun testCreateSessionPasswordIncorrect(): Unit = runBlocking {
+    test("create session password incorrect") {
         val existingUser = User(
-            id = 1,
+            id = ObjectId.get().toString(),
             username = "test",
             displayName = "test",
+            passwordHash = userService.hashPassword("123456"),
+            createdAt = Clock.System.now(),
+            updatedAt = Clock.System.now(),
         )
-        queries.createUser(existingUser, userService.hashPassword("123456"), emptySet())
+        dao.insertUser(existingUser, emptySet())
         val body = CreateSessionBody(
             username = "test",
             password = "1234567",
@@ -250,29 +228,25 @@ class UserServiceValidationTest {
 
         val result = userService.createSession(body, null)
         assertIs<CreateSessionResponse.Error>(result)
+        assertNull(result.usernameError)
         assertEquals(CreateSessionResponse.PasswordError.INCORRECT, result.passwordError)
     }
-    // </editor-fold>
 
-    // <editor-fold desc="Password Encryption Tests">
-    @Test
-    fun testHashPasswordMinimumLength() {
+    test("hash password minimum length") {
         val password = CharArray(PASSWORD_LENGTH_MIN - 1) { '0' }.concatToString()
         assertFailsWith<IllegalArgumentException> {
             userService.hashPassword(password)
         }
     }
 
-    @Test
-    fun testHashPasswordMaximumLength() {
+    test("hash password maximum length") {
         val password = CharArray(PASSWORD_LENGTH_MAX + 1) { '0' }.concatToString()
         assertFailsWith<IllegalArgumentException> {
             userService.hashPassword(password)
         }
     }
 
-    @Test
-    fun testHashPassword() {
+    test("hash password") {
         val password = "test123"
         val hashString = userService.hashPassword(password)
         assertNotEquals(password, hashString)
@@ -282,8 +256,7 @@ class UserServiceValidationTest {
         )
     }
 
-    @Test
-    fun testHashPasswordVerification() {
+    test("hash password verification") {
         val password = "test123"
         val bcryptString = "\$2y\$10\$uHBdQFb5YgpLrrJzFmPXteBgDxQn6zEoCzcYO1qfVOjYOvCUr.9Qq"
 
@@ -303,5 +276,4 @@ class UserServiceValidationTest {
             ),
         )
     }
-    // </editor-fold>
-}
+})

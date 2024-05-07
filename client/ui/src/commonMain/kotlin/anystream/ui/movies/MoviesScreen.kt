@@ -32,6 +32,7 @@ import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import anystream.client.AnyStreamClient
+import anystream.models.Descriptor
 import anystream.models.MediaLink
 import anystream.models.Movie
 import anystream.models.api.MoviesResponse
@@ -93,7 +94,7 @@ private fun MovieGrid(
             val mediaLink by produceState<MediaLink?>(null, movie) {
                 value = mediaLinks.find {
                     it.metadataGid == movie.gid &&
-                        it.descriptor == MediaLink.Descriptor.VIDEO
+                        it.descriptor == Descriptor.VIDEO
                 }
             }
             PosterCard(

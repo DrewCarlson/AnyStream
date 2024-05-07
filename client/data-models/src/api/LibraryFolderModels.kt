@@ -17,9 +17,7 @@
  */
 package anystream.models.api
 
-import anystream.models.LocalMediaLink
 import anystream.models.MediaKind
-import anystream.models.MediaLink
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -33,7 +31,9 @@ sealed class AddLibraryFolderResponse {
 
     @Serializable
     data class Success(
-        val mediaLink: MediaLink,
+        val libraryGid: String,
+        val mediaKind: MediaKind,
+        val libraryPath: String,
     ) : AddLibraryFolderResponse()
 
     @Serializable
@@ -62,7 +62,9 @@ data class LibraryFolderList(
 ) {
     @Serializable
     data class RootFolder(
-        val mediaLink: LocalMediaLink,
+        val libraryGid: String,
+        val path: String,
+        val mediaKind: MediaKind,
         val mediaMatchCount: Int,
         val unmatchedCount: Int,
         val sizeOnDisk: String? = null,
