@@ -97,7 +97,7 @@ jobs:
             ~/.gradle
           key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
 
-      - uses: gradle/gradle-build-action@v2
+      - uses: gradle/gradle-build-action@v3
         name: Spotless Check
         with:
           arguments: -p client/ui spotlessCheck
@@ -124,7 +124,7 @@ jobs:
             ~/.gradle
           key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
 
-      - uses: gradle/gradle-build-action@v2
+      - uses: gradle/gradle-build-action@v3
         name: Spotless Check
         with:
           arguments: -p client/android spotlessCheck
@@ -151,7 +151,7 @@ jobs:
             ~/.gradle
           key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
 
-      - uses: gradle/gradle-build-action@v2
+      - uses: gradle/gradle-build-action@v3
         name: Spotless Check
         with:
           arguments: -p client/core spotlessCheck
@@ -178,7 +178,7 @@ jobs:
             ~/.gradle
           key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
 
-      - uses: gradle/gradle-build-action@v2
+      - uses: gradle/gradle-build-action@v3
         name: Spotless Check
         with:
           arguments: -p client/web spotlessCheck
@@ -205,7 +205,7 @@ jobs:
             ~/.gradle
           key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
 
-      - uses: gradle/gradle-build-action@v2
+      - uses: gradle/gradle-build-action@v3
         name: Spotless Check
         with:
           arguments: -p client/data-models spotlessCheck
@@ -232,7 +232,7 @@ jobs:
             ~/.gradle
           key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
 
-      - uses: gradle/gradle-build-action@v2
+      - uses: gradle/gradle-build-action@v3
         name: Spotless Check
         with:
           arguments: -p server spotlessCheck

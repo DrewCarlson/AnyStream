@@ -109,7 +109,7 @@ jobs:
             ~/.gradle
           key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
 
-      - uses: gradle/gradle-build-action@v2
+      - uses: gradle/gradle-build-action@v3
         name: Build Server and Web Client
         with:
           arguments: |

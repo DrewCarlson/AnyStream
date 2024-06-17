@@ -129,7 +129,7 @@ jobs:
             ~/.gradle
           key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
 
-      - uses: gradle/gradle-build-action@v2
+      - uses: gradle/gradle-build-action@v3
         name: All Tests
         with:
           arguments: client:core:allTests client:core:koverXmlReport
@@ -173,7 +173,7 @@ jobs:
             ~/.gradle
           key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
 
-      - uses: gradle/gradle-build-action@v2
+      - uses: gradle/gradle-build-action@v3
         name: All Tests
         with:
           arguments: client:ui:allTests client:ui:koverXmlReport
@@ -261,7 +261,7 @@ jobs:
             ~/.gradle
           key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
 
-      - uses: gradle/gradle-build-action@v2
+      - uses: gradle/gradle-build-action@v3
         name: Web Tests
         with:
           arguments: client:web:jsBrowserTest client:web:koverXmlReport
@@ -299,7 +299,7 @@ jobs:
             ~/.gradle
           key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
 
-      - uses: gradle/gradle-build-action@v2
+      - uses: gradle/gradle-build-action@v3
         name: Run Server Tests
         with:
           arguments: >
