@@ -1,5 +1,5 @@
 [versions]
-zxing = "3.5.2"
+zxing = "3.5.3"
 anr_watchdog = "1.4.0"
 compose = "1.5.4"
 compose_material = "1.5.4"
