@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS metadata
     content_rating     VARCHAR(30),
     poster_path        TEXT,
     backdrop_path      TEXT,
-    first_available_at TEXT,
+    first_available_at DATETIME,
     created_at         DATETIME                NOT NULL,
     updated_at         DATETIME                NOT NULL,
     media_kind         INTEGER                 NOT NULL,

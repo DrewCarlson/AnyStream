@@ -44,6 +44,7 @@ fun TmdbMovieDetail.asMovie(
     tmdbRating = (voteAverage * 10).roundToInt(),
     tagline = tagline,
     contentRating = releaseDates?.getCertification(Locale.getDefault().country),
+    // TODO: use remote ids
     genres = genres.map { Genre("", it.name, it.id) },
     companies = productionCompanies.orEmpty().map { tmdbCompany ->
         ProductionCompany("", tmdbCompany.name.orEmpty(), tmdbCompany.id)
@@ -90,7 +91,7 @@ fun TmdbEpisode.asTvEpisode(
         tmdbId = this.id,
         title = name ?: "",
         overview = overview.orEmpty(),
-        firstAvailableAt = "",//airDate?.atStartOfDayIn(TimeZone.UTC),
+        firstAvailableAt = airDate?.atStartOfDayIn(TimeZone.UTC),
         index = episodeNumber,
         parentIndex = seasonNumber,
         posterPath = stillPath,
@@ -110,7 +111,7 @@ fun TmdbSeason.asTvSeason(id: String): Metadata {
         title = name,
         overview = overview.orEmpty(),
         index = seasonNumber,
-        firstAvailableAt = "",//airDate?.atStartOfDayIn(TimeZone.UTC),
+        firstAvailableAt = airDate?.atStartOfDayIn(TimeZone.UTC),
         posterPath = posterPath,
         createdAt = now,
         updatedAt = now,
@@ -127,7 +128,7 @@ fun TmdbSeasonDetail.asTvSeason(id: String): Metadata {
         title = name,
         overview = overview,
         index = seasonNumber,
-        firstAvailableAt = "",//airDate?.atStartOfDayIn(TimeZone.UTC),
+        firstAvailableAt = airDate?.atStartOfDayIn(TimeZone.UTC),
         posterPath = posterPath,
         backdropPath = images?.backdrops?.firstOrNull()?.filePath,
         createdAt = now,
@@ -144,7 +145,7 @@ fun TmdbShowDetail.asTvShow(id: String): Metadata {
         title = name,
         tmdbId = this.id,
         overview = overview,
-        firstAvailableAt = "",// TODO: firstAirDate?.atStartOfDayIn(TimeZone.UTC),
+        firstAvailableAt = firstAirDate?.atStartOfDayIn(TimeZone.UTC),
         posterPath = posterPath ?: "",
         createdAt = now,
         updatedAt = now,
@@ -152,10 +153,6 @@ fun TmdbShowDetail.asTvShow(id: String): Metadata {
         //tagline = null,
         backdropPath = images?.backdrops?.firstOrNull()?.filePath,
         contentRating = contentRatings?.getContentRating(Locale.getDefault().country),
-        /*genres = genres.map { Genre(-1, it.name, it.id) },
-        companies = productionCompanies.orEmpty().map { tmdbCompany ->
-            ProductionCompany(-1, tmdbCompany.name.orEmpty(), tmdbCompany.id)
-        },*/
         mediaKind = MediaKind.TV,
         mediaType = MediaType.TV_SHOW,
     )

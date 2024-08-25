@@ -24,7 +24,7 @@ import anystream.models.api.EpisodeResponse
 import anystream.models.api.MovieResponse
 import anystream.models.api.PlaybackSessions
 import anystream.models.toMediaItem
-import anystream.screens.settings.library.LibraryFoldersScreen
+import anystream.screens.settings.library.LibrariesScreen
 import anystream.screens.settings.library.MediaLinkListScreen
 import anystream.util.formatProgressAndRuntime
 import anystream.util.get
@@ -39,9 +39,9 @@ fun RouteBuilder.SettingsScreen(subscreen: String) {
         when (subscreen) {
             "activity" -> ActiveStreamsList()
             "users" -> UserManagerScreen()
-            "library-folders" -> {
+            "libraries" -> {
                 string { gid -> MediaLinkListScreen(libraryGid = gid) }
-                noMatch { LibraryFoldersScreen() }
+                noMatch { LibrariesScreen() }
             }
 
             else -> Text("Not found")
@@ -79,7 +79,7 @@ fun SettingsSideMenu() {
                 }
             }
             Li({ classes("nav-item") }) {
-                NavLink("Library Folders", "bi-folder", "/settings/library-folders", true) {
+                NavLink("Libraries", "bi-folder", "/settings/libraries", true) {
                     classes("fs-6")
                 }
             }

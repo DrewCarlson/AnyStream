@@ -97,13 +97,11 @@ class MetadataManagerTests : FunSpec({
     }
 
     test("query tmdb movie") {
-        val query = QueryMetadata(
-            providerId = "tmdb",
-            mediaKind = MediaKind.MOVIE,
-            query = "the avengers",
-            year = 2012,
-        )
-        val queryResult = manager.search(query)
+        val queryResult = manager.search(MediaKind.MOVIE) {
+            providerId = "tmdb"
+            query = "the avengers"
+            year = 2012
+        }
         val searchResult = queryResult.first()
         assertIs<QueryMetadataResult.Success>(searchResult)
         val result = searchResult.results.first()
@@ -113,13 +111,11 @@ class MetadataManagerTests : FunSpec({
     }
 
     test("query tmdb tv show") {
-        val query = QueryMetadata(
-            providerId = "tmdb",
-            mediaKind = MediaKind.TV,
-            query = "last kingdom",
-            year = 2015,
-        )
-        val queryResult = manager.search(query)
+        val queryResult = manager.search(MediaKind.TV) {
+            providerId = "tmdb"
+            query = "last kingdom"
+            year = 2015
+        }
         val searchResult = queryResult.first()
         assertIs<QueryMetadataResult.Success>(searchResult)
         val result = searchResult.results.first()

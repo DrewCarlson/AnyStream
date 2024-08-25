@@ -9,6 +9,7 @@ dependencies {
     implementation(libsCommon.serialization.plugin)
     implementation(libsCommon.spotless.plugin)
     implementation(libsCommon.kotlin.gradle.conventions)
+    implementation(libsCommon.atomicfu.plugin)
 }
 
 repositories {

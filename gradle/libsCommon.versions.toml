@@ -1,22 +1,23 @@
 [versions]
-kotlin = { strictly = "1.9.23" }
-coroutines = "1.8.0"
-serialization = "1.6.2"
-ktorio = "2.3.10"
-ksp = "1.9.23-1.0.20"
-atomicfu = "0.24.0"
-kover = "0.7.6"
-datetime = "0.5.0"
+kotlin = { strictly = "2.0.20" }
+coroutines = "1.9.0-RC.2"
+serialization = "1.7.1"
+ktorio = "2.3.12"
+ksp = "2.0.20-1.0.24"
+atomicfu = "0.25.0"
+kover = "0.8.3"
+datetime = "0.6.1"
 spotless = "6.22.0"
 ktlint = "1.0.1"
 ktor_perm = "0.2.1"
 koin = "3.5.6"
 koinKtor = "3.5.6"
-agp = "8.1.4"
+agp = "8.5.2"
 kotest = "5.8.1"
 
 [plugins]
 multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
@@ -25,6 +26,7 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 downloadPlugin = { id = "de.undercouch.download", version = "5.5.0" }
 kotest = { id = "io.kotest.multiplatform", version.ref = "kotest" }
+atomicfu = { id = "org.jetbrains.kotlinx.atomicfu", version.ref = "atomicfu" }
 
 [libraries]
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }

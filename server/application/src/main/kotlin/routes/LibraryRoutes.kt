@@ -19,8 +19,10 @@ package anystream.routes
 
 import anystream.media.AddLibraryFolderResult
 import anystream.media.LibraryService
+import anystream.models.Permission
 import anystream.models.api.AddLibraryFolderRequest
 import anystream.models.api.AddLibraryFolderResponse
+import anystream.models.api.LibraryFolderList
 import anystream.util.koinGet
 import anystream.util.logger
 import io.ktor.http.HttpStatusCode.Companion.UnprocessableEntity
@@ -28,6 +30,7 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import org.drewcarlson.ktor.permissions.withPermission
 
 fun Route.addLibraryViewRoutes(
     libraryService: LibraryService = koinGet()
@@ -37,7 +40,13 @@ fun Route.addLibraryViewRoutes(
             call.respond(libraryService.getLibraries())
         }
 
-        route("/{libraryId}") {
+        withPermission(Permission.ManageCollection) {
+            route("/{libraryId}") {
+                get("/directory") {
+                    val folders = libraryService.getLibraryFolders()
+                    call.respond(LibraryFolderList(folders))
+                }
+            }
         }
     }
 }
@@ -57,21 +66,11 @@ fun Route.addLibraryModifyRoutes(
                     logger.error("Failed to parse request body", e)
                     return@put call.respond(UnprocessableEntity)
                 }
-                when (val result = libraryService.addLibraryFolder(libraryId, request.path, request.mediaKind)) {
+                when (val result = libraryService.addLibraryFolder(libraryId, request.path)) {
                     is AddLibraryFolderResult.Success -> {
-                        /*application.launch(Dispatchers.IO) {
-                            logger.error("Started")
-                            val r = measureTimedValue {
-                                libraryService.scan(Path(result.directory.filePath))
-                            }
-                            logger.error("Ended ${r.duration}: \n${r.value}")
-                            //libraryManager.refreshMetadata(result.mediaLink, true)
-                        }*/
-
                         AddLibraryFolderResponse.Success(
-                            libraryGid = result.library.id,
-                            mediaKind = result.library.mediaKind,
-                            libraryPath = result.directory.filePath
+                            library = result.library,
+                            directory = result.directory,
                         )
                     }
 

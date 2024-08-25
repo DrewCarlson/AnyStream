@@ -3,6 +3,7 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
     kotlin("multiplatform")
+    kotlin("plugin.compose")
     id("org.jetbrains.compose")
     id("de.undercouch.download")
 }
@@ -69,7 +70,6 @@ tasks {
 }
 
 compose {
-    kotlinCompilerPlugin.set(libsClient.jbcompose.compiler.get().toString())
     desktop {
         application {
             mainClass = "MainKt"

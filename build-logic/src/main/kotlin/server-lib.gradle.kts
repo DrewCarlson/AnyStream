@@ -1,4 +1,3 @@
-import gradle.kotlin.dsl.accessors._6b241bd533b162fe31c6478cde91b5b0.spotless
 import org.gradle.kotlin.dsl.kotlin
 
 plugins {

@@ -40,7 +40,7 @@ fun Metadata.toTvSeasonModel(): TvSeason {
         name = checkNotNull(title),
         overview = overview.orEmpty(),
         seasonNumber = checkNotNull(index),
-        airDate = firstAvailableAt, //?.instantToTmdbDate(),
+        airDate = firstAvailableAt?.instantToTmdbDate(),
         tmdbId = tmdbId,
         posterPath = posterPath,
     )

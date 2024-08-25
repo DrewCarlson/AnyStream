@@ -1,17 +1,16 @@
 [versions]
 zxing = "3.5.2"
 anr_watchdog = "1.4.0"
-compose = "1.6.7"
-compose_material = "1.6.7"
-compose_foundation = "1.6.7"
-composejb = "1.6.2"
-composejb_compile = "1.5.10.2"
+compose = "1.6.8"
+compose_material = "1.6.8"
+compose_foundation = "1.6.8"
+composejb = "1.6.11"
 exoplayer = "2.19.1"
-media3 = "1.3.1"
+media3 = "1.4.0"
 ax_runner = "1.5.2"
-kamelImage = "0.9.4"
+kamelImage = "0.9.5"
 
-mobiuskt = "1.2.2-SNAPSHOT"
+mobiuskt = "1.3.0"
 
 objectstore = "0.2.0"
 
@@ -21,8 +20,8 @@ vlc = "3.0.19"
 composejb = { id = "org.jetbrains.compose", version.ref = "composejb" }
 
 [libraries]
-kotlinjs-browser = { module = "org.jetbrains.kotlin-wrappers:kotlin-browser", version = "1.0.0-pre.646" }
-kotlinjs-extensions = { module = "org.jetbrains.kotlin-wrappers:kotlin-extensions", version = "1.0.1-pre.646" }
+kotlinjs-browser = { module = "org.jetbrains.kotlin-wrappers:kotlin-browser", version = "1.0.0-pre.796" }
+kotlinjs-extensions = { module = "org.jetbrains.kotlin-wrappers:kotlin-extensions", version = "1.0.1-pre.796" }
 
 anrWatchdog = { module = "com.github.anrwatchdog:anrwatchdog", version.ref = "anr_watchdog" }
 zxing-core = { module = "com.google.zxing:core", version.ref = "zxing" }
@@ -65,8 +64,6 @@ objectstore-fs = { module = "org.drewcarlson:objectstore-fs", version.ref = "obj
 objectstore-json = { module = "org.drewcarlson:objectstore-json", version.ref = "objectstore" }
 objectstore-protobuf = { module = "org.drewcarlson:objectstore-protobuf", version.ref = "objectstore" }
 objectstore-secure = { module = "org.drewcarlson:objectstore-secure", version.ref = "objectstore" }
-
-jbcompose-compiler = { module = "org.jetbrains.compose.compiler:compiler", version.ref = "composejb_compile" }
 
 vlcj = { module = "uk.co.caprica:vlcj", version = "4.8.2" }
 

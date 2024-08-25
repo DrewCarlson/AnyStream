@@ -51,17 +51,18 @@ class MetadataManager(
             else -> null
         }
 
-        return search(
-            QueryMetadata(
-                providerId = providerId,
-                metadataGid = parsedId,
-                mediaKind = mediaKind,
-                extras = extras,
-            ),
-        ).firstOrNull() ?: QueryMetadataResult.ErrorProviderNotFound
+        return search(mediaKind = mediaKind) {
+            this.providerId = providerId
+            this.metadataGid = parsedId
+            this.extras = extras
+        }.firstOrNull() ?: QueryMetadataResult.ErrorProviderNotFound
     }
 
-    suspend fun search(request: QueryMetadata): List<QueryMetadataResult> {
+    suspend fun search(
+        mediaKind: MediaKind,
+        block: QueryMetadataBuilder.() -> Unit
+    ): List<QueryMetadataResult> {
+        val request = QueryMetadataBuilder(mediaKind).apply(block).build()
         logger.debug("Performing metadata search for {}", request)
         return if (request.providerId == null) {
             providers

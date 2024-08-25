@@ -20,6 +20,7 @@ package anystream.screens.settings.library
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
 import anystream.components.LoadingIndicator
+import anystream.models.Library
 import anystream.models.MediaKind
 import anystream.models.api.AddLibraryFolderResponse
 import anystream.models.api.ListFilesResponse
@@ -35,7 +36,8 @@ import org.jetbrains.compose.web.dom.*
 import org.w3c.dom.HTMLInputElement
 
 @Composable
-fun AddLibraryScreen(
+fun AddLibraryFolderScreen(
+    library: Library,
     onFolderAdded: () -> Unit,
     onLoadingStatChanged: (isLoading: Boolean) -> Unit,
     closeScreen: () -> Unit,
@@ -59,7 +61,7 @@ fun AddLibraryScreen(
     var message by remember { mutableStateOf<String?>(null) }
     var inputRef by remember { mutableStateOf<HTMLInputElement?>(null) }
     Div({ classes("vstack", "h-100", "gap-2") }) {
-        Div { Text("Select the kind of media to search for:") }
+        /*Div { Text("Select the kind of media to search for:") }
         Div({ classes("hstack", "gap-4") }) {
             MediaKindButton(
                 name = "Movies",
@@ -87,7 +89,8 @@ fun AddLibraryScreen(
                 icon = "music-note-beamed",
                 onClick = { /*selectedMediaKind.value = MediaKind.MUSIC*/ },
             )
-        }
+        }*/
+        Div { Text("Select a folder for the ${library.name} library:") }
         Div({ classes("input-group") }) {
             Span({ classes("input-group-text") }) {
                 Text("Media Folder")
@@ -172,10 +175,7 @@ fun AddLibraryScreen(
                                 message = message?.substringBefore("....")
                             }
                         }
-                        val response = client.addLibraryFolder(
-                            selectedPath.orEmpty(),
-                            selectedMediaKind ?: return@launch,
-                        )
+                        val response = client.addLibraryFolder(library.id, selectedPath.orEmpty())
                         onLoadingStatChanged(false)
                         loadingJob.cancel()
                         isInputLocked = false

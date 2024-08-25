@@ -90,22 +90,20 @@ class TvFileProcessor(
             }
         }
         logger.debug("Querying provider for '{}' (year {})", tvShowName, year)
-        val query = QueryMetadata(
-            providerId = null,
-            query = tvShowName,
-            mediaKind = MediaKind.TV,
-            year = year,
-            extras = null,
-        )
-        val results = metadataManager.search(query)
+        val results = metadataManager.search(MediaKind.TV) {
+            this.query = tvShowName
+            this.year = year
+        }
         val matches = results
             .filterIsInstance<QueryMetadataResult.Success>()
             .flatMap { it.results }
             .filterIsInstance<MetadataMatch.TvShowMatch>()
         if (matches.isEmpty()) {
-            logger.debug("No metadata match results for '{}'", query)
+            logger.debug("No metadata match results '{}' (year {})", tvShowName, year)
             return MediaLinkMatchResult.NoMatchesFound(mediaLink)
         }
+
+        logger.debug("Found {} Metadata match results '{}' (year {})", matches.size, tvShowName, year)
 
         val metadataMatch = matches.sortedBy { scoreString(tvShowName, it.tvShow.name) }
 
@@ -128,7 +126,7 @@ class TvFileProcessor(
     }
 
     override suspend fun findMetadata(mediaLink: MediaLink, remoteId: String): MetadataMatch? {
-        return when (val result =  metadataManager.findByRemoteId(remoteId)) {
+        return when (val result = metadataManager.findByRemoteId(remoteId)) {
             is QueryMetadataResult.Success -> result.results.firstOrNull()
             is QueryMetadataResult.ErrorDataProviderException,
             is QueryMetadataResult.ErrorDatabaseException,
@@ -145,6 +143,7 @@ class TvFileProcessor(
         when (mediaLink.descriptor) {
             Descriptor.VIDEO ->
                 TODO("Support importing metadata for individual episode files")
+
             else -> error("Cannot import metadata for ${mediaLink.descriptor}")
         }
         // TODO: Update supplementary files (SUBTITLE/IMAGE)
@@ -199,7 +198,7 @@ class TvFileProcessor(
             is ParsedFileNameResult.Tv.EpisodeFile -> {
                 val episodeMatch = match.episodes.find {
                     it.seasonNumber == seasonMatch.seasonNumber &&
-                        it.number == videoParseResult.episodeNumber
+                            it.number == videoParseResult.episodeNumber
                 }
                 if (episodeMatch != null) {
                     mediaLinkDao.updateRootMetadataIds(
@@ -388,13 +387,9 @@ class TvFileProcessor(
             queryShowTitle(rootFolder.name)
         } else {
             logger.debug("Searching for TV Show by metadata gid '{}'.", metadataGid)
-            metadataManager.search(
-                QueryMetadata(
-                    providerId = null,
-                    mediaKind = MediaKind.TV,
-                    metadataGid = metadataGid,
-                ),
-            )
+            metadataManager.search(MediaKind.TV) {
+                this.metadataGid = metadataGid
+            }
         }
         val result = results
             .filterIsInstance<QueryMetadataResult.Success>()
@@ -437,15 +432,9 @@ class TvFileProcessor(
 
     private suspend fun queryShowTitle(title: String): List<QueryMetadataResult> {
         val match = yearRegex.find(title)
-        val year = match?.value?.trim('(', ')')?.toInt()
-        val query = title.replace(yearRegex, "").trim()
-
-        val metadataQuery = QueryMetadata(
-            providerId = null,
-            query = query,
-            mediaKind = MediaKind.TV,
-            year = year,
-        )
-        return metadataManager.search(metadataQuery)
+        return metadataManager.search(MediaKind.TV) {
+            query = title.replace(yearRegex, "").trim()
+            year = match?.value?.trim('(', ')')?.toInt()
+        }
     }
 }

@@ -69,10 +69,6 @@ class LibraryService(
 
     private val mediaFileScanner = MediaFileScanner(mediaLinkDao, libraryDao)
 
-    init {
-        // scope.launch { watchLibraries() }
-    }
-
     val mediaScannerState: StateFlow<MediaScannerState> = mediaFileScanner.state
 
     fun getLibraries(): List<Library> {
@@ -84,7 +80,11 @@ class LibraryService(
         }
     }
 
-    fun addLibraryFolder(libraryId: String, path: String, mediaKind: MediaKind): AddLibraryFolderResult {
+    fun getLibraryDirectories(libraryId: String): List<Directory> {
+        return libraryDao.getDirectories(libraryId)
+    }
+
+    fun addLibraryFolder(libraryId: String, path: String): AddLibraryFolderResult {
         val libraryFile = Path(path)
         if (!libraryFile.exists() || !libraryFile.isDirectory()) {
             logger.debug("Invalid library folder path '{}'", path)
@@ -94,18 +94,15 @@ class LibraryService(
             )
         }
 
-        if (!libraryDao.libraryExists(libraryId)) {
-            return AddLibraryFolderResult.NoLibrary
-        }
+        val library = libraryDao.getLibrary(libraryId)
+            ?: return AddLibraryFolderResult.NoLibrary
 
-        val libraryRoots = libraryDao.findRootPaths()
-        if (libraryRoots.any { path.startsWith(it) }) {
+        if (libraryDao.getDirectoryByPath(path) != null) {
             logger.debug("Library already exists with directory '{}'", path)
             return AddLibraryFolderResult.LinkAlreadyExists
         }
 
         return try {
-            val library = libraryDao.insert(mediaKind)
             val directory = libraryDao.insertDirectory(null, library.id, path)
             logger.debug("Added new library {} with directory {}", library, directory)
             AddLibraryFolderResult.Success(library, directory)
@@ -409,7 +406,7 @@ class LibraryService(
     ): Flow<Path> {
         val watchService = fs.newWatchService()
         val watchKeys = mutableMapOf<WatchKey, Path>()
-        val unregisterPath = { path: Path ->
+        val unregisterPath: (Path) -> Unit = { path: Path ->
             val pathString = path.absolutePathString()
             logger.trace("Stopped watching {}", pathString)
             val key = watchKeys.entries.firstOrNull { (_, value) ->

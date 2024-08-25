@@ -60,7 +60,7 @@ fun Metadata.toMovieModel(): Movie {
         runtime = checkNotNull(runtime),
         posterPath = posterPath,
         backdropPath = backdropPath,
-        releaseDate = firstAvailableAt,//?.instantToTmdbDate(),
+        releaseDate = firstAvailableAt?.instantToTmdbDate(),
         added = createdAt.epochSeconds,
         tagline = null,//tagline,
         tmdbRating = tmdbRating,
