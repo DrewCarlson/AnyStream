@@ -5,11 +5,13 @@ plugins {
     alias(libsCommon.plugins.multiplatform) apply false
     alias(libsCommon.plugins.jvm) apply false
     alias(libsCommon.plugins.serialization) apply false
+    alias(libsCommon.plugins.compose) apply false
     alias(libsClient.plugins.composejb) apply false
     alias(libsServer.plugins.shadowjar) apply false
     alias(libsCommon.plugins.ksp) apply false
     alias(libsCommon.plugins.kover)
     alias(libsCommon.plugins.downloadPlugin) apply false
+    alias(libsCommon.plugins.atomicfu) apply false
 }
 
 buildscript {
@@ -20,9 +22,6 @@ buildscript {
     }
     dependencies {
         classpath(libsCommon.agp)
-        classpath(libsCommon.atomicfu.plugin) {
-            exclude("org.jetbrains.kotlin", "kotlin-gradle-plugin-api")
-        }
     }
 }
 

@@ -1,10 +1,10 @@
 plugins {
     id("multiplatform-lib")
+    kotlin("plugin.compose")
     id("org.jetbrains.compose")
 }
 
 compose {
-    kotlinCompilerPlugin.set(libsClient.jbcompose.compiler.get().toString())
     /*android {
         useAndroidX = true
     }*/
@@ -21,7 +21,6 @@ if (hasAndroidSdk) {
             compose = true
         }
         composeOptions {
-            kotlinCompilerExtensionVersion = libsAndroid.versions.composeCompiler.get()
         }
     }
 }
@@ -46,12 +45,6 @@ kotlin {
                     "-linker-option", "-framework", "-linker-option", "CoreText",
                     "-linker-option", "-framework", "-linker-option", "CoreGraphics",
                 )
-            }
-        }
-
-        compilations.configureEach {
-            compilerOptions.configure {
-                freeCompilerArgs.add("-Xallocator=custom")
             }
         }
     }
@@ -82,14 +75,12 @@ kotlin {
                 implementation(compose.foundation)
                 implementation(compose.material)
                 implementation(compose.materialIconsExtended)
-                @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 api(compose.components.resources)
             }
         }
 
         if (hasAndroidSdk) {
             named("androidMain") {
-                dependsOn(commonMain)
                 dependencies {
                     implementation(libsClient.compose.ui.tooling)
                     implementation(libsClient.compose.ui.tooling.preview)

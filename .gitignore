@@ -1,5 +1,6 @@
 .gradle/
 .fleet/
+.kotlin/
 /.idea
 !/.idea/codeStyles
 out/

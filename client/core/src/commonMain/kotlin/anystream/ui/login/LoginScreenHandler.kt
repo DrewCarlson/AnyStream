@@ -26,6 +26,7 @@ import anystream.ui.login.LoginScreenModel.ServerValidation
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.mapNotNull
+import kt.mobius.flow.ExecutionPolicy
 import kt.mobius.flow.FlowTransformer
 import kt.mobius.flow.subtypeEffectHandler
 
@@ -48,7 +49,7 @@ object LoginScreenHandler {
             }
         }
 
-        addLatestValueCollector<LoginScreenEffect.ValidateServerUrl> { (serverUrl) ->
+        addValueCollector<LoginScreenEffect.ValidateServerUrl>(ExecutionPolicy.Latest) { (serverUrl) ->
             val result = try {
                 check(client.verifyAndSetServerUrl(serverUrl))
                 ServerValidation.VALID
@@ -59,8 +60,8 @@ object LoginScreenHandler {
             emit(LoginScreenEvent.OnServerValidated(serverUrl, result))
         }
 
-        addLatestValueCollector<LoginScreenEffect.PairingSession> { (serverUrl, cancel) ->
-            if (cancel || !client.verifyAndSetServerUrl(serverUrl)) return@addLatestValueCollector
+        addValueCollector<LoginScreenEffect.PairingSession>(ExecutionPolicy.Latest) { (serverUrl, cancel) ->
+            if (cancel || !client.verifyAndSetServerUrl(serverUrl)) return@addValueCollector
 
             lateinit var pairingCode: String
             val pairingFlow = client.createPairingSession()
@@ -72,9 +73,11 @@ object LoginScreenHandler {
                             pairingCode = message.pairingCode
                             LoginScreenEvent.OnPairingStarted(message.pairingCode)
                         }
+
                         is PairingMessage.Authorized -> {
                             client.createPairedSession(pairingCode, message.secret).toLoginScreenEvent()
                         }
+
                         PairingMessage.Failed -> LoginScreenEvent.OnPairingEnded(pairingCode)
                     }
                 }

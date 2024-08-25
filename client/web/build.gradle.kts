@@ -3,16 +3,13 @@ import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig.*
 
 plugins {
     kotlin("multiplatform")
+    kotlin("plugin.compose")
     id("org.jetbrains.compose")
     alias(libsCommon.plugins.spotless)
+    alias(libsCommon.plugins.serialization)
 }
 
-val localProperties = gradleLocalProperties(rootDir)
-
-compose {
-    kotlinCompilerPlugin.set(libsClient.jbcompose.compiler.get().toString())
-    //kotlinCompilerPluginArgs.add("suppressKotlinVersionCompatibilityCheck=${libs.versions.kotlin.get()}")
-}
+val localProperties = gradleLocalProperties(rootDir, providers)
 
 kotlin {
     js(IR) {
@@ -28,19 +25,22 @@ kotlin {
                 val anystreamUrl = localProperties.getProperty("anystream.serverUrl", "http://localhost:8888")
                 mainOutputFileName.set("main.bundle.js")
                 devtool = "eval-source-map"
-                devServer = DevServer(
-                    open = false,
-                    port = 3000,
-                    static = mutableListOf("$buildDir/processedResources/js/main"),
-                    proxy = mutableMapOf(
-                        "/api" to mapOf<String, Any>(
-                            "ws" to true,
-                            "target" to anystreamUrl,
-                            "secure" to anystreamUrl.startsWith("https"),
-                            "changeOrigin" to true,
-                            "rejectUnauthorzied" to false,
+                devServerProperty.set(
+                    DevServer(
+                        open = false,
+                        port = 3000,
+                        static = mutableListOf("$buildDir/processedResources/js/main"),
+                        proxy = mutableListOf(
+                            DevServer.Proxy(
+                                target = anystreamUrl,
+                                secure = anystreamUrl.startsWith("https"),
+                                context = mutableListOf("/api"),
+                                changeOrigin = true,
+                                //"rejectUnauthorzied" to false,
+                                //"ws" to true,
+                            )
                         )
-                    ),
+                    )
                 )
             }
             webpackTask {
