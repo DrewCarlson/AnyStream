@@ -50,7 +50,7 @@ fun Metadata.toTvShowModel(): TvShow {
         name = checkNotNull(title),
         tmdbId = tmdbId ?: -1,
         overview = overview.orEmpty(),
-        firstAirDate = firstAvailableAt,//?.instantToTmdbDate(),
+        firstAirDate = firstAvailableAt?.instantToTmdbDate(),
         posterPath = posterPath.orEmpty(),
         backdropPath = backdropPath,
         added = createdAt.epochSeconds,
@@ -60,11 +60,11 @@ fun Metadata.toTvShowModel(): TvShow {
     )
 }
 
-internal fun Instant.instantToTmdbDate(): String {
+fun Instant.instantToTmdbDate(): String {
     return toLocalDateTime(TimeZone.UTC).run { "$year-$monthNumber-$dayOfMonth" }
 }
 
-internal fun String.tmdbDateToInstant(): Instant? {
+fun String.tmdbDateToInstant(): Instant? {
     return split('-')
         .takeIf { it.size == 3 }
         ?.let { (year, month, day) ->

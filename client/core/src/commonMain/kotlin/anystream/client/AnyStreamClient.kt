@@ -58,7 +58,7 @@ import qbittorrent.models.TorrentFile
 private const val PAGE = "page"
 private const val QUERY = "query"
 
-private val json = Json {
+val json = Json {
     isLenient = true
     encodeDefaults = true
     ignoreUnknownKeys = true
@@ -272,11 +272,15 @@ class AnyStreamClient(
     suspend fun getTvShows(page: Int = 1): TvShowsResponse =
         http.get("$serverUrl/api/tv") { pageParam(page) }.bodyOrThrow()
 
-    suspend fun addLibraryFolder(path: String, mediaKind: MediaKind): AddLibraryFolderResponse {
+    suspend fun getLibraries(): List<Library> {
+        return http.get("$serverUrl/api/library").bodyOrThrow()
+    }
+
+    suspend fun addLibraryFolder(libraryId: String, path: String): AddLibraryFolderResponse {
         return try {
-            http.post("$serverUrl/api/medialink/libraries") {
+            http.put("$serverUrl/api/library/${libraryId}") {
                 contentType(ContentType.Application.Json)
-                setBody(AddLibraryFolderRequest(path, mediaKind))
+                setBody(AddLibraryFolderRequest(path))
             }.bodyOrThrow()
         } catch (e: AnyStreamClientException) {
             e.printStackTrace()

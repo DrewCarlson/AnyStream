@@ -22,6 +22,7 @@ import anystream.models.api.CreateUserResponse
 import anystream.routing.CommonRouter
 import anystream.routing.Routes
 import anystream.ui.signup.SignupScreenModel.ServerValidation
+import kt.mobius.flow.ExecutionPolicy
 import kt.mobius.flow.FlowTransformer
 import kt.mobius.flow.subtypeEffectHandler
 
@@ -44,7 +45,7 @@ object SignupScreenHandler {
             }
         }
 
-        addLatestValueCollector<SignupScreenEffect.ValidateServerUrl> { (serverUrl) ->
+        addValueCollector<SignupScreenEffect.ValidateServerUrl>(ExecutionPolicy.Latest) { (serverUrl) ->
             val result = try {
                 client.verifyAndSetServerUrl(serverUrl)
                 ServerValidation.VALID

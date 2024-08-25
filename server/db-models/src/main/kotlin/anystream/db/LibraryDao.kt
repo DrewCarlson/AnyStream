@@ -40,6 +40,20 @@ class LibraryDao(
         return db.selectFrom(LIBRARY).fetchIntoType()
     }
 
+    fun getLibrary(id: String): Library? {
+        return db.fetchOne(LIBRARY, LIBRARY.ID.eq(id))?.intoType()
+    }
+
+    fun getDirectoryByPath(path: String): Directory? {
+        return db.fetchOne(DIRECTORY, DIRECTORY.FILE_PATH.eq(path))?.intoType()
+    }
+
+    fun getDirectories(libraryId: String): List<Directory> {
+        return db.selectFrom(DIRECTORY)
+            .where(DIRECTORY.LIBRARY_ID.eq(libraryId))
+            .fetchIntoType()
+    }
+
     suspend fun createDefaultLibraries(): Unit = withContext(IO) {
         if (db.fetchCount(LIBRARY) == 0) {
             db.batchInsert(

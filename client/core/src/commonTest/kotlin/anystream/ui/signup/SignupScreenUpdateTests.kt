@@ -18,6 +18,7 @@
 package anystream.ui.signup
 
 import anystream.models.User
+import anystream.models.UserPublic
 import anystream.models.api.CreateUserResponse
 import anystream.ui.signup.SignupScreenModel.ServerValidation
 import anystream.ui.signup.SignupScreenModel.State
@@ -268,7 +269,7 @@ class SignupScreenUpdateTests {
 
     @Test
     fun test_OnSignupSuccess_WhenStateIsAuthenticating_StateBecomesAuthenticated_And_NavigatesToHome() {
-        val user = User(-1, "test", "test")
+        val user = UserPublic("", "test", "test")
         UpdateSpec(SignupScreenUpdate)
             .given(defaultModel.copy(state = State.AUTHENTICATING))
             .whenEvent(SignupScreenEvent.OnSignupSuccess(user))
@@ -282,7 +283,7 @@ class SignupScreenUpdateTests {
 
     @Test
     fun test_OnSignupSuccess_WhenStateIsNotAuthenticating_DoesNothing() {
-        val user = User(-1, "test", "test")
+        val user = UserPublic("", "test", "test")
         val testModels = listOf(
             defaultModel.copy(state = State.IDLE),
             defaultModel.copy(state = State.AUTHENTICATED),

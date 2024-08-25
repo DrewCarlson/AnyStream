@@ -1,4 +1,4 @@
-rootProject.name = "anystream"
+rootProject.name = "AnyStream"
 
 include(
     ":client:android",

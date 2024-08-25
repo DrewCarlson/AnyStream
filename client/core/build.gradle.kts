@@ -1,9 +1,8 @@
 plugins {
     id("multiplatform-lib")
     id("com.google.devtools.ksp")
+    id("org.jetbrains.kotlinx.atomicfu")
 }
-
-apply(plugin = "kotlinx-atomicfu")
 
 dependencies {
     add("kspCommonMainMetadata", libsClient.mobiuskt.codegen)

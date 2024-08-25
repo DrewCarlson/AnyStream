@@ -141,20 +141,17 @@ class MovieFileProcessor(
             }
         }
         logger.debug("Querying provider for '{}' (year {})", movieName, year)
-        val query = QueryMetadata(
-            providerId = null,
-            query = movieName,
-            mediaKind = MediaKind.MOVIE,
-            year = year,
-            extras = null,
-        )
-        val results = metadataManager.search(query)
+
+        val results = metadataManager.search(MediaKind.MOVIE) {
+            this.query = movieName
+            this.year = year
+        }
         val matches = results
             .filterIsInstance<QueryMetadataResult.Success>()
             .flatMap { it.results }
             .filterIsInstance<MetadataMatch.MovieMatch>()
         if (matches.isEmpty()) {
-            logger.debug("No metadata match results for '{}'", query)
+            logger.debug("No metadata match results")
             return MediaLinkMatchResult.NoMatchesFound(mediaLink)
         }
         val metadataMatch = matches.sortedBy { scoreString(movieName, it.movie.title) }

@@ -31,13 +31,6 @@ private const val PERMISSIONS_KEY = "PERMISSIONS_KEY"
 private const val USER_KEY = "USER_KEY"
 private const val SERVER_URL_KEY = "SERVER_URL_KEY"
 
-private val json = Json {
-    isLenient = true
-    encodeDefaults = true
-    ignoreUnknownKeys = true
-    useAlternativeNames = false
-}
-
 interface SessionDataStore {
     fun write(key: String, value: String)
     fun read(key: String): String?

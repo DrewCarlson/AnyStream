@@ -18,6 +18,7 @@
 package anystream.ui.login
 
 import anystream.models.User
+import anystream.models.UserPublic
 import anystream.models.api.CreateSessionResponse
 import anystream.ui.login.LoginScreenModel.ServerValidation
 import kt.mobius.test.NextMatchers.hasEffects
@@ -331,7 +332,7 @@ class LoginScreenUpdateTests {
 
     @Test
     fun test_OnLoginSuccess_WhenStateIsAuthenticating_StateBecomesAuthenticated_And_NavigatesToHome() {
-        val user = User(-1, "test", "test")
+        val user = UserPublic("", "test", "test")
         UpdateSpec(LoginScreenUpdate)
             .given(defaultModel.copy(state = LoginScreenModel.State.AUTHENTICATING))
             .whenEvent(LoginScreenEvent.OnLoginSuccess(user))
@@ -345,7 +346,7 @@ class LoginScreenUpdateTests {
 
     @Test
     fun test_OnLoginSuccess_WithActivePairingSession_StateBecomesAuthenticated_And_NavigatesToHome() {
-        val user = User(-1, "test", "test")
+        val user = UserPublic("", "test", "test")
         val startModel = defaultModel.copy(pairingCode = "test")
         UpdateSpec(LoginScreenUpdate)
             .given(startModel)
@@ -360,7 +361,7 @@ class LoginScreenUpdateTests {
 
     @Test
     fun test_OnLoginSuccess_WhenStateIsNotAuthenticating_DoesNothing() {
-        val user = User(-1, "test", "test")
+        val user = UserPublic("", "test", "test")
         val testModels = listOf(
             defaultModel.copy(state = LoginScreenModel.State.IDLE),
             defaultModel.copy(state = LoginScreenModel.State.AUTHENTICATED),

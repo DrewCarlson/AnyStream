@@ -97,59 +97,7 @@ jooq {
                             // Exclude search meta tables
                             "searchable_content_.*",
                         ).joinToString("|")
-                        forcedTypes.addAll(
-                            listOf(
-                                ForcedType().apply {
-                                    includeTypes = "DATETIME"
-                                    userType = "kotlinx.datetime.Instant"
-                                    binding = "anystream.db.converter.JooqInstantBinding"
-                                    //generator = "anystream.db.converter.JooqInstantGenerator"
-                                },
-                                ForcedType().apply {
-                                    includeExpression = "user_permission.value"
-                                    userType = "anystream.models.Permission"
-                                    converter = "anystream.db.converter.PermissionConverter"
-                                },
-                                ForcedType().apply {
-                                    includeExpression = "invite_code.permissions"
-                                    userType = "kotlin.Set<anystream.models.Permission>"
-                                    converter = "anystream.db.converter.PermissionSetConverter"
-                                },
-                                ForcedType().apply {
-                                    userType = "anystream.models.StreamEncodingType"
-                                    isEnumConverter = true
-                                    includeExpression = "stream_encoding.type"
-                                },
-                                ForcedType().apply {
-                                    userType = "anystream.models.MediaType"
-                                    isEnumConverter = true
-                                    includeExpression = "media_type"
-                                },
-                                ForcedType().apply {
-                                    userType = "anystream.models.MediaLinkType"
-                                    isEnumConverter = true
-                                    includeExpression = "media_link.type"
-                                },
-                                ForcedType().apply {
-                                    userType = "anystream.models.MediaKind"
-                                    isEnumConverter = true
-                                    includeExpression = "media_kind"
-                                },
-                                ForcedType().apply {
-                                    userType = "anystream.models.Descriptor"
-                                    isEnumConverter = true
-                                    includeExpression = "descriptor"
-                                },
-                                ForcedType().apply {
-                                    userType = "kotlin.String"
-                                    includeExpression = "searchable_content.id"
-                                },
-                                ForcedType().apply {
-                                    userType = "kotlin.String"
-                                    includeExpression = "searchable_content.content"
-                                },
-                            )
-                        )
+                        forcedTypes.addAll(forcedTypes())
                     }
                 }
             }
@@ -185,3 +133,57 @@ tasks.getByName<JooqGenerate>("generateJooq") {
     doFirst { Thread.sleep(2000) }
     finalizedBy("movePojos")
 }
+
+fun forcedType(
+    userType: String,
+    includeExpression: String,
+    converter: String? = null,
+    isEnumConverter: Boolean = false
+): ForcedType =
+    ForcedType().apply {
+        this.userType = userType
+        this.includeExpression = includeExpression
+        this.isEnumConverter = isEnumConverter
+        this.converter = converter
+    }
+
+fun forcedTypeEnum(
+    userType: String,
+    includeExpression: String,
+): ForcedType = forcedType(userType, includeExpression, isEnumConverter = true)
+
+fun forcedTypes(): List<ForcedType> = listOf(
+    ForcedType().apply {
+        includeTypes = "DATETIME"
+        userType = "kotlinx.datetime.Instant"
+        binding = "anystream.db.converter.JooqInstantBinding"
+        //generator = "anystream.db.converter.JooqInstantGenerator"
+    },
+    forcedType(
+        userType = "anystream.models.Permission",
+        includeExpression = "user_permission.value",
+        converter = "anystream.db.converter.PermissionConverter"
+    ),
+    forcedType(
+        userType = "anystream.models.Permission",
+        includeExpression = "user_permission.value",
+        converter = "anystream.db.converter.PermissionConverter"
+    ),
+    forcedType(
+        userType = "anystream.models.Permission",
+        includeExpression = "user_permission.value",
+        converter = "anystream.db.converter.PermissionConverter"
+    ),
+    forcedType(
+        userType = "kotlin.Set<anystream.models.Permission>",
+        includeExpression = "invite_code.permissions",
+        converter = "anystream.db.converter.PermissionSetConverter"
+    ),
+    forcedTypeEnum("anystream.models.StreamEncodingType", "stream_encoding.type"),
+    forcedTypeEnum("anystream.models.MediaType", "media_type"),
+    forcedTypeEnum("anystream.models.MediaLinkType", "media_link.type"),
+    forcedTypeEnum("anystream.models.MediaKind", "media_kind"),
+    forcedTypeEnum("anystream.models.Descriptor", "descriptor"),
+    forcedType("kotlin.String", "searchable_content.id"),
+    forcedType("kotlin.String", "searchable_content.content"),
+)

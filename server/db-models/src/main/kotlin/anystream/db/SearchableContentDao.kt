@@ -32,6 +32,7 @@ class SearchableContentDao(
 ) {
     fun search(query: String): List<String> {
         return db.select(SEARCHABLE_CONTENT.ID)
+            .from(SEARCHABLE_CONTENT)
             .where(SEARCHABLE_CONTENT.CONTENT.match(query))
             .orderBy(DSL.field("rank"))
             .fetchIntoType()
@@ -39,6 +40,7 @@ class SearchableContentDao(
 
     fun search(query: String, type: MediaType): List<String> {
         return db.select(SEARCHABLE_CONTENT.ID)
+            .from(SEARCHABLE_CONTENT)
             .where(SEARCHABLE_CONTENT.CONTENT.match(query))
             .and(SEARCHABLE_CONTENT.MEDIA_TYPE.eq(type))
             .orderBy(DSL.field("rank"))
@@ -47,6 +49,7 @@ class SearchableContentDao(
 
     fun search(query: String, type: MediaType, limit: Int): List<String> {
         return db.select(SEARCHABLE_CONTENT.ID)
+            .from(SEARCHABLE_CONTENT)
             .where(SEARCHABLE_CONTENT.CONTENT.match(query))
             .and(SEARCHABLE_CONTENT.MEDIA_TYPE.eq(type))
             .orderBy(DSL.field("rank"))

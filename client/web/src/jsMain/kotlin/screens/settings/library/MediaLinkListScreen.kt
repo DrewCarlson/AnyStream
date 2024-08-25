@@ -78,36 +78,32 @@ fun MediaLinkListScreen(libraryGid: String) {
             }
         }*/
     }
-    Modal(
-        "matchMetadata",
-        title = "Match Metadata",
-        size = "lg",
-        contentAttrs = {
-            classes("bg-dark")
-            style { height(70.vh) }
-        },
-        bodyAttrs = { classes("overflow-hidden") },
-        onHide = { matchMediaLinkGid = null }
-    ) { modalRef ->
-        LaunchedEffect(matchMediaLinkGid) {
-            if (matchMediaLinkGid == null) {
-                modalRef.hide()
-            } else {
-                modalRef.show()
-            }
-        }
-        MetadataMatchScreen(
-            mediaLinkGid = matchMediaLinkGid,
-            onLoadingStatChanged = { loading ->
-                modalRef._config.backdrop = if (loading) "static" else "true"
-                modalRef._config.keyboard = !loading
+
+    matchMediaLinkGid?.let {
+        Modal(
+            "matchMetadata",
+            title = "Match Metadata",
+            size = ModalSize.Large,
+            contentAttrs = {
+                classes("bg-dark")
+                style { height(70.vh) }
             },
-            closeScreen = {
-                matchMediaLinkGid = null
-                updateIndex += 1
-                modalRef.hide()
-            }
-        )
+            bodyAttrs = { classes("overflow-hidden") },
+            onHidden = { matchMediaLinkGid = null }
+        ) { modalRef ->
+            MetadataMatchScreen(
+                mediaLinkGid = matchMediaLinkGid,
+                onLoadingStatChanged = { loading ->
+                    modalRef._config.backdrop = if (loading) "static" else "true"
+                    modalRef._config.keyboard = !loading
+                },
+                closeScreen = {
+                    matchMediaLinkGid = null
+                    updateIndex += 1
+                    modalRef.hide()
+                }
+            )
+        }
     }
 }
 

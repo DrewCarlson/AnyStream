@@ -25,17 +25,45 @@ import org.jetbrains.compose.web.attributes.ButtonType
 import org.jetbrains.compose.web.attributes.type
 import org.jetbrains.compose.web.dom.*
 import org.w3c.dom.HTMLDivElement
-import org.w3c.dom.events.Event
 
+enum class ModalSize(val value: String?) {
+    Small("modal-sm"),
+    Default(null),
+    Large("modal-lg"),
+    ExtraLarge("modal-xl"),
+}
+
+private val eventProperties = js("{ once: true }")
+
+/**
+ * Bootstrap Modal for displaying Dialogs, Lightboxes, etc.
+ *
+ * NOTE: Only one Modal should be in the DOM and shown at a time.
+ *
+ * https://getbootstrap.com/docs/5.0/components/modal/
+ *
+ * @param id The element id for the Modal element.
+ * @param title An optional Title string to display in the Header, will replace [header] if both are provided.
+ * @param size The size applied to the Modal.
+ * @param scrollable Allows the body content to be scrolled when true, default false.
+ * @param showOnComposition Automatically show/hides the Modal when it enters/exits the composition, default true.
+ * @param onHide A callback invoked before the Modal hides.
+ * @param onHidden A callback invoked after the Modal hides.
+ * @param header An optional Header element, will be ignored if [title] is provided.
+ * @param footer An optional footer element.
+ * @param body The content body of the Modal.
+ */
 @Composable
 fun Modal(
     id: String,
     title: String? = null,
     bodyAttrs: (AttrsScope<HTMLDivElement>.() -> Unit)? = null,
     contentAttrs: (AttrsScope<HTMLDivElement>.() -> Unit)? = null,
-    size: String? = null,
+    size: ModalSize = ModalSize.Default,
     scrollable: Boolean = false,
+    showOnComposition: Boolean = true,
     onHide: (() -> Unit)? = null,
+    onHidden: (() -> Unit)? = null,
     header: (@Composable ElementScope<HTMLDivElement>.(labelId: String) -> Unit)? = null,
     footer: (@Composable ElementScope<HTMLDivElement>.() -> Unit)? = null,
     body: @Composable ElementScope<HTMLDivElement>.(modalRef: Bootstrap.ModalInstance) -> Unit,
@@ -48,24 +76,29 @@ fun Modal(
         classes("modal", "fade")
         attr("aria-hidden", "true")
         ref { ref ->
-            val callback = { _: Event ->
-                onHide?.invoke()
-                Unit
-            }
-            ref.addEventListener("hide.bs.modal", callback)
-            onDispose { ref.removeEventListener("hide.bs.modal", callback) }
+            ref.addEventListener("hide.bs.modal", { onHide?.invoke() }, eventProperties)
+            ref.addEventListener("hidden.bs.modal", { onHidden?.invoke() }, eventProperties)
+            onDispose {}
         }
     }) {
         DisposableEffect(Unit) {
             modal = Bootstrap.Modal.getOrCreateInstance(scopeElement)
-            onDispose { modal = null }
+            if (showOnComposition) {
+                modal?.show()
+            }
+            onDispose {
+                if (showOnComposition) {
+                    modal?.hide()
+                }
+                modal = null
+            }
         }
         Div({
             classes("modal-dialog")
             if (scrollable) {
                 classes("modal-dialog-scrollable")
             }
-            size?.let { classes("modal-$size") }
+            size.value?.let { classes(it) }
         }) {
             Div({
                 classes("modal-content")
