@@ -56,7 +56,7 @@ koin-slf4j = { module = "io.insert-koin:koin-logger-slf4j", version.ref = "koinK
 
 coil = { module = "io.coil-kt:coil-compose", version = "2.5.0" }
 kamel-image = { module = "media.kamel:kamel-image", version.ref = "kamelImage" }
-routingCompose = { module = "app.softwork:routing-compose", version = "0.2.12" }
+routingCompose = { module = "app.softwork:routing-compose", version = "0.4.0" }
 
 leakcanary = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
 
