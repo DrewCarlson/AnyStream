@@ -48,7 +48,7 @@ import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.plugins.autohead.*
 import io.ktor.server.plugins.cachingheaders.*
-import io.ktor.server.plugins.callloging.*
+import io.ktor.server.plugins.calllogging.*
 import io.ktor.server.plugins.compression.*
 import io.ktor.server.plugins.conditionalheaders.*
 import io.ktor.server.plugins.contentnegotiation.*
@@ -73,9 +73,9 @@ import org.sqlite.SQLiteConfig
 import org.sqlite.javax.SQLiteConnectionPoolDataSource
 import qbittorrent.QBittorrentClient
 import java.nio.file.Path
-import java.time.Duration
 import javax.sql.DataSource
 import kotlin.random.Random
+import kotlin.time.Duration.Companion.seconds
 
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
@@ -154,7 +154,7 @@ fun Application.module(testing: Boolean = false) {
             },
         )
     }
-    environment.monitor.subscribe(ApplicationStopped) {
+    monitor.subscribe(ApplicationStopped) {
         //get<KJob>().shutdown()
     }
 
@@ -209,8 +209,8 @@ fun Application.module(testing: Boolean = false) {
     }
 
     install(WebSockets) {
-        pingPeriod = Duration.ofSeconds(60)
-        timeout = Duration.ofSeconds(15)
+        pingPeriod = 60.seconds
+        timeout = 15.seconds
         contentConverter = KotlinxWebsocketSerializationConverter(json)
     }
 

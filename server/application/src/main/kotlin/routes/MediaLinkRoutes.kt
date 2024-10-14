@@ -20,30 +20,23 @@ package anystream.routes
 import anystream.data.MetadataDbQueries
 import anystream.data.UserSession
 import anystream.db.MediaLinkDao
-import anystream.media.AddLibraryFolderResult
 import anystream.media.LibraryService
 import anystream.models.Descriptor
 import anystream.models.MediaLink
 import anystream.models.api.*
 import anystream.models.filename
 import anystream.util.koinGet
-import anystream.util.logger
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.UnprocessableEntity
-import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
-import io.ktor.util.pipeline.*
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonPrimitive
-import kotlin.io.path.Path
-import kotlin.time.measureTimedValue
 
 fun Route.addMediaLinkManageRoutes(
     libraryService: LibraryService = koinGet(),
@@ -69,7 +62,6 @@ fun Route.addMediaLinkManageRoutes(
             post("/unmapped") {
                 val import = runCatching { call.receiveNullable<MediaScanRequest>() }
                     .getOrNull() ?: return@post call.respond(UnprocessableEntity)
-1
                 call.respond(libraryService.findUnmappedFiles(import))
             }
 
@@ -168,7 +160,7 @@ fun Route.addMediaLinkViewRoutes(
     }
 }
 
-private suspend fun PipelineContext<Unit, ApplicationCall>.mediaLink(
+private suspend fun RoutingContext.mediaLink(
     mediaLinkDao: MediaLinkDao = koinGet(),
 ): MediaLink? {
     val mediaLinkGid = call.parameters["mediaLinkGid"]

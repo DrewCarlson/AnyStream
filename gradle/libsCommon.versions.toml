@@ -1,17 +1,16 @@
 [versions]
 kotlin = { strictly = "2.0.20" }
-coroutines = "1.9.0-RC.2"
-serialization = "1.7.1"
-ktorio = "2.3.12"
+coroutines = "1.9.0"
+serialization = "1.7.3"
+ktorio = "3.0.0"
 ksp = "2.0.20-1.0.24"
 atomicfu = "0.25.0"
 kover = "0.8.3"
 datetime = "0.6.1"
 spotless = "6.22.0"
 ktlint = "1.0.1"
-ktor_perm = "0.2.1"
-koin = "3.5.6"
-koinKtor = "3.5.6"
+koin = "4.0.0"
+koinKtor = "4.0.0"
 agp = "8.5.2"
 kotest = "5.8.1"
 
@@ -63,7 +62,7 @@ ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "kto
 ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktorio" }
 ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktorio" }
 ktor-server-sessions = { module = "io.ktor:ktor-server-sessions", version.ref = "ktorio" }
-ktor-server-tests = { module = "io.ktor:ktor-server-tests", version.ref = "ktorio" }
+ktor-server-tests = { module = "io.ktor:ktor-server-test-host", version.ref = "ktorio" }
 ktor-server-metrics = { module = "io.ktor:ktor-server-metrics", version.ref = "ktorio" }
 ktor-server-partialContent = { module = "io.ktor:ktor-server-partial-content", version.ref = "ktorio" }
 ktor-server-contentNegotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktorio" }
@@ -77,7 +76,6 @@ ktor-server-cors = { module = "io.ktor:ktor-server-cors", version.ref = "ktorio"
 ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktorio" }
 ktor-server-authJwt = { module = "io.ktor:ktor-server-auth-jwt", version.ref = "ktorio" }
 ktor-server-websockets = { module = "io.ktor:ktor-server-websockets", version.ref = "ktorio" }
-ktor-server-permissions = { module = "org.drewcarlson:ktor-permissions", version.ref = "ktor_perm" }
 
 ksp = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }
 
