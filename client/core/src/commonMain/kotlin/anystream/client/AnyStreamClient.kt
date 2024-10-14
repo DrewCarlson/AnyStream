@@ -302,6 +302,23 @@ class AnyStreamClient(
         }
     }
 
+    suspend fun getDirectories(libraryId: String): List<Directory> {
+        return try {
+            http.get("$serverUrl/api/library/$libraryId/directories").bodyOrThrow()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+
+    suspend fun scanLibrary(libraryId: String) {
+        try {
+            http.get("$serverUrl/api/library/$libraryId/scan").orThrow()
+        } catch (e: Throwable) {
+            e.printStackTrace()
+        }
+    }
+
     suspend fun getLibraryFolderList(): LibraryFolderList {
         return try {
             http.get("$serverUrl/api/medialink/libraries").bodyOrThrow()

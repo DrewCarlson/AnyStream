@@ -24,6 +24,7 @@ import anystream.util.bootstrapIcon
 import anystream.util.get
 import anystream.util.tooltip
 import app.softwork.routingcompose.Router
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.web.attributes.Scope
 import org.jetbrains.compose.web.attributes.scope
 import org.jetbrains.compose.web.css.cursor
@@ -54,7 +55,13 @@ fun LibrariesScreen() {
             }*/
             Button({
                 classes("btn", "btn-primary")
-                //onClick { modal?.show() }
+                onClick {
+                    scope.launch {
+                        libraries.forEach { library ->
+                            client.scanLibrary(library.id)
+                        }
+                    }
+                }
             }) {
                 //I({ classes("bi", "bi-folder-plus", "pe-1") })
                 Text("Scan Library Files")

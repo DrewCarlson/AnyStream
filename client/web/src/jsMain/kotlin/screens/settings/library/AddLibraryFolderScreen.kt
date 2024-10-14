@@ -21,7 +21,6 @@ import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
 import anystream.components.LoadingIndicator
 import anystream.models.Library
-import anystream.models.MediaKind
 import anystream.models.api.AddLibraryFolderResponse
 import anystream.models.api.ListFilesResponse
 import anystream.util.get
@@ -45,7 +44,6 @@ fun AddLibraryFolderScreen(
     val client = get<AnyStreamClient>()
     val scope = rememberCoroutineScope()
     var selectedPath by remember { mutableStateOf<String?>(null) }
-    var selectedMediaKind by remember { mutableStateOf<MediaKind?>(null) }
     var isLoading by remember { mutableStateOf(true) }
     val subfolders by produceState<ListFilesResponse?>(null, selectedPath) {
         isLoading = true
@@ -61,35 +59,6 @@ fun AddLibraryFolderScreen(
     var message by remember { mutableStateOf<String?>(null) }
     var inputRef by remember { mutableStateOf<HTMLInputElement?>(null) }
     Div({ classes("vstack", "h-100", "gap-2") }) {
-        /*Div { Text("Select the kind of media to search for:") }
-        Div({ classes("hstack", "gap-4") }) {
-            MediaKindButton(
-                name = "Movies",
-                isSelected = selectedMediaKind == MediaKind.MOVIE,
-                icon = "film",
-                onClick = {
-                    if (!isInputLocked) {
-                        selectedMediaKind = MediaKind.MOVIE
-                    }
-                },
-            )
-            MediaKindButton(
-                name = "TV Shows",
-                isSelected = selectedMediaKind == MediaKind.TV,
-                icon = "tv",
-                onClick = {
-                    if (!isInputLocked) {
-                        selectedMediaKind = MediaKind.TV
-                    }
-                },
-            )
-            MediaKindButton(
-                name = "Music",
-                isSelected = selectedMediaKind == MediaKind.MUSIC,
-                icon = "music-note-beamed",
-                onClick = { /*selectedMediaKind.value = MediaKind.MUSIC*/ },
-            )
-        }*/
         Div { Text("Select a folder for the ${library.name} library:") }
         Div({ classes("input-group") }) {
             Span({ classes("input-group-text") }) {
@@ -160,7 +129,7 @@ fun AddLibraryFolderScreen(
             }
             Button({
                 classes("btn", "btn-primary")
-                if (isInputLocked || selectedMediaKind == null || selectedPath.isNullOrBlank()) {
+                if (isInputLocked || selectedPath.isNullOrBlank()) {
                     disabled()
                 }
                 onClick {
@@ -183,7 +152,6 @@ fun AddLibraryFolderScreen(
                             is AddLibraryFolderResponse.Success -> {
                                 message = null
                                 selectedPath = null
-                                selectedMediaKind = null
                                 onFolderAdded()
                                 closeScreen()
                             }
@@ -245,6 +213,36 @@ private fun MediaKindButton(
     icon: String,
     onClick: () -> Unit,
 ) {
+
+    /*Div { Text("Select the kind of media to search for:") }
+    Div({ classes("hstack", "gap-4") }) {
+        MediaKindButton(
+            name = "Movies",
+            isSelected = selectedMediaKind == MediaKind.MOVIE,
+            icon = "film",
+            onClick = {
+                if (!isInputLocked) {
+                    selectedMediaKind = MediaKind.MOVIE
+                }
+            },
+        )
+        MediaKindButton(
+            name = "TV Shows",
+            isSelected = selectedMediaKind == MediaKind.TV,
+            icon = "tv",
+            onClick = {
+                if (!isInputLocked) {
+                    selectedMediaKind = MediaKind.TV
+                }
+            },
+        )
+        MediaKindButton(
+            name = "Music",
+            isSelected = selectedMediaKind == MediaKind.MUSIC,
+            icon = "music-note-beamed",
+            onClick = { /*selectedMediaKind.value = MediaKind.MUSIC*/ },
+        )
+    }*/
     A(null, {
         onClick { onClick() }
         style {

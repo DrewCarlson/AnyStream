@@ -25,12 +25,15 @@ import anystream.models.api.AddLibraryFolderResponse
 import anystream.models.api.LibraryFolderList
 import anystream.util.koinGet
 import anystream.util.logger
+import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.UnprocessableEntity
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.coroutines.launch
 import org.drewcarlson.ktor.permissions.withPermission
+import kotlin.io.path.Path
 
 fun Route.addLibraryViewRoutes(
     libraryService: LibraryService = koinGet()
@@ -42,9 +45,11 @@ fun Route.addLibraryViewRoutes(
 
         withPermission(Permission.ManageCollection) {
             route("/{libraryId}") {
-                get("/directory") {
-                    val folders = libraryService.getLibraryFolders()
-                    call.respond(LibraryFolderList(folders))
+                route("/directories") {
+                    get {
+                        val libraryId = call.parameters["libraryId"] ?: return@get call.respond(UnprocessableEntity)
+                        call.respond(libraryService.getLibraryDirectories(libraryId))
+                    }
                 }
             }
         }
@@ -66,8 +71,9 @@ fun Route.addLibraryModifyRoutes(
                     logger.error("Failed to parse request body", e)
                     return@put call.respond(UnprocessableEntity)
                 }
-                when (val result = libraryService.addLibraryFolder(libraryId, request.path)) {
+                val response = when (val result = libraryService.addLibraryFolder(libraryId, request.path)) {
                     is AddLibraryFolderResult.Success -> {
+                        libraryService.scan(Path(result.directory.filePath))
                         AddLibraryFolderResponse.Success(
                             library = result.library,
                             directory = result.directory,
@@ -87,6 +93,19 @@ fun Route.addLibraryModifyRoutes(
                     AddLibraryFolderResult.LinkAlreadyExists ->
                         AddLibraryFolderResponse.LibraryFolderExists
                 }
+                call.respond(response)
+            }
+
+            get("/scan") {
+                val libraryId = call.parameters["libraryId"]
+                    ?: return@get call.respond(UnprocessableEntity)
+                val directories = libraryService.getLibraryDirectories(libraryId)
+
+                directories.forEach { directory ->
+                    libraryService.scan(Path(directory.filePath))
+                }
+
+                call.respond(OK)
             }
         }
     }
