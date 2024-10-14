@@ -27,6 +27,7 @@ import anystream.models.api.CurrentlyWatching
 import anystream.models.api.HomeResponse
 import anystream.models.api.Popular
 import anystream.models.api.RecentlyAdded
+import anystream.models.completedPercent
 import anystream.playerMediaGid
 import anystream.util.get
 import app.softwork.routingcompose.Router
@@ -117,7 +118,7 @@ private fun CurrentlyWatching.ContinueWatchingRow(sizeMultiplier: Float) {
             sizeMultiplier = sizeMultiplier,
             title = (movie?.title ?: show?.name)?.let { title ->
                 {
-                    LinkedText(url = "/media/${movie?.gid ?: show?.gid}") {
+                    LinkedText(url = "/media/${movie?.id ?: show?.id}") {
                         Text(title)
                     }
                 }
@@ -128,7 +129,7 @@ private fun CurrentlyWatching.ContinueWatchingRow(sizeMultiplier: Float) {
                     Text(substringBefore("-"))
                 }
                 episode?.run {
-                    LinkedText(url = "/media/${episode.gid}") {
+                    LinkedText(url = "/media/${episode.id}") {
                         Text(name)
                     }
                 }
@@ -141,10 +142,10 @@ private fun CurrentlyWatching.ContinueWatchingRow(sizeMultiplier: Float) {
                         LinkedText(
                             tvSeasons
                                 .first { it.seasonNumber == seasonNumber }
-                                .run { "/media/$gid" },
+                                .run { "/media/$id" },
                         ) { Text("S$seasonNumber") }
                         Div { Text(" · ") }
-                        LinkedText(url = "/media/${episode.gid}") {
+                        LinkedText(url = "/media/${episode.id}") {
                             Text("E$number")
                         }
                     }
@@ -153,10 +154,10 @@ private fun CurrentlyWatching.ContinueWatchingRow(sizeMultiplier: Float) {
             posterPath = movie?.posterPath ?: show?.posterPath,
             isAdded = true,
             onPlayClicked = {
-                playerMediaGid.value = state.mediaLinkGid
+                playerMediaGid.value = state.mediaLinkId
             },
             onBodyClicked = {
-                router.navigate("/media/${movie?.gid ?: episode?.gid}")
+                router.navigate("/media/${movie?.id ?: episode?.id}")
             },
         )
     }
@@ -170,7 +171,7 @@ private fun RecentlyAdded.RecentlyAddedMovies(sizeMultiplier: Float) {
         PosterCard(
             sizeMultiplier = sizeMultiplier,
             title = {
-                LinkedText(url = "/media/${movie.gid}") {
+                LinkedText(url = "/media/${movie.id}") {
                     Text(movie.title)
                 }
             },
@@ -182,10 +183,10 @@ private fun RecentlyAdded.RecentlyAddedMovies(sizeMultiplier: Float) {
             posterPath = movie.posterPath,
             isAdded = true,
             onPlayClicked = {
-                playerMediaGid.value = mediaLink?.gid
+                playerMediaGid.value = mediaLink?.id
             }.takeIf { mediaLink != null },
             onBodyClicked = {
-                router.navigate("/media/${movie.gid}")
+                router.navigate("/media/${movie.id}")
             },
         )
     }
@@ -199,14 +200,14 @@ private fun RecentlyAdded.RecentlyAddedTv(sizeMultiplier: Float) {
         PosterCard(
             sizeMultiplier = sizeMultiplier,
             title = {
-                LinkedText(url = "/media/${show.gid}") {
+                LinkedText(url = "/media/${show.id}") {
                     Text(show.name)
                 }
             },
             posterPath = show.posterPath,
             isAdded = true,
             onBodyClicked = {
-                router.navigate("/media/${show.gid}")
+                router.navigate("/media/${show.id}")
             },
         )
     }
@@ -220,7 +221,7 @@ private fun Popular.PopularMovies(sizeMultiplier: Float) {
         PosterCard(
             sizeMultiplier = sizeMultiplier,
             title = {
-                LinkedText(url = "/media/${link?.metadataGid ?: movie.gid}") {
+                LinkedText(url = "/media/${movie.id}") {
                     Text(movie.title)
                 }
             },
@@ -231,10 +232,10 @@ private fun Popular.PopularMovies(sizeMultiplier: Float) {
             },
             posterPath = movie.posterPath,
             isAdded = link != null,
-            onPlayClicked = { playerMediaGid.value = link?.gid }
+            onPlayClicked = { playerMediaGid.value = link?.id }
                 .takeIf { link != null },
             onBodyClicked = {
-                router.navigate("/media/${movie.gid}")
+                router.navigate("/media/${movie.id}")
             },
         )
     }
@@ -249,7 +250,7 @@ private fun Popular.PopularTvShows(sizeMultiplier: Float) {
         PosterCard(
             sizeMultiplier = sizeMultiplier,
             title = {
-                LinkedText(url = "/media/${tvShow.gid}") {
+                LinkedText(url = "/media/${tvShow.id}") {
                     Text(tvShow.name)
                 }
             },
@@ -263,7 +264,7 @@ private fun Popular.PopularTvShows(sizeMultiplier: Float) {
             /*onPlayClicked = { window.location.hash = "!play:${ref?.id}" }
                 .takeIf { ref != null },*/
             onBodyClicked = {
-                router.navigate("/media/${tvShow.gid}")
+                router.navigate("/media/${tvShow.id}")
             },
         )
     }

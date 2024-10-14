@@ -17,7 +17,7 @@
  */
 package anystream.routes
 
-import anystream.media.LibraryManager
+import anystream.media.LibraryService
 import anystream.models.Permission
 import anystream.models.api.LibraryActivity
 import anystream.models.api.PlaybackSessions
@@ -44,7 +44,7 @@ fun Route.addAdminRoutes() {
 }
 
 fun Route.addAdminWsRoutes(
-    libraryManager: LibraryManager = koinGet(),
+    libraryService: LibraryService = koinGet(),
     streamService: StreamService = koinGet(),
 ) {
     val sessionsFlow = callbackFlow<PlaybackSessions> {
@@ -70,7 +70,7 @@ fun Route.addAdminWsRoutes(
         check(Permission.check(Permission.ConfigureSystem, session.permissions))
         combine(
             sessionsFlow,
-            libraryManager.mediaScannerState,
+            libraryService.mediaScannerState,
         ) { playbackSessions, mediaScannerState ->
             LibraryActivity(mediaScannerState, playbackSessions)
         }.collect { sendSerialized(it) }

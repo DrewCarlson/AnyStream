@@ -17,13 +17,16 @@
  */
 package anystream.db
 
+import anystream.db.tables.references.METADATA_COMPANY
+import anystream.db.tables.references.METADATA_GENRE
+import anystream.db.tables.references.TAG
+import anystream.db.util.fetchIntoType
+import anystream.db.util.fetchSingleIntoType
+import anystream.db.util.intoType
 import anystream.models.Genre
 import anystream.models.ProductionCompany
-import org.jdbi.v3.sqlobject.kotlin.BindKotlin
-import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys
-import org.jdbi.v3.sqlobject.statement.SqlBatch
-import org.jdbi.v3.sqlobject.statement.SqlQuery
-import org.jdbi.v3.sqlobject.statement.SqlUpdate
+import anystream.util.ObjectId
+import org.jooq.DSLContext
 
 data class TagData(
     val name: String? = null,
@@ -32,33 +35,40 @@ data class TagData(
     val genreId: Int? = null,
 )
 
-interface TagsDao {
+class TagsDao(
+    private val db: DSLContext
+) {
 
-    @SqlUpdate("INSERT OR IGNORE INTO tags (id, name, tmdbId) VALUES (null, ?, ?)")
-    @GetGeneratedKeys("id")
-    fun insertTag(name: String, tmdbId: Int?): Int
+    fun insertTag(name: String, tmdbId: Int?): String {
+        val id = ObjectId.get().toString()
+        db.insertInto(TAG)
+            .set(TAG.ID,id )
+            .set(TAG.NAME, name)
+            .set(TAG.TMDB_ID, tmdbId)
+            .execute()
+        return id
+    }
 
-    @SqlBatch("INSERT OR IGNORE INTO tags (id, name, tmdbId) VALUES (null, ?, ?)")
-    @GetGeneratedKeys("id")
-    fun insertTag(@BindKotlin tags: List<TagData>): IntArray
+    fun insertMetadataGenreLink(mediaId: String, genreId: String) {
+        db.insertInto(METADATA_GENRE)
+            .set(METADATA_GENRE.METADATA_ID, mediaId)
+            .set(METADATA_GENRE.GENRE_ID, genreId)
+            .execute()
+    }
 
-    @SqlUpdate("INSERT OR IGNORE INTO metadataGenres (metadataId, genreId) VALUES (?, ?)")
-    fun insertMetadataGenreLink(mediaId: Int, genreId: Int)
+    fun insertMetadataCompanyLink(mediaId: String, companyId: String) {
+        db.insertInto(METADATA_COMPANY)
+            .set(METADATA_COMPANY.METADATA_ID, mediaId)
+            .set(METADATA_COMPANY.COMPANY_ID, companyId)
+            .execute()
+    }
 
-    @SqlBatch("INSERT OR IGNORE INTO metadataGenres (metadataId, genreId) VALUES (?, ?)")
-    @GetGeneratedKeys("id")
-    fun insertMetadataGenreLink(@BindKotlin tags: List<TagData>): IntArray
+    fun findGenreByTmdbId(tmdbId: Int): Genre? {
+        return db.fetchOne(TAG, TAG.TMDB_ID.eq(tmdbId))
+            ?.intoType()
+    }
 
-    @SqlUpdate("INSERT OR IGNORE INTO metadataCompanies (metadataId, companyId) VALUES (?, ?)")
-    fun insertMetadataCompanyLink(mediaId: Int, companyId: Int)
-
-    @SqlUpdate("INSERT OR IGNORE INTO metadataCompanies (metadataId, companyId) VALUES (?, ?)")
-    @GetGeneratedKeys("id")
-    fun insertMetadataCompanyLink(@BindKotlin tags: List<TagData>): IntArray
-
-    @SqlQuery("SELECT * FROM tags WHERE tmdbId = ?")
-    fun findGenreByTmdbId(tmdbId: Int): Genre?
-
-    @SqlQuery("SELECT * FROM tags WHERE tmdbId = ?")
-    fun findCompanyByTmdbId(tmdbId: Int): ProductionCompany?
+    fun findCompanyByTmdbId(tmdbId: Int): ProductionCompany? {
+        return db.fetchOne(TAG, TAG.TMDB_ID.eq(tmdbId))?.intoType()
+    }
 }

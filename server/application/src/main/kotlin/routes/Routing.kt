@@ -39,6 +39,7 @@ fun Application.installRouting() {
                     addSearchRoutes()
                     addMediaViewRoutes()
                     addMediaLinkViewRoutes()
+                    addLibraryViewRoutes()
                 }
                 withAnyPermission(Permission.ManageTorrents) {
                     addTorrentRoutes()
@@ -46,6 +47,7 @@ fun Application.installRouting() {
                 withAnyPermission(Permission.ManageCollection) {
                     addMediaManageRoutes()
                     addMediaLinkManageRoutes()
+                    addLibraryModifyRoutes()
                 }
                 withPermission(Permission.ConfigureSystem) {
                     addAdminRoutes()

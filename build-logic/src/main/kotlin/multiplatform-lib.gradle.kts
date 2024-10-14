@@ -4,9 +4,9 @@ import org.gradle.kotlin.dsl.*
 plugins {
     kotlin("multiplatform")
     id("com.diffplug.spotless")
+    kotlin("plugin.serialization")
+    id("org.jetbrains.kotlinx.atomicfu")
 }
-
-apply(plugin = "kotlinx-atomicfu")
 
 if (hasAndroidSdk) {
     apply(plugin = "com.android.library")
@@ -142,20 +142,6 @@ kotlin {
         // "Could not create task of type 'KotlinNativeLink'."
         if (project.name != "ui") {
             configureCommonIosSourceSets()
-
-            configure(
-                listOf(
-                    iosArm64(),
-                    iosSimulatorArm64(),
-                    iosX64(),
-                ),
-            ) {
-                compilations.configureEach {
-                    compilerOptions.configure {
-                        freeCompilerArgs.add("-Xallocator=custom")
-                    }
-                }
-            }
         }
     }
 }

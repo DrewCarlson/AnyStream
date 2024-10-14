@@ -20,14 +20,8 @@ package anystream.service.search
 import anystream.db.MediaLinkDao
 import anystream.db.MetadataDao
 import anystream.db.SearchableContentDao
-import anystream.db.model.MediaLinkDb
-import anystream.db.model.MetadataDb
-import anystream.db.model.MetadataDb.Type
-import anystream.models.Episode
-import anystream.models.Movie
-import anystream.models.TvShow
+import anystream.models.*
 import anystream.models.api.SearchResponse
-import org.jdbi.v3.core.JdbiException
 import org.slf4j.LoggerFactory
 
 class SearchService(
@@ -41,54 +35,36 @@ class SearchService(
     fun search(inputQuery: String, limit: Int): SearchResponse {
         val query = "\"${inputQuery.trim()}\"*".trim()
         return try {
-            val movieIds = searchableContentDao.search(query, Type.MOVIE, limit)
-            val tvShowIds = searchableContentDao.search(query, Type.TV_SHOW, limit)
-            val episodeIds = searchableContentDao.search(query, Type.TV_EPISODE, limit)
-            val movies = if (movieIds.isNotEmpty()) {
-                mediaDao.findAllByGidsAndType(movieIds, Type.MOVIE).map(MetadataDb::toMovieModel)
-            } else {
-                emptyList()
-            }
-            val tvShows = if (tvShowIds.isNotEmpty()) {
-                mediaDao.findAllByGidsAndType(tvShowIds, Type.TV_SHOW).map { showRecord ->
+            val movieIds = searchableContentDao.search(query, MediaType.MOVIE, limit)
+            val tvShowIds = searchableContentDao.search(query, MediaType.TV_SHOW, limit)
+            val episodeIds = searchableContentDao.search(query, MediaType.TV_EPISODE, limit)
+            val movies = mediaDao.findAllByGidsAndType(movieIds, MediaType.MOVIE)
+                .map(Metadata::toMovieModel)
+
+            val tvShows = mediaDao.findAllByGidsAndType(tvShowIds, MediaType.TV_SHOW)
+                .map { showRecord ->
                     SearchResponse.TvShowResult(
                         tvShow = showRecord.toTvShowModel(),
-                        seasonCount = mediaDao.countSeasonsForTvShow(showRecord.gid),
+                        seasonCount = mediaDao.countSeasonsForTvShow(showRecord.id),
                     )
                 }
-            } else {
-                emptyList()
-            }
-            val episodes = if (episodeIds.isNotEmpty()) {
-                val episodes = mediaDao.findAllByGidsAndType(episodeIds, Type.TV_EPISODE)
-                    .map(MetadataDb::toTvEpisodeModel)
-                val episodeShowIds = episodes.map(Episode::showId).distinct()
-                val episodeShows = if (episodeShowIds.isNotEmpty()) {
-                    mediaDao.findAllByGidsAndType(episodeShowIds, Type.TV_SHOW)
-                        .map(MetadataDb::toTvShowModel)
-                        .associateBy(TvShow::gid)
-                } else {
-                    emptyMap()
-                }
-                episodes.map { episode ->
-                    SearchResponse.EpisodeResult(
-                        episode = episode,
-                        tvShow = episodeShows.getValue(episode.showId),
-                    )
-                }
-            } else {
-                emptyList()
+            val episodesDb = mediaDao.findAllByGidsAndType(episodeIds, MediaType.TV_EPISODE)
+                .map(Metadata::toTvEpisodeModel)
+            val episodeShowIds = episodesDb.map(Episode::showId).distinct()
+            val episodeShows = mediaDao.findAllByGidsAndType(episodeShowIds, MediaType.TV_SHOW)
+                .map(Metadata::toTvShowModel)
+                .associateBy(TvShow::id)
+            val episodes = episodesDb.map { episode ->
+                SearchResponse.EpisodeResult(
+                    episode = episode,
+                    tvShow = episodeShows.getValue(episode.showId),
+                )
             }
 
-            val searchIds = movies.map(Movie::gid) + episodes.map { it.episode.gid }
-            val mediaLinks = if (searchIds.isNotEmpty()) {
-                mediaLinkDao.findByMetadataGids(searchIds)
-                    .filter { it.metadataGid != null }
-                    .map(MediaLinkDb::toModel)
-                    .associateBy { it.metadataGid!! }
-            } else {
-                emptyMap()
-            }
+            val searchIds = movies.map(Movie::id) + episodes.map { it.episode.id }
+            val mediaLinks = mediaLinkDao.findByMetadataIds(searchIds)
+                .filter { it.metadataId != null }
+                .associateBy { it.metadataId!! }
 
             SearchResponse(
                 movies = movies,
@@ -96,7 +72,7 @@ class SearchService(
                 episodes = episodes,
                 mediaLink = mediaLinks,
             )
-        } catch (e: JdbiException) {
+        } catch (e: Throwable) {
             logger.error("Search query failed", e)
             SearchResponse()
         }

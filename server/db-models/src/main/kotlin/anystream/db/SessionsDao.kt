@@ -17,17 +17,34 @@
  */
 package anystream.db
 
-import org.jdbi.v3.sqlobject.statement.SqlQuery
-import org.jdbi.v3.sqlobject.statement.SqlUpdate
+import anystream.db.tables.references.SESSION
+import anystream.db.util.intoType
+import org.jooq.DSLContext
 
-interface SessionsDao {
+class SessionsDao(
+    private val db: DSLContext
+) {
 
-    @SqlQuery("SELECT data FROM sessions WHERE id = ?")
-    fun find(id: String): String?
+    fun find(id: String): String? {
+        return db.select(SESSION.DATA)
+            .from(SESSION)
+            .where(SESSION.ID.eq(id))
+            .fetchOne()
+            ?.intoType()
+    }
 
-    @SqlUpdate("INSERT OR REPLACE INTO sessions (id, data) VALUES (?, ?)")
-    fun insertOrUpdate(id: String, data: String)
+    fun insertOrUpdate(id: String, userId: String, data: String) {
+        db.insertInto(SESSION, SESSION.ID, SESSION.USER_ID, SESSION.DATA)
+            .values(id, userId, data)
+            .onDuplicateKeyUpdate()
+            .set(SESSION.DATA, data)
+            .where(SESSION.ID.eq(id))
+            .execute()
+    }
 
-    @SqlUpdate("DELETE FROM sessions WHERE id = ?")
-    fun delete(id: String)
+    fun delete(id: String) {
+        db.deleteFrom(SESSION)
+            .where(SESSION.ID.eq(id))
+            .execute()
+    }
 }

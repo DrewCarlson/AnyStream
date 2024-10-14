@@ -22,6 +22,7 @@ import anystream.client.AnyStreamClient
 import anystream.components.*
 import anystream.models.LocalMediaLink
 import anystream.models.MediaLink
+import anystream.models.typed
 import anystream.util.get
 import anystream.util.tooltip
 import org.jetbrains.compose.web.attributes.Scope
@@ -55,15 +56,15 @@ fun MediaLinkListScreen(libraryGid: String) {
             MediaLinkHeaderRow()
             VerticalScroller(mediaLinks) { mediaLink ->
                 MediaLinkRow(
-                    mediaLink = mediaLink as LocalMediaLink,
-                    isSelected = selectedMediaLinks.contains(mediaLink.gid),
+                    mediaLink = mediaLink.typed() as LocalMediaLink,
+                    isSelected = selectedMediaLinks.contains(mediaLink.id),
                     onSelect = {
-                        if (!selectedMediaLinks.remove(it.gid)) {
-                            selectedMediaLinks.add(it.gid)
+                        if (!selectedMediaLinks.remove(it.id)) {
+                            selectedMediaLinks.add(it.id)
                         }
                     },
                     onScanClicked = { },
-                    onMatchMetadata = { matchMediaLinkGid = it.gid },
+                    onMatchMetadata = { matchMediaLinkGid = it.id },
                 )
             }
         }
@@ -77,36 +78,32 @@ fun MediaLinkListScreen(libraryGid: String) {
             }
         }*/
     }
-    Modal(
-        "matchMetadata",
-        title = "Match Metadata",
-        size = "lg",
-        contentAttrs = {
-            classes("bg-dark")
-            style { height(70.vh) }
-        },
-        bodyAttrs = { classes("overflow-hidden") },
-        onHide = { matchMediaLinkGid = null }
-    ) { modalRef ->
-        LaunchedEffect(matchMediaLinkGid) {
-            if (matchMediaLinkGid == null) {
-                modalRef.hide()
-            } else {
-                modalRef.show()
-            }
-        }
-        MetadataMatchScreen(
-            mediaLinkGid = matchMediaLinkGid,
-            onLoadingStatChanged = { loading ->
-                modalRef._config.backdrop = if (loading) "static" else "true"
-                modalRef._config.keyboard = !loading
+
+    matchMediaLinkGid?.let {
+        Modal(
+            "matchMetadata",
+            title = "Match Metadata",
+            size = ModalSize.Large,
+            contentAttrs = {
+                classes("bg-dark")
+                style { height(70.vh) }
             },
-            closeScreen = {
-                matchMediaLinkGid = null
-                updateIndex += 1
-                modalRef.hide()
-            }
-        )
+            bodyAttrs = { classes("overflow-hidden") },
+            onHidden = { matchMediaLinkGid = null }
+        ) { modalRef ->
+            MetadataMatchScreen(
+                mediaLinkGid = matchMediaLinkGid,
+                onLoadingStatChanged = { loading ->
+                    modalRef._config.backdrop = if (loading) "static" else "true"
+                    modalRef._config.keyboard = !loading
+                },
+                closeScreen = {
+                    matchMediaLinkGid = null
+                    updateIndex += 1
+                    modalRef.hide()
+                }
+            )
+        }
     }
 }
 
@@ -151,13 +148,14 @@ private fun MediaLinkRow(
             }
         }
         Div({ classes("w-100") }) {
-            if (mediaLink.metadataId == null) {
+            //Text(mediaLink.filename)
+            /*if (mediaLink.metadataId == null) {
                 Text(mediaLink.filename)
             } else {
                 LinkedText("/media/${mediaLink.metadataGid}") {
                     Text(mediaLink.filename)
                 }
-            }
+            }*/
         }
     }
 }

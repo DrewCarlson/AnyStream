@@ -47,7 +47,7 @@ fun MoviesScreen() {
             } else {
                 val router = Router.current
                 VerticalGridScroller(movies) { movie ->
-                    MovieCard(router, movie, mediaLinks[movie.gid])
+                    MovieCard(router, movie, mediaLinks[movie.id])
                 }
             }
         }
@@ -62,17 +62,17 @@ private fun MovieCard(
 ) {
     PosterCard(
         title = {
-            LinkedText("/media/${movie.gid}", router) {
+            LinkedText("/media/${movie.id}", router) {
                 Text(movie.title)
             }
         },
         posterPath = movie.posterPath,
         isAdded = true,
         onPlayClicked = {
-            playerMediaGid.value = link?.gid
+            playerMediaGid.value = link?.id
         }.takeIf { link != null },
         onBodyClicked = {
-            router.navigate("/media/${movie.gid}")
+            router.navigate("/media/${movie.id}")
         },
     )
 }

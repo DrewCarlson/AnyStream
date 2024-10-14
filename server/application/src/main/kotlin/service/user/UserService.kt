@@ -18,10 +18,12 @@
 package anystream.service.user
 
 import anystream.data.UserSession
-import anystream.db.model.PermissionDb
-import anystream.db.model.UserDb
+import anystream.db.InviteCodeDao
+import anystream.db.UserDao
 import anystream.models.*
 import anystream.models.api.*
+import anystream.util.ObjectId
+import kotlinx.datetime.Clock
 import org.bouncycastle.crypto.generators.OpenBSDBCrypt
 import org.bouncycastle.util.encoders.Hex
 import org.slf4j.LoggerFactory
@@ -30,42 +32,44 @@ import kotlin.random.Random
 
 private const val SALT_BYTES = 16
 private const val BCRYPT_COST = 10
+private const val INVITE_CODE_SIZE = 32
 
 class UserService(
-    private val queries: UserServiceQueries,
+    private val queries: UserDao,
+    private val inviteCodeDao: InviteCodeDao,
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
     private val pairingCodes = ConcurrentHashMap<String, PairingMessage>()
 
-    suspend fun getUser(userId: Int): User? {
-        return queries.fetchUser(userId)?.toUserModel()
+    suspend fun getUser(userId: String): User? {
+        return queries.fetchUser(userId)
     }
 
     suspend fun getUsers(): List<User> {
-        return queries.fetchUsers().map(UserDb::toUserModel)
+        return queries.fetchUsers().toMutableList()
     }
 
-    suspend fun deleteUser(userId: Int): Boolean {
+    suspend fun deleteUser(userId: String): Boolean {
         return queries.deleteUser(userId)
     }
 
-    suspend fun createInviteCode(userId: Int, permissions: Set<Permission>): InviteCode? {
-        return queries.createInviteCode(
-            secret = Hex.toHexString(Random.nextBytes(InviteCode.SIZE)),
+    suspend fun createInviteCode(userId: String, permissions: Set<Permission>): InviteCode? {
+        return inviteCodeDao.createInviteCode(
+            secret = Hex.toHexString(Random.nextBytes(INVITE_CODE_SIZE)),
             permissions = permissions,
             userId = userId,
         )
     }
 
-    suspend fun getInvites(byUserId: Int?): List<InviteCode> {
-        return queries.fetchInviteCodes(byUserId)
+    suspend fun getInvites(byUserId: String?): List<InviteCode> {
+        return inviteCodeDao.fetchInviteCodes(byUserId)
     }
 
-    suspend fun deleteInvite(inviteCode: String, byUserId: Int?): Boolean {
-        return queries.deleteInviteCode(inviteCode, byUserId)
+    suspend fun deleteInvite(inviteCode: String, byUserId: String?): Boolean {
+        return inviteCodeDao.deleteInviteCode(inviteCode, byUserId)
     }
 
-    suspend fun createUser(body: CreateUserBody): CreateUserResponse? {
+    suspend fun createUser(body: CreateUserBody): CreateUserResponse {
         val usernameError = when {
             body.username.isBlank() -> CreateUserResponse.UsernameError.BLANK
             body.username.length < USERNAME_LENGTH_MIN -> CreateUserResponse.UsernameError.TOO_SHORT
@@ -88,37 +92,35 @@ class UserService(
             return CreateUserResponse.Error(CreateUserResponse.UsernameError.ALREADY_EXISTS, null)
         }
 
-        val inviteCodeString = body.inviteCode
-        val inviteCode = if (inviteCodeString.isNullOrBlank()) {
-            null
-        } else {
-            queries.fetchInviteCode(inviteCodeString, null)
-        }
+        val inviteCode = body.inviteCode?.let { inviteCodeDao.fetchInviteCode(it) }
 
         // Use permissions from provided invite code if it exists
         val permissions = inviteCode?.permissions
             // If no users exist, create user 1 with GLOBAL permission
             ?: setOf(Permission.Global).takeIf { queries.countUsers() == 0L }
             // otherwise ignore creation request
-            ?: return null
+            ?: return CreateUserResponse.Error(signupDisabled = true)
 
-        val newUser = queries.createUser(
+        val now = Clock.System.now()
+        val newUser = queries.insertUser(
             User(
-                id = -1,
+                id = ObjectId.get().toString(),
                 username = username,
                 displayName = body.username,
+                createdAt = now,
+                updatedAt = now,
+                passwordHash = hashPassword(body.password),
             ),
-            passwordHash = hashPassword(body.password),
             permissions = permissions,
         ) ?: return CreateUserResponse.Error(null, null)
         if (inviteCode != null) {
-            queries.deleteInviteCode(inviteCode.secret, null)
+            inviteCodeDao.deleteInviteCode(inviteCode.secret, null)
         }
 
-        return CreateUserResponse.Success(newUser.toUserModel(), permissions)
+        return CreateUserResponse.Success(newUser.toPublic(), permissions)
     }
 
-    suspend fun updateUser(userId: Int, body: UpdateUserBody): Boolean {
+    suspend fun updateUser(userId: String, body: UpdateUserBody): Boolean {
         val user = queries.fetchUser(userId) ?: return false
 
         // Attempt password verification and update first, if this fails
@@ -136,10 +138,10 @@ class UserService(
                 null
             }
 
-        val updatedUser = user.toUserModel().copy(
+        val updatedUser = user.copy(
             displayName = body.displayName,
         )
-        return queries.updateUser(user.id, updatedUser, newPasswordHash)
+        return queries.updateUser(checkNotNull(user.id), updatedUser, newPasswordHash)
     }
 
     fun getPairingMessage(pairingCode: String, registerCode: Boolean): PairingMessage? {
@@ -158,8 +160,8 @@ class UserService(
         val pairingSecret = (pairingMessage as? PairingMessage.Authorized)?.secret
         return if (pairingSecret == secret) {
             val user = queries.fetchUser(pairingMessage.userId) ?: return null
-            val permissions = queries.fetchPermissions(user.id).map(PermissionDb::value).toSet()
-            CreateSessionResponse.Success(user.toUserModel(), permissions)
+            val permissions = queries.fetchPermissions(checkNotNull(user.id))
+            CreateSessionResponse.Success(user.toPublic(), permissions)
         } else {
             null
         }
@@ -188,7 +190,7 @@ class UserService(
                     secret = Hex.toHexString(Random.nextBytes(28)),
                     userId = session.userId,
                 )
-                CreateSessionResponse.Success(user.toUserModel(), session.permissions)
+                CreateSessionResponse.Success(user.toPublic(), session.permissions)
             } else {
                 pairingCodes[body.password] = PairingMessage.Failed
                 CreateSessionResponse.Error(
@@ -207,10 +209,10 @@ class UserService(
             ?: return CreateSessionResponse.Error(
                 usernameError = CreateSessionResponse.UsernameError.NOT_FOUND,
             )
-        val permissions = queries.fetchPermissions(user.id).map(PermissionDb::value).toSet()
+        val permissions = queries.fetchPermissions(checkNotNull(user.id)).toSet()
 
         return if (verifyPassword(body.password, user.passwordHash)) {
-            CreateSessionResponse.Success(user.toUserModel(), permissions)
+            CreateSessionResponse.Success(user.toPublic(), permissions)
         } else {
             CreateSessionResponse.Error(
                 passwordError = CreateSessionResponse.PasswordError.INCORRECT,

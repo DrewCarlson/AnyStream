@@ -19,6 +19,7 @@ package anystream.util
 
 import org.w3c.dom.Element
 
+@Suppress("PropertyName")
 @JsNonModule
 @JsModule("bootstrap")
 external class Bootstrap {

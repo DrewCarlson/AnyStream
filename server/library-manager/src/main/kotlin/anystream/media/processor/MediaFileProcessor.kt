@@ -17,9 +17,9 @@
  */
 package anystream.media.processor
 
-import anystream.db.model.MediaLinkDb
 import anystream.media.file.FileNameParser
 import anystream.models.MediaKind
+import anystream.models.MediaLink
 import anystream.models.api.MediaLinkMatchResult
 import anystream.models.api.MetadataMatch
 
@@ -29,11 +29,11 @@ interface MediaFileProcessor {
 
     val fileNameParser: FileNameParser
 
-    suspend fun findMetadataMatches(mediaLink: MediaLinkDb, import: Boolean): MediaLinkMatchResult
+    suspend fun findMetadataMatches(mediaLink: MediaLink, import: Boolean): MediaLinkMatchResult
 
-    suspend fun importMetadataMatch(mediaLink: MediaLinkDb, metadataMatch: MetadataMatch)
+    suspend fun importMetadataMatch(mediaLink: MediaLink, metadataMatch: MetadataMatch)
 
-    suspend fun findMetadata(mediaLink: MediaLinkDb, remoteId: String): MetadataMatch?
+    suspend fun findMetadata(mediaLink: MediaLink, remoteId: String): MetadataMatch?
 
     fun scoreString(source: String, target: String): Int {
         val s1 = source.lowercase().filter { it.isLetterOrDigit() }

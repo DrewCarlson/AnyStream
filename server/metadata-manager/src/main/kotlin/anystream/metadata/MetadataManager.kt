@@ -51,36 +51,31 @@ class MetadataManager(
             else -> null
         }
 
-        return search(
-            QueryMetadata(
-                providerId = providerId,
-                metadataGid = parsedId,
-                mediaKind = mediaKind,
-                extras = extras,
-            ),
-        ).firstOrNull() ?: QueryMetadataResult.ErrorProviderNotFound
+        return search(mediaKind = mediaKind) {
+            this.providerId = providerId
+            this.metadataGid = parsedId
+            this.extras = extras
+        }.firstOrNull() ?: QueryMetadataResult.ErrorProviderNotFound
     }
 
-    suspend fun search(request: QueryMetadata): List<QueryMetadataResult> {
+    suspend fun search(
+        mediaKind: MediaKind,
+        block: QueryMetadataBuilder.() -> Unit
+    ): List<QueryMetadataResult> {
+        val request = QueryMetadataBuilder(mediaKind).apply(block).build()
         logger.debug("Performing metadata search for {}", request)
         return if (request.providerId == null) {
             providers
                 .filter { it.mediaKinds.contains(request.mediaKind) }
                 .map { provider -> provider.search(request) }
-                .also { selectedProviders ->
-                    if (selectedProviders.isEmpty()) {
-                        logger.warn("No providers available for ${request.mediaKind}")
-                    }
-                }
         } else {
             providers.find { it.id == request.providerId }
                 ?.search(request)
                 .run(::listOfNotNull)
-                .also { selectedProviders ->
-                    if (selectedProviders.isEmpty()) {
-                        logger.warn("No providers available for ${request.providerId}")
-                    }
-                }
+        }.also { selectedProviders ->
+            if (selectedProviders.isEmpty()) {
+                logger.warn("No providers available for ${request.providerId}")
+            }
         }
     }
 

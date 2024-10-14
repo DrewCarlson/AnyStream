@@ -19,12 +19,17 @@ package anystream.components
 
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
+import anystream.client.json
+import anystream.models.Library
+import anystream.models.MediaKind
 import anystream.models.Permission
+import anystream.util.bootstrapIcon
 import anystream.util.get
 import anystream.util.tooltip
 import app.softwork.routingcompose.Router
 import kotlinx.browser.localStorage
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.encodeToString
 import org.jetbrains.compose.web.attributes.AttrsScope
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
@@ -36,11 +41,25 @@ private const val MENU_EXPANDED_KEY = "menu_expanded"
 @Composable
 fun SideMenu() {
     val client = get<AnyStreamClient>()
-    val permissions by client.permissions
-        .map { it ?: emptySet() }
-        .collectAsState(client.userPermissions())
+    val permissions by remember {
+        client.permissions
+            .map { it.orEmpty() }
+    }.collectAsState(client.userPermissions())
     var expanded by remember {
         mutableStateOf(localStorage.getItem(MENU_EXPANDED_KEY)?.toBoolean() ?: false)
+    }
+    val libraries by produceState(emptyList<Library>()) {
+        value = /*localStorage.getItem("LIBRARIES_LIST") TODO: fixme
+            ?.run(json::decodeFromString)
+            ?: */try {
+            client.getLibraries()
+        } catch (e: Throwable) {
+            e.printStackTrace()
+            emptyList()
+        }
+        if (value.isNotEmpty()) {
+            localStorage.setItem("LIBRARIES_LIST", json.encodeToString(value))
+        }
     }
     Div({
         classes("d-inline-block", "mx-2", "py-2")
@@ -76,17 +95,21 @@ fun SideMenu() {
             Li({ classes("nav-item") }) {
                 NavLink("Home", "bi-house", "/home", expanded)
             }
-            if (Permission.check(Permission.ViewCollection, permissions)) {
-                Li({ classes("nav-item") }) {
-                    NavLink("Movies", "bi-film", "/movies", expanded)
-                }
-                Li({ classes("nav-item") }) {
-                    NavLink("TV", "bi-tv", "/tv", expanded)
-                }
-            }
             if (Permission.check(Permission.ManageTorrents, permissions)) {
                 Li({ classes("nav-item") }) {
                     NavLink("Downloads", "bi-cloud-arrow-down", "/downloads", expanded)
+                }
+            }
+            if (Permission.check(Permission.ViewCollection, permissions)) {
+                libraries.forEach { library ->
+                    Li({ classes("nav-item") }) {
+                        NavLink(
+                            text = library.name,
+                            icon = library.mediaKind.bootstrapIcon,
+                            path = "/${library.name.lowercase()}",
+                            expanded = expanded
+                        )
+                    }
                 }
             }
             Li({ classes("nav-item", "mt-auto") }) {
