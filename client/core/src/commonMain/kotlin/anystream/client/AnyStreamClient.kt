@@ -160,12 +160,17 @@ class AnyStreamClient(
         }
     }
 
-    private val playbackSessionsFlow =
+    private val playbackSessionsFlow by lazy {
         createWsStateFlow("/api/ws/admin/sessions", PlaybackSessions())
-    private val libraryActivityFlow = createWsStateFlow("/api/ws/admin/activity", LibraryActivity())
+    }
+    private val libraryActivityFlow by lazy {
+        createWsStateFlow("/api/ws/admin/activity", LibraryActivity())
+    }
 
-    val playbackSessions: StateFlow<PlaybackSessions> = playbackSessionsFlow
-    val libraryActivity: StateFlow<LibraryActivity> = libraryActivityFlow
+    val playbackSessions: StateFlow<PlaybackSessions>
+        get() = playbackSessionsFlow
+    val libraryActivity: StateFlow<LibraryActivity>
+        get() = libraryActivityFlow
 
     @OptIn(DelicateCoroutinesApi::class)
     private inline fun <reified T> createWsStateFlow(path: String, default: T): StateFlow<T> {
