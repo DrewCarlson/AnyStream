@@ -22,7 +22,7 @@ java {
 }
 
 sourceSets {
-    main { java.srcDir(buildDir.resolve("generated/ksp/$name/kotlin")) }
+    main { java.srcDir(layout.buildDirectory.dir("generated/ksp/$name/kotlin")) }
 
     val libsCommon = extensions.getByType<VersionCatalogsExtension>().named("libsCommon")
     val libsServer = extensions.getByType<VersionCatalogsExtension>().named("libsServer")
