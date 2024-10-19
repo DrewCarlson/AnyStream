@@ -17,7 +17,6 @@ dependencies {
     implementation(libsServer.bundles.jooq)
 
     //implementation(libsServer.kjob.core)
-    //implementation(libsServer.kjob.jdbi)
 
     implementation(libsServer.jaffree)
 }
