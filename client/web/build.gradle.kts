@@ -1,4 +1,5 @@
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig.*
 
 plugins {
@@ -10,6 +11,10 @@ plugins {
 }
 
 val localProperties = gradleLocalProperties(rootDir, providers)
+
+composeCompiler {
+    targetKotlinPlatforms.set(listOf(KotlinPlatformType.js))
+}
 
 kotlin {
     js(IR) {
