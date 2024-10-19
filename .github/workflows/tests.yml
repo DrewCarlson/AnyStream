@@ -262,6 +262,11 @@ jobs:
           key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
 
       - uses: browser-actions/setup-firefox@v1
+        id: install-firefox
+
+      - name: Set FIREFOX_BIN environment variable
+        run: echo "FIREFOX_BIN=${{ steps.install-firefox.outputs.firefox-path }} >> $GITHUB_ENV
+
       - uses: gradle/gradle-build-action@v2
         name: Web Tests
         with:
