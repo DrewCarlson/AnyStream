@@ -1,5 +1,6 @@
 import com.android.build.gradle.LibraryExtension
 import org.gradle.kotlin.dsl.*
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinMetadataTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 
@@ -59,6 +60,7 @@ kotlin {
     jvm()
     if (hasAndroidSdk) {
         androidTarget {
+            @OptIn(ExperimentalKotlinGradlePluginApi::class)
             compilerOptions {
                 jvmTarget.set(JVM_TARGET)
             }
@@ -72,6 +74,7 @@ kotlin {
         iosX64()
     }
     applyDefaultHierarchyTemplate()
+    @OptIn(ExperimentalKotlinGradlePluginApi::class)
     compilerOptions {
         freeCompilerArgs.add("-Xexpect-actual-classes")
     }
