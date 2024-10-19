@@ -18,7 +18,7 @@
 package anystream.util
 
 import io.ktor.server.application.*
-import io.ktor.util.pipeline.PipelineContext
+import io.ktor.server.routing.*
 
-val PipelineContext<Unit, ApplicationCall>.logger
+val RoutingContext.logger
     get() = this.call.application.log

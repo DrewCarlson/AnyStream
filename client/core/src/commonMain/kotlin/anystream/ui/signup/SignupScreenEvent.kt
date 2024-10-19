@@ -18,6 +18,7 @@
 package anystream.ui.signup
 
 import anystream.models.User
+import anystream.models.UserPublic
 import anystream.models.api.CreateUserResponse
 
 sealed class SignupScreenEvent {
@@ -45,7 +46,7 @@ sealed class SignupScreenEvent {
     object OnSignupSubmit : SignupScreenEvent()
 
     data class OnSignupSuccess(
-        val user: User,
+        val user: UserPublic,
     ) : SignupScreenEvent()
 
     data class OnSignupError(

@@ -18,15 +18,13 @@
 package anystream.jobs
 
 import anystream.data.MetadataDbQueries
-import anystream.models.DownloadMediaLink
-import anystream.models.LocalMediaLink
+import anystream.models.MediaLink
+import anystream.models.MediaLinkType
 import anystream.service.stream.executeAwait
 import com.github.kokorin.jaffree.JaffreeException
 import com.github.kokorin.jaffree.ffmpeg.FFmpeg
 import com.github.kokorin.jaffree.ffmpeg.UrlInput
 import com.github.kokorin.jaffree.ffmpeg.UrlOutput
-import kjob.core.Job
-import kjob.core.KJob
 import org.slf4j.Logger
 import java.io.File
 import kotlin.io.path.Path
@@ -39,7 +37,7 @@ private const val PREVIEW_IMAGE_INTERVAL = "5" // Seconds between each image
 private const val PREVIEW_IMAGE_FILE_NAME = "preview%d.jpg"
 private const val FFMPEG_FILTER = "fps=fps=1/$PREVIEW_IMAGE_INTERVAL,scale=$PREVIEW_IMAGE_WIDTH:-1"
 
-object GenerateVideoPreviewJob : Job("generate-video-preview") {
+/*object GenerateVideoPreviewJob : Job("generate-video-preview") {
     private val MEDIA_LINK_ID = string("mediaLinkId")
 
     fun register(
@@ -52,11 +50,11 @@ object GenerateVideoPreviewJob : Job("generate-video-preview") {
         kjob.register(GenerateVideoPreviewJob) {
             execute {
                 val mediaLinkId = props[MEDIA_LINK_ID]
-                when (val mediaLink = metadataDbQueries.findMediaLinkByGid(mediaLinkId)) {
+                val mediaLink = metadataDbQueries.findMediaLinkByGid(mediaLinkId)
+                when (mediaLink?.type) {
                     null -> logger.error("No mediaLink found for id: $mediaLinkId")
-                    is DownloadMediaLink ->
-                        logger.error("Generating video previews for DownloadMediaLink is unsupported: $mediaLinkId")
-                    is LocalMediaLink -> generatePreview(logger, ffmpeg(), previewStorage, mediaLink)
+                    MediaLinkType.DOWNLOAD ->  logger.error("Generating video previews for DownloadMediaLink is unsupported: $mediaLinkId")
+                    MediaLinkType.LOCAL -> generatePreview(logger, ffmpeg(), previewStorage, mediaLink)
                 }
             }
         }
@@ -73,7 +71,7 @@ object GenerateVideoPreviewJob : Job("generate-video-preview") {
         logger: Logger,
         ffmpeg: FFmpeg,
         rootStorageDir: String,
-        mediaLink: LocalMediaLink,
+        mediaLink: MediaLink,
     ) {
         val outputPath = Path(rootStorageDir, mediaLink.gid).createDirectories().absolutePathString()
         val input = UrlInput.fromUrl(mediaLink.filePath)
@@ -92,4 +90,4 @@ object GenerateVideoPreviewJob : Job("generate-video-preview") {
             return
         }
     }
-}
+}*/

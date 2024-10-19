@@ -44,15 +44,6 @@ fun Route.addMovieRoutes(
         }
 
         route("/{movie_id}") {
-            get {
-                val movieId = call.parameters["movie_id"]
-                    ?.takeUnless(String::isNullOrBlank)
-                    ?: return@get call.respond(NotFound)
-                val response = queries.findMovieById(movieId)
-                    ?: return@get call.respond(NotFound)
-
-                call.respond(response)
-            }
 
             get("/links") {
                 val movieId = call.parameters["movie_id"]

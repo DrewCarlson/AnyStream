@@ -1,12 +1,15 @@
 import com.android.build.gradle.LibraryExtension
 import org.gradle.kotlin.dsl.*
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinMetadataTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 
 plugins {
     kotlin("multiplatform")
     id("com.diffplug.spotless")
+    kotlin("plugin.serialization")
+    id("org.jetbrains.kotlinx.atomicfu")
 }
-
-apply(plugin = "kotlinx-atomicfu")
 
 if (hasAndroidSdk) {
     apply(plugin = "com.android.library")
@@ -57,10 +60,9 @@ kotlin {
     jvm()
     if (hasAndroidSdk) {
         androidTarget {
-            compilations.all {
-                kotlinOptions {
-                    jvmTarget = JAVA_TARGET.majorVersion
-                }
+            @OptIn(ExperimentalKotlinGradlePluginApi::class)
+            compilerOptions {
+                jvmTarget.set(JVM_TARGET)
             }
         }
     }
@@ -72,13 +74,9 @@ kotlin {
         iosX64()
     }
     applyDefaultHierarchyTemplate()
-
-    targets.all {
-        compilations.configureEach {
-            compilerOptions.configure {
-                freeCompilerArgs.add("-Xexpect-actual-classes")
-            }
-        }
+    @OptIn(ExperimentalKotlinGradlePluginApi::class)
+    compilerOptions {
+        freeCompilerArgs.add("-Xexpect-actual-classes")
     }
 
     @Suppress("UNUSED_VARIABLE")
@@ -142,27 +140,13 @@ kotlin {
         // "Could not create task of type 'KotlinNativeLink'."
         if (project.name != "ui") {
             configureCommonIosSourceSets()
-
-            configure(
-                listOf(
-                    iosArm64(),
-                    iosSimulatorArm64(),
-                    iosX64(),
-                ),
-            ) {
-                compilations.configureEach {
-                    compilerOptions.configure {
-                        freeCompilerArgs.add("-Xallocator=custom")
-                    }
-                }
-            }
         }
     }
 }
 
 afterEvaluate {
     if (extensions.findByName("ksp") != null) {
-        tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>>().all {
+        tasks.withType<KotlinCompilationTask<*>>().all {
             if (name != "kspCommonMainKotlinMetadata") {
                 dependsOn("kspCommonMainKotlinMetadata")
             }

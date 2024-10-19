@@ -17,50 +17,83 @@
  */
 package anystream.db
 
-import anystream.db.model.PlaybackStateDb
-import kotlinx.datetime.Instant
-import org.jdbi.v3.sqlobject.customizer.BindList
-import org.jdbi.v3.sqlobject.locator.UseClasspathSqlLocator
-import org.jdbi.v3.sqlobject.statement.SqlQuery
-import org.jdbi.v3.sqlobject.statement.SqlUpdate
+import anystream.db.converter.INSTANT_DATATYPE
+import anystream.db.tables.references.METADATA
+import anystream.db.tables.references.PLAYBACK_STATE
+import anystream.db.util.intoType
+import anystream.models.PlaybackState
+import org.jooq.DSLContext
+import org.jooq.impl.DSL
+import org.jooq.impl.SQLDataType
 
-interface PlaybackStatesDao {
+class PlaybackStatesDao(
+    private val db: DSLContext
+) {
 
-    @SqlUpdate
-    @UseClasspathSqlLocator
-    fun insertState(state: PlaybackStateDb, createdAt: Instant): Int
+    /**
+     * SELECT ps.*
+     * FROM playbackStates ps
+     * JOIN (
+     *     SELECT m1.id AS metadataId,
+     *            CASE
+     *                WHEN m1.rootId IS NULL THEN m1.id
+     *                ELSE m1.rootId
+     *            END AS rootOrSelfGid,
+     *            MAX(ps.updatedAt) AS maxUpdatedAt
+     *     FROM playbackStates ps
+     *     JOIN metadata m1 ON m1.id = ps.metadataId
+     *     WHERE ps.userId = ?
+     *     GROUP BY rootOrSelfGid
+     * ) x ON x.metadataId = ps.metadataId AND x.maxUpdatedAt = ps.updatedAt
+     * ORDER BY ps.updatedAt DESC
+     * LIMIT ?
+     */
+    fun findWithUniqueRootByUserId(userId: String, limit: Int): List<PlaybackState> {
+        val subquery = DSL.select(
+            METADATA.ID.`as`("metadataId"),
+            DSL.`when`(METADATA.ROOT_ID.isNull(), METADATA.ID)
+                .otherwise(METADATA.ROOT_ID)
+                .`as`("rootOrSelfGid"),
+            DSL.max(PLAYBACK_STATE.UPDATED_AT)
+                .`as`("maxUpdatedAt")
+        )
+            .from(PLAYBACK_STATE)
+            .join(METADATA)
+            .on(METADATA.ID.eq(PLAYBACK_STATE.METADATA_ID))
+            .where(PLAYBACK_STATE.USER_ID.eq(userId))
+            .groupBy(DSL.field("rootOrSelfGid"))
+            .asTable("x")
 
-    @SqlQuery("SELECT * FROM playbackStates WHERE id = ?")
-    fun findById(id: Int): PlaybackStateDb?
+        return db.select(PLAYBACK_STATE)
+            .from(PLAYBACK_STATE)
+            .join(subquery)
+            .on(
+                subquery.field("metadataId", SQLDataType.VARCHAR(24).notNull())!!
+                    .eq(PLAYBACK_STATE.METADATA_ID)
+                    .and(
+                        subquery.field("maxUpdatedAt", INSTANT_DATATYPE)!!
+                            .eq(PLAYBACK_STATE.UPDATED_AT)
+                    )
+            )
+            .orderBy(PLAYBACK_STATE.UPDATED_AT.desc())
+            .limit(limit)
+            .fetch()
+            .intoType()
+    }
 
-    @SqlQuery("SELECT * FROM playbackStates WHERE gid = ?")
-    fun findByGid(id: String): PlaybackStateDb?
+    fun findByUserIdAndMediaId(userId: String, metadataId: String): PlaybackState? {
+        return db.fetchOne(
+            PLAYBACK_STATE,
+            PLAYBACK_STATE.USER_ID.eq(userId),
+            PLAYBACK_STATE.METADATA_ID.eq(metadataId)
+        )?.intoType()
+    }
 
-    @SqlQuery("SELECT * FROM playbackStates WHERE id IN (<ids>)")
-    fun findByIds(@BindList("ids") ids: List<Int>): List<PlaybackStateDb>
-
-    @SqlQuery("SELECT * FROM playbackStates WHERE gid IN (<ids>)")
-    fun findByGids(@BindList("ids") ids: List<String>): List<PlaybackStateDb>
-
-    @SqlQuery("SELECT * FROM playbackStates WHERE userId = ? ORDER BY updatedAt DESC LIMIT ?")
-    fun findByUserId(userId: Int, limit: Int): List<PlaybackStateDb>
-
-    @SqlQuery
-    @UseClasspathSqlLocator
-    fun findWithUniqueRootByUserId(userId: Int, limit: Int): List<PlaybackStateDb>
-
-    @SqlQuery("SELECT * FROM playbackStates WHERE userId = ? AND metadataGid = ?")
-    fun findByUserIdAndMediaGid(userId: Int, metadataGid: String): PlaybackStateDb?
-
-    @SqlQuery("SELECT * FROM playbackStates WHERE userId = ? AND mediaLinkId = ?")
-    fun findByUserIdAndMediaRefGid(userId: Int, mediaLinkGid: String): PlaybackStateDb?
-
-    @SqlQuery("SELECT * FROM playbackStates WHERE userId = :userId AND metadataGid IN (<metadataGids>)")
-    fun findByUserIdAndMediaGids(userId: Int, @BindList("metadataGids") metadataGids: List<String>): List<PlaybackStateDb>
-
-    @SqlUpdate("UPDATE playbackStates SET position = :position, updatedAt = :updatedAt WHERE gid = :gid")
-    fun updatePosition(gid: String, position: Double, updatedAt: Instant): Int
-
-    @SqlUpdate("DELETE FROM playbackStates WHERE gid = ?")
-    fun deleteByGid(gid: String)
+    fun findByUserIdAndMediaGids(userId: String, metadataIds: List<String>): List<PlaybackState> {
+        return db.fetch(
+            PLAYBACK_STATE,
+            PLAYBACK_STATE.USER_ID.eq(userId),
+            PLAYBACK_STATE.METADATA_ID.`in`(metadataIds)
+        ).intoType()
+    }
 }

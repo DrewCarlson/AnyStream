@@ -20,148 +20,92 @@ package anystream.models
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 
-@Serializable
-sealed class MediaLink {
+/**
+ * [Descriptor] identifies the file contents of a [MediaLink].
+ */
+enum class Descriptor {
     /**
-     * The database id or -1 if it is not stored in the database.
+     * A video file of any type, identified as usable based
+     * on the file extension and known video file extensions.
      */
-    abstract val id: Int
-
-    /**
-     * The database id string, though it may not exist in the
-     * database until [id] > 0.
-     */
-    abstract val gid: String
+    VIDEO,
 
     /**
-     * The metadata id or null if the file has no metadata.
+     * A video file of any type, identified as usable based
+     * on the file extension and known audio file extensions.
      */
-    abstract val metadataId: Int?
+    AUDIO,
 
     /**
-     * The content gid or null if the file has no metadata.
+     * A subtitle file of any type, identified as usable based
+     * on the file extension and known subtitle file extensions.
      */
-    abstract val metadataGid: String?
+    SUBTITLE,
 
     /**
-     * The root metadata gid or null if the file has no metadata
-     * or [metadataId] has no parent metadata records.
+     * An image file of any type, identified as usable based
+     * on the file extension and known image file extensions.
      */
-    abstract val rootMetadataId: Int?
+    IMAGE,
 
-    /**
-     * The root metadata gid or null if the file has no metadata
-     * or [metadataGid] has no parent metadata records.
-     */
-    abstract val rootMetadataGid: String?
+    ;
 
-    /**
-     * The root media link id or null if this file is the root
-     * media for a single metadata entry.
-     */
-    abstract val parentMediaLinkId: Int?
-
-    abstract val parentMediaLinkGid: String?
-
-    /**
-     * The time the media file was scanned.
-     */
-    abstract val addedAt: Instant
-
-    /**
-     * The time the media file was last scanned.
-     */
-    abstract val updatedAt: Instant
-
-    /**
-     * The user id that created this link.
-     */
-    abstract val addedByUserId: Int
-
-    /**
-     * The [MediaKind] associated with processor that identified
-     * this file.
-     */
-    abstract val mediaKind: MediaKind
-
-    /**
-     * The [Descriptor] of
-     */
-    abstract val descriptor: Descriptor
-
-    /**
-     * A list of [StreamEncodingDetails] that provide rich
-     * information based on the [MediaKind] of the file.
-     */
-    abstract val streams: List<StreamEncodingDetails>
-
-    abstract val filePath: String?
-
-    /**
-     * [Descriptor] identifies the file contents of a [MediaLink].
-     */
-    enum class Descriptor {
-        /**
-         * A directory known to contain any number of files and
-         * directories of media matching [mediaKind].
-         */
-        ROOT_DIRECTORY,
-
-        /**
-         * A directory containing any
-         */
-        MEDIA_DIRECTORY,
-
-        /**
-         * A directory which contains a subset of files and
-         * directories of media belonging to the [rootMetadataGid].
-         */
-        CHILD_DIRECTORY,
-
-        /**
-         * A video file of any type, identified as usable based
-         * on the file extension and known video file extensions.
-         */
-        VIDEO,
-
-        /**
-         * A video file of any type, identified as usable based
-         * on the file extension and known audio file extensions.
-         */
-        AUDIO,
-
-        /**
-         * A subtitle file of any type, identified as usable based
-         * on the file extension and known subtitle file extensions.
-         */
-        SUBTITLE,
-
-        /**
-         * An image file of any type, identified as usable based
-         * on the file extension and known image file extensions.
-         */
-        IMAGE,
-
-        ;
-
-        fun isDirectoryLink(): Boolean {
-            return name.endsWith("DIRECTORY")
-        }
-
-        fun isMediaFileLink(): Boolean {
-            return this == AUDIO || this == VIDEO
-        }
+    fun isMediaFileLink(): Boolean {
+        return this == AUDIO || this == VIDEO
     }
+}
 
-    open val filename: String
-        get() = (filePath ?: "(no name)")
-            .substringAfterLast('/')
-            .substringAfterLast('\\')
 
-    open val fileExtension: String?
-        get() = filename
-            .substringAfterLast('.', "")
-            .takeIf(String::isNotBlank)
+val MediaLink.filename: String
+    get() = (filePath ?: "(no name)")
+        .substringAfterLast('/')
+        .substringAfterLast('\\')
+
+val MediaLink.fileExtension: String?
+    get() = filename
+        .substringAfterLast('.', "")
+        .takeIf(String::isNotBlank)
+
+fun MediaLink.typed(): MediaLinkTyped {
+    return when (type) {
+        MediaLinkType.DOWNLOAD -> LocalMediaLink(
+            id = id,
+            metadataId = metadataId,
+            rootMetadataId = rootMetadataId,
+            directoryId = directoryId,
+            type = type,
+            createdAt = createdAt,
+            updatedAt = updatedAt,
+            mediaKind =  mediaKind,
+            descriptor = descriptor,
+            filePath = checkNotNull(filePath),
+        )
+        MediaLinkType.LOCAL -> LocalMediaLink(
+            id = id,
+            metadataId = metadataId,
+            rootMetadataId = rootMetadataId,
+            directoryId = directoryId,
+            type = type,
+            createdAt = createdAt,
+            updatedAt = updatedAt,
+            mediaKind =  mediaKind,
+            descriptor = descriptor,
+            filePath = checkNotNull(filePath)
+        )
+    }
+}
+
+sealed class MediaLinkTyped {
+    abstract val id: String
+    abstract val metadataId: String?
+    abstract val rootMetadataId: String?
+    abstract val directoryId: String
+    abstract val createdAt: Instant
+    abstract val mediaKind: MediaKind
+    abstract val type: MediaLinkType
+    abstract val updatedAt: Instant?
+    abstract val filePath: String?
+    abstract val descriptor: Descriptor
 }
 
 /**
@@ -169,23 +113,18 @@ sealed class MediaLink {
  */
 @Serializable
 data class LocalMediaLink(
-    override val id: Int,
-    override val gid: String,
-    override val metadataId: Int?,
-    override val metadataGid: String?,
-    override val rootMetadataId: Int? = null,
-    override val rootMetadataGid: String? = null,
-    override val parentMediaLinkId: Int? = null,
-    override val parentMediaLinkGid: String? = null,
-    override val addedAt: Instant,
+    override val id: String,
+    override val metadataId: String?,
+    override val rootMetadataId: String? = null,
+    override val directoryId: String,
+    override val type: MediaLinkType,
+    override val createdAt: Instant,
     override val updatedAt: Instant,
-    override val addedByUserId: Int,
+    //override val addedByUserId: Int,
     override val mediaKind: MediaKind,
     override val descriptor: Descriptor,
-    override val streams: List<StreamEncodingDetails> = emptyList(),
     override val filePath: String,
-    val directory: Boolean,
-) : MediaLink()
+) : MediaLinkTyped()
 
 /**
  * A [MediaLink] that refers to a [fileIndex] within a
@@ -193,21 +132,17 @@ data class LocalMediaLink(
  */
 @Serializable
 data class DownloadMediaLink(
-    override val id: Int,
-    override val gid: String,
-    override val metadataId: Int?,
-    override val metadataGid: String?,
-    override val rootMetadataId: Int? = null,
-    override val rootMetadataGid: String? = null,
-    override val parentMediaLinkId: Int? = null,
-    override val parentMediaLinkGid: String? = null,
-    override val addedAt: Instant,
+    override val id: String,
+    override val metadataId: String?,
+    override val rootMetadataId: String? = null,
+    override val directoryId: String,
+    override val type: MediaLinkType,
+    override val createdAt: Instant,
     override val updatedAt: Instant,
-    override val addedByUserId: Int,
+    //override val addedByUserId: Int,
     override val mediaKind: MediaKind,
     override val descriptor: Descriptor,
-    override val streams: List<StreamEncodingDetails> = emptyList(),
     val infoHash: String,
     val fileIndex: Int?,
     override val filePath: String?,
-) : MediaLink()
+) : MediaLinkTyped()

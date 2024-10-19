@@ -18,6 +18,7 @@
 package anystream.ui.login
 
 import anystream.models.User
+import anystream.models.UserPublic
 import anystream.models.api.CreateSessionResponse
 
 sealed class LoginScreenEvent {
@@ -48,7 +49,7 @@ sealed class LoginScreenEvent {
     ) : LoginScreenEvent()
 
     data class OnLoginSuccess(
-        val user: User,
+        val user: UserPublic,
     ) : LoginScreenEvent()
 
     data class OnLoginError(

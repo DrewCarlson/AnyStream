@@ -22,6 +22,7 @@ import anystream.models.api.*
 import anystream.torrent.search.TorrentDescription2
 import io.ktor.client.HttpClient
 import io.ktor.client.call.*
+import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.cookies.*
 import io.ktor.client.plugins.logging.*
@@ -57,7 +58,7 @@ import qbittorrent.models.TorrentFile
 private const val PAGE = "page"
 private const val QUERY = "query"
 
-private val json = Json {
+val json = Json {
     isLenient = true
     encodeDefaults = true
     ignoreUnknownKeys = true
@@ -81,7 +82,7 @@ class AnyStreamClient(
 
     val authenticated: Flow<Boolean> = sessionManager.tokenFlow.map { it != null }
     val permissions: Flow<Set<Permission>?> = sessionManager.permissionsFlow
-    val user: Flow<User?> = sessionManager.userFlow
+    val user: Flow<UserPublic?> = sessionManager.userFlow
     val token: String?
         get() = sessionManager.fetchToken()
 
@@ -112,10 +113,17 @@ class AnyStreamClient(
         }
         install(Logging) {
             logger = Logger.SIMPLE
-            level = LogLevel.BODY
+            level = LogLevel.INFO
         }
         WebSockets {
             contentConverter = KotlinxWebsocketSerializationConverter(json)
+        }
+        defaultRequest {
+            headers {
+                sessionManager.fetchToken()?.let { token ->
+                    header(SESSION_KEY, token)
+                }
+            }
         }
         install("ErrorTransformer") {
             requestPipeline.intercept(HttpRequestPipeline.State) {
@@ -138,11 +146,6 @@ class AnyStreamClient(
             }
         }
         install("TokenHandler") {
-            requestPipeline.intercept(HttpRequestPipeline.Before) {
-                sessionManager.fetchToken()?.let { token ->
-                    context.header(SESSION_KEY, token)
-                }
-            }
             responsePipeline.intercept(HttpResponsePipeline.Receive) {
                 context.response.headers[SESSION_KEY]?.let { token ->
                     if (token != sessionManager.fetchToken()) {
@@ -157,12 +160,17 @@ class AnyStreamClient(
         }
     }
 
-    private val playbackSessionsFlow =
+    private val playbackSessionsFlow by lazy {
         createWsStateFlow("/api/ws/admin/sessions", PlaybackSessions())
-    private val libraryActivityFlow = createWsStateFlow("/api/ws/admin/activity", LibraryActivity())
+    }
+    private val libraryActivityFlow by lazy {
+        createWsStateFlow("/api/ws/admin/activity", LibraryActivity())
+    }
 
-    val playbackSessions: StateFlow<PlaybackSessions> = playbackSessionsFlow
-    val libraryActivity: StateFlow<LibraryActivity> = libraryActivityFlow
+    val playbackSessions: StateFlow<PlaybackSessions>
+        get() = playbackSessionsFlow
+    val libraryActivity: StateFlow<LibraryActivity>
+        get() = libraryActivityFlow
 
     @OptIn(DelicateCoroutinesApi::class)
     private inline fun <reified T> createWsStateFlow(path: String, default: T): StateFlow<T> {
@@ -213,7 +221,7 @@ class AnyStreamClient(
         return userPermissions().run { contains(Permission.Global) || contains(permission) }
     }
 
-    fun authedUser(): User? {
+    fun authedUser(): UserPublic? {
         return sessionManager.fetchUser()
     }
 
@@ -269,11 +277,15 @@ class AnyStreamClient(
     suspend fun getTvShows(page: Int = 1): TvShowsResponse =
         http.get("$serverUrl/api/tv") { pageParam(page) }.bodyOrThrow()
 
-    suspend fun addLibraryFolder(path: String, mediaKind: MediaKind): AddLibraryFolderResponse {
+    suspend fun getLibraries(): List<Library> {
+        return http.get("$serverUrl/api/library").bodyOrThrow()
+    }
+
+    suspend fun addLibraryFolder(libraryId: String, path: String): AddLibraryFolderResponse {
         return try {
-            http.post("$serverUrl/api/medialink/libraries") {
+            http.put("$serverUrl/api/library/${libraryId}") {
                 contentType(ContentType.Application.Json)
-                setBody(AddLibraryFolderRequest(path, mediaKind))
+                setBody(AddLibraryFolderRequest(path))
             }.bodyOrThrow()
         } catch (e: AnyStreamClientException) {
             e.printStackTrace()
@@ -287,6 +299,23 @@ class AnyStreamClient(
             true
         } catch (e: AnyStreamClientException) {
             if (e.response?.status == NotFound) false else throw e
+        }
+    }
+
+    suspend fun getDirectories(libraryId: String): List<Directory> {
+        return try {
+            http.get("$serverUrl/api/library/$libraryId/directories").bodyOrThrow()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+
+    suspend fun scanLibrary(libraryId: String) {
+        try {
+            http.get("$serverUrl/api/library/$libraryId/scan").orThrow()
+        } catch (e: Throwable) {
+            e.printStackTrace()
         }
     }
 

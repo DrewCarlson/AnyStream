@@ -2,7 +2,6 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     id("server-lib")
-    alias(libsCommon.plugins.serialization)
     application
     id("com.github.johnrengelman.shadow")
 }
@@ -89,7 +88,7 @@ dependencies {
     implementation(libsCommon.ktor.server.auth)
     implementation(libsCommon.ktor.server.authJwt)
     implementation(libsCommon.ktor.server.websockets)
-    implementation(libsCommon.ktor.server.permissions)
+    implementation(libsServer.ktor.server.permissions)
 
     implementation(libsCommon.ktor.client.core)
     implementation(libsCommon.ktor.client.cio)
@@ -100,14 +99,10 @@ dependencies {
 
     implementation(libsServer.logback)
 
+    implementation(libsServer.bundles.jooq)
     implementation(libsServer.jdbc.sqlite)
-    implementation(libsServer.jdbi.core)
-    implementation(libsServer.jdbi.sqlobject)
-    implementation(libsServer.jdbi.kotlin)
-    implementation(libsServer.jdbi.kotlin.sqlobject)
 
-    implementation(libsServer.kjob.core)
-    implementation(libsServer.kjob.jdbi)
+    //implementation(libsServer.kjob.core)
 
     implementation(libsServer.jaffree)
 
@@ -120,8 +115,7 @@ dependencies {
     implementation(libsServer.qbittorrent.client)
     implementation(libsServer.torrentSearch)
     testImplementation(libsCommon.ktor.server.tests)
-    testImplementation(kotlin("test"))
-    testImplementation(kotlin("test-junit"))
+    testImplementation(projects.server.dbModels.testing)
 }
 
 tasks.getByName<JavaExec>("run") {
@@ -130,7 +124,7 @@ tasks.getByName<JavaExec>("run") {
     environment(
         "WEB_CLIENT_PATH",
         properties["webClientPath"] ?: environment["WEB_CLIENT_PATH"]
-        ?: clientWeb.buildDir.resolve("dist/js/developmentExecutable").absolutePath
+        ?: clientWeb.layout.buildDirectory.dir("dist/js/developmentExecutable").get().asFile.absolutePath
     )
     environment(
         "DATABASE_URL",

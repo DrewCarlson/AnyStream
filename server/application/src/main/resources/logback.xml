@@ -14,9 +14,13 @@
     <root level="TRACE">
         <appender-ref ref="STDOUT"/>
     </root>
+
+    <logger name="org.jooq.Constants" level="warn">
+        <appender-ref ref="STDOUT" />
+    </logger>
+
     <logger name="org.eclipse.jetty" level="INFO"/>
     <logger name="io.netty" level="INFO"/>
-    <logger name="org.jdbi" level="ERROR"/>
     <logger name="info.movito.themoviedbapi" level="INFO"/>
     <logger name="com.github.kokorin.jaffree" level="ERROR"/>
     <logger name="kjob" level="ERROR"/>
@@ -24,4 +28,5 @@
     <logger name="io.ktor.websocket.WebSocket" level="DEBUG"/>
     <logger name="io.ktor.client.plugins" level="DEBUG"/>
     <logger name="org.flywaydb" level="DEBUG"/>
+    <logger name="org.sqlite.core.NativeDB" level="DEBUG"/>
 </configuration>
