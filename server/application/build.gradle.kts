@@ -103,7 +103,6 @@ dependencies {
     implementation(libsServer.jdbc.sqlite)
 
     //implementation(libsServer.kjob.core)
-    //implementation(libsServer.kjob.jdbi)
 
     implementation(libsServer.jaffree)
 

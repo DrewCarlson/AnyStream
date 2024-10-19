@@ -24,7 +24,6 @@ mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 jdbc-sqlite = { module = "org.xerial:sqlite-jdbc", version.ref = "jdbc_sqlite" }
 
 kjob-core = { module = "org.drewcarlson:kjob-core", version.ref = "kjob" }
-kjob-jdbi = { module = "org.drewcarlson:kjob-jdbi", version.ref = "kjob" }
 
 qbittorrent-models = { module = "org.drewcarlson:qbittorrent-models", version.ref = "qbittorrent" }
 qbittorrent-client = { module = "org.drewcarlson:qbittorrent-client", version.ref = "qbittorrent" }
