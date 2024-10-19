@@ -29,7 +29,9 @@ kotlin {
                     DevServer(
                         open = false,
                         port = 3000,
-                        static = mutableListOf("$buildDir/processedResources/js/main"),
+                        static = mutableListOf(
+                            layout.buildDirectory.dir("processedResources/js/main").get().asFile.absolutePath
+                        ),
                         proxy = mutableListOf(
                             DevServer.Proxy(
                                 target = anystreamUrl,

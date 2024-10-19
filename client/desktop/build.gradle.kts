@@ -45,7 +45,7 @@ fun getLibvlcForHost(): String? {
 
 tasks {
     val downloadLibvlc by registering(de.undercouch.gradle.tasks.download.Download::class) {
-        val outFile = buildDir.resolve("libvlc-${getLibvlcForHost()}.zip")
+        val outFile = layout.buildDirectory.file("libvlc-${getLibvlcForHost()}.zip")
         src(
             buildString {
                 append("https://github.com/DrewCarlson/libvlc-bin/releases/download/")
@@ -56,7 +56,7 @@ tasks {
             }
         )
         dest(outFile)
-        enabled = !getLibvlcForHost().isNullOrBlank() && !outFile.exists()
+        enabled = !getLibvlcForHost().isNullOrBlank() && !outFile.get().asFile.exists()
     }
 
     val unpackLibvlc by registering(Copy::class) {
