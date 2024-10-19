@@ -1,17 +1,27 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import nu.studer.gradle.jooq.JooqGenerate
 
 plugins {
     id("multiplatform-lib")
+    alias(libsServer.plugins.jooq)
 }
 
 kotlin {
     jvm()
 
+    targets.all {
+        compilations.all {
+            compileTaskProvider.configure {
+                inputs.dir(layout.buildDirectory.dir("generated-src/jooq/main"))
+                dependsOn("generateJooq")
+            }
+        }
+    }
+
     sourceSets {
         val commonMain by getting {
             kotlin.srcDirs(
                 "src",
-                buildDir.resolve("generated-src/jooq/main")
+                layout.buildDirectory.dir("generated-src/jooq/main")
             )
             dependencies {
                 implementation(libsCommon.serialization.core)
@@ -23,7 +33,45 @@ kotlin {
     }
 }
 
-tasks.withType<KotlinCompile> {
-    inputs.files(fileTree(layout.buildDirectory.dir("generated-src")).files)
-    dependsOn(":server:db-models:movePojos")
+dependencies {
+    jooqGenerator(libsServer.jdbc.sqlite)
+    jooqGenerator(projects.server.dbModels.jooqGenerator)
+}
+
+val dbFile = layout.buildDirectory.file("anystream-reference.db").get().asFile
+val dbUrl = "jdbc:sqlite:${dbFile.absolutePath}"
+val migrationPath = projects.server.dbModels.dependencyProject.file("src/main/resources/db/migration")
+
+val flywayMigrate by tasks.registering(FlywayMigrateTask::class) {
+    driver.set("org.sqlite.JDBC")
+    url.set(dbUrl)
+    migrationsLocation = layout.projectDirectory.dir(migrationPath.absolutePath)
+    if (dbFile.exists()) {
+        inputs.file(dbFile)
+        doFirst { dbFile.delete() }
+    }
+}
+
+jooq {
+    version.set(libsServer.versions.jooq.get())
+    configurations {
+        create("main") {
+            jooqConfiguration.anystreamConfig(dbUrl)
+        }
+    }
+}
+
+val dbClassesTree = fileTree(layout.buildDirectory.dir("generated-src/jooq/main")) {
+    include("anystream/db/**")
+}
+
+tasks.getByName<JooqGenerate>("generateJooq") {
+    inputs.dir(migrationPath)
+    allInputsDeclared.set(true)
+    dependsOn("flywayMigrate")
+    doLast {
+        delete {
+            delete(dbClassesTree)
+        }
+    }
 }

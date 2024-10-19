@@ -10,6 +10,9 @@ dependencies {
     implementation(libsCommon.spotless.plugin)
     implementation(libsCommon.kotlin.gradle.conventions)
     implementation(libsCommon.atomicfu.plugin)
+    implementation(libsServer.flyway.core)
+    implementation(libsServer.jdbc.sqlite)
+    implementation(libsServer.jooq.gradle)
 }
 
 repositories {

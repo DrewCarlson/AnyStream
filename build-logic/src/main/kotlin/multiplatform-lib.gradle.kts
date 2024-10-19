@@ -1,5 +1,7 @@
 import com.android.build.gradle.LibraryExtension
 import org.gradle.kotlin.dsl.*
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinMetadataTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 
 plugins {
     kotlin("multiplatform")
@@ -57,10 +59,8 @@ kotlin {
     jvm()
     if (hasAndroidSdk) {
         androidTarget {
-            compilations.all {
-                kotlinOptions {
-                    jvmTarget = JAVA_TARGET.majorVersion
-                }
+            compilerOptions {
+                jvmTarget.set(JVM_TARGET)
             }
         }
     }
@@ -72,13 +72,8 @@ kotlin {
         iosX64()
     }
     applyDefaultHierarchyTemplate()
-
-    targets.all {
-        compilations.configureEach {
-            compilerOptions.configure {
-                freeCompilerArgs.add("-Xexpect-actual-classes")
-            }
-        }
+    compilerOptions {
+        freeCompilerArgs.add("-Xexpect-actual-classes")
     }
 
     @Suppress("UNUSED_VARIABLE")
@@ -148,7 +143,7 @@ kotlin {
 
 afterEvaluate {
     if (extensions.findByName("ksp") != null) {
-        tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>>().all {
+        tasks.withType<KotlinCompilationTask<*>>().all {
             if (name != "kspCommonMainKotlinMetadata") {
                 dependsOn("kspCommonMainKotlinMetadata")
             }
