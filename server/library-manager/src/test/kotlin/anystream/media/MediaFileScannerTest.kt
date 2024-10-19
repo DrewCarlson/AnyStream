@@ -20,18 +20,10 @@ package anystream.media
 import anystream.db.LibraryDao
 import anystream.db.MediaLinkDao
 import anystream.db.createTestDatabase
-import anystream.db.runMigrations
 import anystream.media.scanner.MediaFileScanner
-import io.kotest.matchers.booleans.shouldBeTrue
-import org.jooq.SQLDialect
-import org.jooq.impl.DSL
-import org.jooq.tools.jdbc.SingleConnectionDataSource
-import org.junit.Ignore
-import org.sqlite.SQLiteConfig
-import org.sqlite.javax.SQLiteConnectionPoolDataSource
-import java.sql.Connection
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
+import kotlin.test.Ignore
 
 @Ignore("Disabled until MediaFileScanner is migrated away from File APIs")
 class MediaFileScannerTest {

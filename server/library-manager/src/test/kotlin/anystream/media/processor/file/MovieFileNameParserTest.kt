@@ -20,8 +20,8 @@ package anystream.media.processor.file
 import anystream.media.file.MovieFileNameParser
 import anystream.media.file.ParsedFileNameResult
 import io.kotest.core.spec.style.FunSpec
-import org.junit.Assert.assertEquals
 import kotlin.io.path.Path
+import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNull
 

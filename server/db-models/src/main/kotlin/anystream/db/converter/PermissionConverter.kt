@@ -45,5 +45,6 @@ class PermissionSetConverter : Converter<String, Set<Permission>> {
 
     override fun fromType(): Class<String> = String::class.java
 
+    @Suppress("UNCHECKED_CAST")
     override fun toType(): Class<Set<Permission>> = Set::class.java as Class<Set<Permission>>
 }
