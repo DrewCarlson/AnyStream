@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS metadata
     tmdb_id            INTEGER,
     imdb_id            TEXT,
     runtime            INTEGER,
-    'index'            INTEGER,
+    `index`            INTEGER,
     content_rating     VARCHAR(30),
     poster_path        TEXT,
     backdrop_path      TEXT,
@@ -51,7 +51,7 @@ CREATE VIRTUAL TABLE searchable_content USING fts5
 (
     id,
     content,
-    media_type,
+    media_type
 );
 /* </editor-fold> */
 
@@ -115,7 +115,7 @@ CREATE TABLE IF NOT EXISTS stream_encoding
     stream_id       INTEGER,
     codec_name      TEXT                    NOT NULL,
     codec_long_name TEXT,
-    'index'         INTEGER,
+    `index`         INTEGER,
     language        TEXT,
     profile         TEXT,
     bit_rate        INTEGER,
@@ -136,9 +136,9 @@ CREATE TABLE IF NOT EXISTS stream_encoding
     sample_rate     INTEGER,
     duration        FLOAT,
     media_link_id   VARCHAR(24)             NOT NULL,
-    'default'       BOOLEAN                 NOT NULL,
+    `default`       BOOLEAN                 NOT NULL,
     FOREIGN KEY (media_link_id) REFERENCES media_link (id) ON DELETE CASCADE,
-    UNIQUE ('index', type, media_link_id) ON CONFLICT REPLACE
+    UNIQUE (`index`, type, media_link_id) ON CONFLICT REPLACE
 );
 /* </editor-fold> */
 
