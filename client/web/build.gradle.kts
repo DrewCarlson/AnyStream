@@ -12,10 +12,6 @@ plugins {
 
 val localProperties = gradleLocalProperties(rootDir, providers)
 
-composeCompiler {
-    targetKotlinPlatforms.set(listOf(KotlinPlatformType.js))
-}
-
 kotlin {
     js(IR) {
         useCommonJs()
