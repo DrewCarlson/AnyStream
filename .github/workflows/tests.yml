@@ -261,6 +261,7 @@ jobs:
             ~/.gradle
           key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
 
+      - uses: browser-actions/setup-firefox@v1
       - uses: gradle/gradle-build-action@v2
         name: Web Tests
         with:
