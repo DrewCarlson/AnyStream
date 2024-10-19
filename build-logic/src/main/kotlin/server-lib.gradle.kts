@@ -11,12 +11,8 @@ kotlin {
         optIn.add("kotlin.io.path.ExperimentalPathApi")
     }
     jvmToolchain(JAVA_TARGET.majorVersion.toInt())
-    target {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = JAVA_TARGET.majorVersion
-            }
-        }
+    compilerOptions {
+        jvmTarget.set(JVM_TARGET)
     }
 }
 
