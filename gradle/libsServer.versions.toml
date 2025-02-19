@@ -1,7 +1,7 @@
 [versions]
 qbittorrent = "1.0.0-beta04"
 jdbi = "3.41.3"
-jdbc_sqlite = "3.42.0.1"
+jdbc_sqlite = "3.49.1.0"
 kjob = "0.6.0"
 bouncy_castle = "1.70"
 jaffree = "2023.09.10"
