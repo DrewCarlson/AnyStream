@@ -113,11 +113,11 @@ jobs:
           key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
 
       - name: Build Server and Web Client
-        run: |
+        run: >
           ./gradlew
-            :anystream-server:server-app:installShadowDist
-            :anystream-server:server-app:shadowDistZip
-            :anystream-server:server-app:shadowDistTar
+          :anystream-server:server-app:installShadowDist
+          :anystream-server:server-app:shadowDistZip
+          :anystream-server:server-app:shadowDistTar
 
       - name: Container registry Log in
         uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772
