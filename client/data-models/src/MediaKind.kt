@@ -29,5 +29,14 @@ enum class MediaKind {
     AUDIOBOOK,
     COMIC,
     GAME,
-    PROGRAM,
+    PROGRAM;
+
+    val libraryName: String
+        get() = when (this) {
+            MOVIE -> "Movies"
+            PHOTO -> "Photos"
+            BOOK -> "Books"
+            TV -> "TV"
+            else -> name.lowercase().replaceFirstChar(Char::uppercaseChar)
+        }
 }

@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS directory
 (
     id         VARCHAR(24) PRIMARY KEY NOT NULL,
     parent_id  VARCHAR(24),
-    library_id VARCHAR(24),
+    library_id VARCHAR(24)             NOT NULL,
     file_path  TEXT                    NOT NULL,
     UNIQUE (file_path) ON CONFLICT IGNORE,
     FOREIGN KEY (library_id) REFERENCES library (id) ON UPDATE SET NULL

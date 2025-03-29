@@ -25,6 +25,7 @@ import anystream.models.Directory
 import anystream.models.Library
 import anystream.models.api.LibraryFolderList
 import anystream.util.get
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.web.attributes.Scope
 import org.jetbrains.compose.web.attributes.scope
 import org.jetbrains.compose.web.dom.*
@@ -45,12 +46,16 @@ fun EditLibraryModal(
         value = client.getDirectories(library.id)
     }
     var screen by remember { mutableStateOf(LibraryModalScreen.DIRECTORY_LIST) }
+    val scope = rememberCoroutineScope()
+
+    var isLoading by remember { mutableStateOf(false) }
 
     Modal(
         id = "edit-library-modal",
         title = "Edit \"${library.name}\"",
         size = ModalSize.Large,
-        onHidden = onClosed
+        onHidden = onClosed,
+        onHide = {}.takeIf { isLoading }
     ) {
         when (screen) {
             LibraryModalScreen.DIRECTORY_LIST -> {
@@ -58,7 +63,22 @@ fun EditLibraryModal(
                     directories = folderList,
                     onAddDirectoryClicked = {
                         screen = LibraryModalScreen.ADD_FOLDER
-                    }
+                    },
+                    onRemoveClicked = { directory ->
+                        scope.launch {
+                            isLoading = true
+                            client.removeDirectory(directory.id)
+                            isLoading = false
+                        }
+                    },
+                    onScanClicked = { directory ->
+                        scope.launch {
+                            isLoading = true
+                            client.scanDirectory(directory.id, refreshMetadata = true)
+                            isLoading = false
+                        }
+                    },
+                    onAnalyzeClicked = {}
                 )
             }
             LibraryModalScreen.ADD_FOLDER -> {
@@ -79,6 +99,9 @@ fun EditLibraryModal(
 private fun LibraryDirectories(
     directories: List<Directory>,
     onAddDirectoryClicked: () -> Unit,
+    onRemoveClicked: (Directory) -> Unit,
+    onScanClicked: (Directory) -> Unit,
+    onAnalyzeClicked: (Directory) -> Unit,
 ) {
     Div {
         Button({
@@ -101,14 +124,14 @@ private fun LibraryDirectories(
             Tbody {
                 directories.forEach { directory ->
                     Tr {
-                        /*Td {
+                        Td {
                             Div({ classes("hstack", "gap-3") }) {
-                                FolderAction("Delete Library", "trash") { onDeleteClicked(folder) }
-                                FolderAction("Scan Files", "arrow-clockwise") { onScanClicked(folder) }
-                                FolderAction("Edit Library", "gear-wide") { onEditClicked(folder) }
-                                FolderAction("Analyze Files", "file-earmark-play") { onAnalyzeClicked(folder) }
+                                FolderAction("Remove", "trash") { onRemoveClicked(directory) }
+                                FolderAction("Scan", "arrow-clockwise") { onScanClicked(directory) }
+                                //FolderAction("Edit", "gear-wide") { onEditClicked(folder) }
+                                FolderAction("Analyze", "file-earmark-play") { onAnalyzeClicked(directory) }
                             }
-                        }*/
+                        }
                         Th({ scope(Scope.Row) }) { Text(directory.filePath) }
                     }
                 }

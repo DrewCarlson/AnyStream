@@ -32,7 +32,7 @@ class SearchService(
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    fun search(inputQuery: String, limit: Int): SearchResponse {
+    suspend fun search(inputQuery: String, limit: Int): SearchResponse {
         val query = "\"${inputQuery.trim()}\"*".trim()
         return try {
             val movieIds = searchableContentDao.search(query, MediaType.MOVIE, limit)

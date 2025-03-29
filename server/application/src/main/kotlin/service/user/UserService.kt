@@ -96,15 +96,15 @@ class UserService(
 
         // Use permissions from provided invite code if it exists
         val permissions = inviteCode?.permissions
-            // If no users exist, create user 1 with GLOBAL permission
-            ?: setOf(Permission.Global).takeIf { queries.countUsers() == 0L }
+        // If no users exist, create user 1 with GLOBAL permission
+            ?: setOf(Permission.Global).takeIf { queries.countUsers() == 0 }
             // otherwise ignore creation request
             ?: return CreateUserResponse.Error(signupDisabled = true)
 
         val now = Clock.System.now()
         val newUser = queries.insertUser(
             User(
-                id = ObjectId.get().toString(),
+                id = ObjectId.next(),
                 username = username,
                 displayName = body.username,
                 createdAt = now,
@@ -140,8 +140,9 @@ class UserService(
 
         val updatedUser = user.copy(
             displayName = body.displayName,
+            passwordHash = newPasswordHash ?: user.passwordHash,
         )
-        return queries.updateUser(checkNotNull(user.id), updatedUser, newPasswordHash)
+        return queries.updateUser(updatedUser)
     }
 
     fun getPairingMessage(pairingCode: String, registerCode: Boolean): PairingMessage? {

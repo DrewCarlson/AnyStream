@@ -54,7 +54,7 @@ class MovieFileProcessor(
         val movie = (metadataMatch as? MetadataMatch.MovieMatch)
             ?.let { getOrImportMetadata(it) }
             ?: return
-        /*val parentGid = mediaLink.parentGid
+        /*val parentId = mediaLink.parentGid
         if (!parentGid.isNullOrBlank()) {
             val parentDescriptor = mediaLinkDao.descriptorForGid(parentGid)
             if (parentDescriptor == Descriptor.MEDIA_DIRECTORY) {

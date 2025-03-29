@@ -149,7 +149,7 @@ class TvFileProcessor(
         // TODO: Update supplementary files (SUBTITLE/IMAGE)
     }
 
-    private fun linkSeasonFolder(
+    private suspend fun linkSeasonFolder(
         childDirLink: MediaLink,
         mediaLink: MediaLink,
         match: MetadataMatch.TvShowMatch,
@@ -185,7 +185,7 @@ class TvFileProcessor(
         }
     }
 
-    private fun linkEpisodeFile(
+    private suspend fun linkEpisodeFile(
         videoFileLink: MediaLink,
         match: MetadataMatch.TvShowMatch,
         seasonMatch: TvSeason,

@@ -17,10 +17,12 @@
  */
 package anystream.db
 
+import anystream.db.tables.records.InviteCodeRecord
 import anystream.db.tables.references.INVITE_CODE
-import anystream.db.util.intoType
+import anystream.db.util.*
 import anystream.models.InviteCode
 import anystream.models.Permission
+import kotlinx.coroutines.reactive.awaitFirst
 import org.jooq.DSLContext
 import org.slf4j.LoggerFactory
 
@@ -30,29 +32,21 @@ class InviteCodeDao(
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     suspend fun fetchInviteCode(secret: String): InviteCode? {
-        return try {
-            db.fetchSingle(INVITE_CODE, INVITE_CODE.SECRET.eq(secret))
-                .into(InviteCode::class.java)
-        } catch (e: Throwable) {
-            logger.error("Failed to fetch InviteCode", e)
-            null
-        }
+        return db.selectFrom(INVITE_CODE)
+            .where(INVITE_CODE.SECRET.eq(secret))
+            .awaitFirstOrNullInto()
     }
 
-    suspend fun fetchInviteCodes(byUserId: String?): List<InviteCode> {
-        return try {
-            if (byUserId == null) {
-                db.selectFrom(INVITE_CODE)
-                    .fetchInto(InviteCode::class.java)
-            } else {
-                db.selectFrom(INVITE_CODE)
-                    .where(INVITE_CODE.CREATED_BY_USER_ID.eq(byUserId))
-                    .fetchInto(InviteCode::class.java)
+    suspend fun fetchInviteCodes(byUserId: String? = null): List<InviteCode> {
+        return db.selectFrom(INVITE_CODE)
+            .run {
+                if (byUserId == null) {
+                    this
+                } else {
+                    where(INVITE_CODE.CREATED_BY_USER_ID.eq(byUserId))
+                }
             }
-        } catch (e: Throwable) {
-            logger.error("Failed to fetch InviteCodes byUserId=$byUserId", e)
-            emptyList()
-        }
+            .awaitInto()
     }
 
     suspend fun createInviteCode(
@@ -60,35 +54,20 @@ class InviteCodeDao(
         permissions: Set<Permission>,
         userId: String,
     ): InviteCode? {
-        return try {
-            db.newRecord(INVITE_CODE).apply {
-                this.secret = secret
-                this.permissions = permissions
-                this.createdByUserId = userId
-                store()
-            }.intoType()
-        } catch (e: Throwable) {
-            logger.error("Failed to insert InviteCode", e)
-            null
-        }
+        val record = InviteCodeRecord(secret, permissions, userId)
+        return db.newRecordAsync(INVITE_CODE, record)
     }
 
     suspend fun deleteInviteCode(secret: String, byUserId: String?): Boolean {
-        return try {
-            db.deleteFrom(INVITE_CODE)
-                .where(INVITE_CODE.SECRET.eq(secret))
-                .run {
-                    if (byUserId == null) {
-                        this
-                    } else {
-                        and(INVITE_CODE.CREATED_BY_USER_ID.eq(byUserId))
-                    }
+        return db.deleteFrom(INVITE_CODE)
+            .where(INVITE_CODE.SECRET.eq(secret))
+            .run {
+                if (byUserId == null) {
+                    this
+                } else {
+                    and(INVITE_CODE.CREATED_BY_USER_ID.eq(byUserId))
                 }
-                .execute()
-            true
-        } catch (e: Throwable) {
-            logger.error("Failed to delete InviteCode: $secret", e)
-            false
-        }
+            }
+            .awaitFirst() == 1
     }
 }

@@ -1,4 +1,5 @@
 import org.gradle.kotlin.dsl.kotlin
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     kotlin("jvm")
@@ -12,7 +13,7 @@ kotlin {
     }
     jvmToolchain(JAVA_TARGET.majorVersion.toInt())
     compilerOptions {
-        jvmTarget.set(JVM_TARGET)
+        jvmTarget.set(JvmTarget.JVM_21)
     }
 }
 

@@ -4,7 +4,7 @@ import org.jooq.meta.jaxb.Logging
 
 
 fun Configuration.anystreamConfig(dbUrl: String) {
-    logging = Logging.FATAL
+    logging = Logging.DEBUG
     jdbc.apply {
         driver = "org.sqlite.JDBC"
         url = dbUrl

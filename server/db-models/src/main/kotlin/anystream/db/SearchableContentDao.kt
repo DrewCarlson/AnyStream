@@ -18,7 +18,7 @@
 package anystream.db
 
 import anystream.db.tables.references.SEARCHABLE_CONTENT
-import anystream.db.util.fetchIntoType
+import anystream.db.util.awaitFirstOrNullInto
 import anystream.models.MediaType
 import org.jooq.Condition
 import org.jooq.DSLContext
@@ -30,31 +30,34 @@ import org.jooq.impl.DSL.condition
 class SearchableContentDao(
     private val db: DSLContext
 ) {
-    fun search(query: String): List<String> {
+    suspend fun search(query: String): List<String> {
         return db.select(SEARCHABLE_CONTENT.ID)
             .from(SEARCHABLE_CONTENT)
             .where(SEARCHABLE_CONTENT.CONTENT.match(query))
             .orderBy(DSL.field("rank"))
-            .fetchIntoType()
+            .awaitFirstOrNullInto<List<String>>()
+            .orEmpty()
     }
 
-    fun search(query: String, type: MediaType): List<String> {
+    suspend fun search(query: String, type: MediaType): List<String> {
         return db.select(SEARCHABLE_CONTENT.ID)
             .from(SEARCHABLE_CONTENT)
             .where(SEARCHABLE_CONTENT.CONTENT.match(query))
             .and(SEARCHABLE_CONTENT.MEDIA_TYPE.eq(type))
             .orderBy(DSL.field("rank"))
-            .fetchIntoType()
+            .awaitFirstOrNullInto<List<String>>()
+            .orEmpty()
     }
 
-    fun search(query: String, type: MediaType, limit: Int): List<String> {
+    suspend fun search(query: String, type: MediaType, limit: Int): List<String> {
         return db.select(SEARCHABLE_CONTENT.ID)
             .from(SEARCHABLE_CONTENT)
             .where(SEARCHABLE_CONTENT.CONTENT.match(query))
             .and(SEARCHABLE_CONTENT.MEDIA_TYPE.eq(type))
             .orderBy(DSL.field("rank"))
             .limit(limit)
-            .fetchIntoType()
+            .awaitFirstOrNullInto<List<String>>()
+            .orEmpty()
     }
 }
 

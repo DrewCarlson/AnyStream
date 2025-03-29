@@ -35,6 +35,16 @@ interface MediaFileProcessor {
 
     suspend fun findMetadata(mediaLink: MediaLink, remoteId: String): MetadataMatch?
 
+    /**
+     * Calculates the [Levenshtein distance](https://en.wikipedia.org/wiki/Levenshtein_distance)
+     * between two string.
+     *
+     * All params are converted to lowercase and filtered to letters and digits only.
+     *
+     * @param source The first string.
+     * @param target The second string.
+     * @return The Levenshtein distance between the two strings.
+     */
     fun scoreString(source: String, target: String): Int {
         val s1 = source.lowercase().filter { it.isLetterOrDigit() }
         val s2 = target.lowercase().filter { it.isLetterOrDigit() }

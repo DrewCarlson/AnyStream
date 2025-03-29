@@ -25,6 +25,8 @@ import anystream.models.api.AddLibraryFolderResponse
 import anystream.models.api.LibraryFolderList
 import anystream.util.koinGet
 import anystream.util.logger
+import io.ktor.http.*
+import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.UnprocessableEntity
 import io.ktor.server.application.*
@@ -48,7 +50,7 @@ fun Route.addLibraryViewRoutes(
                 route("/directories") {
                     get {
                         val libraryId = call.parameters["libraryId"] ?: return@get call.respond(UnprocessableEntity)
-                        call.respond(libraryService.getLibraryDirectories(libraryId))
+                        call.respond(libraryService.getLibraryRootDirectories(libraryId))
                     }
                 }
             }
@@ -60,6 +62,26 @@ fun Route.addLibraryModifyRoutes(
     libraryService: LibraryService = koinGet()
 ) {
     route("/library") {
+
+        route("/directory/{directoryId}") {
+            get("/scan") {
+
+                val directoryId = call.parameters["directoryId"]
+                    ?: return@get call.respond(UnprocessableEntity)
+                val directory = libraryService.getDirectory(directoryId)
+                    ?: return@get call.respond(NotFound)
+
+                libraryService.scan(Path(directory.filePath))
+
+                call.respond(OK)
+            }
+            delete {
+                val directoryId = call.parameters["directoryId"] ?: return@delete call.respond(UnprocessableEntity)
+
+                val result = if (libraryService.removeDirectory(directoryId)) OK else NotFound
+                call.respond(result)
+            }
+        }
 
         route("/{libraryId}") {
             put {
@@ -73,11 +95,11 @@ fun Route.addLibraryModifyRoutes(
                 }
                 val response = when (val result = libraryService.addLibraryFolder(libraryId, request.path)) {
                     is AddLibraryFolderResult.Success -> {
-                        libraryService.scan(Path(result.directory.filePath))
-                        AddLibraryFolderResponse.Success(
-                            library = result.library,
-                            directory = result.directory,
-                        )
+                        val (library, directory) = result
+
+                        libraryService.scan(Path(directory.filePath))
+
+                        AddLibraryFolderResponse.Success(library, directory)
                     }
 
                     is AddLibraryFolderResult.DatabaseError ->

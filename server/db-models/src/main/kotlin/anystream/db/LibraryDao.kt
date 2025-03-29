@@ -17,76 +17,162 @@
  */
 package anystream.db
 
+import anystream.db.tables.records.DirectoryRecord
 import anystream.db.tables.records.LibraryRecord
 import anystream.db.tables.references.DIRECTORY
 import anystream.db.tables.references.LIBRARY
-import anystream.db.util.fetchIntoType
-import anystream.db.util.fetchOptionalIntoType
-import anystream.db.util.intoType
+import anystream.db.util.*
 import anystream.models.Directory
 import anystream.models.Library
 import anystream.models.MediaKind
 import anystream.util.ObjectId
-import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.future.await
+import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.select
+
+/** The default MediaKind's to create Libraries for in a new AnyStream instance */
+private val DEFAULT_LIBRARIES = listOf(MediaKind.MOVIE, MediaKind.TV, MediaKind.MUSIC)
 
 class LibraryDao(
     private val db: DSLContext
 ) {
 
-    fun all(): List<Library> {
-        return db.selectFrom(LIBRARY).fetchIntoType()
+    /**
+     * Insert a new Library for the MediaKind [kind].
+     */
+    suspend fun insertLibrary(kind: MediaKind, name: String = kind.libraryName): Library {
+        val record = LibraryRecord(
+            id = ObjectId.next(),
+            mediaKind = kind,
+            name = name,
+        )
+        return db.newRecordAsync(LIBRARY, record)
     }
 
-    fun getLibrary(id: String): Library? {
-        return db.fetchOne(LIBRARY, LIBRARY.ID.eq(id))?.intoType()
+    /**
+     * Insert a new Directory for the [path] in the Library by [libraryId].
+     */
+    suspend fun insertDirectory(parentId: String?, libraryId: String, path: String): Directory {
+        val record = DirectoryRecord(
+            id = ObjectId.next(),
+            parentId = parentId,
+            libraryId = libraryId,
+            filePath = path,
+        )
+        return db.newRecordAsync(DIRECTORY, record)
     }
 
-    fun getDirectoryByPath(path: String): Directory? {
-        return db.fetchOne(DIRECTORY, DIRECTORY.FILE_PATH.eq(path))?.intoType()
+    /**
+     * Create the default libraries for a new AnyStream instance or do nothing
+     * if any libraries already exist.
+     *
+     * @see DEFAULT_LIBRARIES for the actual default libraries to create.
+     * @return true when the default libraries are created or false if none were created.
+     */
+    suspend fun insertDefaultLibraries(): Boolean {
+        if (db.fetchCountAsync(LIBRARY) > 0) {
+            return false
+        }
+        val inserts = DEFAULT_LIBRARIES.map { mediaKind ->
+            LibraryRecord(
+                id = ObjectId.next(),
+                mediaKind = mediaKind,
+                name = mediaKind.libraryName,
+            )
+        }
+        return db.batchInsert(inserts)
+            .executeAsync()
+            .await()
+            .isNotEmpty()
     }
 
-    fun getDirectories(libraryId: String): List<Directory> {
+    /**
+     * Fetch all available [Library]s.
+     */
+    suspend fun all(): List<Library> {
+        return db.selectFrom(LIBRARY).awaitInto()
+    }
+
+    /**
+     * Fetch the [Library] by [libraryId] or null if not found.
+     */
+    suspend fun fetchLibrary(libraryId: String): Library? {
+        return db.selectFrom(LIBRARY)
+            .where(LIBRARY.ID.eq(libraryId))
+            .awaitFirstOrNullInto()
+    }
+
+    suspend fun fetchLibraryForDirectory(directoryId: String): Library? {
+        return db.select()
+            .from(LIBRARY)
+            .join(DIRECTORY)
+            .on(LIBRARY.ID.eq(DIRECTORY.LIBRARY_ID))
+            .where(DIRECTORY.ID.eq(directoryId))
+            .awaitFirstOrNullInto()
+    }
+
+    /**
+     * Fetch the [Directory] by the [path] or null if not found.
+     */
+    suspend fun fetchDirectoryByPath(path: String): Directory? {
+        return db.selectFrom(DIRECTORY)
+            .where(DIRECTORY.FILE_PATH.eq(path))
+            .awaitFirstOrNullInto()
+    }
+
+    /**
+     * Fetch all [Directory]s by the [libraryId].
+     */
+    suspend fun fetchDirectories(libraryId: String): List<Directory> {
         return db.selectFrom(DIRECTORY)
             .where(DIRECTORY.LIBRARY_ID.eq(libraryId))
-            .fetchIntoType()
+            .awaitInto()
     }
 
-    suspend fun createDefaultLibraries(): Unit = withContext(IO) {
-        if (db.fetchCount(LIBRARY) == 0) {
-            db.batchInsert(
-                LibraryRecord(ObjectId.get().toString(), MediaKind.MOVIE, "Movies"),
-                LibraryRecord(ObjectId.get().toString(), MediaKind.TV, "TV"),
-                LibraryRecord(ObjectId.get().toString(), MediaKind.MUSIC, "Music"),
-            ).execute()
-        }
+    suspend fun fetchDirectory(directoryId: String): Directory? {
+        return db.selectFrom(DIRECTORY)
+            .where(DIRECTORY.ID.eq(directoryId))
+            .awaitFirstOrNullInto()
     }
 
-    suspend fun libraryAndRoots(): Map<Library, Directory?> {
-        return withContext(IO) {
-            db.select()
-                .from(LIBRARY)
-                .join(DIRECTORY)
-                .on(
-                    DIRECTORY.LIBRARY_ID.eq(LIBRARY.ID)
-                        .and(DIRECTORY.PARENT_ID.isNull)
-                )
-                .fetchMap(Library::class.java, Directory::class.java)
-        }
+    suspend fun deleteDirectory(directoryId: String): Boolean {
+        return db.deleteFrom(DIRECTORY)
+            .where(DIRECTORY.ID.eq(directoryId))
+            .awaitFirstOrNull() == 1
     }
 
-    fun insert(kind: MediaKind): Library {
-        return db.newRecord(LIBRARY).apply {
-            id = ObjectId.get().toString()
-            mediaKind = kind
-            name = kind.name.lowercase().replaceFirstChar(Char::uppercaseChar)
-            store()
-        }.intoType()
+    suspend fun deleteDirectoriesByParent(directoryId: String): List<String> {
+        val ids: List<String> = db
+            .select(DIRECTORY.ID)
+            .from(DIRECTORY)
+            .where(DIRECTORY.PARENT_ID.eq(directoryId))
+            .awaitInto()
+
+        // TODO: verify list of removed ids and filter the results
+        val deleted = db.deleteFrom(DIRECTORY)
+            .where(DIRECTORY.PARENT_ID.eq(directoryId))
+            .awaitFirst() == ids.size
+
+        return if (deleted) ids else emptyList()
     }
 
-    fun findByPath(path: String): Library? {
+    suspend fun fetchLibraries(): List<Library> {
+        return db.selectFrom(LIBRARY).awaitInto()
+    }
+
+    suspend fun fetchLibrariesAndRootDirectories(): Map<Library, Directory?> {
+        return db.select()
+            .from(LIBRARY)
+            .join(DIRECTORY)
+            .on(
+                DIRECTORY.LIBRARY_ID.eq(LIBRARY.ID)
+                    .and(DIRECTORY.PARENT_ID.isNull)
+            ).awaitIntoMap()
+    }
+
+    suspend fun fetchLibraryByPath(path: String): Library? {
         return db.selectFrom(LIBRARY)
             .where(
                 LIBRARY.ID.eq(
@@ -95,52 +181,19 @@ class LibraryDao(
                         .where(DIRECTORY.FILE_PATH.eq(path))
                 )
             )
-            .fetchOptionalIntoType()
+            .awaitFirstOrNullInto()
     }
 
-    fun findRootPaths(): List<String> {
-        return db.select(DIRECTORY.FILE_PATH)
-            .from(DIRECTORY)
-            .where(DIRECTORY.PARENT_ID.isNotNull)
-            .and(DIRECTORY.LIBRARY_ID.`in`(select(LIBRARY.ID).from(LIBRARY)))
-            .fetchIntoType()
-    }
-
-    fun insertDirectory(parentId: String?, libraryId: String?, path: String): Directory {
-        return db.newRecord(DIRECTORY)
-            .apply {
-                id = ObjectId.get().toString()
-                this.parentId = parentId
-                this.libraryId = libraryId
-                this.filePath = path
-                store()
-            }
-            .intoType()
-    }
-
-    fun findByExactPath(path: String): Directory? {
-        return db.fetchOne(DIRECTORY, DIRECTORY.FILE_PATH.eq(path))
-            ?.intoType()
-    }
-
-    fun findLibraryRoot(libraryId: String): Directory? {
-        return db.fetchOne(
-            DIRECTORY,
-            DIRECTORY.LIBRARY_ID.eq(libraryId),
-            DIRECTORY.PARENT_ID.isNull
-        )?.intoType()
-    }
-
-    fun findLibraryRoots(): List<Directory> {
+    suspend fun fetchLibraryRootDirectories(libraryId: String? = null): List<Directory> {
         return db.selectFrom(DIRECTORY)
             .where(DIRECTORY.PARENT_ID.isNull)
-            .fetchIntoType()
-    }
-
-    fun libraryExists(id: String): Boolean {
-        return db.select(LIBRARY.ID)
-            .from(LIBRARY)
-            .where(LIBRARY.ID.eq(id))
-            .execute() == 1
+            .run {
+                if (libraryId == null) {
+                    this
+                } else {
+                    and(DIRECTORY.LIBRARY_ID.eq(libraryId))
+                }
+            }
+            .awaitInto()
     }
 }

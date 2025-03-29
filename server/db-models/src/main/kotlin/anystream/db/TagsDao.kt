@@ -17,15 +17,18 @@
  */
 package anystream.db
 
+import anystream.db.tables.records.MetadataCompanyRecord
+import anystream.db.tables.records.MetadataGenreRecord
+import anystream.db.tables.records.TagRecord
 import anystream.db.tables.references.METADATA_COMPANY
 import anystream.db.tables.references.METADATA_GENRE
 import anystream.db.tables.references.TAG
-import anystream.db.util.fetchIntoType
-import anystream.db.util.fetchSingleIntoType
-import anystream.db.util.intoType
+import anystream.db.util.*
 import anystream.models.Genre
 import anystream.models.ProductionCompany
+import anystream.models.Tag
 import anystream.util.ObjectId
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.jooq.DSLContext
 
 data class TagData(
@@ -39,36 +42,32 @@ class TagsDao(
     private val db: DSLContext
 ) {
 
-    fun insertTag(name: String, tmdbId: Int?): String {
-        val id = ObjectId.get().toString()
-        db.insertInto(TAG)
-            .set(TAG.ID,id )
-            .set(TAG.NAME, name)
-            .set(TAG.TMDB_ID, tmdbId)
-            .execute()
-        return id
+    suspend fun insertTag(name: String, tmdbId: Int?): String {
+        val id = ObjectId.next()
+        val record = TagRecord(id, name, tmdbId)
+        val newTag: Tag = db.newRecordAsync(TAG, record)
+        return newTag.id
     }
 
-    fun insertMetadataGenreLink(mediaId: String, genreId: String) {
+    suspend fun insertMetadataGenreLink(mediaId: String, genreId: String) {
         db.insertInto(METADATA_GENRE)
-            .set(METADATA_GENRE.METADATA_ID, mediaId)
-            .set(METADATA_GENRE.GENRE_ID, genreId)
-            .execute()
+            .set(MetadataGenreRecord(mediaId, genreId))
+            .awaitFirstOrNull()
     }
 
-    fun insertMetadataCompanyLink(mediaId: String, companyId: String) {
+    suspend fun insertMetadataCompanyLink(mediaId: String, companyId: String) {
         db.insertInto(METADATA_COMPANY)
-            .set(METADATA_COMPANY.METADATA_ID, mediaId)
-            .set(METADATA_COMPANY.COMPANY_ID, companyId)
-            .execute()
+            .set(MetadataCompanyRecord(mediaId, companyId))
+            .awaitFirstOrNull()
     }
 
-    fun findGenreByTmdbId(tmdbId: Int): Genre? {
-        return db.fetchOne(TAG, TAG.TMDB_ID.eq(tmdbId))
-            ?.intoType()
-    }
+    suspend fun findGenreByTmdbId(tmdbId: Int): Genre? = findByTmdbId(tmdbId)
 
-    fun findCompanyByTmdbId(tmdbId: Int): ProductionCompany? {
-        return db.fetchOne(TAG, TAG.TMDB_ID.eq(tmdbId))?.intoType()
+    suspend fun findCompanyByTmdbId(tmdbId: Int): ProductionCompany? = findByTmdbId(tmdbId)
+
+    private suspend inline fun <reified T> findByTmdbId(tmdbId: Int): T? {
+        return db.selectFrom(TAG)
+            .where(TAG.TMDB_ID.eq(tmdbId))
+            .awaitFirstOrNullInto()
     }
 }

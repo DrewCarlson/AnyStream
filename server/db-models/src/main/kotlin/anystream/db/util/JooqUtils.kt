@@ -17,10 +17,44 @@
  */
 package anystream.db.util
 
-import org.jooq.Record
-import org.jooq.Result
-import org.jooq.ResultQuery
+import kotlinx.coroutines.future.await
+import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirstOrNull
+import org.jooq.*
+import org.jooq.impl.UpdatableRecordImpl
+import org.jooq.kotlin.coroutines.transactionCoroutine
+import org.reactivestreams.Publisher
 
+
+suspend inline fun <reified R : UpdatableRecordImpl<R>, reified T> DSLContext.newRecordAsync(
+    table: Table<R>,
+    source: R
+): T {
+    return transactionCoroutine {
+        newRecord(table)
+            .apply {
+                from(source)
+                store()
+            }
+            .intoType<T>()
+    }
+}
+
+suspend fun <R : Record> DSLContext.fetchCountAsync(table: Table<R>, vararg condition: Condition): Int {
+    return transactionCoroutine { fetchCount(table, *condition) }
+}
+
+suspend inline fun <reified K, reified V, R : Record> SelectWhereStep<R>.awaitIntoMap(): Map<K, V> {
+    return fetchAsync().thenApplyAsync { it.intoMap(K::class.java, V::class.java) }.await()
+}
+
+suspend inline fun <reified T, R : Record> ResultQuery<R>.awaitInto(): List<T> {
+    return fetchAsync().thenApplyAsync { it.into(T::class.java) }.await()
+}
+
+suspend inline fun <reified T> Publisher<out Record>.awaitFirstOrNullInto(): T? {
+    return awaitFirstOrNull()?.intoType()
+}
 
 inline fun <reified T> Record.intoType(): T {
     return into(T::class.java) as T
@@ -28,16 +62,4 @@ inline fun <reified T> Record.intoType(): T {
 
 inline fun <reified T, R : Record> Result<R>.intoType(): T {
     return into(T::class.java) as T
-}
-
-inline fun <reified T, R : Record> ResultQuery<R>.fetchIntoType(): List<T> {
-    return fetchInto(T::class.java)
-}
-
-inline fun <reified T, R : Record> ResultQuery<R>.fetchSingleIntoType(): T {
-    return fetchSingleInto(T::class.java)
-}
-
-inline fun <reified T, R : Record> ResultQuery<R>.fetchOptionalIntoType(): T? {
-    return fetchOptionalInto(T::class.java).orElse(null)
 }

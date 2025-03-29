@@ -22,4 +22,5 @@ dependencies {
     testImplementation(projects.server.dbModels.testing)
     testImplementation(libsCommon.ktor.server.tests)
     testImplementation(libsServer.jdbc.sqlite)
+    testImplementation(libsServer.jimfs)
 }

@@ -109,11 +109,9 @@ class StreamService(
         create: Boolean,
     ): PlaybackState? {
         val state = queries.fetchPlaybackState(mediaLinkId, userId)
-        val fileAndMetadataId by lazy {
-            val mediaLink = checkNotNull(queries.fetchMediaLink(mediaLinkId))
-            mediaLink.filePath?.let { filePath ->
-                File(filePath) to checkNotNull(mediaLink.metadataId)
-            }
+        val mediaLink = checkNotNull(queries.fetchMediaLink(mediaLinkId))
+        val fileAndMetadataId = mediaLink.filePath?.let { filePath ->
+            File(filePath) to checkNotNull(mediaLink.metadataId)
         }
         val newState = if (create && state == null) {
             val (file, metadataId) = fileAndMetadataId ?: return null
@@ -151,11 +149,11 @@ class StreamService(
         return newState
     }
 
-    fun deletePlaybackState(playbackStateId: String): Boolean {
+    suspend fun deletePlaybackState(playbackStateId: String): Boolean {
         return queries.deletePlaybackState(playbackStateId)
     }
 
-    fun updateStatePosition(state: PlaybackState, position: Double): Boolean {
+    suspend fun updateStatePosition(state: PlaybackState, position: Double): Boolean {
         if (position.seconds < REMEMBER_STATE_THRESHOLD) {
             return false
         }
@@ -211,7 +209,7 @@ class StreamService(
         return if (output.exists()) output.absolutePath else null
     }
 
-    fun stopSession(token: String, deleteOutput: Boolean) {
+    suspend fun stopSession(token: String, deleteOutput: Boolean) {
         val session = sessionMap.remove(token) ?: return
         // Stop ffmpeg and associated file tracking if still running
         transcodeJobs.remove(token)?.cancel()

@@ -20,7 +20,23 @@ package anystream.db
 import io.kotest.core.spec.DslDrivenSpec
 import kotlin.properties.ReadOnlyProperty
 
-
+/**
+ * Bind the creation of a resource to the `beforeTest` and cleanup in `afterTest`.
+ *
+ * ```kotlin
+ * class MyTest : FunSpec({
+ *
+ *   val myResource by bindForTest({ MyResource() }, { it.dispose() })
+ *
+ *   test("my test") {
+ *      resource.doSomething()
+ *   }
+ * })
+ * ```
+ *
+ * @param create The factory method to create the resource.
+ * @param cleanup An optional cleanup method when discarding the resource.
+ */
 fun <T : Any> DslDrivenSpec.bindForTest(
     create: () -> T,
     cleanup: (T) -> Unit = {},

@@ -19,8 +19,10 @@ package anystream.db
 
 import anystream.models.Permission
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import org.jooq.DSLContext
@@ -28,13 +30,8 @@ import org.jooq.DSLContext
 class InviteCodeDaoTest : FunSpec({
 
     val db: DSLContext by bindTestDatabase()
-    lateinit var userDao: UserDao
-    lateinit var dao: InviteCodeDao
-
-    beforeTest {
-        userDao = UserDao(db)
-        dao = InviteCodeDao(db)
-    }
+    val userDao: UserDao by bindForTest({ UserDao(db) })
+    val dao: InviteCodeDao by bindForTest({ InviteCodeDao(db) })
 
     test("create invite code") {
         val user = userDao.insertUser(createUserObject(), emptySet())
@@ -45,6 +42,23 @@ class InviteCodeDaoTest : FunSpec({
         inviteCode.secret shouldBe "secret"
         inviteCode.permissions shouldBe Permission.all
         inviteCode.createdByUserId shouldBe user.id
+    }
+
+    test("fetch invite codes") {
+        val user = userDao.insertUser(createUserObject(), emptySet())
+            .shouldNotBeNull()
+        val inviteCode1 = dao.createInviteCode("secret1", Permission.all, user.id)
+            .shouldNotBeNull()
+        val inviteCode2 = dao.createInviteCode("secret2", Permission.all, user.id)
+            .shouldNotBeNull()
+
+        val inviteCodes = dao.fetchInviteCodes()
+
+        inviteCodes.shouldBe(listOf(inviteCode1, inviteCode2))
+    }
+
+    test("fetch invite codes when empty") {
+        dao.fetchInviteCodes().shouldBeEmpty()
     }
 
     test("delete invite code") {
@@ -79,14 +93,15 @@ class InviteCodeDaoTest : FunSpec({
         val user = userDao.insertUser(createUserObject(), emptySet())
             .shouldNotBeNull()
 
-        dao.createInviteCode("secret", Permission.all, user.id)
+        val inviteCode = dao.createInviteCode("secret", Permission.all, user.id)
             .shouldNotBeNull()
 
         dao.deleteInviteCode("secret", "00000000000000")
-            .shouldBeTrue()
+            .shouldBeFalse()
 
         dao.fetchInviteCode("secret")
             .shouldNotBeNull()
+            .shouldBeEqual(inviteCode)
     }
 
     test("user delete triggers invite code delete") {

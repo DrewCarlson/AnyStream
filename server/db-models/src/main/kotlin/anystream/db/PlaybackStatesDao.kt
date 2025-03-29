@@ -18,10 +18,12 @@
 package anystream.db
 
 import anystream.db.converter.INSTANT_DATATYPE
+import anystream.db.tables.records.PlaybackStateRecord
 import anystream.db.tables.references.METADATA
 import anystream.db.tables.references.PLAYBACK_STATE
-import anystream.db.util.intoType
+import anystream.db.util.awaitFirstOrNullInto
 import anystream.models.PlaybackState
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.jooq.impl.SQLDataType
@@ -48,7 +50,7 @@ class PlaybackStatesDao(
      * ORDER BY ps.updatedAt DESC
      * LIMIT ?
      */
-    fun findWithUniqueRootByUserId(userId: String, limit: Int): List<PlaybackState> {
+    suspend fun findWithUniqueRootByUserId(userId: String, limit: Int): List<PlaybackState> {
         val subquery = DSL.select(
             METADATA.ID.`as`("metadataId"),
             DSL.`when`(METADATA.ROOT_ID.isNull(), METADATA.ID)
@@ -64,7 +66,7 @@ class PlaybackStatesDao(
             .groupBy(DSL.field("rootOrSelfGid"))
             .asTable("x")
 
-        return db.select(PLAYBACK_STATE)
+        val results: List<PlaybackState>? = db.select(PLAYBACK_STATE)
             .from(PLAYBACK_STATE)
             .join(subquery)
             .on(
@@ -77,23 +79,46 @@ class PlaybackStatesDao(
             )
             .orderBy(PLAYBACK_STATE.UPDATED_AT.desc())
             .limit(limit)
-            .fetch()
-            .intoType()
+            .awaitFirstOrNullInto()
+
+        return results.orEmpty()
     }
 
-    fun findByUserIdAndMediaId(userId: String, metadataId: String): PlaybackState? {
-        return db.fetchOne(
-            PLAYBACK_STATE,
-            PLAYBACK_STATE.USER_ID.eq(userId),
-            PLAYBACK_STATE.METADATA_ID.eq(metadataId)
-        )?.intoType()
+    suspend fun findByUserIdAndMediaId(userId: String, metadataId: String): PlaybackState? {
+        return db.selectFrom(PLAYBACK_STATE)
+            .where(
+                PLAYBACK_STATE.USER_ID.eq(userId),
+                PLAYBACK_STATE.METADATA_ID.eq(metadataId)
+            )
+            .awaitFirstOrNullInto()
     }
 
-    fun findByUserIdAndMediaGids(userId: String, metadataIds: List<String>): List<PlaybackState> {
-        return db.fetch(
-            PLAYBACK_STATE,
-            PLAYBACK_STATE.USER_ID.eq(userId),
-            PLAYBACK_STATE.METADATA_ID.`in`(metadataIds)
-        ).intoType()
+    suspend fun findByUserIdAndMediaGids(userId: String, metadataIds: List<String>): List<PlaybackState> {
+        return db.selectFrom(PLAYBACK_STATE)
+                .where(
+                    PLAYBACK_STATE.USER_ID.eq(userId),
+                    PLAYBACK_STATE.METADATA_ID.`in`(metadataIds)
+                )
+                .awaitFirstOrNullInto<List<PlaybackState>>()
+                .orEmpty()
+    }
+
+    suspend fun fetchById(id: String): PlaybackState? {
+        return db.selectFrom(PLAYBACK_STATE)
+            .where(PLAYBACK_STATE.ID.eq(id))
+            .awaitFirstOrNullInto()
+    }
+
+    suspend fun fetchByIds(ids: List<String>): List<PlaybackState> {
+        return db.selectFrom(PLAYBACK_STATE)
+            .where(PLAYBACK_STATE.ID.`in`(ids))
+            .awaitFirstOrNullInto<List<PlaybackState>>()
+            .orEmpty()
+    }
+
+    suspend fun insert(playbackState: PlaybackState): Boolean {
+        return db.insertInto(PLAYBACK_STATE)
+            .set(PlaybackStateRecord(playbackState))
+            .awaitFirstOrNull() == 1
     }
 }
