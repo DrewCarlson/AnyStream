@@ -22,54 +22,54 @@ jobs:
       web: ${{ steps.web.outputs.any_changed }}
       server: ${{ steps.server.outputs.any_changed }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           submodules: 'recursive'
           fetch-depth: 0
       - name: Get changed files
         id: android
-        uses: tj-actions/changed-files@v41
+        uses: tj-actions/changed-files@823fcebdb31bb35fdf2229d9f769b400309430d0
         with:
           files: |
             **/client/android/**/*.kt
             **/client/android/**/*.kts
       - name: Get changed files
         id: client-core
-        uses: tj-actions/changed-files@v41
+        uses: tj-actions/changed-files@823fcebdb31bb35fdf2229d9f769b400309430d0
         with:
           files: |
             **/client/core/**/*.kt
             **/client/core/**/*.kts
       - name: Get changed files
         id: data-models
-        uses: tj-actions/changed-files@v41
+        uses: tj-actions/changed-files@823fcebdb31bb35fdf2229d9f769b400309430d0
         with:
           files: |
             **/client/data-models/**/*.kt
             **/client/data-models/**/*.kts
       - name: Get changed files
         id: client-ui
-        uses: tj-actions/changed-files@v41
+        uses: tj-actions/changed-files@823fcebdb31bb35fdf2229d9f769b400309430d0
         with:
           files: |
             **/client/ui/**/*.kt
             **/client/ui/**/*.kts
       - name: Get changed files
         id: server
-        uses: tj-actions/changed-files@v41
+        uses: tj-actions/changed-files@823fcebdb31bb35fdf2229d9f769b400309430d0
         with:
           files: |
             **/server/**/*.kt
             **/server/**/*.kts
       - name: Get changed files
         id: ios
-        uses: tj-actions/changed-files@v41
+        uses: tj-actions/changed-files@823fcebdb31bb35fdf2229d9f769b400309430d0
         with:
           files: |
             **/client/ios/**
       - name: Get changed files
         id: web
-        uses: tj-actions/changed-files@v41
+        uses: tj-actions/changed-files@823fcebdb31bb35fdf2229d9f769b400309430d0
         with:
           files: |
             **/client/web/**/*.kt
@@ -80,159 +80,165 @@ jobs:
     needs: [ file-changes ]
     if: needs.file-changes.outputs.client-ui == 'true' || github.ref_name == 'main'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           submodules: 'recursive'
 
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12
         with:
           distribution: 'zulu'
           java-version: 21
 
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244
+
       - name: Cache Build files
-        uses: actions/cache@v3
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
         with:
           path: |
             ~/.konan
             ~/.gradle
           key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
 
-      - uses: gradle/gradle-build-action@v2
-        name: Spotless Check
-        with:
-          arguments: -p client/ui spotlessCheck
+      - name: Spotless Check
+        run: ./gradlew -p client/ui spotlessCheck
 
   client-android:
     runs-on: ubuntu-latest
     needs: [ file-changes ]
     if: needs.file-changes.outputs.android == 'true' || github.ref_name == 'main'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           submodules: 'recursive'
 
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12
         with:
           distribution: 'zulu'
           java-version: 21
 
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244
+
       - name: Cache Build files
-        uses: actions/cache@v3
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
         with:
           path: |
             ~/.konan
             ~/.gradle
           key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
 
-      - uses: gradle/gradle-build-action@v2
-        name: Spotless Check
-        with:
-          arguments: -p client/android spotlessCheck
+      - name: Spotless Check
+        run: ./gradlew -p client/android spotlessCheck
 
   client-core:
     runs-on: ubuntu-latest
     needs: [ file-changes ]
     if: needs.file-changes.outputs.client-core == 'true' || github.ref_name == 'main'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           submodules: 'recursive'
 
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12
         with:
           distribution: 'zulu'
           java-version: 21
 
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244
+
       - name: Cache Build files
-        uses: actions/cache@v3
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
         with:
           path: |
             ~/.konan
             ~/.gradle
           key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
 
-      - uses: gradle/gradle-build-action@v2
-        name: Spotless Check
-        with:
-          arguments: -p client/core spotlessCheck
+      - name: Spotless Check
+        run: ./gradlew -p client/core spotlessCheck
 
   client-web:
     runs-on: ubuntu-latest
     needs: [ file-changes ]
     if: needs.file-changes.outputs.web == 'true' || github.ref_name == 'main'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           submodules: 'recursive'
 
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12
         with:
           distribution: 'zulu'
           java-version: 21
 
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244
+
       - name: Cache Build files
-        uses: actions/cache@v3
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
         with:
           path: |
             ~/.konan
             ~/.gradle
           key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
 
-      - uses: gradle/gradle-build-action@v2
-        name: Spotless Check
-        with:
-          arguments: -p client/web spotlessCheck
+      - name: Spotless Check
+        run: ./gradlew -p client/web spotlessCheck
 
   data-models:
     runs-on: ubuntu-latest
     needs: [ file-changes ]
     if: needs.file-changes.outputs.data-models == 'true' || github.ref_name == 'main'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           submodules: 'recursive'
 
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12
         with:
           distribution: 'zulu'
           java-version: 21
 
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244
+
       - name: Cache Build files
-        uses: actions/cache@v3
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
         with:
           path: |
             ~/.konan
             ~/.gradle
           key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
 
-      - uses: gradle/gradle-build-action@v2
-        name: Spotless Check
-        with:
-          arguments: -p client/data-models spotlessCheck
+      - name: Spotless Check
+        run: ./gradlew -p client/data-models spotlessCheck
 
   server:
     runs-on: ubuntu-latest
     needs: [ file-changes ]
     if: needs.file-changes.outputs.server == 'true' || github.ref_name == 'main'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           submodules: 'recursive'
 
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12
         with:
           distribution: 'zulu'
           java-version: 21
 
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244
+
       - name: Cache Build files
-        uses: actions/cache@v3
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
         with:
           path: |
             ~/.konan
             ~/.gradle
           key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
 
-      - uses: gradle/gradle-build-action@v2
-        name: Spotless Check
-        with:
-          arguments: -p server spotlessCheck
+      - name: Spotless Check
+        run: ./gradlew -p server spotlessCheck

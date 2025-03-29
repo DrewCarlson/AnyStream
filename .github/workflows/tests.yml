@@ -25,13 +25,13 @@ jobs:
       web: ${{ steps.web.outputs.any_changed }}
       server: ${{ steps.server.outputs.any_changed }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           submodules: 'recursive'
           fetch-depth: 0
       - name: Get changed files
         id: android
-        uses: tj-actions/changed-files@v41
+        uses: tj-actions/changed-files@823fcebdb31bb35fdf2229d9f769b400309430d0
         with:
           files: |
             build.gradle.kts
@@ -45,7 +45,7 @@ jobs:
             **/client/data-models/**
       - name: Get changed files
         id: client-core
-        uses: tj-actions/changed-files@v41
+        uses: tj-actions/changed-files@823fcebdb31bb35fdf2229d9f769b400309430d0
         with:
           files: |
             gradle/libsCommon.versions.toml
@@ -54,7 +54,7 @@ jobs:
             **/client/data-models/**
       - name: Get changed files
         id: client-ui
-        uses: tj-actions/changed-files@v41
+        uses: tj-actions/changed-files@823fcebdb31bb35fdf2229d9f769b400309430d0
         with:
           files: |
             gradle/libsCommon.versions.toml
@@ -63,14 +63,14 @@ jobs:
             **/client/ui/**
       - name: Get changed files
         id: data-models
-        uses: tj-actions/changed-files@v41
+        uses: tj-actions/changed-files@823fcebdb31bb35fdf2229d9f769b400309430d0
         with:
           files: |
             gradle/libsCommon.versions.toml
             **/client/data-models/**
       - name: Get changed files
         id: server
-        uses: tj-actions/changed-files@v41
+        uses: tj-actions/changed-files@823fcebdb31bb35fdf2229d9f769b400309430d0
         with:
           files: |
             gradle/libsCommon.versions.toml
@@ -79,7 +79,7 @@ jobs:
             **/server/**
       - name: Get changed files
         id: ios
-        uses: tj-actions/changed-files@v41
+        uses: tj-actions/changed-files@823fcebdb31bb35fdf2229d9f769b400309430d0
         with:
           files: |
             gradle/libsCommon.versions.toml
@@ -91,7 +91,7 @@ jobs:
             **/client/data-models/**
       - name: Get changed files
         id: web
-        uses: tj-actions/changed-files@v41
+        uses: tj-actions/changed-files@823fcebdb31bb35fdf2229d9f769b400309430d0
         with:
           files: |
             gradle/libsCommon.versions.toml
@@ -111,17 +111,20 @@ jobs:
         os: [ ubuntu-latest, macos-latest ] #windows-latest
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           submodules: 'recursive'
 
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12
         with:
           distribution: 'zulu'
           java-version: 21
 
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244
+
       - name: Cache Build files
-        uses: actions/cache@v3
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
         if: ${{ !startsWith(matrix.os, 'windows') }}
         with:
           path: |
@@ -129,26 +132,24 @@ jobs:
             ~/.gradle
           key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
 
-      - uses: browser-actions/setup-firefox@v1
+      - uses: browser-actions/setup-firefox@634a60ccd6599686158cf5a570481b4cd30455a2
         id: install-firefox
 
       - name: Set FIREFOX_BIN environment variable
         run: echo "FIREFOX_BIN=${{ steps.install-firefox.outputs.firefox-path }}" >> $GITHUB_ENV
 
-      - uses: gradle/gradle-build-action@v2
-        name: All Tests
-        with:
-          arguments: client:core:allTests client:core:koverXmlReport
+      - name: All Tests
+        run: ./gradlew client:core:allTests client:core:koverXmlReport
 
       - name: Archive Reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: ${{ always() }}
         with:
-          name: reports
+          name: reports-client-core
           path: '**/build/reports/*'
 
       - name: Publish Unit Test Results
-        uses: mikepenz/action-junit-report@v4
+        uses: mikepenz/action-junit-report@cf701569b05ccdd861a76b8607a66d76f6fd4857
         if: ${{ always() }}
         with:
           report_paths: '**/TEST-*.xml'
@@ -161,17 +162,20 @@ jobs:
         os: [ ubuntu-latest, macos-latest ] #windows-latest
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           submodules: 'recursive'
 
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12
         with:
           distribution: 'zulu'
           java-version: 21
 
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244
+
       - name: Cache Build files
-        uses: actions/cache@v3
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
         if: ${{ !startsWith(matrix.os, 'windows') }}
         with:
           path: |
@@ -179,20 +183,18 @@ jobs:
             ~/.gradle
           key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
 
-      - uses: gradle/gradle-build-action@v2
-        name: All Tests
-        with:
-          arguments: client:ui:allTests client:ui:koverXmlReport
+      - name: All Tests
+        run: ./gradlew client:ui:allTests client:ui:koverXmlReport
 
       - name: Archive Reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: ${{ always() }}
         with:
-          name: reports
+          name: reports-client-ui
           path: '**/build/reports/*'
 
       - name: Publish Unit Test Results
-        uses: mikepenz/action-junit-report@v4
+        uses: mikepenz/action-junit-report@cf701569b05ccdd861a76b8607a66d76f6fd4857
         if: ${{ always() }}
         with:
           report_paths: '**/TEST-*.xml'
@@ -202,24 +204,27 @@ jobs:
     if: needs.file-changes.outputs.android == 'true' || github.ref_name == 'main'
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           submodules: 'recursive'
 
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12
         with:
           distribution: 'zulu'
           java-version: 21
 
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244
+
       - name: Cache Build files
-        uses: actions/cache@v3
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
         with:
           path: |
             ~/.konan
             ~/.gradle
           key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
 
-      - uses: reactivecircus/android-emulator-runner@v2
+      - uses: reactivecircus/android-emulator-runner@1dcd0090116d15e7c562f8db72807de5e036a4ed
         name: Test Android Targets
         with:
           api-level: 30
@@ -229,14 +234,14 @@ jobs:
           script: ./gradlew connectedCheck
 
       - name: Archive Reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: ${{ always() }}
         with:
-          name: reports
+          name: reports-client-android
           path: '**/build/reports/*'
 
       - name: Publish Unit Test Results
-        uses: mikepenz/action-junit-report@v4
+        uses: mikepenz/action-junit-report@cf701569b05ccdd861a76b8607a66d76f6fd4857
         if: ${{ always() }}
         with:
           report_paths: '**/TEST-*.xml'
@@ -249,17 +254,20 @@ jobs:
         os: [ ubuntu-latest ] # macos-latest, windows-latest
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           submodules: 'recursive'
 
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12
         with:
           distribution: 'zulu'
           java-version: 21
 
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244
+
       - name: Cache Build files
-        uses: actions/cache@v3
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
         if: ${{ !startsWith(matrix.os, 'windows') }}
         with:
           path: |
@@ -267,26 +275,24 @@ jobs:
             ~/.gradle
           key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
 
-      - uses: browser-actions/setup-firefox@v1
+      - uses: browser-actions/setup-firefox@634a60ccd6599686158cf5a570481b4cd30455a2
         id: install-firefox
 
       - name: Set FIREFOX_BIN environment variable
         run: echo "FIREFOX_BIN=${{ steps.install-firefox.outputs.firefox-path }}" >> $GITHUB_ENV
 
-      - uses: gradle/gradle-build-action@v2
-        name: Web Tests
-        with:
-          arguments: client:web:jsBrowserTest client:web:koverXmlReport
+      - name: Web Tests
+        run: ./gradlew client:web:jsBrowserTest client:web:koverXmlReport
 
       - name: Archive Reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: ${{ always() }}
         with:
-          name: reports
+          name: reports-client-web
           path: '**/build/reports/*'
 
       - name: Publish Unit Test Results
-        uses: mikepenz/action-junit-report@v4
+        uses: mikepenz/action-junit-report@cf701569b05ccdd861a76b8607a66d76f6fd4857
         if: ${{ always() }}
         with:
           report_paths: '**/TEST-*.xml'
@@ -294,27 +300,29 @@ jobs:
   server-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           submodules: 'recursive'
 
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12
         with:
           distribution: 'zulu'
           java-version: 21
 
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244
+
       - name: Cache Build files
-        uses: actions/cache@v3
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
         with:
           path: |
             ~/.konan
             ~/.gradle
           key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
 
-      - uses: gradle/gradle-build-action@v2
-        name: Run Server Tests
-        with:
-          arguments: >
+      - name: Run Server Tests
+        run: >
+          ./gradlew
             server:application:test server:application:koverXmlReport
             server:db-models:test server:db-models:koverXmlReport
             server:library-manager:test server:library-manager:koverXmlReport
@@ -323,14 +331,14 @@ jobs:
             server:stream-service:test server:stream-service:koverXmlReport
 
       - name: Archive Reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: ${{ always() }}
         with:
-          name: reports
+          name: reports-server
           path: '**/build/reports/*'
 
       - name: Publish Unit Test Results
-        uses: mikepenz/action-junit-report@v4
+        uses: mikepenz/action-junit-report@cf701569b05ccdd861a76b8607a66d76f6fd4857
         if: ${{ always() }}
         with:
           report_paths: '**/TEST-*.xml'
@@ -339,12 +347,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ server-tests, client-core-tests, client-web-tests ]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - name: Download kover reports
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e
         with:
-          name: reports
-      - uses: codecov/codecov-action@v3
+          pattern: reports*
+      - uses: codecov/codecov-action@0565863a31f2c772f9f0395002a31e3f06189574
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: "**/build/reports/kover/project-xml/report.xml"
