@@ -18,14 +18,14 @@
 package anystream.db
 
 import anystream.db.tables.records.UserPermissionRecord
+import anystream.db.tables.records.UserRecord
 import anystream.db.tables.references.*
-import anystream.db.util.fetchIntoType
-import anystream.db.util.fetchOptionalIntoType
-import anystream.db.util.intoType
+import anystream.db.util.*
 import anystream.models.*
-import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.datetime.Clock
 import org.jooq.DSLContext
+import org.jooq.kotlin.coroutines.transactionCoroutine
 import org.slf4j.LoggerFactory
 
 
@@ -35,95 +35,63 @@ class UserDao(
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    suspend fun countUsers(): Long = withContext(IO) {
-        db.fetchCount(USER).toLong()
+    suspend fun countUsers(): Int {
+        return db.fetchCountAsync(USER)
     }
 
-    suspend fun fetchUser(userId: String): User? = withContext(IO) {
-        try {
-            db.fetchSingle(USER, USER.ID.eq(userId)).intoType()
-        } catch (e: Throwable) {
-            logger.error("Failed to fetch user '$userId'", e)
-            null
-        }
+    suspend fun fetchUser(userId: String): User? {
+        return db.selectFrom(USER)
+            .where(USER.ID.eq(userId))
+            .awaitFirstOrNullInto()
     }
 
-    suspend fun fetchUserByUsername(username: String): User? = withContext(IO) {
-        try {
-            db.selectFrom(USER)
-                .where(USER.USERNAME.eq(username.lowercase()))
-                .fetchOptionalIntoType()
-        } catch (e: Throwable) {
-            logger.error("Failed to fetch user '$username'", e)
-            null
-        }
+    suspend fun fetchUserByUsername(username: String): User? {
+        return db.selectFrom(USER)
+            .where(USER.USERNAME.eq(username.lowercase()))
+            .awaitFirstOrNullInto()
     }
 
-    suspend fun fetchPermissions(userId: String): Set<Permission> = withContext(IO) {
-        try {
-            db.fetch(USER_PERMISSION, USER_PERMISSION.USER_ID.eq(userId))
-                .into(UserPermission::class.java)
-                .map { it.value }
-                .toSet()
-        } catch (e: Throwable) {
-            logger.error("Failed to fetch permissions for '$userId'", e)
-            emptySet()
-        }
+    suspend fun fetchPermissions(userId: String): Set<Permission> {
+        return db.selectFrom(USER_PERMISSION)
+            .where(USER_PERMISSION.USER_ID.eq(userId))
+            .awaitFirstOrNullInto<Set<Permission>>()
+            .orEmpty()
     }
 
-    suspend fun fetchUsers(): List<User> = withContext(IO) {
-        try {
-            db.selectFrom(USER).fetchIntoType()
-        } catch (e: Throwable) {
-            logger.error("Failed to fetch users", e)
-            emptyList()
-        }
+    suspend fun fetchUsers(): List<User> {
+        return db.selectFrom(USER).awaitInto()
+    }
+
+    suspend fun fetchUsers(ids: List<String>): List<User> {
+        return db.selectFrom(USER)
+            .where(USER.ID.`in`(ids))
+            .awaitInto()
     }
 
     suspend fun insertUser(
         user: User,
         permissions: Set<Permission>,
-    ): User? = withContext(IO) {
-        try {
-            val userId = db.newRecord(USER, user)
-                .apply { store() }
-                .id
-
+    ): User? {
+        return db.transactionCoroutine {
+            val newUser: User = db.newRecordAsync(USER, UserRecord(user))
             val inserts = permissions.map { permission ->
-                UserPermissionRecord(userId, permission)
+                UserPermissionRecord(newUser.id, permission)
             }
-            db.batchInsert(inserts).execute()
-            db.selectFrom(USER)
-                .where(USER.ID.eq(userId))
-                .fetchOptionalIntoType()
-        } catch (e: Throwable) {
-            logger.error("Failed to insert user", e)
-            null
+            db.batchInsert(inserts)
+                .executeAsync()
+            newUser
         }
     }
 
-    suspend fun updateUser(
-        userId: String,
-        user: User?,
-        passwordHash: String?,
-    ): Boolean = withContext(IO) {
-        try {
-            TODO("Not yet implemented")
-        } catch (e: Throwable) {
-            logger.error("Failed to update user '$userId'", e)
-            false
-        }
+    suspend fun updateUser(user: User): Boolean {
+        return db.update(USER)
+            .set(UserRecord(user.copy(updatedAt = Clock.System.now())))
+            .awaitFirstOrNull() == 1
     }
 
-    suspend fun deleteUser(userId: String): Boolean = withContext(IO) {
-        try {
-            db.deleteFrom(USER)
-                .where(USER.ID.eq(userId))
-                .execute()
-            true
-        } catch (e: Throwable) {
-            logger.error("Failed to delete user '$userId'", e)
-            false
-        }
+    suspend fun deleteUser(userId: String): Boolean {
+        return db.deleteFrom(USER)
+            .where(USER.ID.eq(userId))
+            .awaitFirstOrNull() == 1
     }
 }

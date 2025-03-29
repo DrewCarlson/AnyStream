@@ -30,24 +30,65 @@ sealed class MediaScanResult {
 
     @Serializable
     data class Success(
-        val addedIds: List<String>,
-        val removedIds: List<String>,
-        val existingIds: List<String>,
-    ) : MediaScanResult()
+        val directories: ContentIdContainer,
+        val mediaLinks: ContentIdContainer,
+    ) : MediaScanResult() {
+        fun merge(others: List<Success>): MediaScanResult {
+            return others.fold(this) { result, next ->
+                Success(
+                    directories = result.directories.merge(next.directories),
+                    mediaLinks = result.mediaLinks.merge(next.mediaLinks)
+                )
+            }
+        }
+    }
 
+    /**
+     * The file or directory exists but the parent directory is
+     * not tracked within a library directory.
+     */
+    @Serializable
+    data object ErrorNotInLibrary : MediaScanResult()
+
+    /**
+     * The directory to be scanned contained no processable files.
+     */
     @Serializable
     data object ErrorNothingToScan : MediaScanResult()
 
+    /**
+     * The file or directory to be scanned could not be found.
+     */
     @Serializable
     data object ErrorFileNotFound : MediaScanResult()
 
     @Serializable
-    data object ErrorInvalidConfiguration : MediaScanResult()
+    data object ErrorAbsolutePathRequired : MediaScanResult()
 
     @Serializable
     data class ErrorDatabaseException(
         val stacktrace: String,
     ) : MediaScanResult()
+}
+
+// @Poko
+@Serializable
+data class ContentIdContainer(
+    val addedIds: List<String> = emptyList(),
+    val removedIds: List<String> = emptyList(),
+    val existingIds: List<String> = emptyList(),
+) {
+    companion object {
+        val EMPTY = ContentIdContainer(emptyList(), emptyList(), emptyList())
+    }
+
+    fun merge(container: ContentIdContainer): ContentIdContainer {
+        return ContentIdContainer(
+            addedIds = addedIds + container.addedIds,
+            removedIds = removedIds + container.removedIds,
+            existingIds = existingIds + container.existingIds,
+        )
+    }
 }
 
 @Serializable

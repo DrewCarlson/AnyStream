@@ -20,48 +20,63 @@ package anystream.db
 import anystream.models.Permission
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.booleans.shouldBeTrue
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.comparables.shouldBeGreaterThan
+import io.kotest.matchers.comparables.shouldBeLessThan
+import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeSameInstanceAs
+import kotlinx.coroutines.delay
+import kotlinx.datetime.Clock
 import org.jooq.DSLContext
+import kotlin.time.Duration.Companion.seconds
 
 
 class UserDaoTest : FunSpec({
 
     val db: DSLContext by bindTestDatabase()
-    lateinit var dao: UserDao
+    val dao: UserDao by bindForTest({ UserDao(db) })
 
-    beforeTest {
-        dao = UserDao(db)
-    }
-
-    test("insert user") {
+    test("insert user without permissions") {
         val user = createUserObject()
         val newUser = dao.insertUser(user, emptySet())
 
-        dao.fetchUsers()
-
         newUser.shouldNotBeNull()
 
-        newUser.id shouldBe user.id
-        newUser.username shouldBe user.username
-        newUser.displayName shouldBe user.displayName
-        newUser.passwordHash shouldBe user.passwordHash
+        newUser.id shouldBeEqual user.id
+        newUser.username shouldBeEqual user.username
+        newUser.displayName shouldBeEqual user.displayName
+        newUser.passwordHash shouldBeEqual user.passwordHash
     }
 
     test("insert user with permissions") {
         val user = createUserObject()
         val newUser = dao.insertUser(user, Permission.all)
 
-        dao.fetchUsers()
-
         newUser.shouldNotBeNull()
 
-        newUser.id shouldBe user.id
-        newUser.username shouldBe user.username
-        newUser.displayName shouldBe user.displayName
-        newUser.passwordHash shouldBe user.passwordHash
+        newUser.id shouldBeEqual user.id
+        newUser.username shouldBeEqual user.username
+        newUser.displayName shouldBeEqual user.displayName
+        newUser.passwordHash shouldBeEqual user.passwordHash
+    }
+
+    test("fetch user permissions") {
+        val user = createUserObject()
+
+        dao.insertUser(user, Permission.all).shouldNotBeNull()
+
+        val permissions = dao.fetchPermissions(user.id)
+
+        permissions.shouldContainAll(permissions)
+    }
+
+    test("fetch user permissions - invalid user id") {
+        dao.fetchPermissions("not-a-real-user-id").shouldBeEmpty()
     }
 
     test("fetch user by id") {
@@ -74,10 +89,10 @@ class UserDaoTest : FunSpec({
 
         loadedUser.shouldNotBeNull()
 
-        loadedUser.id shouldBe id
-        loadedUser.username shouldBe userObject.username
-        loadedUser.displayName shouldBe userObject.displayName
-        loadedUser.passwordHash shouldBe userObject.passwordHash
+        loadedUser.id shouldBeEqual id
+        loadedUser.username shouldBeEqual userObject.username
+        loadedUser.displayName shouldBeEqual userObject.displayName
+        loadedUser.passwordHash shouldBeEqual userObject.passwordHash
     }
 
     test("fetch users") {
@@ -91,14 +106,18 @@ class UserDaoTest : FunSpec({
 
         userObjects.forEachIndexed { index, user ->
             val loadedUser = users[index]
-            loadedUser.id shouldBe user.id
-            loadedUser.username shouldBe user.username
-            loadedUser.displayName shouldBe user.displayName
-            loadedUser.passwordHash shouldBe user.passwordHash
+            loadedUser.id shouldBeEqual user.id
+            loadedUser.username shouldBeEqual user.username
+            loadedUser.displayName shouldBeEqual user.displayName
+            loadedUser.passwordHash shouldBeEqual user.passwordHash
         }
     }
 
-    test("test delete user") {
+    test("fetch users when empty") {
+        dao.fetchUsers().shouldBeEmpty()
+    }
+
+    test("delete user") {
         val user = dao.insertUser(createUserObject(), emptySet()).shouldNotBeNull()
 
         dao.deleteUser(user.id).shouldBeTrue()
@@ -106,7 +125,39 @@ class UserDaoTest : FunSpec({
         dao.fetchUser(user.id).shouldBeNull()
     }
 
-    test("test count users") {
+    test("update user - display name") {
+        val user = dao.insertUser(createUserObject(), emptySet()).shouldNotBeNull()
+        delay(1.seconds)
+
+        dao.updateUser(user.copy(displayName = "updated-username")).shouldBeTrue()
+
+        val updatedUser = dao.fetchUser(user.id).shouldNotBeNull()
+
+        updatedUser.id shouldBeEqual user.id
+        updatedUser.username shouldBeEqual user.username
+        updatedUser.displayName shouldBeEqual "updated-username"
+        updatedUser.passwordHash shouldBeEqual user.passwordHash
+        updatedUser.createdAt.epochSeconds shouldBeEqual user.createdAt.epochSeconds
+        updatedUser.updatedAt.epochSeconds shouldBeGreaterThan user.updatedAt.epochSeconds
+    }
+
+    test("update user - password name") {
+        val user = dao.insertUser(createUserObject(), emptySet()).shouldNotBeNull()
+        delay(1.seconds)
+
+        dao.updateUser(user.copy(passwordHash = "updated-password-hash")).shouldBeTrue()
+
+        val updatedUser = dao.fetchUser(user.id).shouldNotBeNull()
+
+        updatedUser.id shouldBeEqual user.id
+        updatedUser.username shouldBeEqual user.username
+        updatedUser.displayName shouldBeEqual user.displayName
+        updatedUser.passwordHash shouldBeEqual "updated-password-hash"
+        updatedUser.createdAt.epochSeconds shouldBeEqual user.createdAt.epochSeconds
+        updatedUser.updatedAt.epochSeconds shouldBeGreaterThan user.updatedAt.epochSeconds
+    }
+
+    test("count users") {
         repeat(5) { i ->
             dao.insertUser(createUserObject(i), emptySet()).shouldNotBeNull()
         }

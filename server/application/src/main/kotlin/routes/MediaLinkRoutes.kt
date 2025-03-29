@@ -77,7 +77,7 @@ fun Route.addMediaLinkManageRoutes(
             route("/matches") {
                 get {
                     val mediaLink = mediaLink() ?: return@get call.respond(NotFound)
-                    val matches = libraryService.refreshMetadata(mediaLink, false)
+                    val matches = libraryService.refreshMetadata(mediaLink, import = false)
                     call.respond(matches)
                 }
 
@@ -114,7 +114,7 @@ fun Route.addMediaLinkManageRoutes(
 
                 val descriptors = listOf(Descriptor.VIDEO, Descriptor.AUDIO)
                 val mediaLinkIds = mediaLinkDao
-                    .findGidsByMediaLinkGidAndDescriptors(mediaLink.id, descriptors)
+                    .findIdsByMediaLinkIdAndDescriptors(mediaLink.id, descriptors)
                     .takeIf { it.isNotEmpty() }
                     ?: return@get call.respond(NotFound)
 
@@ -169,5 +169,5 @@ private suspend fun RoutingContext.mediaLink(
             call.respond(UnprocessableEntity)
             null
         }
-    return mediaLinkDao.findByGid(mediaLinkGid)
+    return mediaLinkDao.findById(mediaLinkGid)
 }

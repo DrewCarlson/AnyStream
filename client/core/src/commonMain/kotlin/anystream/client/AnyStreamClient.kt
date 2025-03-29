@@ -311,6 +311,25 @@ class AnyStreamClient(
         }
     }
 
+    suspend fun removeDirectory(directoryId: String): Boolean {
+        return try {
+            http.delete("$serverUrl/api/library/directory/$directoryId").bodyOrThrow()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    suspend fun scanDirectory(directoryId: String, refreshMetadata: Boolean = false) {
+        try {
+            http.get("$serverUrl/api/directory/$directoryId/scan") {
+                parameter("refreshMetadata", refreshMetadata)
+            }.bodyOrThrow()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     suspend fun scanLibrary(libraryId: String) {
         try {
             http.get("$serverUrl/api/library/$libraryId/scan").orThrow()

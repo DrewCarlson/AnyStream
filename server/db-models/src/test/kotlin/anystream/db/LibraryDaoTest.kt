@@ -20,60 +20,134 @@ package anystream.db
 import anystream.models.MediaKind
 import anystream.util.ObjectId
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.equals.shouldNotBeEqual
+import io.kotest.matchers.booleans.shouldBeTrue
+import io.kotest.matchers.equals.shouldBeEqual
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
-import io.kotest.matchers.shouldBe
 import org.jooq.DSLContext
 import kotlin.test.*
 
 class LibraryDaoTest : FunSpec({
 
     val db: DSLContext by bindTestDatabase()
-    lateinit var dao: LibraryDao
+    val dao: LibraryDao by bindForTest({ LibraryDao(db) })
 
-    beforeTest {
-        dao = LibraryDao(db)
-    }
-
-    test("get all") {
-        val newLibrary = dao.insert(MediaKind.MOVIE)
+    test("fetch all libraries") {
+        val newLibrary = dao.insertLibrary(MediaKind.MOVIE)
         val libraries = dao.all()
-        assertEquals(1, libraries.size)
-        assertEquals(newLibrary, libraries.first())
+        libraries.size shouldBeEqual 1
+        newLibrary shouldBeEqual libraries.first()
     }
 
-    test("get all when empty") {
-        assertTrue(dao.all().isEmpty())
+    test("fetch all libraries when table empty") {
+        dao.all().isEmpty().shouldBeTrue()
     }
 
     MediaKind.entries.forEach { libraryKind ->
-        test("insert $libraryKind") {
-            val library = dao.insert(libraryKind)
+        test("insert library for MediaKind.$libraryKind") {
+            val library = dao.insertLibrary(libraryKind)
 
             assertTrue(ObjectId.isValid(library.id))
             assertEquals(libraryKind, library.mediaKind)
         }
     }
 
-    test("insert all") {
+    test("insert library for all MediaKinds") {
         MediaKind.entries.forEach { libraryKind ->
-            val library = dao.insert(libraryKind)
+            val library = dao.insertLibrary(libraryKind)
 
             assertTrue(ObjectId.isValid(library.id))
             assertEquals(libraryKind, library.mediaKind)
         }
+    }
+
+    test("insert default libraries") {
+        dao.insertDefaultLibraries()
+
+        val libraries = dao.all()
+        libraries.size shouldBeEqual 3
+
+        libraries[0].id should ObjectId::isValid
+        libraries[0].name shouldBeEqual "Movies"
+        libraries[0].mediaKind shouldBeEqual MediaKind.MOVIE
+
+        libraries[1].id should ObjectId::isValid
+        libraries[1].name shouldBeEqual "TV"
+        libraries[1].mediaKind shouldBeEqual MediaKind.TV
+
+        libraries[2].id should ObjectId::isValid
+        libraries[2].name shouldBeEqual "Music"
+        libraries[2].mediaKind shouldBeEqual MediaKind.MUSIC
     }
 
     test("insert multiple of same MediaKind") {
-        val library1 = dao.insert(MediaKind.MOVIE)
-        val library2 = dao.insert(MediaKind.MOVIE)
+        val library1 = dao.insertLibrary(MediaKind.MOVIE)
+        val library2 = dao.insertLibrary(MediaKind.MOVIE)
+        val library3 = dao.insertLibrary(MediaKind.MOVIE, "movies-3")
 
         library1.id should ObjectId::isValid
-        library1.mediaKind shouldBe MediaKind.MOVIE
+        library1.name shouldBeEqual "Movies"
+        library1.mediaKind shouldBeEqual MediaKind.MOVIE
 
         library2.id should ObjectId::isValid
-        library2.mediaKind shouldBe MediaKind.MOVIE
+        library2.name shouldBeEqual "Movies"
+        library2.mediaKind shouldBeEqual MediaKind.MOVIE
 
-        library1.id shouldNotBeEqual library2.id
+        library3.id should ObjectId::isValid
+        library3.name shouldBeEqual "movies-3"
+        library3.mediaKind shouldBeEqual MediaKind.MOVIE
+    }
+
+    test("insert directory") {
+        val library = dao.insertLibrary(MediaKind.MOVIE)
+
+        val directory = dao.insertDirectory(parentId = null, libraryId = library.id, "directory")
+
+        directory.id should ObjectId::isValid
+        directory.libraryId.shouldNotBeNull() shouldBeEqual library.id
+        directory.parentId.shouldBeNull()
+        directory.filePath shouldBeEqual "directory"
+    }
+
+    test("fetch all directories") {
+        val library = dao.insertLibrary(MediaKind.MOVIE)
+
+        val directory1 = dao.insertDirectory(parentId = null, libraryId = library.id, "directory")
+        val directory2 = dao.insertDirectory(parentId = null, libraryId = library.id, "directory2")
+
+        val directories = dao.fetchDirectories(library.id)
+        directories.size shouldBeEqual 2
+
+        directories.first() shouldBeEqual directory1
+        directories.last() shouldBeEqual directory2
+    }
+
+    test("fetch all directories when table empty") {
+        val library = dao.insertLibrary(MediaKind.MOVIE)
+
+        dao.fetchDirectories(library.id).size shouldBeEqual 0
+    }
+
+    test("fetch directory by path") {
+        val library = dao.insertLibrary(MediaKind.MOVIE)
+
+        val directory1 = dao.insertDirectory(parentId = null, libraryId = library.id, "directory")
+        val directory2 = dao.insertDirectory(parentId = null, libraryId = library.id, "directory2")
+
+        directory1 shouldBeEqual dao.fetchDirectoryByPath("directory").shouldNotBeNull()
+        directory2 shouldBeEqual dao.fetchDirectoryByPath("directory2").shouldNotBeNull()
+    }
+
+
+    test("fetch library by path") {
+        val library1 = dao.insertLibrary(MediaKind.MOVIE)
+        val library2 = dao.insertLibrary(MediaKind.TV)
+
+        dao.insertDirectory(parentId = null, libraryId = library1.id, "directory")
+        dao.insertDirectory(parentId = null, libraryId = library2.id, "directory2")
+
+        library1 shouldBeEqual dao.fetchLibraryByPath("directory").shouldNotBeNull()
+        library2 shouldBeEqual dao.fetchLibraryByPath("directory2").shouldNotBeNull()
     }
 })

@@ -53,7 +53,7 @@ class ObjectId : Comparable<ObjectId?>, Serializable {
      * @param counter the counter
      * @throws IllegalArgumentException if the high order byte of counter is not zero
      */
-    constructor(date: Date, counter: Int) : this(dateToTimestampSeconds(date), counter, true) {}
+    constructor(date: Date, counter: Int) : this(dateToTimestampSeconds(date), counter, true)
 
     /**
      * Creates an ObjectId using the given time, machine identifier, process identifier, and counter.
@@ -62,15 +62,14 @@ class ObjectId : Comparable<ObjectId?>, Serializable {
      * @param counter   the counter
      * @throws IllegalArgumentException if the high order byte of counter is not zero
      */
-    constructor(timestamp: Int, counter: Int) : this(timestamp, counter, true) {}
+    constructor(timestamp: Int, counter: Int) : this(timestamp, counter, true)
     private constructor(timestamp: Int, counter: Int, checkCounter: Boolean) : this(
         timestamp,
         RANDOM_VALUE1,
         RANDOM_VALUE2,
         counter,
         checkCounter,
-    ) {
-    }
+    )
 
     private constructor(
         timestamp: Int,
@@ -93,7 +92,7 @@ class ObjectId : Comparable<ObjectId?>, Serializable {
      * @param hexString the string to convert
      * @throws IllegalArgumentException if the string is not a valid hex string representation of an ObjectId
      */
-    constructor(hexString: String) : this(parseHexString(hexString)) {}
+    constructor(hexString: String) : this(parseHexString(hexString))
 
     /**
      * Constructs a new instance from the given byte array
@@ -102,7 +101,7 @@ class ObjectId : Comparable<ObjectId?>, Serializable {
      * @throws IllegalArgumentException if array is not of length 12
      */
     constructor(bytes: ByteArray) : this(ByteBuffer.wrap(bytes)) {
-        check(bytes.size == 12) { "buffer.remaining() == 12" }
+        require(bytes.size == 12) { "buffer.remaining() == 12" }
     }
 
     /**
@@ -112,7 +111,7 @@ class ObjectId : Comparable<ObjectId?>, Serializable {
      * @throws IllegalArgumentException if the buffer is null or does not have at least 12 bytes remaining
      */
     constructor(buffer: ByteBuffer) {
-        check(buffer.remaining() >= OBJECT_ID_LENGTH) { "buffer.remaining() >= 12" }
+        require(buffer.remaining() >= OBJECT_ID_LENGTH) { "buffer.remaining() >= 12" }
 
         // Note: Cannot use ByteBuffer.getInt because it depends on tbe buffer's byte order
         // and ObjectId's are always in big-endian order.
@@ -141,7 +140,7 @@ class ObjectId : Comparable<ObjectId?>, Serializable {
      * @throws IllegalArgumentException if the buffer is null or does not have at least 12 bytes remaining
      */
     fun putToByteBuffer(buffer: ByteBuffer) {
-        check(buffer.remaining() >= OBJECT_ID_LENGTH) { "buffer.remaining() >= 12" }
+        require(buffer.remaining() >= OBJECT_ID_LENGTH) { "buffer.remaining() >= 12" }
         buffer.put(int3(timestamp))
         buffer.put(int2(timestamp))
         buffer.put(int1(timestamp))
@@ -170,13 +169,12 @@ class ObjectId : Comparable<ObjectId?>, Serializable {
      * @return a string representation of the ObjectId in hexadecimal format
      */
     fun toHexString(): String {
-        val chars = CharArray(OBJECT_ID_LENGTH * 2)
-        var i = 0
-        for (b in toByteArray()) {
-            chars[i++] = HEX_CHARS[b.toInt() shr 4 and 0xF]
-            chars[i++] = HEX_CHARS[b.toInt() and 0xF]
+        return buildString {
+            for (b in toByteArray()) {
+                append(HEX_CHARS[b.toInt() shr 4 and 0xF])
+                append(HEX_CHARS[b.toInt() and 0xF])
+            }
         }
-        return String(chars)
     }
 
     override fun equals(other: Any?): Boolean {
@@ -208,7 +206,7 @@ class ObjectId : Comparable<ObjectId?>, Serializable {
     }
 
     override operator fun compareTo(other: ObjectId?): Int {
-        checkNotNull(other)
+        requireNotNull(other)
         val byteArray = toByteArray()
         val otherByteArray = other.toByteArray()
         for (i in 0 until OBJECT_ID_LENGTH) {
@@ -228,12 +226,8 @@ class ObjectId : Comparable<ObjectId?>, Serializable {
         return SerializationProxy(this)
     }
 
-    private class SerializationProxy internal constructor(objectId: ObjectId) : Serializable {
-        private val bytes: ByteArray
-
-        init {
-            bytes = objectId.toByteArray()
-        }
+    private class SerializationProxy(objectId: ObjectId) : Serializable {
+        private val bytes = objectId.toByteArray()
 
         private fun readResolve(): Any {
             return ObjectId(bytes)
@@ -267,6 +261,8 @@ class ObjectId : Comparable<ObjectId?>, Serializable {
         fun get(): ObjectId {
             return ObjectId()
         }
+
+        fun next(): String = ObjectId().toString()
 
         /**
          * Gets a new object id with the given date value and all other bits zeroed.

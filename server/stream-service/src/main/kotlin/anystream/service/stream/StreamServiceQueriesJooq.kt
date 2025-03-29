@@ -17,55 +17,41 @@
  */
 package anystream.service.stream
 
-import anystream.db.pojos.*
-import anystream.db.tables.references.MEDIA_LINK
+import anystream.db.MediaLinkDao
+import anystream.db.MetadataDao
+import anystream.db.PlaybackStatesDao
+import anystream.db.UserDao
 import anystream.db.tables.references.METADATA
 import anystream.db.tables.references.PLAYBACK_STATE
-import anystream.db.tables.references.USER
-import anystream.db.util.intoType
+import anystream.db.util.awaitFirstOrNullInto
 import anystream.models.*
 import kotlinx.coroutines.future.await
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.jooq.DSLContext
 import org.slf4j.LoggerFactory
 
 class StreamServiceQueriesJooq(
     private val db: DSLContext,
+    private val userDao: UserDao,
+    private val playbackStatesDao: PlaybackStatesDao,
+    private val metadataDao: MetadataDao,
+    private val mediaLinkDao: MediaLinkDao,
 ) : StreamServiceQueries {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     override suspend fun fetchUsersByIds(ids: List<String>): List<User> {
         if (ids.isEmpty()) return emptyList()
-        return try {
-            db.fetch(USER, USER.ID.`in`(ids)).intoType()
-        } catch (e: Throwable) {
-            logger.error("Failed to load Users ids=$ids", e)
-            emptyList()
-        }
+        return userDao.fetchUsers(ids)
     }
 
     override suspend fun fetchPlaybackStatesByIds(ids: List<String>): List<PlaybackState> {
         if (ids.isEmpty()) return emptyList()
-        return try {
-            db.fetch(PLAYBACK_STATE, PLAYBACK_STATE.ID.`in`(ids)).intoType()
-        } catch (e: Throwable) {
-            logger.error("Failed to load PlaybackStates ids=${ids.joinToString()}", e)
-            emptyList()
-        }
+        return playbackStatesDao.fetchByIds(ids)
     }
 
     override suspend fun fetchMovieById(id: String): Movie? {
-        return try {
-            db.fetchOne(
-                METADATA,
-                METADATA.ID.eq(id),
-                METADATA.MEDIA_TYPE.eq(MediaType.MOVIE)
-            )?.intoType<Metadata>()
-                ?.toMovieModel()
-        } catch (e: Throwable) {
-            logger.error("Failed to load Movie id='$id'", e)
-            null
-        }
+        return metadataDao.findByIdAndType(id, MediaType.MOVIE)?.toMovieModel()
     }
 
     override suspend fun fetchEpisodeById(id: String): Pair<Episode, TvShow>? {
@@ -95,69 +81,49 @@ class StreamServiceQueriesJooq(
         }
     }
 
-    override fun fetchMediaLink(mediaLinkId: String): MediaLink? {
-        return try {
-            db.fetchOne(MEDIA_LINK, MEDIA_LINK.ID.eq(mediaLinkId))
-                ?.intoType()
-        } catch (e: Throwable) {
-            logger.error("Failed to find MediaReference '$mediaLinkId'", e)
-            null
-        }
+    override suspend fun fetchMediaLink(mediaLinkId: String): MediaLink? {
+        return mediaLinkDao.findById(mediaLinkId)
     }
 
-    override fun fetchPlaybackStateById(id: String): PlaybackState? {
-        return try {
-            db.fetchOne(PLAYBACK_STATE, PLAYBACK_STATE.ID.eq(id))
-                ?.intoType()
-        } catch (e: Throwable) {
-            logger.error("Failed to load PlaybackState id='$id'", e)
-            null
-        }
+    override suspend fun fetchPlaybackStateById(id: String): PlaybackState? {
+        return playbackStatesDao.fetchById(id)
     }
 
-    override fun fetchPlaybackState(mediaLinkId: String, userId: String): PlaybackState? {
+    override suspend fun fetchPlaybackState(mediaLinkId: String, userId: String): PlaybackState? {
         return try {
-            db.fetchOne(
-                PLAYBACK_STATE,
-                PLAYBACK_STATE.USER_ID.eq(userId),
-                PLAYBACK_STATE.MEDIA_LINK_ID.eq(mediaLinkId)
-            )?.intoType()
+            db.selectFrom(PLAYBACK_STATE)
+                .where(
+                    PLAYBACK_STATE.USER_ID.eq(userId),
+                    PLAYBACK_STATE.MEDIA_LINK_ID.eq(mediaLinkId)
+                )
+                .awaitFirstOrNullInto()
         } catch (e: Throwable) {
             logger.error("Failed to load PlaybackState, mediaLinkId='$mediaLinkId' userId='$userId'", e)
             null
         }
     }
 
-    override fun insertPlaybackState(playbackState: PlaybackState): Boolean {
-        return try {
-            db.newRecord(PLAYBACK_STATE, playbackState)
-                .apply { from(playbackState) }
-                .store()
-            true
-        } catch (e: Throwable) {
-            logger.error("Failed to update PlaybackState, id='${playbackState.id}'", e)
-            false
-        }
+    override suspend fun insertPlaybackState(playbackState: PlaybackState): Boolean {
+        return playbackStatesDao.insert(playbackState)
     }
 
-    override fun updatePlaybackState(stateId: String, position: Double): Boolean {
+    override suspend fun updatePlaybackState(stateId: String, position: Double): Boolean {
         return try {
             db.update(PLAYBACK_STATE)
                 .set(PLAYBACK_STATE.POSITION, position)
                 .where(PLAYBACK_STATE.ID.eq(stateId))
-                .execute()
-            true
+                .awaitFirstOrNull() == 1
         } catch (e: Throwable) {
             logger.error("Failed to update PlaybackState position", e)
             false
         }
     }
 
-    override fun deletePlaybackState(playbackStateId: String): Boolean {
+    override suspend fun deletePlaybackState(playbackStateId: String): Boolean {
         return try {
             db.deleteFrom(PLAYBACK_STATE)
                 .where(PLAYBACK_STATE.ID.eq(playbackStateId))
-                .execute()
+                .awaitFirstOrNull()
             true
         } catch (e: Throwable) {
             logger.error("Failed to delete PlaybackState, id='$playbackStateId'", e)

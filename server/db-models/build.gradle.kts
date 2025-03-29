@@ -26,6 +26,7 @@ dependencies {
     implementation(projects.libs.sqlGeneratorApi)
     implementation(projects.client.dataModels)
     implementation(projects.server.shared)
+    implementation(libsServer.bundles.jooq)
 
     implementation(libsCommon.datetime)
     implementation(libsCommon.serialization.json)
@@ -38,6 +39,7 @@ dependencies {
     testImplementation(projects.server.dbModels.testing)
     testImplementation(libsServer.jdbc.sqlite)
 }
+
 kotlin {
     target {
         compilations.all {

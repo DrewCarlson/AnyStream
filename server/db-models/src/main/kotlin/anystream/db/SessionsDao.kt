@@ -18,33 +18,34 @@
 package anystream.db
 
 import anystream.db.tables.references.SESSION
+import anystream.db.util.awaitFirstOrNullInto
 import anystream.db.util.intoType
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.jooq.DSLContext
 
 class SessionsDao(
     private val db: DSLContext
 ) {
 
-    fun find(id: String): String? {
+    suspend fun find(id: String): String? {
         return db.select(SESSION.DATA)
             .from(SESSION)
             .where(SESSION.ID.eq(id))
-            .fetchOne()
-            ?.intoType()
+            .awaitFirstOrNullInto()
     }
 
-    fun insertOrUpdate(id: String, userId: String, data: String) {
+    suspend fun insertOrUpdate(id: String, userId: String, data: String) {
         db.insertInto(SESSION, SESSION.ID, SESSION.USER_ID, SESSION.DATA)
             .values(id, userId, data)
             .onDuplicateKeyUpdate()
             .set(SESSION.DATA, data)
             .where(SESSION.ID.eq(id))
-            .execute()
+            .awaitFirstOrNull()
     }
 
-    fun delete(id: String) {
+    suspend fun delete(id: String) {
         db.deleteFrom(SESSION)
             .where(SESSION.ID.eq(id))
-            .execute()
+            .awaitFirstOrNull()
     }
 }

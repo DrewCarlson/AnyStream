@@ -34,6 +34,7 @@ import anystream.service.stream.StreamServiceQueries
 import anystream.service.stream.StreamServiceQueriesJooq
 import anystream.service.user.UserService
 import anystream.db.UserDao
+import anystream.media.analyzer.MediaFileAnalyzer
 import anystream.util.SqlSessionStorage
 import anystream.util.WebsocketAuthorization
 import anystream.util.headerOrQuery
@@ -138,17 +139,18 @@ fun Application.module(testing: Boolean = false) {
                 single { MetadataDbQueries(get(), get(), get(), get(), get()) }
 
                 single { MetadataManager(listOf(TmdbMetadataProvider(get(), get()))) }
+                single { MediaFileAnalyzer({ get() }, get()) }
                 single<LibraryService> {
                     val processors = listOf(
                         MovieFileProcessor(get(), get()),
                         TvFileProcessor(get(), get()),
                     )
-                    LibraryService({ get() }, processors, get(), get())
+                    LibraryService(get(), processors, get(), get())
                 }
                 single { DSL.using(get<DataSource>(), SQLDialect.SQLITE) }
                 single { UserService(get(), get()) }
 
-                single<StreamServiceQueries> { StreamServiceQueriesJooq(get()) }
+                single<StreamServiceQueries> { StreamServiceQueriesJooq(get(), get(), get(), get(), get()) }
                 single { StreamService(get(), get(), { get() }, { get() }, get<AnyStreamConfig>().transcodePath) }
                 single { SearchService(get(), get(), get()) }
             },
@@ -160,7 +162,7 @@ fun Application.module(testing: Boolean = false) {
 
     check(runMigrations(get<AnyStreamConfig>().databaseUrl, log))
     applicationScope.launch {
-        get<LibraryDao>().createDefaultLibraries()
+        get<LibraryDao>().insertDefaultLibraries()
     }
     registerJobs()
 

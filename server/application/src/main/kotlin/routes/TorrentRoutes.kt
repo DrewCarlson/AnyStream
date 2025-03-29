@@ -37,6 +37,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.buildJsonObject
@@ -180,6 +181,7 @@ fun Route.addTorrentRoutes(
     }
 }
 
+@OptIn(DelicateCoroutinesApi::class)
 fun Route.addTorrentWsRoutes(qbClient: QBittorrentClient = koinGet()) {
     webSocket("/ws/torrents/observe") {
         val session = checkNotNull(extractUserSession())

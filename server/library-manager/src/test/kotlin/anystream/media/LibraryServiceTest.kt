@@ -21,6 +21,7 @@ import anystream.db.LibraryDao
 import anystream.db.MediaLinkDao
 import anystream.db.bindForTest
 import anystream.db.bindTestDatabase
+import anystream.media.analyzer.MediaFileAnalyzer
 import anystream.models.MediaKind
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeEmpty
@@ -35,7 +36,7 @@ class LibraryServiceTest : FunSpec({
     val libraryService by bindForTest({
         val mediaLinkDao = MediaLinkDao(db)
         LibraryService(
-            ffprobe = { error("not implemented!") },
+            mediaFileAnalyzer = MediaFileAnalyzer({ error("not implemented!") }, mediaLinkDao),
             processors = emptyList(),
             mediaLinkDao = mediaLinkDao,
             libraryDao = libraryDao,
@@ -47,21 +48,19 @@ class LibraryServiceTest : FunSpec({
     }
 
     test("get library list without directory") {
-        libraryDao.insert(MediaKind.MOVIE)
+        libraryDao.insertLibrary(MediaKind.MOVIE)
 
         libraryService.getLibraryFolders().shouldBeEmpty()
     }
 
     test("get library") {
-        val library = libraryDao.insert(MediaKind.MOVIE)
+        val library = libraryDao.insertLibrary(MediaKind.MOVIE)
         val directory = libraryDao.insertDirectory(null, library.id, "test")
 
         val libFolders = libraryService.getLibraryFolders()
-        libFolders.shouldHaveSize(1)
-
-        val root = libFolders.first()
+            .shouldHaveSize(1)
 
         directory.parentId.shouldBeNull()
-        root.mediaKind shouldBe library.mediaKind
+        libFolders.first().mediaKind shouldBe library.mediaKind
     }
 })
