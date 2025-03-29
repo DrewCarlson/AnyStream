@@ -323,12 +323,12 @@ jobs:
       - name: Run Server Tests
         run: >
           ./gradlew
-            server:application:test server:application:koverXmlReport
-            server:db-models:test server:db-models:koverXmlReport
-            server:library-manager:test server:library-manager:koverXmlReport
-            server:metadata-manager:test server:metadata-manager:koverXmlReport
-            server:shared:test server:shared:koverXmlReport
-            server:stream-service:test server:stream-service:koverXmlReport
+          server:application:test server:application:koverXmlReport
+          server:db-models:test server:db-models:koverXmlReport
+          server:library-manager:test server:library-manager:koverXmlReport
+          server:metadata-manager:test server:metadata-manager:koverXmlReport
+          server:shared:test server:shared:koverXmlReport
+          server:stream-service:test server:stream-service:koverXmlReport
 
       - name: Archive Reports
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
