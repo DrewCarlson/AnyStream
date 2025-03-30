@@ -93,17 +93,17 @@ private fun MovieGrid(
         items(movies) { movie ->
             val mediaLink by produceState<MediaLink?>(null, movie) {
                 value = mediaLinks.find {
-                    it.metadataGid == movie.gid &&
+                    it.metadataId == movie.id &&
                         it.descriptor == Descriptor.VIDEO
                 }
             }
             PosterCard(
                 title = movie.title,
                 imagePath = movie.posterPath,
-                onClick = { onMediaClick(movie.gid) },
+                onClick = { onMediaClick(movie.id) },
                 preferredWidth = cardWidth,
                 modifier = Modifier.padding(all = 8.dp),
-                onPlayClick = { onPlayMediaClick(mediaLink?.gid) },
+                onPlayClick = { onPlayMediaClick(mediaLink?.id) },
             )
         }
     }

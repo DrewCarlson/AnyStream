@@ -19,6 +19,7 @@ package anystream.media.util
 
 import anystream.models.StreamEncoding
 import anystream.models.StreamEncodingType
+import anystream.util.ObjectId
 import com.github.kokorin.jaffree.StreamType
 import com.github.kokorin.jaffree.ffprobe.Stream
 
@@ -29,7 +30,8 @@ internal fun Stream.toStreamEncoding(mediaLinkId: String): StreamEncoding? {
     val title = getTag("title")
     val language = getTag("language") ?: getTag("LANGUAGE")
     return StreamEncoding(
-        id = id,
+        id = ObjectId.next(),
+        streamId = id,
         index = index,
         codecName = codecName.orEmpty(),
         codecLongName = codecLongName.orEmpty(),

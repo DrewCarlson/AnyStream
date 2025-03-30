@@ -53,7 +53,7 @@ class MetadataManager(
 
         return search(mediaKind = mediaKind) {
             this.providerId = providerId
-            this.metadataGid = parsedId
+            this.metadataId = parsedId
             this.extras = extras
         }.firstOrNull() ?: QueryMetadataResult.ErrorProviderNotFound
     }

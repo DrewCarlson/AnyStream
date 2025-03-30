@@ -28,7 +28,7 @@ import anystream.models.api.HomeResponse
 import anystream.models.api.Popular
 import anystream.models.api.RecentlyAdded
 import anystream.models.completedPercent
-import anystream.playerMediaGid
+import anystream.playerMediaLinkId
 import anystream.util.get
 import app.softwork.routingcompose.Router
 import kotlinx.browser.localStorage
@@ -154,7 +154,7 @@ private fun CurrentlyWatching.ContinueWatchingRow(sizeMultiplier: Float) {
             posterPath = movie?.posterPath ?: show?.posterPath,
             isAdded = true,
             onPlayClicked = {
-                playerMediaGid.value = state.mediaLinkId
+                playerMediaLinkId.value = state.mediaLinkId
             },
             onBodyClicked = {
                 router.navigate("/media/${movie?.id ?: episode?.id}")
@@ -183,7 +183,7 @@ private fun RecentlyAdded.RecentlyAddedMovies(sizeMultiplier: Float) {
             posterPath = movie.posterPath,
             isAdded = true,
             onPlayClicked = {
-                playerMediaGid.value = mediaLink?.id
+                playerMediaLinkId.value = mediaLink?.id
             }.takeIf { mediaLink != null },
             onBodyClicked = {
                 router.navigate("/media/${movie.id}")
@@ -232,7 +232,7 @@ private fun Popular.PopularMovies(sizeMultiplier: Float) {
             },
             posterPath = movie.posterPath,
             isAdded = link != null,
-            onPlayClicked = { playerMediaGid.value = link?.id }
+            onPlayClicked = { playerMediaLinkId.value = link?.id }
                 .takeIf { link != null },
             onBodyClicked = {
                 router.navigate("/media/${movie.id}")

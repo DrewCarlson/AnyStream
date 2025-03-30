@@ -33,13 +33,13 @@ import org.jetbrains.compose.web.css.vh
 import org.jetbrains.compose.web.dom.*
 
 @Composable
-fun MediaLinkListScreen(libraryGid: String) {
+fun MediaLinkListScreen(libraryId: String) {
     val client = get<AnyStreamClient>()
     var updateIndex by remember { mutableStateOf(0) }
     val mediaLinks by produceState(emptyList<MediaLink>(), updateIndex) {
-        value = client.getMediaLinks(libraryGid)
+        value = client.getMediaLinks(libraryId)
     }
-    var matchMediaLinkGid by remember { mutableStateOf<String?>(null) }
+    var matchMediaLinkId by remember { mutableStateOf<String?>(null) }
     val selectedMediaLinks = remember { mutableStateListOf<String>() }
 
     Div({ classes("vstack", "h-100", "w-100", "gap-1", "p-2") }) {
@@ -64,7 +64,7 @@ fun MediaLinkListScreen(libraryGid: String) {
                         }
                     },
                     onScanClicked = { },
-                    onMatchMetadata = { matchMediaLinkGid = it.id },
+                    onMatchMetadata = { matchMediaLinkId = it.id },
                 )
             }
         }
@@ -79,7 +79,7 @@ fun MediaLinkListScreen(libraryGid: String) {
         }*/
     }
 
-    matchMediaLinkGid?.let {
+    matchMediaLinkId?.let {
         Modal(
             "matchMetadata",
             title = "Match Metadata",
@@ -89,16 +89,16 @@ fun MediaLinkListScreen(libraryGid: String) {
                 style { height(70.vh) }
             },
             bodyAttrs = { classes("overflow-hidden") },
-            onHidden = { matchMediaLinkGid = null }
+            onHidden = { matchMediaLinkId = null }
         ) { modalRef ->
             MetadataMatchScreen(
-                mediaLinkGid = matchMediaLinkGid,
+                mediaLinkId = matchMediaLinkId,
                 onLoadingStatChanged = { loading ->
                     modalRef._config.backdrop = if (loading) "static" else "true"
                     modalRef._config.keyboard = !loading
                 },
                 closeScreen = {
-                    matchMediaLinkGid = null
+                    matchMediaLinkId = null
                     updateIndex += 1
                     modalRef.hide()
                 }
@@ -152,7 +152,7 @@ private fun MediaLinkRow(
             /*if (mediaLink.metadataId == null) {
                 Text(mediaLink.filename)
             } else {
-                LinkedText("/media/${mediaLink.metadataGid}") {
+                LinkedText("/media/${mediaLink.metadataId}") {
                     Text(mediaLink.filename)
                 }
             }*/

@@ -73,6 +73,8 @@ import org.slf4j.event.Level
 import org.sqlite.SQLiteConfig
 import org.sqlite.javax.SQLiteConnectionPoolDataSource
 import qbittorrent.QBittorrentClient
+import java.nio.file.FileSystem
+import java.nio.file.FileSystems
 import java.nio.file.Path
 import javax.sql.DataSource
 import kotlin.random.Random
@@ -95,6 +97,7 @@ fun Application.module(testing: Boolean = false) {
                 val config = AnyStreamConfig(environment.config)
                 single { config }
                 single { applicationScope }
+                single { FileSystems.getDefault() }
 
                 factory { FFmpeg.atPath(Path.of(config.ffmpegPath)) }
                 factory { FFprobe.atPath(Path.of(config.ffmpegPath)) }
@@ -143,7 +146,7 @@ fun Application.module(testing: Boolean = false) {
                 single<LibraryService> {
                     val processors = listOf(
                         MovieFileProcessor(get(), get()),
-                        TvFileProcessor(get(), get()),
+                        TvFileProcessor(get(), get(), get(), get()),
                     )
                     LibraryService(get(), processors, get(), get())
                 }

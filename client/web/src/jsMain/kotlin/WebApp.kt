@@ -35,7 +35,7 @@ import org.jetbrains.compose.web.renderComposable
 import org.koin.core.context.startKoin
 import org.w3c.dom.HTMLDivElement
 
-val playerMediaGid = MutableStateFlow<String?>(null)
+val playerMediaLinkId = MutableStateFlow<String?>(null)
 
 fun webApp() = renderComposable(rootElementId = "root") {
     startKoin {
@@ -104,8 +104,8 @@ private fun ContentContainer(client: AnyStreamClient = get()) {
         }
         noMatch { redirect(if (client.isAuthenticated()) "/home" else "/login") }
 
-        val metadataGid by playerMediaGid.collectAsState()
-        metadataGid?.let { PlayerScreen(it) }
+        val metadataId by playerMediaLinkId.collectAsState()
+        metadataId?.let { PlayerScreen(it) }
     }
 }
 

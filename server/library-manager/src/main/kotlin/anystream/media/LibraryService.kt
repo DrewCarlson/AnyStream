@@ -139,7 +139,7 @@ class LibraryService(
                 Descriptor.SUBTITLE,
                 Descriptor.IMAGE,
                     -> {
-                    mediaLinkDao.deleteByGid(mediaLink.id)
+                    mediaLinkDao.deleteById(mediaLink.id)
                 }
             }
 
@@ -191,19 +191,25 @@ class LibraryService(
         refreshMetadata(requireNotNull(mediaLinkDao.findById(mediaLinkId)), import)
     }
 
-    suspend fun refreshMetadata(mediaLink: MediaLink, import: Boolean): List<MediaLinkMatchResult> {
-        val processor = processors.firstOrNull { it.mediaKinds.contains(mediaLink.mediaKind) } ?: run {
-            logger.error("No processor found for MediaKind '{}'", mediaLink.mediaKind)
+    suspend fun refresh(directory: Directory): List<MediaLinkMatchResult> {
+        val library = libraryDao.fetchLibraryForDirectory(directory.id)
+            ?: return emptyList() // TODO: return no library error
+
+        val processor = processors.firstOrNull { it.mediaKinds.contains(library.mediaKind) } ?: run {
+            logger.error("No processor found for MediaKind '{}'", library.mediaKind)
             return emptyList() // TODO: return no processor result
         }
 
-        return when (mediaLink.descriptor) {
-            Descriptor.VIDEO -> listOf(mediaLink)
-            else -> return emptyList()
-        }.filter { it.mediaKind == mediaLink.mediaKind }
-            .map { childLink ->
-                processor.findMetadataMatches(childLink, import)
-            }
+        return processor.findMetadataMatches(directory, import = true)
+    }
+
+    suspend fun refreshMetadata(mediaLink: MediaLink, import: Boolean): MediaLinkMatchResult {
+        val processor = processors.firstOrNull { it.mediaKinds.contains(mediaLink.mediaKind) } ?: run {
+            logger.error("No processor found for MediaKind '{}'", mediaLink.mediaKind)
+            TODO("return no processor result")
+        }
+
+        return processor.findMetadataMatches(mediaLink, import)
     }
 
     suspend fun matchMediaLink(mediaLink: MediaLink, remoteId: String) {
@@ -270,7 +276,7 @@ class LibraryService(
             }
 
             LibraryFolderList.RootFolder(
-                libraryGid = library.id,
+                libraryId = library.id,
                 path = filePath?.absolutePathString() ?: "",
                 mediaKind = library.mediaKind,
                 mediaMatchCount = matched.size,

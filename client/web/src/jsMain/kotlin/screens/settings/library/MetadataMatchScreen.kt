@@ -31,24 +31,24 @@ import org.jetbrains.compose.web.dom.*
 
 @Composable
 fun MetadataMatchScreen(
-    mediaLinkGid: String?,
+    mediaLinkId: String?,
     onLoadingStatChanged: (isLoading: Boolean) -> Unit,
     closeScreen: () -> Unit,
 ) {
     val client = get<AnyStreamClient>()
     val scope = rememberCoroutineScope()
-    val mediaLinkResponse by produceState<MediaLinkResponse?>(null, mediaLinkGid) {
-        value = if (mediaLinkGid == null) {
+    val mediaLinkResponse by produceState<MediaLinkResponse?>(null, mediaLinkId) {
+        value = if (mediaLinkId == null) {
             null
         } else {
-            client.findMediaLink(mediaLinkGid, includeMetadata = true)
+            client.findMediaLink(mediaLinkId, includeMetadata = true)
         }
     }
-    val matches by produceState<List<MediaLinkMatchResult>>(emptyList(), mediaLinkGid) {
-        value = if (mediaLinkGid == null) {
+    val matches by produceState<List<MediaLinkMatchResult>>(emptyList(), mediaLinkId) {
+        value = if (mediaLinkId == null) {
             emptyList()
         } else {
-            client.matchesFor(mediaLinkGid)
+            client.matchesFor(mediaLinkId)
         }
     }
 
@@ -56,7 +56,7 @@ fun MetadataMatchScreen(
         Div({ classes("w-100") }) {
             Text("Location: ${mediaLinkResponse?.mediaLink?.filePath}")
         }
-        if (mediaLinkGid != null && matches.isEmpty()) {
+        if (mediaLinkId != null && matches.isEmpty()) {
             LoadingIndicator()
         } else {
             Div({

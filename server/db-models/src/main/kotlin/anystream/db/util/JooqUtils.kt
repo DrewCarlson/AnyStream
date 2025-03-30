@@ -48,7 +48,7 @@ suspend inline fun <reified K, reified V, R : Record> SelectWhereStep<R>.awaitIn
     return fetchAsync().thenApplyAsync { it.intoMap(K::class.java, V::class.java) }.await()
 }
 
-suspend inline fun <reified T, R : Record> ResultQuery<R>.awaitInto(): List<T> {
+suspend inline fun <reified T> ResultQuery<out Record>.awaitInto(): List<T> {
     return fetchAsync().thenApplyAsync { it.into(T::class.java) }.await()
 }
 
@@ -60,6 +60,3 @@ inline fun <reified T> Record.intoType(): T {
     return into(T::class.java) as T
 }
 
-inline fun <reified T, R : Record> Result<R>.intoType(): T {
-    return into(T::class.java) as T
-}

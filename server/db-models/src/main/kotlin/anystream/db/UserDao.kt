@@ -22,6 +22,7 @@ import anystream.db.tables.records.UserRecord
 import anystream.db.tables.references.*
 import anystream.db.util.*
 import anystream.models.*
+import kotlinx.coroutines.future.await
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.datetime.Clock
 import org.jooq.DSLContext
@@ -79,6 +80,7 @@ class UserDao(
             }
             db.batchInsert(inserts)
                 .executeAsync()
+                .await()
             newUser
         }
     }

@@ -142,7 +142,7 @@ private fun ContinueWatchingRow(
             items(playbackStates) { playbackState ->
                 currentlyWatchingMovies[playbackState.id]?.also { movie ->
                     val mediaItem = MediaItem(
-                        mediaId = movie.gid,
+                        mediaId = movie.id,
                         contentTitle = movie.title,
                         backdropPath = movie.backdropPath,
                         posterPath = movie.posterPath,
@@ -155,7 +155,7 @@ private fun ContinueWatchingRow(
                 }
                 currentlyWatchingTv[playbackState.id]?.also { (episode, show) ->
                     val mediaItem = MediaItem(
-                        mediaId = episode.gid,
+                        mediaId = episode.id,
                         contentTitle = show.name,
                         backdropPath = episode.stillPath,
                         posterPath = show.posterPath,
@@ -182,7 +182,7 @@ private fun WatchingCard(
         shape = RoundedCornerShape(2.dp),
         modifier = Modifier
             .width(256.dp)
-            .clickable(onClick = { onClick(playbackState.mediaLinkGid) }),
+            .clickable(onClick = { onClick(playbackState.mediaLinkId) }),
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             val painter = rememberAsyncImagePainter(
@@ -270,7 +270,7 @@ private fun MovieRow(
                 PosterCard(
                     title = movie.title,
                     imagePath = movie.posterPath,
-                    onClick = { mediaLink?.run { onClick(gid) } },
+                    onClick = { mediaLink?.run { onClick(id) } },
                 )
             }
         },
@@ -289,7 +289,7 @@ private fun TvRow(
                 PosterCard(
                     title = show.name,
                     imagePath = show.posterPath,
-                    onClick = { onClick(show.gid) },
+                    onClick = { onClick(show.id) },
                 )
             }
         },

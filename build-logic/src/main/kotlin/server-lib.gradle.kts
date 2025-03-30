@@ -29,13 +29,13 @@ sourceSets {
     val libsServer = extensions.getByType<VersionCatalogsExtension>().named("libsServer")
     test {
         dependencies {
-            implementation(libsServer.findLibrary("mockk").get())
+            testImplementation(libsServer.findLibrary("mockk").get())
 
-            implementation(libsCommon.findLibrary("kotest-runner-junit5").get())
-            implementation(libsCommon.findLibrary("kotest-assertions-core").get())
-            implementation(libsCommon.findLibrary("kotest-property").get())
+            testImplementation(libsCommon.findLibrary("kotest-runner-junit5").get())
+            testImplementation(libsCommon.findLibrary("kotest-assertions-core").get())
+            testImplementation(libsCommon.findLibrary("kotest-property").get())
 
-            implementation(kotlin("test"))
+            testImplementation(kotlin("test"))
         }
     }
 }

@@ -208,7 +208,7 @@ class MediaFileScanner(
 
         val mediaLink = path.toMediaLink(library.mediaKind, descriptor, directoryDb.id)
         try {
-            check(mediaLinkDao.insertLink(mediaLink) == 1)
+            check(mediaLinkDao.insertLink(mediaLink))
         } catch (e: Throwable) {
             logger.error("Failed to insert media link", e)
             return MediaScanResult.ErrorDatabaseException(e.stackTraceToString())
@@ -231,22 +231,22 @@ class MediaFileScanner(
         }
     }
 
-    private fun addGidOrSetActiveState(mediaLinkGid: String) {
+    private fun addIdOrSetActiveState(mediaLinkId: String) {
         mediaScannerState.update { state ->
             (state as? MediaScannerState.Active ?: MediaScannerState.Active()).run {
-                copy(mediaLinkGids = mediaLinkGids + mediaLinkGid)
+                copy(mediaLinkIds = mediaLinkIds + mediaLinkId)
             }
         }
     }
 
-    private fun removeGidOrIdleState(mediaLinkGid: String) {
+    private fun removeIdOrIdleState(mediaLinkId: String) {
         mediaScannerState.update { state ->
             if (state is MediaScannerState.Active) {
-                val updatedGids = state.mediaLinkGids - mediaLinkGid
-                if (updatedGids.isEmpty()) {
+                val updatedIds = state.mediaLinkIds - mediaLinkId
+                if (updatedIds.isEmpty()) {
                     MediaScannerState.Idle
                 } else {
-                    state.copy(mediaLinkGids = updatedGids)
+                    state.copy(mediaLinkIds = updatedIds)
                 }
             } else {
                 MediaScannerState.Idle

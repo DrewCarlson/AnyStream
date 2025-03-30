@@ -25,7 +25,7 @@ import anystream.models.PlaybackState
 import anystream.models.api.EpisodeResponse
 import anystream.models.api.MovieResponse
 import anystream.models.toMediaItem
-import anystream.playerMediaGid
+import anystream.playerMediaLinkId
 import anystream.util.formatProgressAndRuntime
 import anystream.util.formatted
 import anystream.util.get
@@ -562,7 +562,7 @@ private fun PlaybackControls(
                     cursor("pointer")
                 }
                 onClick {
-                    playerMediaGid.value = null
+                    playerMediaLinkId.value = null
                 }
             }) {
                 I({

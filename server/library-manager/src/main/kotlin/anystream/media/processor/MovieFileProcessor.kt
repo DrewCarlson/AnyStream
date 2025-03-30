@@ -38,6 +38,10 @@ class MovieFileProcessor(
     override val mediaKinds: List<MediaKind> = listOf(MediaKind.MOVIE)
     override val fileNameParser: FileNameParser = MovieFileNameParser()
 
+    override suspend fun findMetadataMatches(directory: Directory, import: Boolean): List<MediaLinkMatchResult> {
+        TODO("Not yet implemented")
+    }
+
     override suspend fun findMetadataMatches(mediaLink: MediaLink, import: Boolean): MediaLinkMatchResult {
         return when (mediaLink.descriptor) {
             Descriptor.VIDEO,
@@ -54,22 +58,12 @@ class MovieFileProcessor(
         val movie = (metadataMatch as? MetadataMatch.MovieMatch)
             ?.let { getOrImportMetadata(it) }
             ?: return
-        /*val parentId = mediaLink.parentGid
-        if (!parentGid.isNullOrBlank()) {
-            val parentDescriptor = mediaLinkDao.descriptorForGid(parentGid)
-            if (parentDescriptor == Descriptor.MEDIA_DIRECTORY) {
-                mediaLinkDao.updateMetadataIds(parentGid, movie.id, movie.gid)
-            }
-        }
 
-        if (mediaLink.descriptor == Descriptor.MEDIA_DIRECTORY) {
-            val childLinks = mediaLinkDao.findByParentId(requireNotNull(mediaLink.id))
-            childLinks.forEach { link ->
-                mediaLinkDao.updateMetadataIds(checkNotNull(link.id), movie.id, movie.gid)
-            }
-        }
+        mediaLinkDao.updateMetadataIds(
+            mediaLinkId = checkNotNull(mediaLink.id),
+            metadataId = movie.id
+        )
 
-        mediaLinkDao.updateMetadataIds(checkNotNull(mediaLink.id), movie.id, movie.gid)*/
         // TODO: Update supplementary files (SUBTITLE/IMAGE)
     }
 

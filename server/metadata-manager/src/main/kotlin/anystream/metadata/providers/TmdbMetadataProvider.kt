@@ -146,10 +146,10 @@ class TmdbMetadataProvider(
             return ImportMetadataResult.ErrorDataProviderException(e.stackTraceToString())
         }
         val existingSeasons = queries.metadataDao
-            .findAllByRootGidAndType(tvShowId, MediaType.TV_SEASON)
+            .findAllByRootIdAndType(tvShowId, MediaType.TV_SEASON)
             .associateBy { it.tmdbId!! }
         val existingEpisodes = queries.metadataDao
-            .findAllByRootGidAndType(tvShowId, MediaType.TV_EPISODE)
+            .findAllByRootIdAndType(tvShowId, MediaType.TV_EPISODE)
             .associateBy { it.tmdbId!! }
         val (tvShow, tvSeasons, episodes) = tmdbSeries.asTvShow(
             tmdbSeasons,
@@ -253,7 +253,7 @@ class TmdbMetadataProvider(
         val tmdbMovies = try {
             when {
                 request.query != null -> queryMovies(request.query!!, request.year)
-                request.metadataGid != null -> listOfNotNull(fetchMovie(request.metadataGid!!.toInt()))
+                request.metadataId != null -> listOfNotNull(fetchMovie(request.metadataId!!.toInt()))
                 else -> error("No content")
             }
         } catch (e: Throwable) {
@@ -286,7 +286,7 @@ class TmdbMetadataProvider(
     }
 
     private suspend fun searchTv(request: QueryMetadata): QueryMetadataResult {
-        val metadataGid = request.metadataGid
+        val metadataId = request.metadataId
         val tvShowExtras = request.extras?.asTvShowExtras()
         val tmdbSeries = try {
             // search for tv show, sort by optional year
@@ -300,15 +300,15 @@ class TmdbMetadataProvider(
                 }
             }
                 // load series by tmdb id
-                ?: metadataGid?.toIntOrNull()?.let { fetchTvSeries(it) }?.run(::listOf)
+                ?: metadataId?.toIntOrNull()?.let { fetchTvSeries(it) }?.run(::listOf)
         } catch (e: Throwable) {
             return QueryMetadataResult.ErrorDataProviderException(e.stackTraceToString())
         }
 
-        if (tmdbSeries == null && !metadataGid.isNullOrBlank()) {
-            val tvResponse = queries.findShowById(metadataGid)
-                ?: return QueryMetadataResult.ErrorDatabaseException("Could not find show with gid '$metadataGid'.")
-            val episodes = queries.findEpisodesByShow(metadataGid)
+        if (tmdbSeries == null && !metadataId.isNullOrBlank()) {
+            val tvResponse = queries.findShowById(metadataId)
+                ?: return QueryMetadataResult.ErrorDatabaseException("Could not find show with id '$metadataId'.")
+            val episodes = queries.findEpisodesByShow(metadataId)
             val matchList = listOf(
                 MetadataMatch.TvShowMatch(
                     remoteMetadataId = tvResponse.tvShow.tmdbId.toString(),

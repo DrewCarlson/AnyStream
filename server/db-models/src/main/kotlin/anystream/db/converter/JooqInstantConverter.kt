@@ -29,35 +29,37 @@ import java.sql.Timestamp
 
 
 @Suppress("UNUSED")
-private class JooqInstantConverter : Converter<Timestamp, Instant> {
+private class JooqInstantConverter : Converter<String, Instant> {
 
-    override fun fromType(): Class<Timestamp> = Timestamp::class.java
+    override fun fromType(): Class<String> = String::class.java
 
     override fun toType(): Class<Instant> = Instant::class.java
 
-    override fun from(databaseObject: Timestamp?): Instant? {
-        return databaseObject?.toInstant()?.toKotlinInstant()
+    override fun from(databaseObject: String?): Instant? {
+        return databaseObject?.let(Instant::parse)
     }
 
-    override fun to(userObject: Instant?): Timestamp? {
-        return userObject?.toJavaInstant()?.run(Timestamp::from)
+    override fun to(userObject: Instant?): String? {
+        return userObject?.toString()
     }
 }
 
-val INSTANT_DATATYPE = SQLDataType.TIMESTAMP.asConvertedDataType(JooqInstantConverter())
+val INSTANT_DATATYPE = SQLDataType
+    .VARCHAR
+    .asConvertedDataType(JooqInstantConverter())
 
 @Suppress("UNUSED")
-class JooqInstantBinding : AbstractBinding<Timestamp, Instant>() {
+class JooqInstantBinding : AbstractBinding<String, Instant>() {
     private val convert = JooqInstantConverter()
-    override fun converter(): Converter<Timestamp, Instant> {
+    override fun converter(): Converter<String, Instant> {
         return convert
     }
 
     override fun get(ctx: BindingGetResultSetContext<Instant>) {
-        ctx.convert(converter()).value(ctx.resultSet().getTimestamp(ctx.index()))
+        ctx.convert(converter()).value(ctx.resultSet().getString(ctx.index()))
     }
 
     override fun set(ctx: BindingSetStatementContext<Instant>) {
-        ctx.statement().setTimestamp(ctx.index(), ctx.convert(converter()).value())
+        ctx.statement().setString(ctx.index(), ctx.convert(converter()).value())
     }
 }

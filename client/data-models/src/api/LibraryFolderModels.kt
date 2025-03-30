@@ -62,7 +62,7 @@ data class LibraryFolderList(
 ) {
     @Serializable
     data class RootFolder(
-        val libraryGid: String,
+        val libraryId: String,
         val path: String,
         val mediaKind: MediaKind,
         val mediaMatchCount: Int,

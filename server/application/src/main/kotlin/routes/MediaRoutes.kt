@@ -33,13 +33,15 @@ fun Route.addMediaManageRoutes(
     queries: MetadataDbQueries = koinGet(),
 ) {
     route("/media") {
-        route("/{metadataGid}") {
+        route("/{metadataId}") {
             get("/refresh-metadata") {
-                val metadataGid = call.parameters["metadataGid"] ?: ""
-                val result = queries.findMediaById(metadataGid)
+                val metadataId = call.parameters["metadataId"] ?: ""
+                val result = queries.findMediaById(metadataId)
 
-                if (result.hasResult()) {
-                    logger.warn("No media found for $metadataGid")
+                // todo: implement metadata refresh
+
+                if (!result.hasResult()) {
+                    logger.warn("No media found for $metadataId")
                     return@get call.respond(NotFound)
                 }
             }
@@ -52,57 +54,56 @@ fun Route.addMediaViewRoutes(
     queries: MetadataDbQueries = koinGet(),
 ) {
     route("/media") {
-        route("/{metadataGid}") {
+        route("/{metadataId}") {
             get {
                 val session = checkNotNull(call.principal<UserSession>())
-                val metadataGid = call.parameters["metadataGid"]
+                val metadataId = call.parameters["metadataId"]
                     ?: return@get call.respond(NotFound)
                 val includeLinks = call.parameters["includeLinks"]?.toBoolean() ?: true
                 val includePlaybackState =
                     call.parameters["includePlaybackStates"]?.toBoolean() ?: true
                 val playbackStateUserId = if (includePlaybackState) session.userId else null
 
-                return@get if (metadataGid.isRemoteId) {
-                    when (val queryResult = metadataManager.findByRemoteId(metadataGid)) {
-                        is QueryMetadataResult.Success -> {
-                            if (queryResult.results.isEmpty()) {
-                                return@get call.respond(NotFound)
-                            }
-                            val response = when (val match = queryResult.results.first()) {
-                                is MetadataMatch.MovieMatch -> MovieResponse(match.movie)
-                                is MetadataMatch.TvShowMatch -> {
-                                    val tvExtras = queryResult.extras?.asTvShowExtras()
-                                    when {
-                                        tvExtras?.episodeNumber != null ->
-                                            EpisodeResponse(match.episodes.first(), match.tvShow)
-
-                                        tvExtras?.seasonNumber != null ->
-                                            SeasonResponse(
-                                                match.tvShow,
-                                                match.seasons.first(),
-                                                match.episodes,
-                                            )
-
-                                        else -> TvShowResponse(match.tvShow, match.seasons)
-                                    }
-                                }
-                            }
-                            call.respond(response)
-                        }
-
-                        else -> call.respond(NotFound)
-                    }
-                } else {
+                if (!metadataId.isRemoteId) {
                     val response = queries.findMediaById(
-                        metadataGid,
+                        metadataId = metadataId,
                         includeLinks = includeLinks,
                         includePlaybackStateForUser = playbackStateUserId,
                     )
-                    if (response == null) {
+                    return@get if (response == null) {
                         call.respond(NotFound)
                     } else {
                         call.respond(response)
                     }
+                }
+                when (val queryResult = metadataManager.findByRemoteId(metadataId)) {
+                    is QueryMetadataResult.Success -> {
+                        if (queryResult.results.isEmpty()) {
+                            return@get call.respond(NotFound)
+                        }
+                        val response = when (val match = queryResult.results.first()) {
+                            is MetadataMatch.MovieMatch -> MovieResponse(match.movie)
+                            is MetadataMatch.TvShowMatch -> {
+                                val tvExtras = queryResult.extras?.asTvShowExtras()
+                                when {
+                                    tvExtras?.episodeNumber != null ->
+                                        EpisodeResponse(match.episodes.first(), match.tvShow)
+
+                                    tvExtras?.seasonNumber != null ->
+                                        SeasonResponse(
+                                            match.tvShow,
+                                            match.seasons.first(),
+                                            match.episodes,
+                                        )
+
+                                    else -> TvShowResponse(match.tvShow, match.seasons)
+                                }
+                            }
+                        }
+                        call.respond(response)
+                    }
+
+                    else -> call.respond(NotFound)
                 }
             }
         }

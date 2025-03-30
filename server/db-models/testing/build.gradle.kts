@@ -18,6 +18,9 @@ dependencies {
     implementation(libsCommon.coroutines.core)
 
     implementation(libsServer.logback)
+    implementation(libsCommon.kotest.runner.junit5)
+    implementation(libsCommon.kotest.assertions.core)
+    implementation(libsCommon.kotest.property)
 
     api(libsServer.jooq)
 

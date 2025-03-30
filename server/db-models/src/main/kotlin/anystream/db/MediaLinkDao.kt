@@ -25,12 +25,12 @@ import anystream.db.util.*
 import anystream.models.MediaLink
 import anystream.models.Descriptor
 import anystream.models.StreamEncoding
+import kotlinx.coroutines.future.await
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.length
-import org.jooq.kotlin.coroutines.transactionCoroutine
 
 
 class MediaLinkDao(
@@ -41,36 +41,19 @@ class MediaLinkDao(
         return db.selectFrom(MEDIA_LINK).awaitInto()
     }
 
-    suspend fun insertLink(link: MediaLink): Int {
+    suspend fun insertLink(link: MediaLink): Boolean {
         return db.insertInto(MEDIA_LINK)
             .set(MediaLinkRecord(link))
-            .awaitFirst()
-    }
-
-    suspend fun insertLinks(link: List<MediaLink>) {
-        val records = link.map(::MediaLinkRecord)
-        db.batchInsert(records).awaitFirst()
+            .awaitFirst() == 1
     }
 
     suspend fun insertStreamDetails(streams: List<StreamEncoding>) {
         val records = streams.map { StreamEncodingRecord(it) }
-        db.batchInsert(records).awaitFirst()
+        db.batchInsert(records).executeAsync().await()
     }
 
     suspend fun countStreamDetails(mediaLinkId: String): Int {
         return db.fetchCountAsync(STREAM_ENCODING, STREAM_ENCODING.MEDIA_LINK_ID.eq(mediaLinkId))
-    }
-
-    suspend fun updateMediaLinkIds(mediaLink: List<MediaLink>) {
-        db.transactionCoroutine {
-            mediaLink.forEach { link ->
-                db.update(MEDIA_LINK)
-                    .set(MEDIA_LINK.METADATA_ID, link.metadataId)
-                    .set(MEDIA_LINK.ROOT_METADATA_ID, link.rootMetadataId)
-                    .where(MEDIA_LINK.ID.eq(link.id))
-                    .execute()
-            }
-        }
     }
 
     suspend fun updateMetadataIds(mediaLinkId: String, metadataId: String): Boolean {
@@ -87,85 +70,72 @@ class MediaLinkDao(
             .awaitFirstOrNull() == 1
     }
 
-    suspend fun descriptorForGid(id: String): Descriptor? {
+    suspend fun descriptorForId(mediaLinkId: String): Descriptor? {
         return db.select(MEDIA_LINK.DESCRIPTOR)
             .from(MEDIA_LINK)
-            .where(MEDIA_LINK.ID.eq(id))
+            .where(MEDIA_LINK.ID.eq(mediaLinkId))
             .awaitFirstOrNullInto()
     }
 
-    suspend fun findById(id: String): MediaLink? {
-        return db.selectFrom(MEDIA_LINK)
-            .where(MEDIA_LINK.ID.eq(id))
+    suspend fun findById(mediaLinkId: String): MediaLink? {
+        return db.select(MEDIA_LINK)
+            .from(MEDIA_LINK)
+            .where(MEDIA_LINK.ID.eq(mediaLinkId))
             .awaitFirstOrNullInto()
     }
 
-    suspend fun findByGids(ids: List<String>): List<MediaLink> {
-        return db.selectFrom(MEDIA_LINK)
-            .where(MEDIA_LINK.ID.`in`(ids))
-            .awaitFirstOrNullInto<List<MediaLink>>()
-            .orEmpty()
+    suspend fun findByIds(mediaLinkIds: List<String>): List<MediaLink> {
+        return db.select(MEDIA_LINK)
+            .from(MEDIA_LINK)
+            .where(MEDIA_LINK.ID.`in`(mediaLinkIds))
+            .awaitInto()
     }
 
     suspend fun findByMetadataId(metadataId: String): List<MediaLink> {
-        return db.selectFrom(MEDIA_LINK)
+        return db.select(MEDIA_LINK)
+            .from(MEDIA_LINK)
             .where(MEDIA_LINK.METADATA_ID.eq(metadataId))
-            .awaitFirstOrNullInto<List<MediaLink>>()
-            .orEmpty()
+            .awaitInto()
     }
 
     suspend fun findByMetadataIds(ids: List<String>): List<MediaLink> {
         if (ids.isEmpty()) return emptyList()
         return db.selectFrom(MEDIA_LINK)
             .where(MEDIA_LINK.METADATA_ID.`in`(ids))
-            .awaitFirstOrNullInto<List<MediaLink>>()
-            .orEmpty()
+            .awaitInto()
     }
 
     suspend fun findByRootMetadataIds(ids: List<String>): List<MediaLink> {
         return db.selectFrom(MEDIA_LINK)
             .where(MEDIA_LINK.ROOT_METADATA_ID.`in`(ids))
-            .awaitFirstOrNullInto<List<MediaLink>>()
-            .orEmpty()
+            .awaitInto()
     }
 
     suspend fun findByBasePathAndDescriptor(basePath: String, descriptor: Descriptor): List<MediaLink> {
         return db.selectFrom(MEDIA_LINK)
             .where(MEDIA_LINK.FILE_PATH.like("$basePath%"))
             .and(MEDIA_LINK.DESCRIPTOR.eq(descriptor))
-            .awaitFirstOrNullInto<List<MediaLink>>()
-            .orEmpty()
+            .awaitInto()
     }
 
     suspend fun findByBasePathAndDescriptors(basePath: String, descriptor: List<Descriptor>): List<MediaLink> {
         return db.selectFrom(MEDIA_LINK)
             .where(MEDIA_LINK.FILE_PATH.like("$basePath%"))
             .and(MEDIA_LINK.DESCRIPTOR.`in`(descriptor))
-            .awaitFirstOrNullInto<List<MediaLink>>()
-            .orEmpty()
+            .awaitInto()
     }
 
     suspend fun findByParentId(parentId: String): List<MediaLink> {
         return db.selectFrom(MEDIA_LINK)
             .where(MEDIA_LINK.DIRECTORY_ID.eq(parentId))
-            .awaitFirstOrNullInto<List<MediaLink>>()
-            .orEmpty()
-    }
-
-    suspend fun findByParentGid(parentGid: String): List<MediaLink> {
-        return db.selectFrom(MEDIA_LINK)
-            // todo: is this still correct?
-            .where(MEDIA_LINK.DIRECTORY_ID.eq(parentGid))
-            .awaitFirstOrNullInto<List<MediaLink>>()
-            .orEmpty()
+            .awaitInto()
     }
 
     suspend fun findByParentIdAndDescriptor(parentId: String, descriptor: Descriptor): List<MediaLink> {
         return db.selectFrom(MEDIA_LINK)
             .where(MEDIA_LINK.DIRECTORY_ID.eq(parentId))
             .and(MEDIA_LINK.DESCRIPTOR.eq(descriptor))
-            .awaitFirstOrNullInto<List<MediaLink>>()
-            .orEmpty()
+            .awaitInto()
     }
 
     suspend fun findByFilePath(filePath: String): MediaLink? {
@@ -175,20 +145,19 @@ class MediaLinkDao(
     }
 
     suspend fun findIdsByMediaLinkIdAndDescriptors(
-        mediaLinkGid: String,
+        mediaLinkId: String,
         descriptors: List<Descriptor>,
     ): List<String> {
         return db.select(MEDIA_LINK.ID)
             .from(MEDIA_LINK)
             .where(
                 DSL.or(
-                    MEDIA_LINK.ID.eq(mediaLinkGid),
+                    MEDIA_LINK.ID.eq(mediaLinkId),
                     //TODO: MEDIA_LINK.PARENT_GID.eq(mediaLinkGid)
                 )
             )
             .and(MEDIA_LINK.DESCRIPTOR.`in`(descriptors))
-            .awaitFirstOrNullInto<List<String>>()
-            .orEmpty()
+            .awaitInto()
     }
 
     suspend fun findByBasePath(basePath: String): List<MediaLink> {
@@ -201,19 +170,18 @@ class MediaLinkDao(
         return db.select(MEDIA_LINK.FILE_PATH)
             .from(MEDIA_LINK)
             .where(length(MEDIA_LINK.FILE_PATH).greaterThan(0))
-            .awaitFirstOrNullInto<List<String>>()
-            .orEmpty()
+            .awaitInto()
     }
 
-    suspend fun deleteByContentGid(metadataGid: String) {
+    suspend fun deleteByMetadataId(metadataId: String) {
         db.deleteFrom(MEDIA_LINK)
-            .where(MEDIA_LINK.METADATA_ID.eq(metadataGid))
+            .where(MEDIA_LINK.METADATA_ID.eq(metadataId))
             .awaitFirstOrNull()
     }
 
-    suspend fun deleteByRootContentGid(rootMetadataGid: String) {
+    suspend fun deleteByRootMetadataId(rootMetadataId: String) {
         db.deleteFrom(MEDIA_LINK)
-            .where(MEDIA_LINK.ROOT_METADATA_ID.eq(rootMetadataGid))
+            .where(MEDIA_LINK.ROOT_METADATA_ID.eq(rootMetadataId))
             .awaitFirstOrNull()
     }
 
@@ -238,7 +206,7 @@ class MediaLinkDao(
             .awaitFirstOrNull() == 1
     }
 
-    suspend fun deleteByGid(id: String): Boolean {
+    suspend fun deleteById(id: String): Boolean {
         return db.deleteFrom(MEDIA_LINK)
             .where(MEDIA_LINK.ID.eq(id))
             .awaitFirstOrNull() == 1

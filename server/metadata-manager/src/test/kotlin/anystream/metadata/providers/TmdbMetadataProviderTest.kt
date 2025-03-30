@@ -20,7 +20,6 @@ package anystream.metadata.providers
 import anystream.data.MetadataDbQueries
 import anystream.db.*
 import anystream.models.MediaKind
-import anystream.models.api.ImportMetadata
 import anystream.models.api.MetadataMatch
 import anystream.models.api.QueryMetadata
 import anystream.models.api.QueryMetadataResult
@@ -30,8 +29,6 @@ import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveAtLeastSize
 import io.kotest.matchers.collections.shouldHaveSize
-import io.kotest.matchers.ints.shouldBeGreaterThan
-import io.kotest.matchers.ints.shouldBeGreaterThanOrEqual
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.client.plugins.logging.*
@@ -71,7 +68,7 @@ class TmdbMetadataProviderTest : FunSpec({
                         providerId = null,
                         mediaKind = kind,
                         query = "Ninja Turtles",
-                        metadataGid = null,
+                        metadataId = null,
                         year = null,
                         extras = null,
                     )
@@ -88,7 +85,7 @@ class TmdbMetadataProviderTest : FunSpec({
                 providerId = null,
                 mediaKind = MediaKind.TV,
                 query = "Ninja Turtles",
-                metadataGid = null,
+                metadataId = null,
                 year = 2012,
                 extras = null,
             )
@@ -112,7 +109,7 @@ class TmdbMetadataProviderTest : FunSpec({
                 providerId = null,
                 mediaKind = MediaKind.TV,
                 query = "Ninja Turtles",
-                metadataGid = null,
+                metadataId = null,
                 year = 2012,
                 extras = QueryMetadata.Extras.TvShowExtras(
                     seasonNumber = 1
@@ -143,7 +140,7 @@ class TmdbMetadataProviderTest : FunSpec({
                 providerId = null,
                 mediaKind = MediaKind.TV,
                 query = "Ninja Turtles",
-                metadataGid = null,
+                metadataId = null,
                 year = 2012,
                 extras = QueryMetadata.Extras.TvShowExtras(
                     seasonNumber = 1,
@@ -181,7 +178,7 @@ class TmdbMetadataProviderTest : FunSpec({
                 providerId = null,
                 mediaKind = MediaKind.MOVIE,
                 query = "Ninja Turtles",
-                metadataGid = null,
+                metadataId = null,
                 year = 2023,
                 extras = null,
             )

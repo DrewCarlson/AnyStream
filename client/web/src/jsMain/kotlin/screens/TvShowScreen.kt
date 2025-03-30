@@ -25,7 +25,7 @@ import anystream.components.*
 import anystream.models.MediaLink
 import anystream.models.TvShow
 import anystream.models.api.TvShowsResponse
-import anystream.playerMediaGid
+import anystream.playerMediaLinkId
 import anystream.util.get
 import app.softwork.routingcompose.Router
 import org.jetbrains.compose.web.dom.Div
@@ -72,7 +72,7 @@ fun TvShowCard(
         posterPath = show.posterPath,
         isAdded = true,
         onPlayClicked = {
-            playerMediaGid.value = link?.id
+            playerMediaLinkId.value = link?.id
         }.takeIf { link != null },
         onBodyClicked = {
             router.navigate("/media/${show.id}")

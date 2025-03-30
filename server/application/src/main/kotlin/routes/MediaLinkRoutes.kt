@@ -46,7 +46,7 @@ fun Route.addMediaLinkManageRoutes(
         get {
             val parent = call.parameters["parent"]
             val result = when {
-                !parent.isNullOrBlank() -> mediaLinkDao.findByParentGid(parent)
+                !parent.isNullOrBlank() -> mediaLinkDao.findByParentId(parent)
                 else -> mediaLinkDao.all()
             }
                 // TODO: Sort in query
@@ -73,7 +73,7 @@ fun Route.addMediaLinkManageRoutes(
             }
         }
 
-        route("/{mediaLinkGid}") {
+        route("/{mediaLinkId}") {
             route("/matches") {
                 get {
                     val mediaLink = mediaLink() ?: return@get call.respond(NotFound)
@@ -135,7 +135,7 @@ fun Route.addMediaLinkViewRoutes(
     queries: MetadataDbQueries = koinGet(),
 ) {
     route("/medialink") {
-        route("/{mediaLinkGid}") {
+        route("/{mediaLinkId}") {
             get {
                 val includeMetadata = call.parameters["includeMetadata"]?.toBoolean() ?: false
                 val mediaLink = mediaLink() ?: return@get
@@ -163,11 +163,11 @@ fun Route.addMediaLinkViewRoutes(
 private suspend fun RoutingContext.mediaLink(
     mediaLinkDao: MediaLinkDao = koinGet(),
 ): MediaLink? {
-    val mediaLinkGid = call.parameters["mediaLinkGid"]
+    val mediaLinkId = call.parameters["mediaLinkId"]
         ?.takeIf(String::isNotBlank)
         ?: return run {
             call.respond(UnprocessableEntity)
             null
         }
-    return mediaLinkDao.findById(mediaLinkGid)
+    return mediaLinkDao.findById(mediaLinkId)
 }

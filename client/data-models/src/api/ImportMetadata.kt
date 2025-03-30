@@ -34,7 +34,7 @@ data class QueryMetadata(
     val providerId: String?,
     val mediaKind: MediaKind,
     val query: String? = null,
-    val metadataGid: String? = null,
+    val metadataId: String? = null,
     val year: Int? = null,
     val extras: Extras? = null,
 ) {
@@ -90,7 +90,7 @@ sealed class MediaLinkMatchResult {
 
     @Serializable
     data class Success(
-        val mediaLink: MediaLink,
+        val mediaLink: MediaLink?,
         val matches: List<MetadataMatch>,
         val subResults: List<MediaLinkMatchResult>,
     ) : MediaLinkMatchResult()

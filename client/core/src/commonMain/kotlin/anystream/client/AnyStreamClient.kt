@@ -293,9 +293,9 @@ class AnyStreamClient(
         }
     }
 
-    suspend fun removeMediaLink(gid: String): Boolean {
+    suspend fun removeMediaLink(mediaLinkId: String): Boolean {
         return try {
-            http.delete("$serverUrl/api/medialink/$gid").orThrow()
+            http.delete("$serverUrl/api/medialink/$mediaLinkId").orThrow()
             true
         } catch (e: AnyStreamClientException) {
             if (e.response?.status == NotFound) false else throw e
@@ -354,18 +354,18 @@ class AnyStreamClient(
         }.bodyOrThrow()
     }
 
-    suspend fun refreshMetadata(metadataGid: String): MediaLookupResponse {
-        return http.get("$serverUrl/api/media/$metadataGid/refresh-metadata").bodyOrThrow()
+    suspend fun refreshMetadata(metadataId: String): MediaLookupResponse {
+        return http.get("$serverUrl/api/media/$metadataId/refresh-metadata").bodyOrThrow()
     }
 
-    suspend fun analyzeMediaLink(mediaLinkGid: String): List<MediaAnalyzerResult> {
-        return http.get("$serverUrl/api/medialink/$mediaLinkGid/analyze") {
+    suspend fun analyzeMediaLink(mediaLinkId: String): List<MediaAnalyzerResult> {
+        return http.get("$serverUrl/api/medialink/$mediaLinkId/analyze") {
             parameter("waitForResult", true)
         }.bodyOrThrow()
     }
 
-    suspend fun analyzeMediaLinksAsync(mediaLinkGid: String) {
-        http.get("$serverUrl/api/medialink/$mediaLinkGid/analyze") {
+    suspend fun analyzeMediaLinksAsync(mediaLinkId: String) {
+        http.get("$serverUrl/api/medialink/$mediaLinkId/analyze") {
             parameter("waitForResult", false)
         }.bodyOrThrow<String>()
     }
@@ -593,36 +593,36 @@ class AnyStreamClient(
         return response.bodyOrThrow()
     }
 
-    suspend fun scanMediaLink(mediaLinkGid: String): MediaScanResult? {
-        val response = http.get("$serverUrl/api/medialink/$mediaLinkGid/scan")
+    suspend fun scanMediaLink(mediaLinkId: String): MediaScanResult? {
+        val response = http.get("$serverUrl/api/medialink/$mediaLinkId/scan")
         return response.bodyOrThrow()
     }
 
-    suspend fun matchesFor(mediaLinkGid: String): List<MediaLinkMatchResult> {
-        return http.get("$serverUrl/api/medialink/$mediaLinkGid/matches").bodyOrThrow()
+    suspend fun matchesFor(mediaLinkId: String): List<MediaLinkMatchResult> {
+        return http.get("$serverUrl/api/medialink/$mediaLinkId/matches").bodyOrThrow()
     }
 
-    suspend fun matchFor(mediaLinkGid: String, remoteId: String) {
+    suspend fun matchFor(mediaLinkId: String, remoteId: String) {
         val body = buildJsonObject {
             put("remoteId", remoteId)
         }
-        http.put("$serverUrl/api/medialink/$mediaLinkGid/matches") {
+        http.put("$serverUrl/api/medialink/$mediaLinkId/matches") {
             contentType(ContentType.Application.Json)
             setBody(body)
         }
     }
 
-    suspend fun getMediaLinks(parentGid: String? = null): List<MediaLink> {
+    suspend fun getMediaLinks(parentId: String? = null): List<MediaLink> {
         return http.get("$serverUrl/api/medialink") {
-            parameter("parent", parentGid)
+            parameter("parent", parentId)
         }.bodyOrThrow()
     }
 
     suspend fun findMediaLink(
-        mediaLinkGid: String,
+        mediaLinkId: String,
         includeMetadata: Boolean = true,
     ): MediaLinkResponse {
-        val response = http.get("$serverUrl/api/medialink/$mediaLinkGid") {
+        val response = http.get("$serverUrl/api/medialink/$mediaLinkId") {
             parameter("includeMetadata", includeMetadata)
         }
         return response.bodyOrThrow()

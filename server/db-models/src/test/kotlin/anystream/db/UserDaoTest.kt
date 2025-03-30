@@ -101,15 +101,12 @@ class UserDaoTest : FunSpec({
             dao.insertUser(user, emptySet()).shouldNotBeNull()
         }
 
-        val users = dao.fetchUsers()
-        users.shouldHaveSize(2)
+        val dbUsers = dao.fetchUsers()
+            .shouldHaveSize(2)
+            .toList()
 
         userObjects.forEachIndexed { index, user ->
-            val loadedUser = users[index]
-            loadedUser.id shouldBeEqual user.id
-            loadedUser.username shouldBeEqual user.username
-            loadedUser.displayName shouldBeEqual user.displayName
-            loadedUser.passwordHash shouldBeEqual user.passwordHash
+            dbUsers[index].shouldBe(user)
         }
     }
 
@@ -131,14 +128,16 @@ class UserDaoTest : FunSpec({
 
         dao.updateUser(user.copy(displayName = "updated-username")).shouldBeTrue()
 
-        val updatedUser = dao.fetchUser(user.id).shouldNotBeNull()
-
-        updatedUser.id shouldBeEqual user.id
-        updatedUser.username shouldBeEqual user.username
-        updatedUser.displayName shouldBeEqual "updated-username"
-        updatedUser.passwordHash shouldBeEqual user.passwordHash
-        updatedUser.createdAt.epochSeconds shouldBeEqual user.createdAt.epochSeconds
-        updatedUser.updatedAt.epochSeconds shouldBeGreaterThan user.updatedAt.epochSeconds
+        dao.fetchUser(user.id)
+            .shouldNotBeNull()
+            .apply {
+                id shouldBeEqual user.id
+                username shouldBeEqual user.username
+                displayName shouldBeEqual "updated-username"
+                passwordHash shouldBeEqual user.passwordHash
+                createdAt shouldBeEqual user.createdAt
+                updatedAt shouldBeGreaterThan user.updatedAt
+            }
     }
 
     test("update user - password name") {
@@ -153,8 +152,8 @@ class UserDaoTest : FunSpec({
         updatedUser.username shouldBeEqual user.username
         updatedUser.displayName shouldBeEqual user.displayName
         updatedUser.passwordHash shouldBeEqual "updated-password-hash"
-        updatedUser.createdAt.epochSeconds shouldBeEqual user.createdAt.epochSeconds
-        updatedUser.updatedAt.epochSeconds shouldBeGreaterThan user.updatedAt.epochSeconds
+        updatedUser.createdAt shouldBeEqual user.createdAt
+        updatedUser.updatedAt shouldBeGreaterThan user.updatedAt
     }
 
     test("count users") {

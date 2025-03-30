@@ -22,7 +22,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 sealed class StreamEncodingTyped {
     abstract val id: String
-    abstract val streamId: Int?
+    abstract val streamId: String?
     abstract val codecName: String
     abstract val codecLongName: String?
     abstract val index: Int?
@@ -45,7 +45,7 @@ sealed class StreamEncodingTyped {
 @Serializable
 data class AudioStreamEncoding(
     override val id: String,
-    override val streamId: Int?,
+    override val streamId: String?,
     override val index: Int?,
     override val codecName: String,
     override val codecLongName: String?,
@@ -65,7 +65,7 @@ data class AudioStreamEncoding(
 @Serializable
 data class VideoStreamEncoding(
     override val id: String,
-    override val streamId: Int?,
+    override val streamId: String?,
     override val index: Int?,
     override val codecName: String,
     override val codecLongName: String?,
@@ -90,7 +90,7 @@ data class VideoStreamEncoding(
 @Serializable
 data class SubtitleStreamEncoding(
     override val id: String,
-    override val streamId: Int?,
+    override val streamId: String?,
     override val index: Int?,
     override val codecName: String,
     override val codecLongName: String?,
