@@ -19,6 +19,7 @@ package anystream.db
 
 import anystream.db.tables.references.SEARCHABLE_CONTENT
 import anystream.db.util.awaitFirstOrNullInto
+import anystream.db.util.awaitInto
 import anystream.models.MediaType
 import org.jooq.Condition
 import org.jooq.DSLContext
@@ -30,34 +31,38 @@ import org.jooq.impl.DSL.condition
 class SearchableContentDao(
     private val db: DSLContext
 ) {
+    @Suppress("PrivatePropertyName")
+    private val RANK = DSL.field("rank")
+
     suspend fun search(query: String): List<String> {
         return db.select(SEARCHABLE_CONTENT.ID)
             .from(SEARCHABLE_CONTENT)
             .where(SEARCHABLE_CONTENT.CONTENT.match(query))
-            .orderBy(DSL.field("rank"))
-            .awaitFirstOrNullInto<List<String>>()
-            .orEmpty()
+            .orderBy(RANK)
+            .awaitInto()
     }
 
     suspend fun search(query: String, type: MediaType): List<String> {
         return db.select(SEARCHABLE_CONTENT.ID)
             .from(SEARCHABLE_CONTENT)
-            .where(SEARCHABLE_CONTENT.CONTENT.match(query))
-            .and(SEARCHABLE_CONTENT.MEDIA_TYPE.eq(type))
-            .orderBy(DSL.field("rank"))
-            .awaitFirstOrNullInto<List<String>>()
-            .orEmpty()
+            .where(
+                SEARCHABLE_CONTENT.CONTENT.match(query),
+                SEARCHABLE_CONTENT.MEDIA_TYPE.eq(type)
+            )
+            .orderBy(RANK)
+            .awaitInto()
     }
 
     suspend fun search(query: String, type: MediaType, limit: Int): List<String> {
         return db.select(SEARCHABLE_CONTENT.ID)
             .from(SEARCHABLE_CONTENT)
-            .where(SEARCHABLE_CONTENT.CONTENT.match(query))
-            .and(SEARCHABLE_CONTENT.MEDIA_TYPE.eq(type))
-            .orderBy(DSL.field("rank"))
+            .where(
+                SEARCHABLE_CONTENT.CONTENT.match(query),
+                SEARCHABLE_CONTENT.MEDIA_TYPE.eq(type)
+            )
+            .orderBy(RANK)
             .limit(limit)
-            .awaitFirstOrNullInto<List<String>>()
-            .orEmpty()
+            .awaitInto()
     }
 }
 
