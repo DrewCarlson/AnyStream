@@ -40,7 +40,7 @@ fun RouteBuilder.SettingsScreen(subscreen: String) {
             "activity" -> ActiveStreamsList()
             "users" -> UserManagerScreen()
             "libraries" -> {
-                string { gid -> MediaLinkListScreen(libraryGid = gid) }
+                string { id -> MediaLinkListScreen(libraryId = id) }
                 noMatch { LibrariesScreen() }
             }
 

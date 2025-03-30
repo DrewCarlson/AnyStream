@@ -107,7 +107,7 @@ fun MediaScreen(
                     value?.mediaLinks
                         ?.filter { it.descriptor.isMediaFileLink() }
                         ?.forEach { mediaLink ->
-                            client.analyzeMediaLink(mediaLink.gid)
+                            client.analyzeMediaLink(mediaLink.id)
                         }
                     value = client.refreshMetadata(mediaId)
                 } catch (_: Throwable) {
@@ -276,7 +276,7 @@ private fun BaseDetailsView(
 
         Button(
             onClick = {
-                onPlayClick(mediaItem.playableMediaLink?.gid)
+                onPlayClick(mediaItem.playableMediaLink?.id)
             },
             colors = ButtonDefaults.buttonColors(backgroundColor = Color.Red),
             modifier = Modifier
@@ -363,7 +363,7 @@ private fun SeasonRow(
                 title = season.name,
                 imagePath = season.posterPath,
                 onClick = {
-                    backStack.push(Routes.Details(season.gid))
+                    backStack.push(Routes.Details(season.id))
                 },
                 onPlayClick = {},
             )
@@ -381,11 +381,11 @@ private fun EpisodeGrid(
         title = "${episodes.size} Episodes",
     ) {
         episodes.forEach { episode ->
-            val link = mediaLinks[episode.gid]
+            val link = mediaLinks[episode.id]
             PosterCard(
                 title = episode.name,
                 /*subtitle1 = {
-                    LinkedText("/media/${episode.gid}") {
+                    LinkedText("/media/${episode.id}") {
                         Text("Episode ${episode.number}")
                     }
                 },*/
@@ -394,7 +394,7 @@ private fun EpisodeGrid(
                 onPlayClick = {
                 },
                 onClick = {
-                    backStack.push(Routes.Details(episode.gid))
+                    backStack.push(Routes.Details(episode.id))
                 },
             )
         }

@@ -58,10 +58,10 @@ class StreamServiceQueriesJooq(
         return try {
             val episodeAlias = METADATA.`as`("episode")
             val showAlias = METADATA.`as`("show")
-            val (episode, show) = db.select()
+            val records = db.select()
                 .from(episodeAlias)
                 .join(showAlias)
-                .on(episodeAlias.ID.eq(showAlias.ROOT_ID))
+                .on(episodeAlias.ROOT_ID.eq(showAlias.ID))
                 .where(
                     episodeAlias.ID.eq(id),
                     episodeAlias.MEDIA_TYPE.eq(MediaType.TV_EPISODE),
@@ -69,7 +69,9 @@ class StreamServiceQueriesJooq(
                 )
                 .fetchAsync()
                 .await()
-                .into(Metadata::class.java)
+
+            val episode = records.into(episodeAlias).into(Metadata::class.java).first()
+            val show = records.into(showAlias).into(Metadata::class.java).first()
 
             Pair(
                 episode.toTvEpisodeModel(),

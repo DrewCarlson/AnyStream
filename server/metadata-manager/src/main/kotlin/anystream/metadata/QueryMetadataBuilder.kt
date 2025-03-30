@@ -26,7 +26,7 @@ class QueryMetadataBuilder(
 ) {
     var providerId: String? = null
     var query: String? = null
-    var metadataGid: String? = null
+    var metadataId: String? = null
     var year: Int? = null
     var extras: Extras? = null
 
@@ -35,7 +35,7 @@ class QueryMetadataBuilder(
             providerId = providerId,
             mediaKind = mediaKind,
             query = query,
-            metadataGid = metadataGid,
+            metadataId = metadataId,
             year = year,
             extras = extras
         )

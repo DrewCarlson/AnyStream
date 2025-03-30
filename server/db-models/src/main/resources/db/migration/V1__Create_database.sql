@@ -15,9 +15,9 @@ CREATE TABLE IF NOT EXISTS metadata
     content_rating     VARCHAR(30),
     poster_path        TEXT,
     backdrop_path      TEXT,
-    first_available_at DATETIME,
-    created_at         DATETIME                NOT NULL,
-    updated_at         DATETIME                NOT NULL,
+    first_available_at TEXT,
+    created_at         TEXT                    NOT NULL,
+    updated_at         TEXT                    NOT NULL,
     media_kind         INTEGER                 NOT NULL,
     media_type         INTEGER                 NOT NULL,
     tmdb_rating        INTEGER,
@@ -80,8 +80,8 @@ CREATE TABLE IF NOT EXISTS media_link
     metadata_id      VARCHAR(24),
     root_metadata_id VARCHAR(24),
     directory_id     VARCHAR(24)             NOT NULL,
-    created_at       DATETIME                NOT NULL,
-    updated_at       DATETIME                NOT NULL,
+    created_at       TEXT                    NOT NULL,
+    updated_at       TEXT                    NOT NULL,
     media_kind       INTEGER                 NOT NULL,
     type             INTEGER                 NOT NULL,
     file_path        TEXT,
@@ -102,8 +102,8 @@ CREATE TABLE IF NOT EXISTS playback_state
     user_id       VARCHAR(24)             NOT NULL,
     position      DOUBLE                  NOT NULL,
     runtime       DOUBLE                  NOT NULL,
-    created_at    DATETIME                NOT NULL,
-    updated_at    DATETIME                NOT NULL,
+    created_at    TEXT                    NOT NULL,
+    updated_at    TEXT                    NOT NULL,
     FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE,
     FOREIGN KEY (media_link_id) REFERENCES media_link (id) ON DELETE CASCADE,
     FOREIGN KEY (metadata_id) REFERENCES metadata (id) ON DELETE CASCADE
@@ -112,7 +112,7 @@ CREATE TABLE IF NOT EXISTS playback_state
 CREATE TABLE IF NOT EXISTS stream_encoding
 (
     id              VARCHAR(24) PRIMARY KEY NOT NULL,
-    stream_id       INTEGER,
+    stream_id       TEXT,
     codec_name      TEXT                    NOT NULL,
     codec_long_name TEXT,
     `index`         INTEGER,
@@ -150,8 +150,8 @@ CREATE TABLE IF NOT EXISTS user
     username      VARCHAR(255)            NOT NULL,
     display_name  VARCHAR(255)            NOT NULL,
     password_hash TEXT                    NOT NULL,
-    created_at    DATETIME                NOT NULL,
-    updated_at    DATETIME                NOT NULL,
+    created_at    TEXT                    NOT NULL,
+    updated_at    TEXT                    NOT NULL,
     UNIQUE (username) ON CONFLICT IGNORE
 );
 

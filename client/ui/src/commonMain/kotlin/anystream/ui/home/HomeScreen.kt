@@ -187,13 +187,13 @@ private fun ContinueWatchingRow(
                     PosterCard(
                         title = movie.title,
                         imagePath = movie.posterPath,
-                        onClick = { onClick(playbackState.metadataGid) },
-                        onPlayClick = { onClick(playbackState.mediaLinkGid) },
+                        onClick = { onClick(playbackState.metadataId) },
+                        onPlayClick = { onClick(playbackState.mediaLinkId) },
                     )
                 }
                 currentlyWatchingTv[playbackState.id]?.also { (episode, show) ->
                     val mediaItem = MediaItem(
-                        mediaId = episode.gid,
+                        mediaId = episode.id,
                         contentTitle = show.name,
                         backdropPath = episode.stillPath,
                         posterPath = show.posterPath,
@@ -224,7 +224,7 @@ private fun WatchingCard(
         shape = RoundedCornerShape(2.dp),
         modifier = Modifier
             .width(256.dp)
-            .clickable(onClick = { onClick(playbackState.mediaLinkGid) }),
+            .clickable(onClick = { onClick(playbackState.mediaLinkId) }),
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             Box(
@@ -299,8 +299,8 @@ private fun MovieRow(
                 PosterCard(
                     title = movie.title,
                     imagePath = movie.posterPath,
-                    onClick = { onClick(movie.gid) },
-                    onPlayClick = { mediaLink?.run { onPlayClick(gid) } },
+                    onClick = { onClick(movie.id) },
+                    onPlayClick = { mediaLink?.run { onPlayClick(id) } },
                 )
                 if (index == movies.lastIndex) {
                     Spacer(Modifier.width(24.dp))
@@ -322,8 +322,8 @@ private fun TvRow(
                 PosterCard(
                     title = show.name,
                     imagePath = show.posterPath,
-                    onClick = { onClick(show.gid) },
-                    onPlayClick = { onClick(show.gid) },
+                    onClick = { onClick(show.id) },
+                    onPlayClick = { onClick(show.id) },
                 )
                 if (index == shows.lastIndex) {
                     Spacer(Modifier.width(24.dp))

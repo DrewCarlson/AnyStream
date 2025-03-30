@@ -18,6 +18,7 @@
 package anystream.media.processor
 
 import anystream.media.file.FileNameParser
+import anystream.models.Directory
 import anystream.models.MediaKind
 import anystream.models.MediaLink
 import anystream.models.api.MediaLinkMatchResult
@@ -28,6 +29,8 @@ interface MediaFileProcessor {
     val mediaKinds: List<MediaKind>
 
     val fileNameParser: FileNameParser
+
+    suspend fun findMetadataMatches(directory: Directory, import: Boolean): List<MediaLinkMatchResult>
 
     suspend fun findMetadataMatches(mediaLink: MediaLink, import: Boolean): MediaLinkMatchResult
 

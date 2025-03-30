@@ -60,10 +60,10 @@ fun forcedTypeEnum(
 
 fun forcedTypes(): List<ForcedType> = listOf(
     ForcedType().apply {
-        includeTypes = "DATETIME"
+        includeTypes = "TEXT"
+        includeExpression = ".*_at"
         userType = "kotlinx.datetime.Instant"
         binding = "anystream.db.converter.JooqInstantBinding"
-        //generator = "anystream.db.converter.JooqInstantGenerator"
     },
     forcedType(
         userType = "anystream.models.Permission",

@@ -113,6 +113,13 @@ class LibraryDao(
             .awaitFirstOrNullInto()
     }
 
+    suspend fun fetchChildDirectories(directoryId: String): List<Directory> {
+        return db.select(DIRECTORY)
+            .from(DIRECTORY)
+            .where(DIRECTORY.PARENT_ID.eq(directoryId))
+            .awaitInto()
+    }
+
     /**
      * Fetch the [Directory] by the [path] or null if not found.
      */

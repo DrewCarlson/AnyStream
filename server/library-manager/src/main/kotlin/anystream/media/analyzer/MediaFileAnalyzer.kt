@@ -42,7 +42,7 @@ class MediaFileAnalyzer(
         mediaLinkIds: List<String>,
         overwrite: Boolean = false,
     ): List<MediaAnalyzerResult> {
-        val mediaLinks = mediaLinkDao.findByGids(mediaLinkIds)
+        val mediaLinks = mediaLinkDao.findByIds(mediaLinkIds)
 
         logger.debug(
             "Importing stream details for {} item(s), ignored {} invalid item(s)",
@@ -66,11 +66,7 @@ class MediaFileAnalyzer(
                         if (streamDetails.isNotEmpty()) {
                             mediaLinkDao.insertStreamDetails(streamDetails)
                         }
-                        // TODO: restore media link streams
-                        //val updatedStreams = checkNotNull(mediaLinkDao.findByGid(mediaLink.gid))
-                        //     .streams
-                        //    .map { it.toStreamEncodingDb() }
-                        MediaAnalyzerResult.Success(mediaLink.id, emptyList())//updatedStreams)
+                        MediaAnalyzerResult.Success(mediaLink.id, streamDetails)
                     } catch (e: Throwable) {
                         logger.error("Failed to update stream data", e)
                         MediaAnalyzerResult.ErrorDatabaseException(e.stackTraceToString())

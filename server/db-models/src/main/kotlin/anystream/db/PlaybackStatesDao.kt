@@ -21,7 +21,7 @@ import anystream.db.converter.INSTANT_DATATYPE
 import anystream.db.tables.records.PlaybackStateRecord
 import anystream.db.tables.references.METADATA
 import anystream.db.tables.references.PLAYBACK_STATE
-import anystream.db.util.awaitFirstOrNullInto
+import anystream.db.util.*
 import anystream.models.PlaybackState
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.jooq.DSLContext
@@ -55,7 +55,7 @@ class PlaybackStatesDao(
             METADATA.ID.`as`("metadataId"),
             DSL.`when`(METADATA.ROOT_ID.isNull(), METADATA.ID)
                 .otherwise(METADATA.ROOT_ID)
-                .`as`("rootOrSelfGid"),
+                .`as`("rootOrSelfId"),
             DSL.max(PLAYBACK_STATE.UPDATED_AT)
                 .`as`("maxUpdatedAt")
         )
@@ -63,10 +63,10 @@ class PlaybackStatesDao(
             .join(METADATA)
             .on(METADATA.ID.eq(PLAYBACK_STATE.METADATA_ID))
             .where(PLAYBACK_STATE.USER_ID.eq(userId))
-            .groupBy(DSL.field("rootOrSelfGid"))
+            .groupBy(DSL.field("rootOrSelfId"))
             .asTable("x")
 
-        val results: List<PlaybackState>? = db.select(PLAYBACK_STATE)
+        return db.select(PLAYBACK_STATE)
             .from(PLAYBACK_STATE)
             .join(subquery)
             .on(
@@ -79,12 +79,10 @@ class PlaybackStatesDao(
             )
             .orderBy(PLAYBACK_STATE.UPDATED_AT.desc())
             .limit(limit)
-            .awaitFirstOrNullInto()
-
-        return results.orEmpty()
+            .awaitInto()
     }
 
-    suspend fun findByUserIdAndMediaId(userId: String, metadataId: String): PlaybackState? {
+    suspend fun findByUserIdAndMetadataId(userId: String, metadataId: String): PlaybackState? {
         return db.selectFrom(PLAYBACK_STATE)
             .where(
                 PLAYBACK_STATE.USER_ID.eq(userId),
@@ -93,27 +91,28 @@ class PlaybackStatesDao(
             .awaitFirstOrNullInto()
     }
 
-    suspend fun findByUserIdAndMediaGids(userId: String, metadataIds: List<String>): List<PlaybackState> {
-        return db.selectFrom(PLAYBACK_STATE)
-                .where(
-                    PLAYBACK_STATE.USER_ID.eq(userId),
-                    PLAYBACK_STATE.METADATA_ID.`in`(metadataIds)
-                )
-                .awaitFirstOrNullInto<List<PlaybackState>>()
-                .orEmpty()
+    suspend fun findByUserIdAndMetadataIds(userId: String, metadataIds: List<String>): List<PlaybackState> {
+        return db.select(PLAYBACK_STATE)
+            .from(PLAYBACK_STATE)
+            .where(
+                PLAYBACK_STATE.USER_ID.eq(userId),
+                PLAYBACK_STATE.METADATA_ID.`in`(metadataIds)
+            )
+            .awaitInto()
     }
 
-    suspend fun fetchById(id: String): PlaybackState? {
-        return db.selectFrom(PLAYBACK_STATE)
-            .where(PLAYBACK_STATE.ID.eq(id))
+    suspend fun fetchById(playbackStateId: String): PlaybackState? {
+        return db.select(PLAYBACK_STATE)
+            .from(PLAYBACK_STATE)
+            .where(PLAYBACK_STATE.ID.eq(playbackStateId))
             .awaitFirstOrNullInto()
     }
 
     suspend fun fetchByIds(ids: List<String>): List<PlaybackState> {
-        return db.selectFrom(PLAYBACK_STATE)
+        return db.select(PLAYBACK_STATE)
+            .from(PLAYBACK_STATE)
             .where(PLAYBACK_STATE.ID.`in`(ids))
-            .awaitFirstOrNullInto<List<PlaybackState>>()
-            .orEmpty()
+            .awaitInto()
     }
 
     suspend fun insert(playbackState: PlaybackState): Boolean {

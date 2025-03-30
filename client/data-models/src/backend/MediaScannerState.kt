@@ -25,13 +25,11 @@ sealed class MediaScannerState {
 
     @Serializable
     data class Active(
-        val mediaLinkGids: Set<String> = emptySet(),
+        val mediaLinkIds: Set<String> = emptySet(),
     ) : MediaScannerState()
 
     @Serializable
-    object Idle : MediaScannerState() {
-        override fun toString(): String = "Idle"
-    }
+    data object Idle : MediaScannerState()
 }
 
 @Serializable
@@ -45,9 +43,9 @@ sealed class MediaScannerMessage {
     @Serializable
     data class ScanComplete(
         val link: MediaLink,
-        val updatedLinkGids: List<String>,
+        val updatedLinkIds: List<String>,
     ) : MediaScannerMessage()
 
     @Serializable
-    object Idle : MediaScannerMessage()
+    data object Idle : MediaScannerMessage()
 }

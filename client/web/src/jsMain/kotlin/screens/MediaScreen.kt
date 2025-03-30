@@ -26,7 +26,7 @@ import anystream.models.*
 import anystream.models.MediaItem
 import anystream.models.api.*
 import anystream.models.toMediaItem
-import anystream.playerMediaGid
+import anystream.playerMediaLinkId
 import anystream.util.ExternalClickMask
 import anystream.util.get
 import anystream.util.tooltip
@@ -37,6 +37,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
+import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -166,7 +167,7 @@ private fun BaseDetailsView(
                 },
                 completedPercent = mediaItem.playbackState?.completedPercent,
                 onPlayClicked = {
-                    playerMediaGid.value = mediaItem.playableMediaLink?.id
+                    playerMediaLinkId.value = mediaItem.playableMediaLink?.id
                 }.takeUnless { mediaItem.playableMediaLink == null },
             )
 
@@ -208,24 +209,10 @@ private fun BaseDetailsView(
 
             Div({ classes("d-flex", "gap-2") }) {
                 mediaItem.contentRating?.also { contentRating ->
-                    Div({ classes("d-flex", "align-items-center") }) {
-                        Div({
-                            classes("rounded-2", "p-1", "bg-dark-translucent")
-                            style {
-                                fontSize(14.px)
-                            }
-                        }) {
-                            Text(contentRating)
-                        }
-                    }
+                    BadgeContainer { Text(contentRating) }
                 }
                 mediaItem.tmdbRating?.also { tmdbRating ->
-                    Div({
-                        classes("d-flex", "align-items-center", "gap-2", "rounded-2", "p-1", "bg-dark-translucent")
-                        style {
-                            fontSize(14.px)
-                        }
-                    }) {
+                    BadgeContainer {
                         Img("/images/tmdb-small.svg") {
                             style {
                                 width(21.px)
@@ -243,7 +230,7 @@ private fun BaseDetailsView(
                     Button({
                         classes("btn", "btn-sm", "btn-primary")
                         onClick {
-                            playerMediaGid.value = mediaLink.id
+                            playerMediaLinkId.value = mediaLink.id
                         }
                     }) {
                         I({
@@ -302,13 +289,35 @@ private fun BaseDetailsView(
 
             val hasStreamDetails = remember(mediaItem.mediaLinks) {
                 // todo: restore stream details
-               // mediaItem.mediaLinks.flatMap { it.streams }.isNotEmpty()
+                // mediaItem.mediaLinks.flatMap { it.streams }.isNotEmpty()
                 false
             }
             if (hasStreamDetails) {
                 StreamDetails(mediaItem)
             }
         }
+    }
+}
+
+@Composable
+private fun BadgeContainer(
+    content: ContentBuilder<HTMLDivElement>
+) {
+    Div({
+        classes(
+            "d-flex",
+            "align-items-center",
+            "gap-2",
+            "py-1",
+            "px-2",
+            "rounded-2",
+            "bg-dark-translucent"
+        )
+        style {
+            fontSize(14.px)
+        }
+    }) {
+        content()
     }
 }
 
@@ -542,7 +551,7 @@ private fun EpisodeGrid(
                 onPlayClicked = if (link == null) {
                     null
                 } else {
-                    { playerMediaGid.value = link.id }
+                    { playerMediaLinkId.value = link.id }
                 },
                 onBodyClicked = {
                     router.navigate("/media/${episode.id}")

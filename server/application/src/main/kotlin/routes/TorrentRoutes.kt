@@ -86,7 +86,7 @@ fun Route.addTorrentRoutes(
                 MediaReferenceDb.fromRefModel(
                     DownloadMediaReference(
                         id = downloadId,
-                        metadataGid = movieId,
+                        metadataId = movieId,
                         hash = description.hash,
                         added = Instant.now().toEpochMilli(),
                         fileIndex = null,

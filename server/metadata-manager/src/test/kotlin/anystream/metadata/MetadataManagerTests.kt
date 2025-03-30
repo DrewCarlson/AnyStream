@@ -71,7 +71,7 @@ class MetadataManagerTests : FunSpec({
         assertEquals("Memento", metadataMatch.movie.title)
         assertTrue(metadataMatch.exists)
 
-        val dbResult = assertNotNull(metadataDao.findByGid(metadataMatch.movie.id))
+        val dbResult = assertNotNull(metadataDao.find(metadataMatch.movie.id))
         assertEquals(metadataMatch.movie.title, dbResult.title)
     }
 
@@ -92,7 +92,7 @@ class MetadataManagerTests : FunSpec({
         assertEquals("The Last Kingdom", metadataMatch.tvShow.name)
         assertTrue(metadataMatch.exists)
 
-        val dbResult = assertNotNull(metadataDao.findByGid(metadataMatch.tvShow.id))
+        val dbResult = assertNotNull(metadataDao.find(metadataMatch.tvShow.id))
         assertEquals(metadataMatch.tvShow.name, dbResult.title)
     }
 

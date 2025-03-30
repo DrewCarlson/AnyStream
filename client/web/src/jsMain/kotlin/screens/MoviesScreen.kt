@@ -23,7 +23,7 @@ import anystream.components.*
 import anystream.models.MediaLink
 import anystream.models.Movie
 import anystream.models.api.MoviesResponse
-import anystream.playerMediaGid
+import anystream.playerMediaLinkId
 import anystream.util.get
 import app.softwork.routingcompose.Router
 import org.jetbrains.compose.web.dom.Div
@@ -69,7 +69,7 @@ private fun MovieCard(
         posterPath = movie.posterPath,
         isAdded = true,
         onPlayClicked = {
-            playerMediaGid.value = link?.id
+            playerMediaLinkId.value = link?.id
         }.takeIf { link != null },
         onBodyClicked = {
             router.navigate("/media/${movie.id}")

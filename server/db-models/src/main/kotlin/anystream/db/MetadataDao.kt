@@ -31,49 +31,36 @@ class MetadataDao(
     private val db: DSLContext,
 ) {
 
-    suspend fun findAllByParentGidAndType(parentGid: String, type: MediaType): List<Metadata> {
-        return db.selectFrom(METADATA)
-            .where(
-                METADATA.PARENT_ID.eq(parentGid),
-                METADATA.MEDIA_TYPE.eq(type)
-            )
-            .awaitFirstOrNullInto<List<Metadata>>()
-            .orEmpty()
-    }
-
     suspend fun findAllByParentIdAndType(parentId: String, type: MediaType): List<Metadata> {
         return db.selectFrom(METADATA)
             .where(
                 METADATA.PARENT_ID.eq(parentId),
                 METADATA.MEDIA_TYPE.eq(type)
             )
-            .awaitFirstOrNullInto<List<Metadata>>()
-            .orEmpty()
+            .awaitInto()
     }
 
-    suspend fun findAllByRootGidAndType(rootGid: String, type: MediaType): List<Metadata> {
+    suspend fun findAllByRootIdAndType(rootId: String, type: MediaType): List<Metadata> {
         return db.selectFrom(METADATA)
             .where(
-                METADATA.ROOT_ID.eq(rootGid),
+                METADATA.ROOT_ID.eq(rootId),
                 METADATA.MEDIA_TYPE.eq(type)
             )
-            .awaitFirstOrNullInto<List<Metadata>>()
-            .orEmpty()
+            .awaitInto()
     }
 
-    suspend fun findAllByRootGidAndParentIndexAndType(
-        rootGid: String,
+    suspend fun findAllByRootIdAndParentIndexAndType(
+        rootId: String,
         parentIndex: Int,
         type: MediaType
     ): List<Metadata> {
         return db.selectFrom(METADATA)
             .where(
-                METADATA.ROOT_ID.eq(rootGid),
+                METADATA.ROOT_ID.eq(rootId),
                 METADATA.PARENT_INDEX.eq(parentIndex),
                 METADATA.MEDIA_TYPE.eq(type)
             )
-            .awaitFirstOrNullInto<List<Metadata>>()
-            .orEmpty()
+            .awaitInto()
     }
 
     suspend fun findByIdAndType(id: String, type: MediaType): Metadata? {
@@ -81,7 +68,8 @@ class MetadataDao(
             .where(
                 METADATA.ID.eq(id),
                 METADATA.MEDIA_TYPE.eq(type)
-            ).awaitFirstOrNullInto()
+            )
+            .awaitFirstOrNullInto()
     }
 
     suspend fun findAllByIdsAndType(ids: List<String>, type: MediaType): List<Metadata> {
@@ -90,78 +78,38 @@ class MetadataDao(
                 METADATA.ID.`in`(ids),
                 METADATA.MEDIA_TYPE.eq(type)
             )
-            .awaitFirstOrNullInto<List<Metadata>>()
-            .orEmpty()
+            .awaitInto()
     }
 
-    suspend fun findByGidAndType(gid: String, type: MediaType): Metadata? {
+    suspend fun find(metadataId: String): Metadata? {
         return db.selectFrom(METADATA)
-            .where(
-                METADATA.ID.eq(gid),
-                METADATA.MEDIA_TYPE.eq(type)
-            )
+            .where(METADATA.ID.eq(metadataId))
             .awaitFirstOrNullInto()
     }
 
-    suspend fun findAllByGidsAndType(gids: List<String>, type: MediaType): List<Metadata> {
-        if (gids.isEmpty()) return emptyList()
-        return db.selectFrom(METADATA)
-            .where(
-                METADATA.ID.`in`(gids),
-                METADATA.MEDIA_TYPE.eq(type)
-            )
-            .awaitFirstOrNullInto<List<Metadata>>()
-            .orEmpty()
-    }
-
-    suspend fun findByGid(gid: String): Metadata? {
-        return db.selectFrom(METADATA)
-            .where(METADATA.ID.eq(gid))
-            .awaitFirstOrNullInto()
-    }
-
-    suspend fun findTypeByGid(gid: String): MediaType? {
-        return db.select(METADATA.MEDIA_TYPE, METADATA.ID.eq(gid))
-            .awaitFirstOrNullInto()
-    }
-
-    suspend fun findTypeById(id: String): MediaType? {
-        return db.select(METADATA.MEDIA_TYPE, METADATA.ID.eq(id))
-            .awaitFirstOrNullInto()
-    }
-
-    suspend fun findIdForGid(gid: String): Int? {
-        return db.select(METADATA.ID, METADATA.ID.eq(gid))
+    suspend fun findType(metadataId: String): MediaType? {
+        return db.select(METADATA.MEDIA_TYPE)
+            .from(METADATA)
+            .where(METADATA.ID.eq(metadataId))
             .awaitFirstOrNullInto()
     }
 
     suspend fun findByType(type: MediaType, limit: Int): List<Metadata> {
-        val results: List<Metadata>? = db.select()
-            .from(
-                DSL.selectDistinct(METADATA.ID)
-                    .from(METADATA)
-                    .where(METADATA.MEDIA_TYPE.eq(type))
-                    .orderBy(METADATA.CREATED_AT.desc())
-                    .limit(limit)
-            )
-            .naturalJoin(METADATA)
+        return db
+            .select(METADATA)
+            .from(METADATA)
+            .where(METADATA.MEDIA_TYPE.eq(type))
             .orderBy(METADATA.CREATED_AT.desc())
-            .awaitFirstOrNullInto()
-
-        return results.orEmpty()
+            .limit(limit)
+            .awaitInto()
     }
 
     suspend fun findAllByTypeSortedByTitle(type: MediaType): List<Metadata> {
-        return db.select()
-            .from(
-                DSL.selectDistinct(METADATA.ID)
-                    .from(METADATA)
-                    .where(METADATA.MEDIA_TYPE.eq(type))
-            )
-            .naturalJoin(METADATA)
+        return db.select(METADATA)
+            .from(METADATA)
+            .where(METADATA.MEDIA_TYPE.eq(type))
             .orderBy(DSL.lower(METADATA.TITLE))
-            .awaitFirstOrNullInto<List<Metadata>>()
-            .orEmpty()
+            .awaitInto()
     }
 
     suspend fun findByTypeSortedByTitle(
@@ -169,18 +117,13 @@ class MetadataDao(
         limit: Int,
         offset: Int,
     ): List<Metadata> {
-        return db.select()
-            .from(
-                DSL.selectDistinct(METADATA.ID)
-                    .from(METADATA)
-                    .where(METADATA.MEDIA_TYPE.eq(type))
-                    .limit(limit)
-                    .offset(offset)
-            )
-            .naturalJoin(METADATA)
+        return db.select(METADATA)
+            .from(METADATA)
+            .where(METADATA.MEDIA_TYPE.eq(type))
             .orderBy(DSL.lower(METADATA.TITLE))
-            .awaitFirstOrNullInto<List<Metadata>>()
-            .orEmpty()
+            .limit(limit)
+            .offset(offset)
+            .awaitInto()
     }
 
     suspend fun findByTmdbIdAndType(tmdbId: Int, type: MediaType): Metadata? {
@@ -194,8 +137,7 @@ class MetadataDao(
         return db.selectFrom(METADATA)
             .where(METADATA.TMDB_ID.`in`(tmdbId))
             .and(METADATA.MEDIA_TYPE.eq(type))
-            .awaitFirstOrNullInto<List<Metadata>>()
-            .orEmpty()
+            .awaitInto()
     }
 
     suspend fun count(): Long {
@@ -225,15 +167,9 @@ class MetadataDao(
             .awaitFirstOrNull()
     }
 
-    suspend fun deleteByGid(metadataId: String) {
+    suspend fun deleteByRootId(rootId: String) {
         db.delete(METADATA)
-            .where(METADATA.ID.eq(metadataId))
-            .awaitFirstOrNull()
-    }
-
-    suspend fun deleteByRootGid(rootGid: String) {
-        db.delete(METADATA)
-            .where(METADATA.ROOT_ID.eq(rootGid))
+            .where(METADATA.ROOT_ID.eq(rootId))
             .awaitFirstOrNull()
     }
 }

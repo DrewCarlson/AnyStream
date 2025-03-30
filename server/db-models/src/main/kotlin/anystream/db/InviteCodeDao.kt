@@ -23,6 +23,7 @@ import anystream.db.util.*
 import anystream.models.InviteCode
 import anystream.models.Permission
 import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.jooq.DSLContext
 import org.slf4j.LoggerFactory
 
@@ -55,7 +56,11 @@ class InviteCodeDao(
         userId: String,
     ): InviteCode? {
         val record = InviteCodeRecord(secret, permissions, userId)
-        return db.newRecordAsync(INVITE_CODE, record)
+        val inserted = db.insertInto(INVITE_CODE)
+            .set(record)
+            .awaitFirstOrNull() == 1
+
+        return if (inserted) record.intoType() else null
     }
 
     suspend fun deleteInviteCode(secret: String, byUserId: String?): Boolean {

@@ -19,10 +19,12 @@ package anystream.routes
 
 import anystream.media.AddLibraryFolderResult
 import anystream.media.LibraryService
+import anystream.models.MediaKind
 import anystream.models.Permission
 import anystream.models.api.AddLibraryFolderRequest
 import anystream.models.api.AddLibraryFolderResponse
 import anystream.models.api.LibraryFolderList
+import anystream.models.api.MediaScanResult
 import anystream.util.koinGet
 import anystream.util.logger
 import io.ktor.http.*
@@ -91,13 +93,28 @@ fun Route.addLibraryModifyRoutes(
                     call.receive<AddLibraryFolderRequest>()
                 } catch (e: ContentTransformationException) {
                     logger.error("Failed to parse request body", e)
-                    return@put call.respond(UnprocessableEntity)
+                    return@put call.respond(AddLibraryFolderResponse.RequestError(e.stackTraceToString()))
                 }
                 val response = when (val result = libraryService.addLibraryFolder(libraryId, request.path)) {
                     is AddLibraryFolderResult.Success -> {
                         val (library, directory) = result
 
-                        libraryService.scan(Path(directory.filePath))
+                        when (val scanResult = libraryService.scan(Path(directory.filePath))) {
+                            is MediaScanResult.Success -> {
+                                when (library.mediaKind) {
+                                    MediaKind.MOVIE -> {
+                                        scanResult.mediaLinks.addedIds.forEach { mediaLinkId ->
+                                            libraryService.refreshMetadata(mediaLinkId, import = true)
+                                        }
+                                    }
+                                    MediaKind.TV -> {
+                                        libraryService.refresh(directory)
+                                    }
+                                    else -> TODO("Implement metadata refresh for ${library.mediaKind}")
+                                }
+                            }
+                            else -> Unit // TODO: Handle errors
+                        }
 
                         AddLibraryFolderResponse.Success(library, directory)
                     }
