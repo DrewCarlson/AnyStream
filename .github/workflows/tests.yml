@@ -145,7 +145,7 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: ${{ always() }}
         with:
-          name: reports-client-core
+          name: reports-client-core-${{ matrix.os }}
           path: '**/build/reports/*'
 
       - name: Publish Unit Test Results
@@ -190,7 +190,7 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: ${{ always() }}
         with:
-          name: reports-client-ui
+          name: reports-client-ui-${{ matrix.os }}
           path: '**/build/reports/*'
 
       - name: Publish Unit Test Results
@@ -288,7 +288,7 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: ${{ always() }}
         with:
-          name: reports-client-web
+          name: reports-client-web-${{ matrix.os }}
           path: '**/build/reports/*'
 
       - name: Publish Unit Test Results
