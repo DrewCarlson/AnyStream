@@ -18,8 +18,8 @@ CREATE TABLE IF NOT EXISTS metadata
     first_available_at TEXT,
     created_at         TEXT                    NOT NULL,
     updated_at         TEXT                    NOT NULL,
-    media_kind         INTEGER                 NOT NULL,
-    media_type         INTEGER                 NOT NULL,
+    media_kind         TEXT                    NOT NULL,
+    media_type         TEXT                    NOT NULL,
     tmdb_rating        INTEGER,
     UNIQUE (tmdb_id) ON CONFLICT IGNORE
 );
@@ -60,7 +60,7 @@ CREATE VIRTUAL TABLE searchable_content USING fts5
 CREATE TABLE IF NOT EXISTS library
 (
     id         VARCHAR(24) PRIMARY KEY NOT NULL,
-    media_kind INTEGER                 NOT NULl,
+    media_kind TEXT                    NOT NULl,
     name       TEXT                    NOT NULL
 );
 
@@ -82,8 +82,8 @@ CREATE TABLE IF NOT EXISTS media_link
     directory_id     VARCHAR(24)             NOT NULL,
     created_at       TEXT                    NOT NULL,
     updated_at       TEXT                    NOT NULL,
-    media_kind       INTEGER                 NOT NULL,
-    type             INTEGER                 NOT NULL,
+    media_kind       TEXT                    NOT NULL,
+    type             TEXT                    NOT NULL,
     file_path        TEXT,
     file_index       INTEGER,
     hash             TEXT,
@@ -124,7 +124,7 @@ CREATE TABLE IF NOT EXISTS stream_encoding
     level           INTEGER,
     height          INTEGER,
     width           INTEGER,
-    type            INTEGER                 NOT NULL,
+    type            TEXT                    NOT NULL,
     title           TEXT,
     pix_fmt         TEXT,
     color_space     TEXT,
