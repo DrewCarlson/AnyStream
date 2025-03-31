@@ -10,7 +10,7 @@ android {
     compileSdk = 35
     defaultConfig {
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 35
     }
     buildFeatures {
         compose = true
@@ -19,8 +19,11 @@ android {
         kotlinCompilerExtensionVersion = libsAndroid.versions.composeCompiler.get()
     }
     packaging {
-        resources.excludes.add("META-INF/versions/*/*.bin")
-        resources.pickFirsts.add("META-INF/AL2.0")
+        resources {
+            excludes.add("META-INF/versions/*/*.bin")
+            pickFirsts.add("META-INF/AL2.0")
+            pickFirsts.add("META-INF/LGPL2.1")
+        }
     }
     signingConfigs {
         named("debug") {
