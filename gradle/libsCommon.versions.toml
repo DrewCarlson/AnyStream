@@ -1,17 +1,17 @@
 [versions]
-kotlin = { strictly = "2.0.20" }
-coroutines = "1.9.0"
-serialization = "1.7.3"
-ktorio = "3.0.0"
-ksp = "2.0.20-1.0.24"
-atomicfu = "0.25.0"
+kotlin = { strictly = "2.1.10" }
+coroutines = "1.10.1"
+serialization = "1.8.0"
+ktorio = "3.1.2"
+ksp = "2.1.10-1.0.31"
+atomicfu = "0.27.0"
 kover = "0.8.3"
-datetime = "0.6.1"
+datetime = "0.6.2"
 spotless = "6.22.0"
 ktlint = "1.0.1"
 koin = "4.0.0"
 koinKtor = "4.0.0"
-agp = "8.5.2"
+agp = "8.7.3"
 kotest = "5.8.1"
 
 [plugins]

@@ -45,7 +45,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -76,10 +76,16 @@ import anystream.router.SharedRouter
 import anystream.ui.components.AutofillInput
 import anystream.ui.components.PrimaryButton
 import anystream.ui.components.onFocusStateChanged
+import anystream.ui.generated.resources.*
+import anystream.ui.generated.resources.Res
+import anystream.ui.generated.resources.ic_discovery
+import anystream.ui.generated.resources.ic_message
+import anystream.ui.generated.resources.logo_login
 import kt.mobius.SimpleLogger
 import kt.mobius.compose.rememberMobiusLoop
 import kt.mobius.flow.FlowMobius
 import kt.mobius.functions.Consumer
+import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
@@ -101,7 +107,7 @@ internal fun LoginScreen(client: AnyStreamClient, router: SharedRouter) {
                     onClick = { router.popCurrentRoute() },
                     content = {
                         Icon(
-                            imageVector = Icons.Filled.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
                             tint = MaterialTheme.colors.onBackground,
                         )
@@ -128,7 +134,7 @@ internal fun LoginScreen(client: AnyStreamClient, router: SharedRouter) {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Image(
-                painter = painterResource("logo_login.xml"),
+                painter = painterResource(Res.drawable.logo_login),
                 contentDescription = null,
                 modifier = Modifier.size(120.dp),
             )
@@ -163,7 +169,7 @@ internal fun FormBody(
                 serverUrlValue = it
                 eventConsumer.accept(LoginScreenEvent.OnServerUrlChanged(it.text))
             },
-            leadingIconId = "ic_discovery.xml",
+            leadingIcon = Res.drawable.ic_discovery,
             placeHolder = "Server URL",
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Uri,
@@ -190,7 +196,7 @@ internal fun FormBody(
                     usernameValue = it
                     eventConsumer.accept(LoginScreenEvent.OnUsernameChanged(it.text))
                 },
-                leadingIconId = "ic_message.xml",
+                leadingIcon = Res.drawable.ic_message,
                 placeHolder = "Username",
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Text,
@@ -224,7 +230,7 @@ internal fun FormBody(
                     passwordValue = it
                     eventConsumer.accept(LoginScreenEvent.OnPasswordChanged(it.text))
                 },
-                leadingIconId = "ic_lock.xml",
+                leadingIcon = Res.drawable.ic_lock,
                 placeHolder = "Password",
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Password,
@@ -279,7 +285,7 @@ private fun ColumnScope.ErrorText(
 private fun OutlineTextField(
     textFieldValue: TextFieldValue,
     onValueChange: (TextFieldValue) -> Unit,
-    leadingIconId: String?,
+    leadingIcon: DrawableResource?,
     placeHolder: String,
     keyboardOptions: KeyboardOptions,
     visualTransformation: VisualTransformation = VisualTransformation.None,
@@ -307,7 +313,7 @@ private fun OutlineTextField(
         readOnly = readOnly,
         keyboardOptions = keyboardOptions,
         leadingIcon = {
-            leadingIconId?.let {
+            leadingIcon?.let {
                 Icon(painterResource(it), contentDescription = null)
             }
         },

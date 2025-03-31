@@ -9,6 +9,7 @@ plugins {
 }
 
 kotlin {
+    jvmToolchain(21)
     jvm {
         withJava()
     }
@@ -70,6 +71,9 @@ tasks {
 }
 
 compose {
+    resources {
+        generateResClass = always
+    }
     desktop {
         application {
             mainClass = "MainKt"

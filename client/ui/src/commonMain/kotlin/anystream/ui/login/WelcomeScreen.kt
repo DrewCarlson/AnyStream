@@ -40,6 +40,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import anystream.ui.components.PrimaryButton
+import anystream.ui.generated.resources.Res
+import anystream.ui.generated.resources.welcome_bg
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
@@ -47,7 +49,7 @@ internal fun WelcomeScreen(onCtaClicked: () -> Unit) {
     Scaffold(modifier = Modifier.fillMaxSize()) {
         Box {
             Image(
-                painter = painterResource("welcome_bg.webp"),
+                painter = painterResource(Res.drawable.welcome_bg),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize(),

@@ -20,9 +20,12 @@ package anystream.util
 import anystream.data.UserSession
 import anystream.db.SessionsDao
 import anystream.db.tables.references.SESSION
+import anystream.db.util.awaitFirstOrNullInto
+import anystream.db.util.awaitInto
 import anystream.json
 import io.ktor.server.sessions.*
 import kotlinx.coroutines.future.await
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.serialization.encodeToString
 import org.jooq.DSLContext
 import org.slf4j.LoggerFactory
@@ -60,9 +63,9 @@ class SqlSessionStorage(
 
     override suspend fun read(id: String): String {
         logger.trace("Looking for session {}", id)
-        return (sessionsCache[id] ?: findSession(id)).also {
-            logger.trace("Found session {}", id)
-        } ?: throw NoSuchElementException()
+        return (sessionsCache[id] ?: sessionsDao.find(id))
+            .also { logger.trace("Found session {}", id) }
+            ?: throw NoSuchElementException()
     }
 
     override suspend fun invalidate(id: String) {
@@ -75,17 +78,6 @@ class SqlSessionStorage(
                 .await()
         } catch (e: Throwable) {
             logger.error("Failed to delete session '$id' from database", e)
-        }
-    }
-
-    private fun findSession(id: String): String? {
-        return try {
-            db.selectFrom(SESSION)
-                .where(SESSION.ID.eq(id))
-                .fetchOne(SESSION.DATA)
-        } catch (e: Throwable) {
-            logger.trace("Failed to find session data", e)
-            null
         }
     }
 

@@ -17,12 +17,13 @@
  */
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import anystream.client.configure
+import anystream.ui.generated.resources.Res
+import anystream.ui.generated.resources.as_icon
 import anystream.ui.video.LocalAppWindow
 import anystream.ui.video.prepareLibvlc
 import kotlinx.coroutines.launch
@@ -38,7 +39,7 @@ fun main() = application {
         onCloseRequest = ::exitApplication,
         title = "AnyStream",
         state = rememberWindowState(width = 1600.dp, height = 1200.dp),
-        icon = painterResource("images/as_icon.xml"),
+        icon = org.jetbrains.compose.resources.painterResource(Res.drawable.as_icon),
     ) {
         CompositionLocalProvider(LocalAppWindow provides window) {
             MainView()

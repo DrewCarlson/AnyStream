@@ -117,7 +117,7 @@ class StreamService(
             val (file, metadataId) = fileAndMetadataId ?: return null
             val runtime = getFileDuration(file).seconds
             PlaybackState(
-                id = ObjectId.get().toString(),
+                id = ObjectId.next(),
                 mediaLinkId = mediaLinkId,
                 position = 0.0,
                 userId = userId,

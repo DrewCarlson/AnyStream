@@ -1,7 +1,5 @@
 import com.android.build.gradle.LibraryExtension
 import org.gradle.kotlin.dsl.*
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinMetadataTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 
 plugins {
@@ -14,15 +12,15 @@ plugins {
 if (hasAndroidSdk) {
     apply(plugin = "com.android.library")
     configure<LibraryExtension> {
-        compileSdk = 34
+        compileSdk = 35
         defaultConfig {
             minSdk = 23
             testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         }
         namespace = "anystream.${project.name.replace("-", "")}"
         compileOptions {
-            sourceCompatibility = JAVA_TARGET
-            targetCompatibility = JAVA_TARGET
+            sourceCompatibility = JAVA_TARGET_ANDROID
+            targetCompatibility = JAVA_TARGET_ANDROID
         }
         packaging {
             resources.excludes.add("META-INF/versions/*/*.bin")
@@ -60,9 +58,8 @@ kotlin {
     jvm()
     if (hasAndroidSdk) {
         androidTarget {
-            @OptIn(ExperimentalKotlinGradlePluginApi::class)
             compilerOptions {
-                jvmTarget.set(JVM_TARGET)
+                jvmTarget.set(JVM_TARGET_ANDROID)
             }
         }
     }
@@ -74,7 +71,6 @@ kotlin {
         iosX64()
     }
     applyDefaultHierarchyTemplate()
-    @OptIn(ExperimentalKotlinGradlePluginApi::class)
     compilerOptions {
         freeCompilerArgs.add("-Xexpect-actual-classes")
     }
@@ -88,8 +84,8 @@ kotlin {
             }
         }
 
-        val libsCommon = extensions.getByType<VersionCatalogsExtension>().named("libsCommon")
-        val libsAndroid = extensions.getByType<VersionCatalogsExtension>().named("libsAndroid")
+        val libsCommon = project.extensions.getByType<VersionCatalogsExtension>().named("libsCommon")
+        val libsAndroid = project.extensions.getByType<VersionCatalogsExtension>().named("libsAndroid")
 
         val commonMain by getting {
             kotlin.srcDir("build/generated/ksp/metadata/$name/kotlin")
