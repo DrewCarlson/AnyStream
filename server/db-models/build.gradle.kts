@@ -14,7 +14,6 @@ buildscript {
 sourceSets {
     main {
         kotlin.srcDirs(
-            layout.buildDirectory.file("generated/ksp/$name/kotlin"),
             layout.buildDirectory.file("generated-src/jooq/$name")
         )
     }
@@ -23,7 +22,6 @@ sourceSets {
 dependencies {
     jooqGenerator(libsServer.jdbc.sqlite)
     jooqGenerator(projects.server.dbModels.jooqGenerator)
-    implementation(projects.libs.sqlGeneratorApi)
     implementation(projects.client.dataModels)
     implementation(projects.server.shared)
     implementation(libsServer.bundles.jooq)

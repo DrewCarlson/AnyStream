@@ -52,7 +52,7 @@ fun EditLibraryModal(
 
     Modal(
         id = "edit-library-modal",
-        title = "Edit \"${library.name}\"",
+        title = "Edit ${library.name}",
         size = ModalSize.Large,
         onHidden = onClosed,
         onHide = {}.takeIf { isLoading }
@@ -81,6 +81,7 @@ fun EditLibraryModal(
                     onAnalyzeClicked = {}
                 )
             }
+
             LibraryModalScreen.ADD_FOLDER -> {
                 AddLibraryFolderScreen(
                     library = library,
@@ -116,9 +117,8 @@ private fun LibraryDirectories(
         Table({ classes("table", "table-hover") }) {
             Thead {
                 Tr {
-                    Th({ scope(Scope.Col) }) {
-                        Text("Folder")
-                    }
+                    Th({ scope(Scope.Col) }) { /* actions */ }
+                    Th({ scope(Scope.Col) }) { Text("Folder") }
                 }
             }
             Tbody {
@@ -132,7 +132,7 @@ private fun LibraryDirectories(
                                 FolderAction("Analyze", "file-earmark-play") { onAnalyzeClicked(directory) }
                             }
                         }
-                        Th({ scope(Scope.Row) }) { Text(directory.filePath) }
+                        Td({ scope(Scope.Row) }) { Text(directory.filePath) }
                     }
                 }
             }

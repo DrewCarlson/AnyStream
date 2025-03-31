@@ -17,6 +17,20 @@ global permissions.
 
 ## Importing Media
 
+Importing your media files starts by adding a directory to a Library.
+
+Before adding a library directory, ensure your media files follow the guidelines in
+[File and Directory Naming](../2-library-management.md#file-and-directory-naming).
+
+1. Navigate to Settings > Libraries
+2. Click "Edit" on the desired Library
+3. Click "Add Folder"
+4. Select or paste the folder path and click "Add"
+
+That's it!  All the media files will be scanned and metadata will be downloaded.
+You can navigate to the home page to see your library populate in real time.
+
+
 ## Inviting Users
 
 You can add new users manually or create unique URLs to share which allow a single person to create an account with the

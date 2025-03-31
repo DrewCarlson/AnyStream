@@ -1,24 +1,36 @@
 # Library Management
 
-AnyStream manages your media library by scanning selected files, downloading metadata (posters, ratings, etc.), and
-analyzing media file contents (audio/video codecs, bitrate, etc.),
+AnyStream libraries represents a single kind of media (Movies, TV, etc.) and contain a list of content directories
+with are regularly scanned to downloading metadata (title, posters, ratings, etc.) and analyze media file contents
+(audio/video codecs, bitrate, etc.).
 
-## Naming your files
+## File and Directory Naming
 
-To understand your library while scanning, AnyStream requires folders and files to follow certain naming conventions
+To understand the file and directory structure of your media files, they must follow a specific naming conventions
 and folder structures.
+
+Without following these requirements, your library may still be understood by AnyStream but alternative
+naming/structures are not officially supported yet and may result in subtle issues viewing your library.
 
 ### Basic Requirements
 
-There are two common requirements for proper scanning of your media library that apply to all content:
+There are two common requirements for proper scanning of your media library that apply to every kind of content:
 
-1. Each type of content (TV Shows, Movies, etc.) are in their own directory.
+1. Each type of content (TV Shows, Movies, Music, etc.) are in their own directory.
 
-        /../videos/TV/
-        /../videos/Movies/
+        /../media/TV/
+        /../media/Movies/
+        /../media/Music/
 
 2. Media files are not located directly within the content directory, i.e. `../videos/TV` and `../videos/Movies` only
-   contain other directories.
+   contain other directories for specific shows and movies.
+
+         /../media/TV/Noir (2001)/
+         /../media/Movies/Primer (2004)/
+         /../media/Music/Chairlift/
+
+3. Content folders and files should include the original release year whenever possible to improve accuracy when
+   automatically matching metadata.
 
 ### Movies
 

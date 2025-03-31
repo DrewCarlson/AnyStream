@@ -16,8 +16,6 @@ include(
     ":server:shared",
     ":server:stream-service",
     ":libs:preferences",
-    ":libs:sql-generator",
-    ":libs:sql-generator-api",
 )
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
