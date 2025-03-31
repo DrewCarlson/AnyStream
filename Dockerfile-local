@@ -2,6 +2,9 @@ FROM azul/zulu-openjdk:21-jre-latest
 
 WORKDIR /app
 
+COPY server/application/build/install ./install/
+COPY client/web/build/dist/js/productionExecutable ./client-web/
+
 ENV DATA_PATH=/app/storage/
 ENV DATABASE_URL=/app/storage/config/anystream.db
 ENV FFMPEG_PATH=/usr/bin
