@@ -46,9 +46,8 @@ val flywayMigrate by tasks.registering(FlywayMigrateTask::class) {
     driver.set("org.sqlite.JDBC")
     url.set(dbUrl)
     migrationsLocation = layout.projectDirectory.dir(migrationPath.absolutePath)
-    if (dbFile.exists()) {
+    if (dbFile.createNewFile()) {
         inputs.file(dbFile)
-        doFirst { dbFile.delete() }
     }
 }
 

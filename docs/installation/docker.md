@@ -1,12 +1,11 @@
 # Docker
 
 
-A small Alpine based docker image is provided
+A complete Ubuntu (jammy) based docker image is provided for both amd64 and arm64
 at [ghcr.io/drewcarlson/anystream](https://github.com/DrewCarlson/AnyStream/pkgs/container/anystream).
 
-!!! note
-
-    In the future, a ubuntu based image with hardware transcoding support will be provided.
+This image is based on [azul/zulu-openjdk:21-jre-headless-latest](https://hub.docker.com/r/azul/zulu-openjdk)
+([Dockerfile](https://github.com/zulu-openjdk/zulu-openjdk/blob/master/ubuntu/21-jre-headless-latest/Dockerfile)).
 
 ### Docker CLI
 
