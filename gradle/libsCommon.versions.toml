@@ -1,5 +1,5 @@
 [versions]
-kotlin = { strictly = "2.1.10" }
+kotlin = { strictly = "2.1.20" }
 coroutines = "1.10.1"
 serialization = "1.8.0"
 ktorio = "3.1.2"
