@@ -44,15 +44,10 @@ class AnyStreamConfig(config: ApplicationConfig) {
 
     val transcodePath: String = config.property("app.transcodePath").getString()
     val ffmpegPath: String = config.propertyOrNull("app.ffmpegPath")?.getString().let { path ->
-        val pathOrDefault = path.orEmpty().ifBlank {
-            useIfFfmpegExists(
-                "/usr/bin",
-                "/usr/local/bin",
-                "/usr/lib/jellyfin-ffmpeg",
-                "C:\\Program Files\\ffmpeg\\bin",
-            )
+        val pathOrDefault = path.orEmpty().ifBlank { findInstalledFfmpeg() }
+        checkNotNull(pathOrDefault) {
+            "Failed to find FFmpeg, please ensure `app.ffmpegPath` or `FFMPEG_PATH` is configured correctly."
         }
-        checkNotNull(pathOrDefault) { "Failed to find FFmpeg, please ensure `app.ffmpegPath` is configured correctly." }
         Path(pathOrDefault).absolutePathString()
     }
     val tmdbApiKey: String = config.property("app.tmdbApiKey").getString()
@@ -60,9 +55,14 @@ class AnyStreamConfig(config: ApplicationConfig) {
     val qbittorrentUser: String = config.property("app.qbittorrentUser").getString()
     val qbittorrentPass: String = config.property("app.qbittorrentPassword").getString()
 
-    private fun useIfFfmpegExists(vararg paths: String): String? {
-        return paths.firstOrNull { path ->
-            Path(path).resolve(path).run {
+    private fun findInstalledFfmpeg(): String? {
+        return listOf(
+            "/usr/bin",
+            "/usr/local/bin",
+            "/usr/lib/jellyfin-ffmpeg",
+            "C:\\Program Files\\ffmpeg\\bin",
+        ).firstOrNull { path ->
+            Path(path).run {
                 exists() && (resolve("ffmpeg").exists() || resolve("ffmpeg.exe").exists())
             }
         }
