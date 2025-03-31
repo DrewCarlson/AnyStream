@@ -20,6 +20,7 @@ android {
     }
     packaging {
         resources.excludes.add("META-INF/versions/*/*.bin")
+        resources.pickFirsts.add("META-INF/AL2.0")
     }
     signingConfigs {
         named("debug") {
