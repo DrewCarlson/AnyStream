@@ -21,7 +21,6 @@ import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
 import anystream.client.json
 import anystream.models.Library
-import anystream.models.MediaKind
 import anystream.models.Permission
 import anystream.util.bootstrapIcon
 import anystream.util.get
@@ -29,6 +28,7 @@ import anystream.util.tooltip
 import app.softwork.routingcompose.Router
 import kotlinx.browser.localStorage
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import org.jetbrains.compose.web.attributes.AttrsScope
 import org.jetbrains.compose.web.css.*
@@ -46,17 +46,22 @@ fun SideMenu() {
             .map { it.orEmpty() }
     }.collectAsState(client.userPermissions())
     var expanded by remember {
-        mutableStateOf(localStorage.getItem(MENU_EXPANDED_KEY)?.toBoolean() ?: false)
+        mutableStateOf(localStorage.getItem(MENU_EXPANDED_KEY)?.toBoolean() == true)
     }
     val libraries by produceState(emptyList<Library>()) {
-        value = /*localStorage.getItem("LIBRARIES_LIST") TODO: fixme
-            ?.run(json::decodeFromString)
-            ?: */try {
-            client.getLibraries()
-        } catch (e: Throwable) {
-            e.printStackTrace()
-            emptyList()
-        }
+        value =
+            try {
+                localStorage.getItem("LIBRARIES_LIST")
+                    ?.run(json::decodeFromString)
+            } catch (_: Throwable) {
+                localStorage.removeItem("LIBRARIES_LIST")
+                null
+            } ?: try {
+                client.getLibraries()
+            } catch (e: Throwable) {
+                e.printStackTrace()
+                emptyList()
+            }
         if (value.isNotEmpty()) {
             localStorage.setItem("LIBRARIES_LIST", json.encodeToString(value))
         }
