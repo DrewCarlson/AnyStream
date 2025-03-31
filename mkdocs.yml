@@ -1,11 +1,11 @@
-site_name: AnyStream Documentation
+site_name: Docs
 site_description: A self-hosted streaming service for your media collection.
 site_url: https://docs.anystream.dev/
 repo_url: https://github.com/drewcarlson/anystream
 remote_branch: gh-pages
 docs_dir: docs
 edit_uri: edit/main/docs/
-copyright: 'Copyright &copy; 2023 AnyStream Maintainers'
+copyright: 'Copyright &copy; 2025 AnyStream Maintainers'
 
 theme:
   name: material
@@ -59,3 +59,4 @@ nav:
   - Connecting qBittorrent: 4-connecting-qbittorrent.md
   - Development:
     - Documentation: development/documentation.md
+    - Database: development/database.md
