@@ -36,11 +36,10 @@ class AnyStreamConfig(config: ApplicationConfig) {
         Path(pathOrDefault).createDirectories().absolutePathString()
     }
 
-    val databaseUrl: String = buildString {
-        append("jdbc:")
+    val databaseUrl: String = run {
         val databaseUrl = config.property("app.databaseUrl").getString()
-            .ifBlank { "sqlite:${configPath.resolve("anystream.db").absolutePathString()}" }
-        append(databaseUrl)
+            .ifBlank { configPath.resolve("anystream.db").absolutePathString() }
+        "jdbc:sqlite:$databaseUrl"
     }
 
     val transcodePath: String = config.property("app.transcodePath").getString()

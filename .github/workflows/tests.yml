@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  DATABASE_URL: "sqlite::memory:"
+  DATABASE_URL: ":memory:"
 
 jobs:
   file-changes:

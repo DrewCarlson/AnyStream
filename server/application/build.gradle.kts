@@ -129,6 +129,6 @@ tasks.getByName<JavaExec>("run") {
     environment(
         "DATABASE_URL",
         properties["databaseUrl"] ?: environment["DATABASE_URL"]
-        ?: "sqlite:${rootDir.resolve("anystream.db")}"
+        ?: rootDir.resolve("anystream.db")
     )
 }
