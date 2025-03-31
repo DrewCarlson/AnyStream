@@ -132,7 +132,7 @@ jobs:
             ~/.gradle
           key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
 
-      - uses: browser-actions/setup-firefox@634a60ccd6599686158cf5a570481b4cd30455a2
+      - uses: browser-actions/setup-firefox@16942aa15773974f988a2b20007f24758a753a25
         id: install-firefox
 
       - name: Set FIREFOX_BIN environment variable
@@ -281,7 +281,7 @@ jobs:
             ~/.gradle
           key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
 
-      - uses: browser-actions/setup-firefox@634a60ccd6599686158cf5a570481b4cd30455a2
+      - uses: browser-actions/setup-firefox@16942aa15773974f988a2b20007f24758a753a25
         id: install-firefox
 
       - name: Set FIREFOX_BIN environment variable
