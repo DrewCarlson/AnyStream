@@ -91,23 +91,27 @@ sealed class MediaLinkMatchResult {
     @Serializable
     data class Success(
         val mediaLink: MediaLink?,
+        val directory: Directory?,
         val matches: List<MetadataMatch>,
         val subResults: List<MediaLinkMatchResult>,
     ) : MediaLinkMatchResult()
 
     @Serializable
     data class NoSupportedFiles(
-        val mediaLink: MediaLink,
+        val mediaLink: MediaLink?,
+        val directory: Directory?,
     ) : MediaLinkMatchResult()
 
     @Serializable
     data class FileNameParseFailed(
-        val mediaLink: MediaLink,
+        val mediaLink: MediaLink?,
+        val directory: Directory?,
     ) : MediaLinkMatchResult()
 
     @Serializable
     data class NoMatchesFound(
-        val mediaLink: MediaLink,
+        val mediaLink: MediaLink?,
+        val directory: Directory?,
     ) : MediaLinkMatchResult()
 }
 

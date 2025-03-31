@@ -145,7 +145,7 @@ fun Application.module(testing: Boolean = false) {
                 single { MediaFileAnalyzer({ get() }, get()) }
                 single<LibraryService> {
                     val processors = listOf(
-                        MovieFileProcessor(get(), get()),
+                        MovieFileProcessor(get(), get(), get()),
                         TvFileProcessor(get(), get(), get(), get()),
                     )
                     LibraryService(get(), processors, get(), get())

@@ -17,6 +17,7 @@
  */
 package anystream.media.processor
 
+import anystream.db.LibraryDao
 import anystream.db.MediaLinkDao
 import anystream.media.VIDEO_EXTENSIONS
 import anystream.media.file.FileNameParser
@@ -31,6 +32,7 @@ import kotlin.io.path.*
 class MovieFileProcessor(
     private val metadataManager: MetadataManager,
     private val mediaLinkDao: MediaLinkDao,
+    private val libraryDao: LibraryDao,
 ) : MediaFileProcessor {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
@@ -39,7 +41,23 @@ class MovieFileProcessor(
     override val fileNameParser: FileNameParser = MovieFileNameParser()
 
     override suspend fun findMetadataMatches(directory: Directory, import: Boolean): List<MediaLinkMatchResult> {
-        TODO("Not yet implemented")
+        val library = libraryDao.fetchLibraryForDirectory(directory.id)
+            ?: return emptyList()  // TODO: return no library error
+        val contentRootDirectories = when {
+            directory.id == library.id -> libraryDao.fetchChildDirectories(directory.id)
+            directory.parentId == library.id -> listOf(directory)
+            else -> libraryDao.fetchDirectory(directory.id)
+                ?.takeIf {
+                    // TODO: provide feedback regarding nested content folders being unsupported
+                    it.parentId == library.id
+                }
+                ?.run(::listOfNotNull)
+                ?: return emptyList() // TODO: return no directory error
+        }
+
+        return contentRootDirectories.map { dir ->
+            findMatchesForMediaDir(dir, import = import)
+        }
     }
 
     override suspend fun findMetadataMatches(mediaLink: MediaLink, import: Boolean): MediaLinkMatchResult {
@@ -50,7 +68,7 @@ class MovieFileProcessor(
             Descriptor.AUDIO,
             Descriptor.SUBTITLE,
             Descriptor.IMAGE,
-            -> MediaLinkMatchResult.NoSupportedFiles(mediaLink)
+            -> MediaLinkMatchResult.NoSupportedFiles(mediaLink, null)
         }
     }
 
@@ -92,29 +110,44 @@ class MovieFileProcessor(
         }
         return MediaLinkMatchResult.Success(
             mediaLink = mediaLink,
+            directory = null,
             matches = emptyList(),
             subResults = subResults,
         )
     }
 
-    private suspend fun findMatchesForMediaDir(mediaLink: MediaLink, import: Boolean): MediaLinkMatchResult {
-        val path = requireNotNull(mediaLink.filePath)
+    private suspend fun findMatchesForMediaDir(directory: Directory, import: Boolean): MediaLinkMatchResult {
+        val path = requireNotNull(directory.filePath)
         val childLinks = mediaLinkDao.findByBasePathAndDescriptor(path, Descriptor.VIDEO)
-        val movieFile = childLinks.firstOrNull() ?: return MediaLinkMatchResult.NoSupportedFiles(mediaLink)
+        val movieFile = childLinks.firstOrNull()
+            ?: return MediaLinkMatchResult.NoSupportedFiles(
+                mediaLink = null,
+                directory = directory,
+            )
 
         return when (val subMatch = findMatchesForFile(movieFile, import)) {
             is MediaLinkMatchResult.FileNameParseFailed ->
-                MediaLinkMatchResult.FileNameParseFailed(mediaLink)
+                MediaLinkMatchResult.FileNameParseFailed(
+                    mediaLink = null,
+                    directory = directory,
+                )
 
             is MediaLinkMatchResult.NoMatchesFound ->
-                MediaLinkMatchResult.NoMatchesFound(mediaLink)
+                MediaLinkMatchResult.NoMatchesFound(
+                    mediaLink = null,
+                    directory = directory,
+                )
 
             is MediaLinkMatchResult.NoSupportedFiles ->
-                MediaLinkMatchResult.NoSupportedFiles(mediaLink)
+                MediaLinkMatchResult.NoSupportedFiles(
+                    mediaLink = null,
+                    directory = directory,
+                )
 
             is MediaLinkMatchResult.Success -> {
                 MediaLinkMatchResult.Success(
-                    mediaLink,
+                    mediaLink = null,
+                    directory = directory,
                     matches = subMatch.matches,
                     subResults = listOf(subMatch),
                 )
@@ -125,13 +158,13 @@ class MovieFileProcessor(
     private suspend fun findMatchesForFile(mediaLink: MediaLink, import: Boolean): MediaLinkMatchResult {
         val movieFile = Path(requireNotNull(mediaLink.filePath))
         if (!VIDEO_EXTENSIONS.contains(movieFile.extension)) {
-            return MediaLinkMatchResult.NoSupportedFiles(mediaLink)
+            return MediaLinkMatchResult.NoSupportedFiles(mediaLink, null)
         }
         val (movieName, year) = when (val result = fileNameParser.parseFileName(movieFile)) {
             is ParsedFileNameResult.MovieFile -> result
             else -> {
                 logger.debug("Expected to find movie file but could not parse '{}'", movieFile)
-                return MediaLinkMatchResult.FileNameParseFailed(mediaLink)
+                return MediaLinkMatchResult.FileNameParseFailed(mediaLink, null)
             }
         }
         logger.debug("Querying provider for '{}' (year {})", movieName, year)
@@ -146,7 +179,7 @@ class MovieFileProcessor(
             .filterIsInstance<MetadataMatch.MovieMatch>()
         if (matches.isEmpty()) {
             logger.debug("No metadata match results")
-            return MediaLinkMatchResult.NoMatchesFound(mediaLink)
+            return MediaLinkMatchResult.NoMatchesFound(mediaLink, null)
         }
         val metadataMatch = matches.sortedBy { scoreString(movieName, it.movie.title) }
 
@@ -156,6 +189,7 @@ class MovieFileProcessor(
 
         return MediaLinkMatchResult.Success(
             mediaLink = mediaLink,
+            directory = null,
             matches = metadataMatch,
             subResults = emptyList(),
         )

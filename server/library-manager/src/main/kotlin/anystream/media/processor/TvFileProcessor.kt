@@ -69,12 +69,12 @@ class TvFileProcessor(
     override suspend fun findMetadataMatches(mediaLink: MediaLink, import: Boolean): MediaLinkMatchResult {
         return when (mediaLink.descriptor) {
             Descriptor.VIDEO,
-            -> findMatchesForFile(mediaLink, import)
+                -> findMatchesForFile(mediaLink, import)
 
             Descriptor.AUDIO,
             Descriptor.SUBTITLE,
             Descriptor.IMAGE,
-            -> MediaLinkMatchResult.NoSupportedFiles(mediaLink)
+                -> MediaLinkMatchResult.NoSupportedFiles(mediaLink, null)
         }
     }
 
@@ -86,7 +86,7 @@ class TvFileProcessor(
                 Descriptor.AUDIO -> error("AUDIO media links are not supported in television libraries")
                 Descriptor.SUBTITLE,
                 Descriptor.IMAGE,
-                -> {
+                    -> {
                     // Ignored, supplementary files will be handled by the VIDEO file matching process.
                     null
                 }
@@ -94,6 +94,7 @@ class TvFileProcessor(
         }
         return MediaLinkMatchResult.Success(
             mediaLink = checkNotNull(childLinks.firstOrNull()), //TODO: fix match result type
+            directory = directory,
             matches = emptyList(),
             subResults = subResults,
         )
@@ -102,14 +103,14 @@ class TvFileProcessor(
     private suspend fun findMatchesForMediaDir(directory: Directory, import: Boolean): MediaLinkMatchResult {
         val episodeLinks = mediaLinkDao.findByBasePathAndDescriptor(directory.filePath, Descriptor.VIDEO)
         if (episodeLinks.isEmpty()) {
-            return MediaLinkMatchResult.NoMatchesFound(TODO(""))//TODO:.NoSupportedFiles()
+            return MediaLinkMatchResult.NoSupportedFiles(null, directory)
         }
 
         val (tvShowName, year) = when (val result = fileNameParser.parseFileName(fs.getPath(directory.filePath))) {
             is ParsedFileNameResult.Tv.ShowFolder -> result
             else -> {
                 logger.debug("Expected to find show folder but could not parse '{}' {}", directory.filePath, result)
-                return MediaLinkMatchResult.FileNameParseFailed(TODO(""))
+                return MediaLinkMatchResult.FileNameParseFailed(null, directory)
             }
         }
         logger.debug("Querying provider for '{}' (year {})", tvShowName, year)
@@ -123,7 +124,7 @@ class TvFileProcessor(
             .filterIsInstance<MetadataMatch.TvShowMatch>()
         if (matches.isEmpty()) {
             logger.debug("No metadata match results '{}' (year {})", tvShowName, year)
-            return MediaLinkMatchResult.NoMatchesFound(TODO(""))
+            return MediaLinkMatchResult.NoMatchesFound(null, directory)
         }
 
         logger.debug("Found {} Metadata match results '{}' (year {})", matches.size, tvShowName, year)
@@ -135,9 +136,10 @@ class TvFileProcessor(
         }
 
         return MediaLinkMatchResult.Success(
-            mediaLink = null, // TODO: Include directory and child media links
+            mediaLink = null,
+            directory = directory,
             matches = metadataMatch,
-            subResults = emptyList(),
+            subResults = emptyList(),// TODO: child media rules
         )
     }
 
