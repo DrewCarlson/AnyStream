@@ -19,7 +19,6 @@ package anystream.db
 
 import anystream.db.tables.references.SESSION
 import anystream.db.util.awaitFirstOrNullInto
-import anystream.db.util.intoType
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.jooq.DSLContext
 

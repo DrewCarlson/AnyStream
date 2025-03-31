@@ -17,21 +17,11 @@
  */
 package anystream.ui.home
 
-import androidx.compose.animation.core.tween
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
@@ -46,6 +36,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -56,27 +48,41 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import anystream.models.MediaLink
 import anystream.models.Movie
+import anystream.ui.generated.resources.Res
+import anystream.ui.generated.resources.ic_play
 import anystream.ui.theme.AppTheme
-import io.kamel.image.KamelImage
-import io.kamel.image.asyncPainterResource
-import io.ktor.http.Url
+import coil3.compose.AsyncImagePainter
+import coil3.compose.rememberAsyncImagePainter
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
 internal fun MediaCarousel(pagerState: PagerState, media: List<Pair<Movie, MediaLink?>>) {
     HorizontalPager(pagerState, modifier = Modifier.height(375.dp)) {
         Box(Modifier.fillMaxWidth()) {
-            KamelImage(
-                resource = asyncPainterResource(data = Url("https://image.tmdb.org/t/p/w1920_and_h800_multi_faces${media[it].first.backdropPath}")),
-                contentDescription = "Movie Poster",
-                onLoading = {
-                    Box(Modifier.size(375.dp).background(color = Color(0xFFBDBDBD)))
-                },
-                onFailure = { },
-                animationSpec = tween(),
-                modifier = Modifier.height(375.dp),
-                contentScale = ContentScale.Crop,
+            val painter = rememberAsyncImagePainter(
+                model = "https://image.tmdb.org/t/p/w1920_and_h800_multi_faces${media[it].first.backdropPath}",
             )
+            val state by painter.state.collectAsState()
+            Box(
+                modifier = Modifier.height(375.dp),
+                contentAlignment = Alignment.BottomCenter
+            ) {
+                when (state) {
+                    is AsyncImagePainter.State.Success ->
+                        Image(
+                            painter = painter,
+                            contentDescription = "Movie Poster",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop,
+                        )
+
+                    is AsyncImagePainter.State.Loading -> {
+                        Box(Modifier.size(375.dp).background(color = Color(0xFFBDBDBD)))
+                    }
+                    AsyncImagePainter.State.Empty -> Unit
+                    is AsyncImagePainter.State.Error -> Unit
+                }
+            }
 
             Row(
                 Modifier
@@ -131,7 +137,7 @@ private fun CarouselMediaButtonRow() {
                 colors = ButtonDefaults.buttonColors(contentColor = MaterialTheme.colors.onBackground),
                 modifier = Modifier.height(32.dp),
             ) {
-                Icon(painter = painterResource("ic_play.xml"), contentDescription = null)
+                Icon(painter = painterResource(Res.drawable.ic_play), contentDescription = null)
                 Spacer(Modifier.width(8.dp))
                 Text(
                     text = "Play",

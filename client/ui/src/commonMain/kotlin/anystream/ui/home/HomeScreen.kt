@@ -18,9 +18,7 @@
 package anystream.ui.home
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,14 +32,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Card
 import androidx.compose.material.LinearProgressIndicator
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -61,9 +59,8 @@ import anystream.ui.components.CarouselAutoPlayHandler
 import anystream.ui.components.LoadingScreen
 import anystream.ui.components.PagerIndicator
 import anystream.ui.components.PosterCard
-import io.kamel.image.KamelImage
-import io.kamel.image.asyncPainterResource
-import io.ktor.http.Url
+import coil3.compose.AsyncImagePainter
+import coil3.compose.rememberAsyncImagePainter
 import kt.mobius.SimpleLogger
 import kt.mobius.compose.rememberMobiusLoop
 import kt.mobius.flow.FlowMobius
@@ -232,17 +229,27 @@ private fun WatchingCard(
                     .height(144.dp)
                     .fillMaxWidth(),
             ) {
-                KamelImage(
-                    resource = asyncPainterResource(data = Url("https://image.tmdb.org/t/p/w300${mediaItem.posterPath}")),
-                    contentDescription = null,
-                    onLoading = {
+                val painter = rememberAsyncImagePainter(
+                    model = "https://image.tmdb.org/t/p/w300${mediaItem.posterPath}",
+                )
+                val state by painter.state.collectAsState()
+
+                when (state) {
+                    is AsyncImagePainter.State.Success ->
+                        Image(
+                            painter = painter,
+                            contentDescription = "Backdrop for ${mediaItem.contentTitle}",
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    is AsyncImagePainter.State.Loading -> {
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .background(Color.DarkGray),
                         )
-                    },
-                    onFailure = {
+                    }
+                    AsyncImagePainter.State.Empty,
+                    is AsyncImagePainter.State.Error -> {
                         Box(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier
@@ -251,9 +258,8 @@ private fun WatchingCard(
                         ) {
                             Text("No Backdrop")
                         }
-                    },
-                    animationSpec = tween(),
-                )
+                    }
+                }
             }
 
             LinearProgressIndicator(

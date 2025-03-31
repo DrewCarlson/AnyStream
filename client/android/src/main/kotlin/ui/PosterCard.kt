@@ -26,6 +26,8 @@ import androidx.compose.material.Card
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,9 +37,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImagePainter
-import coil.compose.rememberAsyncImagePainter
-import coil.request.ImageRequest
+import coil3.compose.AsyncImagePainter
+import coil3.compose.rememberAsyncImagePainter
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 
 @Composable
 fun PosterCard(
@@ -82,7 +85,8 @@ fun PosterCard(
                         alignment = Alignment.Center,
                     )
 
-                    when (painter.state) {
+                    val state by painter.state.collectAsState()
+                    when (state) {
                         is AsyncImagePainter.State.Loading -> {
                             Box(
                                 modifier = Modifier

@@ -42,9 +42,10 @@ import anystream.models.*
 import anystream.models.api.CurrentlyWatching
 import anystream.models.api.HomeResponse
 import anystream.routing.Routes
-import coil.compose.AsyncImagePainter
-import coil.compose.rememberAsyncImagePainter
-import coil.request.ImageRequest
+import coil3.compose.AsyncImagePainter
+import coil3.compose.rememberAsyncImagePainter
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 
 private val CARD_SPACING = 12.dp
 
@@ -202,7 +203,8 @@ private fun WatchingCard(
                     modifier = Modifier.fillMaxSize(),
                 )
 
-                when (painter.state) {
+                val state by painter.state.collectAsState()
+                when (state) {
                     is AsyncImagePainter.State.Loading -> {
                         Box(
                             modifier = Modifier

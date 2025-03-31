@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "anystream.android"
-    compileSdk = 34
+    compileSdk = 35
     defaultConfig {
         minSdk = 24
         targetSdk = 34
@@ -68,7 +68,8 @@ dependencies {
     implementation(libsClient.compose.livedata)
     implementation(libsClient.compose.foundation)
     implementation(libsClient.compose.material)
-    implementation(libsClient.coil)
+    implementation(libsClient.compose.icons)
+    implementation(libsClient.coil.compose)
     implementation(libsAndroid.bundles.exoplayer)
     implementation(libsAndroid.zxing.core)
     implementation(libsAndroid.quickie.bundled)

@@ -8,13 +8,17 @@ compose {
     /*android {
         useAndroidX = true
     }*/
+
+    resources {
+        publicResClass = true
+        generateResClass = always
+    }
 }
 
 if (hasAndroidSdk) {
     configure<com.android.build.gradle.LibraryExtension> {
         sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
-        sourceSets["main"].resources.srcDirs("src/commonMain/resources")
-        sourceSets["main"].res.srcDirs("src/androidMain/res", "src/commonMain/resources")
+        sourceSets["main"].res.srcDirs("src/androidMain/res")
 
         // needed for @Preview
         buildFeatures {
@@ -69,7 +73,8 @@ kotlin {
                 api(libsClient.mobiuskt.coroutines)
                 api(libsClient.mobiuskt.compose)
 
-                implementation(libsClient.kamel.image)
+                implementation(libsClient.coil.compose)
+                implementation(libsClient.coil.ktor)
                 implementation(libsClient.koin.compose)
                 implementation(compose.runtime)
                 implementation(compose.foundation)

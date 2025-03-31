@@ -55,8 +55,9 @@ class UserDao(
     suspend fun fetchPermissions(userId: String): Set<Permission> {
         return db.selectFrom(USER_PERMISSION)
             .where(USER_PERMISSION.USER_ID.eq(userId))
-            .awaitFirstOrNullInto<Set<Permission>>()
-            .orEmpty()
+            .awaitInto<UserPermission>()
+            .map { it.value }
+            .toSet()
     }
 
     suspend fun fetchUsers(): List<User> {

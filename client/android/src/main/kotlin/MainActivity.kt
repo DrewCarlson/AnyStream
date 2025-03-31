@@ -25,7 +25,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -175,7 +175,7 @@ fun AppTopBar(client: AnyStreamClient?, backStack: BackStack<Routes>?) {
 
                     IconButton(onClick = { scope.launch { client.logout() } }) {
                         Icon(
-                            imageVector = Icons.Filled.ExitToApp,
+                            imageVector = Icons.AutoMirrored.Filled.ExitToApp,
                             contentDescription = "Sign out",
                         )
                     }

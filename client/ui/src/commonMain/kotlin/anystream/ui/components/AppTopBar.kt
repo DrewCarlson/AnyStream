@@ -27,8 +27,8 @@ import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -40,11 +40,11 @@ import androidx.compose.ui.unit.dp
 import anystream.client.AnyStreamClient
 import anystream.router.BackStack
 import anystream.routing.Routes
+import anystream.ui.generated.resources.Res
+import anystream.ui.generated.resources.as_logo
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
 internal fun AppTopBar(
     client: AnyStreamClient?,
@@ -55,13 +55,13 @@ internal fun AppTopBar(
     TopAppBar(modifier) {
         if (showBackButton) {
             IconButton(onClick = { backStack?.pop() }) {
-                Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = "Back")
+                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
             }
         }
 
         val scope = rememberCoroutineScope()
         Image(
-            painter = painterResource("as_logo.xml"),
+            painter = painterResource(Res.drawable.as_logo),
             modifier = Modifier
                 .padding(all = 8.dp)
                 .size(width = 150.dp, height = 50.dp),
@@ -88,7 +88,7 @@ internal fun AppTopBar(
                     }
 
                     IconButton(onClick = { scope.launch { client.logout() } }) {
-                        Icon(Icons.Filled.Logout, contentDescription = "Sign out")
+                        Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Sign out")
                     }
                 }
             }

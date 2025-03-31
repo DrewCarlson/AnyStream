@@ -61,15 +61,14 @@ jooq {
     }
 }
 
-val dbClassesTree = fileTree(layout.buildDirectory.dir("generated-src/jooq/main")) {
-    include("anystream/db/**")
-}
-
 tasks.getByName<JooqGenerate>("generateJooq") {
     inputs.dir(migrationPath)
     allInputsDeclared.set(true)
     dependsOn("flywayMigrate")
     doLast {
+        val dbClassesTree = fileTree(layout.buildDirectory.dir("generated-src/jooq/main")) {
+            include("anystream/db/**")
+        }
         delete {
             delete(dbClassesTree)
         }

@@ -19,6 +19,7 @@ package anystream.ui.media
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -43,16 +44,10 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -70,9 +65,8 @@ import anystream.router.BackStack
 import anystream.routing.Routes
 import anystream.ui.components.PosterCard
 import anystream.ui.util.cardWidth
-import io.kamel.image.KamelImage
-import io.kamel.image.asyncPainterResource
-import io.ktor.http.Url
+import coil3.compose.AsyncImagePainter
+import coil3.compose.rememberAsyncImagePainter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filterNotNull
@@ -97,6 +91,7 @@ fun MediaScreen(
         value = try {
             client.lookupMedia(mediaId)
         } catch (e: Throwable) {
+            e.printStackTrace()
             null
         }
         lookupIdFlow
@@ -127,6 +122,7 @@ fun MediaScreen(
                         onPlayClick = onPlayClick,
                     )
                 }
+
                 is MovieResponse -> {
                     BaseDetailsView(
                         mediaItem = response.toMediaItem(),
@@ -136,6 +132,7 @@ fun MediaScreen(
                         onPlayClick = onPlayClick,
                     )
                 }
+
                 is SeasonResponse -> {
                     BaseDetailsView(
                         mediaItem = response.toMediaItem(),
@@ -153,6 +150,7 @@ fun MediaScreen(
                         }
                     }
                 }
+
                 is TvShowResponse -> {
                     BaseDetailsView(
                         mediaItem = response.toMediaItem(),
@@ -169,6 +167,7 @@ fun MediaScreen(
                         }
                     }
                 }
+
                 null -> Unit
             }
         }
@@ -190,23 +189,36 @@ private fun BaseDetailsView(
                 .fillMaxWidth()
                 .fillMaxHeight(.37f),
         ) {
-            KamelImage(
-                resource = asyncPainterResource(data = mediaItem.tmdbBackdropUrl),
-                contentDescription = "",
-                contentScale = ContentScale.Crop,
+
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(.7f),
-                onLoading = {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color.DarkGray),
-                    )
-                },
-                onFailure = { },
-                animationSpec = tween(),
-            )
+                    .fillMaxHeight(.7f)
+            ) {
+                val painter = rememberAsyncImagePainter(
+                    model = mediaItem.tmdbBackdropUrl,
+                    contentScale = ContentScale.Crop,
+                )
+                val state by painter.state.collectAsState()
+                when (state) {
+                    is AsyncImagePainter.State.Success ->
+                        Image(
+                            painter = painter,
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize()
+                        )
+
+                    is AsyncImagePainter.State.Loading -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.DarkGray),
+                        )
+                    }
+                    AsyncImagePainter.State.Empty -> Unit
+                    is AsyncImagePainter.State.Error -> Unit
+                }
+            }
 
             Column(
                 modifier = Modifier
@@ -223,7 +235,7 @@ private fun BaseDetailsView(
                 Row(Modifier.fillMaxWidth()) {
                     IconButton(onClick = { backStack.pop() }) {
                         Icon(
-                            Icons.Default.ArrowBack,
+                            Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "",
                             tint = MaterialTheme.colors.onSurface,
                         )
@@ -250,22 +262,34 @@ private fun BaseDetailsView(
                             .align(Alignment.Bottom),
                     ) {
                         Card(elevation = 2.dp, shape = RectangleShape) {
-                            KamelImage(
-                                resource = asyncPainterResource(data = Url(mediaItem.tmdbPosterUrl)),
-                                contentDescription = "",
+                            val painter = rememberAsyncImagePainter(
+                                model = mediaItem.tmdbPosterUrl,
                                 contentScale = ContentScale.Crop,
-                                modifier = Modifier.fillMaxWidth(),
-                                onLoading = {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .background(Color.DarkGray),
-                                    )
-                                },
-                                onFailure = { },
-                                animationSpec = tween(),
-                                contentAlignment = Alignment.BottomCenter,
                             )
+                            val state by painter.state.collectAsState()
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.BottomCenter,
+                            ) {
+                                when (state) {
+                                    is AsyncImagePainter.State.Success ->
+                                        Image(
+                                            painter = painter,
+                                            contentDescription = null,
+                                            modifier = Modifier.fillMaxSize()
+                                        )
+
+                                    is AsyncImagePainter.State.Loading -> {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .background(Color.DarkGray),
+                                        )
+                                    }
+                                    AsyncImagePainter.State.Empty -> Unit
+                                    is AsyncImagePainter.State.Error -> Unit
+                                }
+                            }
                         }
                     }
 

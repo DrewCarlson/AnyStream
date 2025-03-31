@@ -48,7 +48,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.koin.compose.rememberKoinInject
+import org.koin.compose.koinInject
 
 @Composable
 internal actual fun VideoPlayer(
@@ -59,7 +59,7 @@ internal actual fun VideoPlayer(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val lifecycle = LocalLifecycleOwner.current.lifecycle
-    val client = rememberKoinInject<AnyStreamClient>()
+    val client = koinInject<AnyStreamClient>()
 
     var window by rememberSaveable { mutableStateOf(0) }
     var position by rememberSaveable { mutableStateOf(0L) }
