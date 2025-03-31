@@ -104,7 +104,7 @@ fun Application.module(testing: Boolean = false) {
 
                 single<DataSource> {
                     SQLiteConnectionPoolDataSource().apply {
-                        url = "sqlite:${config.databaseUrl}"
+                        url = config.databaseUrl
                         this.config = SQLiteConfig().apply {
                             enforceForeignKeys(true)
                         }
