@@ -4,7 +4,7 @@ COPY . /build-project
 WORKDIR /build-project
 RUN ./gradlew :server:application:installShadowDist :client:web:jsBrowserProductionWebpack --console=plain --no-daemon
 
-FROM mcr.microsoft.com/java/jre:11-zulu-alpine
+FROM mcr.microsoft.com/java/jre:21-zulu-alpine
 
 RUN apk add --update --no-cache bash ffmpeg
 
