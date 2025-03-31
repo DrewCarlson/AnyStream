@@ -24,38 +24,20 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import anystream.ui.util.font
+import anystream.ui.generated.resources.Res
+import anystream.ui.generated.resources.urbanist_bold
+import anystream.ui.generated.resources.urbanist_medium
+import anystream.ui.generated.resources.urbanist_regular
+import anystream.ui.generated.resources.urbanist_semibold
+import org.jetbrains.compose.resources.Font
 
 @Composable
 fun getTypography(): Typography {
     val urbanist = FontFamily(
-        font(
-            "Urbanist Regular",
-            "urbanist_regular",
-            FontWeight.Normal,
-            FontStyle.Normal,
-        ),
-
-        font(
-            "Urbanist Bold",
-            "urbanist_bold",
-            FontWeight.Bold,
-            FontStyle.Normal,
-        ),
-
-        font(
-            "Urbanist SemiBold",
-            "urbanist_semibold",
-            FontWeight.SemiBold,
-            FontStyle.Normal,
-        ),
-
-        font(
-            "Urbanist Medium",
-            "urbanist_medium",
-            FontWeight.Medium,
-            FontStyle.Normal,
-        ),
+        Font(Res.font.urbanist_regular, FontWeight.Normal, FontStyle.Normal),
+        Font(Res.font.urbanist_bold, FontWeight.Bold, FontStyle.Normal),
+        Font(Res.font.urbanist_semibold, FontWeight.SemiBold, FontStyle.Normal),
+        Font(Res.font.urbanist_medium, FontWeight.Medium, FontStyle.Normal),
     )
 
     return Typography(
