@@ -14,7 +14,7 @@ COPY --from=build /build-project/client/web/build/dist/js/productionExecutable .
 
 ENV DATA_PATH=/app/storage/
 ENV DATABASE_URL=/app/storage/config/anystream.db
-ENV FFMPEG_PATH=/usr/bin
+ENV FFMPEG_PATH=/usr/lib/jellyfin-ffmpeg
 ENV WEB_CLIENT_PATH=/app/client-web
 ENV PORT=8888
 ENV FFMPEG_VERSION=7.0.2-9

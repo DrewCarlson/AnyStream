@@ -48,6 +48,7 @@ class AnyStreamConfig(config: ApplicationConfig) {
             useIfFfmpegExists(
                 "/usr/bin",
                 "/usr/local/bin",
+                "/usr/lib/jellyfin-ffmpeg",
                 "C:\\Program Files\\ffmpeg\\bin",
             )
         }
