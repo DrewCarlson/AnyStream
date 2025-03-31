@@ -658,12 +658,10 @@
 
 
 <h1 id="docker">Docker</h1>
-<p>A small Alpine based docker image is provided
+<p>A complete Ubuntu (jammy) based docker image is provided for both amd64 and arm64
 at <a href="https://github.com/DrewCarlson/AnyStream/pkgs/container/anystream">ghcr.io/drewcarlson/anystream</a>.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>In the future, a ubuntu based image with hardware transcoding support will be provided.</p>
-</div>
+<p>This image is based on <a href="https://hub.docker.com/r/azul/zulu-openjdk">azul/zulu-openjdk:21-jre-headless-latest</a>
+(<a href="https://github.com/zulu-openjdk/zulu-openjdk/blob/master/ubuntu/21-jre-headless-latest/Dockerfile">Dockerfile</a>).</p>
 <h3 id="docker-cli">Docker CLI</h3>
 <div class="admonition example">
 <p class="admonition-title">Docker CLI example</p>
