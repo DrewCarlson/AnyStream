@@ -49,17 +49,14 @@ kotlin {
     }
 }
 
-val dbFile = layout.buildDirectory.file("anystream-reference.db").get().asFile
-val dbUrl = "jdbc:sqlite:${dbFile.absolutePath}"
+val dbFile = layout.buildDirectory.file("anystream-reference.db")
+val dbUrl = "jdbc:sqlite:${dbFile.get().asFile.absolutePath}"
 val migrationPath = file("src/main/resources/db/migration")
 
 val flywayMigrate by tasks.registering(FlywayMigrateTask::class) {
     driver.set("org.sqlite.JDBC")
     url.set(dbUrl)
     migrationsLocation = layout.projectDirectory.dir(migrationPath.absolutePath)
-    if (dbFile.createNewFile()) {
-        inputs.file(dbFile)
-    }
 }
 
 //https://github.com/gotson/komga/blob/c97a322a5d2f2d9e3068779751ce88b5aa9a7f10/komga/build.gradle.kts
@@ -72,18 +69,17 @@ jooq {
     }
 }
 
-val pojosTree = fileTree(layout.buildDirectory.dir("generated-src/jooq/main")) {
-    include("anystream/models/**")
-}
 
 tasks.getByName<JooqGenerate>("generateJooq") {
+    dependsOn(flywayMigrate)
     inputs.dir(migrationPath)
     allInputsDeclared.set(true)
-    dependsOn("flywayMigrate")
     doLast {
+        val pojosTree = fileTree(layout.buildDirectory.dir("generated-src/jooq/main")) {
+            include("anystream/models/**")
+        }
         delete {
             delete(pojosTree)
-            delete(dbFile)
         }
     }
 }

@@ -23,7 +23,14 @@ abstract class FlywayMigrateTask : DefaultTask() {
     // Output is required to make the task cacheable
     @OutputFile
     val outputFile: RegularFileProperty = project.objects.fileProperty().convention(
-        project.layout.buildDirectory.file(url.map { it.substringAfterLast(":") })
+        project.layout.buildDirectory.file(url.map {
+            if (it.contains('\\')) {
+                // handle windows path
+                it.split(":").takeLast(2).joinToString(":")
+            } else {
+                it.substringAfterLast(":")
+            }
+        })
     )
 
     @TaskAction

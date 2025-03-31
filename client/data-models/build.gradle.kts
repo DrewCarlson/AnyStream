@@ -38,17 +38,14 @@ dependencies {
     jooqGenerator(projects.server.dbModels.jooqGenerator)
 }
 
-val dbFile = layout.buildDirectory.file("anystream-reference.db").get().asFile
-val dbUrl = "jdbc:sqlite:${dbFile.absolutePath}"
+val dbFile = layout.buildDirectory.file("anystream-reference.db")
+val dbUrl = "jdbc:sqlite:${dbFile.get().asFile.absolutePath}"
 val migrationPath = projects.server.dbModels.dependencyProject.file("src/main/resources/db/migration")
 
 val flywayMigrate by tasks.registering(FlywayMigrateTask::class) {
     driver.set("org.sqlite.JDBC")
     url.set(dbUrl)
     migrationsLocation = layout.projectDirectory.dir(migrationPath.absolutePath)
-    if (dbFile.createNewFile()) {
-        inputs.file(dbFile)
-    }
 }
 
 jooq {
@@ -61,14 +58,14 @@ jooq {
 }
 
 tasks.getByName<JooqGenerate>("generateJooq") {
+    dependsOn(flywayMigrate)
     inputs.dir(migrationPath)
     allInputsDeclared.set(true)
-    dependsOn("flywayMigrate")
     doLast {
-        val dbClassesTree = fileTree(layout.buildDirectory.dir("generated-src/jooq/main")) {
-            include("anystream/db/**")
-        }
         delete {
+            val dbClassesTree = fileTree(layout.buildDirectory.dir("generated-src/jooq/main")) {
+                include("anystream/db/**")
+            }
             delete(dbClassesTree)
         }
     }
