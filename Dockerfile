@@ -1,10 +1,10 @@
-FROM mcr.microsoft.com/java/jdk:21-zulu-alpine
+FROM azul/zulu-openjdk-alpine:21-latest
 
 COPY . /build-project
 WORKDIR /build-project
 RUN ./gradlew :server:application:installShadowDist :client:web:jsBrowserProductionWebpack --console=plain --no-daemon
 
-FROM mcr.microsoft.com/java/jre:21-zulu-alpine
+FROM azul/zulu-openjdk-alpine:21-jre-latest
 
 RUN apk add --update --no-cache bash ffmpeg
 
