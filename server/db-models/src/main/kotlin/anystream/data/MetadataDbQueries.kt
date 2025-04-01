@@ -25,6 +25,7 @@ import anystream.db.tables.references.METADATA
 import anystream.models.*
 import anystream.models.PlaybackState
 import anystream.models.api.*
+import anystream.util.ObjectId
 import kotlinx.coroutines.future.await
 import org.jooq.DSLContext
 
@@ -345,21 +346,26 @@ class MetadataDbQueries(
         tvSeasons: List<Metadata>,
         episodes: List<Metadata>,
     ): Triple<Metadata, List<Metadata>, List<Metadata>> {
-        val tvShowRecord = tvShow.copy(id = metadataDao.insertMetadata(tvShow))
+        val tvShowRecord = tvShow.copy(id = ObjectId.next())
+        metadataDao.insertMetadata(tvShowRecord)
         val tvSeasonRecordMap = tvSeasons.map { tvSeason ->
             val updatedSeason = tvSeason.copy(
+                id = ObjectId.next(),
                 rootId = tvShowRecord.id,
                 parentId = tvShowRecord.id,
             )
-            updatedSeason.copy(id = metadataDao.insertMetadata(updatedSeason))
+            metadataDao.insertMetadata(updatedSeason)
+            updatedSeason
         }.associateBy { checkNotNull(it.index) }
         val tvEpisodeRecords = episodes.map { tvEpisode ->
             val tvSeasonRecord = tvSeasonRecordMap.getValue(tvEpisode.parentIndex!!)
             val updatedEpisode = tvEpisode.copy(
+                id = ObjectId.next(),
                 rootId = tvShowRecord.id,
                 parentId = tvSeasonRecord.id,
             )
-            updatedEpisode.copy(id = metadataDao.insertMetadata(updatedEpisode))
+            metadataDao.insertMetadata(updatedEpisode)
+            updatedEpisode
         }
 
         return Triple(tvShowRecord, tvSeasonRecordMap.values.toList(), tvEpisodeRecords)

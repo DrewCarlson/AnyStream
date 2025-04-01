@@ -125,15 +125,15 @@ class MediaLinkDao(
             .awaitInto()
     }
 
-    suspend fun findByParentId(parentId: String): List<MediaLink> {
+    suspend fun findByDirectoryId(directoryId: String): List<MediaLink> {
         return db.selectFrom(MEDIA_LINK)
-            .where(MEDIA_LINK.DIRECTORY_ID.eq(parentId))
+            .where(MEDIA_LINK.DIRECTORY_ID.eq(directoryId))
             .awaitInto()
     }
 
-    suspend fun findByParentIdAndDescriptor(parentId: String, descriptor: Descriptor): List<MediaLink> {
+    suspend fun findByDirectoryIdAndDescriptor(directoryId: String, descriptor: Descriptor): List<MediaLink> {
         return db.selectFrom(MEDIA_LINK)
-            .where(MEDIA_LINK.DIRECTORY_ID.eq(parentId))
+            .where(MEDIA_LINK.DIRECTORY_ID.eq(directoryId))
             .and(MEDIA_LINK.DESCRIPTOR.eq(descriptor))
             .awaitInto()
     }

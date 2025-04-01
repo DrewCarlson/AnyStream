@@ -23,6 +23,7 @@ dependencies {
     implementation(libsCommon.kotest.property)
 
     api(libsServer.jooq)
+    api(libsServer.jimfs)
 
     implementation(libsServer.jdbc.sqlite)
 }

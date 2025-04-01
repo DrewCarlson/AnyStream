@@ -21,7 +21,7 @@ import anystream.models.MediaKind
 import anystream.models.api.*
 import org.slf4j.LoggerFactory
 
-class MetadataManager(
+class MetadataService(
     private val providers: List<MetadataProvider>,
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)

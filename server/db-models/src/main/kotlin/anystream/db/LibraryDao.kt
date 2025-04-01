@@ -132,7 +132,7 @@ class LibraryDao(
     /**
      * Fetch all [Directory]s by the [libraryId].
      */
-    suspend fun fetchDirectories(libraryId: String): List<Directory> {
+    suspend fun fetchDirectoriesByLibrary(libraryId: String): List<Directory> {
         return db.selectFrom(DIRECTORY)
             .where(DIRECTORY.LIBRARY_ID.eq(libraryId))
             .awaitInto()

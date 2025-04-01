@@ -34,7 +34,7 @@ interface MediaFileProcessor {
 
     suspend fun findMetadataMatches(mediaLink: MediaLink, import: Boolean): MediaLinkMatchResult
 
-    suspend fun importMetadataMatch(mediaLink: MediaLink, metadataMatch: MetadataMatch)
+    suspend fun importMetadataMatch(mediaLink: MediaLink, metadataMatch: MetadataMatch): MetadataMatch?
 
     suspend fun findMetadata(mediaLink: MediaLink, remoteId: String): MetadataMatch?
 

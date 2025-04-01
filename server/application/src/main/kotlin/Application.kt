@@ -24,7 +24,7 @@ import anystream.jobs.registerJobs
 import anystream.media.LibraryService
 import anystream.media.processor.MovieFileProcessor
 import anystream.media.processor.TvFileProcessor
-import anystream.metadata.MetadataManager
+import anystream.metadata.MetadataService
 import anystream.metadata.providers.TmdbMetadataProvider
 import anystream.models.Permission
 import anystream.routes.installRouting
@@ -73,7 +73,6 @@ import org.slf4j.event.Level
 import org.sqlite.SQLiteConfig
 import org.sqlite.javax.SQLiteConnectionPoolDataSource
 import qbittorrent.QBittorrentClient
-import java.nio.file.FileSystem
 import java.nio.file.FileSystems
 import java.nio.file.Path
 import javax.sql.DataSource
@@ -141,14 +140,14 @@ fun Application.module(testing: Boolean = false) {
                 single { SearchableContentDao(get()) }
                 single { MetadataDbQueries(get(), get(), get(), get(), get()) }
 
-                single { MetadataManager(listOf(TmdbMetadataProvider(get(), get()))) }
+                single { MetadataService(listOf(TmdbMetadataProvider(get(), get()))) }
                 single { MediaFileAnalyzer({ get() }, get()) }
                 single<LibraryService> {
                     val processors = listOf(
-                        MovieFileProcessor(get(), get(), get()),
+                        MovieFileProcessor(get(), get(), get(), get()),
                         TvFileProcessor(get(), get(), get(), get()),
                     )
-                    LibraryService(get(), processors, get(), get())
+                    LibraryService(get(), processors, get(), get(), get())
                 }
                 single { DSL.using(get<DataSource>(), SQLDialect.SQLITE) }
                 single { UserService(get(), get()) }

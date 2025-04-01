@@ -46,11 +46,7 @@ internal val AUDIO_EXTENSIONS = listOf(
 )
 
 internal val SUBTITLE_EXTENSIONS = listOf(
-    "sub",
-    "srt",
-    "vtt",
-    "ass",
-    "ssa",
+    "sub", "srt", "vtt", "ass", "ssa",
 )
 
 class LibraryService(
@@ -58,7 +54,7 @@ class LibraryService(
     private val processors: List<MediaFileProcessor>,
     private val mediaLinkDao: MediaLinkDao,
     private val libraryDao: LibraryDao,
-    private val fs: FileSystem = FileSystems.getDefault()
+    private val fs: FileSystem,
 ) {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
@@ -77,7 +73,7 @@ class LibraryService(
     }
 
     suspend fun getLibraryDirectories(libraryId: String): List<Directory> {
-        return libraryDao.fetchDirectories(libraryId)
+        return libraryDao.fetchDirectoriesByLibrary(libraryId)
     }
 
     suspend fun getLibraryRootDirectories(libraryId: String): List<Directory> {
@@ -89,10 +85,10 @@ class LibraryService(
     }
 
     /**
-     * Remove the directory with [id] and all [MediaLink]s contained within.
+     * Remove the directory with [directoryId] and all [MediaLink]s contained within.
      */
-    suspend fun removeDirectory(id: String): Boolean {
-        val directory = libraryDao.fetchDirectory(id) ?: return false
+    suspend fun removeDirectory(directoryId: String): Boolean {
+        val directory = libraryDao.fetchDirectory(directoryId) ?: return false
 
         // TODO: cleanup abandoned media links and directories since they
         //      are not be updated with correct parents when re-added.
@@ -100,7 +96,7 @@ class LibraryService(
 
         libraryDao.deleteDirectoriesByParent(directory.id)
 
-        return libraryDao.deleteDirectory(id)
+        return libraryDao.deleteDirectory(directoryId)
     }
 
     suspend fun addLibraryFolder(libraryId: String, path: String): AddLibraryFolderResult {

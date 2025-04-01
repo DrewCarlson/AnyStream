@@ -46,7 +46,7 @@ fun Route.addMediaLinkManageRoutes(
         get {
             val parent = call.parameters["parent"]
             val result = when {
-                !parent.isNullOrBlank() -> mediaLinkDao.findByParentId(parent)
+                !parent.isNullOrBlank() -> mediaLinkDao.findByDirectoryId(parent)
                 else -> mediaLinkDao.all()
             }
                 // TODO: Sort in query

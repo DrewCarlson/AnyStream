@@ -28,7 +28,7 @@ import org.jooq.DSLContext
 import kotlin.test.*
 
 
-class UserServiceValidationTest : FunSpec({
+class UserServiceTest : FunSpec({
     val db: DSLContext by bindTestDatabase()
     lateinit var dao: UserDao
     lateinit var inviteDao: InviteCodeDao
@@ -251,14 +251,14 @@ class UserServiceValidationTest : FunSpec({
         val hashString = userService.hashPassword(password)
         assertNotEquals(password, hashString)
         assertTrue(
-            hashString.startsWith("\$2y\$10\$"),
+            hashString.startsWith("$2y$10$"),
             "Result should be in BCrypt format but was '$hashString'",
         )
     }
 
     test("hash password verification") {
         val password = "test123"
-        val bcryptString = "\$2y\$10\$uHBdQFb5YgpLrrJzFmPXteBgDxQn6zEoCzcYO1qfVOjYOvCUr.9Qq"
+        val bcryptString = "$2y$10\$uHBdQFb5YgpLrrJzFmPXteBgDxQn6zEoCzcYO1qfVOjYOvCUr.9Qq"
 
         assertFalse(
             userService.verifyPassword("wrong", bcryptString),

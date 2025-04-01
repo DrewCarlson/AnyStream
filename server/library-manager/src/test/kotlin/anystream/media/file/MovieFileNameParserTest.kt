@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.media.processor.file
+package anystream.media.file
 
 import anystream.media.file.MovieFileNameParser
 import anystream.media.file.ParsedFileNameResult

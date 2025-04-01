@@ -84,7 +84,7 @@ class TmdbMetadataProvider(
         } else {
             logger.debug("Refreshing metadata record for {}", existingMovie.id)
         }
-        val movieId = existingMovie?.id ?: ObjectId.get().toString()
+        val movieId = existingMovie?.id ?: ObjectId.next()
         val movieDb = try {
             checkNotNull(fetchMovie(tmdbId))
         } catch (e: Throwable) {
@@ -93,13 +93,13 @@ class TmdbMetadataProvider(
         }
         val movie = movieDb.asMovie(movieId)
         return try {
-            val finalMovie = queries.insertMovie(movie).toMovieModel()
+            queries.insertMovie(movie)
             ImportMetadataResult.Success(
                 match = MetadataMatch.MovieMatch(
                     remoteMetadataId = movie.tmdbId.toString(),
                     remoteId = movieDb.toRemoteId(),
                     exists = true,
-                    movie = finalMovie,
+                    movie = movie,
                     providerId = this@TmdbMetadataProvider.id,
                 ),
                 subresults = emptyList(),

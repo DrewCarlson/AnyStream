@@ -18,13 +18,12 @@
 package anystream.routes
 
 import anystream.data.*
-import anystream.metadata.MetadataManager
+import anystream.metadata.MetadataService
 import anystream.models.api.*
 import anystream.util.isRemoteId
 import anystream.util.koinGet
 import anystream.util.logger
 import io.ktor.http.HttpStatusCode.Companion.NotFound
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -50,7 +49,7 @@ fun Route.addMediaManageRoutes(
 }
 
 fun Route.addMediaViewRoutes(
-    metadataManager: MetadataManager = koinGet(),
+    metadataService: MetadataService = koinGet(),
     queries: MetadataDbQueries = koinGet(),
 ) {
     route("/media") {
@@ -76,7 +75,7 @@ fun Route.addMediaViewRoutes(
                         call.respond(response)
                     }
                 }
-                when (val queryResult = metadataManager.findByRemoteId(metadataId)) {
+                when (val queryResult = metadataService.findByRemoteId(metadataId)) {
                     is QueryMetadataResult.Success -> {
                         if (queryResult.results.isEmpty()) {
                             return@get call.respond(NotFound)

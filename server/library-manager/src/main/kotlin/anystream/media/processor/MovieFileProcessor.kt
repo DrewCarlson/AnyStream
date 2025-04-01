@@ -23,16 +23,18 @@ import anystream.media.VIDEO_EXTENSIONS
 import anystream.media.file.FileNameParser
 import anystream.media.file.MovieFileNameParser
 import anystream.media.file.ParsedFileNameResult
-import anystream.metadata.MetadataManager
+import anystream.metadata.MetadataService
 import anystream.models.*
 import anystream.models.api.*
 import org.slf4j.LoggerFactory
+import java.nio.file.FileSystem
 import kotlin.io.path.*
 
 class MovieFileProcessor(
-    private val metadataManager: MetadataManager,
+    private val metadataService: MetadataService,
     private val mediaLinkDao: MediaLinkDao,
     private val libraryDao: LibraryDao,
+    private val fs: FileSystem
 ) : MediaFileProcessor {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
@@ -41,18 +43,16 @@ class MovieFileProcessor(
     override val fileNameParser: FileNameParser = MovieFileNameParser()
 
     override suspend fun findMetadataMatches(directory: Directory, import: Boolean): List<MediaLinkMatchResult> {
-        val library = libraryDao.fetchLibraryForDirectory(directory.id)
+        val libraryRootIds = libraryDao.fetchLibraryRootDirectories(directory.libraryId)
+            .map(Directory::id)
+            .takeIf { it.isNotEmpty() }
             ?: return emptyList()  // TODO: return no library error
         val contentRootDirectories = when {
-            directory.id == library.id -> libraryDao.fetchChildDirectories(directory.id)
-            directory.parentId == library.id -> listOf(directory)
-            else -> libraryDao.fetchDirectory(directory.id)
-                ?.takeIf {
-                    // TODO: provide feedback regarding nested content folders being unsupported
-                    it.parentId == library.id
-                }
-                ?.run(::listOfNotNull)
-                ?: return emptyList() // TODO: return no directory error
+            // directory is a library root, scan all direct children
+            libraryRootIds.contains(directory.id) -> libraryDao.fetchChildDirectories(directory.id)
+            // directory is child of library root, scan it
+            libraryRootIds.contains(directory.parentId) -> listOf(directory)
+            else -> TODO("Handle scanning from season folder")
         }
 
         return contentRootDirectories.map { dir ->
@@ -72,21 +72,29 @@ class MovieFileProcessor(
         }
     }
 
-    override suspend fun importMetadataMatch(mediaLink: MediaLink, metadataMatch: MetadataMatch) {
-        val movie = (metadataMatch as? MetadataMatch.MovieMatch)
+    override suspend fun importMetadataMatch(
+        mediaLink: MediaLink,
+        metadataMatch: MetadataMatch
+    ): MetadataMatch? {
+        val match = (metadataMatch as? MetadataMatch.MovieMatch)
             ?.let { getOrImportMetadata(it) }
-            ?: return
+            ?: return null
 
+        mediaLinkDao.updateRootMetadataIds(
+            mediaLinkId = checkNotNull(mediaLink.id),
+            rootMetadataId = match.movie.id
+        )
         mediaLinkDao.updateMetadataIds(
             mediaLinkId = checkNotNull(mediaLink.id),
-            metadataId = movie.id
+            metadataId = match.movie.id
         )
 
         // TODO: Update supplementary files (SUBTITLE/IMAGE)
+        return match
     }
 
     override suspend fun findMetadata(mediaLink: MediaLink, remoteId: String): MetadataMatch? {
-        return when (val result =  metadataManager.findByRemoteId(remoteId)) {
+        return when (val result =  metadataService.findByRemoteId(remoteId)) {
             is QueryMetadataResult.Success -> result.results.firstOrNull()
             is QueryMetadataResult.ErrorDataProviderException,
             is QueryMetadataResult.ErrorDatabaseException,
@@ -95,7 +103,7 @@ class MovieFileProcessor(
     }
 
     private suspend fun findMatchesForRootDir(mediaLink: MediaLink, import: Boolean): MediaLinkMatchResult {
-        val childLinks = mediaLinkDao.findByParentId(requireNotNull(mediaLink.id))
+        val childLinks = mediaLinkDao.findByDirectoryId(requireNotNull(mediaLink.id))
         val subResults = childLinks.mapNotNull { childLink ->
             when (childLink.descriptor) {
                 Descriptor.VIDEO -> findMatchesForFile(childLink, import)
@@ -156,7 +164,7 @@ class MovieFileProcessor(
     }
 
     private suspend fun findMatchesForFile(mediaLink: MediaLink, import: Boolean): MediaLinkMatchResult {
-        val movieFile = Path(requireNotNull(mediaLink.filePath))
+        val movieFile = fs.getPath(requireNotNull(mediaLink.filePath))
         if (!VIDEO_EXTENSIONS.contains(movieFile.extension)) {
             return MediaLinkMatchResult.NoSupportedFiles(mediaLink, null)
         }
@@ -169,7 +177,7 @@ class MovieFileProcessor(
         }
         logger.debug("Querying provider for '{}' (year {})", movieName, year)
 
-        val results = metadataManager.search(MediaKind.MOVIE) {
+        val results = metadataService.search(MediaKind.MOVIE) {
             this.query = movieName
             this.year = year
         }
@@ -181,10 +189,22 @@ class MovieFileProcessor(
             logger.debug("No metadata match results")
             return MediaLinkMatchResult.NoMatchesFound(mediaLink, null)
         }
-        val metadataMatch = matches.sortedBy { scoreString(movieName, it.movie.title) }
+        val sortedMatches = matches.sortedBy {
+            val extra = if (year != null && it.movie.releaseDate?.endsWith("$year") == true) {
+                1
+            } else {
+                0
+            }
+            scoreString(movieName, it.movie.title) + extra
+        }
 
-        if (import && metadataMatch.isNotEmpty()) {
-            importMetadataMatch(mediaLink, metadataMatch.first())
+        val metadataMatch = if (import && sortedMatches.isNotEmpty()) {
+            val match = importMetadataMatch(mediaLink, sortedMatches.first())
+            // TODO: Return real error for import failure
+                ?: return MediaLinkMatchResult.NoMatchesFound(mediaLink, null)
+            listOf(match)
+        } else {
+            sortedMatches
         }
 
         return MediaLinkMatchResult.Success(
@@ -197,15 +217,14 @@ class MovieFileProcessor(
 
     private suspend fun getOrImportMetadata(
         metadataMatch: MetadataMatch.MovieMatch,
-    ): Movie? {
+    ): MetadataMatch.MovieMatch? {
         return if (metadataMatch.exists) {
-            metadataMatch.movie.also {
-                logger.debug("Matched existing metadata for '{}'", it.title)
-            }
+            logger.debug("Matched existing metadata for '{}'", metadataMatch.movie.title)
+            metadataMatch
         } else {
             val movie = metadataMatch.movie
             logger.debug("Importing new metadata for '{}'", movie.title)
-            val importResults = metadataManager.importMetadata(
+            val importResults = metadataService.importMetadata(
                 ImportMetadata(
                     metadataIds = listOfNotNull(metadataMatch.remoteMetadataId),
                     providerId = metadataMatch.providerId,
@@ -217,7 +236,7 @@ class MovieFileProcessor(
                 logger.error("No import results for match {}", metadataMatch.movie)
                 return null // MediaScanResult.ErrorNothingToScan
             } else {
-                (importResults.first().match as MetadataMatch.MovieMatch).movie
+                (importResults.first().match as MetadataMatch.MovieMatch)
             }
         }
     }

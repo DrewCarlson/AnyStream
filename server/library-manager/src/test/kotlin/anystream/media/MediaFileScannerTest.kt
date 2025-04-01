@@ -21,15 +21,12 @@ import anystream.db.*
 import anystream.media.scanner.MediaFileScanner
 import anystream.models.MediaKind
 import anystream.models.api.MediaScanResult
-import com.google.common.jimfs.Configuration
-import com.google.common.jimfs.Jimfs
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.*
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.types.shouldBeInstanceOf
 import org.jooq.DSLContext
-import java.nio.file.FileSystem
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.createDirectory
 import kotlin.io.path.createFile
@@ -40,7 +37,7 @@ class MediaFileScannerTest : FunSpec({
     val db: DSLContext by bindTestDatabase()
     val libraryDao by bindForTest({ LibraryDao(db) })
     val mediaLinkDao by bindForTest({ MediaLinkDao(db) })
-    val fs by bindForTest({ Jimfs.newFileSystem(Configuration.unix()) }, FileSystem::close)
+    val fs by bindFileSystem()
     val mediaFileScanner by bindForTest({ MediaFileScanner(mediaLinkDao, libraryDao, fs) })
 
     listOf(MediaKind.MOVIE, MediaKind.TV).forEach { mediaKind ->
@@ -121,7 +118,7 @@ class MediaFileScannerTest : FunSpec({
 
         mediaFileScanner.scan(directory = mediaDirectory).shouldBeInstanceOf<MediaScanResult.Success>()
 
-        libraryDao.fetchDirectories(movieLibrary.id)
+        libraryDao.fetchDirectoriesByLibrary(movieLibrary.id)
             .shouldHaveSize(movieFolders.size + 1) // add 1 for root directory
             .map { it.filePath }
             .shouldContainExactly(
@@ -163,7 +160,7 @@ class MediaFileScannerTest : FunSpec({
 
         mediaFileScanner.scan(path = mediaRootPath).shouldBeInstanceOf<MediaScanResult.Success>()
 
-        libraryDao.fetchDirectories(library.id)
+        libraryDao.fetchDirectoriesByLibrary(library.id)
             .shouldHaveSize(allMediaPaths.size + 1) // add 1 for root directory
             .map { it.filePath }
             .shouldContainExactlyInAnyOrder(

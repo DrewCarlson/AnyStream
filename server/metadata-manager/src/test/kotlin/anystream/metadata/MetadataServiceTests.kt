@@ -27,7 +27,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.ktor.client.plugins.logging.*
 import kotlin.test.*
 
-class MetadataManagerTests : FunSpec({
+class MetadataServiceTests : FunSpec({
     val db by bindTestDatabase()
     val metadataDao by bindForTest({ MetadataDao(db) })
     val queries by bindForTest({
@@ -51,7 +51,7 @@ class MetadataManagerTests : FunSpec({
 
     val manager by bindForTest({
         val provider = TmdbMetadataProvider(tmdb, queries)
-        MetadataManager(listOf(provider))
+        MetadataService(listOf(provider))
     })
 
     test("import tmdb movie") {

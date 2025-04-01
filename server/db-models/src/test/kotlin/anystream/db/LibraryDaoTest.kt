@@ -116,7 +116,7 @@ class LibraryDaoTest : FunSpec({
         val directory1 = dao.insertDirectory(parentId = null, libraryId = library.id, "directory")
         val directory2 = dao.insertDirectory(parentId = null, libraryId = library.id, "directory2")
 
-        val directories = dao.fetchDirectories(library.id)
+        val directories = dao.fetchDirectoriesByLibrary(library.id)
         directories.size shouldBeEqual 2
 
         directories.first() shouldBeEqual directory1
@@ -126,7 +126,7 @@ class LibraryDaoTest : FunSpec({
     test("fetch all directories when table empty") {
         val library = dao.insertLibrary(MediaKind.MOVIE)
 
-        dao.fetchDirectories(library.id).size shouldBeEqual 0
+        dao.fetchDirectoriesByLibrary(library.id).size shouldBeEqual 0
     }
 
     test("fetch directory by path") {

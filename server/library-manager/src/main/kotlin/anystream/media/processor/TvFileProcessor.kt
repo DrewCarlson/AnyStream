@@ -22,7 +22,7 @@ import anystream.db.MediaLinkDao
 import anystream.media.file.FileNameParser
 import anystream.media.file.ParsedFileNameResult
 import anystream.media.file.TvFileNameParser
-import anystream.metadata.MetadataManager
+import anystream.metadata.MetadataService
 import anystream.models.*
 import anystream.models.api.*
 import org.slf4j.LoggerFactory
@@ -33,7 +33,7 @@ import kotlin.io.path.absolutePathString
 import kotlin.io.path.name
 
 class TvFileProcessor(
-    private val metadataManager: MetadataManager,
+    private val metadataService: MetadataService,
     private val mediaLinkDao: MediaLinkDao,
     private val libraryDao: LibraryDao,
     private val fs: FileSystem,
@@ -47,18 +47,16 @@ class TvFileProcessor(
     private val yearRegex = "\\((\\d{4})\\)\$".toRegex()
 
     override suspend fun findMetadataMatches(directory: Directory, import: Boolean): List<MediaLinkMatchResult> {
-        val library = libraryDao.fetchLibraryForDirectory(directory.id)
+        val libraryRootIds = libraryDao.fetchLibraryRootDirectories(directory.libraryId)
+            .map(Directory::id)
+            .takeIf { it.isNotEmpty() }
             ?: return emptyList()  // TODO: return no library error
         val contentRootDirectories = when {
-            directory.id == library.id -> libraryDao.fetchChildDirectories(directory.id)
-            directory.parentId == library.id -> listOf(directory)
-            else -> libraryDao.fetchDirectory(directory.id)
-                ?.takeIf {
-                    // TODO: provide feedback regarding nested content folders being unsupported
-                    it.parentId == library.id
-                }
-                ?.run(::listOfNotNull)
-                ?: return emptyList() // TODO: return no directory error
+            // directory is a library root, scan all direct children
+            libraryRootIds.contains(directory.id) -> libraryDao.fetchChildDirectories(directory.id)
+            // directory is child of library root, scan it
+            libraryRootIds.contains(directory.parentId) -> listOf(directory)
+            else -> TODO("Handle scanning from season folder")
         }
 
         return contentRootDirectories.map { dir ->
@@ -114,7 +112,7 @@ class TvFileProcessor(
             }
         }
         logger.debug("Querying provider for '{}' (year {})", tvShowName, year)
-        val results = metadataManager.search(MediaKind.TV) {
+        val results = metadataService.search(MediaKind.TV) {
             this.query = tvShowName
             this.year = year
         }
@@ -129,17 +127,23 @@ class TvFileProcessor(
 
         logger.debug("Found {} Metadata match results '{}' (year {})", matches.size, tvShowName, year)
 
-        val metadataMatch = matches.sortedBy { scoreString(tvShowName, it.tvShow.name) }
-
-        if (import && metadataMatch.isNotEmpty()) {
-            importMetadataMatch(directory, metadataMatch.first())
+        val sortedMatches = matches.sortedBy { scoreString(tvShowName, it.tvShow.name) }
+        val matchResults = if (import && sortedMatches.isNotEmpty()) {
+            // When importing, do not include unused metadata matches
+            val match = sortedMatches.first()
+            val importedMatch = importMetadataMatch(directory, match)
+                // TODO: Return real error for import failure
+                ?: return MediaLinkMatchResult.NoMatchesFound(null, directory)
+            listOf(importedMatch)
+        } else {
+            sortedMatches
         }
 
         return MediaLinkMatchResult.Success(
             mediaLink = null,
             directory = directory,
-            matches = metadataMatch,
-            subResults = emptyList(),// TODO: child media rules
+            matches = matchResults,
+            subResults = emptyList(),
         )
     }
 
@@ -151,7 +155,7 @@ class TvFileProcessor(
     }
 
     override suspend fun findMetadata(mediaLink: MediaLink, remoteId: String): MetadataMatch? {
-        return when (val result = metadataManager.findByRemoteId(remoteId)) {
+        return when (val result = metadataService.findByRemoteId(remoteId)) {
             is QueryMetadataResult.Success -> result.results.firstOrNull()
             is QueryMetadataResult.ErrorDataProviderException,
             is QueryMetadataResult.ErrorDatabaseException,
@@ -159,11 +163,10 @@ class TvFileProcessor(
         }
     }
 
-    override suspend fun importMetadataMatch(mediaLink: MediaLink, metadataMatch: MetadataMatch) {
+    override suspend fun importMetadataMatch(mediaLink: MediaLink, metadataMatch: MetadataMatch): MetadataMatch? {
         val match = (metadataMatch as? MetadataMatch.TvShowMatch)
             ?.let { getOrImportMetadata(it) }
-            ?: return
-        val show = match.tvShow
+            ?: return null
 
         when (mediaLink.descriptor) {
             Descriptor.VIDEO ->
@@ -172,41 +175,40 @@ class TvFileProcessor(
             else -> error("Cannot import metadata for ${mediaLink.descriptor}")
         }
         // TODO: Update supplementary files (SUBTITLE/IMAGE)
+        return match
     }
 
-    suspend fun importMetadataMatch(directory: Directory, metadataMatch: MetadataMatch) {
+    private suspend fun importMetadataMatch(directory: Directory, metadataMatch: MetadataMatch): MetadataMatch? {
         val match = (metadataMatch as? MetadataMatch.TvShowMatch)
             ?.let { getOrImportMetadata(it) }
-            ?: return
+            ?: return null
         val show = match.tvShow
         // TODO: Update supplementary files (SUBTITLE/IMAGE)
 
         val childDirLinks = libraryDao.fetchChildDirectories(directory.id)
         childDirLinks.forEach { childDirLink ->
-            linkSeasonFolder(childDirLink, match, show)
+            linkSeasonDirectory(childDirLink, match, show)
         }
+
+        return match
     }
 
-    private suspend fun linkSeasonFolder(
-        childDirLink: Directory,
+    private suspend fun linkSeasonDirectory(
+        seasonDirectory: Directory,
         match: MetadataMatch.TvShowMatch,
         show: TvShow,
     ) {
-        val file = Path(checkNotNull(childDirLink.filePath))
+        val file = Path(checkNotNull(seasonDirectory.filePath))
         when (val result = fileNameParser.parseFileName(file)) {
             is ParsedFileNameResult.Tv.SeasonFolder -> {
-                mediaLinkDao.updateRootMetadataIds(
-                    checkNotNull(childDirLink.id),
-                    show.id,
-                )
                 val seasonMatch = match.seasons.find { it.seasonNumber == result.seasonNumber }
                 if (seasonMatch != null) {
                     mediaLinkDao.updateMetadataIds(
-                        checkNotNull(childDirLink.id),
-                        checkNotNull(seasonMatch.id),
+                        mediaLinkId = checkNotNull(seasonDirectory.id),
+                        metadataId = checkNotNull(seasonMatch.id),
                     )
-                    val videoFileLinks = mediaLinkDao.findByParentIdAndDescriptor(
-                        checkNotNull(childDirLink.id),
+                    val videoFileLinks = mediaLinkDao.findByDirectoryIdAndDescriptor(
+                        checkNotNull(seasonDirectory.id),
                         Descriptor.VIDEO,
                     )
 
@@ -230,7 +232,7 @@ class TvFileProcessor(
         file: Path,
         result: ParsedFileNameResult,
     ) {
-        val videoFile = Path(checkNotNull(videoFileLink.filePath))
+        val videoFile = fs.getPath(checkNotNull(videoFileLink.filePath))
         when (val videoParseResult = fileNameParser.parseFileName(videoFile)) {
             is ParsedFileNameResult.Tv.EpisodeFile -> {
                 val episodeMatch = match.episodes.find {
@@ -239,12 +241,12 @@ class TvFileProcessor(
                 }
                 if (episodeMatch != null) {
                     mediaLinkDao.updateRootMetadataIds(
-                        checkNotNull(videoFileLink.id),
-                        show.id,
+                        mediaLinkId = checkNotNull(videoFileLink.id),
+                        rootMetadataId = show.id
                     )
                     mediaLinkDao.updateMetadataIds(
-                        videoFileLink.id,
-                        episodeMatch.id,
+                        mediaLinkId = videoFileLink.id,
+                        metadataId = episodeMatch.id,
                     )
                 }
             }
@@ -265,7 +267,7 @@ class TvFileProcessor(
         } else {
             val show = metadataMatch.tvShow
             logger.debug("Importing new metadata for '{}'", show.name)
-            val importResults = metadataManager.importMetadata(
+            val importResults = metadataService.importMetadata(
                 ImportMetadata(
                     metadataIds = listOfNotNull(metadataMatch.remoteMetadataId),
                     providerId = metadataMatch.providerId,
@@ -282,149 +284,13 @@ class TvFileProcessor(
         }
     }
 
-    /*override suspend fun matchMediaLinkMetadata(mediaLink: MediaLink) {
-        val marker = MarkerFactory.getMarker(mediaLink.gid)
-        logger.debug(marker, "Matching metadata for {}", mediaLink)
-        val contentFile = File(
-            requireNotNull(mediaLink.filePath) {
-                "Cannot process media link without a filePath: $mediaLink"
-            },
-        )
-        if (contentFile.isDirectory && contentFile.listFiles().isNullOrEmpty()) {
-            logger.debug(marker, "Content folder is empty.")
-            return // MediaScanResult.ErrorNothingToScan
-        }
-
-        when (mediaLink.descriptor) {
-            Descriptor.MEDIA_DIRECTORY -> {
-                // We have the tv show root directory
-                val (tvShow, seasons, episodes) = findOrImportShow(mediaLink.metadataGid, contentFile)
-                    ?: return // TODO: return auto match failed result
-                queries.mediaLinkDao.updateMetadataIds(mediaLink.gid, tvShow.id, tvShow.gid)
-
-                val childLinks = queries.mediaLinkDao.findByBasePath(checkNotNull(mediaLink.filePath))
-                logger.debug(marker, "Loaded {} child MediaLinks.", childLinks.size)
-                val (directoryLinks, fileLinks) = childLinks
-                    .filter { childLink ->
-                        childLink.descriptor == Descriptor.CHILD_DIRECTORY ||
-                            childLink.descriptor == Descriptor.VIDEO
-                    }
-                    .partition { childLink ->
-                        when (childLink.descriptor) {
-                            Descriptor.CHILD_DIRECTORY -> true
-                            Descriptor.VIDEO -> false
-                            else -> error("Unexpected descriptor ${childLink.descriptor}")
-                        }
-                    }
-
-                val updatedDirectoryLinks = directoryLinks.mapNotNull { childLink ->
-                    val file = File(checkNotNull(childLink.filePath))
-                    when (val result = fileNameParser.parseFileName(file.name)) {
-                        is ParsedFileNameResult.Tv.SeasonFolder -> {
-                            val seasonNumber = result.seasonNumber
-                            logger.debug(marker, "Parsed '{}' from season folder '{}'.", seasonNumber, file.name)
-                            seasons.find { it.seasonNumber == seasonNumber }?.let { season ->
-                                logger.debug(marker, "Linked season metadata to folder for season {}.", seasonNumber)
-                                childLink.copy(
-                                    metadataId = season.id,
-                                    metadataGid = season.gid,
-                                    rootMetadataId = tvShow.id,
-                                    rootMetadataGid = tvShow.gid,
-                                )
-                            }
-                        }
-                        else -> {
-                            logger.debug(marker, "Expected season folder but could not parse '{}'.", file.name)
-                            null
-                        }
-                    }
-                }
-                val episodesBySeason = episodes.groupBy { it.seasonNumber }
-                val updatedFileLinks = fileLinks.mapNotNull { childLink ->
-                    val file = File(checkNotNull(childLink.filePath))
-                    val (seasonNumber, episodeNumber) = when (val result = fileNameParser.parseFileName(file.name)) {
-                        is ParsedFileNameResult.Tv.EpisodeFile -> result
-                        else -> {
-                            logger.debug(marker, "Expected to find episode file but could not parse '{}'", file.name)
-                            return@mapNotNull null
-                        }
-                    }
-                    logger.debug(
-                        marker,
-                        "Parsed season '{}' and episode '{}' from '{}'",
-                        seasonNumber,
-                        episodeNumber,
-                        file.name,
-                    )
-                    val actualSeasonNumber = seasonNumber
-                        ?: queries.mediaLinkDao
-                            .findByFilePath(file.parent)
-                            ?.run {
-                                if (seasons.filter { it.seasonNumber > 0 }.size == 1) {
-                                    seasons.first()
-                                } else {
-                                    seasons.firstOrNull { it.id == metadataId }
-                                }
-                            }
-                            ?.seasonNumber // TODO: verify it is a season directory
-                        ?: return@mapNotNull null
-                    val episode = episodesBySeason[actualSeasonNumber]
-                        ?.firstOrNull { it.number == episodeNumber }
-                        ?: run {
-                            logger.debug(marker, "Failed to find episode metadata for episode {}.", episodeNumber)
-                            return@mapNotNull null
-                        }
-                    val season = seasons.firstOrNull { it.seasonNumber == actualSeasonNumber }
-                        ?: return@mapNotNull null
-                    val seasonLink = updatedDirectoryLinks.firstOrNull { it.metadataId == season.id }
-
-                    logger.debug(
-                        marker,
-                        "Linked episode file {} to S{} E{} of '{}'",
-                        file.name,
-                        season.seasonNumber,
-                        episode.number,
-                        tvShow.name,
-                    )
-                    childLink.copy(
-                        metadataId = episode.id,
-                        metadataGid = episode.gid,
-                        rootMetadataId = tvShow.id,
-                        rootMetadataGid = tvShow.gid,
-                        parentId = seasonLink?.id ?: mediaLink.id,
-                        parentGid = seasonLink?.gid ?: mediaLink.gid,
-                    )
-                }
-
-                val allLinks = updatedDirectoryLinks + updatedFileLinks
-                logger.debug(marker, "Updating {} Media Links.", allLinks.size)
-                queries.mediaLinkDao.updateMediaLinkIds(allLinks)
-            }
-            Descriptor.CHILD_DIRECTORY -> {
-                // We have a season subfolder
-                // TODO("Only show folder processing is supported")
-                return
-            }
-            Descriptor.VIDEO -> {
-                // We have an episode file
-                // TODO("Only show folder processing is supported")
-                return
-            }
-            // TODO: handle this check before process is invoked,
-            //  replace mediaKinds with fun supports(mediaLink)
-            else -> error("unsupported Descriptor (${mediaLink.descriptor})")
-        }
-
-        return //
-    }*/
-
     private suspend fun findOrImportShow(metadataId: String?, rootFolder: Path): MetadataMatch.TvShowMatch? {
         val results = if (metadataId == null) {
             logger.debug("Searching for TV Show by folder name '{}'.", rootFolder.name)
             queryShowTitle(rootFolder.name)
         } else {
             logger.debug("Searching for TV Show by metadata id '{}'.", metadataId)
-            metadataManager.search(MediaKind.TV) {
+            metadataService.search(MediaKind.TV) {
                 this.metadataId = metadataId
             }
         }
@@ -443,7 +309,7 @@ class TvFileProcessor(
             match
         } else {
             logger.debug("Importing metadata for new media.")
-            val importResults = metadataManager.importMetadata(
+            val importResults = metadataService.importMetadata(
                 ImportMetadata(
                     metadataIds = listOfNotNull(match.remoteMetadataId),
                     providerId = result.providerId,
@@ -469,7 +335,7 @@ class TvFileProcessor(
 
     private suspend fun queryShowTitle(title: String): List<QueryMetadataResult> {
         val match = yearRegex.find(title)
-        return metadataManager.search(MediaKind.TV) {
+        return metadataService.search(MediaKind.TV) {
             query = title.replace(yearRegex, "").trim()
             year = match?.value?.trim('(', ')')?.toInt()
         }

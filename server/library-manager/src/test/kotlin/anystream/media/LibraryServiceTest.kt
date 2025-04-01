@@ -19,20 +19,25 @@ package anystream.media
 
 import anystream.db.LibraryDao
 import anystream.db.MediaLinkDao
+import anystream.db.bindFileSystem
 import anystream.db.bindForTest
 import anystream.db.bindTestDatabase
 import anystream.media.analyzer.MediaFileAnalyzer
 import anystream.models.MediaKind
+import com.google.common.jimfs.Configuration
+import com.google.common.jimfs.Jimfs
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import org.jooq.DSLContext
+import java.nio.file.FileSystem
 
 class LibraryServiceTest : FunSpec({
     val db: DSLContext by bindTestDatabase()
     val libraryDao by bindForTest({ LibraryDao(db) })
+    val fs by bindFileSystem()
     val libraryService by bindForTest({
         val mediaLinkDao = MediaLinkDao(db)
         LibraryService(
@@ -40,6 +45,7 @@ class LibraryServiceTest : FunSpec({
             processors = emptyList(),
             mediaLinkDao = mediaLinkDao,
             libraryDao = libraryDao,
+            fs = fs
         )
     })
 
