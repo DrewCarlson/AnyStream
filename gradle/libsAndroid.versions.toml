@@ -9,7 +9,7 @@ leakcanary = "2.12"
 koinAndroid = "4.0.0"
 koinAndroidxCompose = "4.0.0"
 
-okhttp = "5.0.0-alpha.14"
+okhttp = "5.0.0-SNAPSHOT"
 
 [plugins]
 
