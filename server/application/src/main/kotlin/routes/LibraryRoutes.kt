@@ -19,25 +19,20 @@ package anystream.routes
 
 import anystream.media.AddLibraryFolderResult
 import anystream.media.LibraryService
-import anystream.models.MediaKind
 import anystream.models.Permission
 import anystream.models.api.AddLibraryFolderRequest
 import anystream.models.api.AddLibraryFolderResponse
-import anystream.models.api.LibraryFolderList
 import anystream.models.api.MediaScanResult
 import anystream.util.koinGet
 import anystream.util.logger
-import io.ktor.http.*
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.UnprocessableEntity
-import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.launch
 import org.drewcarlson.ktor.permissions.withPermission
-import kotlin.io.path.Path
 
 fun Route.addLibraryViewRoutes(
     libraryService: LibraryService = koinGet()
@@ -73,7 +68,9 @@ fun Route.addLibraryModifyRoutes(
                 val directory = libraryService.getDirectory(directoryId)
                     ?: return@get call.respond(NotFound)
 
-                libraryService.scan(Path(directory.filePath))
+                application.launch {
+                    libraryService.scan(directory)
+                }
 
                 call.respond(OK)
             }
@@ -99,21 +96,12 @@ fun Route.addLibraryModifyRoutes(
                     is AddLibraryFolderResult.Success -> {
                         val (library, directory) = result
 
-                        when (val scanResult = libraryService.scan(Path(directory.filePath))) {
-                            is MediaScanResult.Success -> {
-                                when (library.mediaKind) {
-                                    MediaKind.MOVIE -> {
-                                        scanResult.mediaLinks.addedIds.forEach { mediaLinkId ->
-                                            libraryService.refreshMetadata(mediaLinkId, import = true)
-                                        }
-                                    }
-                                    MediaKind.TV -> {
-                                        libraryService.refresh(directory)
-                                    }
-                                    else -> TODO("Implement metadata refresh for ${library.mediaKind}")
-                                }
+                        application.launch {
+                            when (libraryService.scan(directory)) {
+                                is MediaScanResult.Success -> libraryService.refreshMetadata(directory)
+
+                                else -> Unit // TODO: Handle errors
                             }
-                            else -> Unit // TODO: Handle errors
                         }
 
                         AddLibraryFolderResponse.Success(library, directory)
@@ -140,8 +128,10 @@ fun Route.addLibraryModifyRoutes(
                     ?: return@get call.respond(UnprocessableEntity)
                 val directories = libraryService.getLibraryDirectories(libraryId)
 
-                directories.forEach { directory ->
-                    libraryService.scan(Path(directory.filePath))
+                application.launch {
+                    directories.forEach { directory ->
+                        libraryService.scan(directory)
+                    }
                 }
 
                 call.respond(OK)

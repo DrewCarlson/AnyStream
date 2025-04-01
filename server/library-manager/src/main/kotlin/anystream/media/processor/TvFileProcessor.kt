@@ -25,6 +25,10 @@ import anystream.media.file.TvFileNameParser
 import anystream.metadata.MetadataService
 import anystream.models.*
 import anystream.models.api.*
+import anystream.util.concurrentMap
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.toList
 import org.slf4j.LoggerFactory
 import java.nio.file.FileSystem
 import java.nio.file.Path
@@ -44,7 +48,7 @@ class TvFileProcessor(
     override val mediaKinds: List<MediaKind> = listOf(MediaKind.TV)
     override val fileNameParser: FileNameParser = TvFileNameParser()
 
-    private val yearRegex = "\\((\\d{4})\\)\$".toRegex()
+    private val yearRegex = "\\((\\d{4})\\)$".toRegex()
 
     override suspend fun findMetadataMatches(directory: Directory, import: Boolean): List<MediaLinkMatchResult> {
         val libraryRootIds = libraryDao.fetchLibraryRootDirectories(directory.libraryId)
@@ -59,8 +63,12 @@ class TvFileProcessor(
             else -> TODO("Handle scanning from season folder")
         }
 
-        return contentRootDirectories.map { dir ->
-            findMatchesForMediaDir(dir, import = import)
+        return coroutineScope {
+            contentRootDirectories.asFlow()
+                .concurrentMap(this, concurrencyLevel = 10) { dir ->
+                    findMatchesForMediaDir(dir, import = import)
+                }
+                .toList()
         }
     }
 

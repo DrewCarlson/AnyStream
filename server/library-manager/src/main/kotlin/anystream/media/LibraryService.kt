@@ -179,15 +179,15 @@ class LibraryService(
         return ListFilesResponse(folders, if (showFiles) files else emptyList())
     }
 
-    suspend fun scan(path: Path): MediaScanResult {
-        return mediaFileScanner.scan(path)
+    suspend fun scan(directory: Directory): MediaScanResult {
+        return mediaFileScanner.scan(directory)
     }
 
     suspend fun refreshMetadata(mediaLinkId: String, import: Boolean) {
         refreshMetadata(requireNotNull(mediaLinkDao.findById(mediaLinkId)), import)
     }
 
-    suspend fun refresh(directory: Directory): List<MediaLinkMatchResult> {
+    suspend fun refreshMetadata(directory: Directory): List<MediaLinkMatchResult> {
         val library = libraryDao.fetchLibraryForDirectory(directory.id)
             ?: return emptyList() // TODO: return no library error
 

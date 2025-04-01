@@ -26,6 +26,10 @@ import anystream.media.file.ParsedFileNameResult
 import anystream.metadata.MetadataService
 import anystream.models.*
 import anystream.models.api.*
+import anystream.util.concurrentMap
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.toList
 import org.slf4j.LoggerFactory
 import java.nio.file.FileSystem
 import kotlin.io.path.*
@@ -55,20 +59,24 @@ class MovieFileProcessor(
             else -> TODO("Handle scanning from season folder")
         }
 
-        return contentRootDirectories.map { dir ->
-            findMatchesForMediaDir(dir, import = import)
+        return coroutineScope {
+            contentRootDirectories.asFlow()
+                .concurrentMap(this, concurrencyLevel = 10) { dir ->
+                    findMatchesForMediaDir(dir, import = import)
+                }
+                .toList()
         }
     }
 
     override suspend fun findMetadataMatches(mediaLink: MediaLink, import: Boolean): MediaLinkMatchResult {
         return when (mediaLink.descriptor) {
             Descriptor.VIDEO,
-            -> findMatchesForFile(mediaLink, import)
+                -> findMatchesForFile(mediaLink, import)
 
             Descriptor.AUDIO,
             Descriptor.SUBTITLE,
             Descriptor.IMAGE,
-            -> MediaLinkMatchResult.NoSupportedFiles(mediaLink, null)
+                -> MediaLinkMatchResult.NoSupportedFiles(mediaLink, null)
         }
     }
 
@@ -94,7 +102,7 @@ class MovieFileProcessor(
     }
 
     override suspend fun findMetadata(mediaLink: MediaLink, remoteId: String): MetadataMatch? {
-        return when (val result =  metadataService.findByRemoteId(remoteId)) {
+        return when (val result = metadataService.findByRemoteId(remoteId)) {
             is QueryMetadataResult.Success -> result.results.firstOrNull()
             is QueryMetadataResult.ErrorDataProviderException,
             is QueryMetadataResult.ErrorDatabaseException,
@@ -110,7 +118,7 @@ class MovieFileProcessor(
                 Descriptor.AUDIO -> error("AUDIO links are not supported in movie libraries")
                 Descriptor.SUBTITLE,
                 Descriptor.IMAGE,
-                -> {
+                    -> {
                     // Ignored, supplementary files will be handled by the VIDEO file matching process.
                     null
                 }
