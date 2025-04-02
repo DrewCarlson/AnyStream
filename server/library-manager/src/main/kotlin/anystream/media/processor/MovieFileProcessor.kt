@@ -188,6 +188,7 @@ class MovieFileProcessor(
         val results = metadataService.search(MediaKind.MOVIE) {
             this.query = movieName
             this.year = year
+            firstResultOnly = import
         }
         val matches = results
             .filterIsInstance<QueryMetadataResult.Success>()

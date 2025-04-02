@@ -86,28 +86,6 @@ class TvFileProcessor(
         }
     }
 
-    private suspend fun findMatchesForRootDir(directory: Directory, import: Boolean): MediaLinkMatchResult {
-        val childLinks = mediaLinkDao.findByBasePath(directory.filePath)
-        val subResults = childLinks.mapNotNull { childLink ->
-            when (childLink.descriptor) {
-                Descriptor.VIDEO -> findMatchesForFile(childLink, import)
-                Descriptor.AUDIO -> error("AUDIO media links are not supported in television libraries")
-                Descriptor.SUBTITLE,
-                Descriptor.IMAGE,
-                    -> {
-                    // Ignored, supplementary files will be handled by the VIDEO file matching process.
-                    null
-                }
-            }
-        }
-        return MediaLinkMatchResult.Success(
-            mediaLink = checkNotNull(childLinks.firstOrNull()), //TODO: fix match result type
-            directory = directory,
-            matches = emptyList(),
-            subResults = subResults,
-        )
-    }
-
     private suspend fun findMatchesForMediaDir(directory: Directory, import: Boolean): MediaLinkMatchResult {
         val episodeLinks = mediaLinkDao.findByBasePathAndDescriptor(directory.filePath, Descriptor.VIDEO)
         if (episodeLinks.isEmpty()) {
@@ -124,6 +102,7 @@ class TvFileProcessor(
         val results = metadataService.search(MediaKind.TV) {
             this.query = tvShowName
             this.year = year
+            firstResultOnly = import
         }
         val matches = results
             .filterIsInstance<QueryMetadataResult.Success>()
@@ -210,13 +189,8 @@ class TvFileProcessor(
             is ParsedFileNameResult.Tv.SeasonFolder -> {
                 val seasonMatch = match.seasons.find { it.seasonNumber == result.seasonNumber }
                 if (seasonMatch != null) {
-                    //TODO: season metadata is not linked to directories
-                    /*mediaLinkDao.updateMetadataIds(
-                        mediaLinkId = seasonDirectory.id,
-                        metadataId = checkNotNull(seasonMatch.id),
-                    )*/
                     val videoFileLinks = mediaLinkDao.findByDirectoryIdAndDescriptor(
-                        checkNotNull(seasonDirectory.id),
+                        seasonDirectory.id,
                         Descriptor.VIDEO,
                     )
 

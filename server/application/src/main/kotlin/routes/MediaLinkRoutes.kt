@@ -67,7 +67,7 @@ fun Route.addMediaLinkManageRoutes(
 
             get("/list-files") {
                 val root = call.parameters["root"]
-                val showFiles = call.parameters["showFiles"]?.toBoolean() ?: false
+                val showFiles = call.parameters["showFiles"]?.toBoolean() == true
 
                 call.respond(libraryService.listFiles(root, showFiles))
             }
@@ -109,7 +109,7 @@ fun Route.addMediaLinkManageRoutes(
             }
 
             get("/analyze") {
-                val waitForResult = call.parameters["waitForResult"]?.toBoolean() ?: false
+                val waitForResult = call.parameters["waitForResult"]?.toBoolean() == true
                 val mediaLink = mediaLink() ?: return@get call.respond(UnprocessableEntity)
 
                 val descriptors = listOf(Descriptor.VIDEO, Descriptor.AUDIO)

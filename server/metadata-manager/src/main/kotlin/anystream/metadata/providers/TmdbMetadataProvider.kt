@@ -25,10 +25,15 @@ import anystream.util.ObjectId
 import anystream.util.toRemoteId
 import app.moviebase.tmdb.Tmdb3
 import app.moviebase.tmdb.model.*
-import io.ktor.client.network.sockets.ConnectTimeoutException
 import io.ktor.client.plugins.*
 import io.ktor.http.*
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toList
+import kotlinx.datetime.LocalDate
 import org.slf4j.LoggerFactory
 import java.net.SocketException
 import kotlin.time.Duration.Companion.seconds
@@ -181,19 +186,60 @@ class TmdbMetadataProvider(
         }
     }
 
-    private suspend fun queryTvSeries(query: String, year: Int?): List<TmdbShowDetail> {
-        val results = tmdbApi.search.findShows(query, 1, null, firstAirDateYear = year).results
-        return results.mapNotNull { fetchTvSeries(it.id) }
+    private suspend fun queryTvSeries(query: String, year: Int?): Flow<TmdbShowDetail> {
+        return tmdbApi.search.findShows(
+            query = query,
+            page = 1,
+            firstAirDateYear = year,
+            language = null,
+            region = null,
+            includeAdult = false
+        ).results
+            .sortedBy {
+                scoreTmdbResult(
+                    query = query,
+                    queryYear = year,
+                    title = it.name,
+                    releaseDate = it.firstAirDate,
+                    voteCount = it.voteCount
+                )
+            }
+            .asFlow()
+            .mapNotNull { fetchTvSeries(it.id) }
     }
 
-    private suspend fun queryMovies(query: String, year: Int?): List<TmdbMovieDetail> {
+    private suspend fun queryMovies(query: String, year: Int?): Flow<TmdbMovieDetail> {
         return tmdbApi.search.findMovies(
             query = query,
             page = 1,
             year = year,
             language = null,
             includeAdult = false,
-        ).results.mapNotNull { fetchMovie(it.id) }
+        ).results
+            .sortedBy {
+                scoreTmdbResult(
+                    query = query,
+                    queryYear = year,
+                    title = it.title,
+                    releaseDate = it.releaseDate,
+                    voteCount = it.voteCount
+                )
+            }
+            .asFlow()
+            .mapNotNull { fetchMovie(it.id) }
+    }
+
+    private fun scoreTmdbResult(
+        query: String,
+        queryYear: Int?,
+        title: String,
+        releaseDate: LocalDate?,
+        voteCount: Int,
+    ): Int {
+        val releaseYearInt = releaseDate?.year
+        val matchingYear = if (queryYear != null && queryYear == releaseYearInt) 0 else 1
+        val hasVotes = if (voteCount > 0) 0 else 1
+        return scoreString(query, title) + matchingYear + hasVotes
     }
 
     private suspend fun fetchTvSeries(seriesTmdbId: Int): TmdbShowDetail? {
@@ -270,14 +316,19 @@ class TmdbMetadataProvider(
     private suspend fun searchMovie(request: QueryMetadata): QueryMetadataResult {
         val tmdbMovies = try {
             when {
-                request.query != null -> queryMovies(request.query!!, request.year)
+                request.query != null -> {
+                    queryMovies(request.query!!, request.year)
+                        .run { if (request.firstResultOnly) take(1) else this }
+                        .toList()
+                }
+
                 request.metadataId != null -> listOfNotNull(fetchMovie(request.metadataId!!.toInt()))
                 else -> error("No content")
-            }
+            }.toList()
         } catch (e: Throwable) {
             return QueryMetadataResult.ErrorDataProviderException(e.stackTraceToString())
         }
-        val tmdbMovieIds = tmdbMovies.map(TmdbMovieDetail::id)
+        val tmdbMovieIds = tmdbMovies.map { it.id }
         val existingMovies = try {
             if (tmdbMovieIds.isNotEmpty()) {
                 queries.findMoviesByTmdbId(tmdbMovieIds)
@@ -307,23 +358,20 @@ class TmdbMetadataProvider(
         val metadataId = request.metadataId
         val tvShowExtras = request.extras?.asTvShowExtras()
         val tmdbSeries = try {
-            // search for tv show, sort by optional year
-            request.query?.let { queryTvSeries(it, request.year) }?.run {
-                if (request.year == null) {
-                    sortedByDescending { it.name.equals(request.query, true) }
-                } else {
-                    sortedByDescending {
-                        it.name.equals(request.query, true) && it.firstAirDate?.year == request.year
-                    }
+            when {
+                request.query != null -> {
+                    queryTvSeries(request.query!!, request.year)
+                        .run { if (request.firstResultOnly) take(1) else this }
+                        .toList()
                 }
+                request.metadataId != null -> listOfNotNull(fetchTvSeries(request.metadataId!!.toInt()))
+                else -> error("No content") // TODO: return QueryMetadataResult.NoResults
             }
-            // load series by tmdb id
-                ?: metadataId?.toIntOrNull()?.let { fetchTvSeries(it) }?.run(::listOf)
         } catch (e: Throwable) {
             return QueryMetadataResult.ErrorDataProviderException(e.stackTraceToString())
         }
 
-        if (tmdbSeries == null && !metadataId.isNullOrBlank()) {
+        if (tmdbSeries.isEmpty() && !metadataId.isNullOrBlank()) {
             val tvResponse = queries.findShowById(metadataId)
                 ?: return QueryMetadataResult.ErrorDatabaseException("Could not find show with id '$metadataId'.")
             val episodes = queries.findEpisodesByShow(metadataId)
@@ -339,7 +387,7 @@ class TmdbMetadataProvider(
                 ),
             )
             return QueryMetadataResult.Success(id, matchList, request.extras)
-        } else if (tmdbSeries == null) {
+        } else if (tmdbSeries.isEmpty()) {
             error("No id or query to search.")
         }
 
@@ -412,4 +460,31 @@ class TmdbMetadataProvider(
         }
         return QueryMetadataResult.Success(id, matches, request.extras)
     }
+}
+
+private fun scoreString(source: String, target: String): Int {
+    val s1 = source.lowercase().filter { it.isLetterOrDigit() }
+    val s2 = target.lowercase().filter { it.isLetterOrDigit() }
+
+    val dp = Array(s1.length + 1) { IntArray(s2.length + 1) }
+
+    for (i in 0..s1.length) {
+        for (j in 0..s2.length) {
+            when {
+                i == 0 -> dp[i][j] = j
+                j == 0 -> dp[i][j] = i
+                else -> dp[i][j] = minOf(
+                    dp[i - 1][j - 1] + costOfSubstitution(s1[i - 1], s2[j - 1]),
+                    dp[i - 1][j] + 1,
+                    dp[i][j - 1] + 1,
+                )
+            }
+        }
+    }
+
+    return dp[s1.length][s2.length]
+}
+
+private fun costOfSubstitution(a: Char, b: Char): Int {
+    return if (a == b) 0 else 1
 }

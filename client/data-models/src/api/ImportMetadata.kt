@@ -37,6 +37,7 @@ data class QueryMetadata(
     val metadataId: String? = null,
     val year: Int? = null,
     val extras: Extras? = null,
+    val firstResultOnly: Boolean = false,
 ) {
     @Serializable
     sealed class Extras {

@@ -157,7 +157,7 @@ class LibraryService(
             files = filesList.map(Path::absolutePathString)
         } else {
             val rootDir = try {
-                FileSystems.getDefault().getPath(root)
+                fs.getPath(root)
             } catch (e: InvalidPathException) {
                 null
             }
@@ -181,10 +181,6 @@ class LibraryService(
 
     suspend fun scan(directory: Directory): MediaScanResult {
         return mediaFileScanner.scan(directory)
-    }
-
-    suspend fun refreshMetadata(mediaLinkId: String, import: Boolean) {
-        refreshMetadata(requireNotNull(mediaLinkDao.findById(mediaLinkId)), import)
     }
 
     suspend fun refreshMetadata(directory: Directory): List<MediaLinkMatchResult> {
@@ -228,7 +224,10 @@ class LibraryService(
 
         when (mediaLink.descriptor) {
             Descriptor.VIDEO -> listOf(mediaLink)
-            else -> return
+            else -> {
+                // TODO: return unhandled files result
+                return
+            }
         }.filter { it.mediaKind == mediaLink.mediaKind }
             .map { childLink ->
                 processor.importMetadataMatch(childLink, metadataMatch)
@@ -242,7 +241,7 @@ class LibraryService(
             logger.error("Failed to load ROOT_DIRECTORY media links", e)
             emptyMap()
         }.map { (library, directory) ->
-            val filePath = directory?.filePath?.run(::Path)
+            val filePath = directory?.filePath?.run(fs::getPath)
             // TODO: Use count query to get matched/unmatched numbers
             //val (matched, unmatched) = links.partition { it.metadataId != null || it.rootMetadataId != null }
             val matched = emptyList<String>()

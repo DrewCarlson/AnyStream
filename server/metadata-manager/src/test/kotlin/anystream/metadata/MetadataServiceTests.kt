@@ -110,6 +110,43 @@ class MetadataServiceTests : FunSpec({
         assertEquals("The Avengers", result.movie.title)
     }
 
+    test("query tmdb movie sorted") {
+        listOf(
+            Pair("The BFG", 2016),
+            Pair("Soylent Green", 1973)
+        ).forEach { (title, year)  ->
+            val queryResult = manager.search(MediaKind.MOVIE) {
+                providerId = "tmdb"
+                query = title
+                this.year = year
+                firstResultOnly = true
+            }
+            val searchResult = queryResult.first()
+            assertIs<QueryMetadataResult.Success>(searchResult)
+            val result = searchResult.results.first()
+            assertIs<MetadataMatch.MovieMatch>(result)
+
+            assertEquals(title, result.movie.title)
+            assertEquals(year, result.movie.releaseDate?.split("-")?.firstOrNull()?.toIntOrNull())
+        }
+    }
+
+    test("query tmdb tv show sorted") {
+        val queryResult = manager.search(MediaKind.TV) {
+            providerId = "tmdb"
+            query = "the boys"
+            year = null
+            firstResultOnly = true
+        }
+        val searchResult = queryResult.first()
+        assertIs<QueryMetadataResult.Success>(searchResult)
+        val result = searchResult.results.first()
+        assertIs<MetadataMatch.TvShowMatch>(result)
+
+        assertEquals("The Boys", result.tvShow.name)
+        assertEquals(2019, result.tvShow.firstAirDate?.split('-')?.firstOrNull()?.toIntOrNull())
+    }
+
     test("query tmdb tv show") {
         val queryResult = manager.search(MediaKind.TV) {
             providerId = "tmdb"
