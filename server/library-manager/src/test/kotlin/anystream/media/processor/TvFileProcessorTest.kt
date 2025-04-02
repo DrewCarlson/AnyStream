@@ -76,6 +76,7 @@ class TvFileProcessorTest : FunSpec({
             metadataService = metadataService,
             mediaLinkDao = mediaLinkDao,
             libraryDao = libraryDao,
+            metadataDao = metadataDao,
             fs = fs,
         )
     })

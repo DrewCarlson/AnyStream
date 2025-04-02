@@ -31,6 +31,7 @@ import io.ktor.http.HttpStatusCode.Companion.UnprocessableEntity
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.drewcarlson.ktor.permissions.withPermission
 
@@ -96,7 +97,7 @@ fun Route.addLibraryModifyRoutes(
                     is AddLibraryFolderResult.Success -> {
                         val (library, directory) = result
 
-                        application.launch {
+                        application.launch(Dispatchers.Default) {
                             when (libraryService.scan(directory)) {
                                 is MediaScanResult.Success -> libraryService.refreshMetadata(directory)
 

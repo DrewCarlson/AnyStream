@@ -14,4 +14,4 @@ build/
 qbittorrent/
 local.properties
 xcuserdata/
-anystream.db
+anystream.db*

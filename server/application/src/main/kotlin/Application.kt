@@ -106,6 +106,8 @@ fun Application.module(testing: Boolean = false) {
                         url = config.databaseUrl
                         this.config = SQLiteConfig().apply {
                             enforceForeignKeys(true)
+                            setJournalMode(SQLiteConfig.JournalMode.WAL)
+                            setSynchronous(SQLiteConfig.SynchronousMode.NORMAL)
                         }
                     }
                 }
@@ -145,7 +147,7 @@ fun Application.module(testing: Boolean = false) {
                 single<LibraryService> {
                     val processors = listOf(
                         MovieFileProcessor(get(), get(), get(), get()),
-                        TvFileProcessor(get(), get(), get(), get()),
+                        TvFileProcessor(get(), get(), get(), get(), get()),
                     )
                     LibraryService(get(), processors, get(), get(), get())
                 }

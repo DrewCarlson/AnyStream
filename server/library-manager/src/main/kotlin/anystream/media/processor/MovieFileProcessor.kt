@@ -197,22 +197,14 @@ class MovieFileProcessor(
             logger.debug("No metadata match results")
             return MediaLinkMatchResult.NoMatchesFound(mediaLink, null)
         }
-        val sortedMatches = matches.sortedBy {
-            val extra = if (year != null && it.movie.releaseDate?.endsWith("$year") == true) {
-                1
-            } else {
-                0
-            }
-            scoreString(movieName, it.movie.title) + extra
-        }
 
-        val metadataMatch = if (import && sortedMatches.isNotEmpty()) {
-            val match = importMetadataMatch(mediaLink, sortedMatches.first())
+        val metadataMatch = if (import) {
+            val match = importMetadataMatch(mediaLink, matches.first())
             // TODO: Return real error for import failure
                 ?: return MediaLinkMatchResult.NoMatchesFound(mediaLink, null)
             listOf(match)
         } else {
-            sortedMatches
+            matches
         }
 
         return MediaLinkMatchResult.Success(

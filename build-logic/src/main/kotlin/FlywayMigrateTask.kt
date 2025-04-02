@@ -35,9 +35,10 @@ abstract class FlywayMigrateTask : DefaultTask() {
 
     @TaskAction
     fun run() {
+        outputFile.get().asFile.delete()
         Flyway.configure()
             .driver(driver.get())
-            .dataSource(url.get(), null, null)
+            .dataSource("${url.get()}?foreign_keys=on;", null, null)
             .locations("filesystem:${migrationsLocation.asFile}")
             .load()
             .migrate()

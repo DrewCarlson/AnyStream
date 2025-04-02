@@ -56,26 +56,30 @@ fun TmdbShowDetail.asTvShow(
     id: String,
     existingEpisodes: Map<Int, Metadata>,
     existingSeasons: Map<Int, Metadata>,
-    createId: (id: Int) -> String = { ObjectId.get().toString() },
 ): Triple<Metadata, List<Metadata>, List<Metadata>> {
+    val seasons = tmdbSeasons.map { season ->
+        val existingSeason = existingSeasons[season.seasonNumber]
+        season.asTvSeason(
+            id = existingSeason?.id ?: ObjectId.next(),
+            showId = id,
+        )
+    }.associateBy(Metadata::index)
     val episodes = tmdbSeasons.flatMap { season ->
-        val existingSeason = existingSeasons[season.id]
+        val existingSeason = seasons[season.seasonNumber]
+            ?: run {
+                // TODO: forward feedback for unhandled episodes
+                return@flatMap emptyList()
+            }
         season.episodes.orEmpty().map { episode ->
-            val existingEpisode = existingEpisodes[season.id]
+            val existingEpisode = existingEpisodes[episode.episodeNumber]
             episode.asTvEpisode(
-                id = existingEpisode?.id ?: createId(episode.id),
+                id = existingEpisode?.id ?: ObjectId.next(),
                 showId = id,
-                seasonId = existingSeason?.id ?: createId(season.id),
+                seasonId = existingSeason.id,
             )
         }
     }
-    val seasons = tmdbSeasons.map { season ->
-        val existingSeason = existingSeasons[season.id]
-        season.asTvSeason(
-            id = existingSeason?.id ?: createId(season.id)
-        )
-    }
-    return Triple(asTvShow(id), seasons, episodes)
+    return Triple(asTvShow(id), seasons.values.toList(), episodes)
 }
 
 fun TmdbEpisode.asTvEpisode(
@@ -88,7 +92,8 @@ fun TmdbEpisode.asTvEpisode(
         id = id,
         parentId = seasonId,
         rootId = showId,
-        tmdbId = this.id,
+        // omit tmdb id because season ids are not unique across shows/seasons/episodes
+        tmdbId = null,
         title = name ?: "",
         overview = overview.orEmpty(),
         firstAvailableAt = airDate?.atStartOfDayIn(TimeZone.UTC),
@@ -103,11 +108,14 @@ fun TmdbEpisode.asTvEpisode(
     )
 }
 
-fun TmdbSeason.asTvSeason(id: String): Metadata {
+fun TmdbSeason.asTvSeason(id: String, showId: String): Metadata {
     val now = Clock.System.now()
     return Metadata(
         id = id,
-        tmdbId = this.id,
+        parentId = showId,
+        rootId = showId,
+        // omit tmdb id because season ids are not unique across shows/seasons/episodes
+        tmdbId = null,
         title = name,
         overview = overview.orEmpty(),
         index = seasonNumber,
@@ -120,11 +128,13 @@ fun TmdbSeason.asTvSeason(id: String): Metadata {
     )
 }
 
-fun TmdbSeasonDetail.asTvSeason(id: String): Metadata {
+fun TmdbSeasonDetail.asTvSeason(id: String, showId: String): Metadata {
     val now = Clock.System.now()
     return Metadata(
         id = id,
-        tmdbId = this.id,
+        tmdbId = null,
+        parentId = showId,
+        rootId = showId,
         title = name,
         overview = overview,
         index = seasonNumber,
@@ -146,7 +156,7 @@ fun TmdbShowDetail.asTvShow(id: String): Metadata {
         tmdbId = this.id,
         overview = overview,
         firstAvailableAt = firstAirDate?.atStartOfDayIn(TimeZone.UTC),
-        posterPath = posterPath ?: "",
+        posterPath = posterPath.orEmpty(),
         createdAt = now,
         updatedAt = now,
         tmdbRating = (voteAverage * 10).roundToInt(),

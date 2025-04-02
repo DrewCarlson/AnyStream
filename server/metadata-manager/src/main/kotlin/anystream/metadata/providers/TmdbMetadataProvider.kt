@@ -25,9 +25,13 @@ import anystream.util.ObjectId
 import anystream.util.toRemoteId
 import app.moviebase.tmdb.Tmdb3
 import app.moviebase.tmdb.model.*
+import io.ktor.client.network.sockets.ConnectTimeoutException
 import io.ktor.client.plugins.*
 import io.ktor.http.*
+import kotlinx.coroutines.delay
 import org.slf4j.LoggerFactory
+import java.net.SocketException
+import kotlin.time.Duration.Companion.seconds
 
 class TmdbMetadataProvider(
     private val tmdbApi: Tmdb3,
@@ -65,7 +69,6 @@ class TmdbMetadataProvider(
     private suspend fun importMovie(tmdbId: Int, request: ImportMetadata): ImportMetadataResult {
         logger.debug("Importing movie by id {}", tmdbId)
         val existingMovie = queries.findMovieByTmdbId(tmdbId)
-
         if (existingMovie != null && !request.refresh) {
             return ImportMetadataResult.ErrorMetadataAlreadyExists(
                 existingMediaId = existingMovie.id,
@@ -130,7 +133,7 @@ class TmdbMetadataProvider(
             )
         }
 
-        val tvShowId = existingTvShow?.id ?: ObjectId.get().toString()
+        val tvShowId = existingTvShow?.id ?: ObjectId.next()
         val tmdbSeries = try {
             checkNotNull(fetchTvSeries(tmdbId))
         } catch (e: Throwable) {
@@ -139,6 +142,7 @@ class TmdbMetadataProvider(
         }
         val tmdbSeasons = try {
             tmdbSeries.seasons
+                //TODO: handle extras/special season types
                 .filter { it.seasonNumber > 0 }
                 .mapNotNull { season -> fetchSeason(tmdbSeries.id, season.seasonNumber) }
         } catch (e: Throwable) {
@@ -147,10 +151,10 @@ class TmdbMetadataProvider(
         }
         val existingSeasons = queries.metadataDao
             .findAllByRootIdAndType(tvShowId, MediaType.TV_SEASON)
-            .associateBy { it.tmdbId!! }
+            .associateBy { it.index!! }
         val existingEpisodes = queries.metadataDao
             .findAllByRootIdAndType(tvShowId, MediaType.TV_EPISODE)
-            .associateBy { it.tmdbId!! }
+            .associateBy { it.index!! }
         val (tvShow, tvSeasons, episodes) = tmdbSeries.asTvShow(
             tmdbSeasons,
             tvShowId,
@@ -159,15 +163,15 @@ class TmdbMetadataProvider(
         )
 
         return try {
-            val (finalTvShow, finalSeasons, finalEpisodes) = queries.insertTvShow(tvShow, tvSeasons, episodes)
+            queries.insertTvShow(tvShow, tvSeasons, episodes)
             ImportMetadataResult.Success(
                 match = MetadataMatch.TvShowMatch(
                     remoteMetadataId = tmdbSeries.id.toString(),
                     remoteId = "tmdb:tv:${tmdbSeries.id}",
                     exists = true,
-                    tvShow = finalTvShow.toTvShowModel(),
-                    seasons = finalSeasons.map(Metadata::toTvSeasonModel),
-                    episodes = finalEpisodes.map(Metadata::toTvEpisodeModel),
+                    tvShow = tvShow.toTvShowModel(),
+                    seasons = tvSeasons.map(Metadata::toTvSeasonModel),
+                    episodes = episodes.map(Metadata::toTvEpisodeModel),
                     providerId = this@TmdbMetadataProvider.id,
                 ),
             )
@@ -211,32 +215,46 @@ class TmdbMetadataProvider(
         }
     }
 
-    private suspend fun fetchSeason(seriesTmdbId: Int, seasonNumber: Int): TmdbSeasonDetail? {
-        return try {
-            tmdbApi.showSeasons.getDetails(
-                seriesTmdbId,
-                seasonNumber,
-                null,
-                listOf(
-                    AppendResponse.RELEASES_DATES,
-                    AppendResponse.IMAGES,
-                    AppendResponse.CREDITS,
-                    AppendResponse.TV_CREDITS,
-                    AppendResponse.EXTERNAL_IDS,
-                ),
-                "",
-            )
-        } catch (e: ResponseException) {
-            if (e.response.status == HttpStatusCode.NotFound) null else throw e
+    private suspend fun fetchSeason(
+        seriesTmdbId: Int,
+        seasonNumber: Int,
+    ): TmdbSeasonDetail? {
+        var retry = 1
+        while (retry < 3) {
+            try {
+                return tmdbApi.showSeasons.getDetails(
+                    showId = seriesTmdbId,
+                    seasonNumber = seasonNumber,
+                    language = null,
+                    includeImageLanguages = "",
+                    appendResponses = listOf(
+                        AppendResponse.RELEASES_DATES,
+                        AppendResponse.IMAGES,
+                        AppendResponse.CREDITS,
+                        AppendResponse.TV_CREDITS,
+                        AppendResponse.EXTERNAL_IDS,
+                    ),
+                )
+            } catch (e: ResponseException) {
+                if (e.response.status == HttpStatusCode.NotFound) {
+                    return null
+                }
+                throw e
+            } catch (e: SocketException) {
+                logger.error("TMDB response error, retry: $retry", e)
+            }
+            retry++
+            delay(2.seconds * retry)
         }
+        return null
     }
 
     private suspend fun fetchMovie(movieTmdbId: Int): TmdbMovieDetail? {
         return try {
             tmdbApi.movies.getDetails(
-                movieTmdbId,
-                null,
-                listOf(
+                movieId = movieTmdbId,
+                language = null,
+                appendResponses = listOf(
                     AppendResponse.EXTERNAL_IDS,
                     AppendResponse.CREDITS,
                     AppendResponse.RELEASES_DATES,
@@ -299,7 +317,7 @@ class TmdbMetadataProvider(
                     }
                 }
             }
-                // load series by tmdb id
+            // load series by tmdb id
                 ?: metadataId?.toIntOrNull()?.let { fetchTvSeries(it) }?.run(::listOf)
         } catch (e: Throwable) {
             return QueryMetadataResult.ErrorDataProviderException(e.stackTraceToString())
@@ -337,11 +355,11 @@ class TmdbMetadataProvider(
             val remoteId = tvSeries.toRemoteId()
             val existingSeasons = if (tvShowExtras?.seasonNumber == null) {
                 existingShow?.run { queries.findTvSeasonsByTvShowId(id) }
-                    ?: tvSeries.seasons.map { it.asTvSeason(it.toRemoteId(tvSeries.id)) }
+                    ?: tvSeries.seasons.map { it.asTvSeason(it.toRemoteId(tvSeries.id), tvSeries.toRemoteId()) }
             } else {
                 tvSeries.seasons
                     .filter { it.seasonNumber == tvShowExtras.seasonNumber }
-                    .map { it.asTvSeason(it.toRemoteId(tvSeries.id)) }
+                    .map { it.asTvSeason(it.toRemoteId(tvSeries.id), tvSeries.toRemoteId()) }
             }
             val existingEpisodes = when {
                 tvShowExtras?.seasonNumber != null -> {

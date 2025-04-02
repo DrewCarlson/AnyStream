@@ -1,13 +1,14 @@
 import org.jooq.meta.jaxb.Configuration
 import org.jooq.meta.jaxb.ForcedType
 import org.jooq.meta.jaxb.Logging
+import org.jooq.meta.jaxb.Property
 
 
 fun Configuration.anystreamConfig(dbUrl: String) {
     logging = Logging.DEBUG
     jdbc.apply {
         driver = "org.sqlite.JDBC"
-        url = dbUrl
+        url = "${dbUrl}?foreign_keys=on;"
     }
     generator.apply {
         name = "Generator"
@@ -29,13 +30,13 @@ fun Configuration.anystreamConfig(dbUrl: String) {
         }
         database.apply {
             name = "org.jooq.meta.sqlite.SQLiteDatabase"
+            forcedTypes.addAll(forcedTypes())
             excludes = listOf(
                 // Exclude flyway migration tables
                 "flyway_.*",
                 // Exclude search meta tables
                 "searchable_content_.*",
             ).joinToString("|")
-            forcedTypes.addAll(forcedTypes())
         }
     }
 }

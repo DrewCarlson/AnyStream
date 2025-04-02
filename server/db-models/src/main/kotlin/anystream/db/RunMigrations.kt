@@ -25,7 +25,7 @@ import javax.sql.DataSource
 fun runMigrations(connectionString: String, logger: Logger? = null): Boolean {
     val flyway = Flyway.configure()
         .loggers("slf4j")
-        .dataSource(connectionString, null, null)
+        .dataSource("${connectionString}?foreign_keys=on;", null, null)
         .load()
     return try {
         flyway.migrate()

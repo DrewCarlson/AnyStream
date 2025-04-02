@@ -64,6 +64,7 @@ class MediaFileScanner(
      *
      * @param path An absolute file path to a media directory or file.
      */
+    //TODO: Still used for tests, but should be removed in favor of typed directory and media link params.
     suspend fun scan(path: Path): MediaScanResult {
         if (!path.isAbsolute) {
             return MediaScanResult.ErrorAbsolutePathRequired

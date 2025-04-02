@@ -11,7 +11,7 @@
         <includeCallerData>true</includeCallerData>
         <appender-ref ref="SOCKET"/>
     </appender-->
-    <root level="TRACE">
+    <root level="DEBUG">
         <appender-ref ref="STDOUT"/>
     </root>
 
@@ -19,6 +19,7 @@
         <appender-ref ref="STDOUT" />
     </logger>
 
+    <logger name="org.jooq.impl.DefaultBinding" level="ERROR"/>
     <logger name="org.jooq.tools.LoggerListener" level="INFO"/>
     <logger name="org.eclipse.jetty" level="INFO"/>
     <logger name="io.netty" level="INFO"/>

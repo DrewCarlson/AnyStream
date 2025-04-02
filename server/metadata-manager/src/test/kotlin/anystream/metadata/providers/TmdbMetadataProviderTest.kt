@@ -162,14 +162,6 @@ class TmdbMetadataProviderTest : FunSpec({
                 episode.name shouldBe "Rise of the Turtles (1)"
                 episode.number shouldBe 1
             }
-
-        /*tmdbProvider.importMetadata(
-            ImportMetadata(
-                metadataIds = listOf(match.remoteId),
-                mediaKind = MediaKind.TV,
-                providerId = match.providerId,
-            )
-        )*/
     }
 
     test("search for movie") {

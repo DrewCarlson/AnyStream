@@ -20,6 +20,7 @@ package anystream.data
 import anystream.db.*
 import anystream.db.util.*
 import anystream.db.pojos.*
+import anystream.db.tables.records.MetadataRecord
 import anystream.db.tables.references.MEDIA_LINK
 import anystream.db.tables.references.METADATA
 import anystream.models.*
@@ -28,6 +29,7 @@ import anystream.models.api.*
 import anystream.util.ObjectId
 import kotlinx.coroutines.future.await
 import org.jooq.DSLContext
+import org.jooq.kotlin.coroutines.transactionCoroutine
 
 class MetadataDbQueries(
     private val db: DSLContext,
@@ -336,39 +338,12 @@ class MetadataDbQueries(
         return movieRecord.copy(id = id)
     }
 
-    fun insertMetadata(metadata: Metadata): Int {
-        val record = db.newRecord(METADATA, metadata)
-        return record.store()
-    }
-
     suspend fun insertTvShow(
         tvShow: Metadata,
         tvSeasons: List<Metadata>,
         episodes: List<Metadata>,
-    ): Triple<Metadata, List<Metadata>, List<Metadata>> {
-        val tvShowRecord = tvShow.copy(id = ObjectId.next())
-        metadataDao.insertMetadata(tvShowRecord)
-        val tvSeasonRecordMap = tvSeasons.map { tvSeason ->
-            val updatedSeason = tvSeason.copy(
-                id = ObjectId.next(),
-                rootId = tvShowRecord.id,
-                parentId = tvShowRecord.id,
-            )
-            metadataDao.insertMetadata(updatedSeason)
-            updatedSeason
-        }.associateBy { checkNotNull(it.index) }
-        val tvEpisodeRecords = episodes.map { tvEpisode ->
-            val tvSeasonRecord = tvSeasonRecordMap.getValue(tvEpisode.parentIndex!!)
-            val updatedEpisode = tvEpisode.copy(
-                id = ObjectId.next(),
-                rootId = tvShowRecord.id,
-                parentId = tvSeasonRecord.id,
-            )
-            metadataDao.insertMetadata(updatedEpisode)
-            updatedEpisode
-        }
-
-        return Triple(tvShowRecord, tvSeasonRecordMap.values.toList(), tvEpisodeRecords)
+    ) {
+        metadataDao.insertMetadata(listOf(tvShow) + tvSeasons + episodes)
     }
 
     suspend fun deleteMovie(metadataId: String): Boolean {

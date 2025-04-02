@@ -137,7 +137,7 @@ fun Route.addMediaLinkViewRoutes(
     route("/medialink") {
         route("/{mediaLinkId}") {
             get {
-                val includeMetadata = call.parameters["includeMetadata"]?.toBoolean() ?: false
+                val includeMetadata = call.parameters["includeMetadata"]?.toBoolean() == true
                 val mediaLink = mediaLink() ?: return@get
                 val session = call.sessions.get<UserSession>()!!
                 val metadataId = mediaLink.metadataId

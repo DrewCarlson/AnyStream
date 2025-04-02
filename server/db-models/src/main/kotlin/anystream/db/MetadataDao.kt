@@ -23,6 +23,7 @@ import anystream.db.util.*
 import anystream.db.util.awaitFirstOrNullInto
 import anystream.models.Metadata
 import anystream.models.MediaType
+import kotlinx.coroutines.future.await
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
@@ -159,6 +160,12 @@ class MetadataDao(
     suspend fun insertMetadata(metadata: Metadata): String {
         val newMetadata: Metadata = db.newRecordAsync(METADATA, MetadataRecord(metadata))
         return newMetadata.id
+    }
+
+    suspend fun insertMetadata(metadata: List<Metadata>) {
+        db.batchInsert(metadata.map { MetadataRecord(it) })
+            .executeAsync()
+            .await()
     }
 
     suspend fun deleteById(metadataId: String) {

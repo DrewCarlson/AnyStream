@@ -30,14 +30,10 @@ suspend inline fun <reified R : UpdatableRecordImpl<R>, reified T> DSLContext.ne
     table: Table<R>,
     source: R
 ): T {
-    return transactionCoroutine {
-        newRecord(table)
-            .apply {
-                from(source)
-                store()
-            }
-            .intoType<T>()
-    }
+    insertInto(table)
+        .set(source)
+        .awaitFirst()
+    return source.intoType()
 }
 
 suspend fun <R : Record> DSLContext.fetchCountAsync(table: Table<R>, vararg condition: Condition): Int {

@@ -72,8 +72,6 @@ jooq {
 
 tasks.getByName<JooqGenerate>("generateJooq") {
     dependsOn(flywayMigrate)
-    inputs.dir(migrationPath)
-    allInputsDeclared.set(true)
     doLast {
         val pojosTree = fileTree(layout.buildDirectory.dir("generated-src/jooq/main")) {
             include("anystream/models/**")

@@ -1,6 +1,42 @@
+/* <editor-fold desc="Table: Users"> */
+CREATE TABLE user
+(
+    id            VARCHAR(24) PRIMARY KEY NOT NULL,
+    username      VARCHAR(255)            NOT NULL,
+    display_name  VARCHAR(255)            NOT NULL,
+    password_hash TEXT                    NOT NULL,
+    created_at    TEXT                    NOT NULL,
+    updated_at    TEXT                    NOT NULL,
+    UNIQUE (username) ON CONFLICT FAIL
+);
+
+
+CREATE TABLE user_permission
+(
+    user_id VARCHAR(24) NOT NULL,
+    value   TEXT        NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE
+);
+
+CREATE TABLE session
+(
+    id      VARCHAR(96) PRIMARY KEY NOT NULL,
+    data    TEXT                    NOT NULL,
+    user_id VARCHAR(24)             NOT NULL
+);
+
+CREATE TABLE invite_code
+(
+    secret             VARCHAR(255) PRIMARY KEY NOT NULL,
+    permissions        TEXT                     NOT NULL,
+    created_by_user_id VARCHAR(24)              NOT NULL,
+    FOREIGN KEY (created_by_user_id) REFERENCES user (id) ON DELETE CASCADE
+);
+/* </editor-fold> */
+
 /* <editor-fold desc="Table: Metadata"> */
 
-CREATE TABLE IF NOT EXISTS metadata
+CREATE TABLE metadata
 (
     id                 VARCHAR(24) PRIMARY KEY NOT NULL,
     root_id            VARCHAR(24),
@@ -20,18 +56,17 @@ CREATE TABLE IF NOT EXISTS metadata
     updated_at         TEXT                    NOT NULL,
     media_kind         TEXT                    NOT NULL,
     media_type         TEXT                    NOT NULL,
-    tmdb_rating        INTEGER,
-    UNIQUE (tmdb_id) ON CONFLICT IGNORE
+    tmdb_rating        INTEGER
 );
 
-CREATE TABLE IF NOT EXISTS tag
+CREATE TABLE tag
 (
     id      VARCHAR(24) PRIMARY KEY NOT NULL,
     name    TEXT                    NOT NULL,
     tmdb_id INTEGER
 );
 
-CREATE TABLE IF NOT EXISTS metadata_company
+CREATE TABLE metadata_company
 (
     metadata_id VARCHAR(24) NOT NULL,
     company_id  VARCHAR(24) NOT NULL,
@@ -39,42 +74,35 @@ CREATE TABLE IF NOT EXISTS metadata_company
     FOREIGN KEY (company_id) REFERENCES tag (id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS metadata_genre
+CREATE TABLE metadata_genre
 (
     metadata_id VARCHAR(24) NOT NULL,
     genre_id    VARCHAR(24) NOT NULL,
     FOREIGN KEY (metadata_id) REFERENCES metadata (id) ON DELETE CASCADE,
     FOREIGN KEY (genre_id) REFERENCES tag (id) ON DELETE CASCADE
 );
-
-CREATE VIRTUAL TABLE searchable_content USING fts5
-(
-    id,
-    content,
-    media_type
-);
 /* </editor-fold> */
 
 /* <editor-fold desc="Table: MediaLink"> */
 
-CREATE TABLE IF NOT EXISTS library
+CREATE TABLE library
 (
     id         VARCHAR(24) PRIMARY KEY NOT NULL,
     media_kind TEXT                    NOT NULl,
     name       TEXT                    NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS directory
+CREATE TABLE directory
 (
     id         VARCHAR(24) PRIMARY KEY NOT NULL,
     parent_id  VARCHAR(24),
     library_id VARCHAR(24)             NOT NULL,
     file_path  TEXT                    NOT NULL,
-    UNIQUE (file_path) ON CONFLICT IGNORE,
+    UNIQUE (file_path) ON CONFLICT FAIL,
     FOREIGN KEY (library_id) REFERENCES library (id) ON UPDATE SET NULL
 );
 
-CREATE TABLE IF NOT EXISTS media_link
+CREATE TABLE media_link
 (
     id               VARCHAR(24) PRIMARY KEY NOT NULL,
     metadata_id      VARCHAR(24),
@@ -88,13 +116,13 @@ CREATE TABLE IF NOT EXISTS media_link
     file_index       INTEGER,
     hash             TEXT,
     descriptor       INTEGER                 NOT NULL,
-    UNIQUE (file_path) ON CONFLICT IGNORE,
+    UNIQUE (file_path) ON CONFLICT FAIL,
     FOREIGN KEY (directory_id) REFERENCES directory (id) ON DELETE CASCADE,
     FOREIGN KEY (metadata_id) REFERENCES metadata (id) ON DELETE SET NULL,
     FOREIGN KEY (root_metadata_id) REFERENCES metadata (id) ON DELETE SET NULL
 );
 
-CREATE TABLE IF NOT EXISTS playback_state
+CREATE TABLE playback_state
 (
     id            VARCHAR(24) PRIMARY KEY NOT NULL,
     media_link_id VARCHAR(24)             NOT NULL,
@@ -109,7 +137,7 @@ CREATE TABLE IF NOT EXISTS playback_state
     FOREIGN KEY (metadata_id) REFERENCES metadata (id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS stream_encoding
+CREATE TABLE stream_encoding
 (
     id              VARCHAR(24) PRIMARY KEY NOT NULL,
     stream_id       TEXT,
@@ -142,45 +170,15 @@ CREATE TABLE IF NOT EXISTS stream_encoding
 );
 /* </editor-fold> */
 
-/* <editor-fold desc="Table: Users"> */
-
-CREATE TABLE IF NOT EXISTS user
-(
-    id            VARCHAR(24) PRIMARY KEY NOT NULL,
-    username      VARCHAR(255)            NOT NULL,
-    display_name  VARCHAR(255)            NOT NULL,
-    password_hash TEXT                    NOT NULL,
-    created_at    TEXT                    NOT NULL,
-    updated_at    TEXT                    NOT NULL,
-    UNIQUE (username) ON CONFLICT IGNORE
-);
-
-CREATE TABLE IF NOT EXISTS user_permission
-(
-    user_id VARCHAR(24) NOT NULL,
-    value   TEXT        NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS session
-(
-    id      VARCHAR(96) PRIMARY KEY NOT NULL,
-    data    TEXT                    NOT NULL,
-    user_id VARCHAR(24)             NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS invite_code
-(
-    secret             VARCHAR(255) PRIMARY KEY NOT NULL,
-    permissions        TEXT                     NOT NULL,
-    created_by_user_id VARCHAR(24)              NOT NULL,
-    FOREIGN KEY (created_by_user_id) REFERENCES user (id) ON DELETE CASCADE
-);
-/* </editor-fold> */
-
 /* <editor-fold desc="Triggers: Searchable Content"> */
+CREATE VIRTUAL TABLE searchable_content USING fts5
+(
+    id,
+    content,
+    media_type
+);
 
-CREATE TRIGGER IF NOT EXISTS create_searchable_content
+CREATE TRIGGER create_searchable_content
     AFTER INSERT
     ON metadata
     FOR EACH ROW
@@ -188,7 +186,7 @@ BEGIN
     INSERT INTO searchable_content(id, media_type, content) VALUES (NEW.id, NEW.media_type, NEW.title);
 END;
 
-CREATE TRIGGER IF NOT EXISTS update_searchable_content
+CREATE TRIGGER update_searchable_content
     AFTER UPDATE
     ON metadata
     FOR EACH ROW
@@ -196,7 +194,7 @@ BEGIN
     UPDATE searchable_content SET content = NEW.title WHERE id = NEW.id;
 END;
 
-CREATE TRIGGER IF NOT EXISTS delete_searchable_content
+CREATE TRIGGER delete_searchable_content
     AFTER DELETE
     ON metadata
     FOR EACH ROW
@@ -204,7 +202,7 @@ BEGIN
     DELETE FROM searchable_content WHERE id = OLD.id;
 END;
 
-CREATE TRIGGER IF NOT EXISTS delete_metadata
+CREATE TRIGGER delete_metadata
     AFTER DELETE
     ON metadata
     FOR EACH ROW
