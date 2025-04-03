@@ -17,11 +17,7 @@
  */
 package anystream.ui
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
 import anystream.router.BackPressHandler
 import anystream.router.BundleScope
@@ -42,6 +38,8 @@ import org.koin.compose.koinInject
 
 private val router = SharedRouter()
 
+val LocalAnyStreamClient = compositionLocalOf<AnyStreamClient> { error("No AnyStream client provided") }
+
 @Composable
 fun App() {
     val client: AnyStreamClient = koinInject()
@@ -49,7 +47,10 @@ fun App() {
 
     val backPressHandler = BackPressHandler()
 
-    CompositionLocalProvider(LocalBackPressHandler provides backPressHandler) {
+    CompositionLocalProvider(
+        LocalBackPressHandler provides backPressHandler,
+        LocalAnyStreamClient provides client,
+    ) {
         AppTheme {
             BundleScope(null) {
                 val defaultRoute = when {

@@ -26,6 +26,7 @@ import anystream.screens.*
 import anystream.screens.settings.SettingsScreen
 import anystream.screens.settings.SettingsSideMenu
 import anystream.util.get
+import anystream.util.getKoin
 import app.softwork.routingcompose.BrowserRouter
 import app.softwork.routingcompose.Router
 import kotlinx.coroutines.flow.*
@@ -36,6 +37,7 @@ import org.koin.core.context.startKoin
 import org.w3c.dom.HTMLDivElement
 
 val playerMediaLinkId = MutableStateFlow<String?>(null)
+val LocalAnyStreamClient = compositionLocalOf<AnyStreamClient> { error("AnyStream client not provided") }
 
 fun webApp() = renderComposable(rootElementId = "root") {
     startKoin {
@@ -66,7 +68,11 @@ fun webApp() = renderComposable(rootElementId = "root") {
             }
         })
 
-        ContentContainer()
+        CompositionLocalProvider(
+           LocalAnyStreamClient provides getKoin().get()
+        ) {
+            ContentContainer()
+        }
     }
 }
 

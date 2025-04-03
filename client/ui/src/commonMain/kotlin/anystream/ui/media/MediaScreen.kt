@@ -63,6 +63,7 @@ import anystream.models.*
 import anystream.models.api.*
 import anystream.router.BackStack
 import anystream.routing.Routes
+import anystream.ui.LocalAnyStreamClient
 import anystream.ui.components.PosterCard
 import anystream.ui.util.cardWidth
 import coil3.compose.AsyncImagePainter
@@ -196,7 +197,7 @@ private fun BaseDetailsView(
                     .fillMaxHeight(.7f)
             ) {
                 val painter = rememberAsyncImagePainter(
-                    model = mediaItem.tmdbBackdropUrl,
+                    model = client.buildImageUrl("backdrop", mediaItem.mediaId),
                     contentScale = ContentScale.Crop,
                 )
                 val state by painter.state.collectAsState()
@@ -215,6 +216,7 @@ private fun BaseDetailsView(
                                 .background(Color.DarkGray),
                         )
                     }
+
                     AsyncImagePainter.State.Empty -> Unit
                     is AsyncImagePainter.State.Error -> Unit
                 }
@@ -263,7 +265,7 @@ private fun BaseDetailsView(
                     ) {
                         Card(elevation = 2.dp, shape = RectangleShape) {
                             val painter = rememberAsyncImagePainter(
-                                model = mediaItem.tmdbPosterUrl,
+                                model = client.buildImageUrl("poster", mediaItem.mediaId),
                                 contentScale = ContentScale.Crop,
                             )
                             val state by painter.state.collectAsState()
@@ -286,6 +288,7 @@ private fun BaseDetailsView(
                                                 .background(Color.DarkGray),
                                         )
                                     }
+
                                     AsyncImagePainter.State.Empty -> Unit
                                     is AsyncImagePainter.State.Error -> Unit
                                 }
@@ -385,7 +388,7 @@ private fun SeasonRow(
         seasons.forEach { season ->
             PosterCard(
                 title = season.name,
-                imagePath = season.posterPath,
+                mediaId = season.id,
                 onClick = {
                     backStack.push(Routes.Details(season.id))
                 },
@@ -413,7 +416,7 @@ private fun EpisodeGrid(
                         Text("Episode ${episode.number}")
                     }
                 },*/
-                imagePath = episode.stillPath,
+                mediaId = episode.id,
                 // heightAndWidth = 178.px to 318.px,
                 onPlayClick = {
                 },

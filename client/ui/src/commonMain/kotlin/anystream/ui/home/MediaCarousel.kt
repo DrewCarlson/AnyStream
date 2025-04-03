@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import anystream.models.MediaLink
 import anystream.models.Movie
+import anystream.ui.LocalAnyStreamClient
 import anystream.ui.generated.resources.Res
 import anystream.ui.generated.resources.ic_play
 import anystream.ui.theme.AppTheme
@@ -59,8 +60,10 @@ import org.jetbrains.compose.resources.painterResource
 internal fun MediaCarousel(pagerState: PagerState, media: List<Pair<Movie, MediaLink?>>) {
     HorizontalPager(pagerState, modifier = Modifier.height(375.dp)) {
         Box(Modifier.fillMaxWidth()) {
+            val client = LocalAnyStreamClient.current
             val painter = rememberAsyncImagePainter(
-                model = "https://image.tmdb.org/t/p/w1920_and_h800_multi_faces${media[it].first.backdropPath}",
+                // todo: restore size selection w1920_and_h800_multi_faces
+                model = client.buildImageUrl("backdrop", media[it].first.id),
             )
             val state by painter.state.collectAsState()
             Box(

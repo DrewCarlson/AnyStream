@@ -28,8 +28,6 @@ data class MediaItem(
     val contentTitle: String,
     val subtitle1: String? = null,
     val subtitle2: String? = null,
-    val posterPath: String?,
-    val backdropPath: String?,
     val overview: String,
     val releaseDate: String?,
     val mediaLinks: List<MediaLink>,
@@ -45,12 +43,6 @@ data class MediaItem(
             it.descriptor == Descriptor.VIDEO ||
                 it.descriptor == Descriptor.AUDIO
         }
-
-    val tmdbBackdropUrl: String
-        get() = "https://image.tmdb.org/t/p/w500$backdropPath"
-
-    val tmdbPosterUrl: String
-        get() = "https://image.tmdb.org/t/p/w500$posterPath"
 
     val releaseYear: String?
         get() = releaseDate?.split("-")?.firstOrNull()?.toString()
@@ -76,8 +68,6 @@ fun MovieResponse.toMediaItem(): MediaItem {
     return MediaItem(
         mediaId = movie.id,
         contentTitle = movie.title,
-        posterPath = movie.posterPath,
-        backdropPath = movie.backdropPath,
         overview = movie.overview,
         releaseDate = movie.releaseDate,
         mediaLinks = mediaLinks,
@@ -93,8 +83,6 @@ fun TvShowResponse.toMediaItem(): MediaItem {
     return MediaItem(
         mediaId = tvShow.id,
         contentTitle = tvShow.name,
-        posterPath = tvShow.posterPath,
-        backdropPath = tvShow.backdropPath,
         overview = tvShow.overview,
         releaseDate = tvShow.firstAirDate,
         mediaLinks = mediaLinks,
@@ -109,8 +97,6 @@ fun EpisodeResponse.toMediaItem(): MediaItem {
     return MediaItem(
         mediaId = episode.id,
         contentTitle = show.name,
-        posterPath = episode.stillPath,
-        backdropPath = null,
         overview = episode.overview,
         subtitle1 = "Season ${episode.seasonNumber}",
         subtitle2 = "Episode ${episode.number} · ${episode.name}",
@@ -125,8 +111,6 @@ fun SeasonResponse.toMediaItem(): MediaItem {
     return MediaItem(
         mediaId = season.id,
         contentTitle = show.name,
-        posterPath = season.posterPath,
-        backdropPath = null,
         subtitle1 = "Season ${season.seasonNumber}",
         overview = season.overview,
         releaseDate = season.airDate,

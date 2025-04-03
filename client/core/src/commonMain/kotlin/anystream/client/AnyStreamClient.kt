@@ -197,6 +197,10 @@ class AnyStreamClient(
         }.stateIn(scope, SharingStarted.WhileSubscribed(), default)
     }
 
+    fun buildImageUrl(imageType: String, metadataId: String, width: Int = 0): String {
+        return "${serverUrl}/api/image/$metadataId/${imageType}.jpg?width=$width"
+    }
+
     suspend fun verifyAndSetServerUrl(serverUrl: String): Boolean {
         if (this.serverUrl.equals(serverUrl, ignoreCase = true)) return true
         return try {

@@ -48,6 +48,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import anystream.ui.LocalAnyStreamClient
 import anystream.ui.theme.AppTheme
 import anystream.ui.util.pointerMover
 import coil3.compose.AsyncImagePainter
@@ -56,7 +57,7 @@ import coil3.compose.rememberAsyncImagePainter
 @Composable
 internal fun PosterCard(
     title: String,
-    imagePath: String?,
+    mediaId: String,
     onClick: () -> Unit,
     onPlayClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -74,8 +75,9 @@ internal fun PosterCard(
         verticalArrangement = Arrangement.spacedBy(0.dp),
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
+            val client = LocalAnyStreamClient.current
             val painter = rememberAsyncImagePainter(
-                model = "https://image.tmdb.org/t/p/w200$imagePath",
+                model = client.buildImageUrl("poster", mediaId, 300),
                 contentScale = ContentScale.FillBounds,
             )
             val state by painter.state.collectAsState()
@@ -137,7 +139,7 @@ internal fun PosterCard(
 private fun PosterCardPreview() = AppTheme {
     PosterCard(
         title = "Gremlins",
-        imagePath = "",
+        mediaId = "",
         onClick = {},
         onPlayClick = {},
     )

@@ -42,6 +42,7 @@ import anystream.models.*
 import anystream.models.api.CurrentlyWatching
 import anystream.models.api.HomeResponse
 import anystream.routing.Routes
+import anystream.ui.LocalAnyStreamClient
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
 import coil3.request.ImageRequest
@@ -145,8 +146,6 @@ private fun ContinueWatchingRow(
                     val mediaItem = MediaItem(
                         mediaId = movie.id,
                         contentTitle = movie.title,
-                        backdropPath = movie.backdropPath,
-                        posterPath = movie.posterPath,
                         mediaLinks = emptyList(),
                         releaseDate = movie.releaseDate,
                         subtitle1 = movie.releaseDate?.split("-")?.first(),
@@ -158,8 +157,6 @@ private fun ContinueWatchingRow(
                     val mediaItem = MediaItem(
                         mediaId = episode.id,
                         contentTitle = show.name,
-                        backdropPath = episode.stillPath,
-                        posterPath = show.posterPath,
                         mediaLinks = emptyList(),
                         releaseDate = episode.airDate,
                         subtitle1 = episode.name,
@@ -186,9 +183,10 @@ private fun WatchingCard(
             .clickable(onClick = { onClick(playbackState.mediaLinkId) }),
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
+            val client = LocalAnyStreamClient.current
             val painter = rememberAsyncImagePainter(
                 ImageRequest.Builder(LocalContext.current)
-                    .data("https://image.tmdb.org/t/p/w300${mediaItem.backdropPath}")
+                    .data(client.buildImageUrl("backdrop", mediaItem.mediaId, 300))
                     .crossfade(true)
                     .build(),
             )
@@ -271,7 +269,7 @@ private fun MovieRow(
             items(movies.toList()) { (movie, mediaLink) ->
                 PosterCard(
                     title = movie.title,
-                    imagePath = movie.posterPath,
+                    metadataId = movie.id,
                     onClick = { mediaLink?.run { onClick(id) } },
                 )
             }
@@ -290,7 +288,7 @@ private fun TvRow(
             items(shows) { show ->
                 PosterCard(
                     title = show.name,
-                    imagePath = show.posterPath,
+                    metadataId = show.id,
                     onClick = { onClick(show.id) },
                 )
             }

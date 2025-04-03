@@ -18,6 +18,7 @@
 package anystream.screens.settings.library
 
 import androidx.compose.runtime.*
+import anystream.LocalAnyStreamClient
 import anystream.client.AnyStreamClient
 import anystream.components.LoadingIndicator
 import anystream.models.api.MediaLinkMatchResult
@@ -157,11 +158,12 @@ private fun MovieMatchResult(
     match: MetadataMatch.MovieMatch,
     onClick: ((match: MetadataMatch) -> Unit)? = null
 ) {
+    val client = LocalAnyStreamClient.current
     MatchResultContainer(
         title = match.movie.title,
         year = match.movie.releaseDate?.substringBefore('-').orEmpty(),
         overview = match.movie.overview,
-        posterUrl = "https://image.tmdb.org/t/p/w300${match.movie.posterPath}",
+        posterUrl = client.buildImageUrl("poster", match.movie.id, 300),
         onClick = if (onClick == null) {
             null
         } else {
@@ -175,11 +177,12 @@ private fun TvShowMatchResult(
     match: MetadataMatch.TvShowMatch,
     onClick: ((match: MetadataMatch) -> Unit)? = null
 ) {
+    val client = LocalAnyStreamClient.current
     MatchResultContainer(
         title = match.tvShow.name,
         year = match.tvShow.firstAirDate?.substringBefore('-').orEmpty(),
         overview = match.tvShow.overview,
-        posterUrl = "https://image.tmdb.org/t/p/w300${match.tvShow.posterPath}",
+        posterUrl = client.buildImageUrl("poster", match.tvShow.id, 300),
         onClick = if (onClick == null) {
             null
         } else {

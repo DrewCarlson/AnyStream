@@ -55,6 +55,7 @@ import anystream.models.api.CurrentlyWatching
 import anystream.models.api.HomeResponse
 import anystream.router.BackStack
 import anystream.routing.Routes
+import anystream.ui.LocalAnyStreamClient
 import anystream.ui.components.CarouselAutoPlayHandler
 import anystream.ui.components.LoadingScreen
 import anystream.ui.components.PagerIndicator
@@ -174,6 +175,7 @@ private fun ContinueWatchingRow(
     onClick: (mediaLinkId: String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val client = LocalAnyStreamClient.current
     val (playbackStates, currentlyWatchingMovies, currentlyWatchingTv, _) = currentlyWatching
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(CARD_SPACING),
@@ -183,7 +185,7 @@ private fun ContinueWatchingRow(
                 currentlyWatchingMovies[playbackState.id]?.also { movie ->
                     PosterCard(
                         title = movie.title,
-                        imagePath = movie.posterPath,
+                        mediaId = movie.id,
                         onClick = { onClick(playbackState.metadataId) },
                         onPlayClick = { onClick(playbackState.mediaLinkId) },
                     )
@@ -192,8 +194,6 @@ private fun ContinueWatchingRow(
                     val mediaItem = MediaItem(
                         mediaId = episode.id,
                         contentTitle = show.name,
-                        backdropPath = episode.stillPath,
-                        posterPath = show.posterPath,
                         mediaLinks = emptyList(),
                         releaseDate = episode.airDate,
                         subtitle1 = episode.name,
@@ -229,8 +229,9 @@ private fun WatchingCard(
                     .height(144.dp)
                     .fillMaxWidth(),
             ) {
+                val client = LocalAnyStreamClient.current
                 val painter = rememberAsyncImagePainter(
-                    model = "https://image.tmdb.org/t/p/w300${mediaItem.posterPath}",
+                    model = client.buildImageUrl("poster", mediaItem.mediaId, 300),
                 )
                 val state by painter.state.collectAsState()
 
@@ -304,7 +305,7 @@ private fun MovieRow(
             itemsIndexed(movies) { index, (movie, mediaLink) ->
                 PosterCard(
                     title = movie.title,
-                    imagePath = movie.posterPath,
+                    mediaId = movie.id,
                     onClick = { onClick(movie.id) },
                     onPlayClick = { mediaLink?.run { onPlayClick(id) } },
                 )
@@ -327,7 +328,7 @@ private fun TvRow(
             itemsIndexed(shows) { index, show ->
                 PosterCard(
                     title = show.name,
-                    imagePath = show.posterPath,
+                    mediaId = show.id,
                     onClick = { onClick(show.id) },
                     onPlayClick = { onClick(show.id) },
                 )

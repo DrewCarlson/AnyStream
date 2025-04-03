@@ -37,6 +37,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import anystream.ui.LocalAnyStreamClient
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
 import coil3.request.ImageRequest
@@ -45,7 +46,7 @@ import coil3.request.crossfade
 @Composable
 fun PosterCard(
     title: String,
-    imagePath: String?,
+    metadataId: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     preferredWidth: Dp = 130.dp,
@@ -68,9 +69,10 @@ fun PosterCard(
                 modifier = Modifier
                     .aspectRatio(ratio = 0.69f),
             ) {
+                val client = LocalAnyStreamClient.current
                 val painter = rememberAsyncImagePainter(
                     ImageRequest.Builder(LocalContext.current)
-                        .data("https://image.tmdb.org/t/p/w200$imagePath")
+                        .data(client.buildImageUrl("poster", metadataId, 200))
                         .crossfade(true)
                         .build(),
                 )
@@ -128,7 +130,7 @@ fun PosterCard(
 private fun MovieCardPreview() {
     PosterCard(
         title = "Turbo: A Power Rangers Movie",
-        imagePath = "/sHgjdRPYduUCaw3Te2CXaWLpBkm.jpg",
+        metadataId = "",
         onClick = { },
     )
 }

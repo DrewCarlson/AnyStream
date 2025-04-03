@@ -37,6 +37,7 @@ import anystream.android.router.*
 import anystream.android.ui.*
 import anystream.client.AnyStreamClient
 import anystream.routing.*
+import anystream.ui.LocalAnyStreamClient
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -53,7 +54,10 @@ open class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             val scope = rememberCoroutineScope()
-            CompositionLocalProvider(LocalBackPressHandler provides backPressHandler) {
+            CompositionLocalProvider(
+                LocalBackPressHandler provides backPressHandler,
+                LocalAnyStreamClient provides client,
+            ) {
                 AppTheme {
                     BundleScope(savedInstanceState) {
                         val defaultRoute = when {
@@ -79,7 +83,8 @@ open class MainActivity : AppCompatActivity() {
                             when (val route = stack.last()) {
                                 Routes.Welcome,
                                 Routes.Login,
-                                -> LoginScreen(client, androidRouter)
+                                    -> LoginScreen(client, androidRouter)
+
                                 Routes.Home -> HomeScreen(
                                     client = client,
                                     backStack = stack,

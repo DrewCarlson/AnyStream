@@ -29,7 +29,7 @@ import anystream.ui.theme.AppTheme
 private fun PosterCardPreview() = AppTheme {
     PosterCard(
         title = "Gremlins",
-        imagePath = "",
+        mediaId = "",
         onClick = {},
         onPlayClick = {},
     )
