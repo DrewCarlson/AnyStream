@@ -30,8 +30,6 @@ data class Episode(
     val airDate: String?,
     val number: Int,
     val seasonNumber: Int,
-    val stillPath: String,
-    val backdropPath: String?,
     val tmdbRating: Int?,
 )
 
@@ -50,8 +48,6 @@ fun Metadata.toTvEpisodeModel(): Episode {
         airDate = firstAvailableAt?.instantToTmdbDate(),
         number = checkNotNull(index),
         seasonNumber = checkNotNull(parentIndex),
-        stillPath = posterPath.orEmpty(),
-        backdropPath = backdropPath,
         tmdbRating = tmdbRating,
     )
 }

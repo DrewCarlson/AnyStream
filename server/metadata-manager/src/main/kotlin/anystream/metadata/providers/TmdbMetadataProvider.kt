@@ -27,32 +27,25 @@ import anystream.util.concurrentMap
 import anystream.util.toRemoteId
 import app.moviebase.tmdb.Tmdb3
 import app.moviebase.tmdb.model.*
-import io.ktor.client.HttpClient
 import io.ktor.client.plugins.*
-import io.ktor.client.request.get
-import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.*
-import io.ktor.utils.io.jvm.javaio.copyTo
-import kotlinx.coroutines.Dispatchers.IO
+import io.ktor.util.*
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDate
 import org.slf4j.LoggerFactory
 import java.net.SocketException
-import kotlin.io.path.outputStream
+import kotlin.io.path.exists
 import kotlin.time.Duration.Companion.seconds
 
 class TmdbMetadataProvider(
@@ -419,6 +412,21 @@ class TmdbMetadataProvider(
                 providerId = this@TmdbMetadataProvider.id,
             )
         }
+
+        if (request.cacheContent) {
+            tmdbMovies
+                .filter { tmdbMovie -> existingMovies.none { it.tmdbId == tmdbMovie.id } }
+                .forEach { movie ->
+                    cacheImages(
+                        movie.toRemoteId(),
+                        listOf(
+                            "poster" to movie.posterPath,
+                            "backdrop" to movie.backdropPath,
+                        )
+                    )
+                }
+        }
+
         return QueryMetadataResult.Success(id, matches, request.extras)
     }
 
@@ -478,6 +486,15 @@ class TmdbMetadataProvider(
                     .filter { it.seasonNumber == tvShowExtras.seasonNumber }
                     .map { it.asTvSeason(it.toRemoteId(tvSeries.id), tvSeries.toRemoteId()) }
             }
+            if (request.cacheContent) {
+                cacheImages(
+                    tvSeries.toRemoteId(),
+                    listOf(
+                        "poster" to tvSeries.posterPath,
+                        "backdrop" to tvSeries.backdropPath,
+                    )
+                )
+            }
             val existingEpisodes = when {
                 tvShowExtras?.seasonNumber != null -> {
                     val seasonNumber = checkNotNull(tvShowExtras.seasonNumber)
@@ -485,6 +502,14 @@ class TmdbMetadataProvider(
                     try {
                         val seasonResponse = tmdbApi.showSeasons
                             .getDetails(tvSeries.id, seasonNumber, null)
+                        if (request.cacheContent) {
+                            cacheImages(
+                                seasonResponse.toRemoteId(tvSeries.id),
+                                listOf(
+                                    "poster" to seasonResponse.posterPath,
+                                )
+                            )
+                        }
                         seasonResponse.episodes
                             .orEmpty()
                             .run {
@@ -497,6 +522,14 @@ class TmdbMetadataProvider(
                                 }
                             }
                             .map { tmdbEpisode ->
+                                if (request.cacheContent) {
+                                    cacheImages(
+                                        tmdbEpisode.toRemoteId(tvSeries.id),
+                                        listOf(
+                                            "poster" to tmdbEpisode.stillPath,
+                                        )
+                                    )
+                                }
                                 tmdbEpisode
                                     .asTvEpisode(
                                         id = tmdbEpisode.toRemoteId(tvSeries.id),
@@ -528,6 +561,22 @@ class TmdbMetadataProvider(
             )
         }
         return QueryMetadataResult.Success(id, matches, request.extras)
+    }
+
+    private suspend fun cacheImages(imageKey: String, imagePaths: List<Pair<String, String?>>) {
+        imagePaths.forEach { (type, path) ->
+            val otherCachePath = imageStore.getImagePath(
+                type,
+                imageKey.encodeBase64(),
+                "remote-metadata-cache/${imageKey.substringBeforeLast('-').encodeBase64()}"
+            )
+            val url = when (type) {
+                "poster" -> "https://image.tmdb.org/t/p/w300$path"
+                "backdrop" -> "https://image.tmdb.org/t/p/w1280$path"
+                else -> return@forEach
+            }
+            imageStore.downloadInto(otherCachePath, url)
+        }
     }
 
     private suspend fun awaitLock(lockData: Pair<Int, MediaKind>) {

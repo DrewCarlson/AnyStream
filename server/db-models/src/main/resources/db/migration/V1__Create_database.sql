@@ -49,8 +49,6 @@ CREATE TABLE metadata
     runtime            INTEGER,
     `index`            INTEGER,
     content_rating     VARCHAR(30),
-    poster_path        TEXT,
-    backdrop_path      TEXT,
     first_available_at TEXT,
     created_at         TEXT                    NOT NULL,
     updated_at         TEXT                    NOT NULL,

@@ -27,7 +27,6 @@ data class TvSeason(
     val seasonNumber: Int,
     val airDate: String?,
     val tmdbId: Int?,
-    val posterPath: String?,
 )
 
 
@@ -42,6 +41,5 @@ fun Metadata.toTvSeasonModel(): TvSeason {
         seasonNumber = checkNotNull(index),
         airDate = firstAvailableAt?.instantToTmdbDate(),
         tmdbId = tmdbId,
-        posterPath = posterPath,
     )
 }

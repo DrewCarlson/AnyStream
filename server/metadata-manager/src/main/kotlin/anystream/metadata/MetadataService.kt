@@ -37,7 +37,10 @@ class MetadataService(
         logger.debug("Configuring metadata providers {}", providers.map { it.id })
     }
 
-    suspend fun findByRemoteId(remoteId: String): QueryMetadataResult {
+    suspend fun findByRemoteId(
+        remoteId: String,
+        cacheContent: Boolean = false
+    ): QueryMetadataResult {
         val (providerId, mediaKindString, rawId) = remoteId.split(':')
         val mediaKind = MediaKind.valueOf(mediaKindString.uppercase())
         var parsedId = rawId
@@ -62,6 +65,7 @@ class MetadataService(
             this.providerId = providerId
             this.metadataId = parsedId
             this.extras = extras
+            this.cacheContent = cacheContent
         }.firstOrNull() ?: QueryMetadataResult.ErrorProviderNotFound
     }
 
@@ -105,8 +109,6 @@ class MetadataService(
     }
 
     private suspend fun getImagePathForRemoteId(imageKey: String, imageType: String): Path? {
-        val queryResult = findByRemoteId(imageKey)
-        val metadataResult = (queryResult as? QueryMetadataResult.Success)?.results?.firstOrNull()
         val cachePath = imageStore.getImagePath(
             imageType,
             imageKey.encodeBase64(),
@@ -115,50 +117,9 @@ class MetadataService(
         if (cachePath.exists()) {
             return cachePath
         }
-
-        // TODO: Move image url creation into providers
-        // TODO: pre-cache images for remote metadata that appears automatically, like home screen popular results
-        val imagePaths = when (metadataResult) {
-            is MetadataMatch.MovieMatch -> {
-                listOf(
-                    "poster" to metadataResult.movie.posterPath,
-                    "backdrop" to metadataResult.movie.backdropPath,
-                )
-            }
-            is MetadataMatch.TvShowMatch -> {
-                val episode = metadataResult.episodes.singleOrNull()
-                val season = metadataResult.seasons.singleOrNull()
-                val show = metadataResult.tvShow
-                when (imageKey.count { it == '-' }) {
-                    0 -> {
-                        listOf(
-                            "poster" to show.posterPath,
-                            "backdrop" to show.backdropPath,
-                        )
-                    }
-                    1 -> listOf("poster" to season?.posterPath)
-                    else -> listOf("poster" to episode?.stillPath)
-                }
-            }
-
-            else -> return null
-        }
-
-        imagePaths.forEach { (type, path) ->
-            val otherCachePath = imageStore.getImagePath(
-                type,
-                imageKey.encodeBase64(),
-                "remote-metadata-cache/${imageKey.substringBeforeLast('-').encodeBase64()}"
-            )
-            val url = when (type) {
-                "poster" -> "https://image.tmdb.org/t/p/w300$path"
-                "backdrop" -> "https://image.tmdb.org/t/p/w1280$path"
-                else -> return@forEach
-            }
-            imageStore.downloadInto(otherCachePath, url)
-        }
-
-        return cachePath.takeIf { it.exists() }
+        val queryResult = findByRemoteId(imageKey, cacheContent = true)
+        val metadataResult = (queryResult as? QueryMetadataResult.Success)?.results?.firstOrNull()
+        return cachePath.takeIf { metadataResult != null && it.exists() }
     }
 
     private suspend fun getImagePathMetadataId(imageKey: String, imageType: String): Path? {

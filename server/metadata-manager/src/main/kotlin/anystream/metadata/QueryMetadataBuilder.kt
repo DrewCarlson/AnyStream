@@ -29,6 +29,7 @@ class QueryMetadataBuilder(
     var metadataId: String? = null
     var year: Int? = null
     var extras: Extras? = null
+    var cacheContent: Boolean = false
     var firstResultOnly: Boolean = false
 
     fun build(): QueryMetadata {
@@ -39,6 +40,7 @@ class QueryMetadataBuilder(
             metadataId = metadataId,
             year = year,
             extras = extras,
+            cacheContent = cacheContent,
             firstResultOnly = firstResultOnly,
         )
     }
