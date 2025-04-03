@@ -43,53 +43,118 @@ fun AddLibraryFolderScreen(
 ) {
     val client = get<AnyStreamClient>()
     val scope = rememberCoroutineScope()
-    var selectedPath by remember { mutableStateOf<String?>(null) }
-    var isLoading by remember { mutableStateOf(true) }
+    var message by remember { mutableStateOf<String?>(null) }
+    var selectedPath by remember(library) { mutableStateOf<String?>(null) }
+    var isLoading by remember(library) { mutableStateOf(true) }
     val subfolders by produceState<ListFilesResponse?>(null, selectedPath) {
         isLoading = true
+        message = null
         value = ListFilesResponse()
         value = try {
             client.listFiles(selectedPath)
         } catch (e: Throwable) {
+            message = e.message
             null
         }
         isLoading = false
     }
     var isInputLocked by remember { mutableStateOf(false) }
-    var message by remember { mutableStateOf<String?>(null) }
     var inputRef by remember { mutableStateOf<HTMLInputElement?>(null) }
-    Div({ classes("vstack", "h-100", "gap-2") }) {
+    Div({ classes("vstack", "gap-2") }) {
         Div { Text("Select a folder for the ${library.name} library:") }
-        Div({ classes("input-group") }) {
-            Span({ classes("input-group-text") }) {
-                Text("Media Folder")
-            }
-            Input(InputType.Text) {
-                classes("form-control")
-                placeholder("(select a folder below or paste it here)")
-                value(selectedPath.orEmpty())
-                onInput { event ->
-                    if (!isInputLocked) {
-                        selectedPath = event.value
+        Div({ classes("hstack", "gap-2", "m2", "justify-content-end") }) {
+            Div({ classes("input-group") }) {
+                Span({ classes("input-group-text") }) {
+                    Text("Media Folder")
+                }
+                Input(InputType.Text) {
+                    classes("form-control")
+                    placeholder("(select a folder below or paste it here)")
+                    value(selectedPath.orEmpty())
+                    onInput { event ->
+                        if (!isInputLocked) {
+                            selectedPath = event.value
+                        }
+                    }
+                    ref {
+                        inputRef = it
+                        onDispose { inputRef = null }
                     }
                 }
-                ref {
-                    inputRef = it
-                    onDispose { inputRef = null }
-                }
             }
+            Button({
+                classes("btn", "btn-primary")
+                if (isInputLocked || selectedPath.isNullOrBlank()) {
+                    disabled()
+                }
+                onClick {
+                    scope.launch {
+                        message = "Loading"
+                        isInputLocked = true
+                        onLoadingStatChanged(true)
+                        val loadingJob = launch {
+                            while (isActive) {
+                                message += "."
+                                delay(800)
+                                message = message?.substringBefore("....")
+                            }
+                        }
+                        val response = client.addLibraryFolder(library.id, selectedPath.orEmpty())
+                        onLoadingStatChanged(false)
+                        loadingJob.cancel()
+                        isInputLocked = false
+                        when (response) {
+                            is AddLibraryFolderResponse.Success -> {
+                                message = null
+                                selectedPath = null
+                                onFolderAdded()
+                                closeScreen()
+                            }
+
+                            is AddLibraryFolderResponse.LibraryFolderExists -> {
+                                message = "This folder already belongs to a library."
+                            }
+
+                            is AddLibraryFolderResponse.FileError -> {
+                                message = if (!response.exists) {
+                                    "The selected folder does not exist."
+                                } else {
+                                    "The selected file is not a directory."
+                                }
+                            }
+
+                            is AddLibraryFolderResponse.RequestError -> {
+                                message = "Unknown request error"
+                            }
+
+                            is AddLibraryFolderResponse.DatabaseError -> {
+                                message = "Database error"
+                            }
+                        }
+                    }
+                }
+            }) { Text("Add") }
+            Button({
+                classes("btn", "btn-secondary")
+                if (isInputLocked) disabled()
+                // modalDismiss()
+                onClick { closeScreen() }
+            }) { Text("Cancel") }
+        }
+
+        Div({ classes("flex-grow-1") }) {
+            Text(message.orEmpty())
         }
 
         Div({
             classes("vstack", "gap-1", "justify-content-center", "align-items-center")
-            style { overflow("hidden scroll") }
         }) {
             if (isLoading) {
                 Div { LoadingIndicator() }
             } else if (subfolders == null) {
                 Div { H4 { Text("Invalid directory") } }
             } else {
-                Div({ classes("w-100", "h-100") }) {
+                Div({ classes("w-100") }) {
                     Table({ classes("w-100") }) {
                         Tbody {
                             if (!selectedPath.isNullOrBlank()) {
@@ -121,66 +186,6 @@ fun AddLibraryFolderScreen(
                     }
                 }
             }
-        }
-
-        Div({ classes("hstack", "gap-2", "m2", "justify-content-end") }) {
-            Div({ classes("flex-grow-1") }) {
-                Text(message.orEmpty())
-            }
-            Button({
-                classes("btn", "btn-primary")
-                if (isInputLocked || selectedPath.isNullOrBlank()) {
-                    disabled()
-                }
-                onClick {
-                    scope.launch {
-                        message = "Loading"
-                        isInputLocked = true
-                        onLoadingStatChanged(true)
-                        val loadingJob = launch {
-                            while (isActive) {
-                                message += "."
-                                delay(800)
-                                message = message?.substringBefore("....")
-                            }
-                        }
-                        val response = client.addLibraryFolder(library.id, selectedPath.orEmpty())
-                        onLoadingStatChanged(false)
-                        loadingJob.cancel()
-                        isInputLocked = false
-                        when (response) {
-                            is AddLibraryFolderResponse.Success -> {
-                                message = null
-                                selectedPath = null
-                                onFolderAdded()
-                                closeScreen()
-                            }
-                            is AddLibraryFolderResponse.LibraryFolderExists -> {
-                                message = "This folder already belongs to a library."
-                            }
-                            is AddLibraryFolderResponse.FileError -> {
-                                message = if (!response.exists) {
-                                    "The selected folder does not exist."
-                                } else {
-                                    "The selected file is not a directory."
-                                }
-                            }
-                            is AddLibraryFolderResponse.RequestError -> {
-                                message = "Unknown request error"
-                            }
-                            is AddLibraryFolderResponse.DatabaseError -> {
-                                message = "Database error"
-                            }
-                        }
-                    }
-                }
-            }) { Text("Add") }
-            Button({
-                classes("btn", "btn-secondary")
-                if (isInputLocked) disabled()
-                // modalDismiss()
-                onClick { closeScreen() }
-            }) { Text("Cancel") }
         }
     }
 }

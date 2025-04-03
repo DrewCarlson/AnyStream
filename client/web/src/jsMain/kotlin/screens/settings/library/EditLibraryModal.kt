@@ -54,6 +54,7 @@ fun EditLibraryModal(
         id = "edit-library-modal",
         title = "Edit ${library.name}",
         size = ModalSize.Large,
+        scrollable = true,
         onHidden = onClosed,
         onHide = {}.takeIf { isLoading }
     ) {
