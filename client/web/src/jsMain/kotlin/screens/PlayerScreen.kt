@@ -162,18 +162,18 @@ fun PlayerScreen(mediaLinkId: String) {
                     miniPlayerWidth = miniPlayerWidth,
                 )
             }
-            val posterPath by remember {
+            /*val posterPath by remember {
                 derivedStateOf {
                     "https://image.tmdb.org/t/p/w1920_and_h800_multi_faces${mediaItem.value?.backdropPath}"
                 }
-            }
+            }*/
             Video({
                 id("player")
                 classes("video-js", "h-100", "w-100")
                 style {
                     cursor(if (areControlsVisible) "pointer" else "none")
                 }
-                attr("poster", posterPath)
+                //attr("poster", posterPath)
                 onClick {
                     if (player?.paused() == true) {
                         player?.play()
@@ -750,7 +750,7 @@ private fun SeekBar(
     val hasPreview by produceState(false, mediaLinkId) {
         value = try {
             fetch(previewUrl).await().ok
-        } catch (e: Throwable) {
+        } catch (_: Throwable) {
             false
         }
     }

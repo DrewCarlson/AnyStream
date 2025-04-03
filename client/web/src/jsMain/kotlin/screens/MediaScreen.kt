@@ -85,7 +85,7 @@ fun MediaScreen(mediaId: String) {
             is MovieResponse -> {
                 val mediaItem = remember(response) {
                     response.toMediaItem().also {
-                        backdropImageUrl.value = "https://image.tmdb.org/t/p/w1280/${it.backdropPath}"
+                        backdropImageUrl.value = "/api/image/${it.mediaId}/backdrop.jpg?width=1280"
                     }
                 }
                 BaseDetailsView(
@@ -98,7 +98,7 @@ fun MediaScreen(mediaId: String) {
             is TvShowResponse -> {
                 val mediaItem = remember(response) {
                     response.toMediaItem().also {
-                        backdropImageUrl.value = "https://image.tmdb.org/t/p/w1280/${it.backdropPath}"
+                        backdropImageUrl.value = "/api/image/${it.mediaId}/backdrop.jpg?width=1280"
                     }
                 }
                 BaseDetailsView(
@@ -115,7 +115,7 @@ fun MediaScreen(mediaId: String) {
             is SeasonResponse -> {
                 val mediaItem = remember(response) {
                     response.toMediaItem().also {
-                        backdropImageUrl.value = "https://image.tmdb.org/t/p/w1280/${response.show.backdropPath}"
+                        backdropImageUrl.value = "/api/image/${response.show.id}/backdrop.jpg?width=1280"
                     }
                 }
                 BaseDetailsView(
@@ -135,7 +135,7 @@ fun MediaScreen(mediaId: String) {
             is EpisodeResponse -> {
                 val mediaItem = remember(response) {
                     response.toMediaItem().also {
-                        backdropImageUrl.value = "https://image.tmdb.org/t/p/w1280/${response.show.backdropPath}"
+                        backdropImageUrl.value = "/api/image/${response.show.id}/backdrop.jpg?width=1280"
                     }
                 }
                 BaseDetailsView(
@@ -158,7 +158,7 @@ private fun BaseDetailsView(
         Div({ classes("d-flex", "flex-column", "align-items-center", "flex-shrink-0") }) {
             PosterCard(
                 title = null,
-                posterPath = mediaItem.posterPath,
+                metadataId = mediaItem.mediaId,
                 wide = mediaItem.wide,
                 heightAndWidth = if (mediaItem.wide) {
                     168.px to 300.px
@@ -514,7 +514,7 @@ private fun SeasonRow(seasons: List<TvSeason>) {
                         Text(season.name)
                     }
                 },
-                posterPath = season.posterPath,
+                metadataId = season.id,
                 onBodyClicked = {
                     router.navigate("/media/${season.id}")
                 },
@@ -546,7 +546,7 @@ private fun EpisodeGrid(
                         Text("Episode ${episode.number}")
                     }
                 },
-                posterPath = episode.stillPath,
+                metadataId = episode.id,
                 heightAndWidth = 178.px to 318.px,
                 onPlayClicked = if (link == null) {
                     null

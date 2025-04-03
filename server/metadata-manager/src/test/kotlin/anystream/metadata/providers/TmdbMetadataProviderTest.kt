@@ -19,6 +19,7 @@ package anystream.metadata.providers
 
 import anystream.data.MetadataDbQueries
 import anystream.db.*
+import anystream.metadata.ImageStore
 import anystream.models.MediaKind
 import anystream.models.api.MetadataMatch
 import anystream.models.api.QueryMetadata
@@ -31,6 +32,7 @@ import io.kotest.matchers.collections.shouldHaveAtLeastSize
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import io.ktor.client.HttpClient
 import io.ktor.client.plugins.logging.*
 
 class TmdbMetadataProviderTest : FunSpec({
@@ -55,8 +57,10 @@ class TmdbMetadataProviderTest : FunSpec({
         }
     })
 
+    val fs by bindFileSystem()
     val tmdbProvider by bindForTest({
-        TmdbMetadataProvider(tmdb, queries)
+        val imageStore = ImageStore(fs.getPath("/test"), HttpClient())
+        TmdbMetadataProvider(tmdb, queries, imageStore)
     })
 
     test("search for unsupported media") {

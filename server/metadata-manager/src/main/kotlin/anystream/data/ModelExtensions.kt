@@ -56,11 +56,18 @@ fun TmdbShowDetail.asTvShow(
     id: String,
     existingEpisodes: Map<Int, Metadata>,
     existingSeasons: Map<Int, Metadata>,
+    posterPaths: MutableMap<String, List<Pair<String, String?>>>
 ): Triple<Metadata, List<Metadata>, List<Metadata>> {
+    posterPaths[id] = listOf(
+        "poster" to posterPath,
+        "backdrop" to backdropPath,
+    )
     val seasons = tmdbSeasons.map { season ->
         val existingSeason = existingSeasons[season.seasonNumber]
+        val seasonId = existingSeason?.id ?: ObjectId.next()
+        posterPaths[seasonId] = listOf("poster" to season.posterPath)
         season.asTvSeason(
-            id = existingSeason?.id ?: ObjectId.next(),
+            id = seasonId,
             showId = id,
         )
     }.associateBy(Metadata::index)
@@ -72,8 +79,10 @@ fun TmdbShowDetail.asTvShow(
             }
         season.episodes.orEmpty().map { episode ->
             val existingEpisode = existingEpisodes[episode.episodeNumber]
+            val episodeId = existingEpisode?.id ?: ObjectId.next()
+            posterPaths[episodeId] = listOf("poster" to episode.stillPath)
             episode.asTvEpisode(
-                id = existingEpisode?.id ?: ObjectId.next(),
+                id = episodeId,
                 showId = id,
                 seasonId = existingSeason.id,
             )

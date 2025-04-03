@@ -24,6 +24,7 @@ import anystream.models.MediaKind
 import anystream.models.api.*
 import app.moviebase.tmdb.Tmdb3
 import io.kotest.core.spec.style.FunSpec
+import io.ktor.client.HttpClient
 import io.ktor.client.plugins.logging.*
 import kotlin.test.*
 
@@ -49,9 +50,11 @@ class MetadataServiceTests : FunSpec({
         }
     })
 
+    val fs by bindFileSystem()
     val manager by bindForTest({
-        val provider = TmdbMetadataProvider(tmdb, queries)
-        MetadataService(listOf(provider))
+        val imageStore = ImageStore(fs.getPath("/test"), HttpClient())
+        val provider = TmdbMetadataProvider(tmdb, queries, imageStore)
+        MetadataService(listOf(provider), metadataDao, imageStore)
     })
 
     test("import tmdb movie") {

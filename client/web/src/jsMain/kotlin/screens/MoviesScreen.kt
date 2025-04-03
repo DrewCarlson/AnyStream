@@ -66,7 +66,7 @@ private fun MovieCard(
                 Text(movie.title)
             }
         },
-        posterPath = movie.posterPath,
+        metadataId = movie.id,
         isAdded = true,
         onPlayClicked = {
             playerMediaLinkId.value = link?.id

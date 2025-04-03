@@ -116,6 +116,7 @@ private fun CurrentlyWatching.ContinueWatchingRow(sizeMultiplier: Float) {
         val (episode, show) = tvShows[state.id] ?: (null to null)
         PosterCard(
             sizeMultiplier = sizeMultiplier,
+            metadataId = movie?.id ?: show?.id,
             title = (movie?.title ?: show?.name)?.let { title ->
                 {
                     LinkedText(url = "/media/${movie?.id ?: show?.id}") {
@@ -151,7 +152,6 @@ private fun CurrentlyWatching.ContinueWatchingRow(sizeMultiplier: Float) {
                     }
                 }
             },
-            posterPath = movie?.posterPath ?: show?.posterPath,
             isAdded = true,
             onPlayClicked = {
                 playerMediaLinkId.value = state.mediaLinkId
@@ -170,6 +170,14 @@ private fun RecentlyAdded.RecentlyAddedMovies(sizeMultiplier: Float) {
     HorizontalScroller(movies.toList(), scrollbars = false) { (movie, mediaLink) ->
         PosterCard(
             sizeMultiplier = sizeMultiplier,
+            metadataId = movie.id,
+            isAdded = true,
+            onPlayClicked = {
+                playerMediaLinkId.value = mediaLink?.id
+            }.takeIf { mediaLink != null },
+            onBodyClicked = {
+                router.navigate("/media/${movie.id}")
+            },
             title = {
                 LinkedText(url = "/media/${movie.id}") {
                     Text(movie.title)
@@ -179,14 +187,6 @@ private fun RecentlyAdded.RecentlyAddedMovies(sizeMultiplier: Float) {
                 {
                     Text(substringBefore("-"))
                 }
-            },
-            posterPath = movie.posterPath,
-            isAdded = true,
-            onPlayClicked = {
-                playerMediaLinkId.value = mediaLink?.id
-            }.takeIf { mediaLink != null },
-            onBodyClicked = {
-                router.navigate("/media/${movie.id}")
             },
         )
     }
@@ -199,12 +199,12 @@ private fun RecentlyAdded.RecentlyAddedTv(sizeMultiplier: Float) {
     HorizontalScroller(tvShows, scrollbars = false) { show ->
         PosterCard(
             sizeMultiplier = sizeMultiplier,
+            metadataId = show.id,
             title = {
                 LinkedText(url = "/media/${show.id}") {
                     Text(show.name)
                 }
             },
-            posterPath = show.posterPath,
             isAdded = true,
             onBodyClicked = {
                 router.navigate("/media/${show.id}")
@@ -220,6 +220,13 @@ private fun Popular.PopularMovies(sizeMultiplier: Float) {
     HorizontalScroller(movies.toList(), scrollbars = false) { (movie, link) ->
         PosterCard(
             sizeMultiplier = sizeMultiplier,
+            metadataId = movie.id,
+            isAdded = link != null,
+            onPlayClicked = { playerMediaLinkId.value = link?.id }
+                .takeIf { link != null },
+            onBodyClicked = {
+                router.navigate("/media/${movie.id}")
+            },
             title = {
                 LinkedText(url = "/media/${movie.id}") {
                     Text(movie.title)
@@ -229,13 +236,6 @@ private fun Popular.PopularMovies(sizeMultiplier: Float) {
                 {
                     Text(substringBefore("-"))
                 }
-            },
-            posterPath = movie.posterPath,
-            isAdded = link != null,
-            onPlayClicked = { playerMediaLinkId.value = link?.id }
-                .takeIf { link != null },
-            onBodyClicked = {
-                router.navigate("/media/${movie.id}")
             },
         )
     }
@@ -249,6 +249,12 @@ private fun Popular.PopularTvShows(sizeMultiplier: Float) {
     HorizontalScroller(tvShows, scrollbars = false) { tvShow ->
         PosterCard(
             sizeMultiplier = sizeMultiplier,
+            metadataId = tvShow.id,
+            /*onPlayClicked = { window.location.hash = "!play:${ref?.id}" }
+                .takeIf { ref != null },*/
+            onBodyClicked = {
+                router.navigate("/media/${tvShow.id}")
+            },
             title = {
                 LinkedText(url = "/media/${tvShow.id}") {
                     Text(tvShow.name)
@@ -259,13 +265,7 @@ private fun Popular.PopularTvShows(sizeMultiplier: Float) {
                     Text(substringBefore("-"))
                 }
             },
-            posterPath = tvShow.posterPath,
             isAdded = tvShow.isAdded,
-            /*onPlayClicked = { window.location.hash = "!play:${ref?.id}" }
-                .takeIf { ref != null },*/
-            onBodyClicked = {
-                router.navigate("/media/${tvShow.id}")
-            },
         )
     }
 }

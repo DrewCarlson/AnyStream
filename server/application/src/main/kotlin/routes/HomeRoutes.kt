@@ -31,7 +31,6 @@ import anystream.util.toRemoteId
 import app.moviebase.tmdb.Tmdb3
 import app.moviebase.tmdb.model.*
 import com.ibm.icu.util.ULocale
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -144,12 +143,6 @@ fun Route.addHomeRoutes(
             val tvSeasonIds = playbackStateTv.values.map { (episode, _) -> episode.seasonId }.distinct()
             val tvSeasons = queries.findTvSeasonsByIds(tvSeasonIds).map(Metadata::toTvSeasonModel)
             call.respond(CurrentlyWatching(playbackStates, playbackStateMovies, playbackStateTv, tvSeasons))
-        }
-
-        get("recent") {
-            val recentlyAddedMovies = queries.findRecentlyAddedMovies(20)
-            val recentlyAddedTvShows = queries.findRecentlyAddedTv(20)
-            call.respond(RecentlyAdded(recentlyAddedMovies, recentlyAddedTvShows))
         }
 
         get("popular") {

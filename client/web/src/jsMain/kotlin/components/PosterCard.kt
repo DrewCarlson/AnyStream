@@ -27,7 +27,7 @@ import org.jetbrains.compose.web.dom.Img
 @Composable
 fun PosterCard(
     title: (@Composable () -> Unit)?,
-    posterPath: String?,
+    metadataId: String?,
     wide: Boolean = false,
     heightAndWidth: Pair<CSSpxValue, CSSpxValue>? = null,
     sizeMultiplier: Float = 1f,
@@ -37,7 +37,7 @@ fun PosterCard(
     subtitle2: (@Composable () -> Unit)? = null,
     onPlayClicked: (() -> Unit)? = null,
     onBodyClicked: (() -> Unit)? = null,
-    buildMenu: @Composable (() -> Unit)? = null,
+    buildMenu: (@Composable () -> Unit)? = null,
     classes: List<String>? = null,
 ) {
     val isMouseOver = remember { mutableStateOf(false) }
@@ -122,11 +122,11 @@ fun PosterCard(
             }
 
             var opacity by remember { mutableStateOf(0) }
-            val posterUrl: String by produceState("", posterPath) {
+            val posterUrl: String by produceState("", metadataId) {
                 opacity = 0
                 value = ""
-                if (!posterPath.isNullOrBlank()) {
-                    value = "https://image.tmdb.org/t/p/w300$posterPath"
+                if (!metadataId.isNullOrBlank()) {
+                    value = "/api/image/$metadataId/poster.jpg?width=300"
                 }
             }
             Div({ classes("bg-dark-translucent", "rounded", "h-100", "w-100") }) {

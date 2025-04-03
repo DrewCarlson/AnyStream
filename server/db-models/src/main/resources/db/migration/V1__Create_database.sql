@@ -56,7 +56,8 @@ CREATE TABLE metadata
     updated_at         TEXT                    NOT NULL,
     media_kind         TEXT                    NOT NULL,
     media_type         TEXT                    NOT NULL,
-    tmdb_rating        INTEGER
+    tmdb_rating        INTEGER,
+    UNIQUE(tmdb_id, media_kind) ON CONFLICT FAIL
 );
 
 CREATE TABLE tag

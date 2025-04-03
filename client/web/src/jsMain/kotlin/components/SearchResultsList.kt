@@ -48,7 +48,6 @@ fun SearchResultsList(
             searchResponse.movies.forEach { movie ->
                 SearchResultItem(
                     mediaId = movie.id,
-                    posterPath = movie.posterPath,
                     title = movie.title,
                     subtitle = movie.releaseDate
                         ?.split("-")
@@ -64,7 +63,6 @@ fun SearchResultsList(
             searchResponse.tvShows.forEach { (show, seasonNumber) ->
                 SearchResultItem(
                     mediaId = show.id,
-                    posterPath = show.posterPath,
                     title = show.name,
                     subtitle = buildString {
                         append(seasonNumber)
@@ -85,7 +83,6 @@ fun SearchResultsList(
             searchResponse.episodes.forEach { (episode, show) ->
                 SearchResultItem(
                     mediaId = episode.id,
-                    posterPath = episode.stillPath,
                     title = episode.name,
                     subtitle = show.name,
                     wide = true,
@@ -113,7 +110,6 @@ private fun SectionTitle(title: String) {
 @Composable
 private fun SearchResultItem(
     mediaId: String,
-    posterPath: String?,
     title: String,
     subtitle: String,
     wide: Boolean = false,
@@ -141,7 +137,7 @@ private fun SearchResultItem(
             }
         }) {
             Img(
-                src = "https://image.tmdb.org/t/p/w300$posterPath",
+                src = "/api/image/$mediaId/poster.jpg?w=300",
                 attrs = {
                     classes("h-100", "w-100")
                     attr("loading", "lazy")

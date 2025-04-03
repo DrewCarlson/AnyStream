@@ -18,52 +18,50 @@
 package anystream.routes
 
 import anystream.AnyStreamConfig
+import anystream.metadata.MetadataService
 import anystream.util.koinGet
-import io.ktor.client.*
-import io.ktor.client.plugins.cache.*
-import io.ktor.client.plugins.cache.storage.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
+import io.ktor.http.ContentDisposition
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode.Companion.NotFound
-import io.ktor.server.application.*
+import io.ktor.http.HttpStatusCode.Companion.UnprocessableEntity
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.utils.io.*
-import kotlin.io.path.Path
+import io.ktor.utils.io.ClosedByteChannelException
 import kotlin.io.path.exists
 
-fun Route.addImageRoutes(config: AnyStreamConfig = koinGet()) {
+fun Route.addImageRoutes(
+    config: AnyStreamConfig = koinGet(),
+    metadataService: MetadataService = koinGet(),
+) {
     val dataPath = config.dataPath
-    val imageClient = HttpClient {
-        install(HttpCache) {
-            // TODO: Add disk catching
-            publicStorage(CacheStorage.Unlimited())
-        }
-    }
     route("/image") {
         get("/previews/{mediaLinkId}/{imageName}") {
             val mediaLinkId = call.parameters["mediaLinkId"] ?: return@get call.respond(NotFound)
             val imageName = call.parameters["imageName"] ?: return@get call.respond(NotFound)
-            val imagePath = Path(dataPath, "previews", mediaLinkId, imageName)
+            val imagePath = dataPath.resolve("previews").resolve(mediaLinkId).resolve(imageName)
             if (imagePath.exists()) {
                 call.respondFile(imagePath.toFile())
             } else {
                 call.respond(NotFound)
             }
         }
-        get("/{imageKey}") {
+        get("/{imageKey}/{imageType}.jpg") {
             val imageKey = call.parameters["imageKey"] ?: return@get call.respond(NotFound)
+            val imageType = call.parameters["imageType"]
+                ?: return@get call.respond(UnprocessableEntity, "url param 'imageType' is required")
+            val width = call.parameters["width"]?.toIntOrNull() ?: 0
 
-            if (imageKey.startsWith("tmdb:")) {
-                val (_, fileName) = imageKey.split(':')
-                val response = imageClient.get("https://image.tmdb.org/t/p/original/$fileName")
-                if (response.status == HttpStatusCode.OK) {
-                    call.respondBytesWriter(response.contentType()) {
-                        response.bodyAsChannel().copyTo(this)
-                    }
-                } else {
-                    call.respond(NotFound)
+            val imagePath = metadataService.getImagePath(imageKey, imageType)
+            if (imagePath?.exists() == true) {
+                try {
+                    call.response.header(
+                        name = HttpHeaders.ContentType,
+                        value = ContentType.Image.JPEG.toString()
+                    )
+                    call.respondPath(imagePath)
+                } catch (_: ClosedByteChannelException) {
+                    // request was cancelled while reading file
                 }
             } else {
                 call.respond(NotFound)

@@ -29,6 +29,7 @@ import anystream.db.bindTestDatabase
 import anystream.media.createMovieDirectory
 import anystream.media.createTvDirectory
 import anystream.media.scanner.MediaFileScanner
+import anystream.metadata.ImageStore
 import anystream.metadata.MetadataService
 import anystream.metadata.providers.TmdbMetadataProvider
 import anystream.models.Descriptor
@@ -49,6 +50,7 @@ import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.types.shouldBeInstanceOf
+import io.ktor.client.HttpClient
 import java.nio.file.FileSystem
 import kotlin.io.path.absolutePathString
 
@@ -70,11 +72,12 @@ class MovieFileProcessorTest : FunSpec({
             tmdbApiKey = "c1e9e8ade306dd9cbc5e17b05ed4badd"
         }
     })
-    val metadataService by bindForTest({
-        val provider = TmdbMetadataProvider(tmdb, queries)
-        MetadataService(listOf(provider))
-    })
     val fs by bindFileSystem()
+    val metadataService by bindForTest({
+        val imageStore = ImageStore(fs.getPath("/test"), HttpClient())
+        val provider = TmdbMetadataProvider(tmdb, queries, imageStore)
+        MetadataService(listOf(provider), metadataDao, imageStore)
+    })
     val mediaFileScanner by bindForTest({ MediaFileScanner(mediaLinkDao, libraryDao, fs) })
     val processor by bindForTest({
         MovieFileProcessor(

@@ -260,9 +260,6 @@ class AnyStreamClient(
     suspend fun getHomeWatching(): CurrentlyWatching =
         http.get("$serverUrl/api/home/watching").bodyOrThrow()
 
-    suspend fun getHomeRecent(): RecentlyAdded =
-        http.get("$serverUrl/api/home/recent").bodyOrThrow()
-
     suspend fun getHomePopular(): Popular = http.get("$serverUrl/api/home/popular").bodyOrThrow()
 
     suspend fun getMovies(): MoviesResponse =

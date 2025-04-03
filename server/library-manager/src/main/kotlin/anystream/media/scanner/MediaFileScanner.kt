@@ -135,18 +135,16 @@ class MediaFileScanner(
         // TODO: currently only returns information when sub results are successful.
         //  modify this to propagate any errors and include any affected ids in error cases.
         //  this also applies to the pruning process which is done above.
-        val subResults = coroutineScope {
+        val subResults =
             path.listDirectoryEntries()
-                .asFlow()
-                .concurrentMap(this, concurrencyLevel = 10) { childPath ->
+                .map { childPath ->
                     if (childPath.isDirectory()) {
                         scanDirectory(childPath, null, directoryDb)
                     } else {
                         scanFile(childPath, directoryDb)
                     }
                 }
-                .toList()
-        }.filterIsInstance<MediaScanResult.Success>()
+                .filterIsInstance<MediaScanResult.Success>()
 
         return MediaScanResult.Success(
             directories = resultIdContainer,

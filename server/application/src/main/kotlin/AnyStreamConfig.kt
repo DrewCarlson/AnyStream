@@ -18,23 +18,28 @@
 package anystream
 
 import io.ktor.server.config.*
+import java.nio.file.FileSystem
+import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.createDirectories
 import kotlin.io.path.exists
 
-class AnyStreamConfig(config: ApplicationConfig) {
+class AnyStreamConfig(
+    config: ApplicationConfig,
+    fs: FileSystem,
+) {
 
-    private val configPath by lazy { Path(dataPath, "config").createDirectories() }
     val disableWebClient: Boolean = config.property("app.disableWebClient").getString().toBoolean()
     val webClientPath: String? = config.propertyOrNull("app.webClientPath")?.getString()
 
-    val dataPath: String = config.propertyOrNull("app.dataPath")?.getString().let { path ->
+    val dataPath: Path = config.propertyOrNull("app.dataPath")?.getString().let { path ->
         val pathOrDefault = path.orEmpty().ifBlank {
             Path(System.getProperty("user.home"), "anystream").absolutePathString()
         }
-        Path(pathOrDefault).createDirectories().absolutePathString()
+        fs.getPath(pathOrDefault).createDirectories()
     }
+    private val configPath = dataPath.resolve("config").createDirectories()
 
     val databaseUrl: String = run {
         val databaseUrl = config.property("app.databaseUrl").getString()

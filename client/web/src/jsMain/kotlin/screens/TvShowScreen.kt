@@ -69,7 +69,7 @@ fun TvShowCard(
                 Text(show.name)
             }
         },
-        posterPath = show.posterPath,
+        metadataId = show.id,
         isAdded = true,
         onPlayClicked = {
             playerMediaLinkId.value = link?.id

@@ -247,18 +247,24 @@ class MetadataDbQueries(
     }
 
     suspend fun findRecentlyAddedMovies(limit: Int): Map<Movie, MediaLink?> {
-        val movies = metadataDao.findByType(MediaType.MOVIE, limit).map(Metadata::toMovieModel)
-
-        val mediaLinks = if (movies.isNotEmpty()) {
-            db.selectFrom(MEDIA_LINK)
-                .where(MEDIA_LINK.METADATA_ID.`in`(movies.map(Movie::id)))
-                .and(MEDIA_LINK.DESCRIPTOR.eq(Descriptor.VIDEO))
-                .awaitInto<MediaLink>()
-                .associateBy { checkNotNull(it.metadataId) }
-        } else {
-            emptyMap()
-        }
-        return movies.associateWith { movie -> mediaLinks[movie.id] }
+        return db.select(METADATA.asterisk(), MEDIA_LINK.asterisk())
+            .from(METADATA)
+            .leftJoin(MEDIA_LINK)
+            .on(
+                METADATA.ID.eq(MEDIA_LINK.METADATA_ID)
+                    .and(MEDIA_LINK.DESCRIPTOR.eq(Descriptor.VIDEO))
+            )
+            .where(METADATA.MEDIA_TYPE.eq(MediaType.MOVIE))
+            .orderBy(METADATA.CREATED_AT.desc())
+            .limit(limit)
+            .fetchAsync()
+            .thenApplyAsync { result ->
+                result.intoGroups(
+                    { it.into(METADATA).into(Metadata::class.java).toMovieModel() },
+                    { it.into(MEDIA_LINK).into(MediaLink::class.java) }
+                ).mapValues { (_, links) -> links.firstOrNull()  }
+            }
+            .await()
     }
 
     suspend fun findRecentlyAddedTv(limit: Int): List<TvShow> {

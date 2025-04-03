@@ -27,6 +27,7 @@ import kotlinx.coroutines.future.await
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
+import org.jooq.impl.DSL.coalesce
 
 class MetadataDao(
     private val db: DSLContext,
@@ -84,6 +85,13 @@ class MetadataDao(
 
     suspend fun find(metadataId: String): Metadata? {
         return db.selectFrom(METADATA)
+            .where(METADATA.ID.eq(metadataId))
+            .awaitFirstOrNullInto()
+    }
+
+    suspend fun findRootIdOrSelf(metadataId: String): String? {
+        return db.select(coalesce(METADATA.ROOT_ID, METADATA.ID))
+            .from(METADATA)
             .where(METADATA.ID.eq(metadataId))
             .awaitFirstOrNullInto()
     }

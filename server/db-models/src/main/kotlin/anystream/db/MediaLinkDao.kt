@@ -32,6 +32,12 @@ import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.length
 
+// @Poko
+data class MediaLinkMetadataUpdate(
+    val mediaLinkId: String,
+    val metadataId: String? = null,
+    val rootMetadataId: String? = null,
+)
 
 class MediaLinkDao(
     private val db: DSLContext
@@ -54,6 +60,16 @@ class MediaLinkDao(
 
     suspend fun countStreamDetails(mediaLinkId: String): Int {
         return db.fetchCountAsync(STREAM_ENCODING, STREAM_ENCODING.MEDIA_LINK_ID.eq(mediaLinkId))
+    }
+
+    suspend fun updateMetadataIds(updateModels: List<MediaLinkMetadataUpdate>) {
+        val updates = updateModels.map { update ->
+            db.update(MEDIA_LINK)
+                .set(MEDIA_LINK.METADATA_ID, update.metadataId)
+                .set(MEDIA_LINK.ROOT_METADATA_ID, update.rootMetadataId)
+                .where(MEDIA_LINK.ID.eq(update.mediaLinkId))
+        }
+        db.batch(updates).executeAsync().await()
     }
 
     suspend fun updateMetadataIds(mediaLinkId: String, metadataId: String): Boolean {

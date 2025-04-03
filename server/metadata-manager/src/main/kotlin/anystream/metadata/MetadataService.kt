@@ -17,12 +17,19 @@
  */
 package anystream.metadata
 
+import anystream.db.MetadataDao
 import anystream.models.MediaKind
 import anystream.models.api.*
+import anystream.util.isRemoteId
+import io.ktor.util.encodeBase64
 import org.slf4j.LoggerFactory
+import java.nio.file.Path
+import kotlin.io.path.exists
 
 class MetadataService(
     private val providers: List<MetadataProvider>,
+    private val metadataDao: MetadataDao,
+    private val imageStore: ImageStore,
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
@@ -87,5 +94,76 @@ class MetadataService(
         }
 
         return provider.importMetadata(request)
+    }
+
+    suspend fun getImagePath(metadataId: String, imageType: String): Path? {
+        return if (metadataId.isRemoteId) {
+            getImagePathForRemoteId(metadataId, imageType)
+        } else {
+            getImagePathMetadataId(metadataId, imageType)
+        }
+    }
+
+    private suspend fun getImagePathForRemoteId(imageKey: String, imageType: String): Path? {
+        val queryResult = findByRemoteId(imageKey)
+        val metadataResult = (queryResult as? QueryMetadataResult.Success)?.results?.firstOrNull()
+        val cachePath = imageStore.getImagePath(
+            imageType,
+            imageKey.encodeBase64(),
+            "remote-metadata-cache/${imageKey.substringBeforeLast('-').encodeBase64()}"
+        )
+        if (cachePath.exists()) {
+            return cachePath
+        }
+
+        // TODO: Move image url creation into providers
+        // TODO: pre-cache images for remote metadata that appears automatically, like home screen popular results
+        val imagePaths = when (metadataResult) {
+            is MetadataMatch.MovieMatch -> {
+                listOf(
+                    "poster" to metadataResult.movie.posterPath,
+                    "backdrop" to metadataResult.movie.backdropPath,
+                )
+            }
+            is MetadataMatch.TvShowMatch -> {
+                val episode = metadataResult.episodes.singleOrNull()
+                val season = metadataResult.seasons.singleOrNull()
+                val show = metadataResult.tvShow
+                when (imageKey.count { it == '-' }) {
+                    0 -> {
+                        listOf(
+                            "poster" to show.posterPath,
+                            "backdrop" to show.backdropPath,
+                        )
+                    }
+                    1 -> listOf("poster" to season?.posterPath)
+                    else -> listOf("poster" to episode?.stillPath)
+                }
+            }
+
+            else -> return null
+        }
+
+        imagePaths.forEach { (type, path) ->
+            val otherCachePath = imageStore.getImagePath(
+                type,
+                imageKey.encodeBase64(),
+                "remote-metadata-cache/${imageKey.substringBeforeLast('-').encodeBase64()}"
+            )
+            val url = when (type) {
+                "poster" -> "https://image.tmdb.org/t/p/w300$path"
+                "backdrop" -> "https://image.tmdb.org/t/p/w1280$path"
+                else -> return@forEach
+            }
+            imageStore.downloadInto(otherCachePath, url)
+        }
+
+        return cachePath.takeIf { it.exists() }
+    }
+
+    private suspend fun getImagePathMetadataId(imageKey: String, imageType: String): Path? {
+        val rootId = metadataDao.findRootIdOrSelf(imageKey) ?: return null
+        val cacheFile = imageStore.getImagePath(imageType, imageKey, rootId)
+        return cacheFile.takeIf { it.exists() }
     }
 }

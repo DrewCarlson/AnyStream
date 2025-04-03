@@ -108,6 +108,8 @@ dependencies {
 
     implementation(libsServer.tmdbapi)
 
+    implementation(libsServer.imageio.webp)
+
     implementation(libsCommon.koin.core)
     implementation(libsCommon.koin.ktor)
     implementation(libsCommon.koin.slf4j)

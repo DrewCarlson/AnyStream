@@ -18,29 +18,47 @@
 package anystream.metadata.providers
 
 import anystream.data.*
+import anystream.metadata.ImageStore
 import anystream.metadata.MetadataProvider
 import anystream.models.*
 import anystream.models.api.*
 import anystream.util.ObjectId
+import anystream.util.concurrentMap
 import anystream.util.toRemoteId
 import app.moviebase.tmdb.Tmdb3
 import app.moviebase.tmdb.model.*
+import io.ktor.client.HttpClient
 import io.ktor.client.plugins.*
+import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.*
+import io.ktor.utils.io.jvm.javaio.copyTo
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDate
 import org.slf4j.LoggerFactory
 import java.net.SocketException
+import kotlin.io.path.outputStream
 import kotlin.time.Duration.Companion.seconds
 
 class TmdbMetadataProvider(
     private val tmdbApi: Tmdb3,
     private val queries: MetadataDbQueries,
+    private val imageStore: ImageStore,
 ) : MetadataProvider {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
@@ -48,6 +66,8 @@ class TmdbMetadataProvider(
     override val id: String = "tmdb"
 
     override val mediaKinds: List<MediaKind> = listOf(MediaKind.MOVIE, MediaKind.TV)
+
+    private val importLocks = MutableStateFlow(emptyList<Pair<Int, MediaKind>>())
 
     override suspend fun importMetadata(request: ImportMetadata): List<ImportMetadataResult> {
         return when (request.mediaKind) {
@@ -72,9 +92,13 @@ class TmdbMetadataProvider(
     }
 
     private suspend fun importMovie(tmdbId: Int, request: ImportMetadata): ImportMetadataResult {
+        val lockData = Pair(tmdbId, request.mediaKind)
+        awaitLock(lockData)
+        addLock(lockData)
         logger.debug("Importing movie by id {}", tmdbId)
         val existingMovie = queries.findMovieByTmdbId(tmdbId)
         if (existingMovie != null && !request.refresh) {
+            removeLock(lockData)
             return ImportMetadataResult.ErrorMetadataAlreadyExists(
                 existingMediaId = existingMovie.id,
                 match = MetadataMatch.MovieMatch(
@@ -96,11 +120,19 @@ class TmdbMetadataProvider(
         val movieDb = try {
             checkNotNull(fetchMovie(tmdbId))
         } catch (e: Throwable) {
+            removeLock(lockData)
             logger.error("Failed to fetch data from Tmdb", e)
             return ImportMetadataResult.ErrorDataProviderException(e.stackTraceToString())
         }
         val movie = movieDb.asMovie(movieId)
+
         return try {
+            if (movieDb.posterPath != null) {
+                val posterCacheFile = imageStore.getImagePath("poster", movie.id)
+                val backdropCacheFile = imageStore.getImagePath("backdrop", movie.id)
+                imageStore.downloadInto(posterCacheFile, "https://image.tmdb.org/t/p/w300/${movieDb.posterPath}")
+                imageStore.downloadInto(backdropCacheFile, "https://image.tmdb.org/t/p/w1280/${movieDb.backdropPath}")
+            }
             queries.insertMovie(movie)
             ImportMetadataResult.Success(
                 match = MetadataMatch.MovieMatch(
@@ -113,15 +145,21 @@ class TmdbMetadataProvider(
                 subresults = emptyList(),
             )
         } catch (e: Throwable) {
+            removeLock(lockData)
             logger.error("Failed to insert new movie metadata", e)
             ImportMetadataResult.ErrorDatabaseException(e.stackTraceToString())
         }
     }
 
     private suspend fun importTvShow(tmdbId: Int, request: ImportMetadata): ImportMetadataResult {
+        val lockData = Pair(tmdbId, request.mediaKind)
+        awaitLock(lockData)
+        addLock(lockData)
+
         val existingTvShow = queries.findTvShowByTmdbId(tmdbId)
 
         if (existingTvShow != null && !request.refresh) {
+            removeLock(lockData)
             val existingEpisodes = queries.findEpisodesByShow(existingTvShow.id)
             val existingSeasons = queries.findTvSeasonsByTvShowId(existingTvShow.id)
             return ImportMetadataResult.ErrorMetadataAlreadyExists(
@@ -142,6 +180,7 @@ class TmdbMetadataProvider(
         val tmdbSeries = try {
             checkNotNull(fetchTvSeries(tmdbId))
         } catch (e: Throwable) {
+            removeLock(lockData)
             logger.error("Failed to fetch tv series data", e)
             return ImportMetadataResult.ErrorDataProviderException(e.stackTraceToString())
         }
@@ -151,6 +190,7 @@ class TmdbMetadataProvider(
                 .filter { it.seasonNumber > 0 }
                 .mapNotNull { season -> fetchSeason(tmdbSeries.id, season.seasonNumber) }
         } catch (e: Throwable) {
+            removeLock(lockData)
             logger.error("Failed to fetch tv season data", e)
             return ImportMetadataResult.ErrorDataProviderException(e.stackTraceToString())
         }
@@ -160,15 +200,41 @@ class TmdbMetadataProvider(
         val existingEpisodes = queries.metadataDao
             .findAllByRootIdAndType(tvShowId, MediaType.TV_EPISODE)
             .associateBy { it.index!! }
+        val posterPaths = mutableMapOf<String, List<Pair<String, String?>>>()
         val (tvShow, tvSeasons, episodes) = tmdbSeries.asTvShow(
             tmdbSeasons,
             tvShowId,
             existingEpisodes,
             existingSeasons,
+            posterPaths
         )
 
+        val filteredPosters = posterPaths
+            .mapValues { (_, imageUrls) ->
+                imageUrls.filter { (_, imageUrl) ->
+                    !imageUrl.isNullOrBlank()
+                }
+            }
+            .entries
+            .asFlow()
+
         return try {
-            queries.insertTvShow(tvShow, tvSeasons, episodes)
+            coroutineScope {
+                launch { queries.insertTvShow(tvShow, tvSeasons, episodes) }
+                filteredPosters
+                    .concurrentMap(this, concurrencyLevel = 2) { (metadataId, imageUrls) ->
+                        imageUrls.forEach { (imageType, imageUrl) ->
+                            val cacheFile = imageStore.getImagePath(imageType, metadataId, tvShow.id)
+                            val url = when (imageType) {
+                                "poster" -> "https://image.tmdb.org/t/p/w300$imageUrl"
+                                "backdrop" -> "https://image.tmdb.org/t/p/w1280$imageUrl"
+                                else -> return@forEach
+                            }
+                            imageStore.downloadInto(cacheFile, url)
+                        }
+                    }
+                    .launchIn(this)
+            }
             ImportMetadataResult.Success(
                 match = MetadataMatch.TvShowMatch(
                     remoteMetadataId = tmdbSeries.id.toString(),
@@ -181,8 +247,10 @@ class TmdbMetadataProvider(
                 ),
             )
         } catch (e: Throwable) {
-            logger.error("Failed to insert tv show data", e)
+            logger.error("Failed to insert tv show data showId=$tvShowId", e)
             ImportMetadataResult.ErrorDatabaseException(e.stackTraceToString())
+        } finally {
+            removeLock(lockData)
         }
     }
 
@@ -364,6 +432,7 @@ class TmdbMetadataProvider(
                         .run { if (request.firstResultOnly) take(1) else this }
                         .toList()
                 }
+
                 request.metadataId != null -> listOfNotNull(fetchTvSeries(request.metadataId!!.toInt()))
                 else -> error("No content") // TODO: return QueryMetadataResult.NoResults
             }
@@ -388,7 +457,7 @@ class TmdbMetadataProvider(
             )
             return QueryMetadataResult.Success(id, matchList, request.extras)
         } else if (tmdbSeries.isEmpty()) {
-            error("No id or query to search.")
+            return QueryMetadataResult.Success(id, emptyList(), request.extras)
         }
 
         val tmdbSeriesIds = tmdbSeries.map(TmdbShowDetail::id)
@@ -459,6 +528,18 @@ class TmdbMetadataProvider(
             )
         }
         return QueryMetadataResult.Success(id, matches, request.extras)
+    }
+
+    private suspend fun awaitLock(lockData: Pair<Int, MediaKind>) {
+        importLocks.first { locks -> !locks.contains(lockData) }
+    }
+
+    private fun addLock(lockData: Pair<Int, MediaKind>) {
+        importLocks.update { it + lockData }
+    }
+
+    private fun removeLock(lockData: Pair<Int, MediaKind>) {
+        importLocks.update { it - lockData }
     }
 }
 

@@ -35,12 +35,16 @@ import anystream.service.stream.StreamServiceQueriesJooq
 import anystream.service.user.UserService
 import anystream.db.UserDao
 import anystream.media.analyzer.MediaFileAnalyzer
+import anystream.metadata.ImageStore
 import anystream.util.SqlSessionStorage
 import anystream.util.WebsocketAuthorization
 import anystream.util.headerOrQuery
 import app.moviebase.tmdb.Tmdb3
 import com.github.kokorin.jaffree.ffmpeg.FFmpeg
 import com.github.kokorin.jaffree.ffprobe.FFprobe
+import io.ktor.client.HttpClient
+import io.ktor.client.plugins.cache.HttpCache
+import io.ktor.client.plugins.cache.storage.CacheStorage
 import io.ktor.http.*
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.serialization.kotlinx.*
@@ -76,6 +80,7 @@ import qbittorrent.QBittorrentClient
 import java.nio.file.FileSystems
 import java.nio.file.Path
 import javax.sql.DataSource
+import kotlin.io.path.Path
 import kotlin.random.Random
 import kotlin.time.Duration.Companion.seconds
 
@@ -93,10 +98,11 @@ fun Application.module(testing: Boolean = false) {
     koin {
         modules(
             org.koin.dsl.module {
-                val config = AnyStreamConfig(environment.config)
+                val fs = FileSystems.getDefault()
+                val config = AnyStreamConfig(environment.config, fs)
                 single { config }
                 single { applicationScope }
-                single { FileSystems.getDefault() }
+                single { fs }
 
                 factory { FFmpeg.atPath(Path.of(config.ffmpegPath)) }
                 factory { FFprobe.atPath(Path.of(config.ffmpegPath)) }
@@ -142,12 +148,23 @@ fun Application.module(testing: Boolean = false) {
                 single { SearchableContentDao(get()) }
                 single { MetadataDbQueries(get(), get(), get(), get(), get()) }
 
-                single { MetadataService(listOf(TmdbMetadataProvider(get(), get()))) }
+                single {
+                    ImageStore(
+                        dataPath = get<AnyStreamConfig>().dataPath,
+                        httpClient = HttpClient {
+                            install(HttpCache) {
+                                // TODO: Add disk catching
+                                publicStorage(CacheStorage.Unlimited())
+                            }
+                        }
+                    )
+                }
+                single { MetadataService(listOf(TmdbMetadataProvider(get(), get(), get())), get(), get()) }
                 single { MediaFileAnalyzer({ get() }, get()) }
                 single<LibraryService> {
                     val processors = listOf(
                         MovieFileProcessor(get(), get(), get(), get()),
-                        TvFileProcessor(get(), get(), get(), get(), get()),
+                        TvFileProcessor(get(), get(), get(), get()),
                     )
                     LibraryService(get(), processors, get(), get(), get())
                 }

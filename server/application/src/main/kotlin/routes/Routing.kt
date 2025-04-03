@@ -30,10 +30,10 @@ fun Application.installRouting() {
     routing {
         route("/api") {
             addUserRoutes()
+            addImageRoutes()
             authenticate {
                 addHomeRoutes()
                 withAnyPermission(Permission.ViewCollection) {
-                    addImageRoutes()
                     addTvShowRoutes()
                     addMovieRoutes()
                     addSearchRoutes()
