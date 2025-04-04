@@ -9,7 +9,7 @@ exoplayer = "2.19.1"
 media3 = "1.6.0"
 ax_runner = "1.5.2"
 
-mobiuskt = "1.3.0"
+mobiuskt = "1.3.1"
 
 objectstore = "0.2.0"
 
