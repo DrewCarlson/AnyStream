@@ -2,6 +2,7 @@ FROM azul/zulu-openjdk:21-jre-latest
 
 WORKDIR /app
 
+ENV FFMPEG_VERSION=7.0.2-9
 RUN apt-get update && apt-get install -y wget bash \
     && ARCH=$(dpkg --print-architecture) \
     && FFMPEG_MAJOR_VERSION=$(echo "$FFMPEG_VERSION" | cut -d'.' -f1)"_" \
@@ -16,7 +17,6 @@ ENV DATABASE_URL=/app/storage/config/anystream.db
 ENV FFMPEG_PATH=/usr/lib/jellyfin-ffmpeg
 ENV WEB_CLIENT_PATH=/app/client-web
 ENV PORT=8888
-ENV FFMPEG_VERSION=7.0.2-9
 
 COPY server/application/build/install ./install/
 COPY client/web/build/dist/js/productionExecutable ./client-web/
