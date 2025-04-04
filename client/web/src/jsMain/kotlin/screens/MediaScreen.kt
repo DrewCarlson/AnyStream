@@ -48,6 +48,7 @@ val backdropImageUrl = MutableStateFlow<String?>(null)
 
 @Composable
 fun MediaScreen(mediaId: String) {
+    val router = Router.current
     val client = get<AnyStreamClient>()
     val lookupIdFlow = remember(mediaId) { MutableStateFlow<Int?>(null) }
     val analyzeFiles: () -> Unit = remember(lookupIdFlow) { { lookupIdFlow.update { (it ?: 0) + 1 } } }
@@ -90,6 +91,7 @@ fun MediaScreen(mediaId: String) {
                 }
                 BaseDetailsView(
                     mediaItem = mediaItem,
+                    rootMetadataId = mediaItem.mediaId,
                     analyzeFiles = analyzeFiles,
                     onFixMatch = onFixMatch,
                 )
@@ -104,6 +106,7 @@ fun MediaScreen(mediaId: String) {
                 BaseDetailsView(
                     mediaItem = mediaItem,
                     analyzeFiles = analyzeFiles,
+                    rootMetadataId = mediaItem.mediaId,
                     onFixMatch = onFixMatch,
                 )
 
@@ -121,6 +124,7 @@ fun MediaScreen(mediaId: String) {
                 BaseDetailsView(
                     mediaItem = mediaItem,
                     analyzeFiles = null,
+                    rootMetadataId = response.show.id,
                     onFixMatch = onFixMatch,
                 )
 
@@ -140,6 +144,8 @@ fun MediaScreen(mediaId: String) {
                 }
                 BaseDetailsView(
                     mediaItem = mediaItem,
+                    rootMetadataId = response.show.id,
+                    parentMetadatId = response.episode.seasonId,
                     analyzeFiles = analyzeFiles,
                     onFixMatch = onFixMatch,
                 )
@@ -151,6 +157,8 @@ fun MediaScreen(mediaId: String) {
 @Composable
 private fun BaseDetailsView(
     mediaItem: MediaItem,
+    rootMetadataId: String,
+    parentMetadatId: String? = null,
     analyzeFiles: (() -> Unit)?,
     onFixMatch: (() -> Unit)?,
 ) {
@@ -183,10 +191,22 @@ private fun BaseDetailsView(
         }
         Div({ classes("d-flex", "flex-column", "flex-grow-1", "p-4") }) {
             Div({ classes("d-flex", "align-items-center") }) {
-                Div({ classes("fs-3") }) { Text(mediaItem.contentTitle) }
+                Div({ classes("fs-3") }) {
+                    LinkedText("/media/$rootMetadataId") {
+                        Text(mediaItem.contentTitle)
+                    }
+                }
             }
             mediaItem.subtitle1?.also { subtitle1 ->
-                Div({ classes("fs-5") }) { Text(subtitle1) }
+                Div({ classes("fs-5") }) {
+                    if (parentMetadatId == null) {
+                        Text(subtitle1)
+                    } else {
+                        LinkedText("/media/$parentMetadatId") {
+                            Text(subtitle1)
+                        }
+                    }
+                }
             }
             mediaItem.subtitle2?.also { subtitle2 ->
                 Div({ classes("fs-5") }) { Text(subtitle2) }
