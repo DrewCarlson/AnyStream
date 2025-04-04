@@ -45,6 +45,7 @@ val migrationPath = projects.server.dbModels.dependencyProject.file("src/main/re
 val flywayMigrate by tasks.registering(FlywayMigrateTask::class) {
     driver.set("org.sqlite.JDBC")
     url.set(dbUrl)
+    outputFile.set(dbFile)
     migrationsLocation = layout.projectDirectory.dir(migrationPath.absolutePath)
 }
 

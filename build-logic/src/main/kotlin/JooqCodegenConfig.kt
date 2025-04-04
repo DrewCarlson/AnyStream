@@ -5,7 +5,7 @@ import org.jooq.meta.jaxb.Property
 
 
 fun Configuration.anystreamConfig(dbUrl: String) {
-    logging = Logging.DEBUG
+    logging = Logging.ERROR
     jdbc.apply {
         driver = "org.sqlite.JDBC"
         url = "${dbUrl}?foreign_keys=on;"
