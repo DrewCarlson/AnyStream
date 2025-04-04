@@ -1,6 +1,7 @@
 {
   "extends": [
-    "config:base"
+    "config:base",
+    "helpers:pinGitHubActionDigests"
   ],
   "ignoreDeps": [
     "mcr.microsoft.com/java/jdk",
