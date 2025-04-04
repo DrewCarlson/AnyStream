@@ -63,7 +63,6 @@ class MovieFileProcessorTest : FunSpec({
     val queries by bindForTest({
         val tagsDao = TagsDao(db)
         val playbackStatesDao = PlaybackStatesDao(db)
-        val mediaLinkDao = MediaLinkDao(db)
 
         MetadataDbQueries(db, metadataDao, tagsDao, mediaLinkDao, playbackStatesDao)
     })

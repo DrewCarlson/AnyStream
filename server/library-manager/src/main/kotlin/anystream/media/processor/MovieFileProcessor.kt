@@ -19,6 +19,7 @@ package anystream.media.processor
 
 import anystream.db.LibraryDao
 import anystream.db.MediaLinkDao
+import anystream.db.MediaLinkMetadataUpdate
 import anystream.media.VIDEO_EXTENSIONS
 import anystream.media.file.FileNameParser
 import anystream.media.file.MovieFileNameParser
@@ -88,13 +89,12 @@ class MovieFileProcessor(
             ?.let { getOrImportMetadata(it) }
             ?: return null
 
-        mediaLinkDao.updateRootMetadataIds(
-            mediaLinkId = checkNotNull(mediaLink.id),
-            rootMetadataId = match.movie.id
-        )
         mediaLinkDao.updateMetadataIds(
-            mediaLinkId = checkNotNull(mediaLink.id),
-            metadataId = match.movie.id
+            MediaLinkMetadataUpdate(
+                mediaLinkId = checkNotNull(mediaLink.id),
+                metadataId = match.movie.id,
+                rootMetadataId = match.movie.id
+            )
         )
 
         // TODO: Update supplementary files (SUBTITLE/IMAGE)

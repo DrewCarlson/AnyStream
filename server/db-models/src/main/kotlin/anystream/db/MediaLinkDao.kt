@@ -28,6 +28,7 @@ import anystream.models.StreamEncoding
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.datetime.Clock
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.length
@@ -63,27 +64,24 @@ class MediaLinkDao(
     }
 
     suspend fun updateMetadataIds(updateModels: List<MediaLinkMetadataUpdate>) {
+        val updateTime = Clock.System.now()
         val updates = updateModels.map { update ->
             db.update(MEDIA_LINK)
                 .set(MEDIA_LINK.METADATA_ID, update.metadataId)
                 .set(MEDIA_LINK.ROOT_METADATA_ID, update.rootMetadataId)
+                .set(MEDIA_LINK.UPDATED_AT, updateTime)
                 .where(MEDIA_LINK.ID.eq(update.mediaLinkId))
         }
         db.batch(updates).executeAsync().await()
     }
 
-    suspend fun updateMetadataIds(mediaLinkId: String, metadataId: String): Boolean {
-        return db.update(MEDIA_LINK)
-            .set(MEDIA_LINK.METADATA_ID, metadataId)
-            .where(MEDIA_LINK.ID.eq(mediaLinkId))
-            .awaitFirstOrNull() == 1
-    }
-
-    suspend fun updateRootMetadataIds(mediaLinkId: String, rootMetadataId: String): Boolean {
-        return db.update(MEDIA_LINK)
-            .set(MEDIA_LINK.ROOT_METADATA_ID, rootMetadataId)
-            .where(MEDIA_LINK.ID.eq(mediaLinkId))
-            .awaitFirstOrNull() == 1
+    suspend fun updateMetadataIds(update: MediaLinkMetadataUpdate) {
+        db.update(MEDIA_LINK)
+            .set(MEDIA_LINK.METADATA_ID, update.metadataId)
+            .set(MEDIA_LINK.ROOT_METADATA_ID, update.rootMetadataId)
+            .set(MEDIA_LINK.UPDATED_AT, Clock.System.now())
+            .where(MEDIA_LINK.ID.eq(update.mediaLinkId))
+            .awaitFirstOrNull()
     }
 
     suspend fun descriptorForId(mediaLinkId: String): Descriptor? {
