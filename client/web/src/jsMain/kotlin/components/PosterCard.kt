@@ -135,6 +135,7 @@ fun PosterCard(
                     attrs = {
                         classes("fade-in", "rounded", "h-100", "w-100")
                         attr("loading", "lazy")
+                        attr("decoding", "async")
                         style {
                             opacity(opacity)
                             backgroundColor(Color.transparent)
