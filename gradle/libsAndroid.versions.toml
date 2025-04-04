@@ -1,5 +1,5 @@
 [versions]
-zxing = "3.5.2"
+zxing = "3.5.3"
 anr_watchdog = "1.4.0"
 composeCompiler = "1.5.4"
 exoplayer = "2.19.1"
@@ -7,7 +7,7 @@ media3 = "1.6.0"
 ax_runner = "1.6.2"
 leakcanary = "2.14"
 koinAndroid = "4.0.4"
-koinAndroidxCompose = "4.0.0"
+koinAndroidxCompose = "4.0.4"
 
 okhttp = "5.0.0-alpha.14"
 
