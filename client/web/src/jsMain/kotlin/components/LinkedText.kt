@@ -26,23 +26,29 @@ import app.softwork.routingcompose.Router
 import org.jetbrains.compose.web.css.cursor
 import org.jetbrains.compose.web.css.overflow
 import org.jetbrains.compose.web.css.textDecoration
+import org.jetbrains.compose.web.dom.A
 import org.jetbrains.compose.web.dom.AttrBuilderContext
 import org.jetbrains.compose.web.dom.Div
+import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.HTMLDivElement
 
 @Composable
 fun LinkedText(
     url: String,
     router: Router = Router.current,
-    attrs: AttrBuilderContext<HTMLDivElement>? = null,
+    attrs: AttrBuilderContext<HTMLAnchorElement>? = null,
     content: @Composable () -> Unit,
 ) {
     var hovering by remember { mutableStateOf(false) }
-    Div({
+    A(url, {
         attrs?.invoke(this)
+        onClick {
+            it.preventDefault()
+            router.navigate(url)
+        }
         onMouseEnter { hovering = true }
         onMouseLeave { hovering = false }
-        onClick { router.navigate(url) }
+        classes("plain-link")
         style {
             cursor("pointer")
             textDecoration(if (hovering) "underline" else "none")
