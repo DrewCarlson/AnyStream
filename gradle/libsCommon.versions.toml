@@ -1,7 +1,7 @@
 [versions]
 kotlin = { strictly = "2.1.10" }
 coroutines = "1.10.1"
-serialization = "1.8.0"
+serialization = "1.8.1"
 ktorio = "3.1.2"
 ksp = "2.1.10-1.0.31"
 atomicfu = "0.27.0"
@@ -12,7 +12,7 @@ ktlint = "1.0.1"
 koin = "4.0.0"
 koinKtor = "4.0.0"
 agp = "8.7.3"
-kotest = "5.8.1"
+kotest = "5.9.1"
 
 [plugins]
 multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
@@ -23,7 +23,7 @@ kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 androidkt = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
-downloadPlugin = { id = "de.undercouch.download", version = "5.5.0" }
+downloadPlugin = { id = "de.undercouch.download", version = "5.6.0" }
 kotest = { id = "io.kotest.multiplatform", version.ref = "kotest" }
 atomicfu = { id = "org.jetbrains.kotlinx.atomicfu", version.ref = "atomicfu" }
 

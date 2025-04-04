@@ -1,10 +1,10 @@
 [versions]
-zxing = "3.5.2"
+zxing = "3.5.3"
 anr_watchdog = "1.4.0"
 compose = "1.7.8"
 compose_material = "1.7.8"
 compose_foundation = "1.7.8"
-composejb = "1.7.0"
+composejb = "1.7.3"
 exoplayer = "2.19.1"
 media3 = "1.6.0"
 ax_runner = "1.5.2"
@@ -15,12 +15,14 @@ objectstore = "0.2.0"
 
 vlc = "3.0.19"
 
+kotlinjs = "2025.4.4"
+
 [plugins]
 composejb = { id = "org.jetbrains.compose", version.ref = "composejb" }
 
 [libraries]
-kotlinjs-browser = { module = "org.jetbrains.kotlin-wrappers:kotlin-browser", version = "2025.4.3" }
-kotlinjs-web = { module = "org.jetbrains.kotlin-wrappers:kotlin-web", version = "2025.4.3" }
+kotlinjs-browser = { module = "org.jetbrains.kotlin-wrappers:kotlin-browser", version.ref = "kotlinjs" }
+kotlinjs-web = { module = "org.jetbrains.kotlin-wrappers:kotlin-web", version.ref = "kotlinjs" }
 
 anrWatchdog = { module = "com.github.anrwatchdog:anrwatchdog", version.ref = "anr_watchdog" }
 zxing-core = { module = "com.google.zxing:core", version.ref = "zxing" }
@@ -66,7 +68,7 @@ objectstore-secure = { module = "org.drewcarlson:objectstore-secure", version.re
 
 vlcj = { module = "uk.co.caprica:vlcj", version = "4.8.2" }
 
-jna = { module = "net.java.dev.jna:jna", version = "5.13.0" }
+jna = { module = "net.java.dev.jna:jna", version = "5.17.0" }
 
 [bundles]
 exoplayer = ["exoplayer-core", "exoplayer-ui", "exoplayer-hls"]

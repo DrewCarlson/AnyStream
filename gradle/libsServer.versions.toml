@@ -1,13 +1,13 @@
 [versions]
-qbittorrent = "1.0.0-rc01"
+qbittorrent = "1.0.0-rc02"
 jdbc_sqlite = "3.49.1.0"
-jooq = "3.20.2"
+jooq = "3.20.3"
 kjob = "0.6.0"
 bouncy_castle = "1.70"
 jaffree = "2023.09.10"
 logback = "1.5.18"
-koinKtor = "4.0.0"
-icu4j = "74.2"
+koinKtor = "4.0.4"
+icu4j = "77.1"
 mockk = "1.13.10"
 jooqGradle = "9.0"
 imageio = "3.12.0"
@@ -15,7 +15,7 @@ imageio = "3.12.0"
 [plugins]
 shadowjar = { id = "com.github.johnrengelman.shadow", version = "8.1.1" }
 jooq = { id = "nu.studer.jooq", version.ref = "jooqGradle" }
-flyway = { id = "org.flywaydb.flyway", version = "10.19.0" }
+flyway = { id = "org.flywaydb.flyway", version = "10.22.0" }
 
 [libraries]
 flyway-core = { module = "org.flywaydb:flyway-core", version = "10.19.0" }
@@ -29,7 +29,7 @@ kjob-core = { module = "org.drewcarlson:kjob-core", version.ref = "kjob" }
 qbittorrent-models = { module = "org.drewcarlson:qbittorrent-models", version.ref = "qbittorrent" }
 qbittorrent-client = { module = "org.drewcarlson:qbittorrent-client", version.ref = "qbittorrent" }
 
-torrentSearch = { module = "org.drewcarlson:torrentsearch", version = "0.8.0" }
+torrentSearch = { module = "org.drewcarlson:torrentsearch", version = "0.9.0" }
 
 jaffree = { module = "com.github.kokorin.jaffree:jaffree", version.ref = "jaffree" }
 
