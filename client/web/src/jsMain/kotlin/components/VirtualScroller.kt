@@ -25,15 +25,15 @@ import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.renderComposable
 import org.w3c.dom.HTMLDivElement
 import web.dom.document
-import web.dom.observers.ResizeObserver
-import web.dom.observers.ResizeObserverEntry
+import web.resize.ResizeObserver
+import web.resize.ResizeObserverEntry
 import kotlin.math.absoluteValue
 import kotlin.math.ceil
 import kotlin.random.Random
 
 private const val DEFAULT_BUFFER_PAGES = 1
 // TODO: Use a stable dynamic pool size selection
-private const val HOLDER_POOL_SIZE = 100
+private const val HOLDER_POOL_SIZE = 50
 
 private data class CompositionStateHolder<T>(
     val composition: Composition,
@@ -390,7 +390,7 @@ private fun <T> VirtualScroller(
                 (activeHolders.keys - itemSlice.flatten().toSet())
                     .mapNotNull(activeHolders::remove)
                     .take(HOLDER_POOL_SIZE - cachedHolders.size)
-                    .onEach { holder ->
+                    .forEach { holder ->
                         holder.itemState.value = null
                         cachedHolders.add(holder)
                     }

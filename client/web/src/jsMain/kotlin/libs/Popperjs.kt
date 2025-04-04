@@ -18,7 +18,7 @@
 package anystream.libs
 
 import androidx.compose.runtime.*
-import kotlinext.js.js
+import js.objects.jso
 import org.jetbrains.compose.web.css.Position
 import org.jetbrains.compose.web.css.position
 import org.jetbrains.compose.web.dom.AttrBuilderContext
@@ -147,7 +147,7 @@ fun popperFixedPosition(x: Int, y: Int): PopperVirtualElement {
     return object : PopperVirtualElement {
         override val contextElement: HTMLElement? = null
         override fun getBoundingClientRect(): dynamic {
-            return js @NoLiveLiterals {
+            return jso {
                 width = 0
                 height = 0
                 top = y
@@ -168,10 +168,11 @@ fun popperOptions(
     placement: String = "auto",
     // modifier: MutableList<PopperModifier> = mutableListOf(),
 ): PopperOptions {
-    @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
-    return js @NoLiveLiterals {
+    return jso {
         this.placement = placement
-    } as PopperOptions
+    }
 }
 
-external interface PopperOptions
+external interface PopperOptions {
+    var placement: String
+}

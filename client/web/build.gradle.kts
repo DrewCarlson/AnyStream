@@ -1,5 +1,4 @@
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
-import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig.*
 
 plugins {
@@ -73,23 +72,25 @@ kotlin {
                 implementation(libsClient.mobiuskt.compose)
                 implementation(libsClient.routingCompose)
 
-                implementation(libsClient.kotlinjs.extensions)
+                implementation(libsClient.kotlinjs.web)
                 implementation(libsClient.kotlinjs.browser)
-                implementation(devNpm("jquery", "3.6.4"))
-                implementation(devNpm("bootstrap", "5.3.0-alpha3"))
-                implementation(devNpm("bootstrap-icons", "1.10.4"))
-                implementation(devNpm("@fontsource/open-sans", "4.5.14"))
-                implementation(devNpm("@popperjs/core", "2.11.7"))
-                implementation(devNpm("video.js", "8.0.4"))
+                implementation(devNpm("jquery", "3.7.1"))
+                implementation(devNpm("bootstrap", "5.3.4"))
+                implementation(devNpm("bootstrap-icons", "1.11.3"))
+                implementation(devNpm("@fontsource/open-sans", "5.2.5"))
+                implementation(devNpm("@popperjs/core", "2.11.8"))
+                implementation(devNpm("video.js", "8.6.1"))
+                implementation(devNpm("@videojs/http-streaming", "3.15.0"))
+                implementation(devNpm("mux.js", "6.3.0"))
                 implementation(devNpm("webworkify-webpack-dropin", "1.1.9"))
-                implementation(devNpm("mini-css-extract-plugin", "2.7.5"))
+                implementation(devNpm("mini-css-extract-plugin", "2.9.2"))
                 implementation(devNpm("file-loader", "6.2.0"))
                 implementation(devNpm("webpack-bundle-analyzer", "4.8.0"))
-                implementation(devNpm("qrcode", "1.5.1"))
-                implementation(devNpm("sass", "1.62.0"))
-                implementation(devNpm("sass-loader", "13.2.2"))
-                implementation(devNpm("postcss-loader", "7.2.4"))
-                implementation(devNpm("autoprefixer", "10.4.14"))
+                implementation(devNpm("qrcode", "1.5.4"))
+                implementation(devNpm("sass", "1.86.3"))
+                implementation(devNpm("sass-loader", "16.0.5"))
+                implementation(devNpm("postcss-loader", "8.1.1"))
+                implementation(devNpm("autoprefixer", "10.4.21"))
             }
         }
     }

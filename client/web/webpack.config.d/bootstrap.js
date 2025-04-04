@@ -25,6 +25,13 @@ config.module.rules.push({
                 }
             }
         },
-        {loader: 'sass-loader'}
+        {
+            loader: 'sass-loader',
+            options: {
+                sassOptions: {
+                    silenceDeprecations: ['color-functions', 'global-builtin', 'import', 'mixed-decls'],
+                }
+            }
+        }
     ]
 });
