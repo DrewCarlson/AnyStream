@@ -91,6 +91,7 @@ kotlin {
                 implementation(devNpm("sass-loader", "16.0.5"))
                 implementation(devNpm("postcss-loader", "8.1.1"))
                 implementation(devNpm("autoprefixer", "10.4.21"))
+                implementation(devNpm("terser-webpack-plugin", "5.3.14"))
             }
         }
     }
