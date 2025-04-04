@@ -8,5 +8,6 @@ if (config.devServer) {
     }))
     config.devServer.historyApiFallback = true;
     config.devServer.hot = true;
+    config.devServer.proxy[0].ws = true;
     config.output.publicPath = '/';
 }

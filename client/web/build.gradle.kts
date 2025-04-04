@@ -38,8 +38,6 @@ kotlin {
                                 secure = anystreamUrl.startsWith("https"),
                                 context = mutableListOf("/api"),
                                 changeOrigin = true,
-                                //"rejectUnauthorzied" to false,
-                                //"ws" to true,
                             )
                         )
                     )
