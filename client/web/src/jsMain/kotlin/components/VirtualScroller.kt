@@ -18,13 +18,18 @@
 package anystream.components
 
 import androidx.compose.runtime.*
+import kotlinx.browser.document
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.web.ExperimentalComposeWebApi
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.AttrBuilderContext
+import org.jetbrains.compose.web.dom.DOMScope
 import org.jetbrains.compose.web.dom.Div
-import org.jetbrains.compose.web.renderComposable
+import org.jetbrains.compose.web.internal.runtime.*
+import org.w3c.dom.Element
 import org.w3c.dom.HTMLDivElement
-import web.dom.document
 import web.resize.ResizeObserver
 import web.resize.ResizeObserverEntry
 import kotlin.math.absoluteValue
@@ -32,6 +37,7 @@ import kotlin.math.ceil
 import kotlin.random.Random
 
 private const val DEFAULT_BUFFER_PAGES = 1
+
 // TODO: Use a stable dynamic pool size selection
 private const val HOLDER_POOL_SIZE = 50
 
@@ -55,8 +61,9 @@ fun <T> VerticalGridScroller(
     items: List<T>,
     scrollbars: Boolean = true,
     bufferPages: Int = DEFAULT_BUFFER_PAGES,
+    placeholderBody: (@Composable () -> Unit)? = null,
     attrs: AttrBuilderContext<HTMLDivElement>? = null,
-    buildItem: @Composable (T) -> Unit,
+    itemBody: @Composable (T) -> Unit,
 ) {
     VirtualScroller(
         items = items,
@@ -65,7 +72,8 @@ fun <T> VerticalGridScroller(
         direction = ScrollerDirection.Vertical,
         scrollbars = scrollbars,
         bufferPages = bufferPages,
-        buildItem = buildItem
+        placeholderBody = placeholderBody,
+        itemBody = itemBody
     )
 }
 
@@ -74,8 +82,9 @@ fun <T> HorizontalGridScroller(
     items: List<T>,
     scrollbars: Boolean = true,
     bufferPages: Int = DEFAULT_BUFFER_PAGES,
+    placeholderBody: (@Composable () -> Unit)? = null,
     attrs: AttrBuilderContext<HTMLDivElement>? = null,
-    buildItem: @Composable (T) -> Unit,
+    itemBody: @Composable (T) -> Unit,
 ) {
     VirtualScroller(
         items = items,
@@ -84,7 +93,8 @@ fun <T> HorizontalGridScroller(
         direction = ScrollerDirection.Horizontal,
         scrollbars = scrollbars,
         bufferPages = bufferPages,
-        buildItem = buildItem
+        placeholderBody = placeholderBody,
+        itemBody = itemBody
     )
 }
 
@@ -93,8 +103,9 @@ fun <T> VerticalScroller(
     items: List<T>,
     scrollbars: Boolean = true,
     bufferPages: Int = DEFAULT_BUFFER_PAGES,
+    placeholderBody: (@Composable () -> Unit)? = null,
     attrs: AttrBuilderContext<HTMLDivElement>? = null,
-    buildItem: @Composable (T) -> Unit,
+    itemBody: @Composable (T) -> Unit,
 ) {
     VirtualScroller(
         items = items,
@@ -103,7 +114,8 @@ fun <T> VerticalScroller(
         direction = ScrollerDirection.Vertical,
         scrollbars = scrollbars,
         bufferPages = bufferPages,
-        buildItem = buildItem
+        placeholderBody = placeholderBody,
+        itemBody = itemBody
     )
 }
 
@@ -112,8 +124,9 @@ fun <T> HorizontalScroller(
     items: List<T>,
     scrollbars: Boolean = true,
     bufferPages: Int = DEFAULT_BUFFER_PAGES,
+    placeholderBody: (@Composable () -> Unit)? = null,
     attrs: AttrBuilderContext<HTMLDivElement>? = null,
-    buildItem: @Composable (T) -> Unit,
+    itemBody: @Composable (T) -> Unit,
 ) {
     VirtualScroller(
         items = items,
@@ -122,7 +135,8 @@ fun <T> HorizontalScroller(
         direction = ScrollerDirection.Horizontal,
         scrollbars = scrollbars,
         bufferPages = bufferPages,
-        buildItem = buildItem
+        placeholderBody = placeholderBody,
+        itemBody = itemBody
     )
 }
 
@@ -177,6 +191,10 @@ private class VirtualScrollerImpl<T>(
         }
     }
 
+    /**
+     * Produce the first item index to display given the current container
+     * size, item size, and scroll offset.
+     */
     fun getRenderStartIndex(): Int {
         val (scrollOffsetX, scrollOffsetY) = scrollOffsetXY.value
         val (itemWidth, itemHeight) = itemSizeWH.value
@@ -268,6 +286,7 @@ private class VirtualScrollerImpl<T>(
     }
 }
 
+@OptIn(InternalComposeApi::class)
 @Composable
 private fun <T> VirtualScroller(
     items: List<T>,
@@ -276,7 +295,8 @@ private fun <T> VirtualScroller(
     direction: ScrollerDirection = ScrollerDirection.Vertical,
     layout: ScrollerLayout = ScrollerLayout.GRID,
     attrs: AttrBuilderContext<HTMLDivElement>? = null,
-    buildItem: @Composable (T) -> Unit,
+    placeholderBody: (@Composable () -> Unit)? = null,
+    itemBody: @Composable (T) -> Unit,
 ) {
     val scroller = remember { VirtualScrollerImpl<T>(layout, direction, bufferPages) }
     val containerSizeWH by produceState(
@@ -330,7 +350,7 @@ private fun <T> VirtualScroller(
         },
     ) {
         ObserverResize(
-            scroller.parentId,
+            id = scroller.parentId,
             onDisposed = {
                 scroller.viewportWH.value = 0 to 0
                 scroller.scrollOffsetXY.value = 0 to 0
@@ -344,28 +364,31 @@ private fun <T> VirtualScroller(
                 scroller.viewportWH.value = newWidth to newHeight
             }
         }
-        // Create an invisible dummy item to determine it's size
-        items.firstOrNull()?.also { item ->
-            Div(
-                {
-                    id(scroller.placeHolderId)
-                    style {
-                        position(Position.Absolute)
-                        opacity(0)
-                        property("z-index", -100)
-                        property("pointer-events", "none")
-                    }
-                },
-            ) {
-                buildItem(item)
-                ObserverResize(scroller.placeHolderId) { entry ->
-                    val (itemWidth, itemHeight) = scroller.itemSizeWH.value
-                    val newWidth = entry.contentRect.width.toInt()
-                    val newHeight = entry.contentRect.height.toInt()
+        Div(
+            {
+                id(scroller.placeHolderId)
+                style {
+                    position(Position.Absolute)
+                    opacity(0)
+                    property("z-index", -100)
+                    property("pointer-events", "none")
+                }
+            },
+        ) {
+            if (placeholderBody == null) {
+                // Create an invisible dummy item to determine it's size
+                val firstItem = remember(items) { items.firstOrNull() }
+                firstItem?.also { item -> itemBody(item) }
+            } else {
+                placeholderBody()
+            }
+            ObserverResize(scroller.placeHolderId) { entry ->
+                val (itemWidth, itemHeight) = scroller.itemSizeWH.value
+                val newWidth = entry.contentRect.width.toInt()
+                val newHeight = entry.contentRect.height.toInt()
 
-                    if (itemWidth != newWidth || itemHeight != newHeight) {
-                        scroller.itemSizeWH.value = newWidth to newHeight
-                    }
+                if (itemWidth != newWidth || itemHeight != newHeight) {
+                    scroller.itemSizeWH.value = newWidth to newHeight
                 }
             }
         }
@@ -382,7 +405,7 @@ private fun <T> VirtualScroller(
             // Holders with an item are associated by the item here
             val activeHolders = remember { mutableStateMapOf<T, CompositionStateHolder<T>>() }
             // Any unused holders are kept here, waiting for a new item
-            val cachedHolders = remember { mutableStateListOf<CompositionStateHolder<T>>() }
+            val cachedHolders = remember { ArrayDeque<CompositionStateHolder<T>>() }
 
             LaunchedEffect(itemSlice) {
                 // When the list of items to display changes, unbind any unused holders,
@@ -396,21 +419,48 @@ private fun <T> VirtualScroller(
                     }
             }
 
-            val compositionLocalContext = currentCompositionLocalContext
-            fun bindHolder(item: T, itemTop: Int, itemLeft: Int) {
-                if (document.getElementById(scroller.containerId) == null) {
-                    return
+            DisposableEffect(scroller.instanceId) {
+                onDispose {
+                    cachedHolders.forEach { holder ->
+                        holder.composition.dispose()
+                    }
+                    activeHolders.forEach { (_, holder) ->
+                        holder.composition.dispose()
+                    }
                 }
+            }
+
+            val compositionLocalContext = currentCompositionLocalContext
+            val parentComposer = currentComposer
+            val parentScope = remember { CoroutineScope(parentComposer.applyCoroutineContext) }
+            val recomposer = remember { Recomposer(parentScope.coroutineContext) }
+            LaunchedEffect(Unit) {
+                parentScope.launch(start = CoroutineStart.UNDISPATCHED) {
+                    recomposer.runRecomposeAndApplyChanges()
+                }
+            }
+            fun bindHolder(item: T, itemTop: Int, itemLeft: Int) {
                 // Find the active holder unless the content is unchanged,
                 // or pull one from the cache, otherwise create a new one.
                 val holder = activeHolders[item]
-                    ?: cachedHolders.removeFirstOrNull()
-                    ?: createHolder(scroller.containerId, compositionLocalContext, buildItem)
+                    ?: cachedHolders.removeLastOrNull()
 
-                activeHolders[item] = holder
-                holder.itemState.value = item
-                holder.itemTop.value = itemTop
-                holder.itemLeft.value = itemLeft
+                if (holder == null) {
+                    activeHolders[item] = createHolder(
+                        recomposer,
+                        scroller.containerId,
+                        compositionLocalContext,
+                        itemBody,
+                        item,
+                        itemTop,
+                        itemLeft,
+                    )
+                } else {
+                    activeHolders[item] = holder
+                    holder.itemState.value = item
+                    holder.itemTop.value = itemTop
+                    holder.itemLeft.value = itemLeft
+                }
             }
 
             // Determine where each item should be and bind a holder
@@ -473,14 +523,21 @@ private fun <T> VirtualScroller(
 
 @OptIn(ExperimentalComposeWebApi::class)
 private fun <T> createHolder(
+    recomposer: Recomposer,
     containerId: String,
     compositionLocalContext: CompositionLocalContext,
     buildItem: @Composable (T) -> Unit,
+    initialItem: T,
+    initialItemTop: Int,
+    initialItemLeft: Int,
 ): CompositionStateHolder<T> {
-    val itemTop = mutableStateOf(0)
-    val itemLeft = mutableStateOf(0)
-    val itemState = mutableStateOf<T?>(null)
-    val composition = renderComposable(containerId) {
+    val itemTop = mutableStateOf(initialItemTop)
+    val itemLeft = mutableStateOf(initialItemLeft)
+    val itemState = mutableStateOf<T?>(initialItem)
+    val composition = renderNestedComposable(
+        recomposer = recomposer,
+        root = document.getElementById(containerId)!!,
+    ) {
         CompositionLocalProvider(compositionLocalContext) {
             Div(
                 {
@@ -516,11 +573,31 @@ private fun ObserverResize(
         val observer = ResizeObserver { entries, _ ->
             entries.forEach(callback)
         }
-        val target = requireNotNull(document.getElementById(id))
+        val target = requireNotNull(web.dom.document.getElementById(id))
         observer.observe(target)
         onDispose {
             observer.unobserve(target)
             onDisposed()
         }
     }
+}
+
+@OptIn(ComposeWebInternalApi::class)
+private fun <TElement : Element> renderNestedComposable(
+    recomposer: Recomposer,
+    root: TElement,
+    content: @Composable DOMScope<TElement>.() -> Unit
+): Composition {
+    val composition = ControlledComposition(
+        applier = DomApplier(DomNodeWrapper(root)),
+        parent = recomposer
+    )
+    val scope = object : DOMScope<TElement> {
+        override val DisposableEffectScope.scopeElement: TElement
+            get() = root
+    }
+    composition.setContent @Composable {
+        content(scope)
+    }
+    return composition
 }
