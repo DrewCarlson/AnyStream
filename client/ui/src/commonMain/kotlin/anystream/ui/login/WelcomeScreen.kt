@@ -17,7 +17,6 @@
  */
 package anystream.ui.login
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,26 +33,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import anystream.ui.components.PrimaryButton
-import anystream.ui.generated.resources.Res
-import anystream.ui.generated.resources.welcome_bg
-import org.jetbrains.compose.resources.painterResource
 
 @Composable
 internal fun WelcomeScreen(onCtaClicked: () -> Unit) {
     Scaffold(modifier = Modifier.fillMaxSize()) {
         Box {
-            Image(
+            /*Image(
                 painter = painterResource(Res.drawable.welcome_bg),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize(),
-            )
+            )*/
 
             Spacer(
                 Modifier

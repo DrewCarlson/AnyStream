@@ -20,14 +20,6 @@
 - Securely share your library with friends and family
 - Find missing and newly released content for your collection
 
-<details>
-<summary>Screenshots</summary>
-
-![](docs/img/screenshot-android-home.png)
-![](docs/img/screenshot-web-home.png)
-
-</details>
-
 ### Project Structure
 
 - [server](server) &mdash; Web server for managing and streaming media built with [Ktor](https://github.com/ktorio/ktor)
