@@ -764,29 +764,29 @@ private fun SeekBar(
             property("transform", "translateY(-50%)")
         }
         onClick { event ->
-            val percent = event.offsetX / (event.target as HTMLDivElement).clientWidth
+            val percent = event.clientX.toDouble() / (event.target as HTMLDivElement).clientWidth
             player.currentTime(player.duration() * percent.toFloat())
         }
 
-        onMouseMove { event ->
-            val percent = event.offsetX / (event.target as HTMLDivElement).clientWidth
-            val progress = player.duration() * percent
-            mouseHoverProgress = if (progress.isNaN()) ZERO else progress.seconds
-            mouseHoverX = event.offsetX.toInt()
-            isThumbVisible = player.duration() > 0
-        }
+        onMouseUp { isMouseDown = false }
+        onMouseDown { isMouseDown = true }
         onMouseEnter {
             isThumbVisible = player.duration() > 0
         }
         onMouseLeave {
+            mouseHoverX = 0
+            mouseHoverProgress = ZERO
             isThumbVisible = false
             isMouseDown = false
         }
-        onMouseUp { isMouseDown = false }
-        onMouseDown { isMouseDown = true }
         onMouseMove { event ->
+            val percent = event.clientX.toDouble() / (event.target as HTMLDivElement).clientWidth
+            val progress = player.duration() * percent
+            mouseHoverProgress = if (progress.isNaN()) ZERO else progress.seconds
+            mouseHoverX = event.clientX
+            isThumbVisible = player.duration() > 0
+
             if (isMouseDown) {
-                val percent = event.offsetX / (event.target as HTMLDivElement).clientWidth
                 player.currentTime(player.duration() * percent.toFloat())
             }
         }
@@ -837,10 +837,10 @@ private fun SeekBar(
         DisposableEffect(Unit) {
             popperVirtualElement = object : PopperVirtualElement {
                 override val contextElement: HTMLElement = scopeElement
-                override fun getBoundingClientRect(): dynamic {
-                    return jso @NoLiveLiterals {
-                        this.right = mouseHoverX
-                        this.left = mouseHoverX
+                override fun getBoundingClientRect(): PopperRect {
+                    return jso {
+                        right = mouseHoverX
+                        left = mouseHoverX
                         width = 0
                         height = 0
                     }

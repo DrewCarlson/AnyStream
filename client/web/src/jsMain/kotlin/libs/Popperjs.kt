@@ -126,8 +126,10 @@ external class PopperState {
 external class PopperRect {
     var width: Int
     var height: Int
-    var x: Int
-    var y: Int
+    var top: Int
+    var bottom: Int
+    var right: Int
+    var left: Int
 }
 
 external class PopperStateRects {
@@ -136,7 +138,7 @@ external class PopperStateRects {
 }
 
 external interface PopperVirtualElement {
-    fun getBoundingClientRect(): dynamic
+    fun getBoundingClientRect(): PopperRect
     val contextElement: HTMLElement?
 }
 
@@ -146,7 +148,7 @@ external interface PopperVirtualElement {
 fun popperFixedPosition(x: Int, y: Int): PopperVirtualElement {
     return object : PopperVirtualElement {
         override val contextElement: HTMLElement? = null
-        override fun getBoundingClientRect(): dynamic {
+        override fun getBoundingClientRect(): PopperRect {
             return jso {
                 width = 0
                 height = 0
