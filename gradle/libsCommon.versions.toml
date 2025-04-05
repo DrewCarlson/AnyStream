@@ -10,7 +10,6 @@ datetime = "0.6.2"
 spotless = "6.22.0"
 ktlint = "1.0.1"
 koin = "4.0.4"
-koinKtor = "4.0.0"
 agp = "8.7.3"
 kotest = "5.9.1"
 
@@ -80,8 +79,6 @@ ktor-server-websockets = { module = "io.ktor:ktor-server-websockets", version.re
 ksp = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }
 
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
-koin-ktor = { module = "io.insert-koin:koin-ktor", version.ref = "koinKtor" }
-koin-slf4j = { module = "io.insert-koin:koin-logger-slf4j", version.ref = "koinKtor" }
 
 kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
 kotest-framework-engine = { module = "io.kotest:kotest-framework-engine", version.ref = "kotest" }

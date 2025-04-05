@@ -111,8 +111,8 @@ dependencies {
     implementation(libsServer.imageio.webp)
 
     implementation(libsCommon.koin.core)
-    implementation(libsCommon.koin.ktor)
-    implementation(libsCommon.koin.slf4j)
+    implementation(libsServer.koin.ktor)
+    implementation(libsServer.koin.slf4j)
 
     implementation(libsServer.qbittorrent.client)
     implementation(libsServer.torrentSearch)
