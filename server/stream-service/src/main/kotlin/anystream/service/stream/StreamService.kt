@@ -31,19 +31,19 @@ import com.github.kokorin.jaffree.ffmpeg.UrlOutput
 import com.github.kokorin.jaffree.ffprobe.FFprobe
 import com.github.kokorin.jaffree.process.CommandSender
 import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
 import kotlinx.datetime.Clock
 import org.slf4j.LoggerFactory
-import java.io.File
 import java.io.IOException
-import java.nio.file.FileSystems
+import java.nio.file.FileSystem
 import java.nio.file.Path
 import java.nio.file.StandardWatchEventKinds.ENTRY_CREATE
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
-import kotlin.io.path.name
+import kotlin.io.path.*
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.time.Duration
@@ -64,11 +64,12 @@ class StreamService(
     private val queries: StreamServiceQueries,
     private val ffmpeg: () -> FFmpeg,
     private val ffprobe: () -> FFprobe,
-    private val transcodePath: String,
+    private val transcodePath: Path,
+    private val fs: FileSystem,
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
     private val hlsPlaylistFactory = HlsPlaylistFactory()
-    private val scope = CoroutineScope(Dispatchers.IO + scope.coroutineContext)
+    private val scope = CoroutineScope(IO + scope.coroutineContext)
     private val sessionMap = ConcurrentHashMap<String, TranscodeSession>()
     private val transcodeJobs = ConcurrentHashMap<String, TranscodeJobHolder>()
     private val newPlaybackStates = ConcurrentHashMap<String, PlaybackState>()
@@ -119,7 +120,7 @@ class StreamService(
         val state = queries.fetchPlaybackState(mediaLinkId, userId)
         val mediaLink = checkNotNull(queries.fetchMediaLink(mediaLinkId))
         val fileAndMetadataId = mediaLink.filePath?.let { filePath ->
-            File(filePath) to checkNotNull(mediaLink.metadataId)
+            fs.getPath(filePath) to checkNotNull(mediaLink.metadataId)
         }
         val newState = if (create && state == null) {
             val (file, metadataId) = fileAndMetadataId ?: return null
@@ -139,7 +140,7 @@ class StreamService(
         }
         if (create && !sessionMap.containsKey(newState.id)) {
             val (file, _) = fileAndMetadataId ?: return null
-            val output = File("$transcodePath/${newState.id}/$mediaLinkId")
+            val output = transcodePath.resolve(newState.id).resolve(mediaLinkId)
             val runtimeSeconds = newState.runtime.seconds
             val positionSeconds = newState.position.seconds
             startTranscode(
@@ -164,27 +165,25 @@ class StreamService(
         if (position.seconds < REMEMBER_STATE_THRESHOLD) {
             return false
         }
-
-        return if (queries.updatePlaybackState(state.id, position)) {
-            true
-        } else {
-            queries.insertPlaybackState(
-                state.copy(
-                    position = position,
-                    updatedAt = Clock.System.now(),
-                ),
-            )
+        if (queries.updatePlaybackState(state.id, position)) {
+            return true
         }
+        return queries.insertPlaybackState(
+            state.copy(
+                position = position,
+                updatedAt = Clock.System.now(),
+            ),
+        )
     }
 
     suspend fun getPlaylist(mediaLinkId: String, token: String): String? {
         val mediaLink = queries.fetchMediaLink(mediaLinkId) ?: return null
-        val file = mediaLink.filePath?.run(::File) ?: return null
+        val file = mediaLink.filePath?.run(fs::getPath) ?: return null
 
         val runtime = getFileDuration(file).seconds
         val segmentDuration = DEFAULT_SEGMENT_DURATION
         if (!sessionMap.containsKey(token)) {
-            val output = File("$transcodePath/$mediaLinkId/$token")
+            val output = transcodePath.resolve(token).resolve(mediaLinkId)
             startTranscode(
                 token = token,
                 name = mediaLinkId,
@@ -204,18 +203,20 @@ class StreamService(
         )
     }
 
-    suspend fun getFilePathForSegment(token: String, segmentFile: String): String? {
+    suspend fun getFilePathForSegment(token: String, segmentFile: String): Path? {
         val session = sessionMap[token] ?: return null
         val segmentIndex = segmentFile
             .substringAfter("${session.mediaLinkId}-")
             .substringBefore(".ts")
             .toInt()
         setSegmentTarget(token, segmentIndex)
-        val output = File("${session.outputPath}/$segmentFile")
-        return if (output.exists()) output.absolutePath else null
+        return fs.getPath(session.outputPath)
+            .resolve(segmentFile)
+            .takeIf(Path::exists)
     }
 
     suspend fun stopSession(token: String, deleteOutput: Boolean) {
+        newPlaybackStates.remove(token)
         val session = sessionMap.remove(token) ?: return
         // Stop ffmpeg and associated file tracking if still running
         transcodeJobs.remove(token)?.cancel()
@@ -227,32 +228,37 @@ class StreamService(
         }
 
         if (deleteOutput) {
-            File(session.outputPath).delete()
+            val sessionDir = fs.getPath(session.outputPath)
+            if (sessionDir.exists() && sessionDir.isDirectory()) {
+                sessionDir.deleteRecursively()
+            }
         }
     }
 
-    fun stopTranscoding(token: String) {
+    private fun stopTranscoding(token: String) {
         transcodeJobs.remove(token)?.cancel()
         sessionMap.computeIfPresent(token) { _, session ->
             session.copy(state = TranscodeSession.State.IDLE)
         }
     }
 
-    private suspend fun getFileDuration(mediaFile: File): Double {
-        return Dispatchers.IO {
+    private suspend fun getFileDuration(mediaFile: Path): Double {
+        val probeData = withContext(IO) {
             ffprobe()
                 .setLogLevel(LogLevel.QUIET)
                 .setShowEntries("format=duration")
-                .setInput(mediaFile.toPath())
+                .setInput(mediaFile)
                 .execute()
-        }.data.getSubDataDouble("format", "duration")
+                .data
+        }
+        return probeData.getSubDataDouble("format", "duration")
     }
 
     private suspend fun startTranscode(
         token: String,
         name: String,
-        mediaFile: File,
-        outputDir: File,
+        mediaFile: Path,
+        outputDir: Path,
         runtime: Duration,
         segmentDuration: Duration,
         startAt: Duration = ZERO,
@@ -271,10 +277,7 @@ class StreamService(
             stopTranscoding(token)
         }
 
-        outputDir.apply {
-            mkdirs()
-            setWritable(true)
-        }
+        outputDir.createDirectories()
 
         val (segmentCount, lastSegmentDuration) =
             hlsPlaylistFactory.getSegmentCountAndFinalLength(runtime, segmentDuration)
@@ -329,8 +332,8 @@ class StreamService(
                 ) ?: TranscodeSession(
                     token = token,
                     mediaLinkId = name,
-                    mediaPath = mediaFile.absolutePath,
-                    outputPath = outputDir.absolutePath,
+                    mediaPath = mediaFile.absolutePathString(),
+                    outputPath = outputDir.absolutePathString(),
                     segmentCount = segmentCount,
                     ffmpegCommand = "",
                     runtime = runtime.toDouble(SECONDS),
@@ -361,19 +364,19 @@ class StreamService(
             addArguments("-hls_playlist_type", "vod")
             addArguments("-hls_list_size", "0")
             addArguments("-hls_segment_type", "mpegts")
-            addArguments("-hls_segment_filename", "${outputDir.absolutePath}/$name-%01d.ts")
+            addArguments("-hls_segment_filename", outputDir.resolve("$name-%01d.ts").absolutePathString())
             addArguments("-avoid_negative_ts", "0")
             addArguments("-vsync", "-1")
             addArgument("-copyts")
             addArgument("-start_at_zero")
             addInput(
-                UrlInput.fromPath(mediaFile.toPath()).apply {
+                UrlInput.fromPath(mediaFile).apply {
                     addArgument("-noaccurate_seek")
                     addArguments("-ss", startSeconds)
                 },
             )
             addOutput(
-                UrlOutput.toPath(File(outputDir, "$name.m3u8").toPath()).apply {
+                UrlOutput.toPath(outputDir.resolve("$name.m3u8")).apply {
                     setCodec(StreamType.VIDEO, "libx264")
                     setCodec(StreamType.AUDIO, "aac")
                     addArguments("-profile:v", "main")
@@ -398,8 +401,8 @@ class StreamService(
             ) ?: TranscodeSession(
                 token = token,
                 mediaLinkId = name,
-                mediaPath = mediaFile.absolutePath,
-                outputPath = outputDir.absolutePath,
+                mediaPath = mediaFile.absolutePathString(),
+                outputPath = outputDir.absolutePathString(),
                 segmentCount = segmentCount,
                 ffmpegCommand = command.buildCommandString(),
                 runtime = runtime.toDouble(SECONDS),
@@ -436,18 +439,18 @@ class StreamService(
 
     private fun createTranscodeJob(
         name: String,
-        outputDir: File,
+        outputDir: Path,
         token: String,
         command: FFmpeg,
     ): TranscodeJobHolder {
         val commandSender = CommandSender()
         val nameRegex = "$name-(\\d+)\\.ts\$".toRegex()
         val transcodeJob = scope.launch {
-            createSegmentWatcher(outputDir.toPath(), nameRegex)
+            createSegmentWatcher(outputDir, nameRegex)
                 .onEach { completedSegmentIndex ->
                     val currentSession = checkNotNull(sessionMap[token])
                     val endSegment = currentSession.endSegment
-                    logger.trace(
+                    logger.debug(
                         "Finished transcoding segment: {} of {} total={}, token={}",
                         completedSegmentIndex,
                         endSegment,
@@ -461,6 +464,7 @@ class StreamService(
                     }
                     val session = sessionMap.compute(token) { _, session ->
                         session?.copy(
+                            endSegment = maxOf(session.endSegment, completedSegmentIndex),
                             transcodedSegments = session.transcodedSegments + completedSegmentIndex,
                             lastTranscodedSegment = completedSegmentIndex,
                             state = if (pause) TranscodeSession.State.PAUSED else session.state,
@@ -478,11 +482,11 @@ class StreamService(
                 logger.debug("FFmpeg process completed: token={}", token)
             } catch (e: CancellationException) {
                 logger.debug("FFmpeg process cancelled: token={}", token)
-                throw e
             } catch (e: Throwable) {
                 logger.error("FFmpeg process failed: token=$token", e)
                 stopSession(token, false)
             } finally {
+                logger.debug("FFmpeg process is gone moving to IDLE: token={}", token)
                 sessionMap.compute(token) { _, session ->
                     session?.copy(state = TranscodeSession.State.IDLE)
                 }
@@ -492,10 +496,11 @@ class StreamService(
         return TranscodeJobHolder(transcodeJob, commandSender)
     }
 
-    private fun findExistingSegments(outputDir: File, name: String): List<Int> {
-        val segmentFiles = outputDir.listFiles()?.toList().orEmpty()
+    private fun findExistingSegments(outputDir: Path, name: String): List<Int> {
         val nameRegex = "$name-(\\d+)\\.ts\$".toRegex()
-        return segmentFiles.mapNotNull { nameRegex.find(it.name)?.groupValues?.last()?.toInt() }
+        return outputDir
+            .listDirectoryEntries()
+            .mapNotNull { nameRegex.find(it.name)?.groupValues?.lastOrNull()?.toInt() }
             .sorted()
     }
 
@@ -509,8 +514,8 @@ class StreamService(
         suspend fun restartTranscode() = startTranscode(
             token = session.token,
             name = session.mediaLinkId,
-            mediaFile = File(session.mediaPath),
-            outputDir = File(session.outputPath),
+            mediaFile = fs.getPath(session.mediaPath),
+            outputDir = fs.getPath(session.outputPath),
             runtime = runtime,
             segmentDuration = session.segmentLength.seconds,
             startAt = segmentTime,
@@ -582,7 +587,7 @@ class StreamService(
 
     private fun createSegmentWatcher(directory: Path, fileMatchRegex: Regex): Flow<Int> {
         return callbackFlow {
-            val watchService = FileSystems.getDefault().newWatchService()
+            val watchService = fs.newWatchService()
             directory.register(watchService, ENTRY_CREATE)
             while (isActive) {
                 val key = watchService.poll(2, TimeUnit.SECONDS)
@@ -604,7 +609,7 @@ class StreamService(
                     logger.error("Failed to close File Watch Service", e)
                 }
             }
-        }.distinctUntilChanged().flowOn(Dispatchers.IO)
+        }.distinctUntilChanged().flowOn(IO)
     }
 }
 
