@@ -20,14 +20,11 @@ package anystream.screens.settings
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
 import anystream.components.NavLink
+import anystream.models.*
 import anystream.models.api.EpisodeResponse
 import anystream.models.api.MovieResponse
-import anystream.models.PlaybackState
-import anystream.models.TranscodeSession
-import anystream.models.User
 import anystream.models.api.MediaLookupResponse
 import anystream.models.api.PlaybackSessions
-import anystream.models.toMediaItem
 import anystream.screens.settings.library.LibrariesScreen
 import anystream.screens.settings.library.MediaLinkListScreen
 import anystream.util.formatProgressAndRuntime
@@ -121,7 +118,7 @@ private fun ActiveStreamsList() {
 
 @Composable
 private fun PlaybackSessionCard(
-    user: User,
+    user: UserPublic,
     transcodeSession: TranscodeSession,
     mediaLookup: MediaLookupResponse,
     playbackState: PlaybackState,

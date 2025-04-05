@@ -19,13 +19,13 @@ package anystream.models.api
 
 import anystream.models.PlaybackState
 import anystream.models.TranscodeSession
-import anystream.models.User
+import anystream.models.UserPublic
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class PlaybackSessions(
     val playbackStates: List<PlaybackState> = emptyList(),
     val transcodeSessions: Map<String, TranscodeSession> = emptyMap(),
-    val users: Map<String, User> = emptyMap(),
+    val users: Map<String, UserPublic> = emptyMap(),
     val mediaLookups: Map<String, MediaLookupResponse> = emptyMap(),
 )

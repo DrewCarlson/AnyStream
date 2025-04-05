@@ -107,7 +107,7 @@ class StreamService(
         return PlaybackSessions(
             playbackStates = playbackStates,
             transcodeSessions = sessionMap,
-            users = users.associateBy(User::id),
+            users = users.map(User::toPublic).associateBy(UserPublic::id),
             mediaLookups = mediaLookups.filterValues { it != null } as Map<String, MediaLookupResponse>,
         )
     }
