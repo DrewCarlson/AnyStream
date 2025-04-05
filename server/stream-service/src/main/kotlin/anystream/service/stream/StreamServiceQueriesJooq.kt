@@ -27,6 +27,7 @@ import anystream.db.util.awaitFirstOrNullInto
 import anystream.models.*
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.datetime.Clock
 import org.jooq.DSLContext
 import org.slf4j.LoggerFactory
 
@@ -113,6 +114,7 @@ class StreamServiceQueriesJooq(
         return try {
             db.update(PLAYBACK_STATE)
                 .set(PLAYBACK_STATE.POSITION, position)
+                .set(PLAYBACK_STATE.UPDATED_AT, Clock.System.now())
                 .where(PLAYBACK_STATE.ID.eq(stateId))
                 .awaitFirstOrNull() == 1
         } catch (e: Throwable) {

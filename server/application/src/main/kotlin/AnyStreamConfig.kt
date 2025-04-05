@@ -27,7 +27,7 @@ import kotlin.io.path.exists
 
 class AnyStreamConfig(
     config: ApplicationConfig,
-    fs: FileSystem,
+    private val fs: FileSystem,
 ) {
 
     val disableWebClient: Boolean = config.property("app.disableWebClient").getString().toBoolean()
@@ -47,29 +47,34 @@ class AnyStreamConfig(
         "jdbc:sqlite:$databaseUrl"
     }
 
-    val transcodePath: String = config.property("app.transcodePath").getString()
-    val ffmpegPath: String = config.propertyOrNull("app.ffmpegPath")?.getString().let { path ->
-        val pathOrDefault = path.orEmpty().ifBlank { findInstalledFfmpeg() }
+    val transcodePath: Path = config.property("app.transcodePath").getString()
+        .run(fs::getPath)
+        .createDirectories()
+
+    val ffmpegPath: Path = config.propertyOrNull("app.ffmpegPath")?.getString().let { path ->
+        val pathOrDefault = path
+            ?.run(fs::getPath)
+            ?.takeIf { it.exists() }
+            ?: findInstalledFfmpeg()
         checkNotNull(pathOrDefault) {
             "Failed to find FFmpeg, please ensure `app.ffmpegPath` or `FFMPEG_PATH` is configured correctly."
         }
-        Path(pathOrDefault).absolutePathString()
+        pathOrDefault
     }
     val tmdbApiKey: String = config.property("app.tmdbApiKey").getString()
     val qbittorrentUrl: String = config.property("app.qbittorrentUrl").getString()
     val qbittorrentUser: String = config.property("app.qbittorrentUser").getString()
     val qbittorrentPass: String = config.property("app.qbittorrentPassword").getString()
 
-    private fun findInstalledFfmpeg(): String? {
+    private fun findInstalledFfmpeg(): Path? {
         return listOf(
             "/usr/bin",
             "/usr/local/bin",
             "/usr/lib/jellyfin-ffmpeg",
             "C:\\Program Files\\ffmpeg\\bin",
-        ).firstOrNull { path ->
-            Path(path).run {
-                exists() && (resolve("ffmpeg").exists() || resolve("ffmpeg.exe").exists())
+        ).map(fs::getPath)
+            .firstOrNull { path ->
+                path.exists() && (path.resolve("ffmpeg").exists() || path.resolve("ffmpeg.exe").exists())
             }
-        }
     }
 }

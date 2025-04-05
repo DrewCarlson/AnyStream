@@ -18,7 +18,7 @@
 package anystream.service.stream
 
 import org.slf4j.LoggerFactory
-import java.io.File
+import java.nio.file.Path
 import java.text.DecimalFormat
 import kotlin.math.ceil
 import kotlin.time.Duration
@@ -36,7 +36,7 @@ internal class HlsPlaylistFactory {
 
     fun createVariantPlaylist(
         name: String,
-        mediaFile: File,
+        mediaFile: Path,
         token: String,
         runtime: Duration,
         segmentDuration: Duration,

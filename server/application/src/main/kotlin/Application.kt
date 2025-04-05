@@ -104,8 +104,8 @@ fun Application.module(testing: Boolean = false) {
                 single { applicationScope }
                 single { fs }
 
-                factory { FFmpeg.atPath(Path.of(config.ffmpegPath)) }
-                factory { FFprobe.atPath(Path.of(config.ffmpegPath)) }
+                factory { FFmpeg.atPath(config.ffmpegPath) }
+                factory { FFprobe.atPath(config.ffmpegPath) }
 
                 single<DataSource> {
                     SQLiteConnectionPoolDataSource().apply {
@@ -172,7 +172,16 @@ fun Application.module(testing: Boolean = false) {
                 single { UserService(get(), get()) }
 
                 single<StreamServiceQueries> { StreamServiceQueriesJooq(get(), get(), get(), get(), get()) }
-                single { StreamService(get(), get(), { get() }, { get() }, get<AnyStreamConfig>().transcodePath) }
+                single {
+                    StreamService(
+                        scope = get(),
+                        queries = get(),
+                        ffmpeg = { get() },
+                        ffprobe = { get() },
+                        transcodePath = get<AnyStreamConfig>().transcodePath,
+                        fs = get(),
+                    )
+                }
                 single { SearchService(get(), get(), get()) }
             },
         )
