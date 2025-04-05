@@ -23,6 +23,9 @@ import org.jetbrains.compose.web.css.keywords.auto
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.I
 import org.jetbrains.compose.web.dom.Img
+import web.animations.awaitAnimationFrame
+
+private val EMPTY_IMG = "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=="
 
 @Composable
 fun PosterCard(
@@ -122,17 +125,21 @@ fun PosterCard(
             }
 
             var opacity by remember { mutableStateOf(0) }
-            val posterUrl: String by produceState("", metadataId) {
+            val isInCache = LocalInVirtualScrollCache.current
+            val posterUrl: String by produceState(EMPTY_IMG, metadataId, isInCache) {
                 opacity = 0
-                value = ""
-                if (!metadataId.isNullOrBlank()) {
+                if (isInCache) {
+                    value = EMPTY_IMG
+                } else {
+                    awaitAnimationFrame()
                     value = "/api/image/$metadataId/poster.jpg?width=300"
                 }
             }
             Div({ classes("bg-dark-translucent", "rounded", "h-100", "w-100") }) {
-                Img(
-                    src = posterUrl,
-                    attrs = {
+                if (posterUrl == EMPTY_IMG) {
+                    Img(EMPTY_IMG) { classes("rounded", "h-100", "w-100") }
+                } else {
+                    Img(src = posterUrl) {
                         classes("fade-in", "rounded", "h-100", "w-100")
                         attr("loading", "lazy")
                         attr("decoding", "async")
@@ -149,8 +156,8 @@ fun PosterCard(
                                 ref.onload = null
                             }
                         }
-                    },
-                )
+                    }
+                }
             }
         }
 

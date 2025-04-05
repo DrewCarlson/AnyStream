@@ -18,18 +18,12 @@
 package anystream.components
 
 import androidx.compose.runtime.*
-import kotlinx.browser.document
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.launch
 import org.jetbrains.compose.web.ExperimentalComposeWebApi
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.AttrBuilderContext
-import org.jetbrains.compose.web.dom.DOMScope
 import org.jetbrains.compose.web.dom.Div
-import org.jetbrains.compose.web.internal.runtime.*
-import org.w3c.dom.Element
 import org.w3c.dom.HTMLDivElement
+import web.animations.awaitAnimationFrame
 import web.resize.ResizeObserver
 import web.resize.ResizeObserverEntry
 import kotlin.math.absoluteValue
@@ -41,12 +35,19 @@ private const val DEFAULT_BUFFER_PAGES = 1
 // TODO: Use a stable dynamic pool size selection
 private const val HOLDER_POOL_SIZE = 50
 
-private data class CompositionStateHolder<T>(
-    val composition: Composition,
-    val itemTop: MutableState<Int>,
-    val itemLeft: MutableState<Int>,
-    val itemState: MutableState<T?>,
-)
+val LocalInVirtualScrollCache = compositionLocalOf { false }
+
+private data class ItemStateHolder<T>(
+    val state: MutableState<T?>,
+    val left: MutableState<Int>,
+    val top: MutableState<Int>,
+) {
+    constructor(item: T, top: Int, left: Int) : this(
+        state = mutableStateOf(item),
+        left = mutableStateOf(left),
+        top = mutableStateOf(top)
+    )
+}
 
 private enum class ScrollerDirection {
     Vertical, Horizontal;
@@ -160,6 +161,57 @@ private class VirtualScrollerImpl<T>(
         val (_, _) = itemSizeWH.value
         val (_, _) = viewportWH.value
         getRenderStartIndex()
+    }
+
+    // All State holders, inactive or cached, are stored here
+    val stateHolders = mutableStateListOf<ItemStateHolder<T>>()
+
+    // Holders with an item are associated by the item here
+    private val boundHolders = mutableMapOf<T, ItemStateHolder<T>>()
+
+    // Any unused holders are kept here, waiting for a new item
+    private val cachedHolders = ArrayDeque<ItemStateHolder<T>>()
+
+    fun bindHolder(item: T, top: Int, left: Int) {
+        // Find the active holder unless the content is unchanged,
+        // or pull one from the cache, otherwise create a new one.
+        val currentBinding = boundHolders[item]
+        val binding = if (currentBinding == null) {
+            val cachedHolder = cachedHolders.removeFirstOrNull()
+            if (cachedHolder == null) {
+                val newHolder = ItemStateHolder(item, top, left)
+                boundHolders[item] = newHolder
+                stateHolders.add(newHolder)
+                return
+            } else {
+                boundHolders[item] = cachedHolder
+                cachedHolder
+            }
+        } else {
+            currentBinding
+        }
+        binding.state.value = item
+        binding.top.value = top
+        binding.left.value = left
+    }
+
+    fun cacheUnusedStateHolders(itemSlice: List<List<T>>) {
+        // When the list of items to display changes, unbind any unused holders,
+        // returning them to the cache up to the max cache size.
+        (boundHolders.keys - itemSlice.flatten().toSet())
+            .mapNotNull(boundHolders::remove)
+            .forEach { holder ->
+                val remainingCacheSize = HOLDER_POOL_SIZE - cachedHolders.size
+                if (remainingCacheSize > 0) {
+                    // return to cache
+                    holder.state.value = null
+                    cachedHolders.add(holder)
+                } else {
+                    // no room in cache, dispose
+                    holder.state.value = null
+                    stateHolders.remove(holder)
+                }
+            }
     }
 
     fun calculateContainerSize(itemCount: Int): Pair<Int, Int> {
@@ -286,7 +338,6 @@ private class VirtualScrollerImpl<T>(
     }
 }
 
-@OptIn(InternalComposeApi::class)
 @Composable
 private fun <T> VirtualScroller(
     items: List<T>,
@@ -299,24 +350,7 @@ private fun <T> VirtualScroller(
     itemBody: @Composable (T) -> Unit,
 ) {
     val scroller = remember { VirtualScrollerImpl<T>(layout, direction, bufferPages) }
-    val containerSizeWH by produceState(
-        0 to 0,
-        items,
-        scroller.itemSizeWH.value,
-        scroller.viewportWH.value
-    ) {
-        value = scroller.calculateContainerSize(items.size)
-    }
 
-    val itemSlice by produceState(
-        emptyList<List<T>>(),
-        items,
-        scroller.renderItemStartIndex.value,
-        scroller.viewportWH.value,
-        scroller.itemSizeWH.value
-    ) {
-        value = scroller.getItemSlice(items)
-    }
     Div(
         {
             id(scroller.parentId)
@@ -396,121 +430,80 @@ private fun <T> VirtualScroller(
             {
                 id(scroller.containerId)
                 style {
-                    val (w, h) = containerSizeWH
+                    val (w, h) = scroller.calculateContainerSize(items.size)
                     width(w.px)
                     height(h.px)
                 }
             },
         ) {
-            // Holders with an item are associated by the item here
-            val activeHolders = remember { mutableStateMapOf<T, CompositionStateHolder<T>>() }
-            // Any unused holders are kept here, waiting for a new item
-            val cachedHolders = remember { ArrayDeque<CompositionStateHolder<T>>() }
-
-            LaunchedEffect(itemSlice) {
-                // When the list of items to display changes, unbind any unused holders,
-                // returning them to the cache up to the max cache size.
-                (activeHolders.keys - itemSlice.flatten().toSet())
-                    .mapNotNull(activeHolders::remove)
-                    .take(HOLDER_POOL_SIZE - cachedHolders.size)
-                    .forEach { holder ->
-                        holder.itemState.value = null
-                        cachedHolders.add(holder)
-                    }
+            scroller.stateHolders.forEach { holder ->
+                DrawHolder(
+                    holder = holder,
+                    itemBody = itemBody,
+                )
             }
 
-            DisposableEffect(scroller.instanceId) {
-                onDispose {
-                    cachedHolders.forEach { holder ->
-                        holder.composition.dispose()
-                    }
-                    activeHolders.forEach { (_, holder) ->
-                        holder.composition.dispose()
+            Div {
+                val itemSlice by remember {
+                    derivedStateOf {
+                        scroller.renderItemStartIndex.value
+                        scroller.viewportWH.value
+                        scroller.itemSizeWH.value
+                        scroller.getItemSlice(items)
                     }
                 }
-            }
 
-            val compositionLocalContext = currentCompositionLocalContext
-            val parentComposer = currentComposer
-            val parentScope = remember { CoroutineScope(parentComposer.applyCoroutineContext) }
-            val recomposer = remember { Recomposer(parentScope.coroutineContext) }
-            LaunchedEffect(Unit) {
-                parentScope.launch(start = CoroutineStart.UNDISPATCHED) {
-                    recomposer.runRecomposeAndApplyChanges()
-                }
-            }
-            fun bindHolder(item: T, itemTop: Int, itemLeft: Int) {
-                // Find the active holder unless the content is unchanged,
-                // or pull one from the cache, otherwise create a new one.
-                val holder = activeHolders[item]
-                    ?: cachedHolders.removeLastOrNull()
+                // Determine where each item should be and bind a holder
+                // to that item and position based on scroll offset.
+                val bufferedItemStartIndex by scroller.bufferedItemStartIndex
+                LaunchedEffect(itemSlice, scroller.itemSizeWH.value, bufferedItemStartIndex) {
+                    scroller.cacheUnusedStateHolders(itemSlice)
 
-                if (holder == null) {
-                    activeHolders[item] = createHolder(
-                        recomposer,
-                        scroller.containerId,
-                        compositionLocalContext,
-                        itemBody,
-                        item,
-                        itemTop,
-                        itemLeft,
-                    )
-                } else {
-                    activeHolders[item] = holder
-                    holder.itemState.value = item
-                    holder.itemTop.value = itemTop
-                    holder.itemLeft.value = itemLeft
-                }
-            }
-
-            // Determine where each item should be and bind a holder
-            // to that item and position based on scroll offset.
-            val bufferedItemStartIndex by scroller.bufferedItemStartIndex
-            LaunchedEffect(itemSlice, scroller.itemSizeWH.value, bufferedItemStartIndex) {
-                val (itemWidth, itemHeight) = scroller.itemSizeWH.value
-                when (layout) {
-                    ScrollerLayout.GRID -> {
-                        when (direction) {
-                            ScrollerDirection.Vertical -> {
-                                val base = bufferedItemStartIndex * itemHeight
-                                itemSlice.forEachIndexed { rowI, row ->
-                                    val itemTop = base + (rowI * itemHeight)
-                                    row.forEachIndexed { columnI, item ->
-                                        val itemLeft = (columnI * itemWidth)
-                                        bindHolder(item, itemTop, itemLeft)
+                    val (itemWidth, itemHeight) = scroller.itemSizeWH.value
+                    when (layout) {
+                        ScrollerLayout.GRID -> {
+                            when (direction) {
+                                ScrollerDirection.Vertical -> {
+                                    val base = bufferedItemStartIndex * itemHeight
+                                    itemSlice.forEachIndexed { rowI, row ->
+                                        val itemTop = base + (rowI * itemHeight)
+                                        row.forEachIndexed { columnI, item ->
+                                            val itemLeft = (columnI * itemWidth)
+                                            scroller.bindHolder(item, itemTop, itemLeft)
+                                        }
                                     }
                                 }
-                            }
 
-                            ScrollerDirection.Horizontal -> {
-                                val base = bufferedItemStartIndex * itemWidth
-                                itemSlice.forEachIndexed { columnI, row ->
-                                    val itemLeft = base + (columnI * itemWidth)
-                                    row.forEachIndexed { rowI, item ->
-                                        val itemTop = (rowI * itemHeight)
-                                        bindHolder(item, itemTop, itemLeft)
+                                ScrollerDirection.Horizontal -> {
+                                    val base = bufferedItemStartIndex * itemWidth
+                                    itemSlice.forEachIndexed { columnI, row ->
+                                        val itemLeft = base + (columnI * itemWidth)
+                                        row.forEachIndexed { rowI, item ->
+                                            val itemTop = (rowI * itemHeight)
+                                            scroller.bindHolder(item, itemTop, itemLeft)
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
 
-                    ScrollerLayout.LINEAR -> {
-                        val itemList = itemSlice.firstOrNull().orEmpty()
-                        when (direction) {
-                            ScrollerDirection.Vertical -> {
-                                val base = (bufferedItemStartIndex * itemHeight)
-                                itemList.forEachIndexed { index, item ->
-                                    val itemTop = base + (index * itemHeight)
-                                    bindHolder(item, itemTop, 0)
+                        ScrollerLayout.LINEAR -> {
+                            val itemList = itemSlice.firstOrNull().orEmpty()
+                            when (direction) {
+                                ScrollerDirection.Vertical -> {
+                                    val base = (bufferedItemStartIndex * itemHeight)
+                                    itemList.forEachIndexed { index, item ->
+                                        val itemTop = base + (index * itemHeight)
+                                        scroller.bindHolder(item, itemTop, 0)
+                                    }
                                 }
-                            }
 
-                            ScrollerDirection.Horizontal -> {
-                                val base = (bufferedItemStartIndex * itemWidth)
-                                itemList.forEachIndexed { index, item ->
-                                    val itemLeft = base + (index * itemWidth)
-                                    bindHolder(item, 0, itemLeft)
+                                ScrollerDirection.Horizontal -> {
+                                    val base = (bufferedItemStartIndex * itemWidth)
+                                    itemList.forEachIndexed { index, item ->
+                                        val itemLeft = base + (index * itemWidth)
+                                        scroller.bindHolder(item, 0, itemLeft)
+                                    }
                                 }
                             }
                         }
@@ -522,45 +515,50 @@ private fun <T> VirtualScroller(
 }
 
 @OptIn(ExperimentalComposeWebApi::class)
-private fun <T> createHolder(
-    recomposer: Recomposer,
-    containerId: String,
-    compositionLocalContext: CompositionLocalContext,
-    buildItem: @Composable (T) -> Unit,
-    initialItem: T,
-    initialItemTop: Int,
-    initialItemLeft: Int,
-): CompositionStateHolder<T> {
-    val itemTop = mutableStateOf(initialItemTop)
-    val itemLeft = mutableStateOf(initialItemLeft)
-    val itemState = mutableStateOf<T?>(initialItem)
-    val composition = renderNestedComposable(
-        recomposer = recomposer,
-        root = document.getElementById(containerId)!!,
+@Composable
+private fun <T> DrawHolder(
+    holder: ItemStateHolder<T>,
+    itemBody: @Composable (T) -> Unit,
+) {
+    val initial = remember { holder.state.value!! }
+    var isCached by remember { mutableStateOf(false) }
+    Div(
+        {
+            style {
+                position(Position.Absolute)
+                transform {
+                    translate(holder.left.value.px, holder.top.value.px)
+                }
+                property("will-change", "transform")
+                // Hide cached item
+                if (isCached) {
+                    visibility(VisibilityStyle.Hidden)
+                    property("z-index", -100)
+                    property("pointer-events", "none")
+                }
+            }
+        },
     ) {
-        CompositionLocalProvider(compositionLocalContext) {
-            Div(
-                {
-                    style {
-                        position(Position.Absolute)
-                        transform {
-                            translate(itemLeft.value.px, itemTop.value.px)
-                        }
-                        property("will-change", "transform")
-                        // Hide cached item
-                        if (itemState.value == null) {
-                            opacity(0)
-                            property("z-index", -100)
-                            property("pointer-events", "none")
-                        }
-                    }
-                },
-            ) {
-                itemState.value?.also { item -> buildItem(item) }
+        val currentItem by produceState(initial, holder.state.value) {
+            val newHolderValue = holder.state.value
+            if (newHolderValue != null && value != newHolderValue) {
+                isCached = true
+                awaitAnimationFrame()
+                value = newHolderValue
+                awaitAnimationFrame()
+                isCached = false
+            } else {
+                value = newHolderValue ?: value
+                awaitAnimationFrame()
+                isCached = newHolderValue == null
             }
         }
+        CompositionLocalProvider(
+            LocalInVirtualScrollCache provides isCached
+        ) {
+            itemBody(currentItem)
+        }
     }
-    return CompositionStateHolder(composition, itemTop, itemLeft, itemState)
 }
 
 @Composable
@@ -580,24 +578,4 @@ private fun ObserverResize(
             onDisposed()
         }
     }
-}
-
-@OptIn(ComposeWebInternalApi::class)
-private fun <TElement : Element> renderNestedComposable(
-    recomposer: Recomposer,
-    root: TElement,
-    content: @Composable DOMScope<TElement>.() -> Unit
-): Composition {
-    val composition = ControlledComposition(
-        applier = DomApplier(DomNodeWrapper(root)),
-        parent = recomposer
-    )
-    val scope = object : DOMScope<TElement> {
-        override val DisposableEffectScope.scopeElement: TElement
-            get() = root
-    }
-    composition.setContent @Composable {
-        content(scope)
-    }
-    return composition
 }
