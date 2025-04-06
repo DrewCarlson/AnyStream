@@ -19,6 +19,7 @@ package anystream.screens
 
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
+import anystream.components.LinkedText
 import anystream.libs.*
 import anystream.models.MediaItem
 import anystream.models.PlaybackState
@@ -82,7 +83,7 @@ fun PlayerScreen(mediaLinkId: String) {
         value = try {
             client.findMediaLink(mediaLinkId).let { (_, metadata) ->
                 (metadata as? MovieResponse)?.toMediaItem()
-                    ?: (metadata as? EpisodeResponse)?.toMediaItem()
+                    ?: (metadata as? EpisodeResponse)?.toMediaItem(concise = true)
             }
         } catch (e: Throwable) {
             null
@@ -301,6 +302,7 @@ fun PlayerScreen(mediaLinkId: String) {
                 progressScale = progressScale,
                 bufferedPercent = bufferedProgress,
                 overlayMode = !isInMiniMode.value,
+                enableMiniMode = { isInMiniMode.value = true },
             )
         }
     }
@@ -413,9 +415,9 @@ private fun PlaybackControls(
     mediaItem: State<MediaItem?>,
     progressScale: State<Double>,
     bufferedPercent: State<Double>,
+    enableMiniMode: () -> Unit,
     overlayMode: Boolean,
 ) {
-    val router = Router.current
     Div({
         classes("d-flex", "justify-content-between", "align-items-center", "w-100", "p-3")
         style {
@@ -439,25 +441,20 @@ private fun PlaybackControls(
                 flexBasis(33.percent)
             }
         }) {
-            var hovering by remember { mutableStateOf(false) }
             Div({
-                onMouseEnter { hovering = true }
-                onMouseLeave { hovering = false }
-                onClick {
-                    router.navigate("/media/${mediaItem.value?.mediaId}")
-                }
                 classes("overflow-hidden")
                 style {
                     whiteSpace("nowrap")
                     property("text-overflow", "ellipsis")
-                    cursor("pointer")
-                    if (hovering) {
-                        textDecoration("underline")
-                    }
                 }
             }) {
                 mediaItem.value?.run {
-                    Text(contentTitle)
+                    LinkedText(
+                        url = "/media/${rootMetadataId ?: mediaId}",
+                        afterClick = enableMiniMode,
+                    ) {
+                        Text(contentTitle)
+                    }
                 }
             }
             Div({
@@ -468,10 +465,36 @@ private fun PlaybackControls(
             }) {
                 mediaItem.value?.apply {
                     if (!subtitle1.isNullOrBlank() && !subtitle2.isNullOrBlank()) {
-                        Text("$subtitle1 · $subtitle2")
+                        LinkedText(
+                            url = "/media/${parentMetadataId}",
+                            afterClick = enableMiniMode,
+                        ) {
+                            Text("$subtitle1")
+                        }
+                        Text(" · ")
+                        LinkedText(
+                            url = "/media/${mediaId}",
+                            afterClick = enableMiniMode,
+                        ) {
+                            Text("$subtitle2")
+                        }
                     } else {
-                        subtitle1?.also { subtitle -> Text(subtitle) }
-                        subtitle2?.also { subtitle -> Text(subtitle) }
+                        subtitle1?.also { subtitle ->
+                            LinkedText(
+                                url = "/media/${mediaId}",
+                                afterClick = enableMiniMode,
+                            ) {
+                                Text(subtitle)
+                            }
+                        }
+                        subtitle2?.also { subtitle ->
+                            LinkedText(
+                                url = "/media/${parentMetadataId}",
+                                afterClick = enableMiniMode,
+                            ) {
+                                Text(subtitle)
+                            }
+                        }
                     }
                 }
             }

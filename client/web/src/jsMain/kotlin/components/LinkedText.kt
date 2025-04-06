@@ -36,6 +36,7 @@ import org.w3c.dom.HTMLDivElement
 fun LinkedText(
     url: String,
     router: Router = Router.current,
+    afterClick: (() -> Unit)? = null,
     attrs: AttrBuilderContext<HTMLAnchorElement>? = null,
     content: @Composable () -> Unit,
 ) {
@@ -45,6 +46,7 @@ fun LinkedText(
         onClick {
             it.preventDefault()
             router.navigate(url)
+            afterClick?.invoke()
         }
         onMouseEnter { hovering = true }
         onMouseLeave { hovering = false }

@@ -37,6 +37,9 @@ data class MediaItem(
     val tmdbRating: Int? = null,
     val contentRating: String? = null,
     val runtime: Int? = null,
+    val parentMetadataId: String? = null,
+    val rootMetadataId: String? = null,
+    val mediaType: MediaType,
 ) {
     val playableMediaLink: MediaLink? =
         mediaLinks.firstOrNull {
@@ -76,6 +79,7 @@ fun MovieResponse.toMediaItem(): MediaItem {
         tmdbRating = movie.tmdbRating,
         runtime = movie.runtime,
         contentRating = movie.contentRating,
+        mediaType = MediaType.MOVIE,
     )
 }
 
@@ -90,20 +94,32 @@ fun TvShowResponse.toMediaItem(): MediaItem {
         genres = tvShow.genres,
         tmdbRating = tvShow.tmdbRating,
         contentRating = tvShow.contentRating,
+        mediaType = MediaType.TV_SHOW,
     )
 }
 
-fun EpisodeResponse.toMediaItem(): MediaItem {
+fun EpisodeResponse.toMediaItem(concise: Boolean = false): MediaItem {
     return MediaItem(
         mediaId = episode.id,
         contentTitle = show.name,
         overview = episode.overview,
-        subtitle1 = "Season ${episode.seasonNumber}",
-        subtitle2 = "Episode ${episode.number} · ${episode.name}",
         releaseDate = episode.airDate,
         mediaLinks = mediaLinks,
-        wide = true,
         playbackState = playbackState,
+        wide = true,
+        parentMetadataId = episode.seasonId,
+        rootMetadataId = show.id,
+        mediaType = MediaType.TV_EPISODE,
+        subtitle1 = if (concise) {
+            "S${episode.seasonNumber}"
+        } else {
+            "Season ${episode.seasonNumber}"
+        },
+        subtitle2 = if (concise) {
+            "E${episode.number} - ${episode.name}"
+        } else {
+            "Episode ${episode.number} - ${episode.name}"
+        },
     )
 }
 
@@ -116,5 +132,8 @@ fun SeasonResponse.toMediaItem(): MediaItem {
         releaseDate = season.airDate,
         mediaLinks = emptyList(),
         playbackState = playbackState,
+        parentMetadataId = show.id,
+        rootMetadataId = show.id,
+        mediaType = MediaType.TV_SEASON,
     )
 }

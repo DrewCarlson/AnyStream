@@ -150,6 +150,7 @@ private fun ContinueWatchingRow(
                         releaseDate = movie.releaseDate,
                         subtitle1 = movie.releaseDate?.split("-")?.first(),
                         overview = "",
+                        mediaType = MediaType.TV_EPISODE
                     )
                     WatchingCard(mediaItem, playbackState, onClick)
                 }
@@ -162,6 +163,7 @@ private fun ContinueWatchingRow(
                         subtitle1 = episode.name,
                         subtitle2 = "S${episode.seasonNumber} · E${episode.number}",
                         overview = "",
+                        mediaType = MediaType.TV_EPISODE
                     )
                     WatchingCard(mediaItem, playbackState, onClick)
                 }

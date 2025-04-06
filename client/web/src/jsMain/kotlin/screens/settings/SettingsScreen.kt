@@ -126,7 +126,7 @@ private fun PlaybackSessionCard(
     val mediaItem = remember {
         checkNotNull(
             (mediaLookup as? MovieResponse)?.toMediaItem()
-                ?: (mediaLookup as? EpisodeResponse)?.toMediaItem()
+                ?: (mediaLookup as? EpisodeResponse)?.toMediaItem(concise = true)
         )
     }
     Div(

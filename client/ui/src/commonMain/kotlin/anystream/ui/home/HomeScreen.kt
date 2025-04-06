@@ -46,11 +46,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import anystream.client.AnyStreamClient
-import anystream.models.MediaItem
-import anystream.models.MediaLink
-import anystream.models.Movie
-import anystream.models.PlaybackState
-import anystream.models.TvShow
+import anystream.models.*
 import anystream.models.api.CurrentlyWatching
 import anystream.models.api.HomeResponse
 import anystream.router.BackStack
@@ -199,6 +195,7 @@ private fun ContinueWatchingRow(
                         subtitle1 = episode.name,
                         subtitle2 = "S${episode.seasonNumber} · E${episode.number}",
                         overview = "",
+                        mediaType = MediaType.TV_EPISODE,
                     )
                     WatchingCard(mediaItem, playbackState, onClick)
                 }
