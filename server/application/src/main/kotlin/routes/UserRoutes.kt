@@ -29,7 +29,6 @@ import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.UnprocessableEntity
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -38,7 +37,6 @@ import io.ktor.server.sessions.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.delay
-import kotlinx.serialization.encodeToString
 import org.drewcarlson.ktor.permissions.withAnyPermission
 import java.util.*
 import kotlin.time.Duration.Companion.seconds
@@ -166,7 +164,7 @@ fun Route.addUserRoutes(
         authenticate {
             withAnyPermission(Permission.Global) {
                 get {
-                    call.respond(userService.getUsers())
+                    call.respond(userService.getUsers().map(User::toPublic))
                 }
             }
 
@@ -174,7 +172,7 @@ fun Route.addUserRoutes(
                 withAnyPermission(Permission.Global) {
                     get {
                         val userId = call.parameters["user_id"]!!
-                        call.respond(userService.getUser(userId) ?: NotFound)
+                        call.respond(userService.getUser(userId)?.toPublic() ?: NotFound)
                     }
                 }
 

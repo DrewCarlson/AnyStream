@@ -21,7 +21,7 @@ import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
 import anystream.models.InviteCode
 import anystream.models.Permission
-import anystream.models.User
+import anystream.models.UserPublic
 import anystream.util.get
 import kotlinx.browser.document
 import kotlinx.browser.window
@@ -39,7 +39,7 @@ import org.w3c.dom.get
 @Composable
 fun UserManagerScreen() {
     val client = get<AnyStreamClient>()
-    val usersState = produceState(emptyList<User>()) {
+    val users by produceState(emptyList<UserPublic>()) {
         value = client.getUsers()
     }
     Div({ classes("d-flex", "flex-column", "pt-2", "ps-2") }) {
@@ -65,16 +65,16 @@ fun UserManagerScreen() {
                 gap(10.px)
             }
         }) {
-            usersState.value.forEach { user ->
+            users.forEach { user ->
                 UserRow(user)
             }
         }
     }
-    InviteCodeDialog(usersState.value)
+    InviteCodeDialog(users)
 }
 
 @Composable
-private fun UserRow(user: User) {
+private fun UserRow(user: UserPublic) {
     Div({
         classes("d-flex", "flex-column", "p-3", "rounded")
         style {
@@ -87,7 +87,7 @@ private fun UserRow(user: User) {
 }
 
 @Composable
-private fun InviteCodeDialog(users: List<User>) {
+private fun InviteCodeDialog(users: List<UserPublic>) {
     val client = get<AnyStreamClient>()
     val scope = rememberCoroutineScope()
     var inviteCodesState by remember {
@@ -180,7 +180,7 @@ private fun CreateInviteCodeGroup(createInviteCode: (Set<Permission>) -> Unit) {
 
 @Composable
 private fun InviteCodeTable(
-    inviteCodeMap: Map<User?, List<InviteCode>>,
+    inviteCodeMap: Map<UserPublic?, List<InviteCode>>,
     deleteInviteCode: (InviteCode) -> Unit,
 ) {
     Div({
@@ -217,7 +217,7 @@ private fun InviteCodeHeaderRow() {
 
 @Composable
 private fun InviteCodeRow(
-    user: User?,
+    user: UserPublic?,
     inviteCode: InviteCode,
     deleteInviteCode: (InviteCode) -> Unit,
 ) {

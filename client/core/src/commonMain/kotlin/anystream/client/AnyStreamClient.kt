@@ -457,11 +457,11 @@ class AnyStreamClient(
         }
     }
 
-    suspend fun getUser(id: String): User {
+    suspend fun getUser(id: String): UserPublic {
         return http.get("$serverUrl/api/users/$id").bodyOrThrow()
     }
 
-    suspend fun getUsers(): List<User> {
+    suspend fun getUsers(): List<UserPublic> {
         return http.get("$serverUrl/api/users").bodyOrThrow()
     }
 
