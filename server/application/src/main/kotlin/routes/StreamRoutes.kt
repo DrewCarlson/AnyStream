@@ -132,7 +132,7 @@ fun Route.addStreamWsRoutes(
 ) {
     webSocket("/ws/stream/{mediaLinkId}/state") {
         val session = checkNotNull(extractUserSession())
-        check(Permission.check(Permission.ConfigureSystem, session.permissions))
+        check(Permission.check(Permission.ViewCollection, session.permissions))
         val userId = session.userId
         val mediaLinkId = call.parameters["mediaLinkId"]!!
 
