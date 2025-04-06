@@ -30,7 +30,6 @@ import anystream.playerMediaLinkId
 import anystream.util.formatProgressAndRuntime
 import anystream.util.formatted
 import anystream.util.get
-import app.softwork.routingcompose.Router
 import io.ktor.client.fetch.*
 import js.objects.jso
 import kotlinx.browser.document
@@ -39,7 +38,6 @@ import kotlinx.coroutines.await
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.transformLatest
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
@@ -58,28 +56,34 @@ fun PlayerScreen(mediaLinkId: String) {
     val client = get<AnyStreamClient>()
     var player: VjsPlayer? by remember { mutableStateOf(null) }
     var playerIsPlaying by remember { mutableStateOf(false) }
-    val isInMiniMode = remember { mutableStateOf(false) }
+    var isInMiniMode by remember { mutableStateOf(false) }
+    var isFullscreen by remember { mutableStateOf(document.fullscreenElement != null) }
+    var setFullscreen by remember { mutableStateOf<((Boolean) -> Unit)?>(null) }
+    var duration by remember { mutableStateOf(1.0) }
+    var bufferedProgress by remember { mutableStateOf(0.0) }
+    var progress by remember { mutableStateOf(0.0) }
+    val progressScale by remember { derivedStateOf { progress / duration } }
     val mouseMoveFlow = remember {
         MutableSharedFlow<Unit>(
             replay = 1,
             onBufferOverflow = BufferOverflow.DROP_OLDEST,
         )
     }
-    val isMouseOnPlayer by mouseMoveFlow
-        .transformLatest {
-            emit(true)
-            delay(CONTROL_HIDE_DELAY)
-            emit(false)
-        }
-        .distinctUntilChanged()
-        .collectAsState(false)
+    val isMouseOnPlayer by remember {
+        mouseMoveFlow
+            .transformLatest {
+                emit(true)
+                delay(CONTROL_HIDE_DELAY)
+                emit(false)
+            }
+    }.collectAsState(false)
     val areControlsVisible by remember {
         derivedStateOf {
             isMouseOnPlayer || !playerIsPlaying
         }
     }
     var sessionHandle by remember { mutableStateOf<AnyStreamClient.PlaybackSessionHandle?>(null) }
-    val mediaItem = produceState<MediaItem?>(null) {
+    val mediaItem by produceState<MediaItem?>(null) {
         value = try {
             client.findMediaLink(mediaLinkId).let { (_, metadata) ->
                 (metadata as? MovieResponse)?.toMediaItem()
@@ -104,15 +108,9 @@ fun PlayerScreen(mediaLinkId: String) {
             sessionHandle = null
         }
     }
-    val isFullscreen = remember { mutableStateOf(document.fullscreenElement != null) }
-    val setFullscreen = remember { mutableStateOf<((Boolean) -> Unit)?>(null) }
-    var duration by remember { mutableStateOf(1.0) }
-    var progress by remember { mutableStateOf(0.0) }
-    val progressScale = remember { derivedStateOf { progress / duration } }
-    val bufferedProgress = remember { mutableStateOf(0.0) }
     Div({
         classes("w-100")
-        if (isInMiniMode.value) {
+        if (isInMiniMode) {
             classes("d-flex")
         } else {
             classes("position-absolute", "h-100", "overflow-hidden")
@@ -122,16 +120,16 @@ fun PlayerScreen(mediaLinkId: String) {
             backgroundColor(playerControlsColor)
         }
         ref { element ->
-            setFullscreen.value = { fullscreen ->
+            setFullscreen = { fullscreen ->
                 if (fullscreen) element.requestFullscreen() else document.exitFullscreen()
-                isFullscreen.value = fullscreen
+                isFullscreen = fullscreen
             }
             onDispose {
-                setFullscreen.value = null
+                setFullscreen = null
             }
         }
     }) {
-        if (isInMiniMode.value) {
+        if (isInMiniMode) {
             Div({
                 classes("position-absolute", "w-100")
                 style {
@@ -144,24 +142,24 @@ fun PlayerScreen(mediaLinkId: String) {
             }
         }
 
-        val miniPlayerHeight = remember { mutableStateOf(100) }
-        val miniPlayerWidth = remember { derivedStateOf { (miniPlayerHeight.value * 1.7777f).toInt() } }
+        val miniPlayerHeight by remember { mutableStateOf(100.px) }
+        val miniPlayerWidth by remember { derivedStateOf { (miniPlayerHeight * 1.7777f) } }
         Div({
-            if (isInMiniMode.value) {
+            if (isInMiniMode) {
                 classes("flex-shrink-0", "m-2", "shadow")
                 style {
-                    width(miniPlayerWidth.value.px)
-                    height(miniPlayerHeight.value.px)
+                    width(miniPlayerWidth)
+                    height(miniPlayerHeight)
                 }
             } else {
                 classes("h-100", "w-100")
             }
         }) {
-            if (isInMiniMode.value) {
+            if (isInMiniMode) {
                 MiniModeOverlay(
-                    isInMiniMode = isInMiniMode,
-                    miniPlayerHeight = miniPlayerHeight,
-                    miniPlayerWidth = miniPlayerWidth,
+                    width = miniPlayerWidth,
+                    height = miniPlayerHeight,
+                    onExitMiniMode = { isInMiniMode = false },
                 )
             }
             /*val posterPath by remember {
@@ -186,11 +184,11 @@ fun PlayerScreen(mediaLinkId: String) {
                 onTouchStart { mouseMoveFlow.tryEmit(Unit) }
                 onTouchMove { mouseMoveFlow.tryEmit(Unit) }
                 onDoubleClick {
-                    setFullscreen.value?.invoke(document.fullscreenElement == null)
+                    setFullscreen?.invoke(document.fullscreenElement == null)
                 }
                 ref { element ->
                     window.document.onmousemove = {
-                        if (!isInMiniMode.value) {
+                        if (!isInMiniMode) {
                             mouseMoveFlow.tryEmit(Unit)
                         }
                     }
@@ -212,7 +210,7 @@ fun PlayerScreen(mediaLinkId: String) {
                             .maxOfOrNull { span -> span.endInclusive }
                             ?.div(element.duration)
 
-                        bufferedProgress.value = closestBufferProgress ?: 0.0
+                        bufferedProgress = closestBufferProgress ?: 0.0
                         true
                     }
                     element.onloadedmetadata = {
@@ -253,12 +251,12 @@ fun PlayerScreen(mediaLinkId: String) {
             }
         }
 
-        if (!isInMiniMode.value) {
+        if (!isInMiniMode) {
             MaxPlayerTopBar(
-                isInMiniMode,
-                areControlsVisible,
-                isFullscreen,
-                setFullscreen,
+                areControlsVisible = areControlsVisible,
+                isFullscreen = isFullscreen,
+                onToggleFullscreen = { setFullscreen?.invoke(!isFullscreen) },
+                onToggleMiniMode = { isInMiniMode = !isInMiniMode }
             )
 
             if (!playerIsPlaying) {
@@ -301,8 +299,8 @@ fun PlayerScreen(mediaLinkId: String) {
                 mediaItem = mediaItem,
                 progressScale = progressScale,
                 bufferedPercent = bufferedProgress,
-                overlayMode = !isInMiniMode.value,
-                enableMiniMode = { isInMiniMode.value = true },
+                overlayMode = !isInMiniMode,
+                onEnterMiniMode = { isInMiniMode = true },
             )
         }
     }
@@ -310,26 +308,24 @@ fun PlayerScreen(mediaLinkId: String) {
 
 @Composable
 private fun MiniModeOverlay(
-    isInMiniMode: MutableState<Boolean>,
-    miniPlayerHeight: State<Int>,
-    miniPlayerWidth: State<Int>,
+    width: CSSpxValue,
+    height: CSSpxValue,
+    onExitMiniMode: () -> Unit
 ) {
     var isVisible by remember { mutableStateOf(false) }
     Div({
         classes("position-absolute", "d-flex", "justify-content-center", "align-items-center")
         style {
             property("z-index", "1")
-            width(miniPlayerWidth.value.px)
-            height(miniPlayerHeight.value.px)
+            width(width)
+            height(height)
             backgroundColor(rgba(0, 0, 0, .6))
             cursor("pointer")
             opacity(if (isVisible) 100 else 0)
         }
         onMouseEnter { isVisible = true }
         onMouseLeave { isVisible = false }
-        onClick {
-            isInMiniMode.value = false
-        }
+        onClick { onExitMiniMode() }
     }) {
         I({ classes("bi", "bi-chevron-up", "user-select-none") })
     }
@@ -337,10 +333,10 @@ private fun MiniModeOverlay(
 
 @Composable
 private fun MaxPlayerTopBar(
-    isInMiniMode: MutableState<Boolean>,
     areControlsVisible: Boolean,
-    isFullscreen: State<Boolean>,
-    setFullscreen: State<((Boolean) -> Unit)?>,
+    isFullscreen: Boolean,
+    onToggleFullscreen: () -> Unit,
+    onToggleMiniMode: () -> Unit,
 ) {
     Div({
         classes(
@@ -366,13 +362,11 @@ private fun MaxPlayerTopBar(
         Div({
             style {
                 cursor("pointer")
-                if (isFullscreen.value) {
+                if (isFullscreen) {
                     opacity(0)
                 }
             }
-            onClick {
-                isInMiniMode.value = !isInMiniMode.value
-            }
+            onClick { onToggleMiniMode() }
         }) {
             I({
                 classes("bi", "bi-chevron-down", "user-select-none")
@@ -386,14 +380,14 @@ private fun MaxPlayerTopBar(
                 cursor("pointer")
             }
             onClick {
-                setFullscreen.value?.invoke(!isFullscreen.value)
+                onToggleFullscreen()
             }
         }) {
             I({
                 classes(
                     "user-select-none",
                     "bi",
-                    if (isFullscreen.value) {
+                    if (isFullscreen) {
                         "bi-arrows-angle-contract"
                     } else {
                         "bi-arrows-angle-expand"
@@ -412,10 +406,10 @@ private fun PlaybackControls(
     areControlsVisible: Boolean,
     player: VjsPlayer,
     mediaLinkId: String,
-    mediaItem: State<MediaItem?>,
-    progressScale: State<Double>,
-    bufferedPercent: State<Double>,
-    enableMiniMode: () -> Unit,
+    mediaItem: MediaItem?,
+    progressScale: Double,
+    bufferedPercent: Double,
+    onEnterMiniMode: () -> Unit,
     overlayMode: Boolean,
 ) {
     Div({
@@ -441,40 +435,35 @@ private fun PlaybackControls(
                 flexBasis(33.percent)
             }
         }) {
-            Div({
-                classes("overflow-hidden")
-                style {
-                    whiteSpace("nowrap")
-                    property("text-overflow", "ellipsis")
-                }
-            }) {
-                mediaItem.value?.run {
-                    LinkedText(
-                        url = "/media/${rootMetadataId ?: mediaId}",
-                        afterClick = enableMiniMode,
-                    ) {
-                        Text(contentTitle)
-                    }
+            mediaItem?.run {
+                LinkedText(
+                    url = "/media/${rootMetadataId ?: mediaId}",
+                    afterClick = onEnterMiniMode,
+                    singleLine = true,
+                ) {
+                    Text(contentTitle)
                 }
             }
             Div({
-                classes("d-flex", "justify-content-start", "align-items-start")
+                classes("d-flex", "justify-content-start", "align-items-center")
                 style {
                     gap(10.px)
                 }
             }) {
-                mediaItem.value?.apply {
+                mediaItem?.apply {
                     if (!subtitle1.isNullOrBlank() && !subtitle2.isNullOrBlank()) {
                         LinkedText(
                             url = "/media/${parentMetadataId}",
-                            afterClick = enableMiniMode,
+                            afterClick = onEnterMiniMode,
+                            singleLine = true,
                         ) {
                             Text("$subtitle1")
                         }
                         Text(" · ")
                         LinkedText(
                             url = "/media/${mediaId}",
-                            afterClick = enableMiniMode,
+                            afterClick = onEnterMiniMode,
+                            singleLine = true,
                         ) {
                             Text("$subtitle2")
                         }
@@ -482,7 +471,8 @@ private fun PlaybackControls(
                         subtitle1?.also { subtitle ->
                             LinkedText(
                                 url = "/media/${mediaId}",
-                                afterClick = enableMiniMode,
+                                afterClick = onEnterMiniMode,
+                                singleLine = true,
                             ) {
                                 Text(subtitle)
                             }
@@ -490,7 +480,8 @@ private fun PlaybackControls(
                         subtitle2?.also { subtitle ->
                             LinkedText(
                                 url = "/media/${parentMetadataId}",
-                                afterClick = enableMiniMode,
+                                afterClick = onEnterMiniMode,
+                                singleLine = true,
                             ) {
                                 Text(subtitle)
                             }
@@ -498,7 +489,7 @@ private fun PlaybackControls(
                     }
                 }
             }
-            val playProgressString = remember(progressScale.value) {
+            val playProgressString = remember(progressScale) {
                 if (player.currentTime().isNaN() || player.duration().isNaN()) {
                     return@remember ""
                 }
@@ -756,8 +747,8 @@ private fun PlaybackControls(
 private fun SeekBar(
     player: VjsPlayer,
     mediaLinkId: String,
-    progressScale: State<Double>,
-    bufferedPercent: State<Double>,
+    progressScale: Double,
+    bufferedPercent: Double,
 ) {
     val client = get<AnyStreamClient>()
     var isThumbVisible by remember { mutableStateOf(false) }
@@ -819,7 +810,7 @@ private fun SeekBar(
             style {
                 opacity(if (isThumbVisible) 1 else 0)
                 color(Color.white)
-                marginLeft((progressScale.value * 100).percent)
+                marginLeft((progressScale * 100).percent)
                 fontSize(12.px)
                 property("z-index", "1")
                 property("transform", "translate(-50%, -50%)")
@@ -841,7 +832,7 @@ private fun SeekBar(
                     backgroundColor(Color("#C7081C"))
                     opacity(.5)
                     property("pointer-events", "none")
-                    property("transform", "scaleX(${bufferedPercent.value})")
+                    property("transform", "scaleX(${bufferedPercent})")
                     property("transform-origin", "left")
                     property("transition", "transform .1s")
                 }
@@ -851,7 +842,7 @@ private fun SeekBar(
                 style {
                     backgroundColor(Color("#C7081C"))
                     property("pointer-events", "none")
-                    property("transform", "scaleX(${progressScale.value})")
+                    property("transform", "scaleX(${progressScale})")
                     property("transform-origin", "left")
                     property("transition", "transform .1s")
                 }

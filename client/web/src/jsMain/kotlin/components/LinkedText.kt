@@ -26,17 +26,17 @@ import app.softwork.routingcompose.Router
 import org.jetbrains.compose.web.css.cursor
 import org.jetbrains.compose.web.css.overflow
 import org.jetbrains.compose.web.css.textDecoration
+import org.jetbrains.compose.web.css.whiteSpace
 import org.jetbrains.compose.web.dom.A
 import org.jetbrains.compose.web.dom.AttrBuilderContext
-import org.jetbrains.compose.web.dom.Div
 import org.w3c.dom.HTMLAnchorElement
-import org.w3c.dom.HTMLDivElement
 
 @Composable
 fun LinkedText(
     url: String,
     router: Router = Router.current,
     afterClick: (() -> Unit)? = null,
+    singleLine: Boolean = false,
     attrs: AttrBuilderContext<HTMLAnchorElement>? = null,
     content: @Composable () -> Unit,
 ) {
@@ -56,6 +56,9 @@ fun LinkedText(
             textDecoration(if (hovering) "underline" else "none")
             property("text-overflow", "ellipsis")
             overflow("hidden")
+            if (singleLine) {
+                whiteSpace("nowrap")
+            }
         }
     }) {
         content()
