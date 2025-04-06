@@ -17,131 +17,37 @@
  */
 package anystream.android
 
-import android.content.pm.PackageManager
 import android.os.Bundle
+import androidx.activity.addCallback
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.unit.dp
-import anystream.android.router.*
-import anystream.android.ui.*
-import anystream.client.AnyStreamClient
-import anystream.routing.*
-import anystream.ui.LocalAnyStreamClient
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
-import org.koin.android.ext.android.inject
+import anystream.router.BackPressHandler
+import anystream.router.LocalBackPressHandler
+import anystream.ui.App
 
 class LeanbackActivity : MainActivity()
 open class MainActivity : AppCompatActivity() {
-    private val backPressHandler = BackPressHandler()
-
-    private val androidRouter: AndroidRouter by inject()
-    private val client: AnyStreamClient by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val backPressHandler = BackPressHandler()
+        onBackPressedDispatcher.addCallback(this) {
+            if (!backPressHandler.handle()) {
+                finish()
+            }
+        }
         setContent {
-            val scope = rememberCoroutineScope()
             CompositionLocalProvider(
                 LocalBackPressHandler provides backPressHandler,
-                LocalAnyStreamClient provides client,
             ) {
-                AppTheme {
-                    BundleScope(savedInstanceState) {
-                        val defaultRoute = when {
-                            !client.isAuthenticated() -> Routes.Login
-                            else -> Routes.Home
-                        }
-                        Router(defaultRouting = defaultRoute) { stack ->
-                            LaunchedEffect(stack) {
-                                androidRouter.setBackStack(stack)
-                            }
-                            remember {
-                                client.authenticated
-                                    .onEach { authed ->
-                                        val isLoginRoute = stack.last() == Routes.Login
-                                        if (authed && isLoginRoute) {
-                                            stack.replace(Routes.Home)
-                                        } else if (!authed && !isLoginRoute) {
-                                            stack.replace(Routes.Login)
-                                        }
-                                    }
-                                    .launchIn(scope)
-                            }
-                            when (val route = stack.last()) {
-                                Routes.Welcome,
-                                Routes.Login,
-                                    -> LoginScreen(client, androidRouter)
-
-                                Routes.Home -> HomeScreen(
-                                    client = client,
-                                    backStack = stack,
-                                    onMediaClick = { mediaLinkId ->
-                                        if (mediaLinkId != null) {
-                                            stack.push(Routes.Player(mediaLinkId))
-                                        }
-                                    },
-                                    onViewMoviesClicked = {
-                                        stack.push(Routes.Movies)
-                                    },
-                                )
-
-                                Routes.Movies -> MoviesScreen(
-                                    client = client,
-                                    onMediaClick = { mediaLinkId ->
-                                        if (mediaLinkId != null) {
-                                            stack.replace(Routes.Player(mediaLinkId))
-                                        }
-                                    },
-                                    backStack = stack,
-                                )
-
-                                is Routes.Details -> TODO("Details route not implemented")
-                                Routes.Tv -> TODO("Tv route not implemented")
-                                Routes.PairingScanner -> PairingScanner(
-                                    client = client,
-                                    backStack = stack,
-                                )
-
-                                is Routes.Player -> PlayerScreen(client, route.mediaLinkId)
-                            }
-                        }
-                    }
-                }
+                App()
             }
         }
     }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.saveLocal()
-    }
-
-    override fun onBackPressed() {
-        if (!backPressHandler.handle()) {
-            super.onBackPressed()
-        }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        androidRouter.setBackStack(null)
-    }
 }
 
-@Composable
+/*@Composable
 fun AppTopBar(client: AnyStreamClient?, backStack: BackStack<Routes>?) {
     TopAppBar {
         val scope = rememberCoroutineScope()
@@ -188,4 +94,4 @@ fun AppTopBar(client: AnyStreamClient?, backStack: BackStack<Routes>?) {
             }
         }
     }
-}
+}*/

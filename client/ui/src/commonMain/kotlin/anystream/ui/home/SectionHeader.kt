@@ -21,9 +21,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,9 +47,9 @@ internal fun SectionHeader(
             TextButton(onClick = onCtaClicked) {
                 Text(
                     text = ctaText,
-                    style = MaterialTheme.typography.body1.copy(
+                    style = MaterialTheme.typography.bodyLarge.copy(
                         fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colors.primary,
+                        color = MaterialTheme.colorScheme.primary,
                         letterSpacing = 0.2.sp,
                     ),
                 )
@@ -62,7 +62,7 @@ internal fun SectionHeader(
 private fun RowTitle(text: String) {
     Text(
         text = text,
-        style = MaterialTheme.typography.h5,
+        style = MaterialTheme.typography.headlineSmall,
         modifier = Modifier.padding(vertical = 8.dp),
     )
 }

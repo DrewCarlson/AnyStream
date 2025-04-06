@@ -18,16 +18,10 @@
 package anystream.ui.login
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,7 +35,11 @@ import anystream.ui.components.PrimaryButton
 
 @Composable
 internal fun WelcomeScreen(onCtaClicked: () -> Unit) {
-    Scaffold(modifier = Modifier.fillMaxSize()) {
+    Scaffold(
+        modifier = Modifier
+            .windowInsetsPadding(WindowInsets.systemBars)
+            .fillMaxSize()
+    ) {
         Box {
             /*Image(
                 painter = painterResource(Res.drawable.welcome_bg),
@@ -72,12 +70,12 @@ internal fun WelcomeScreen(onCtaClicked: () -> Unit) {
             ) {
                 Text(
                     text = "Welcome to AnyStream",
-                    style = MaterialTheme.typography.h2.copy(textAlign = TextAlign.Center),
+                    style = MaterialTheme.typography.displayMedium.copy(textAlign = TextAlign.Center),
                 )
 
                 Text(
-                    text = "Your private streaming service.",
-                    style = MaterialTheme.typography.h6.copy(
+                    text = "Your personal streaming service.",
+                    style = MaterialTheme.typography.titleLarge.copy(
                         lineHeight = 25.2.sp,
                         fontWeight = FontWeight.Medium,
                         textAlign = TextAlign.Center,

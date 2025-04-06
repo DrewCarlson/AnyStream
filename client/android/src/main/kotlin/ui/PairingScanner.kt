@@ -23,8 +23,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
-import anystream.android.router.BackStack
 import anystream.client.AnyStreamClient
+import anystream.router.BackStack
 import anystream.routing.Routes
 import io.github.g00fy2.quickie.QRResult
 import io.github.g00fy2.quickie.ScanQRCode

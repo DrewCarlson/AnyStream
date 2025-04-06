@@ -29,15 +29,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.lifecycle.DefaultLifecycleObserver
-import androidx.lifecycle.LifecycleOwner
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.ui.PlayerView
+import androidx.media3.ui.compose.PlayerSurface
+import androidx.media3.ui.compose.modifiers.resizeWithContentScale
+import androidx.media3.ui.compose.state.rememberPresentationState
 import anystream.client.AnyStreamClient
 import anystream.models.PlaybackState
 import kotlinx.coroutines.Dispatchers
@@ -58,12 +57,13 @@ internal actual fun VideoPlayer(
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    val lifecycle = LocalLifecycleOwner.current.lifecycle
     val client = koinInject<AnyStreamClient>()
 
     var window by rememberSaveable { mutableStateOf(0) }
     var position by rememberSaveable { mutableStateOf(0L) }
     val player = remember { ExoPlayer.Builder(context).build() }
+    val presentationState = rememberPresentationState(player)
+    val scaledModifier = Modifier.resizeWithContentScale(ContentScale.Fit, presentationState.videoSizeDp)
     LaunchedEffect(player) {
         player.apply {
             var updateStateJob: Job? = null
@@ -86,6 +86,9 @@ internal actual fun VideoPlayer(
             playWhenReady = isPlaying
             prepare()
         }
+    }
+    LaunchedEffect(isPlaying, player) {
+        player.playWhenReady = isPlaying
     }
     produceState<PlaybackState?>(null) {
         val initialState = MutableStateFlow<PlaybackState?>(null)
@@ -122,28 +125,6 @@ internal actual fun VideoPlayer(
         position = player.contentPosition.coerceAtLeast(0L)
     }
 
-    val playerView = remember { PlayerView(context).apply { useController = false } }
-    LaunchedEffect(playerView) {
-        playerView.apply {
-            lifecycle.addObserver(
-                object : DefaultLifecycleObserver {
-                    override fun onStart(owner: LifecycleOwner) {
-                        super.onStart(owner)
-                        onResume()
-                        player.playWhenReady = isPlaying
-                    }
-
-                    override fun onStop(owner: LifecycleOwner) {
-                        super.onStop(owner)
-                        updateState()
-                        onPause()
-                        player.playWhenReady = false
-                    }
-                },
-            )
-        }
-    }
-
     DisposableEffect(Unit) {
         onDispose {
             updateState()
@@ -151,7 +132,10 @@ internal actual fun VideoPlayer(
         }
     }
 
-    AndroidView(factory = { playerView }, modifier = Modifier.fillMaxSize()) {
-        playerView.player = player
-    }
+    PlayerSurface(
+        player = player,
+        modifier = modifier
+            .then(scaledModifier)
+            .fillMaxSize()
+    )
 }

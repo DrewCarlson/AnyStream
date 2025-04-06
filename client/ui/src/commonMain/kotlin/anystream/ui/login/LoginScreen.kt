@@ -21,31 +21,14 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
-import androidx.compose.material.TextFieldDefaults
-import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -82,15 +65,16 @@ import anystream.ui.generated.resources.ic_discovery
 import anystream.ui.generated.resources.ic_message
 import anystream.ui.generated.resources.logo_login
 import kt.mobius.SimpleLogger
-import kt.mobius.compose.rememberMobiusLoop
+import kt.mobius.compose.rememberMobiusLoopLocal
 import kt.mobius.flow.FlowMobius
 import kt.mobius.functions.Consumer
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun LoginScreen(client: AnyStreamClient, router: SharedRouter) {
-    val (modelState, eventConsumer) = rememberMobiusLoop(
+    val (modelState, eventConsumer) = rememberMobiusLoopLocal(
         LoginScreenModel.create(client.serverUrl, supportsPairing = false),
         LoginScreenInit
     ) {
@@ -101,19 +85,27 @@ internal fun LoginScreen(client: AnyStreamClient, router: SharedRouter) {
     }
 
     Scaffold(
+        modifier = Modifier
+            .windowInsetsPadding(WindowInsets.systemBars),
         topBar = {
-            TopAppBar(backgroundColor = Color.Transparent, elevation = 0.dp) {
-                IconButton(
-                    onClick = { router.popCurrentRoute() },
-                    content = {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = MaterialTheme.colors.onBackground,
-                        )
-                    },
-                )
-            }
+            TopAppBar(
+                title = {},
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
+                ),
+                navigationIcon = {
+                    IconButton(
+                        onClick = { router.popCurrentRoute() },
+                        content = {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                tint = MaterialTheme.colorScheme.onBackground,
+                            )
+                        },
+                    )
+                }
+            )
         },
     ) { padding ->
         val imePadding = with(LocalDensity.current) {
@@ -140,8 +132,9 @@ internal fun LoginScreen(client: AnyStreamClient, router: SharedRouter) {
             )
             Text(
                 text = "Login to Your Account",
-                style = MaterialTheme.typography.h3.copy(textAlign = TextAlign.Center),
+                style = MaterialTheme.typography.displaySmall,
                 modifier = Modifier.padding(vertical = 16.dp),
+                textAlign = TextAlign.Center,
             )
             FormBody(modelState.value, eventConsumer, padding)
         }
@@ -187,7 +180,10 @@ internal fun FormBody(
         Spacer(Modifier.height(24.dp))
         AutofillInput(
             autofillTypes = listOf(AutofillType.EmailAddress, AutofillType.Username),
-            onFill = { eventConsumer.accept(LoginScreenEvent.OnUsernameChanged(it)) },
+            onFill = {
+                usernameValue = TextFieldValue(it)
+                eventConsumer.accept(LoginScreenEvent.OnUsernameChanged(it))
+            },
         ) { node ->
             val autofill = LocalAutofill.current
             OutlineTextField(
@@ -221,7 +217,10 @@ internal fun FormBody(
 
         AutofillInput(
             autofillTypes = listOf(AutofillType.Password),
-            onFill = { eventConsumer.accept(LoginScreenEvent.OnPasswordChanged(it)) },
+            onFill = {
+                passwordValue = TextFieldValue(it)
+                eventConsumer.accept(LoginScreenEvent.OnPasswordChanged(it))
+            },
         ) { node ->
             val autofill = LocalAutofill.current
             OutlineTextField(
@@ -274,9 +273,9 @@ private fun ColumnScope.ErrorText(
     ) {
         Text(
             text = "$label ${errorText.lowercase()}",
-            style = MaterialTheme.typography.subtitle2,
+            style = MaterialTheme.typography.titleSmall,
             modifier = Modifier.padding(top = 4.dp),
-            color = MaterialTheme.colors.error,
+            color = MaterialTheme.colorScheme.error,
         )
     }
 }
@@ -298,7 +297,7 @@ private fun OutlineTextField(
         placeholder = {
             Text(
                 text = placeHolder,
-                style = MaterialTheme.typography.body2.copy(
+                style = MaterialTheme.typography.bodyMedium.copy(
                     letterSpacing = 0.2.sp,
                     fontWeight = FontWeight.SemiBold,
                 ),
@@ -306,7 +305,7 @@ private fun OutlineTextField(
             )
         },
         onValueChange = onValueChange,
-        textStyle = MaterialTheme.typography.body2.copy(
+        textStyle = MaterialTheme.typography.bodyMedium.copy(
             letterSpacing = 0.2.sp,
             fontWeight = FontWeight.SemiBold,
         ),
@@ -322,12 +321,15 @@ private fun OutlineTextField(
         shape = RoundedCornerShape(12.dp),
         singleLine = true,
         isError = isError,
-        colors = TextFieldDefaults.outlinedTextFieldColors(
-            focusedBorderColor = MaterialTheme.colors.onBackground,
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = MaterialTheme.colorScheme.onBackground,
             unfocusedBorderColor = Color.Transparent,
-            backgroundColor = if (isError) Color(0x14E21221) else Color(0xFF1F222A),
-            textColor = MaterialTheme.colors.onBackground,
-            errorLeadingIconColor = MaterialTheme.colors.error,
+            errorContainerColor = Color(0x14E21221),
+            unfocusedContainerColor = Color(0xFF1F222A),
+            focusedLabelColor = Color(0xFF1F222A),
+            focusedTextColor = MaterialTheme.colorScheme.onBackground,
+            unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+            errorLeadingIconColor = MaterialTheme.colorScheme.error,
         ),
     )
 }

@@ -39,6 +39,7 @@ import io.ktor.serialization.kotlinx.json.*
 import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.CancellationException
 import io.ktor.websocket.*
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.*
@@ -409,7 +410,7 @@ class AnyStreamClient(
         }.orThrow()
     }
 
-    suspend fun playbackSession(
+    fun playbackSession(
         mediaLinkId: String,
         init: (state: PlaybackState) -> Unit,
     ): PlaybackSessionHandle {
@@ -418,20 +419,25 @@ class AnyStreamClient(
         val progressFlow = MutableSharedFlow<Double>(0, 1, BufferOverflow.DROP_OLDEST)
         val mutex = Mutex(locked = true)
         scope.launch {
-            http.wss("$serverUrlWs/api/ws/stream/$mediaLinkId/state") {
-                send(sessionManager.fetchToken()!!)
-                val playbackState = receiveDeserialized<PlaybackState>()
-                currentState.value = playbackState
-                init(playbackState)
-                progressFlow
-                    .sample(5000)
-                    .distinctUntilChanged()
-                    .onEach { progress ->
-                        currentState.update { it?.copy(position = progress) }
-                        sendSerialized(currentState.value!!)
-                    }
-                    .launchIn(this)
-                mutex.withLock { close() }
+            try {
+                http.wss("$serverUrlWs/api/ws/stream/$mediaLinkId/state") {
+                    send(sessionManager.fetchToken()!!)
+                    val playbackState = receiveDeserialized<PlaybackState>()
+                    currentState.value = playbackState
+                    init(playbackState)
+                    progressFlow
+                        .sample(5000)
+                        .distinctUntilChanged()
+                        .onEach { progress ->
+                            currentState.update { it?.copy(position = progress) }
+                            sendSerialized(currentState.value!!)
+                        }
+                        .launchIn(this)
+                    mutex.withLock { close() }
+                }
+            } catch (e: Throwable) {
+                if (e is CancellationException) throw e
+                e.printStackTrace()
             }
             scope.cancel()
         }

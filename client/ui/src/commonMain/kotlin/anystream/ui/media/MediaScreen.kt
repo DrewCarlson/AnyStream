@@ -34,19 +34,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
-import androidx.compose.material.Card
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -63,7 +55,6 @@ import anystream.models.*
 import anystream.models.api.*
 import anystream.router.BackStack
 import anystream.routing.Routes
-import anystream.ui.LocalAnyStreamClient
 import anystream.ui.components.PosterCard
 import anystream.ui.util.cardWidth
 import coil3.compose.AsyncImagePainter
@@ -239,7 +230,7 @@ private fun BaseDetailsView(
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "",
-                            tint = MaterialTheme.colors.onSurface,
+                            tint = MaterialTheme.colorScheme.onSurface,
                         )
                     }
                     Spacer(modifier = Modifier.weight(1f))
@@ -247,7 +238,7 @@ private fun BaseDetailsView(
                         Icon(
                             Icons.Default.Search,
                             contentDescription = "",
-                            tint = MaterialTheme.colors.onSurface,
+                            tint = MaterialTheme.colorScheme.onSurface,
                         )
                     }
                 }
@@ -263,7 +254,7 @@ private fun BaseDetailsView(
                             .width(cardWidth)
                             .align(Alignment.Bottom),
                     ) {
-                        Card(elevation = 2.dp, shape = RectangleShape) {
+                        Card(elevation = CardDefaults.cardElevation(2.dp), shape = RectangleShape) {
                             val painter = rememberAsyncImagePainter(
                                 model = client.buildImageUrl("poster", mediaItem.mediaId),
                                 contentScale = ContentScale.Crop,
@@ -305,7 +296,7 @@ private fun BaseDetailsView(
             onClick = {
                 onPlayClick(mediaItem.playableMediaLink?.id)
             },
-            colors = ButtonDefaults.buttonColors(backgroundColor = Color.Red),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
             modifier = Modifier
                 .padding(top = 24.dp, start = 16.dp)
                 .width(cardWidth),
@@ -340,7 +331,7 @@ private fun MediaMetadata(mediaItem: MediaItem) {
             .padding(start = 16.dp),
     ) {
         Spacer(modifier = Modifier.weight(1f))
-        Text(text = mediaItem.contentTitle, style = MaterialTheme.typography.body1)
+        Text(text = mediaItem.contentTitle, style = MaterialTheme.typography.bodyLarge)
         Spacer(Modifier.height(4.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             val items = remember(mediaItem) {
@@ -355,13 +346,13 @@ private fun MediaMetadata(mediaItem: MediaItem) {
                     Text(
                         text = "•",
                         color = Color(0x80FFFFFF),
-                        style = MaterialTheme.typography.caption,
+                        style = MaterialTheme.typography.bodySmall,
                     )
                 }
                 Text(
                     text = item,
                     color = Color(0x80FFFFFF),
-                    style = MaterialTheme.typography.caption,
+                    style = MaterialTheme.typography.bodySmall,
                 )
             }
         }
@@ -371,7 +362,7 @@ private fun MediaMetadata(mediaItem: MediaItem) {
             Text(
                 text = "$tmdbRating%",
                 color = Color(0x80FFFFFF),
-                style = MaterialTheme.typography.caption,
+                style = MaterialTheme.typography.bodySmall,
             )
         }
     }
@@ -436,7 +427,7 @@ private fun BaseRow(
     Column {
         Text(
             text = title,
-            style = MaterialTheme.typography.h5,
+            style = MaterialTheme.typography.headlineSmall,
         )
         Spacer(modifier = Modifier.height(6.dp))
         Row(
@@ -458,7 +449,7 @@ internal fun ExpandableText(overview: String) {
         Text(
             text = overview,
             modifier = Modifier.padding(16.dp).animateContentSize(),
-            style = MaterialTheme.typography.body1,
+            style = MaterialTheme.typography.bodyLarge,
             maxLines = if (isExpanded) Int.MAX_VALUE else 3,
             overflow = TextOverflow.Ellipsis,
             onTextLayout = { textLayoutResult = it },
@@ -473,7 +464,7 @@ internal fun ExpandableText(overview: String) {
             ) {
                 Text(
                     text = if (isExpanded) "LESS" else "MORE",
-                    color = MaterialTheme.colors.primary,
+                    color = MaterialTheme.colorScheme.primary,
                     lineHeight = 24.sp,
                 )
             }

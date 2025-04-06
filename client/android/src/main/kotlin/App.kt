@@ -19,7 +19,6 @@ package anystream.android
 
 import android.app.Application
 import android.content.Context
-import anystream.android.router.AndroidRouter
 import anystream.client.coreModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
@@ -39,7 +38,6 @@ class App : Application() {
                 coreModule(),
                 appModule(),
                 module {
-                    single { AndroidRouter() }
                     single { get<Context>().getSharedPreferences(PREFS_NAME, MODE_PRIVATE) }
                 },
             )

@@ -23,11 +23,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -49,8 +45,8 @@ internal fun PrimaryButton(
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 18.dp),
         enabled = !isLoading,
         colors = ButtonDefaults.buttonColors(
-            contentColor = MaterialTheme.colors.onBackground,
-            disabledBackgroundColor = MaterialTheme.colors.primary,
+            contentColor = MaterialTheme.colorScheme.onBackground,
+            disabledContainerColor = MaterialTheme.colorScheme.primary,
         ),
         modifier = modifier,
     ) {
@@ -59,7 +55,7 @@ internal fun PrimaryButton(
                 true -> {
                     CircularProgressIndicator(
                         modifier = Modifier.size(20.dp),
-                        color = MaterialTheme.colors.onBackground,
+                        color = MaterialTheme.colorScheme.onBackground,
                         strokeWidth = 1.dp,
                     )
                 }
@@ -71,7 +67,7 @@ internal fun PrimaryButton(
                     }
                     Text(
                         text = text,
-                        style = MaterialTheme.typography.body1.copy(fontWeight = FontWeight.Bold),
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                         letterSpacing = 0.2.sp,
                         textAlign = TextAlign.Center,
                     )

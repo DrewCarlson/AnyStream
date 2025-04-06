@@ -22,12 +22,12 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.Scaffold
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PauseCircleFilled
 import androidx.compose.material.icons.filled.PlayCircleFilled
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -52,10 +52,10 @@ internal fun SharedVideoPlayer(
     stack: BackStack<Routes>,
     client: AnyStreamClient,
 ) {
-    var shouldShowControls by remember { mutableStateOf(false) }
+    var shouldShowControls by remember { mutableStateOf(true) }
     var isPlaying by remember { mutableStateOf(true) }
 
-    LaunchedEffect(key1 = shouldShowControls) {
+    LaunchedEffect(shouldShowControls) {
         if (shouldShowControls) {
             delay(PLAYER_CONTROLS_VISIBILITY)
             shouldShowControls = false
@@ -71,11 +71,13 @@ internal fun SharedVideoPlayer(
                 .fillMaxSize(),
         ) {
             VideoPlayer(
-                Modifier
+                modifier = Modifier
                     .fillMaxSize()
-                    .noRippleClickable(onClick = { shouldShowControls = !shouldShowControls }),
-                route.mediaLinkId,
-                isPlaying,
+                    .noRippleClickable(onClick = {
+                        shouldShowControls = !shouldShowControls
+                    }),
+                mediaLinkId = route.mediaLinkId,
+                isPlaying = isPlaying,
             )
 
             AnimatedVisibility(
@@ -101,11 +103,9 @@ internal fun SharedVideoPlayer(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    IconButton(
-                        {
-                            isPlaying = !isPlaying
-                        },
-                    ) {
+                    IconButton({
+                        isPlaying = !isPlaying
+                    }) {
                         Icon(
                             if (isPlaying) Icons.Filled.PauseCircleFilled else Icons.Filled.PlayCircleFilled,
                             contentDescription = null,

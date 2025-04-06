@@ -20,10 +20,10 @@ package anystream.router
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.compositionLocalOf
 
-internal val LocalBackPressHandler: ProvidableCompositionLocal<BackPressHandler> =
+val LocalBackPressHandler: ProvidableCompositionLocal<BackPressHandler> =
     compositionLocalOf { throw IllegalStateException("backPressHandler is not initialized") }
 
-internal class BackPressHandler(
+class BackPressHandler(
     val id: String = "Root",
 ) {
     var children = mutableListOf<() -> Boolean>()

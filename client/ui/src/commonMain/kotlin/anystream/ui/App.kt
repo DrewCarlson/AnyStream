@@ -17,7 +17,10 @@
  */
 package anystream.ui
 
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
 import anystream.client.AnyStreamClient
 import anystream.router.BackPressHandler
 import anystream.router.BundleScope
@@ -32,8 +35,6 @@ import anystream.ui.media.MediaScreen
 import anystream.ui.movies.MoviesScreen
 import anystream.ui.theme.AppTheme
 import anystream.ui.video.SharedVideoPlayer
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import org.koin.compose.koinInject
 
 private val router = SharedRouter()
@@ -43,12 +44,11 @@ val LocalAnyStreamClient = compositionLocalOf<AnyStreamClient> { error("No AnySt
 @Composable
 fun App() {
     val client: AnyStreamClient = koinInject()
-    val scope = rememberCoroutineScope()
 
-    val backPressHandler = BackPressHandler()
+    val backPressHandler = remember { BackPressHandler() }
 
     CompositionLocalProvider(
-        LocalBackPressHandler provides backPressHandler,
+        LocalBackPressHandler providesDefault backPressHandler,
         LocalAnyStreamClient provides client,
     ) {
         AppTheme {
@@ -64,9 +64,9 @@ fun App() {
                     LaunchedEffect(stack) {
                         router.setBackStack(stack)
                     }
-                    remember {
+                    LaunchedEffect("track-authentication-state") {
                         client.authenticated
-                            .onEach { authed ->
+                            .collect { authed ->
                                 val isLoginRoute = stack.last() == Routes.Welcome
                                 if (authed && isLoginRoute) {
                                     stack.replace(Routes.Home)
@@ -74,62 +74,67 @@ fun App() {
                                     stack.replace(Routes.Login)
                                 }
                             }
-                            .launchIn(scope)
                     }
-                    when (val route = stack.last()) {
-                        Routes.Welcome -> WelcomeScreen { stack.push(Routes.Login) }
-                        Routes.Login -> LoginScreen(client, router)
-                        Routes.Home -> HomeScreen(
-                            client = client,
-                            backStack = stack,
-                            onMediaClick = { mediaLinkId ->
-                                if (mediaLinkId != null) {
-                                    stack.push(Routes.Details(mediaLinkId))
-                                }
-                            },
-                            onContinueWatchingClick = { mediaLinkId ->
-                                if (mediaLinkId != null) {
-                                    stack.push(Routes.Player(mediaLinkId))
-                                }
-                            },
-                            onViewMoviesClicked = {
-                                stack.push(Routes.Movies)
-                            },
-                        )
+                    Scaffold(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            //.windowInsetsPadding(WindowInsets.systemBars)
+                    ) {
+                        when (val route = stack.last()) {
+                            Routes.Welcome -> WelcomeScreen { stack.push(Routes.Login) }
+                            Routes.Login -> LoginScreen(client, router)
+                            Routes.Home -> HomeScreen(
+                                client = client,
+                                backStack = stack,
+                                onMediaClick = { mediaLinkId ->
+                                    if (mediaLinkId != null) {
+                                        stack.push(Routes.Details(mediaLinkId))
+                                    }
+                                },
+                                onContinueWatchingClick = { mediaLinkId ->
+                                    if (mediaLinkId != null) {
+                                        stack.push(Routes.Player(mediaLinkId))
+                                    }
+                                },
+                                onViewMoviesClicked = {
+                                    stack.push(Routes.Movies)
+                                },
+                            )
 
-                        Routes.Movies -> MoviesScreen(
-                            client = client,
-                            onMediaClick = { mediaLinkId ->
-                                if (mediaLinkId != null) {
-                                    stack.push(Routes.Details(mediaLinkId))
-                                }
-                            },
-                            onPlayMediaClick = { mediaLinkId ->
-                                if (mediaLinkId != null) {
-                                    stack.push(Routes.Player(mediaLinkId))
-                                }
-                            },
-                            backStack = stack,
-                        )
+                            Routes.Movies -> MoviesScreen(
+                                client = client,
+                                onMediaClick = { mediaLinkId ->
+                                    if (mediaLinkId != null) {
+                                        stack.push(Routes.Details(mediaLinkId))
+                                    }
+                                },
+                                onPlayMediaClick = { mediaLinkId ->
+                                    if (mediaLinkId != null) {
+                                        stack.push(Routes.Player(mediaLinkId))
+                                    }
+                                },
+                                backStack = stack,
+                            )
 
-                        is Routes.Details -> MediaScreen(
-                            client = client,
-                            mediaId = route.mediaRefId,
-                            onPlayClick = { mediaLinkId ->
-                                if (mediaLinkId != null) {
-                                    stack.push(Routes.Player(mediaLinkId))
-                                }
-                            },
-                            backStack = stack,
-                        )
+                            is Routes.Details -> MediaScreen(
+                                client = client,
+                                mediaId = route.mediaRefId,
+                                onPlayClick = { mediaLinkId ->
+                                    if (mediaLinkId != null) {
+                                        stack.push(Routes.Player(mediaLinkId))
+                                    }
+                                },
+                                backStack = stack,
+                            )
 
-                        is Routes.Player -> SharedVideoPlayer(route, stack, client)
-                        Routes.PairingScanner -> TODO()
+                            is Routes.Player -> SharedVideoPlayer(route, stack, client)
+                            Routes.PairingScanner -> TODO()
 //                        Routes.PairingScanner -> PairingScanner(
 //                            client = client,
 //                            backStack = stack,
 //                        )
-                        Routes.Tv -> TODO("Tv route not implemented")
+                            Routes.Tv -> TODO("Tv route not implemented")
+                        }
                     }
                 }
             }

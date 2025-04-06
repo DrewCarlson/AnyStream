@@ -78,7 +78,7 @@ kotlin {
                 implementation(libsClient.koin.compose)
                 implementation(compose.runtime)
                 implementation(compose.foundation)
-                implementation(compose.material)
+                implementation(compose.material3)
                 implementation(compose.materialIconsExtended)
                 api(compose.components.resources)
             }

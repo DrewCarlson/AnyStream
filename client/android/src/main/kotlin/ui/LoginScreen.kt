@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.android.ui
+/*package anystream.android.ui
 
 import android.app.UiModeManager
 import android.content.res.Configuration
@@ -234,4 +234,4 @@ private fun DisplayPairingCode(
         )
         QrImage(content = pairingCode, Modifier.size(250.dp))
     }
-}
+}*/

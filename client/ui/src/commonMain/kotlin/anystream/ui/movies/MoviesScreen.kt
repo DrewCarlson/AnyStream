@@ -18,14 +18,11 @@
 package anystream.ui.movies
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material.Scaffold
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
@@ -51,19 +48,24 @@ fun MoviesScreen(
     backStack: BackStack<Routes>,
 ) {
     Scaffold(
-        topBar = { AppTopBar(client = client, backStack = backStack, showBackButton = true) },
+        topBar = {
+            AppTopBar(
+                client = client,
+                backStack = backStack,
+                showBackButton = true
+            )
+        },
     ) { padding ->
-        val response = produceState<MoviesResponse?>(null) {
+        val response by produceState<MoviesResponse?>(null) {
             value = client.getMovies()
         }
 
         AnimatedContent(targetState = response) { targetState ->
-            // Make sure to use `targetState`, not `state`.
-            when (targetState.value) {
+            when (targetState) {
                 null -> LoadingScreen(padding)
                 else -> MovieGrid(
-                    movies = targetState.value!!.movies,
-                    mediaLinks = targetState.value!!.mediaLinks.values.toList(),
+                    movies = targetState.movies,
+                    mediaLinks = targetState.mediaLinks,
                     onMediaClick = onMediaClick,
                     paddingValues = padding,
                     onPlayMediaClick = onPlayMediaClick,
@@ -76,7 +78,7 @@ fun MoviesScreen(
 @Composable
 private fun MovieGrid(
     movies: List<Movie>,
-    mediaLinks: List<MediaLink>,
+    mediaLinks: Map<String, MediaLink>,
     onMediaClick: (mediaLinkId: String?) -> Unit,
     onPlayMediaClick: (mediaLinkId: String?) -> Unit,
     paddingValues: PaddingValues,
@@ -84,18 +86,15 @@ private fun MovieGrid(
     LazyVerticalGrid(
         columns = GridCells.Adaptive(cardWidth),
         modifier = Modifier
-            .padding(paddingValues)
+            .consumeWindowInsets(paddingValues)
             .fillMaxSize(),
-        contentPadding = PaddingValues(20.dp),
+        contentPadding = paddingValues,
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         items(movies) { movie ->
             val mediaLink by produceState<MediaLink?>(null, movie) {
-                value = mediaLinks.find {
-                    it.metadataId == movie.id &&
-                        it.descriptor == Descriptor.VIDEO
-                }
+                value = mediaLinks[movie.id]?.takeIf { it.descriptor == Descriptor.VIDEO }
             }
             PosterCard(
                 title = movie.title,

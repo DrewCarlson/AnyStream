@@ -17,21 +17,21 @@
  */
 package anystream.ui.theme
 
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.darkColors
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
 @Composable
 internal fun AppTheme(content: @Composable () -> Unit) {
     MaterialTheme(
-        colors = colors,
+        colorScheme = colors,
         content = content,
         typography = getTypography(),
     )
 }
 
-internal val colors = darkColors(
+internal val colors = darkColorScheme(
     primary = Color(0xFFE21221),
     background = Color(0xFF181A20),
     error = Color(0xFFE21221),

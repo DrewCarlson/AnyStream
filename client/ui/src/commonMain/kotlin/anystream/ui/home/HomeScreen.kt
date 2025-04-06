@@ -19,24 +19,15 @@ package anystream.ui.home
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.*
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Card
-import androidx.compose.material.LinearProgressIndicator
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material3.Card
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -112,7 +103,8 @@ private fun HomeScreenContent(
     Column(
         modifier = Modifier
             .verticalScroll(rememberScrollState())
-            .padding(paddingValues),
+            .padding(paddingValues)
+            .consumeWindowInsets(paddingValues),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         val (currentlyWatching, recentlyAdded, popular) = homeData
@@ -128,7 +120,10 @@ private fun HomeScreenContent(
         if (currentlyWatching.playbackStates.isNotEmpty()) {
             Column(Modifier.padding(start = 20.dp)) {
                 SectionHeader(title = "Continue Watching")
-                ContinueWatchingRow(currentlyWatching, onClick = onContinueWatchingClick)
+                ContinueWatchingRow(
+                    currentlyWatching,
+                    onPlayClick = onContinueWatchingClick,
+                )
             }
         }
 
@@ -168,10 +163,9 @@ private fun HomeScreenContent(
 @Composable
 private fun ContinueWatchingRow(
     currentlyWatching: CurrentlyWatching,
-    onClick: (mediaLinkId: String) -> Unit,
+    onPlayClick: (mediaLinkId: String?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val client = LocalAnyStreamClient.current
     val (playbackStates, currentlyWatchingMovies, currentlyWatchingTv, _) = currentlyWatching
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(CARD_SPACING),
@@ -182,8 +176,8 @@ private fun ContinueWatchingRow(
                     PosterCard(
                         title = movie.title,
                         mediaId = movie.id,
-                        onClick = { onClick(playbackState.metadataId) },
-                        onPlayClick = { onClick(playbackState.mediaLinkId) },
+                        onClick = { onPlayClick(playbackState.mediaLinkId) },
+                        onPlayClick = { onPlayClick(playbackState.mediaLinkId) },
                     )
                 }
                 currentlyWatchingTv[playbackState.id]?.also { (episode, show) ->
@@ -197,7 +191,7 @@ private fun ContinueWatchingRow(
                         overview = "",
                         mediaType = MediaType.TV_EPISODE,
                     )
-                    WatchingCard(mediaItem, playbackState, onClick)
+                    WatchingCard(mediaItem, playbackState, onPlayClick)
                 }
 
                 if (index == playbackStates.lastIndex) {
@@ -212,13 +206,13 @@ private fun ContinueWatchingRow(
 private fun WatchingCard(
     mediaItem: MediaItem,
     playbackState: PlaybackState,
-    onClick: (mediaLinkId: String) -> Unit,
+    onPlayClick: (mediaLinkId: String) -> Unit,
 ) {
     Card(
         shape = RoundedCornerShape(2.dp),
         modifier = Modifier
             .width(256.dp)
-            .clickable(onClick = { onClick(playbackState.mediaLinkId) }),
+            .clickable(onClick = { onPlayClick(playbackState.mediaLinkId) }),
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             Box(
@@ -261,7 +255,7 @@ private fun WatchingCard(
             }
 
             LinearProgressIndicator(
-                progress = (playbackState.position / playbackState.runtime).toFloat(),
+                progress = { (playbackState.position / playbackState.runtime).toFloat() },
                 modifier = Modifier.fillMaxWidth(),
             )
 

@@ -17,7 +17,7 @@
  */
 package anystream.ui.theme
 
-import androidx.compose.material.Typography
+import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -41,60 +41,71 @@ fun getTypography(): Typography {
     )
 
     return Typography(
-        defaultFontFamily = urbanist,
-        h1 = TextStyle(
+        displayLarge = TextStyle(
             fontFamily = urbanist,
             fontWeight = FontWeight.Bold,
             fontSize = 48.sp,
             lineHeight = 57.6.sp,
         ),
-        h2 = TextStyle(
+        displayMedium = TextStyle(
             fontFamily = urbanist,
             fontWeight = FontWeight.Bold,
             fontSize = 40.sp,
             lineHeight = 48.sp,
         ),
-        h3 = TextStyle(
+        displaySmall = TextStyle(
             fontFamily = urbanist,
             fontWeight = FontWeight.Bold,
             fontSize = 32.sp,
             lineHeight = 38.4.sp,
         ),
-        h4 = TextStyle(
+        headlineLarge = TextStyle(
+            fontFamily = urbanist,
+            fontWeight = FontWeight.Normal,
+            fontSize = 32.sp,
+            lineHeight = 40.sp,
+        ),
+        headlineMedium = TextStyle(
             fontFamily = urbanist,
             fontWeight = FontWeight.Bold,
             fontSize = 24.sp,
             lineHeight = 28.8.sp,
         ),
-        h5 = TextStyle(
+        headlineSmall = TextStyle(
             fontFamily = urbanist,
             fontWeight = FontWeight.Bold,
             fontSize = 20.sp,
             lineHeight = 24.sp,
         ),
-        h6 = TextStyle(
+        titleLarge = TextStyle(
             fontFamily = urbanist,
             fontWeight = FontWeight.Bold,
-            fontSize = 18.sp,
+            fontSize = 16.sp,
             lineHeight = 21.6.sp,
         ),
-        body1 = TextStyle(
+        titleMedium = TextStyle(
+            fontFamily = urbanist,
+            fontWeight = FontWeight.Medium,
+            fontSize = 14.sp,
+            lineHeight = 24.sp,
+        ),
+        titleSmall = TextStyle(
+            fontFamily = urbanist,
+            fontWeight = FontWeight.Normal,
+            fontSize = 14.sp,
+            lineHeight = 14.4.sp,
+        ),
+        bodyLarge = TextStyle(
             fontFamily = urbanist,
             fontWeight = FontWeight.Normal,
             fontSize = 16.sp,
             lineHeight = 22.4.sp,
         ),
-        body2 = TextStyle(
+        bodyMedium = TextStyle(
             fontFamily = urbanist,
             fontWeight = FontWeight.Normal,
             fontSize = 14.sp,
             lineHeight = 19.6.sp,
-        ),
-        subtitle2 = TextStyle(
-            fontFamily = urbanist,
-            fontWeight = FontWeight.Normal,
-            fontSize = 14.sp,
-            lineHeight = 14.4.sp,
         ),
     )
 }

@@ -23,13 +23,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -45,31 +46,39 @@ import anystream.ui.generated.resources.as_logo
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun AppTopBar(
-    client: AnyStreamClient?,
+    client: AnyStreamClient,
     backStack: BackStack<Routes>? = null,
     showBackButton: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
-    TopAppBar(modifier) {
-        if (showBackButton) {
-            IconButton(onClick = { backStack?.pop() }) {
-                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+    val scope = rememberCoroutineScope()
+    val authed by client.authenticated.collectAsState(initial = client.isAuthenticated())
+    TopAppBar(
+        modifier = modifier,
+        title = {
+            Image(
+                painter = painterResource(Res.drawable.as_logo),
+                modifier = Modifier
+                    .padding(all = 8.dp)
+                    .size(width = 150.dp, height = 50.dp),
+                contentDescription = null,
+            )
+        },
+        navigationIcon = {
+            if (showBackButton) {
+                IconButton(onClick = { backStack?.pop() }) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back"
+                    )
+                }
             }
-        }
+        },
+        actions = {
 
-        val scope = rememberCoroutineScope()
-        Image(
-            painter = painterResource(Res.drawable.as_logo),
-            modifier = Modifier
-                .padding(all = 8.dp)
-                .size(width = 150.dp, height = 50.dp),
-            contentDescription = null,
-        )
-
-        if (client != null) {
-            val authed by client.authenticated.collectAsState(initial = client.isAuthenticated())
             if (authed) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -93,5 +102,5 @@ internal fun AppTopBar(
                 }
             }
         }
-    }
+    )
 }

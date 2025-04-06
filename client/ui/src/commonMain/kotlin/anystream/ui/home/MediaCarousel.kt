@@ -26,14 +26,9 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
-import androidx.compose.material.Icon
-import androidx.compose.material.LocalMinimumInteractiveComponentEnforcement
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
@@ -44,6 +39,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import anystream.models.MediaLink
@@ -111,13 +107,13 @@ internal fun MediaCarousel(pagerState: PagerState, media: List<Pair<Movie, Media
             ) {
                 Text(
                     media[pagerState.currentPage].first.title,
-                    style = MaterialTheme.typography.h4,
+                    style = MaterialTheme.typography.headlineMedium,
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
                     media[pagerState.currentPage].first.genres.map { it.name }.take(3)
                         .joinToString(),
-                    style = MaterialTheme.typography.subtitle2.copy(
+                    style = MaterialTheme.typography.titleSmall.copy(
                         fontWeight = FontWeight.Medium,
                         letterSpacing = 0.2.sp,
                     ),
@@ -132,19 +128,19 @@ internal fun MediaCarousel(pagerState: PagerState, media: List<Pair<Movie, Media
 @Composable
 private fun CarouselMediaButtonRow() {
     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        CompositionLocalProvider(LocalMinimumInteractiveComponentEnforcement provides false) {
+        CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
             Button(
                 onClick = {},
                 shape = CircleShape,
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
-                colors = ButtonDefaults.buttonColors(contentColor = MaterialTheme.colors.onBackground),
+                colors = ButtonDefaults.buttonColors(contentColor = MaterialTheme.colorScheme.onBackground),
                 modifier = Modifier.height(32.dp),
             ) {
                 Icon(painter = painterResource(Res.drawable.ic_play), contentDescription = null)
                 Spacer(Modifier.width(8.dp))
                 Text(
                     text = "Play",
-                    style = MaterialTheme.typography.body2.copy(fontWeight = FontWeight.SemiBold),
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                     letterSpacing = 0.2.sp,
                 )
             }
@@ -154,17 +150,17 @@ private fun CarouselMediaButtonRow() {
                 shape = CircleShape,
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
                 colors = ButtonDefaults.buttonColors(
-                    backgroundColor = Color.Transparent,
-                    contentColor = MaterialTheme.colors.onBackground,
+                    containerColor = Color.Transparent,
+                    contentColor = MaterialTheme.colorScheme.onBackground,
                 ),
-                border = BorderStroke(2.dp, MaterialTheme.colors.onBackground),
+                border = BorderStroke(2.dp, MaterialTheme.colorScheme.onBackground),
                 modifier = Modifier.height(32.dp),
             ) {
                 Icon(Icons.Default.Add, null, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(8.dp))
                 Text(
                     text = "My List",
-                    style = MaterialTheme.typography.body2.copy(fontWeight = FontWeight.SemiBold),
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                     letterSpacing = 0.2.sp,
                 )
             }

@@ -74,7 +74,6 @@ dependencies {
     implementation(libsClient.compose.material)
     implementation(libsClient.compose.icons)
     implementation(libsClient.coil.compose)
-    implementation(libsAndroid.bundles.exoplayer)
     implementation(libsAndroid.zxing.core)
     implementation(libsAndroid.quickie.bundled)
     implementation(libsAndroid.okhttp)

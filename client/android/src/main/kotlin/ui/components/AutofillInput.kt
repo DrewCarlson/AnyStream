@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.android.ui.components
+/*package anystream.android.ui.components
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
@@ -50,4 +50,4 @@ fun AutofillInput(
 
 fun Autofill.onFocusStateChanged(focusState: FocusState, node: AutofillNode) {
     if (focusState.isFocused) requestAutofillForNode(node) else cancelAutofillForNode(node)
-}
+}*/
