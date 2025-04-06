@@ -163,6 +163,9 @@ class StreamService(
 
     suspend fun updateStatePosition(state: PlaybackState, position: Double): Boolean {
         if (position.seconds < REMEMBER_STATE_THRESHOLD) {
+            newPlaybackStates.compute(state.id) { _, existing ->
+                (existing ?: state).copy(position = position)
+            }
             return false
         }
         if (queries.updatePlaybackState(state.id, position)) {
