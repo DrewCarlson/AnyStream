@@ -75,7 +75,6 @@ dependencies {
     implementation(libsClient.compose.icons)
     implementation(libsClient.coil.compose)
     implementation(libsAndroid.zxing.core)
-    implementation(libsAndroid.quickie.bundled)
     implementation(libsAndroid.okhttp)
     implementation(libsCommon.ktor.client.cio)
     implementation(libsCommon.koin.core)

@@ -97,7 +97,8 @@ kotlin {
                 dependencies {
                     implementation(libsClient.compose.ui.tooling)
                     implementation(libsClient.compose.ui.tooling.preview)
-                    implementation(libsAndroid.bundles.media3)
+                    implementation(libsClient.bundles.camerax)
+                    implementation(libsClient.bundles.media3)
                     implementation(libsAndroid.androidx.activity.ktx)
                     implementation(libsAndroid.androidx.activity.compose)
                 }
