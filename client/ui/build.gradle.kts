@@ -84,8 +84,16 @@ kotlin {
             }
         }
 
+        val jvmCommonMain by creating {
+            dependsOn(commonMain)
+            dependencies {
+                implementation(libsClient.zxing.core)
+            }
+        }
+
         if (hasAndroidSdk) {
             named("androidMain") {
+                dependsOn(jvmCommonMain)
                 dependencies {
                     implementation(libsClient.compose.ui.tooling)
                     implementation(libsClient.compose.ui.tooling.preview)
@@ -97,6 +105,7 @@ kotlin {
         }
 
         named("jvmMain") {
+            dependsOn(jvmCommonMain)
             dependencies {
                 implementation(compose.desktop.common)
                 implementation(libsClient.vlcj)
