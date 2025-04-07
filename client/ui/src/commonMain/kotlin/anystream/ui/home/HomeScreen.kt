@@ -43,8 +43,8 @@ import anystream.models.api.HomeResponse
 import anystream.router.BackStack
 import anystream.routing.Routes
 import anystream.ui.LocalAnyStreamClient
+import anystream.ui.components.*
 import anystream.ui.components.CarouselAutoPlayHandler
-import anystream.ui.components.LoadingScreen
 import anystream.ui.components.PagerIndicator
 import anystream.ui.components.PosterCard
 import coil3.compose.AsyncImagePainter
@@ -59,8 +59,8 @@ private val CARD_SPACING = 8.dp
 fun HomeScreen(
     client: AnyStreamClient,
     backStack: BackStack<Routes>,
-    onMediaClick: (mediaLinkId: String?) -> Unit,
-    onContinueWatchingClick: (mediaLinkId: String?) -> Unit,
+    onMetadataClick: (metadataId: String) -> Unit,
+    onPlayClick: (mediaLinkId: String) -> Unit,
     onViewMoviesClicked: () -> Unit,
 ) {
     val (modelState, eventConsumer) = rememberMobiusLoop(HomeScreenModel(), HomeScreenInit) {
@@ -69,18 +69,22 @@ fun HomeScreen(
             HomeScreenHandler.create(client),
         ).logger(SimpleLogger("HomeScreen"))
     }
-    Scaffold { paddingValues ->
-        AnimatedContent(targetState = modelState.value.homeResponse) { targetState ->
+    val model by modelState
+    Scaffold(
+        modifier = Modifier
+            .consumeWindowInsets(WindowInsets.statusBars)
+    ) { paddingValues ->
+        AnimatedContent(targetState = model.homeResponse) { targetState ->
             when (targetState) {
                 is LoadableDataState.Loading -> LoadingScreen(paddingValues)
                 is LoadableDataState.Loaded ->
                     HomeScreenContent(
                         paddingValues = paddingValues,
                         homeData = targetState.data,
-                        populars = modelState.value.popular,
-                        onMediaClick = onMediaClick,
+                        populars = model.popular,
+                        onMetadataClick = onMetadataClick,
                         onViewMoviesClicked = onViewMoviesClicked,
-                        onContinueWatchingClick = onContinueWatchingClick,
+                        onContinueWatchingClick = onPlayClick,
                     )
 
                 is LoadableDataState.Error -> Unit // TODO: add error view
@@ -96,9 +100,9 @@ private fun HomeScreenContent(
     paddingValues: PaddingValues,
     homeData: HomeResponse,
     populars: List<Pair<Movie, MediaLink?>>,
-    onMediaClick: (mediaLinkId: String?) -> Unit,
+    onMetadataClick: (metadataId: String) -> Unit,
     onViewMoviesClicked: () -> Unit,
-    onContinueWatchingClick: (mediaLinkId: String?) -> Unit,
+    onContinueWatchingClick: (mediaLinkId: String) -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -108,7 +112,7 @@ private fun HomeScreenContent(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         val (currentlyWatching, recentlyAdded, popular) = homeData
-        val pagerState = rememberPagerState() { populars.count() }
+        val pagerState = rememberPagerState { populars.count() }
 
         Box(Modifier.height(375.dp).fillMaxWidth()) {
             MediaCarousel(pagerState = pagerState, media = populars)
@@ -134,7 +138,7 @@ private fun HomeScreenContent(
                 }
                 MovieRow(
                     movies = recentlyAdded.movies.toList(),
-                    onClick = onMediaClick,
+                    onMetadataClick = onMetadataClick,
                     onPlayClick = onContinueWatchingClick,
                 )
             }
@@ -142,10 +146,16 @@ private fun HomeScreenContent(
 
         if (recentlyAdded.tvShows.isNotEmpty()) {
             Column(Modifier.padding(start = 20.dp)) {
-                SectionHeader(title = "Recently Added TV", ctaText = "All Shows") {
-                    onViewMoviesClicked()
-                }
-                TvRow(shows = recentlyAdded.tvShows, onClick = onMediaClick)
+                SectionHeader(
+                    title = "Recently Added TV",
+                    ctaText = "All Shows",
+                    onCtaClicked = onViewMoviesClicked,
+                )
+                TvRow(
+                    shows = recentlyAdded.tvShows,
+                    onMetadataClick = onMetadataClick,
+                    onPlayClick = onContinueWatchingClick,
+                )
             }
         }
 
@@ -153,17 +163,19 @@ private fun HomeScreenContent(
             SectionHeader(title = "Popular Movies")
             MovieRow(
                 movies = popular.movies.toList(),
-                onClick = onMediaClick,
+                onMetadataClick = onMetadataClick,
                 onPlayClick = onContinueWatchingClick,
             )
         }
+
+        Spacer(Modifier.height(8.dp))
     }
 }
 
 @Composable
 private fun ContinueWatchingRow(
     currentlyWatching: CurrentlyWatching,
-    onPlayClick: (mediaLinkId: String?) -> Unit,
+    onPlayClick: (mediaLinkId: String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val (playbackStates, currentlyWatchingMovies, currentlyWatchingTv, _) = currentlyWatching
@@ -233,6 +245,7 @@ private fun WatchingCard(
                             contentDescription = "Backdrop for ${mediaItem.contentTitle}",
                             modifier = Modifier.fillMaxSize()
                         )
+
                     is AsyncImagePainter.State.Loading -> {
                         Box(
                             modifier = Modifier
@@ -240,6 +253,7 @@ private fun WatchingCard(
                                 .background(Color.DarkGray),
                         )
                     }
+
                     AsyncImagePainter.State.Empty,
                     is AsyncImagePainter.State.Error -> {
                         Box(
@@ -287,8 +301,8 @@ private fun WatchingCard(
 @Composable
 private fun MovieRow(
     movies: List<Pair<Movie, MediaLink?>>,
-    onClick: (mediaLinkId: String?) -> Unit,
-    onPlayClick: (mediaLinkId: String?) -> Unit,
+    onMetadataClick: (metadataId: String) -> Unit,
+    onPlayClick: (mediaLinkId: String) -> Unit,
 ) {
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(CARD_SPACING),
@@ -297,7 +311,7 @@ private fun MovieRow(
                 PosterCard(
                     title = movie.title,
                     mediaId = movie.id,
-                    onClick = { onClick(movie.id) },
+                    onClick = { onMetadataClick(movie.id) },
                     onPlayClick = { mediaLink?.run { onPlayClick(id) } },
                 )
                 if (index == movies.lastIndex) {
@@ -311,7 +325,8 @@ private fun MovieRow(
 @Composable
 private fun TvRow(
     shows: List<TvShow>,
-    onClick: (mediaLinkId: String?) -> Unit,
+    onMetadataClick: (metadataId: String) -> Unit,
+    onPlayClick: (mediaLinkId: String) -> Unit,
 ) {
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(CARD_SPACING),
@@ -320,8 +335,8 @@ private fun TvRow(
                 PosterCard(
                     title = show.name,
                     mediaId = show.id,
-                    onClick = { onClick(show.id) },
-                    onPlayClick = { onClick(show.id) },
+                    onClick = { onMetadataClick(show.id) },
+                    onPlayClick = { onPlayClick(show.id) },
                 )
                 if (index == shows.lastIndex) {
                     Spacer(Modifier.width(24.dp))

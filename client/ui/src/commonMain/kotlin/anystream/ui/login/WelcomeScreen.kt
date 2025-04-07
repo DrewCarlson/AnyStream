@@ -37,10 +37,14 @@ import anystream.ui.components.PrimaryButton
 internal fun WelcomeScreen(onCtaClicked: () -> Unit) {
     Scaffold(
         modifier = Modifier
-            .windowInsetsPadding(WindowInsets.systemBars)
             .fillMaxSize()
-    ) {
-        Box {
+            .windowInsetsPadding(WindowInsets.systemBars)
+    ) { padding ->
+        Box(
+            modifier = Modifier
+                .padding(padding)
+                .consumeWindowInsets(padding)
+        ) {
             /*Image(
                 painter = painterResource(Res.drawable.welcome_bg),
                 contentDescription = null,

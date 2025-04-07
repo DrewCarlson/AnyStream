@@ -17,8 +17,9 @@
  */
 package anystream.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import anystream.client.AnyStreamClient
@@ -75,10 +76,11 @@ fun App() {
                                 }
                             }
                     }
-                    Scaffold(
+                    Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            //.windowInsetsPadding(WindowInsets.systemBars)
+                            .background(MaterialTheme.colorScheme.background)
+                        //.consumeWindowInsets(WindowInsets.systemBars)
                     ) {
                         when (val route = stack.last()) {
                             Routes.Welcome -> WelcomeScreen { stack.push(Routes.Login) }
@@ -86,15 +88,11 @@ fun App() {
                             Routes.Home -> HomeScreen(
                                 client = client,
                                 backStack = stack,
-                                onMediaClick = { mediaLinkId ->
-                                    if (mediaLinkId != null) {
-                                        stack.push(Routes.Details(mediaLinkId))
-                                    }
+                                onMetadataClick = { mediaLinkId ->
+                                    stack.push(Routes.Details(mediaLinkId))
                                 },
-                                onContinueWatchingClick = { mediaLinkId ->
-                                    if (mediaLinkId != null) {
-                                        stack.push(Routes.Player(mediaLinkId))
-                                    }
+                                onPlayClick = { mediaLinkId ->
+                                    stack.push(Routes.Player(mediaLinkId))
                                 },
                                 onViewMoviesClicked = {
                                     stack.push(Routes.Movies)
@@ -104,25 +102,19 @@ fun App() {
                             Routes.Movies -> MoviesScreen(
                                 client = client,
                                 onMediaClick = { mediaLinkId ->
-                                    if (mediaLinkId != null) {
-                                        stack.push(Routes.Details(mediaLinkId))
-                                    }
+                                    stack.push(Routes.Details(mediaLinkId))
                                 },
                                 onPlayMediaClick = { mediaLinkId ->
-                                    if (mediaLinkId != null) {
-                                        stack.push(Routes.Player(mediaLinkId))
-                                    }
+                                    stack.push(Routes.Player(mediaLinkId))
                                 },
                                 backStack = stack,
                             )
 
                             is Routes.Details -> MediaScreen(
                                 client = client,
-                                mediaId = route.mediaRefId,
+                                mediaId = route.metadataId,
                                 onPlayClick = { mediaLinkId ->
-                                    if (mediaLinkId != null) {
-                                        stack.push(Routes.Player(mediaLinkId))
-                                    }
+                                    stack.push(Routes.Player(mediaLinkId))
                                 },
                                 backStack = stack,
                             )

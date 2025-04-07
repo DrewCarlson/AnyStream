@@ -21,19 +21,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.PlayArrow
@@ -70,7 +58,7 @@ import kotlin.time.toDuration
 fun MediaScreen(
     client: AnyStreamClient,
     mediaId: String,
-    onPlayClick: (mediaRefId: String?) -> Unit,
+    onPlayClick: (mediaRefId: String) -> Unit,
     backStack: BackStack<Routes>,
 ) {
     val lookupIdFlow = remember(mediaId) { MutableStateFlow<Int?>(null) }
@@ -101,8 +89,17 @@ fun MediaScreen(
                 }
             }
     }
-    Scaffold {
-        Column(modifier = Modifier.fillMaxSize()) {
+    Scaffold(
+        modifier = Modifier
+            .fillMaxSize()
+            .consumeWindowInsets(WindowInsets.statusBars)
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .consumeWindowInsets(padding)
+        ) {
             when (val response = mediaResponse) {
                 is EpisodeResponse -> {
                     val mediaItem = remember(response) { response.toMediaItem() }
@@ -172,7 +169,7 @@ private fun BaseDetailsView(
     refreshMetadata: () -> Unit,
     client: AnyStreamClient,
     backStack: BackStack<Routes>,
-    onPlayClick: (mediaRefId: String?) -> Unit,
+    onPlayClick: (mediaLinkId: String) -> Unit,
     subcontainer: @Composable () -> Unit = {},
 ) {
     Column(Modifier.fillMaxSize()) {
@@ -225,7 +222,11 @@ private fun BaseDetailsView(
             ) {
             }
             Column(Modifier.fillMaxSize()) {
-                Row(Modifier.fillMaxWidth()) {
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(WindowInsets.statusBars.asPaddingValues()),
+                ) {
                     IconButton(onClick = { backStack.pop() }) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
@@ -294,7 +295,7 @@ private fun BaseDetailsView(
 
         Button(
             onClick = {
-                onPlayClick(mediaItem.playableMediaLink?.id)
+                mediaItem.playableMediaLink?.run { onPlayClick(id) }
             },
             colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
             modifier = Modifier

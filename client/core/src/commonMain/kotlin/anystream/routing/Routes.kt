@@ -45,9 +45,9 @@ sealed class Routes {
     }
 
     data class Details(
-        val mediaRefId: String,
+        val metadataId: String,
     ) : Routes() {
-        override val path: String = "details/$mediaRefId"
+        override val path: String = "details/$metadataId"
     }
 
     data class Player(
