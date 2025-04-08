@@ -17,7 +17,6 @@
  */
 package anystream.ui.login
 
-import anystream.models.User
 import anystream.models.UserPublic
 import anystream.models.api.CreateSessionResponse
 
@@ -38,7 +37,7 @@ sealed class LoginScreenEvent {
         }
     }
 
-    object OnLoginSubmit : LoginScreenEvent()
+    data object OnLoginSubmit : LoginScreenEvent()
 
     data class OnPairingStarted(
         val pairingCode: String,
