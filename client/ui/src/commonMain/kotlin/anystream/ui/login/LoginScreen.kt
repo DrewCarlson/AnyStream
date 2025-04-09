@@ -18,16 +18,14 @@
 package anystream.ui.login
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -43,7 +41,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalAutofill
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -65,27 +62,30 @@ import anystream.ui.generated.resources.ic_discovery
 import anystream.ui.generated.resources.ic_message
 import anystream.ui.generated.resources.logo_login
 import kt.mobius.SimpleLogger
-import kt.mobius.compose.rememberMobiusLoopLocal
+import kt.mobius.compose.rememberMobiusLoop
 import kt.mobius.flow.FlowMobius
 import kt.mobius.functions.Consumer
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun LoginScreen(client: AnyStreamClient, router: SharedRouter) {
-    val (modelState, eventConsumer) = rememberMobiusLoopLocal(
+internal fun LoginScreen(
+    client: AnyStreamClient,
+    router: SharedRouter,
+    modifier: Modifier = Modifier,
+) {
+    val (modelState, eventConsumer) = rememberMobiusLoop(
         LoginScreenModel.create(client.serverUrl, supportsPairing = false),
         LoginScreenInit
     ) {
         FlowMobius.loop(
             LoginScreenUpdate,
-            LoginScreenHandler.create(client, router),
+            LoginScreenHandler(client, router),
         ).logger(SimpleLogger("Login"))
     }
 
-    Scaffold(
-        modifier = Modifier
+    /*Scaffold(
+        modifier = modifier
             .windowInsetsPadding(WindowInsets.systemBars),
         topBar = {
             TopAppBar(
@@ -108,36 +108,34 @@ internal fun LoginScreen(client: AnyStreamClient, router: SharedRouter) {
             )
         },
     ) { padding ->
-        val imePadding = with(LocalDensity.current) {
-            WindowInsets.ime.getBottom(this).div(2).toDp()
-        }
-        val animatedImePadding by animateDpAsState(imePadding)
-        val focusManager = LocalFocusManager.current
-        Column(
-            modifier = Modifier.fillMaxSize()
-                .padding(vertical = 16.dp, horizontal = 24.dp)
-                .padding(bottom = animatedImePadding)
-                .verticalScroll(rememberScrollState())
-                .pointerInput(Unit) {
-                    detectTapGestures {
-                        focusManager.clearFocus(force = true)
-                    }
-                },
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Image(
-                painter = painterResource(Res.drawable.logo_login),
-                contentDescription = null,
-                modifier = Modifier.size(120.dp),
-            )
-            Text(
-                text = "Login to Your Account",
-                style = MaterialTheme.typography.displaySmall,
-                modifier = Modifier.padding(vertical = 16.dp),
-                textAlign = TextAlign.Center,
-            )
-            FormBody(modelState.value, eventConsumer, padding)
-        }
+    }*/
+    val focusManager = LocalFocusManager.current
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures {
+                    focusManager.clearFocus(force = true)
+                }
+            }
+            .verticalScroll(rememberScrollState())
+            .padding(vertical = 16.dp, horizontal = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Spacer(Modifier.weight(1f))
+        Image(
+            painter = painterResource(Res.drawable.logo_login),
+            contentDescription = null,
+            modifier = Modifier.size(120.dp),
+        )
+        Text(
+            text = "Login to Your Account",
+            style = MaterialTheme.typography.displaySmall,
+            modifier = Modifier.padding(vertical = 16.dp),
+            textAlign = TextAlign.Center,
+        )
+        FormBody(modelState.value, eventConsumer)
+        Spacer(Modifier.weight(1f))
     }
 }
 
@@ -145,16 +143,15 @@ internal fun LoginScreen(client: AnyStreamClient, router: SharedRouter) {
 internal fun FormBody(
     model: LoginScreenModel,
     eventConsumer: Consumer<LoginScreenEvent>,
-    paddingValues: PaddingValues,
 ) {
     var serverUrlValue by remember { mutableStateOf(TextFieldValue(model.serverUrl)) }
     var usernameValue by remember { mutableStateOf(TextFieldValue(model.username)) }
     var passwordValue by remember { mutableStateOf(TextFieldValue(model.password)) }
+    val focusManager = LocalFocusManager.current
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxSize()
-            .padding(paddingValues),
+        modifier = Modifier.fillMaxSize(),
     ) {
         OutlineTextField(
             textFieldValue = serverUrlValue,
@@ -171,16 +168,12 @@ internal fun FormBody(
             isError = model.serverValidation == LoginScreenModel.ServerValidation.INVALID,
             readOnly = model.isInputLocked(),
         )
-        ErrorText(
-            isError = model.serverValidation == LoginScreenModel.ServerValidation.INVALID,
-            errorText = model.loginError?.usernameError?.name.orEmpty(),
-            label = "Server URL is",
-        )
 
         Spacer(Modifier.height(24.dp))
         AutofillInput(
             autofillTypes = listOf(AutofillType.EmailAddress, AutofillType.Username),
             onFill = {
+                focusManager.clearFocus(force = true)
                 usernameValue = TextFieldValue(it)
                 eventConsumer.accept(LoginScreenEvent.OnUsernameChanged(it))
             },
@@ -211,13 +204,14 @@ internal fun FormBody(
         ErrorText(
             isError = model.loginError?.usernameError != null,
             errorText = model.loginError?.usernameError?.name.orEmpty(),
-            label = "Username is ",
+            label = "Username is",
         )
         Spacer(Modifier.height(24.dp))
 
         AutofillInput(
             autofillTypes = listOf(AutofillType.Password),
             onFill = {
+                focusManager.clearFocus(force = true)
                 passwordValue = TextFieldValue(it)
                 eventConsumer.accept(LoginScreenEvent.OnPasswordChanged(it))
             },
@@ -233,7 +227,13 @@ internal fun FormBody(
                 placeHolder = "Password",
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Password,
-                    imeAction = ImeAction.Go,
+                    imeAction = ImeAction.Done,
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        focusManager.clearFocus(force = true)
+                        eventConsumer.accept(LoginScreenEvent.OnLoginSubmit)
+                    }
                 ),
                 visualTransformation = PasswordVisualTransformation(),
                 isError = model.loginError?.passwordError != null,
@@ -287,6 +287,7 @@ private fun OutlineTextField(
     leadingIcon: DrawableResource?,
     placeHolder: String,
     keyboardOptions: KeyboardOptions,
+    keyboardActions: KeyboardActions = KeyboardActions(),
     visualTransformation: VisualTransformation = VisualTransformation.None,
     isError: Boolean,
     readOnly: Boolean,
@@ -311,6 +312,7 @@ private fun OutlineTextField(
         ),
         readOnly = readOnly,
         keyboardOptions = keyboardOptions,
+        keyboardActions = keyboardActions,
         leadingIcon = {
             leadingIcon?.let {
                 Icon(painterResource(it), contentDescription = null)

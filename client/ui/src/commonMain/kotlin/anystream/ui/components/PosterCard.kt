@@ -25,20 +25,14 @@ import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,6 +40,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import anystream.ui.LocalAnyStreamClient
@@ -54,6 +49,8 @@ import anystream.ui.util.pointerMover
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
 
+internal val PosterCardWidth = 120.dp
+
 @Composable
 internal fun PosterCard(
     title: String,
@@ -61,76 +58,83 @@ internal fun PosterCard(
     onClick: () -> Unit,
     onPlayClick: () -> Unit,
     modifier: Modifier = Modifier,
-    preferredWidth: Dp = 150.dp,
-    aspectRatio: Float = .75f,
+    aspectRatio: Float = .664f,
+    width: Dp = PosterCardWidth,
 ) {
     var showPlayButtonOverlay by remember { mutableStateOf(false) }
 
+    val cornerShape = RoundedCornerShape(6.dp)
     Column(
         modifier = modifier
-            .aspectRatio(aspectRatio)
-            .widthIn(0.dp, preferredWidth)
-            .clickable(onClick = onClick)
-            .pointerMover { showPlayButtonOverlay = it },
-        verticalArrangement = Arrangement.spacedBy(0.dp),
+            .width(width),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            val client = LocalAnyStreamClient.current
-            val painter = rememberAsyncImagePainter(
-                model = client.buildImageUrl("poster", mediaId, 300),
-                contentScale = ContentScale.FillBounds,
-            )
-            val state by painter.state.collectAsState()
-            when (state) {
-                is AsyncImagePainter.State.Success -> {
+        Column(
+            modifier = Modifier
+                .width(width)
+                .aspectRatio(aspectRatio)
+                .shadow(elevation = 8.dp, cornerShape)
+                .background(Color(0xFF35383F), cornerShape)
+                .clip(cornerShape)
+                .clickable(onClick = onClick)
+                .pointerMover { showPlayButtonOverlay = it },
+            verticalArrangement = Arrangement.spacedBy(0.dp),
+        ) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                val client = LocalAnyStreamClient.current
+                val painter = rememberAsyncImagePainter(
+                    model = client.buildImageUrl("poster", mediaId, 300),
+                    contentScale = ContentScale.FillBounds,
+                )
+                val state by painter.state.collectAsState()
+                val loaded by produceState(state is AsyncImagePainter.State.Success, state) {
+                    value = state is AsyncImagePainter.State.Success
+                }
+                androidx.compose.animation.AnimatedVisibility(
+                    visible = loaded,
+                    enter = fadeIn(),
+                    exit = fadeOut(),
+                    modifier = Modifier.fillMaxSize(),
+                ) {
                     Image(
                         painter = painter,
-                        contentDescription = "Profile",
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .shadow(elevation = 8.dp, RoundedCornerShape(6.dp))
-                            .background(Color.White, RoundedCornerShape(6.dp))
-                            .clip(RoundedCornerShape(6.dp))
-                    )
-                }
-
-                is AsyncImagePainter.State.Loading -> {
-                    Box(
-                        modifier = Modifier
-                            .aspectRatio(aspectRatio)
-                            .background(
-                                color = Color(0xFFBDBDBD),
-                                shape = RoundedCornerShape(size = 6.dp),
-                            ),
-                    )
-                }
-
-                AsyncImagePainter.State.Empty -> Unit
-                is AsyncImagePainter.State.Error -> Unit
-            }
-
-            Column(
-                modifier = Modifier.matchParentSize(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                AnimatedVisibility(
-                    visible = showPlayButtonOverlay,
-                    enter = fadeIn(tween(400)),
-                    exit = fadeOut(tween(400)),
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.PlayCircle,
                         contentDescription = null,
-                        modifier = Modifier.size(preferredWidth / 4)
-                            .background(MaterialTheme.colorScheme.background, CircleShape)
-                            .clickable(showPlayButtonOverlay, onClick = onPlayClick)
-                            .padding(2.dp),
-                        tint = Color.Red,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.FillBounds,
                     )
+                }
+
+                Column(
+                    modifier = Modifier.matchParentSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    AnimatedVisibility(
+                        visible = showPlayButtonOverlay,
+                        enter = fadeIn(tween(400)),
+                        exit = fadeOut(tween(400)),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.PlayCircle,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .background(MaterialTheme.colorScheme.background, CircleShape)
+                                .clickable(showPlayButtonOverlay, onClick = onPlayClick)
+                                .padding(2.dp),
+                            tint = Color.Red,
+                        )
+                    }
                 }
             }
         }
+
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleSmall,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.width(width)
+        )
     }
 }
 

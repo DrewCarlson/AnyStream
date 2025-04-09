@@ -15,27 +15,39 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+@file:OptIn(ExperimentalHazeMaterialsApi::class)
+
 package anystream.ui
 
-import androidx.compose.foundation.background
+import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import anystream.client.AnyStreamClient
-import anystream.router.BackPressHandler
-import anystream.router.BundleScope
-import anystream.router.LocalBackPressHandler
+import anystream.router.*
 import anystream.router.Router
-import anystream.router.SharedRouter
 import anystream.routing.Routes
+import anystream.ui.components.BottomNavigation
 import anystream.ui.home.HomeScreen
 import anystream.ui.login.LoginScreen
 import anystream.ui.login.WelcomeScreen
 import anystream.ui.media.MediaScreen
 import anystream.ui.movies.MoviesScreen
+import anystream.ui.profile.DevicePairingScannerScreen
+import anystream.ui.profile.ProfileScreen
 import anystream.ui.theme.AppTheme
 import anystream.ui.video.SharedVideoPlayer
+import dev.chrisbanes.haze.HazeProgressive
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
+import dev.chrisbanes.haze.materials.HazeMaterials
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
 private val router = SharedRouter()
@@ -45,8 +57,12 @@ val LocalAnyStreamClient = compositionLocalOf<AnyStreamClient> { error("No AnySt
 @Composable
 fun App() {
     val client: AnyStreamClient = koinInject()
-
+    val scope = rememberCoroutineScope()
     val backPressHandler = remember { BackPressHandler() }
+    val hazeState = remember { HazeState() }
+
+    var showBottomNavigation by remember { mutableStateOf(false) }
+    var selectedRoute by remember { mutableStateOf<Routes?>(null) }
 
     CompositionLocalProvider(
         LocalBackPressHandler providesDefault backPressHandler,
@@ -54,82 +70,196 @@ fun App() {
     ) {
         AppTheme {
             BundleScope(null) {
+                val routeChannel = remember { Channel<Routes>() }
                 val defaultRoute = when {
                     !client.isAuthenticated() -> Routes.Welcome
                     else -> Routes.Home
                 }
-                Router(
-                    contextId = defaultRoute::class.simpleName.orEmpty(),
-                    defaultRouting = defaultRoute,
-                ) { stack ->
-                    LaunchedEffect(stack) {
-                        router.setBackStack(stack)
-                    }
-                    LaunchedEffect("track-authentication-state") {
-                        client.authenticated
-                            .collect { authed ->
-                                val isLoginRoute = stack.last() == Routes.Welcome
-                                if (authed && isLoginRoute) {
-                                    stack.replace(Routes.Home)
-                                } else if (!authed && !isLoginRoute) {
-                                    stack.replace(Routes.Login)
+                Scaffold(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .consumeWindowInsets(WindowInsets.statusBars),
+                    topBar = {
+                        Box(
+                            Modifier
+                                .fillMaxWidth()
+                                .hazeEffect(
+                                    state = hazeState,
+                                    style = HazeMaterials.ultraThin(),
+                                ) {
+                                    progressive = HazeProgressive.verticalGradient(
+                                        startIntensity = 0.6f,
+                                        endIntensity = 0f,
+                                    )
                                 }
-                            }
+                        ) {
+
+                            TopAppBar(
+                                title = {},
+                                colors = TopAppBarDefaults.topAppBarColors(
+                                    containerColor = Color.Transparent,
+                                ),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(WindowInsets.statusBars.asPaddingValues().calculateTopPadding()),
+                            )
+                        }
+                    },
+
+                    bottomBar = {
+                        AnimatedVisibility(
+                            visible = showBottomNavigation,
+                            enter = slideInVertically { it } + fadeIn(),
+                            exit = slideOutVertically { it } + fadeOut(),
+                            label = "bottom-navigation-visibility-animation",
+                        ) {
+                            BottomNavigation(
+                                modifier = Modifier
+                                    .hazeEffect(
+                                        state = hazeState,
+                                        style = HazeMaterials.regular(),
+                                    ),
+                                selectedRoute = selectedRoute ?: Routes.Home,
+                                onRouteChanged = { scope.launch { routeChannel.send(it) } },
+                            )
+                        }
                     }
+                ) { padding ->
                     Box(
                         modifier = Modifier
+                            .hazeSource(hazeState)
                             .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.background)
-                        //.consumeWindowInsets(WindowInsets.systemBars)
                     ) {
-                        when (val route = stack.last()) {
-                            Routes.Welcome -> WelcomeScreen { stack.push(Routes.Login) }
-                            Routes.Login -> LoginScreen(client, router)
-                            Routes.Home -> HomeScreen(
-                                client = client,
-                                backStack = stack,
-                                onMetadataClick = { mediaLinkId ->
-                                    stack.push(Routes.Details(mediaLinkId))
-                                },
-                                onPlayClick = { mediaLinkId ->
-                                    stack.push(Routes.Player(mediaLinkId))
-                                },
-                                onViewMoviesClicked = {
-                                    stack.push(Routes.Movies)
-                                },
+                        Router(
+                            contextId = defaultRoute::class.simpleName.orEmpty(),
+                            defaultRouting = defaultRoute,
+                        ) { stack ->
+                            LaunchedEffect(stack) {
+                                router.setBackStack(stack)
+                            }
+                            LaunchedEffect("track-route-requests") {
+                                routeChannel.consumeEach { route ->
+                                    stack.newRoot(route)
+                                }
+                            }
+                            LaunchedEffect("track-authentication-state") {
+                                client.authenticated
+                                    .collect { authed ->
+                                        val isLoginRoute = listOf(
+                                            Routes.Welcome,
+                                            Routes.Login,
+                                        ).contains(stack.last())
+                                        if (!authed && !isLoginRoute) {
+                                            stack.replace(Routes.Login)
+                                        }
+                                    }
+                            }
+                            val route = stack.last()
+                            LaunchedEffect(route) {
+                                val bottomNavRoots = listOf(
+                                    Routes.Home,
+                                    Routes.Profile,
+                                )
+                                showBottomNavigation = bottomNavRoots.contains(route)
+                                selectedRoute = route
+                            }
+                            DisplayRoute(
+                                route = route,
+                                stack = stack,
+                                padding = padding
                             )
-
-                            Routes.Movies -> MoviesScreen(
-                                client = client,
-                                onMediaClick = { mediaLinkId ->
-                                    stack.push(Routes.Details(mediaLinkId))
-                                },
-                                onPlayMediaClick = { mediaLinkId ->
-                                    stack.push(Routes.Player(mediaLinkId))
-                                },
-                                backStack = stack,
-                            )
-
-                            is Routes.Details -> MediaScreen(
-                                client = client,
-                                mediaId = route.metadataId,
-                                onPlayClick = { mediaLinkId ->
-                                    stack.push(Routes.Player(mediaLinkId))
-                                },
-                                backStack = stack,
-                            )
-
-                            is Routes.Player -> SharedVideoPlayer(route, stack, client)
-                            Routes.PairingScanner -> TODO()
-//                        Routes.PairingScanner -> PairingScanner(
-//                            client = client,
-//                            backStack = stack,
-//                        )
-                            Routes.Tv -> TODO("Tv route not implemented")
                         }
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun DisplayRoute(
+    route: Routes,
+    stack: BackStack<Routes>,
+    padding: PaddingValues,
+) {
+    val client = LocalAnyStreamClient.current
+    when (route) {
+        Routes.Welcome -> WelcomeScreen { stack.push(Routes.Login) }
+        Routes.Login -> {
+            LoginScreen(
+                client = client,
+                router = router,
+                modifier = Modifier.imePadding(),
+            )
+        }
+
+        Routes.Home -> {
+            // Ignore top padding to draw behind TopAppBar and statusBars
+            val bottomOnlyPadding = PaddingValues(
+                bottom = padding.calculateBottomPadding(),
+            )
+            HomeScreen(
+                modifier = Modifier
+                    .padding(bottomOnlyPadding)
+                    .consumeWindowInsets(bottomOnlyPadding),
+                client = client,
+                backStack = stack,
+                onMetadataClick = { metadataId ->
+                    stack.push(Routes.Details(metadataId))
+                },
+                onPlayClick = { mediaLinkId ->
+                    stack.push(Routes.Player(mediaLinkId))
+                },
+                onViewMoviesClicked = {
+                    stack.push(Routes.Movies)
+                },
+            )
+        }
+
+        Routes.Movies -> {
+            MoviesScreen(
+                client = client,
+                modifier = Modifier
+                    .padding(padding)
+                    .consumeWindowInsets(padding),
+                onMediaClick = { metadataId ->
+                    stack.push(Routes.Details(metadataId))
+                },
+                onPlayMediaClick = { mediaLinkId ->
+                    stack.push(Routes.Player(mediaLinkId))
+                },
+            )
+        }
+
+        is Routes.Details -> {
+            MediaScreen(
+                client = client,
+                mediaId = route.metadataId,
+                onPlayClick = { mediaLinkId ->
+                    stack.push(Routes.Player(mediaLinkId))
+                },
+                backStack = stack,
+            )
+        }
+
+        is Routes.Player -> SharedVideoPlayer(route, stack, client)
+        Routes.PairingScanner -> {
+            DevicePairingScannerScreen(
+                // note: Don't provide modifiers consuming padding, enabling edge-to-edge display
+                modifier = Modifier,
+                onPairingCompleted = { stack.pop() },
+                onPairingCancelled = { stack.pop() },
+            )
+        }
+
+        Routes.Tv -> TODO("Tv route not implemented")
+        Routes.Profile -> {
+            ProfileScreen(
+                modifier = Modifier
+                    .padding(padding)
+                    .consumeWindowInsets(padding),
+                onPairDeviceClicked = { stack.push(Routes.PairingScanner) }
+            )
         }
     }
 }

@@ -107,5 +107,12 @@ fun getTypography(): Typography {
             fontSize = 14.sp,
             lineHeight = 19.6.sp,
         ),
+        labelMedium = TextStyle(
+            fontFamily = urbanist,
+            fontWeight = FontWeight.W500,
+            fontSize = 12.sp,
+            lineHeight = 16.0.sp,
+            letterSpacing = 0.5.sp,
+        )
     )
 }

@@ -18,47 +18,24 @@
 package anystream.router
 
 import androidx.compose.runtime.*
-import anystream.routing.CommonRouter
-import anystream.routing.Routes
-
-class SharedRouter : CommonRouter {
-
-    private var backStack: BackStack<Routes>? = null
-
-    fun setBackStack(backStack: BackStack<Routes>?) {
-        this.backStack = backStack
-    }
-
-    override fun popCurrentRoute() {
-        backStack?.pop()
-    }
-
-    override fun pushRoute(route: Routes) {
-        backStack?.push(route)
-    }
-
-    override fun replaceStack(routes: List<Routes>) {
-        backStack?.apply {
-            newRoot(routes.first())
-            if (routes.size > 1) {
-                routes.drop(1).forEach(::push)
-            }
-        }
-    }
-
-    override fun replaceTop(route: Routes) {
-        backStack?.replace(route)
-    }
-}
+import androidx.lifecycle.ViewModelStore
+import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 
 private fun key(backStackIndex: Int) =
     "K$backStackIndex"
 
+// TODO: Bind root stores to app provided scope
+private val routeViewModelStores = mutableMapOf<String, ViewModelStore>()
 private val backStackMap: MutableMap<Any, BackStack<*>> =
     mutableMapOf()
 
 val LocalRouting: ProvidableCompositionLocal<List<Any>> = compositionLocalOf {
     listOf<Any>()
+}
+
+private class RouteViewModelStoreOwner(private val store: ViewModelStore) : ViewModelStoreOwner {
+    override val viewModelStore: ViewModelStore get() = store
 }
 
 @Composable
@@ -89,6 +66,8 @@ internal fun <T> Router(
 
     @Composable
     fun Observe(body: @Composable () -> Unit) = body()
+    val store = routeViewModelStores.getOrPut(key(backStack.lastIndex)) { ViewModelStore() }
+    val owner = remember(store) { RouteViewModelStoreOwner(store) }
 
     Observe {
         // Not recomposing router on backstack operation
@@ -96,6 +75,7 @@ internal fun <T> Router(
             CompositionLocalProvider(
                 LocalBackPressHandler provides localHandler,
                 LocalRouting provides downStreamRoute,
+                LocalViewModelStoreOwner provides owner,
             ) {
                 children(backStack)
             }
@@ -106,7 +86,10 @@ internal fun <T> Router(
 @Composable
 private fun <T> fetchBackStack(key: String, defaultElement: T, override: T?): BackStack<T> {
     val upstreamBundle = LocalSavedInstanceState.current
-    val onElementRemoved: (Int) -> Unit = { upstreamBundle.remove(key(it)) }
+    val onElementRemoved: (Int) -> Unit = {
+        routeViewModelStores.remove(key(it))?.clear()
+        upstreamBundle.remove(key(it))
+    }
 
     @Suppress("UNCHECKED_CAST")
     val existing = backStackMap[key] as BackStack<T>?

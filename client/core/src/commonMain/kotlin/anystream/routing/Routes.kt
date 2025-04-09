@@ -55,4 +55,8 @@ sealed class Routes {
     ) : Routes() {
         override val path: String = "player/$mediaLinkId"
     }
+
+    data object Profile : Routes() {
+        override val path: String = "profile"
+    }
 }

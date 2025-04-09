@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2023 AnyStream Maintainers
+ * Copyright (C) 2025 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -17,30 +17,36 @@
  */
 package anystream.router
 
-actual class Bundle actual constructor() {
+import anystream.routing.CommonRouter
+import anystream.routing.Routes
 
-    private var bundle: android.os.Bundle = android.os.Bundle()
 
-    constructor(bundle: android.os.Bundle) : this() {
-        this.bundle = bundle
+class SharedRouter : CommonRouter {
+
+    private var backStack: BackStack<Routes>? = null
+
+    fun setBackStack(backStack: BackStack<Routes>?) {
+        this.backStack = backStack
     }
 
-    actual fun putBundle(key: String, bundle: Bundle) {
-        this.bundle.putBundle(key, bundle.bundle)
+    override fun popCurrentRoute() {
+        backStack?.pop()
     }
 
-    actual fun getInt(key: String, value: Int): Int =
-        bundle.getInt(key, value)
-
-    actual fun putInt(key: String, value: Int) {
-        bundle.putInt(key, value)
+    override fun pushRoute(route: Routes) {
+        backStack?.push(route)
     }
 
-    actual fun getBundle(key: String): Bundle? {
-        return bundle.getBundle(key)?.run(::Bundle)
+    override fun replaceStack(routes: List<Routes>) {
+        backStack?.apply {
+            newRoot(routes.first())
+            if (routes.size > 1) {
+                routes.drop(1).forEach(::push)
+            }
+        }
     }
 
-    actual fun remove(key: String) {
-        bundle.remove(key)
+    override fun replaceTop(route: Routes) {
+        backStack?.replace(route)
     }
 }

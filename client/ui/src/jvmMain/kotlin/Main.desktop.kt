@@ -16,9 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import androidx.compose.desktop.ui.tooling.preview.Preview
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.unit.dp
 import anystream.ui.App
 import anystream.ui.login.FormBody
 import anystream.ui.login.LoginScreenModel
@@ -32,6 +30,5 @@ fun AppPreview() {
     FormBody(
         LoginScreenModel(""),
         {},
-        PaddingValues(0.dp),
     )
 }

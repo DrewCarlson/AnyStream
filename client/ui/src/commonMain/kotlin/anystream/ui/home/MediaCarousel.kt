@@ -136,7 +136,11 @@ private fun CarouselMediaButtonRow() {
                 colors = ButtonDefaults.buttonColors(contentColor = MaterialTheme.colorScheme.onBackground),
                 modifier = Modifier.height(32.dp),
             ) {
-                Icon(painter = painterResource(Res.drawable.ic_play), contentDescription = null)
+                Icon(
+                    painter = painterResource(Res.drawable.ic_play),
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                )
                 Spacer(Modifier.width(8.dp))
                 Text(
                     text = "Play",

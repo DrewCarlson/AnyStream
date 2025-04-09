@@ -18,8 +18,10 @@
 package anystream.android
 
 import android.os.Bundle
+import androidx.activity.SystemBarStyle
 import androidx.activity.addCallback
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.*
 import anystream.router.BackPressHandler
@@ -30,6 +32,9 @@ class LeanbackActivity : MainActivity()
 open class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge(
+            navigationBarStyle = SystemBarStyle.light(0, 0)
+        )
         super.onCreate(savedInstanceState)
         val backPressHandler = BackPressHandler()
         onBackPressedDispatcher.addCallback(this) {

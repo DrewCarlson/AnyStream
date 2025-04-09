@@ -18,6 +18,7 @@
 package anystream.router
 
 import androidx.compose.runtime.*
+import androidx.core.bundle.Bundle
 
 private val rootSavedInstanceState = Bundle()
 
@@ -27,13 +28,6 @@ val LocalSavedInstanceState: ProvidableCompositionLocal<Bundle> = compositionLoc
 
 internal const val BUNDLE_KEY = "LocalSavedInstanceState"
 
-expect class Bundle() {
-    fun putBundle(key: String, bundle: Bundle)
-    fun getInt(key: String, value: Int): Int
-    fun putInt(key: String, value: Int)
-    fun getBundle(key: String): Bundle?
-    fun remove(key: String)
-}
 
 fun Bundle.saveLocal() {
     putBundle(BUNDLE_KEY, rootSavedInstanceState)

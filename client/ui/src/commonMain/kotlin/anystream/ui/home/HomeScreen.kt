@@ -24,13 +24,8 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -62,6 +57,7 @@ fun HomeScreen(
     onMetadataClick: (metadataId: String) -> Unit,
     onPlayClick: (mediaLinkId: String) -> Unit,
     onViewMoviesClicked: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val (modelState, eventConsumer) = rememberMobiusLoop(HomeScreenModel(), HomeScreenInit) {
         FlowMobius.loop(
@@ -70,45 +66,39 @@ fun HomeScreen(
         ).logger(SimpleLogger("HomeScreen"))
     }
     val model by modelState
-    Scaffold(
-        modifier = Modifier
-            .consumeWindowInsets(WindowInsets.statusBars)
-    ) { paddingValues ->
-        AnimatedContent(targetState = model.homeResponse) { targetState ->
-            when (targetState) {
-                is LoadableDataState.Loading -> LoadingScreen(paddingValues)
-                is LoadableDataState.Loaded ->
-                    HomeScreenContent(
-                        paddingValues = paddingValues,
-                        homeData = targetState.data,
-                        populars = model.popular,
-                        onMetadataClick = onMetadataClick,
-                        onViewMoviesClicked = onViewMoviesClicked,
-                        onContinueWatchingClick = onPlayClick,
-                    )
+    AnimatedContent(model.homeResponse) { targetState ->
+        when (targetState) {
+            is LoadableDataState.Loading -> LoadingScreen(modifier = modifier)
+            is LoadableDataState.Loaded ->
+                HomeScreenContent(
+                    modifier = modifier,
+                    homeData = targetState.data,
+                    populars = model.popular,
+                    onMetadataClick = onMetadataClick,
+                    onViewMoviesClicked = onViewMoviesClicked,
+                    onContinueWatchingClick = onPlayClick,
+                )
 
-                is LoadableDataState.Error -> Unit // TODO: add error view
+            is LoadableDataState.Error -> Unit // TODO: add error view
 
-                LoadableDataState.Empty -> Unit // TODO: add empty view
-            }
+            LoadableDataState.Empty -> Unit // TODO: add empty view
         }
     }
 }
 
 @Composable
 private fun HomeScreenContent(
-    paddingValues: PaddingValues,
     homeData: HomeResponse,
     populars: List<Pair<Movie, MediaLink?>>,
     onMetadataClick: (metadataId: String) -> Unit,
     onViewMoviesClicked: () -> Unit,
     onContinueWatchingClick: (mediaLinkId: String) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = Modifier
             .verticalScroll(rememberScrollState())
-            .padding(paddingValues)
-            .consumeWindowInsets(paddingValues),
+            .then(modifier), // NOTE: Applied after scroll for haze effect
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         val (currentlyWatching, recentlyAdded, popular) = homeData
@@ -193,7 +183,7 @@ private fun ContinueWatchingRow(
                     )
                 }
                 currentlyWatchingTv[playbackState.id]?.also { (episode, show) ->
-                    val mediaItem = MediaItem(
+                    /*val mediaItem = MediaItem(
                         mediaId = episode.id,
                         contentTitle = show.name,
                         mediaLinks = emptyList(),
@@ -203,7 +193,13 @@ private fun ContinueWatchingRow(
                         overview = "",
                         mediaType = MediaType.TV_EPISODE,
                     )
-                    WatchingCard(mediaItem, playbackState, onPlayClick)
+                    WatchingCard(mediaItem, playbackState, onPlayClick)*/
+                    PosterCard(
+                        title = show.name,
+                        mediaId = show.id,//TODO: episode id
+                        onClick = { onPlayClick(playbackState.mediaLinkId) },
+                        onPlayClick = { onPlayClick(playbackState.mediaLinkId) },
+                    )
                 }
 
                 if (index == playbackStates.lastIndex) {
