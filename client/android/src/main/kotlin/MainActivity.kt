@@ -24,6 +24,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.*
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import anystream.router.BackPressHandler
 import anystream.router.LocalBackPressHandler
 import anystream.ui.App
@@ -32,6 +33,7 @@ class LeanbackActivity : MainActivity()
 open class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         enableEdgeToEdge(
             navigationBarStyle = SystemBarStyle.light(0, 0)
         )

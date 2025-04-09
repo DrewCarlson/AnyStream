@@ -67,6 +67,7 @@ dependencies {
     implementation(libsAndroid.androidx.activity.ktx)
     implementation(libsAndroid.androidx.activity.compose)
     implementation(libsAndroid.androidx.lifecycle.viewmodel.compose)
+    implementation(libsAndroid.androidx.splashscreen)
     implementation(libsClient.compose.ui.ui)
     implementation(libsClient.compose.ui.tooling.preview)
     implementation(libsClient.compose.livedata)

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?><resources>
+    <style name="Theme.AppSplash" parent="Theme.SplashScreen.IconBackground">
+        <item name="windowSplashScreenBackground">#181A20</item>
+        <item name="postSplashScreenTheme">@style/Theme.AppCompat.NoActionBar</item>
+    </style>
+</resources>
