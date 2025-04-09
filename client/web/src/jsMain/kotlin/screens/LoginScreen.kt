@@ -41,7 +41,7 @@ fun LoginScreen() {
     ) {
         FlowMobius.loop(
             LoginScreenUpdate,
-            LoginScreenHandler.create(client, WebRouter(router)),
+            LoginScreenHandler(client, WebRouter(router)),
         ).logger(SimpleLogger("Login"))
     }
 
