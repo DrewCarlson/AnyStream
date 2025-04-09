@@ -34,7 +34,8 @@ import androidx.compose.ui.unit.dp
 import anystream.client.AnyStreamClient
 import anystream.models.*
 import anystream.models.api.CurrentlyWatching
-import anystream.models.api.HomeResponse
+import anystream.models.api.Popular
+import anystream.models.api.RecentlyAdded
 import anystream.router.BackStack
 import anystream.routing.Routes
 import anystream.ui.LocalAnyStreamClient
@@ -59,36 +60,40 @@ fun HomeScreen(
     onViewMoviesClicked: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val (modelState, eventConsumer) = rememberMobiusLoop(HomeScreenModel(), HomeScreenInit) {
+    val (modelState, eventConsumer) = rememberMobiusLoop(HomeScreenModel.Loading, HomeScreenInit) {
         FlowMobius.loop(
             HomeScreenUpdate,
-            HomeScreenHandler.create(client),
+            HomeScreenHandler(client),
         ).logger(SimpleLogger("HomeScreen"))
     }
     val model by modelState
-    AnimatedContent(model.homeResponse) { targetState ->
-        when (targetState) {
-            is LoadableDataState.Loading -> LoadingScreen(modifier = modifier)
-            is LoadableDataState.Loaded ->
+    AnimatedContent(model) { currentModel ->
+        when (currentModel) {
+            is HomeScreenModel.Loading -> LoadingScreen(modifier = modifier)
+            is HomeScreenModel.Loaded ->
                 HomeScreenContent(
                     modifier = modifier,
-                    homeData = targetState.data,
-                    populars = model.popular,
+                    currentlyWatching = currentModel.currentlyWatching,
+                    recentlyAdded = currentModel.recentlyAdded,
+                    popular = currentModel.popular,
+                    populars = currentModel.popular.movies.toList().take(7),
                     onMetadataClick = onMetadataClick,
                     onViewMoviesClicked = onViewMoviesClicked,
                     onContinueWatchingClick = onPlayClick,
                 )
 
-            is LoadableDataState.Error -> Unit // TODO: add error view
+            is HomeScreenModel.LoadingFailed -> Unit // TODO: add error view
 
-            LoadableDataState.Empty -> Unit // TODO: add empty view
+            HomeScreenModel.Empty -> Unit // TODO: add empty view
         }
     }
 }
 
 @Composable
 private fun HomeScreenContent(
-    homeData: HomeResponse,
+    currentlyWatching: CurrentlyWatching,
+    recentlyAdded: RecentlyAdded,
+    popular: Popular,
     populars: List<Pair<Movie, MediaLink?>>,
     onMetadataClick: (metadataId: String) -> Unit,
     onViewMoviesClicked: () -> Unit,
@@ -101,7 +106,6 @@ private fun HomeScreenContent(
             .then(modifier), // NOTE: Applied after scroll for haze effect
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        val (currentlyWatching, recentlyAdded, popular) = homeData
         val pagerState = rememberPagerState { populars.count() }
 
         Box(Modifier.height(375.dp).fillMaxWidth()) {

@@ -35,6 +35,4 @@ sealed class HomeScreenModel {
 
     data object LoadingFailed : HomeScreenModel()
 
-    //val popular: List<Pair<Movie, MediaLink?>>
-    //    get() = homeResponse.dataOrNull?.popular?.movies?.toList()?.take(7).orEmpty()
 }
