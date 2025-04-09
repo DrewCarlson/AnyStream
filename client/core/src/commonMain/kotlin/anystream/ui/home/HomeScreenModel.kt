@@ -17,28 +17,24 @@
  */
 package anystream.ui.home
 
-import anystream.models.MediaLink
-import anystream.models.Movie
-import anystream.models.api.HomeResponse
+import anystream.models.api.CurrentlyWatching
+import anystream.models.api.Popular
+import anystream.models.api.RecentlyAdded
 
-data class HomeScreenModel(
-    val homeResponse: LoadableDataState<HomeResponse> = LoadableDataState.Loading,
-) {
-    val popular: List<Pair<Movie, MediaLink?>>
-        get() = homeResponse.dataOrNull?.popular?.movies?.toList()?.take(7).orEmpty()
-}
+sealed class HomeScreenModel {
 
-sealed class LoadableDataState<out T> {
-    data object Loading : LoadableDataState<Nothing>()
-    data object Empty : LoadableDataState<Nothing>()
-    data object Error : LoadableDataState<Nothing>()
+    data object Loading : HomeScreenModel()
 
-    data class Loaded<out T>(val data: T) : LoadableDataState<T>()
+    data class Loaded(
+        val currentlyWatching: CurrentlyWatching,
+        val recentlyAdded: RecentlyAdded,
+        val popular: Popular,
+    ) : HomeScreenModel()
 
-    val dataOrNull: T?
-        get() = (this as? Loaded<T>)?.data
+    data object Empty : HomeScreenModel()
 
-    val isLoading: Boolean get() = this is Loading
-    val isError: Boolean get() = this is Error
-    val isEmpty: Boolean get() = this is Empty
+    data object LoadingFailed : HomeScreenModel()
+
+    //val popular: List<Pair<Movie, MediaLink?>>
+    //    get() = homeResponse.dataOrNull?.popular?.movies?.toList()?.take(7).orEmpty()
 }

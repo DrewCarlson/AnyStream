@@ -24,29 +24,32 @@ import kt.mobius.Next.Companion.next
 import kt.mobius.Next.Companion.noChange
 import kt.mobius.Update
 import kt.mobius.gen.GenerateUpdate
+import anystream.ui.login.LoginScreenEffect as Effect
+import anystream.ui.login.LoginScreenModel as Model
 
 @GenerateUpdate
-object LoginScreenUpdate : Update<LoginScreenModel, LoginScreenEvent, LoginScreenEffect>, LoginScreenGeneratedUpdate {
-    override fun onLoginSubmit(model: LoginScreenModel): Next<LoginScreenModel, LoginScreenEffect> {
+object LoginScreenUpdate : Update<Model, LoginScreenEvent, Effect>, LoginScreenGeneratedUpdate {
+    override fun onLoginSubmit(model: Model): Next<Model, Effect> {
         return when (model.state) {
             State.IDLE -> {
                 if (model.isServerUrlValid() && model.credentialsAreSet()) {
                     next(
                         model.copy(state = State.AUTHENTICATING),
-                        LoginScreenEffect.Login(model.username, model.password, model.serverUrl),
+                        Effect.Login(model.username, model.password, model.serverUrl),
                     )
                 } else {
                     noChange()
                 }
             }
+
             else -> noChange()
         }
     }
 
     override fun onServerUrlChanged(
-        model: LoginScreenModel,
+        model: Model,
         event: LoginScreenEvent.OnServerUrlChanged,
-    ): Next<LoginScreenModel, LoginScreenEffect> {
+    ): Next<Model, Effect> {
         return when (model.state) {
             State.IDLE -> next(
                 model.copy(
@@ -54,17 +57,18 @@ object LoginScreenUpdate : Update<LoginScreenModel, LoginScreenEvent, LoginScree
                     serverValidation = ServerValidation.VALIDATING,
                     pairingCode = null,
                 ),
-                LoginScreenEffect.ValidateServerUrl(serverUrl = event.serverUrl),
-                LoginScreenEffect.PairingSession("", cancel = true),
+                Effect.ValidateServerUrl(serverUrl = event.serverUrl),
+                Effect.PairingSession("", cancel = true),
             )
+
             else -> noChange()
         }
     }
 
     override fun onUsernameChanged(
-        model: LoginScreenModel,
+        model: Model,
         event: LoginScreenEvent.OnUsernameChanged,
-    ): Next<LoginScreenModel, LoginScreenEffect> {
+    ): Next<Model, Effect> {
         return when (model.state) {
             State.IDLE -> next(model.copy(username = event.username))
             else -> noChange()
@@ -72,9 +76,9 @@ object LoginScreenUpdate : Update<LoginScreenModel, LoginScreenEvent, LoginScree
     }
 
     override fun onPasswordChanged(
-        model: LoginScreenModel,
+        model: Model,
         event: LoginScreenEvent.OnPasswordChanged,
-    ): Next<LoginScreenModel, LoginScreenEffect> {
+    ): Next<Model, Effect> {
         return when (model.state) {
             State.IDLE -> next(model.copy(password = event.password))
             else -> noChange()
@@ -82,38 +86,39 @@ object LoginScreenUpdate : Update<LoginScreenModel, LoginScreenEvent, LoginScree
     }
 
     override fun onPairingStarted(
-        model: LoginScreenModel,
+        model: Model,
         event: LoginScreenEvent.OnPairingStarted,
-    ): Next<LoginScreenModel, LoginScreenEffect> {
+    ): Next<Model, Effect> {
         return next(model.copy(pairingCode = event.pairingCode))
     }
 
     override fun onPairingEnded(
-        model: LoginScreenModel,
+        model: Model,
         event: LoginScreenEvent.OnPairingEnded,
-    ): Next<LoginScreenModel, LoginScreenEffect> {
+    ): Next<Model, Effect> {
         return next(model.copy(pairingCode = null))
     }
 
     override fun onLoginSuccess(
-        model: LoginScreenModel,
+        model: Model,
         event: LoginScreenEvent.OnLoginSuccess,
-    ): Next<LoginScreenModel, LoginScreenEffect> {
+    ): Next<Model, Effect> {
         return when {
             model.state == State.AUTHENTICATING || !model.pairingCode.isNullOrBlank() -> {
                 next(
                     model.copy(state = State.AUTHENTICATED),
-                    LoginScreenEffect.NavigateToHome,
+                    Effect.NavigateToHome,
                 )
             }
+
             else -> noChange()
         }
     }
 
     override fun onLoginError(
-        model: LoginScreenModel,
+        model: Model,
         event: LoginScreenEvent.OnLoginError,
-    ): Next<LoginScreenModel, LoginScreenEffect> {
+    ): Next<Model, Effect> {
         return when (model.state) {
             State.AUTHENTICATING -> next(
                 model.copy(
@@ -121,28 +126,27 @@ object LoginScreenUpdate : Update<LoginScreenModel, LoginScreenEvent, LoginScree
                     loginError = event.error,
                 ),
             )
+
             else -> noChange()
         }
     }
 
     override fun onServerValidated(
-        model: LoginScreenModel,
+        model: Model,
         event: LoginScreenEvent.OnServerValidated,
-    ): Next<LoginScreenModel, LoginScreenEffect> {
-        return when (model.state) {
-            State.IDLE -> {
-                if (model.serverUrl == event.serverUrl) {
-                    val effects = mutableSetOf<LoginScreenEffect>()
-                    val newModel = model.copy(serverValidation = event.result)
-                    if (event.result == ServerValidation.VALID && newModel.supportsPairing) {
-                        effects.add(LoginScreenEffect.PairingSession(event.serverUrl))
-                    }
-                    next(newModel, effects)
-                } else {
-                    noChange()
-                }
+    ): Next<Model, Effect> {
+        if (model.state != State.IDLE) {
+            return noChange()
+        }
+        return if (model.serverUrl == event.serverUrl) {
+            val effects = mutableSetOf<Effect>()
+            val newModel = model.copy(serverValidation = event.result)
+            if (event.result == ServerValidation.VALID && newModel.supportsPairing) {
+                effects.add(Effect.PairingSession(event.serverUrl))
             }
-            else -> noChange()
+            next(newModel, effects)
+        } else {
+            noChange()
         }
     }
 }

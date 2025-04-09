@@ -1,3 +1,4 @@
+import dev.zacsweers.redacted.gradle.RedactedPluginExtension
 import org.gradle.kotlin.dsl.kotlin
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -5,6 +6,8 @@ plugins {
     kotlin("jvm")
     id("com.diffplug.spotless")
     kotlin("plugin.serialization")
+    id("dev.zacsweers.redacted")
+    id("dev.drewhamilton.poko")
 }
 
 kotlin {
@@ -20,6 +23,10 @@ kotlin {
 java {
     sourceCompatibility = JAVA_TARGET
     targetCompatibility = JAVA_TARGET
+}
+
+extensions.getByType<RedactedPluginExtension>().apply {
+    replacementString.set("***")
 }
 
 sourceSets {

@@ -17,43 +17,47 @@
  */
 package anystream.ui.signup
 
-import anystream.models.User
 import anystream.models.UserPublic
 import anystream.models.api.CreateUserResponse
+import dev.drewhamilton.poko.Poko
+import dev.zacsweers.redacted.annotations.Redacted
 
 sealed class SignupScreenEvent {
 
-    data class OnServerUrlChanged(
+    @Poko
+    class OnServerUrlChanged(
         val serverUrl: String,
     ) : SignupScreenEvent()
 
     data class OnUsernameChanged(
+        @Redacted
         val username: String,
     ) : SignupScreenEvent()
 
     data class OnPasswordChanged(
+        @Redacted
         val password: String,
-    ) : SignupScreenEvent() {
-        override fun toString(): String {
-            return "OnPasswordChanged(password='***')"
-        }
-    }
+    ) : SignupScreenEvent()
 
     data class OnInviteCodeChanged(
+        @Redacted
         val inviteCode: String,
     ) : SignupScreenEvent()
 
-    object OnSignupSubmit : SignupScreenEvent()
+    data object OnSignupSubmit : SignupScreenEvent()
 
-    data class OnSignupSuccess(
+    @Poko
+    class OnSignupSuccess(
         val user: UserPublic,
     ) : SignupScreenEvent()
 
-    data class OnSignupError(
+    @Poko
+    class OnSignupError(
         val error: CreateUserResponse.Error,
     ) : SignupScreenEvent()
 
-    data class OnServerValidated(
+    @Poko
+    class OnServerValidated(
         val serverUrl: String,
         val result: SignupScreenModel.ServerValidation,
     ) : SignupScreenEvent()

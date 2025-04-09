@@ -46,7 +46,7 @@ fun SignupScreen() {
     ) {
         FlowMobius.loop(
             SignupScreenUpdate,
-            SignupScreenHandler.create(client, WebRouter(router)),
+            SignupScreenHandler(client, WebRouter(router)),
         ).logger(SimpleLogger("Signup"))
     }
 

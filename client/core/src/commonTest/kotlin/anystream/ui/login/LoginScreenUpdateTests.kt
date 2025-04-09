@@ -17,7 +17,6 @@
  */
 package anystream.ui.login
 
-import anystream.models.User
 import anystream.models.UserPublic
 import anystream.models.api.CreateSessionResponse
 import anystream.ui.login.LoginScreenModel.ServerValidation

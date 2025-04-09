@@ -21,18 +21,20 @@ import anystream.ui.login.LoginScreenModel.ServerValidation
 import kt.mobius.First
 import kt.mobius.First.Companion.first
 import kt.mobius.Init
+import anystream.ui.login.LoginScreenEffect as Effect
+import anystream.ui.login.LoginScreenModel as Model
 
-object LoginScreenInit : Init<LoginScreenModel, LoginScreenEffect> {
+object LoginScreenInit : Init<Model, Effect> {
 
-    override fun init(model: LoginScreenModel): First<LoginScreenModel, LoginScreenEffect> {
-        val effects = mutableSetOf<LoginScreenEffect>()
+    override fun init(model: Model): First<Model, Effect> {
+        val effects = mutableSetOf<Effect>()
 
         if (model.isServerUrlValid() && model.supportsPairing) {
-            effects.add(LoginScreenEffect.PairingSession(model.serverUrl))
+            effects.add(Effect.PairingSession(model.serverUrl))
         }
 
         if (model.serverUrl.isNotBlank() && model.serverValidation == ServerValidation.VALIDATING) {
-            effects.add(LoginScreenEffect.ValidateServerUrl(model.serverUrl))
+            effects.add(Effect.ValidateServerUrl(model.serverUrl))
         }
 
         return first(model, effects)

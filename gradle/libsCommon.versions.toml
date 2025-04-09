@@ -1,9 +1,9 @@
 [versions]
-kotlin = { strictly = "2.1.10" }
+kotlin = { strictly = "2.1.20" }
 coroutines = "1.10.1"
 serialization = "1.8.1"
 ktorio = "3.1.2"
-ksp = "2.1.10-1.0.31"
+ksp = "2.1.20-2.0.0"
 atomicfu = "0.27.0"
 kover = "0.8.3"
 datetime = "0.6.2"
@@ -12,6 +12,8 @@ ktlint = "1.0.1"
 koin = "4.0.4"
 agp = "8.9.1"
 kotest = "5.9.1"
+redacted = "1.13.0"
+poko = "0.18.5"
 
 [plugins]
 multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
@@ -25,6 +27,8 @@ spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 downloadPlugin = { id = "de.undercouch.download", version = "5.6.0" }
 kotest = { id = "io.kotest.multiplatform", version.ref = "kotest" }
 atomicfu = { id = "org.jetbrains.kotlinx.atomicfu", version.ref = "atomicfu" }
+redacted = { id = "dev.zacsweers.redacted", version.ref = "redacted" }
+poko = { id = "dev.drewhamilton.poko", version.ref = "poko" }
 
 [libraries]
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
@@ -33,12 +37,15 @@ coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", ve
 coroutines-jdk8 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8", version.ref = "coroutines" }
 coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 
-serialization-plugin = { module = "org.jetbrains.kotlin:kotlin-serialization", version.ref = "kotlin"}
+serialization-plugin = { module = "org.jetbrains.kotlin:kotlin-serialization", version.ref = "kotlin" }
 serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "serialization" }
 serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
 
 datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "datetime" }
 
+poko = { module = "dev.drewhamilton.poko:poko-gradle-plugin", version.ref = "poko" }
+redacted = { module = "dev.zacsweers.redacted:redacted-compiler-plugin-gradle", version.ref = "redacted" }
+redacted-annotations = { module = "dev.zacsweers.redacted:redacted-compiler-plugin-annotations", version.ref = "redacted" }
 atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu" }
 atomicfu-plugin = { module = "org.jetbrains.kotlinx:atomicfu-gradle-plugin", version.ref = "atomicfu" }
 

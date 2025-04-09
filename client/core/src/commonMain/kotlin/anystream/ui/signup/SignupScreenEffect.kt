@@ -17,25 +17,22 @@
  */
 package anystream.ui.signup
 
+import dev.zacsweers.redacted.annotations.Redacted
+
 sealed class SignupScreenEffect {
 
     data class Signup(
         val username: String,
+        @Redacted
         val password: String,
+        @Redacted
         val inviteCode: String,
         val serverUrl: String,
-    ) : SignupScreenEffect() {
-        override fun toString(): String {
-            return "Signup(username='$username', " +
-                "password='***', " +
-                "inviteCode='$inviteCode', " +
-                "serverUrl='$serverUrl')"
-        }
-    }
+    ) : SignupScreenEffect()
 
     data class ValidateServerUrl(
         val serverUrl: String,
     ) : SignupScreenEffect()
 
-    object NavigateToHome : SignupScreenEffect()
+    data object NavigateToHome : SignupScreenEffect()
 }

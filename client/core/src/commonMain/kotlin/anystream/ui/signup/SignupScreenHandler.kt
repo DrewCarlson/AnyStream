@@ -22,45 +22,48 @@ import anystream.models.api.CreateUserResponse
 import anystream.routing.CommonRouter
 import anystream.routing.Routes
 import anystream.ui.signup.SignupScreenModel.ServerValidation
+import kotlinx.coroutines.CancellationException
 import kt.mobius.flow.ExecutionPolicy
 import kt.mobius.flow.FlowTransformer
 import kt.mobius.flow.subtypeEffectHandler
+import anystream.ui.signup.SignupScreenEffect as Effect
+import anystream.ui.signup.SignupScreenEvent as Event
 
-object SignupScreenHandler {
+class SignupScreenHandler(
+    client: AnyStreamClient,
+    router: CommonRouter,
+) : FlowTransformer<Effect, Event> by subtypeEffectHandler({
 
     // Future improvements:
     // - Add anystream verification url to server and validate Server Url points to real instance
-    fun create(
-        client: AnyStreamClient,
-        router: CommonRouter,
-    ): FlowTransformer<SignupScreenEffect, SignupScreenEvent> = subtypeEffectHandler {
-        addAction<SignupScreenEffect.NavigateToHome> { router.replaceTop(Routes.Home) }
 
-        addFunction<SignupScreenEffect.Signup> { (username, password, inviteCode, serverUrl) ->
-            try {
-                check(client.verifyAndSetServerUrl(serverUrl))
-                client.createUser(username, password, inviteCode).toSignupScreenEvent()
-            } catch (e: Throwable) {
-                SignupScreenEvent.OnSignupError(CreateUserResponse.Error(null, null))
-            }
-        }
+    addAction<Effect.NavigateToHome> { router.replaceTop(Routes.Home) }
 
-        addValueCollector<SignupScreenEffect.ValidateServerUrl>(ExecutionPolicy.Latest) { (serverUrl) ->
-            val result = try {
-                client.verifyAndSetServerUrl(serverUrl)
-                ServerValidation.VALID
-            } catch (e: Throwable) {
-                ServerValidation.INVALID
-            }
-
-            emit(SignupScreenEvent.OnServerValidated(serverUrl, result))
+    addFunction<Effect.Signup> { (username, password, inviteCode, serverUrl) ->
+        try {
+            check(client.verifyAndSetServerUrl(serverUrl))
+            client.createUser(username, password, inviteCode).toSignupScreenEvent()
+        } catch (e: Throwable) {
+            Event.OnSignupError(CreateUserResponse.Error(null, null))
         }
     }
 
-    private fun CreateUserResponse.toSignupScreenEvent(): SignupScreenEvent {
-        return when (this) {
-            is CreateUserResponse.Success -> SignupScreenEvent.OnSignupSuccess(user)
-            is CreateUserResponse.Error -> SignupScreenEvent.OnSignupError(this)
+    addValueCollector<Effect.ValidateServerUrl>(ExecutionPolicy.Latest) { (serverUrl) ->
+        val result = try {
+            client.verifyAndSetServerUrl(serverUrl)
+            ServerValidation.VALID
+        } catch (e: Throwable) {
+            if (e is CancellationException) throw e
+            ServerValidation.INVALID
         }
+
+        emit(Event.OnServerValidated(serverUrl, result))
+    }
+})
+
+private fun CreateUserResponse.toSignupScreenEvent(): Event {
+    return when (this) {
+        is CreateUserResponse.Success -> Event.OnSignupSuccess(user)
+        is CreateUserResponse.Error -> Event.OnSignupError(this)
     }
 }

@@ -17,18 +17,15 @@
  */
 package anystream.ui.login
 
+import dev.zacsweers.redacted.annotations.Redacted
+
 sealed class LoginScreenEffect {
     data class Login(
         val username: String,
+        @Redacted
         val password: String,
         val serverUrl: String,
-    ) : LoginScreenEffect() {
-        override fun toString(): String {
-            return "Login(username='$username', " +
-                "password='***', " +
-                "serverUrl='$serverUrl')"
-        }
-    }
+    ) : LoginScreenEffect()
 
     data class ValidateServerUrl(
         val serverUrl: String,
@@ -39,5 +36,5 @@ sealed class LoginScreenEffect {
         val cancel: Boolean = false,
     ) : LoginScreenEffect()
 
-    object NavigateToHome : LoginScreenEffect()
+    data object NavigateToHome : LoginScreenEffect()
 }

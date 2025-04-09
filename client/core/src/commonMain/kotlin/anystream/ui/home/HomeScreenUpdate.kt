@@ -27,12 +27,21 @@ import anystream.ui.home.HomeScreenModel as Model
 
 @GenerateUpdate
 object HomeScreenUpdate : Update<Model, Event, Effect>, HomeScreenGeneratedUpdate {
-    override fun onHomeDataFetchError(model: Model): Next<Model, Effect> {
-        return next(model.copy(homeResponse = LoadableDataState.Error))
+
+    override fun onHomeDataError(model: Model): Next<Model, Effect> {
+        return next(Model.LoadingFailed)
     }
 
-    override fun onHomeDataFetchSuccess(model: Model, event: Event.OnHomeDataFetchSuccess) =
-        next<Model, Effect>(
-            model.copy(homeResponse = LoadableDataState.Loaded(event.homeDate)),
+    override fun onHomeDataLoaded(
+        model: Model,
+        event: Event.OnHomeDataLoaded
+    ): Next<Model, Effect> {
+        return next(
+            Model.Loaded(
+                currentlyWatching = event.homeDate.currentlyWatching,
+                recentlyAdded = event.homeDate.recentlyAdded,
+                popular = event.homeDate.popular,
+            ),
         )
+    }
 }

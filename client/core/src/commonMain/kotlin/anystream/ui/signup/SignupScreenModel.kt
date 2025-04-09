@@ -18,11 +18,14 @@
 package anystream.ui.signup
 
 import anystream.models.api.CreateUserResponse
+import dev.zacsweers.redacted.annotations.Redacted
 
 data class SignupScreenModel(
     val serverUrl: String = "",
     val username: String = "",
+    @Redacted
     val password: String = "",
+    @Redacted
     val inviteCode: String = "",
     val state: State = State.IDLE,
     val serverValidation: ServerValidation = ServerValidation.VALIDATING,
@@ -47,17 +50,6 @@ data class SignupScreenModel(
 
     fun isInputLocked(): Boolean {
         return state != State.IDLE
-    }
-
-    override fun toString(): String {
-        return "SignupScreenModel(serverUrl='$serverUrl', " +
-            "username='$username', " +
-            "password='***', " +
-            "inviteCode='$inviteCode', " +
-            "state=$state, " +
-            "serverValidation=$serverValidation, " +
-            "signupError=$signupError, " +
-            "isInviteCodeLocked=$isInviteCodeLocked)"
     }
 
     companion object {

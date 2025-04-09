@@ -30,39 +30,44 @@ import kotlinx.coroutines.flow.mapNotNull
 import kt.mobius.flow.ExecutionPolicy
 import kt.mobius.flow.FlowTransformer
 import kt.mobius.flow.subtypeEffectHandler
+import anystream.ui.login.LoginScreenEffect as Effect
+import anystream.ui.login.LoginScreenEvent as Event
 
 class LoginScreenHandler(
     client: AnyStreamClient,
     router: CommonRouter,
-) : FlowTransformer<LoginScreenEffect, LoginScreenEvent> by subtypeEffectHandler({
+) : FlowTransformer<Effect, Event> by subtypeEffectHandler({
 
     // Future improvements:
     // - Add anystream verification url to server and validate Server Url points to real instance
 
-    addAction<LoginScreenEffect.NavigateToHome> { router.replaceTop(Routes.Home) }
+    addAction<Effect.NavigateToHome> { router.replaceTop(Routes.Home) }
 
-    addFunction<LoginScreenEffect.Login> { (username, password, serverUrl) ->
+    addFunction<Effect.Login> { (username, password, serverUrl) ->
         try {
             check(client.verifyAndSetServerUrl(serverUrl))
             client.login(username, password).toLoginScreenEvent()
         } catch (e: Throwable) {
-            LoginScreenEvent.OnLoginError(CreateSessionResponse.Error(null, null))
+            Event.OnLoginError(CreateSessionResponse.Error(null, null))
         }
     }
 
-    addValueCollector<LoginScreenEffect.ValidateServerUrl>(ExecutionPolicy.Latest) { (serverUrl) ->
+    addValueCollector<Effect.ValidateServerUrl>(ExecutionPolicy.Latest) { (serverUrl) ->
         val result = try {
-            check(client.verifyAndSetServerUrl(serverUrl))
-            ServerValidation.VALID
+            if (client.verifyAndSetServerUrl(serverUrl)) {
+                ServerValidation.VALID
+            } else {
+                ServerValidation.INVALID
+            }
         } catch (e: Throwable) {
             if (e is CancellationException) throw e
             ServerValidation.INVALID
         }
 
-        emit(LoginScreenEvent.OnServerValidated(serverUrl, result))
+        emit(Event.OnServerValidated(serverUrl, result))
     }
 
-    addValueCollector<LoginScreenEffect.PairingSession>(ExecutionPolicy.Latest) { (serverUrl, cancel) ->
+    addValueCollector<Effect.PairingSession>(ExecutionPolicy.Latest) { (serverUrl, cancel) ->
         if (cancel || !client.verifyAndSetServerUrl(serverUrl)) return@addValueCollector
 
         lateinit var pairingCode: String
@@ -73,23 +78,23 @@ class LoginScreenHandler(
                     PairingMessage.Idle -> null // waiting for remote pairing
                     is PairingMessage.Started -> {
                         pairingCode = message.pairingCode
-                        LoginScreenEvent.OnPairingStarted(message.pairingCode)
+                        Event.OnPairingStarted(message.pairingCode)
                     }
 
                     is PairingMessage.Authorized -> {
                         client.createPairedSession(pairingCode, message.secret).toLoginScreenEvent()
                     }
 
-                    PairingMessage.Failed -> LoginScreenEvent.OnPairingEnded(pairingCode)
+                    PairingMessage.Failed -> Event.OnPairingEnded(pairingCode)
                 }
             }
         emitAll(pairingFlow)
     }
 })
 
-private fun CreateSessionResponse.toLoginScreenEvent(): LoginScreenEvent {
+private fun CreateSessionResponse.toLoginScreenEvent(): Event {
     return when (this) {
-        is CreateSessionResponse.Success -> LoginScreenEvent.OnLoginSuccess(user)
-        is CreateSessionResponse.Error -> LoginScreenEvent.OnLoginError(this)
+        is CreateSessionResponse.Success -> Event.OnLoginSuccess(user)
+        is CreateSessionResponse.Error -> Event.OnLoginError(this)
     }
 }

@@ -12,6 +12,8 @@ plugins {
     alias(libsCommon.plugins.kover)
     alias(libsCommon.plugins.downloadPlugin) apply false
     alias(libsCommon.plugins.atomicfu) apply false
+    alias(libsCommon.plugins.redacted) apply false
+    alias(libsCommon.plugins.poko) apply false
 }
 
 buildscript {

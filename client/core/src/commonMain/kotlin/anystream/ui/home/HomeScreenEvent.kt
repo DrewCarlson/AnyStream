@@ -18,12 +18,14 @@
 package anystream.ui.home
 
 import anystream.models.api.HomeResponse
+import dev.drewhamilton.poko.Poko
 
 sealed class HomeScreenEvent {
 
-    data class OnHomeDataFetchSuccess(
+    @Poko
+    class OnHomeDataLoaded(
         val homeDate: HomeResponse,
     ) : HomeScreenEvent()
 
-    data object OnHomeDataFetchError : HomeScreenEvent()
+    data object OnHomeDataError : HomeScreenEvent()
 }

@@ -20,18 +20,18 @@ package anystream.ui.home
 import anystream.client.AnyStreamClient
 import kt.mobius.flow.FlowTransformer
 import kt.mobius.flow.subtypeEffectHandler
+import anystream.ui.home.HomeScreenEffect as Effect
+import anystream.ui.home.HomeScreenEvent as Event
 
-object HomeScreenHandler {
+class HomeScreenHandler(
+    client: AnyStreamClient,
+) : FlowTransformer<Effect, Event> by subtypeEffectHandler({
 
-    fun create(
-        client: AnyStreamClient,
-    ): FlowTransformer<HomeScreenEffect, HomeScreenEvent> = subtypeEffectHandler {
-        addFunction<HomeScreenEffect.GetHomeData> {
-            try {
-                HomeScreenEvent.OnHomeDataFetchSuccess(client.getHomeData())
-            } catch (e: Throwable) {
-                HomeScreenEvent.OnHomeDataFetchError
-            }
+    addFunction<Effect.LoadHomeData> {
+        try {
+            Event.OnHomeDataLoaded(client.getHomeData())
+        } catch (e: Throwable) {
+            Event.OnHomeDataError
         }
     }
-}
+})

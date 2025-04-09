@@ -19,43 +19,51 @@ package anystream.ui.login
 
 import anystream.models.UserPublic
 import anystream.models.api.CreateSessionResponse
+import dev.drewhamilton.poko.Poko
+import dev.zacsweers.redacted.annotations.Redacted
 
 sealed class LoginScreenEvent {
-    data class OnServerUrlChanged(
+
+    @Poko
+    class OnServerUrlChanged(
         val serverUrl: String,
     ) : LoginScreenEvent()
 
-    data class OnUsernameChanged(
+    @Poko
+    class OnUsernameChanged(
         val username: String,
     ) : LoginScreenEvent()
 
     data class OnPasswordChanged(
+        @Redacted
         val password: String,
-    ) : LoginScreenEvent() {
-        override fun toString(): String {
-            return "OnPasswordChanged(password='***')"
-        }
-    }
+    ) : LoginScreenEvent()
 
     data object OnLoginSubmit : LoginScreenEvent()
 
     data class OnPairingStarted(
+        @Redacted
         val pairingCode: String,
     ) : LoginScreenEvent()
+
 
     data class OnPairingEnded(
+        @Redacted
         val pairingCode: String,
     ) : LoginScreenEvent()
 
-    data class OnLoginSuccess(
+    @Poko
+    class OnLoginSuccess(
         val user: UserPublic,
     ) : LoginScreenEvent()
 
-    data class OnLoginError(
+    @Poko
+    class OnLoginError(
         val error: CreateSessionResponse.Error,
     ) : LoginScreenEvent()
 
-    data class OnServerValidated(
+    @Poko
+    class OnServerValidated(
         val serverUrl: String,
         val result: LoginScreenModel.ServerValidation,
     ) : LoginScreenEvent()

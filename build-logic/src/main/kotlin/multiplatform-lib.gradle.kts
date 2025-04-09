@@ -1,4 +1,5 @@
 import com.android.build.gradle.LibraryExtension
+import dev.zacsweers.redacted.gradle.RedactedPluginExtension
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 
@@ -7,6 +8,8 @@ plugins {
     id("com.diffplug.spotless")
     kotlin("plugin.serialization")
     id("org.jetbrains.kotlinx.atomicfu")
+    id("dev.zacsweers.redacted")
+    id("dev.drewhamilton.poko")
 }
 
 if (hasAndroidSdk) {
@@ -28,6 +31,7 @@ if (hasAndroidSdk) {
     }
 }
 
+
 afterEvaluate {
     spotless {
         kotlin {
@@ -37,6 +41,9 @@ afterEvaluate {
             //ktlint(libsCommon.findVersion("ktlint").get().requiredVersion)
             //    .setEditorConfigPath(rootDir.resolve(".editorconfig"))
         }
+    }
+    extensions.getByType<RedactedPluginExtension>().apply {
+        replacementString.set("***")
     }
 }
 
@@ -91,6 +98,7 @@ kotlin {
             kotlin.srcDir("build/generated/ksp/metadata/$name/kotlin")
             dependencies {
                 implementation(kotlin("stdlib-common"))
+                implementation(libsCommon.findLibrary("redacted-annotations").get())
             }
         }
 

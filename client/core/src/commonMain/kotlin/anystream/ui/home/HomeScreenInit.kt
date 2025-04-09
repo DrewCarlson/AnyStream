@@ -26,7 +26,11 @@ import anystream.ui.home.HomeScreenModel as Model
 object HomeScreenInit : Init<Model, Effect> {
 
     override fun init(model: Model): First<Model, Effect> {
-        val effects = setOf<Effect>(Effect.GetHomeData)
-        return first(model, effects)
+        return when (model) {
+            is Model.Loaded -> first(model)
+            Model.Empty,
+            Model.Loading,
+            Model.LoadingFailed -> first(Model.Loading, Effect.LoadHomeData)
+        }
     }
 }
