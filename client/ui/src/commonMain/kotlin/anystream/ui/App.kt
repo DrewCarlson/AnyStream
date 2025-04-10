@@ -242,7 +242,16 @@ private fun DisplayRoute(
             )
         }
 
-        is Routes.Player -> SharedVideoPlayer(route, stack, client)
+        is Routes.Player -> {
+            SharedVideoPlayer(
+                route = route,
+                stack = stack,
+                client = client,
+                modifier = Modifier
+                    .padding(padding)
+                    .consumeWindowInsets(padding),
+            )
+        }
         Routes.PairingScanner -> {
             DevicePairingScannerScreen(
                 // note: Don't provide modifiers consuming padding, enabling edge-to-edge display

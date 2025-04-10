@@ -11,6 +11,7 @@ struct AnyStreamApp: App {
     var body: some Scene {
         WindowGroup {
             ComposeContentView()
+                .ignoresSafeArea()
         }
     }
 }

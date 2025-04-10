@@ -1,0 +1,112 @@
+---
+name: AnyStream
+options:
+  deploymentTarget: '15.2'
+configs:
+  Debug: debug
+  Release: release
+targets:
+  AnyStream:
+    platform: iOS
+    deploymentTarget: 15.2
+    type: application
+    settings:
+      base:
+        CODE_SIGN_STYLE: Manual
+        ENABLE_BITCODE: false
+        PROJECT_BUNDLE_NAME: AnyStream
+        PROJECT_BUNDLE_SHORT_VERSION: 0.0.1
+        PROJECT_BUNDLE_VERSION: 3
+        TARGETED_DEVICE_FAMILY: 1
+        SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: NO
+        SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: NO
+        ENABLE_USER_SCRIPT_SANDBOXING: NO
+      configs:
+        Debug:
+          APP_ICON: AppIcon
+          ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+          CODE_SIGN_STYLE: Automatic
+          SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG
+          PRODUCT_BUNDLE_IDENTIFIER: debug.anystream.dev
+          PROJECT_BUNDLE_NAME: "AnyStream (D)"
+          KOTLIN_FRAMEWORK_BUILD_TYPE: Debug
+        Release:
+          APP_ICON: AppIcon
+          ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+          CODE_SIGN_STYLE: Automatic
+          SWIFT_ACTIVE_COMPILATION_CONDITIONS: RELEASE
+          PRODUCT_BUNDLE_IDENTIFIER: anystream.dev
+          PROJECT_BUNDLE_NAME: "AnyStream"
+          KOTLIN_FRAMEWORK_BUILD_TYPE: Release
+
+    #dependencies:
+
+    sources:
+      - path: AnyStream/Sources
+
+      - path: ../../
+        includes:
+          - "**/src/commonMain/kotlin/**"
+          - "**/src/iosMain/kotlin/**"
+        buildPhase: none
+    info:
+      path: AnyStream/Info.plist
+      properties:
+        CFBundleName: "$(PROJECT_BUNDLE_NAME)"
+        CFBundleVersion: "$(PROJECT_BUNDLE_VERSION)"
+        CFBundleShortVersionString: "$(PROJECT_BUNDLE_SHORT_VERSION)"
+        ITSAppUsesNonExemptEncryption: false
+        CADisableMinimumFrameDurationOnPhone: true
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        UIUserInterfaceStyle: Automatic
+        UIViewControllerBasedStatusBarAppearance: false
+        #UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        UILaunchStoryboardName: SplashScreen
+        NSCameraUsageDescription: Your camera is used to scan QR codes.
+        NSFaceIDUsageDescription: FaceID is used to protect your account.
+        CFBundleURLTypes:
+          - CFBundleTypeRole: Viewer
+            CFBundleURLName: dev.anystream
+            CFBundleURLSchemes:
+              - anystream
+
+    preBuildScripts:
+      - name: Compile and embed Kotlin Framework
+        basedOnDependencyAnalysis: false
+        shell: /usr/bin/env bash
+        script: |
+          cd "$SRCROOT/../.."
+          ./gradlew :client:ui:embedAndSignAppleFrameworkForXcode
+
+    scheme:
+      gatherCoverageData: true
+      stopOnEveyMainThreadCheckerIssue: true
+      commandLineArguments:
+        -AppleLocale en_US: true
+      testTargets:
+        - name: AnyStreamTests
+          parallelizable: true
+          randomExecutionOrder: true
+
+  AnyStreamTests:
+    platform: iOS
+    type: bundle.unit-test
+    sources:
+      - AnyStream/Resources
+      - AnyStream/Tests
+    info:
+      path: AnyStream/Tests/Info.plist
+    dependencies:
+      - target: AnyStream
+    scheme:
+      testTargets:
+        - AnyStreamTests
+      gatherCoverageData: true
+
+settings:
+  base:
+    IPHONEOS_DEPLOYMENT_TARGET: 15.2
+    FRAMEWORK_SEARCH_PATHS[sdk=iphonesimulator*]: $(inherited) "../../ui/build/xcode-frameworks/$(CONFIGURATION)/iphonesimulator$(SDK_VERSION)"
+    FRAMEWORK_SEARCH_PATHS[sdk=iphoneos*]: $(inherited) "../../ui/build/xcode-frameworks/$(CONFIGURATION)/iphoneos$(SDK_VERSION)"
+

@@ -27,7 +27,6 @@ import androidx.compose.material.icons.filled.PauseCircleFilled
 import androidx.compose.material.icons.filled.PlayCircleFilled
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -51,6 +50,7 @@ internal fun SharedVideoPlayer(
     route: Routes.Player,
     stack: BackStack<Routes>,
     client: AnyStreamClient,
+    modifier: Modifier = Modifier,
 ) {
     var shouldShowControls by remember { mutableStateOf(true) }
     var isPlaying by remember { mutableStateOf(true) }
@@ -62,56 +62,53 @@ internal fun SharedVideoPlayer(
         }
     }
 
-    Scaffold(Modifier) { padding ->
-        Box(
-            contentAlignment = Alignment.Center,
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .background(Color.Black)
+            .fillMaxSize(),
+    ) {
+        VideoPlayer(
             modifier = Modifier
-                .padding(padding)
-                .background(Color.Black)
-                .fillMaxSize(),
+                .fillMaxSize()
+                .noRippleClickable(onClick = {
+                    shouldShowControls = !shouldShowControls
+                }),
+            mediaLinkId = route.mediaLinkId,
+            isPlaying = isPlaying,
+        )
+
+        AnimatedVisibility(
+            visible = shouldShowControls,
+            modifier = Modifier.align(Alignment.TopCenter),
+            enter = slideInVertically(),
+            exit = slideOutVertically(),
         ) {
-            VideoPlayer(
+            AppTopBar(client = client, backStack = stack, showBackButton = true)
+        }
+
+        AnimatedVisibility(
+            visible = shouldShowControls,
+            modifier = Modifier.align(Alignment.BottomCenter),
+            enter = slideInVertically { it },
+            exit = slideOutVertically { it },
+        ) {
+            Row(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .noRippleClickable(onClick = {
-                        shouldShowControls = !shouldShowControls
-                    }),
-                mediaLinkId = route.mediaLinkId,
-                isPlaying = isPlaying,
-            )
-
-            AnimatedVisibility(
-                visible = shouldShowControls,
-                modifier = Modifier.align(Alignment.TopCenter),
-                enter = slideInVertically(),
-                exit = slideOutVertically(),
+                    .fillMaxWidth()
+                    .height(150.dp)
+                    .background(Color.Black.copy(alpha = 0.7f)),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                AppTopBar(client = client, backStack = stack, showBackButton = true)
-            }
-
-            AnimatedVisibility(
-                visible = shouldShowControls,
-                modifier = Modifier.align(Alignment.BottomCenter),
-                enter = slideInVertically { it },
-                exit = slideOutVertically { it },
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(150.dp)
-                        .background(Color.Black.copy(alpha = 0.7f)),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    IconButton({
-                        isPlaying = !isPlaying
-                    }) {
-                        Icon(
-                            if (isPlaying) Icons.Filled.PauseCircleFilled else Icons.Filled.PlayCircleFilled,
-                            contentDescription = null,
-                            modifier = Modifier.size(40.dp),
-                        )
-                    }
+                IconButton({
+                    isPlaying = !isPlaying
+                }) {
+                    Icon(
+                        if (isPlaying) Icons.Filled.PauseCircleFilled else Icons.Filled.PlayCircleFilled,
+                        contentDescription = null,
+                        modifier = Modifier.size(40.dp),
+                    )
                 }
             }
         }

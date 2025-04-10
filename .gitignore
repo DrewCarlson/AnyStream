@@ -14,4 +14,5 @@ build/
 qbittorrent/
 local.properties
 xcuserdata/
+client/ios/AnyStream.xcodeproj
 anystream.db*

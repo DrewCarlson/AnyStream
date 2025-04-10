@@ -15,7 +15,7 @@ let gradient = LinearGradient(
 struct ComposeView: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UIViewController {
         let controller = Main_iosKt.MainViewController()
-        controller.overrideUserInterfaceStyle = .light
+        controller.overrideUserInterfaceStyle = .dark
         return controller
     }
     
@@ -26,11 +26,6 @@ struct ComposeContentView: View {
     var body: some View {
         ZStack {
             ComposeView()
-                .ignoresSafeArea(.keyboard) // Compose has own keyboard handler
-            VStack {
-                gradient.ignoresSafeArea(edges: .top).frame(height: 0)
-                Spacer()
-            }
         }.preferredColorScheme(.dark)
     }
 }

@@ -18,14 +18,17 @@
 package anystream.ui.video
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.interop.UIKitView
+import androidx.compose.ui.viewinterop.UIKitInteropProperties
+import androidx.compose.ui.viewinterop.UIKitView
 import anystream.getClient
 import anystream.models.PlaybackState
 import kotlinx.cinterop.COpaquePointer
+import kotlinx.cinterop.cValue
 import kotlinx.cinterop.readValue
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,6 +37,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import observer.ObserverProtocol
 import platform.AVFoundation.*
+import platform.CoreGraphics.CGRectZero
 import platform.CoreMedia.CMTimeGetSeconds
 import platform.CoreMedia.CMTimeMakeWithSeconds
 import platform.CoreMedia.kCMTimeZero
@@ -42,7 +46,6 @@ import platform.Foundation.NSKeyValueObservingOptionNew
 import platform.Foundation.NSURL
 import platform.Foundation.addObserver
 import platform.Foundation.removeObserver
-import platform.UIKit.UIColor
 import platform.UIKit.UIColor.Companion.blackColor
 import platform.UIKit.UIView
 import platform.darwin.NSObject
@@ -105,25 +108,32 @@ internal actual fun VideoPlayer(
     LaunchedEffect(isPlaying) {
         if (isPlaying) player.play() else player.pause()
     }
-    val factory = remember {
+    val factory = remember(player) {
         {
-            UIView().apply {
-                backgroundColor = blackColor
-                val playerLayer = AVPlayerLayer.playerLayerWithPlayer(player)
-                    .apply { backgroundColor = UIColor.blackColor.CGColor }
-                layer.addSublayer(playerLayer)
+            object : UIView(cValue { CGRectZero }) {
+                private val playerLayer = AVPlayerLayer.playerLayerWithPlayer(player)
+
+                init {
+                    backgroundColor = blackColor
+                    layer.addSublayer(playerLayer)
+                }
+
+                override fun layoutSubviews() {
+                    super.layoutSubviews()
+                    playerLayer.setFrame(bounds)
+                }
             }
         }
     }
     UIKitView(
-        modifier = modifier.background(Color.Black),
         factory = factory,
-        onResize = { view, size ->
-            view.layer.sublayers.orEmpty()
-                .filterIsInstance<AVPlayerLayer>()
-                .forEach { it.setFrame(size) }
-        },
-        interactive = false,
+        modifier = modifier
+            .fillMaxSize()
+            .background(Color.Black),
+        properties = UIKitInteropProperties(
+            isInteractive = false,
+            isNativeAccessibilityEnabled = false
+        )
     )
 }
 
@@ -142,7 +152,7 @@ class StatusObserver(
             AVPlayerStatusFailed -> "AVPlayerStatusFailed"
             AVPlayerStatusReadyToPlay -> "AVPlayerStatusReadyToPlay"
             AVPlayerStatusUnknown -> "AVPlayerStatusUnknown"
-            else -> error("Unknown player status: ${value.status}")
+            else -> println("Unknown player status: ${value.status}")
         }
         println("Player Status: $status")
     }
