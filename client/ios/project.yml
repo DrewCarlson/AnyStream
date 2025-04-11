@@ -23,8 +23,8 @@ targets:
         ENABLE_USER_SCRIPT_SANDBOXING: NO
       configs:
         Debug:
-          APP_ICON: AppIcon
-          ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+          APP_ICON: AppIconDebug
+          ASSETCATALOG_COMPILER_APPICON_NAME: AppIconDebug
           CODE_SIGN_STYLE: Automatic
           SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG
           PRODUCT_BUNDLE_IDENTIFIER: debug.anystream.dev
@@ -43,6 +43,7 @@ targets:
 
     sources:
       - path: AnyStream/Sources
+      - path: AnyStream/Resources
 
       - path: ../../
         includes:
