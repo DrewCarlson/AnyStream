@@ -16,7 +16,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import androidx.compose.ui.window.ComposeUIViewController
+import anystream.configure
 import anystream.ui.App
+import anystream.ui.UiModule
+import platform.UIKit.UIViewController
 
 @Suppress("FunctionName") // called from Swift
-fun MainViewController() = ComposeUIViewController { App() }
+fun MainViewController(): UIViewController {
+    configure  {
+        modules(UiModule)
+    }
+    return ComposeUIViewController { App() }
+}

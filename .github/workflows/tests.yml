@@ -130,7 +130,7 @@ jobs:
           path: |
             ~/.konan
             ~/.gradle
-          key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
+          key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v3
 
       - uses: browser-actions/setup-firefox@634a60ccd6599686158cf5a570481b4cd30455a2
         id: install-firefox
@@ -181,7 +181,7 @@ jobs:
           path: |
             ~/.konan
             ~/.gradle
-          key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
+          key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v3
 
       - name: All Tests
         run: ./gradlew client:ui:allTests client:ui:koverXmlReport
@@ -222,7 +222,7 @@ jobs:
           path: |
             ~/.konan
             ~/.gradle
-          key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
+          key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v3
 
       - name: Enable KVM group perms
         run: |
@@ -279,7 +279,7 @@ jobs:
           path: |
             ~/.konan
             ~/.gradle
-          key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
+          key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v3
 
       - uses: browser-actions/setup-firefox@634a60ccd6599686158cf5a570481b4cd30455a2
         id: install-firefox
@@ -324,7 +324,7 @@ jobs:
           path: |
             ~/.konan
             ~/.gradle
-          key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
+          key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v3
 
       - name: Run Server Tests
         run: >

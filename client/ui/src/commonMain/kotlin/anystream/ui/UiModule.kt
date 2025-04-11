@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2023 AnyStream Maintainers
+ * Copyright (C) 2025 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -15,18 +15,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.client
+package anystream.ui
 
-import org.koin.core.KoinApplication
-import org.koin.core.context.startKoin
+import org.koin.core.module.Module
 
-private var koinApp: KoinApplication? = null
-
-fun configure(body: KoinApplication.() -> Unit = {}) {
-    if (koinApp == null) {
-        koinApp = startKoin {
-            modules(coreModule())
-            body()
-        }
-    }
-}
+expect val UiModule: Module

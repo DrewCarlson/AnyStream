@@ -22,14 +22,21 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import anystream.client.configure
+import anystream.ui.UiModule
 import anystream.ui.generated.resources.Res
 import anystream.ui.generated.resources.as_icon
 import anystream.ui.video.LocalAppWindow
+import anystream.ui.video.PlayerHandle
+import anystream.ui.video.VlcjPlayerHandle
 import anystream.ui.video.prepareLibvlc
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.painterResource
+import org.koin.dsl.module
 
 fun main() = application {
-    configure()
+    configure {
+        modules(UiModule)
+    }
 
     LaunchedEffect(Unit) {
         launch { prepareLibvlc() }
@@ -39,7 +46,7 @@ fun main() = application {
         onCloseRequest = ::exitApplication,
         title = "AnyStream",
         state = rememberWindowState(width = 1600.dp, height = 1200.dp),
-        icon = org.jetbrains.compose.resources.painterResource(Res.drawable.as_icon),
+        icon = painterResource(Res.drawable.as_icon),
     ) {
         CompositionLocalProvider(LocalAppWindow provides window) {
             MainView()

@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2023 AnyStream Maintainers
+ * Copyright (C) 2025 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -15,18 +15,15 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.client
+package anystream.ui
 
-import org.koin.core.KoinApplication
-import org.koin.core.context.startKoin
+import android.content.Context
+import anystream.client.AnyStreamClient
+import anystream.ui.video.Media3PlayerHandle
+import anystream.ui.video.PlayerHandle
+import org.koin.core.module.Module
+import org.koin.dsl.module
 
-private var koinApp: KoinApplication? = null
-
-fun configure(body: KoinApplication.() -> Unit = {}) {
-    if (koinApp == null) {
-        koinApp = startKoin {
-            modules(coreModule())
-            body()
-        }
-    }
+actual val UiModule: Module = module {
+    factory<PlayerHandle> { Media3PlayerHandle(get<Context>(), get<AnyStreamClient>()) }
 }

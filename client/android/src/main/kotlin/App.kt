@@ -20,6 +20,7 @@ package anystream.android
 import android.app.Application
 import android.content.Context
 import anystream.client.coreModule
+import anystream.ui.UiModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
@@ -35,6 +36,7 @@ class App : Application() {
             androidLogger()
             androidContext(this@App)
             modules(
+                UiModule,
                 coreModule(),
                 appModule(),
                 module {

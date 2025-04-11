@@ -17,5 +17,7 @@
  */
 package anystream.ui.video
 
+import kotlin.time.Duration.Companion.seconds
+
 internal const val PLAYER_STATE_UPDATE_INTERVAL = 250L
-internal const val PLAYER_STATE_REMOTE_UPDATE_INTERVAL = 5_000L
+internal val PLAYER_STATE_REMOTE_UPDATE_INTERVAL = 5.seconds
