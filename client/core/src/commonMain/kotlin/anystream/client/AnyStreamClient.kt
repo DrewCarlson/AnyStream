@@ -444,6 +444,13 @@ class AnyStreamClient(
         return PlaybackSessionHandle(
             update = progressFlow,
             cancel = { mutex.unlock() },
+            initialPlaybackState = scope.async { currentState.filterNotNull().first() },
+            playbackUrl = scope.async {
+                currentState
+                    .filterNotNull()
+                    .map { createHlsStreamUrl(it.mediaLinkId, it.id) }
+                    .first()
+            },
         )
     }
 
@@ -639,7 +646,9 @@ class AnyStreamClient(
         return "$serverUrl/api/stream/$mediaLinkId/hls/playlist.m3u8?token=$token"
     }
 
-    data class PlaybackSessionHandle(
+    class PlaybackSessionHandle(
+        val initialPlaybackState: Deferred<PlaybackState>,
+        val playbackUrl: Deferred<String>,
         val update: MutableSharedFlow<Double>,
         val cancel: () -> Unit,
     )

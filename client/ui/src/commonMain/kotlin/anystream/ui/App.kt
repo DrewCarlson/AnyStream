@@ -38,7 +38,7 @@ import anystream.ui.movies.MoviesScreen
 import anystream.ui.profile.DevicePairingScannerScreen
 import anystream.ui.profile.ProfileScreen
 import anystream.ui.theme.AppTheme
-import anystream.ui.video.SharedVideoPlayer
+import anystream.ui.video.VideoPlayer
 import dev.chrisbanes.haze.HazeProgressive
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
@@ -243,13 +243,10 @@ private fun DisplayRoute(
         }
 
         is Routes.Player -> {
-            SharedVideoPlayer(
+            VideoPlayer(
                 route = route,
                 stack = stack,
-                client = client,
-                modifier = Modifier
-                    .padding(padding)
-                    .consumeWindowInsets(padding),
+                modifier = Modifier,
             )
         }
         Routes.PairingScanner -> {

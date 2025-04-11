@@ -15,18 +15,13 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.client
+package anystream.ui.video
 
-import org.koin.core.KoinApplication
-import org.koin.core.context.startKoin
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 
-private var koinApp: KoinApplication? = null
-
-fun configure(body: KoinApplication.() -> Unit = {}) {
-    if (koinApp == null) {
-        koinApp = startKoin {
-            modules(coreModule())
-            body()
-        }
-    }
-}
+@Composable
+internal expect fun PlatformVideoPlayer(
+    playerHandle: PlayerHandle,
+    modifier: Modifier = Modifier,
+)

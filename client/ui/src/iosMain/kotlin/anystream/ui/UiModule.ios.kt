@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2023 AnyStream Maintainers
+ * Copyright (C) 2025 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -15,14 +15,13 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.ui.video
+package anystream.ui
 
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
+import anystream.ui.video.AvPlayerHandle
+import anystream.ui.video.PlayerHandle
+import org.koin.core.module.Module
+import org.koin.dsl.module
 
-@Composable
-internal expect fun VideoPlayer(
-    modifier: Modifier = Modifier,
-    mediaLinkId: String,
-    isPlaying: Boolean,
-)
+actual val UiModule: Module = module {
+    factory<PlayerHandle> { AvPlayerHandle(get()) }
+}

@@ -28,6 +28,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import anystream.router.BackPressHandler
 import anystream.router.LocalBackPressHandler
 import anystream.ui.App
+import org.koin.androidx.compose.KoinAndroidContext
 
 class LeanbackActivity : MainActivity()
 open class MainActivity : AppCompatActivity() {
@@ -48,7 +49,9 @@ open class MainActivity : AppCompatActivity() {
             CompositionLocalProvider(
                 LocalBackPressHandler provides backPressHandler,
             ) {
-                App()
+                KoinAndroidContext {
+                    App()
+                }
             }
         }
     }
