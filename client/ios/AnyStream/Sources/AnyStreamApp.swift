@@ -10,8 +10,10 @@ struct AnyStreamApp: App {
     
     var body: some Scene {
         WindowGroup {
-            ComposeContentView()
+            ComposeView()
                 .ignoresSafeArea()
+                .background(Color("dark1"))
+                .preferredColorScheme(.dark)
         }
     }
 }

@@ -17,12 +17,14 @@
  */
 package anystream.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.viewinterop.UIKitInteropProperties
 import androidx.compose.ui.viewinterop.UIKitView
 import kotlinx.cinterop.*
@@ -34,7 +36,12 @@ import platform.Foundation.NSError
 import platform.QuartzCore.CALayer
 import platform.QuartzCore.CATransaction
 import platform.UIKit.UIColor
+import platform.UIKit.UIDevice
+import platform.UIKit.UIDeviceOrientation.UIDeviceOrientationLandscapeLeft
+import platform.UIKit.UIDeviceOrientation.UIDeviceOrientationLandscapeRight
+import platform.UIKit.UIDeviceOrientation.UIDeviceOrientationPortraitUpsideDown
 import platform.UIKit.UIView
+import platform.UIKit.UIWindow
 import platform.darwin.NSObject
 import platform.darwin.dispatch_get_main_queue
 
@@ -132,7 +139,7 @@ private fun UIKitScannerView(
         factory = {
             object : UIView(cValue { CGRectZero }) {
                 init {
-                    backgroundColor = UIColor.blackColor
+                    backgroundColor = UIColor.clearColor
                     cameraScannerController.setup(layer)
                 }
 
@@ -142,7 +149,9 @@ private fun UIKitScannerView(
                 }
             }
         },
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier
+            .fillMaxSize()
+            .background(Color.Black),
         onRelease = { cameraScannerController.dispose() },
         properties = UIKitInteropProperties(
             isInteractive = false,
@@ -191,7 +200,7 @@ private class CameraScannerController(
 
         cameraPreview = AVCaptureVideoPreviewLayer(session = captureSession).apply {
             videoGravity = AVLayerVideoGravityResizeAspectFill
-            orientation = AVCaptureVideoOrientationPortrait
+            orientation = currentVideoOrientation()
             connection?.setVideoOrientation(orientation)
             frame = viewLayer.bounds
             viewLayer.addSublayer(this)
@@ -204,6 +213,12 @@ private class CameraScannerController(
         CATransaction.begin()
         CATransaction.setDisableActions(true)
         cameraPreview.setFrame(frame)
+        cameraPreview.orientation = currentVideoOrientation()
+        cameraPreview.connection?.let { connection ->
+            if (connection.isVideoOrientationSupported()) {
+                connection.videoOrientation = cameraPreview.orientation
+            }
+        }
         CATransaction.commit()
     }
 
@@ -239,5 +254,14 @@ private class CameraScannerController(
         outputs.filterIsInstance<AVCaptureOutput>().forEach(::removeOutput)
         commitConfiguration()
         stopRunning()
+    }
+
+    private fun currentVideoOrientation(): AVCaptureVideoOrientation {
+        return when (UIDevice.currentDevice.orientation) {
+            UIDeviceOrientationLandscapeLeft -> AVCaptureVideoOrientationLandscapeRight
+            UIDeviceOrientationLandscapeRight -> AVCaptureVideoOrientationLandscapeLeft
+            UIDeviceOrientationPortraitUpsideDown -> AVCaptureVideoOrientationPortraitUpsideDown
+            else -> AVCaptureVideoOrientationPortrait
+        }
     }
 }

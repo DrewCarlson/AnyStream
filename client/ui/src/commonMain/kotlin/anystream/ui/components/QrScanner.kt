@@ -27,6 +27,7 @@ import androidx.compose.ui.geometry.*
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
+import kotlin.math.min
 
 @Composable
 fun QrScanner(
@@ -58,10 +59,11 @@ private fun QrCodeScannerOverlay() {
     Canvas(modifier = Modifier.fillMaxSize()) {
         val margin = 48.dp.toPx()
         val radius = 40.dp.toPx()
-        val viewFinderSize = size.width - margin * 2
-        val viewFinderTop = size.height / 2 - viewFinderSize / 2
+        val viewFinderSize = min(size.width, size.height) - margin * 2
+        val viewFinderLeft = (size.width - viewFinderSize) / 2
+        val viewFinderTop = (size.height - viewFinderSize) / 2
         val viewFinderRect = Rect(
-            offset = Offset(margin, viewFinderTop),
+            offset = Offset(viewFinderLeft, viewFinderTop),
             size = Size(viewFinderSize, viewFinderSize)
         )
 
