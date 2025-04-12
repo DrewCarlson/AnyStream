@@ -40,7 +40,10 @@ internal fun SectionHeader(
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth().padding(end = 12.dp, bottom = 12.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .padding(top = 4.dp),
     ) {
         RowTitle(text = title)
         if (onCtaClicked != null && ctaText != null) {

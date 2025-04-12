@@ -21,7 +21,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -36,8 +36,6 @@ import anystream.models.*
 import anystream.models.api.CurrentlyWatching
 import anystream.models.api.Popular
 import anystream.models.api.RecentlyAdded
-import anystream.router.BackStack
-import anystream.routing.Routes
 import anystream.ui.LocalAnyStreamClient
 import anystream.ui.components.*
 import anystream.ui.components.CarouselAutoPlayHandler
@@ -54,7 +52,6 @@ private val CARD_SPACING = 8.dp
 @Composable
 fun HomeScreen(
     client: AnyStreamClient,
-    backStack: BackStack<Routes>,
     onMetadataClick: (metadataId: String) -> Unit,
     onPlayClick: (mediaLinkId: String) -> Unit,
     onViewMoviesClicked: () -> Unit,
@@ -108,7 +105,11 @@ private fun HomeScreenContent(
     ) {
         val pagerState = rememberPagerState { populars.count() }
 
-        Box(Modifier.height(375.dp).fillMaxWidth()) {
+        Box(
+            modifier = Modifier
+                .height(375.dp)
+                .fillMaxWidth()
+        ) {
             MediaCarousel(pagerState = pagerState, media = populars)
             PagerIndicator(count = populars.count(), currentPage = pagerState.currentPage)
         }
@@ -116,44 +117,38 @@ private fun HomeScreenContent(
         CarouselAutoPlayHandler(pagerState, populars.count())
 
         if (currentlyWatching.playbackStates.isNotEmpty()) {
-            Column(Modifier.padding(start = 20.dp)) {
-                SectionHeader(title = "Continue Watching")
-                ContinueWatchingRow(
-                    currentlyWatching,
-                    onPlayClick = onContinueWatchingClick,
-                )
-            }
+            SectionHeader(title = "Continue Watching")
+            ContinueWatchingRow(
+                currentlyWatching = currentlyWatching,
+                onPlayClick = onContinueWatchingClick,
+            )
         }
 
         if (recentlyAdded.movies.isNotEmpty()) {
-            Column(Modifier.padding(start = 20.dp)) {
-                SectionHeader(title = "Recently Added Movies", ctaText = "All Movies") {
-                    onViewMoviesClicked()
-                }
-                MovieRow(
-                    movies = recentlyAdded.movies.toList(),
-                    onMetadataClick = onMetadataClick,
-                    onPlayClick = onContinueWatchingClick,
-                )
+            SectionHeader(title = "Recently Added Movies", ctaText = "All Movies") {
+                onViewMoviesClicked()
             }
+            MovieRow(
+                movies = recentlyAdded.movies.toList(),
+                onMetadataClick = onMetadataClick,
+                onPlayClick = onContinueWatchingClick,
+            )
         }
 
         if (recentlyAdded.tvShows.isNotEmpty()) {
-            Column(Modifier.padding(start = 20.dp)) {
-                SectionHeader(
-                    title = "Recently Added TV",
-                    ctaText = "All Shows",
-                    onCtaClicked = onViewMoviesClicked,
-                )
-                TvRow(
-                    shows = recentlyAdded.tvShows,
-                    onMetadataClick = onMetadataClick,
-                    onPlayClick = onContinueWatchingClick,
-                )
-            }
+            SectionHeader(
+                title = "Recently Added TV",
+                ctaText = "All Shows",
+                onCtaClicked = onViewMoviesClicked,
+            )
+            TvRow(
+                shows = recentlyAdded.tvShows,
+                onMetadataClick = onMetadataClick,
+                onPlayClick = onContinueWatchingClick,
+            )
         }
 
-        Column(Modifier.padding(start = 20.dp)) {
+        if (popular.movies.isNotEmpty()) {
             SectionHeader(title = "Popular Movies")
             MovieRow(
                 movies = popular.movies.toList(),
@@ -177,7 +172,9 @@ private fun ContinueWatchingRow(
         horizontalArrangement = Arrangement.spacedBy(CARD_SPACING),
         modifier = modifier,
         content = {
-            itemsIndexed(playbackStates) { index, playbackState ->
+            item { Spacer(Modifier.width(CARD_SPACING)) }
+
+            items(playbackStates) { playbackState ->
                 currentlyWatchingMovies[playbackState.id]?.also { movie ->
                     PosterCard(
                         title = movie.title,
@@ -205,11 +202,9 @@ private fun ContinueWatchingRow(
                         onPlayClick = { onPlayClick(playbackState.mediaLinkId) },
                     )
                 }
-
-                if (index == playbackStates.lastIndex) {
-                    Spacer(Modifier.width(24.dp))
-                }
             }
+
+            item { Spacer(Modifier.width(CARD_SPACING)) }
         },
     )
 }
@@ -307,17 +302,18 @@ private fun MovieRow(
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(CARD_SPACING),
         content = {
-            itemsIndexed(movies) { index, (movie, mediaLink) ->
+            item { Spacer(Modifier.width(CARD_SPACING)) }
+
+            items(movies) { (movie, mediaLink) ->
                 PosterCard(
                     title = movie.title,
                     mediaId = movie.id,
                     onClick = { onMetadataClick(movie.id) },
                     onPlayClick = { mediaLink?.run { onPlayClick(id) } },
                 )
-                if (index == movies.lastIndex) {
-                    Spacer(Modifier.width(24.dp))
-                }
             }
+
+            item { Spacer(Modifier.width(CARD_SPACING)) }
         },
     )
 }
@@ -331,17 +327,18 @@ private fun TvRow(
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(CARD_SPACING),
         content = {
-            itemsIndexed(shows) { index, show ->
+            item { Spacer(Modifier.width(CARD_SPACING)) }
+
+            items(shows) { show ->
                 PosterCard(
                     title = show.name,
                     mediaId = show.id,
                     onClick = { onMetadataClick(show.id) },
                     onPlayClick = { onPlayClick(show.id) },
                 )
-                if (index == shows.lastIndex) {
-                    Spacer(Modifier.width(24.dp))
-                }
             }
+
+            item { Spacer(Modifier.width(CARD_SPACING)) }
         },
     )
 }

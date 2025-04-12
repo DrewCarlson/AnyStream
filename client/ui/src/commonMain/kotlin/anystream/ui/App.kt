@@ -203,7 +203,6 @@ private fun DisplayRoute(
                     .padding(bottomOnlyPadding)
                     .consumeWindowInsets(bottomOnlyPadding),
                 client = client,
-                backStack = stack,
                 onMetadataClick = { metadataId ->
                     stack.push(Routes.Details(metadataId))
                 },
