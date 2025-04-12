@@ -29,6 +29,7 @@ import anystream.ui.video.LocalAppWindow
 import anystream.ui.video.PlayerHandle
 import anystream.ui.video.VlcjPlayerHandle
 import anystream.ui.video.prepareLibvlc
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.koin.dsl.module
@@ -39,7 +40,7 @@ fun main() = application {
     }
 
     LaunchedEffect(Unit) {
-        launch { prepareLibvlc() }
+        launch(Dispatchers.IO) { prepareLibvlc() }
     }
 
     Window(
