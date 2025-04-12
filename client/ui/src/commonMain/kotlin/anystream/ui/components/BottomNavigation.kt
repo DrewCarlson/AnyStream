@@ -25,9 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import anystream.routing.Routes
-import anystream.ui.generated.resources.Res
-import anystream.ui.generated.resources.ic_curved_profile
-import anystream.ui.generated.resources.ic_home
+import anystream.ui.generated.resources.*
 import org.jetbrains.compose.resources.painterResource
 
 
@@ -58,7 +56,13 @@ internal fun BottomNavigation(
                 label = { Text("Home") },
                 icon = {
                     Icon(
-                        painterResource(Res.drawable.ic_home),
+                        painterResource(
+                            if (selectedRoute == Routes.Home) {
+                                Res.drawable.ic_home_fill
+                            } else {
+                                Res.drawable.ic_home_outline
+                            }
+                        ),
                         contentDescription = null,
                         modifier = Modifier.size(20.dp)
                     )
@@ -72,7 +76,13 @@ internal fun BottomNavigation(
                 label = { Text("Profile") },
                 icon = {
                     Icon(
-                        painterResource(Res.drawable.ic_curved_profile),
+                        painterResource(
+                            if (selectedRoute == Routes.Profile) {
+                                Res.drawable.ic_profile_fill
+                            } else {
+                                Res.drawable.ic_curved_profile
+                            }
+                        ),
                         contentDescription = null,
                         modifier = Modifier.size(20.dp)
                     )
