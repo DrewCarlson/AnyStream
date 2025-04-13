@@ -21,6 +21,9 @@ import anystream.models.api.EpisodeResponse
 import anystream.models.api.MovieResponse
 import anystream.models.api.SeasonResponse
 import anystream.models.api.TvShowResponse
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Duration
 
 data class MediaItem(
@@ -29,14 +32,14 @@ data class MediaItem(
     val subtitle1: String? = null,
     val subtitle2: String? = null,
     val overview: String,
-    val releaseDate: String?,
+    val releaseDate: Instant?,
     val mediaLinks: List<MediaLink>,
     val wide: Boolean = false,
     val playbackState: PlaybackState? = null,
     val genres: List<Genre> = emptyList(),
     val tmdbRating: Int? = null,
     val contentRating: String? = null,
-    val runtime: Int? = null,
+    val runtime: Duration? = null,
     val parentMetadataId: String? = null,
     val rootMetadataId: String? = null,
     val mediaType: MediaType,
@@ -48,7 +51,10 @@ data class MediaItem(
         }
 
     val releaseYear: String?
-        get() = releaseDate?.split("-")?.firstOrNull()?.toString()
+        get() = releaseDate
+            ?.toLocalDateTime(TimeZone.currentSystemDefault())
+            ?.year
+            ?.toString()
 }
 
 fun Duration.asFriendlyString(): String {

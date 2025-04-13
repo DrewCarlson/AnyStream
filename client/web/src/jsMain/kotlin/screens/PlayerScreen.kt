@@ -46,6 +46,8 @@ import org.w3c.dom.HTMLElement
 import org.w3c.dom.get
 import kotlin.time.Duration.Companion.ZERO
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.DurationUnit
+import kotlin.time.DurationUnit.SECONDS
 
 private val playerControlsColor = rgba(35, 36, 38, .45)
 
@@ -99,7 +101,7 @@ fun PlayerScreen(mediaLinkId: String) {
             println("[player] $state")
             if (initialState == null) {
                 initialState = state
-                player?.currentTime(state.position)
+                player?.currentTime(state.position.toDouble(SECONDS))
             }
             value = state
         }
@@ -215,11 +217,11 @@ fun PlayerScreen(mediaLinkId: String) {
                     }
                     element.onloadedmetadata = {
                         duration = player?.duration() ?: 1.0
-                        element.currentTime = playbackState?.position ?: 0.0
+                        element.currentTime = playbackState?.position?.toDouble(SECONDS) ?: 0.0
                         true
                     }
                     element.ontimeupdate = {
-                        sessionHandle?.update?.tryEmit(element.currentTime)
+                        sessionHandle?.update?.tryEmit(element.currentTime.seconds)
                         progress = player?.currentTime() ?: 0.0
                         true
                     }

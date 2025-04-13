@@ -21,6 +21,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import anystream.models.api.SearchResponse
 import app.softwork.routingcompose.Router
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.H5
@@ -50,8 +52,10 @@ fun SearchResultsList(
                     mediaId = movie.id,
                     title = movie.title,
                     subtitle = movie.releaseDate
-                        ?.split("-")
-                        ?.first() ?: "",
+                        ?.toLocalDateTime(TimeZone.currentSystemDefault())
+                        ?.year
+                        ?.toString()
+                        .orEmpty(),
                 )
             }
         }

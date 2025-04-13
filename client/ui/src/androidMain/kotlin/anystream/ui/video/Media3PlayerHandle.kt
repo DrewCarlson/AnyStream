@@ -25,8 +25,6 @@ import anystream.client.AnyStreamClient
 import kotlinx.coroutines.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.DurationUnit.SECONDS
 
 class Media3PlayerHandle(
     context: Context,
@@ -104,12 +102,12 @@ class Media3PlayerHandle(
         scope.launch {
             val handle = client.playbackSession(mediaLinkId) { state ->
                 println("[PlayerHandle] $state")
-                emitDuration(state.runtime.seconds)
-                emitProgress(state.position.seconds)
+                emitDuration(state.runtime)
+                emitProgress(state.position)
             }
 
             val url = handle.playbackUrl.await()
-            val startPosition = handle.initialPlaybackState.await().position.seconds
+            val startPosition = handle.initialPlaybackState.await().position
             println("[PlayerHandle] $url")
             withContext(Dispatchers.Main) {
                 player.setMediaItem(MediaItem.fromUri(url))
@@ -123,7 +121,7 @@ class Media3PlayerHandle(
                     lastSentProgress = progress
                 } else if ((progress - lastSentProgress) >= PLAYER_STATE_REMOTE_UPDATE_INTERVAL) {
                     lastSentProgress = progress
-                    handle.update.tryEmit(progress.toDouble(SECONDS))
+                    handle.update.tryEmit(progress)
                 }
             }
         }

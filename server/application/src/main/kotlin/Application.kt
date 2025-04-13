@@ -20,10 +20,13 @@ package anystream
 import anystream.data.MetadataDbQueries
 import anystream.data.UserSession
 import anystream.db.*
+import anystream.db.converter.JooqConverterProvider
 import anystream.jobs.registerJobs
 import anystream.media.LibraryService
+import anystream.media.analyzer.MediaFileAnalyzer
 import anystream.media.processor.MovieFileProcessor
 import anystream.media.processor.TvFileProcessor
+import anystream.metadata.ImageStore
 import anystream.metadata.MetadataService
 import anystream.metadata.providers.TmdbMetadataProvider
 import anystream.models.Permission
@@ -33,17 +36,14 @@ import anystream.service.stream.StreamService
 import anystream.service.stream.StreamServiceQueries
 import anystream.service.stream.StreamServiceQueriesJooq
 import anystream.service.user.UserService
-import anystream.db.UserDao
-import anystream.media.analyzer.MediaFileAnalyzer
-import anystream.metadata.ImageStore
 import anystream.util.SqlSessionStorage
 import anystream.util.WebsocketAuthorization
 import anystream.util.headerOrQuery
 import app.moviebase.tmdb.Tmdb3
 import com.github.kokorin.jaffree.ffmpeg.FFmpeg
 import com.github.kokorin.jaffree.ffprobe.FFprobe
-import io.ktor.client.HttpClient
-import io.ktor.client.plugins.cache.HttpCache
+import io.ktor.client.*
+import io.ktor.client.plugins.cache.*
 import io.ktor.client.plugins.cache.storage.CacheStorage
 import io.ktor.http.*
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
@@ -69,6 +69,7 @@ import org.bouncycastle.util.encoders.Hex
 import org.drewcarlson.ktor.permissions.PermissionAuthorization
 import org.jooq.SQLDialect
 import org.jooq.impl.DSL
+import org.jooq.impl.DefaultConfiguration
 import org.koin.ktor.ext.get
 import org.koin.ktor.plugin.Koin
 import org.koin.ktor.plugin.koin
@@ -78,9 +79,7 @@ import org.sqlite.SQLiteConfig
 import org.sqlite.javax.SQLiteConnectionPoolDataSource
 import qbittorrent.QBittorrentClient
 import java.nio.file.FileSystems
-import java.nio.file.Path
 import javax.sql.DataSource
-import kotlin.io.path.Path
 import kotlin.random.Random
 import kotlin.time.Duration.Companion.seconds
 
@@ -168,7 +167,14 @@ fun Application.module(testing: Boolean = false) {
                     )
                     LibraryService(get(), processors, get(), get(), get())
                 }
-                single { DSL.using(get<DataSource>(), SQLDialect.SQLITE) }
+                single {
+                    val dbConfig = DefaultConfiguration().apply {
+                        setDataSource(get())
+                        setSQLDialect(SQLDialect.SQLITE)
+                        set(JooqConverterProvider())
+                    }
+                    DSL.using(dbConfig)
+                }
                 single { UserService(get(), get()) }
 
                 single<StreamServiceQueries> { StreamServiceQueriesJooq(get(), get(), get(), get(), get()) }

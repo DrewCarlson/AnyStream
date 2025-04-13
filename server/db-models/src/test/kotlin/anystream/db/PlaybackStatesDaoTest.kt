@@ -17,10 +17,7 @@
  */
 package anystream.db
 
-import anystream.models.Descriptor
-import anystream.models.MediaKind
-import anystream.models.MediaLinkType
-import anystream.models.MediaType
+import anystream.models.*
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.shouldBeEmpty
@@ -31,6 +28,8 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import kotlinx.datetime.Clock
 import org.jooq.DSLContext
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 class PlaybackStatesDaoTest : FunSpec({
 
@@ -51,14 +50,14 @@ class PlaybackStatesDaoTest : FunSpec({
             libraryId = library.id,
             path = "/dir"
         )
-        val metadata = anystream.models.Metadata(
+        val metadata = Metadata(
             id = "metadata",
             mediaType = MediaType.MOVIE,
             mediaKind = MediaKind.MOVIE,
             createdAt = Clock.System.now(),
             updatedAt = Clock.System.now()
         )
-        val mediaLink = anystream.models.MediaLink(
+        val mediaLink = MediaLink(
             id = "media-link",
             updatedAt = Clock.System.now(),
             createdAt = Clock.System.now(),
@@ -68,7 +67,7 @@ class PlaybackStatesDaoTest : FunSpec({
             mediaKind = MediaKind.MOVIE,
             metadataId = metadata.id,
         )
-        val user = anystream.models.User(
+        val user = User(
             id = "user",
             displayName = "User",
             passwordHash = "passwordHash",
@@ -85,12 +84,12 @@ class PlaybackStatesDaoTest : FunSpec({
             .shouldNotBeNull()
             .shouldBeEqual(user)
 
-        val playbackState = anystream.models.PlaybackState(
+        val playbackState = PlaybackState(
             id = "playback-state",
             mediaLinkId = "media-link",
             metadataId = "metadata",
-            position = 0.0,
-            runtime = 100.0,
+            position = Duration.ZERO,
+            runtime = 100.seconds,
             createdAt = Clock.System.now(),
             updatedAt = Clock.System.now(),
             userId = "user",

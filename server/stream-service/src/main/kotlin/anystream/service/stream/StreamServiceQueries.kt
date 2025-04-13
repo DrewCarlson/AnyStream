@@ -18,6 +18,7 @@
 package anystream.service.stream
 
 import anystream.models.*
+import kotlin.time.Duration
 
 interface StreamServiceQueries {
 
@@ -31,6 +32,6 @@ interface StreamServiceQueries {
     suspend fun fetchPlaybackStateById(id: String): PlaybackState?
 
     suspend fun insertPlaybackState(playbackState: PlaybackState): Boolean
-    suspend fun updatePlaybackState(stateId: String, position: Double): Boolean
+    suspend fun updatePlaybackState(stateId: String, position: Duration): Boolean
     suspend fun deletePlaybackState(playbackStateId: String): Boolean
 }

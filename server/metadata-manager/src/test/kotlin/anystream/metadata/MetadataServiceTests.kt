@@ -130,7 +130,7 @@ class MetadataServiceTests : FunSpec({
             assertIs<MetadataMatch.MovieMatch>(result)
 
             assertEquals(title, result.movie.title)
-            assertEquals(year, result.movie.releaseDate?.split("-")?.firstOrNull()?.toIntOrNull())
+            assertEquals(year, result.movie.releaseYear?.toIntOrNull())
         }
     }
 
@@ -147,7 +147,7 @@ class MetadataServiceTests : FunSpec({
         assertIs<MetadataMatch.TvShowMatch>(result)
 
         assertEquals("The Boys", result.tvShow.name)
-        assertEquals(2019, result.tvShow.firstAirDate?.split('-')?.firstOrNull()?.toIntOrNull())
+        assertEquals(2019, result.tvShow.releaseYear?.toIntOrNull())
     }
 
     test("query tmdb tv show") {

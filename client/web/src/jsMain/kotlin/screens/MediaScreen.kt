@@ -39,9 +39,6 @@ import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 
 val backdropImageUrl = MutableStateFlow<String?>(null)
 
@@ -181,7 +178,7 @@ private fun BaseDetailsView(
             mediaItem.playbackState?.run {
                 Div {
                     val remaining = remember(runtime, position) {
-                        val remaining = (runtime - position).seconds
+                        val remaining = runtime - position
                         "${remaining.asFriendlyString()} left"
                     }
                     Text(remaining)
@@ -212,15 +209,12 @@ private fun BaseDetailsView(
             }
 
             Div({ classes("d-flex", "flex-row", "align-items-center", "gap-3", "py-1") }) {
-                mediaItem.releaseDate?.also { releaseDate ->
-                    val year = releaseDate.split("-").firstOrNull { it.length == 4 }
-                    if (year != null) {
-                        Div({ classes("fs-6") }) { Text(year) }
-                    }
+                mediaItem.releaseYear?.also { releaseYear ->
+                    Div({ classes("fs-6") }) { Text(releaseYear) }
                 }
                 mediaItem.runtime?.also { runtime ->
                     val runtimeString = remember(runtime) {
-                        runtime.toDouble().toDuration(DurationUnit.MINUTES).asFriendlyString()
+                        runtime.asFriendlyString()
                     }
                     Div({ style { fontSize(13.px) } }) { Text(runtimeString) }
                 }

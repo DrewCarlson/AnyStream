@@ -128,10 +128,10 @@ class StreamService(
             PlaybackState(
                 id = ObjectId.next(),
                 mediaLinkId = mediaLinkId,
-                position = 0.0,
+                position = ZERO,
                 userId = userId,
                 metadataId = metadataId,
-                runtime = runtime.toDouble(SECONDS),
+                runtime = runtime,
                 createdAt = Clock.System.now(),
                 updatedAt = Clock.System.now(),
             ).also { newPlaybackStates[it.id] = it }
@@ -141,16 +141,14 @@ class StreamService(
         if (create && !sessionMap.containsKey(newState.id)) {
             val (file, _) = fileAndMetadataId ?: return null
             val output = transcodePath.resolve(newState.id).resolve(mediaLinkId)
-            val runtimeSeconds = newState.runtime.seconds
-            val positionSeconds = newState.position.seconds
             startTranscode(
                 token = newState.id,
                 name = mediaLinkId,
                 mediaFile = file,
                 outputDir = output,
-                runtime = runtimeSeconds,
-                startAt = positionSeconds,
-                stopAt = positionSeconds + DEFAULT_THROTTLE_SECONDS,
+                runtime = newState.runtime,
+                startAt = newState.position,
+                stopAt = newState.position + DEFAULT_THROTTLE_SECONDS,
                 segmentDuration = DEFAULT_SEGMENT_DURATION,
             )
         }
@@ -161,8 +159,8 @@ class StreamService(
         return queries.deletePlaybackState(playbackStateId)
     }
 
-    suspend fun updateStatePosition(state: PlaybackState, position: Double): Boolean {
-        if (position.seconds < REMEMBER_STATE_THRESHOLD) {
+    suspend fun updateStatePosition(state: PlaybackState, position: Duration): Boolean {
+        if (!position.isPastThreshold()) {
             newPlaybackStates.compute(state.id) { _, existing ->
                 (existing ?: state).copy(position = position)
             }
@@ -226,7 +224,7 @@ class StreamService(
 
         // Delete the PlaybackState if playback hasn't reached threshold
         val state = queries.fetchPlaybackStateById(session.token)
-        if (state?.isPastThreshold() == false) {
+        if (state?.position?.isPastThreshold() == false) {
             queries.deletePlaybackState(state.id)
         }
 
@@ -616,6 +614,6 @@ class StreamService(
     }
 }
 
-private fun PlaybackState.isPastThreshold(): Boolean {
-    return position.seconds > REMEMBER_STATE_THRESHOLD
+private fun Duration.isPastThreshold(): Boolean {
+    return this > REMEMBER_STATE_THRESHOLD
 }

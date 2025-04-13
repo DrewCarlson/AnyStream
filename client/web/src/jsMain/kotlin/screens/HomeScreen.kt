@@ -126,8 +126,8 @@ private fun CurrentlyWatching.ContinueWatchingRow(sizeMultiplier: Float) {
             },
             completedPercent = state.completedPercent,
             subtitle1 = {
-                movie?.releaseDate?.run {
-                    Text(substringBefore("-"))
+                movie?.releaseYear?.let {
+                    Text(it)
                 }
                 episode?.run {
                     LinkedText(url = "/media/${episode.id}") {
@@ -183,9 +183,9 @@ private fun RecentlyAdded.RecentlyAddedMovies(sizeMultiplier: Float) {
                     Text(movie.title)
                 }
             },
-            subtitle1 = movie.releaseDate?.run {
+            subtitle1 = movie.releaseYear?.let {
                 {
-                    Text(substringBefore("-"))
+                    Text(it)
                 }
             },
         )
@@ -232,9 +232,9 @@ private fun Popular.PopularMovies(sizeMultiplier: Float) {
                     Text(movie.title)
                 }
             },
-            subtitle1 = movie.releaseDate?.run {
+            subtitle1 = movie.releaseYear?.let {
                 {
-                    Text(substringBefore("-"))
+                    Text(it)
                 }
             },
         )
@@ -260,9 +260,9 @@ private fun Popular.PopularTvShows(sizeMultiplier: Float) {
                     Text(tvShow.name)
                 }
             },
-            subtitle1 = tvShow.firstAirDate?.run {
+            subtitle1 = tvShow.releaseYear?.let {
                 {
-                    Text(substringBefore("-"))
+                    Text(it)
                 }
             },
             isAdded = tvShow.isAdded,

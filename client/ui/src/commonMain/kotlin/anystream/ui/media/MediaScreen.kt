@@ -50,8 +50,6 @@ import anystream.ui.util.LocalImageProvider
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
 import org.jetbrains.compose.resources.painterResource
-import kotlin.time.DurationUnit.MINUTES
-import kotlin.time.toDuration
 
 
 @Composable
@@ -307,7 +305,7 @@ private fun MediaMetadata(mediaItem: MediaItem) {
             val items = remember(mediaItem) {
                 listOfNotNull(
                     mediaItem.releaseYear,
-                    mediaItem.runtime?.toDuration(MINUTES)?.asFriendlyString(),
+                    mediaItem.runtime?.asFriendlyString(),
                     mediaItem.contentRating,
                 )
             }

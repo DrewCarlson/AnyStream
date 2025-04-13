@@ -17,7 +17,11 @@
  */
 package anystream.models
 
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.Serializable
+import kotlin.time.Duration
 
 @Serializable
 data class Movie(
@@ -27,9 +31,9 @@ data class Movie(
     val tagline: String? = null,
     val tmdbId: Int,
     val imdbId: String?,
-    val runtime: Int,
-    val releaseDate: String?,
-    val added: Long,
+    val runtime: Duration,
+    val releaseDate: Instant?,
+    val createdAt: Instant,
     val tmdbRating: Int? = null,
     val genres: List<Genre>,
     val companies: List<ProductionCompany>,
@@ -37,6 +41,12 @@ data class Movie(
 ) {
     val isAdded: Boolean
         get() = !id.contains(':')
+
+    val releaseYear: String?
+        get() = releaseDate
+            ?.toLocalDateTime(TimeZone.currentSystemDefault())
+            ?.year
+            ?.toString()
 }
 
 @Serializable
@@ -56,8 +66,8 @@ fun Metadata.toMovieModel(): Movie {
         tmdbId = tmdbId ?: -1,
         imdbId = imdbId,
         runtime = checkNotNull(runtime),
-        releaseDate = firstAvailableAt?.instantToTmdbDate(),
-        added = createdAt.epochSeconds,
+        releaseDate = firstAvailableAt,
+        createdAt = createdAt,
         tagline = null,//tagline,
         tmdbRating = tmdbRating,
         genres = emptyList(),

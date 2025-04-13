@@ -161,7 +161,7 @@ private fun MovieMatchResult(
     val client = LocalAnyStreamClient.current
     MatchResultContainer(
         title = match.movie.title,
-        year = match.movie.releaseDate?.substringBefore('-').orEmpty(),
+        year = match.movie.releaseYear.orEmpty(),
         overview = match.movie.overview,
         posterUrl = client.buildImageUrl("poster", match.movie.id, 300),
         onClick = if (onClick == null) {
@@ -180,7 +180,7 @@ private fun TvShowMatchResult(
     val client = LocalAnyStreamClient.current
     MatchResultContainer(
         title = match.tvShow.name,
-        year = match.tvShow.firstAirDate?.substringBefore('-').orEmpty(),
+        year = match.tvShow.releaseYear.orEmpty(),
         overview = match.tvShow.overview,
         posterUrl = client.buildImageUrl("poster", match.tvShow.id, 300),
         onClick = if (onClick == null) {

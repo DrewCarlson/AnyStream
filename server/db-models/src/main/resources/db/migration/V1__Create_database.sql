@@ -46,7 +46,7 @@ CREATE TABLE metadata
     overview           TEXT,
     tmdb_id            INTEGER,
     imdb_id            TEXT,
-    runtime            INTEGER,
+    runtime            TEXT,
     `index`            INTEGER,
     content_rating     VARCHAR(30),
     first_available_at TEXT,
@@ -55,7 +55,7 @@ CREATE TABLE metadata
     media_kind         TEXT                    NOT NULL,
     media_type         TEXT                    NOT NULL,
     tmdb_rating        INTEGER,
-    UNIQUE(tmdb_id, media_kind) ON CONFLICT FAIL
+    UNIQUE (tmdb_id, media_kind) ON CONFLICT FAIL
 );
 
 CREATE TABLE tag
@@ -127,8 +127,8 @@ CREATE TABLE playback_state
     media_link_id VARCHAR(24)             NOT NULL,
     metadata_id   VARCHAR(24)             NOT NULL,
     user_id       VARCHAR(24)             NOT NULL,
-    position      DOUBLE                  NOT NULL,
-    runtime       DOUBLE                  NOT NULL,
+    position      TEXT                    NOT NULL,
+    runtime       TEXT                    NOT NULL,
     created_at    TEXT                    NOT NULL,
     updated_at    TEXT                    NOT NULL,
     FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE,
@@ -161,7 +161,7 @@ CREATE TABLE stream_encoding
     field_order     TEXT,
     sample_fmt      TEXT,
     sample_rate     INTEGER,
-    duration        FLOAT,
+    duration        TEXT,
     media_link_id   VARCHAR(24)             NOT NULL,
     `default`       BOOLEAN                 NOT NULL,
     FOREIGN KEY (media_link_id) REFERENCES media_link (id) ON DELETE CASCADE,
@@ -170,7 +170,8 @@ CREATE TABLE stream_encoding
 /* </editor-fold> */
 
 /* <editor-fold desc="Triggers: Searchable Content"> */
-CREATE VIRTUAL TABLE searchable_content USING fts5
+CREATE
+VIRTUAL TABLE searchable_content USING fts5
 (
     id,
     content,

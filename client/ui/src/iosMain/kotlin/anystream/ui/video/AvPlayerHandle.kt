@@ -82,14 +82,14 @@ class AvPlayerHandle(
                 println("[player] error = ${error?.localizedDescription()}")
                 if (status == AVPlayerStatusReadyToPlay) {
                     val currentItem = player.currentItem!!
-                    val time = CMTimeMakeWithSeconds(startPosition, 1)
+                    val time = CMTimeMakeWithSeconds(startPosition.toDouble(SECONDS), 1)
                     val zero = kCMTimeZero.readValue()
                     player.seekToTime(time, zero, zero)
                     if (playWhenReadyFlow.value) {
                         player.play()
                     }
                     emitDuration(CMTimeGetSeconds(currentItem.duration()).seconds)
-                    emitProgress(startPosition.seconds)
+                    emitProgress(startPosition)
                     updateStateJob = scope.launch {
                         while (true) {
                             val progress = CMTimeGetSeconds(currentItem.currentTime())
@@ -114,9 +114,9 @@ class AvPlayerHandle(
                 while (true) {
                     val currentItem = player.currentItem
                     if (currentItem != null && player.status == AVPlayerStatusReadyToPlay) {
-                        val currentTime = CMTimeGetSeconds(currentItem.currentTime())
+                        val currentTime = CMTimeGetSeconds(currentItem.currentTime()).seconds
                         handle.update.tryEmit(currentTime)
-                        emitProgress(currentTime.seconds)
+                        emitProgress(currentTime)
                     }
                     delay(PLAYER_STATE_REMOTE_UPDATE_INTERVAL)
                 }

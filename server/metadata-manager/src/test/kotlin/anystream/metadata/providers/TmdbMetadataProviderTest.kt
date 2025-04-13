@@ -34,6 +34,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.logging.*
+import kotlinx.datetime.Instant
 
 class TmdbMetadataProviderTest : FunSpec({
     val db by bindTestDatabase()
@@ -103,7 +104,7 @@ class TmdbMetadataProviderTest : FunSpec({
 
         match.tvShow.asClue { tvShow ->
             tvShow.name shouldBe "Teenage Mutant Ninja Turtles"
-            tvShow.firstAirDate shouldBe "2012-9-28"
+            tvShow.firstAirDate shouldBe Instant.parse("2012-09-28T00:00:00Z")
         }
     }
 
@@ -187,7 +188,7 @@ class TmdbMetadataProviderTest : FunSpec({
             .shouldBeInstanceOf<MetadataMatch.MovieMatch>()
             .asClue { (movie) ->
                 movie.title shouldBe "Teenage Mutant Ninja Turtles: Mutant Mayhem"
-                movie.releaseDate shouldBe "2023-7-31"
+                movie.releaseDate shouldBe Instant.parse("2023-07-31T00:00:00Z")
             }
     }
 })

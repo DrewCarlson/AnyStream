@@ -84,7 +84,7 @@ class VlcjPlayerHandle(
                 println("[player] $state")
             }
             val url = handle.playbackUrl.await()
-            val startPosition = handle.initialPlaybackState.await().position.seconds
+            val startPosition = handle.initialPlaybackState.await().position
             emitProgress(startPosition)
             println("[player] $url")
             if (startPosition == ZERO) {
@@ -104,7 +104,7 @@ class VlcjPlayerHandle(
                     lastSentProgress = progress
                 } else if ((progress - lastSentProgress) >= PLAYER_STATE_REMOTE_UPDATE_INTERVAL) {
                     lastSentProgress = progress
-                    handle.update.tryEmit(progress.toDouble(SECONDS))
+                    handle.update.tryEmit(progress)
                 }
             }
         }

@@ -18,6 +18,7 @@
 package anystream.models
 
 import kotlinx.serialization.Serializable
+import kotlin.time.Duration
 
 @Serializable
 sealed class StreamEncodingTyped {
@@ -27,7 +28,7 @@ sealed class StreamEncodingTyped {
     abstract val codecLongName: String?
     abstract val index: Int?
     abstract val language: String?
-    abstract val duration: Float?
+    abstract val duration: Duration?
     abstract val title: String?
     abstract val mediaLinkId: String
     abstract val default: Boolean
@@ -50,7 +51,7 @@ data class AudioStreamEncoding(
     override val codecName: String,
     override val codecLongName: String?,
     override val language: String?,
-    override val duration: Float?,
+    override val duration: Duration?,
     override val title: String?,
     override val mediaLinkId: String,
     override val default: Boolean,
@@ -70,7 +71,7 @@ data class VideoStreamEncoding(
     override val codecName: String,
     override val codecLongName: String?,
     override val language: String?,
-    override val duration: Float?,
+    override val duration: Duration?,
     override val title: String?,
     override val mediaLinkId: String,
     override val default: Boolean,
@@ -95,7 +96,7 @@ data class SubtitleStreamEncoding(
     override val codecName: String,
     override val codecLongName: String?,
     override val language: String?,
-    override val duration: Float?,
+    override val duration: Duration?,
     override val title: String?,
     override val mediaLinkId: String,
     override val default: Boolean,

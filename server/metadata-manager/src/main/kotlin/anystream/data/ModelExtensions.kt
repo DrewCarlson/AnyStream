@@ -23,22 +23,24 @@ import app.moviebase.tmdb.model.*
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
-import java.time.Instant
 import java.util.*
 import kotlin.math.roundToInt
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 
 
 fun TmdbMovieDetail.asMovie(
     id: String,
+    clock: Clock = Clock.System, // TODO: remove default
 ) = Movie(
     id = id,
     tmdbId = this.id,
     title = title,
     overview = overview,
-    releaseDate = releaseDate?.run { "$year-$monthNumber-$dayOfMonth" },
+    releaseDate = releaseDate?.atStartOfDayIn(TimeZone.UTC),
     imdbId = imdbId,
-    runtime = runtime ?: -1,
-    added = Instant.now().toEpochMilli(),
+    runtime = runtime?.minutes ?: Duration.ZERO,
+    createdAt = clock.now(),
     tmdbRating = (voteAverage * 10).roundToInt(),
     tagline = tagline,
     contentRating = releaseDates?.getCertification(Locale.getDefault().country),

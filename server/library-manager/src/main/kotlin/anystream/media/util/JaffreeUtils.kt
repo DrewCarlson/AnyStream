@@ -22,6 +22,7 @@ import anystream.models.StreamEncodingType
 import anystream.util.ObjectId
 import com.github.kokorin.jaffree.StreamType
 import com.github.kokorin.jaffree.ffprobe.Stream
+import kotlin.time.Duration.Companion.seconds
 
 internal fun Stream.toStreamEncoding(mediaLinkId: String): StreamEncoding? {
     if (codecType == StreamType.DATA || codecType == StreamType.ATTACHMENT) {
@@ -49,7 +50,7 @@ internal fun Stream.toStreamEncoding(mediaLinkId: String): StreamEncoding? {
         colorTransfer = colorTransfer,
         pixFmt = pixFmt,
         fieldOrder = fieldOrder,
-        duration = duration,
+        duration = duration?.toDouble()?.seconds,
         default = disposition.default,
         channels = channels,
         channelLayout = channelLayout,

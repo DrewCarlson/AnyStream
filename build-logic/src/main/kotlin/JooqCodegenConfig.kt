@@ -66,6 +66,17 @@ fun forcedTypes(): List<ForcedType> = listOf(
         userType = "kotlinx.datetime.Instant"
         binding = "anystream.db.converter.JooqInstantBinding"
     },
+    ForcedType().apply {
+        userType = "kotlin.time.Duration"
+        binding = "anystream.db.converter.DurationBinding"
+        includeTypes = "TEXT"
+        includeExpression = listOf(
+            "metadata.runtime",
+            "playback_state.runtime",
+            "playback_state.position",
+            "stream_encoding.duration",
+        ).joinToString("|")
+    },
     forcedType(
         userType = "anystream.models.Permission",
         includeExpression = "user_permission.value",

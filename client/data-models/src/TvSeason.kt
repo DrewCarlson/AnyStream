@@ -17,6 +17,7 @@
  */
 package anystream.models
 
+import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -25,7 +26,7 @@ data class TvSeason(
     val name: String,
     val overview: String,
     val seasonNumber: Int,
-    val airDate: String?,
+    val airDate: Instant?,
     val tmdbId: Int?,
 )
 
@@ -39,7 +40,7 @@ fun Metadata.toTvSeasonModel(): TvSeason {
         name = checkNotNull(title),
         overview = overview.orEmpty(),
         seasonNumber = checkNotNull(index),
-        airDate = firstAvailableAt?.instantToTmdbDate(),
+        airDate = firstAvailableAt,
         tmdbId = tmdbId,
     )
 }

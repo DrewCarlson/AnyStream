@@ -55,6 +55,7 @@ import kotlinx.serialization.json.put
 import qbittorrent.models.GlobalTransferInfo
 import qbittorrent.models.Torrent
 import qbittorrent.models.TorrentFile
+import kotlin.time.Duration
 
 private const val PAGE = "page"
 private const val QUERY = "query"
@@ -416,7 +417,7 @@ class AnyStreamClient(
     ): PlaybackSessionHandle {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
         val currentState = MutableStateFlow<PlaybackState?>(null)
-        val progressFlow = MutableSharedFlow<Double>(0, 1, BufferOverflow.DROP_OLDEST)
+        val progressFlow = MutableSharedFlow<Duration>(0, 1, BufferOverflow.DROP_OLDEST)
         val mutex = Mutex(locked = true)
         scope.launch {
             try {
@@ -649,7 +650,7 @@ class AnyStreamClient(
     class PlaybackSessionHandle(
         val initialPlaybackState: Deferred<PlaybackState>,
         val playbackUrl: Deferred<String>,
-        val update: MutableSharedFlow<Double>,
+        val update: MutableSharedFlow<Duration>,
         val cancel: () -> Unit,
     )
 

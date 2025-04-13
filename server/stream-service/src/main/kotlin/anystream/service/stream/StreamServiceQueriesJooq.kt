@@ -30,6 +30,7 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.datetime.Clock
 import org.jooq.DSLContext
 import org.slf4j.LoggerFactory
+import kotlin.time.Duration
 
 class StreamServiceQueriesJooq(
     private val db: DSLContext,
@@ -110,7 +111,7 @@ class StreamServiceQueriesJooq(
         return playbackStatesDao.insert(playbackState)
     }
 
-    override suspend fun updatePlaybackState(stateId: String, position: Double): Boolean {
+    override suspend fun updatePlaybackState(stateId: String, position: Duration): Boolean {
         return try {
             db.update(PLAYBACK_STATE)
                 .set(PLAYBACK_STATE.POSITION, position)

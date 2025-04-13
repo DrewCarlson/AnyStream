@@ -27,8 +27,8 @@ data class TvShow(
     val tmdbId: Int,
     val overview: String,
     val tagline: String? = null,
-    val firstAirDate: String?,
-    val added: Long,
+    val firstAirDate: Instant?,
+    val createdAt: Instant,
     val tmdbRating: Int? = null,
     val contentRating: String? = null,
     val genres: List<Genre> = emptyList(),
@@ -36,6 +36,12 @@ data class TvShow(
 ) {
     val isAdded: Boolean
         get() = !id.contains(':')
+
+    val releaseYear: String?
+        get() = firstAirDate
+            ?.toLocalDateTime(TimeZone.currentSystemDefault())
+            ?.year
+            ?.toString()
 }
 
 
@@ -48,8 +54,8 @@ fun Metadata.toTvShowModel(): TvShow {
         name = checkNotNull(title),
         tmdbId = tmdbId ?: -1,
         overview = overview.orEmpty(),
-        firstAirDate = firstAvailableAt?.instantToTmdbDate(),
-        added = createdAt.epochSeconds,
+        firstAirDate = firstAvailableAt,
+        createdAt = createdAt,
         tagline = null,//tagline,
         tmdbRating = tmdbRating,
         contentRating = contentRating,

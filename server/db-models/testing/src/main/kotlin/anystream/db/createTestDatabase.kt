@@ -17,6 +17,7 @@
  */
 package anystream.db
 
+import anystream.db.converter.JooqConverterProvider
 import anystream.models.User
 import anystream.util.ObjectId
 import io.kotest.core.spec.DslDrivenSpec
@@ -25,6 +26,7 @@ import kotlinx.datetime.Clock
 import org.jooq.DSLContext
 import org.jooq.SQLDialect
 import org.jooq.impl.DSL
+import org.jooq.impl.DefaultConfiguration
 import org.jooq.tools.jdbc.SingleConnectionDataSource
 import org.sqlite.SQLiteConfig
 import org.sqlite.javax.SQLiteConnectionPoolDataSource
@@ -56,7 +58,12 @@ fun createTestDatabase(): Pair<Connection, DSLContext> {
     }.connection
     val dataSource = SingleConnectionDataSource(connection)
     runMigrations(dataSource).shouldBeTrue()
-    return connection to DSL.using(dataSource, SQLDialect.SQLITE)
+    val config = DefaultConfiguration().apply {
+        setDataSource(dataSource)
+        setSQLDialect(SQLDialect.SQLITE)
+        set(JooqConverterProvider())
+    }
+    return connection to DSL.using(config)
 }
 
 fun createUserObject(index: Int = 0): User {

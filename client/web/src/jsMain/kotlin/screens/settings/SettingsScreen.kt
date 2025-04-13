@@ -32,7 +32,6 @@ import anystream.util.get
 import app.softwork.routingcompose.RouteBuilder
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
-import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun RouteBuilder.SettingsScreen(subscreen: String) {
@@ -177,8 +176,8 @@ private fun PlaybackSessionCard(
         Div { Text("User: ${user.displayName}") }
         Div { Text("Transcoding: ${transcodeSession.state}") }
         Div {
-            val progress = playbackState.position.seconds
-            val runtime = playbackState.runtime.seconds
+            val progress = playbackState.position
+            val runtime = playbackState.runtime
             Text(formatProgressAndRuntime(progress, runtime))
         }
     }
