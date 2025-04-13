@@ -39,7 +39,6 @@ import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
-import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
@@ -696,21 +695,5 @@ private fun OptionsPopper(
             }
         }
         LaunchedEffect(Unit) { popper.update() }
-    }
-}
-
-fun Duration.asFriendlyString(): String {
-    return buildString {
-        val hasHours = inWholeHours > 0
-        val minutes = inWholeMinutes % 60
-        if (hasHours) {
-            append(inWholeHours)
-            append(" hr")
-        }
-        if (minutes > 0) {
-            if (hasHours) append(' ')
-            append(minutes)
-            append(" min")
-        }
     }
 }

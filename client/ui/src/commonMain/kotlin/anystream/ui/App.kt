@@ -38,6 +38,8 @@ import anystream.ui.movies.MoviesScreen
 import anystream.ui.profile.DevicePairingScannerScreen
 import anystream.ui.profile.ProfileScreen
 import anystream.ui.theme.AppTheme
+import anystream.ui.util.LocalImageProvider
+import anystream.ui.util.asImageProvider
 import anystream.ui.video.VideoPlayer
 import dev.chrisbanes.haze.HazeProgressive
 import dev.chrisbanes.haze.HazeState
@@ -67,6 +69,7 @@ fun App() {
     CompositionLocalProvider(
         LocalBackPressHandler providesDefault backPressHandler,
         LocalAnyStreamClient provides client,
+        LocalImageProvider provides client.asImageProvider(),
     ) {
         AppTheme {
             BundleScope(null) {
@@ -232,12 +235,14 @@ private fun DisplayRoute(
 
         is Routes.Details -> {
             MediaScreen(
-                client = client,
                 mediaId = route.metadataId,
                 onPlayClick = { mediaLinkId ->
                     stack.push(Routes.Player(mediaLinkId))
                 },
-                backStack = stack,
+                onMetadataClick = { metadataId ->
+                    stack.push(Routes.Details(metadataId))
+                },
+                onBackClicked = { stack.pop() },
             )
         }
 

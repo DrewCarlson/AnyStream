@@ -44,10 +44,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import anystream.models.MediaLink
 import anystream.models.Movie
-import anystream.ui.LocalAnyStreamClient
 import anystream.ui.generated.resources.Res
 import anystream.ui.generated.resources.ic_play
 import anystream.ui.theme.AppTheme
+import anystream.ui.util.LocalImageProvider
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
 import org.jetbrains.compose.resources.painterResource
@@ -56,10 +56,10 @@ import org.jetbrains.compose.resources.painterResource
 internal fun MediaCarousel(pagerState: PagerState, media: List<Pair<Movie, MediaLink?>>) {
     HorizontalPager(pagerState, modifier = Modifier.height(375.dp)) {
         Box(Modifier.fillMaxWidth()) {
-            val client = LocalAnyStreamClient.current
+            val imageUrlBuilder = LocalImageProvider.current
             val painter = rememberAsyncImagePainter(
                 // todo: restore size selection w1920_and_h800_multi_faces
-                model = client.buildImageUrl("backdrop", media[it].first.id),
+                model = imageUrlBuilder.url("backdrop", media[it].first.id),
             )
             val state by painter.state.collectAsState()
             Box(
@@ -83,7 +83,7 @@ internal fun MediaCarousel(pagerState: PagerState, media: List<Pair<Movie, Media
                 }
             }
 
-            Row(
+            Spacer(
                 Modifier
                     .height(230.dp)
                     .fillMaxWidth()
@@ -96,7 +96,7 @@ internal fun MediaCarousel(pagerState: PagerState, media: List<Pair<Movie, Media
                             ),
                         ),
                     ),
-            ) { }
+            )
 
             Column(
                 Modifier

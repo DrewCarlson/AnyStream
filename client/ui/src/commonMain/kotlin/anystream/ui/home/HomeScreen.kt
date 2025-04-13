@@ -36,11 +36,11 @@ import anystream.models.*
 import anystream.models.api.CurrentlyWatching
 import anystream.models.api.Popular
 import anystream.models.api.RecentlyAdded
-import anystream.ui.LocalAnyStreamClient
 import anystream.ui.components.*
 import anystream.ui.components.CarouselAutoPlayHandler
 import anystream.ui.components.PagerIndicator
 import anystream.ui.components.PosterCard
+import anystream.ui.util.LocalImageProvider
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
 import kt.mobius.SimpleLogger
@@ -227,9 +227,9 @@ private fun WatchingCard(
                     .height(144.dp)
                     .fillMaxWidth(),
             ) {
-                val client = LocalAnyStreamClient.current
+                val imageUrlBuilder = LocalImageProvider.current
                 val painter = rememberAsyncImagePainter(
-                    model = client.buildImageUrl("poster", mediaItem.mediaId, 300),
+                    model = imageUrlBuilder.url("poster", mediaItem.mediaId, 300),
                 )
                 val state by painter.state.collectAsState()
 

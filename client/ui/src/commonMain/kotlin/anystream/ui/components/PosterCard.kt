@@ -43,8 +43,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import anystream.ui.LocalAnyStreamClient
 import anystream.ui.theme.AppTheme
+import anystream.ui.util.LocalImageProvider
 import anystream.ui.util.pointerMover
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
@@ -53,10 +53,10 @@ internal val PosterCardWidth = 120.dp
 
 @Composable
 internal fun PosterCard(
-    title: String,
+    title: String?,
     mediaId: String,
-    onClick: () -> Unit,
-    onPlayClick: () -> Unit,
+    onClick: (() -> Unit)?,
+    onPlayClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
     aspectRatio: Float = .664f,
     width: Dp = PosterCardWidth,
@@ -76,14 +76,20 @@ internal fun PosterCard(
                 .shadow(elevation = 8.dp, cornerShape)
                 .background(Color(0xFF35383F), cornerShape)
                 .clip(cornerShape)
-                .clickable(onClick = onClick)
+                .then(
+                    if (onClick == null) {
+                        Modifier
+                    } else {
+                        Modifier.clickable(onClick = onClick)
+                    }
+                )
                 .pointerMover { showPlayButtonOverlay = it },
             verticalArrangement = Arrangement.spacedBy(0.dp),
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
-                val client = LocalAnyStreamClient.current
+                val imageUrlBuilder = LocalImageProvider.current
                 val painter = rememberAsyncImagePainter(
-                    model = client.buildImageUrl("poster", mediaId, 300),
+                    model = imageUrlBuilder.url("poster", mediaId, 300),
                     contentScale = ContentScale.FillBounds,
                 )
                 val state by painter.state.collectAsState()
@@ -119,7 +125,13 @@ internal fun PosterCard(
                             contentDescription = null,
                             modifier = Modifier
                                 .background(MaterialTheme.colorScheme.background, CircleShape)
-                                .clickable(showPlayButtonOverlay, onClick = onPlayClick)
+                                .then(
+                                    if (onPlayClick == null) {
+                                        Modifier
+                                    } else {
+                                        Modifier.clickable(showPlayButtonOverlay, onClick = onPlayClick)
+                                    }
+                                )
                                 .padding(2.dp),
                             tint = Color.Red,
                         )
@@ -128,13 +140,15 @@ internal fun PosterCard(
             }
         }
 
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleSmall,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.width(width)
-        )
+        if (title != null) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.width(width)
+            )
+        }
     }
 }
 

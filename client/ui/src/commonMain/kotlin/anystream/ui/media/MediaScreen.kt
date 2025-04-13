@@ -22,9 +22,10 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -32,41 +33,36 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import anystream.client.AnyStreamClient
 import anystream.models.*
 import anystream.models.api.*
-import anystream.router.BackStack
-import anystream.routing.Routes
+import anystream.ui.LocalAnyStreamClient
 import anystream.ui.components.PosterCard
-import anystream.ui.util.cardWidth
+import anystream.ui.components.PosterCardWidth
+import anystream.ui.generated.resources.Res
+import anystream.ui.generated.resources.ic_play
+import anystream.ui.generated.resources.tmdb_small
+import anystream.ui.util.LocalImageProvider
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.update
+import org.jetbrains.compose.resources.painterResource
 import kotlin.time.DurationUnit.MINUTES
 import kotlin.time.toDuration
 
+
 @Composable
 fun MediaScreen(
-    client: AnyStreamClient,
     mediaId: String,
-    onPlayClick: (mediaRefId: String) -> Unit,
-    backStack: BackStack<Routes>,
+    onPlayClick: (mediaLinkId: String) -> Unit,
+    onMetadataClick: (metadataId: String) -> Unit,
+    onBackClicked: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    val lookupIdFlow = remember(mediaId) { MutableStateFlow<Int?>(null) }
-    val refreshMetadata: () -> Unit = remember {
-        {
-            lookupIdFlow.update { (it ?: 0) + 1 }
-        }
-    }
+    val client = LocalAnyStreamClient.current
     val mediaResponse by produceState<MediaLookupResponse?>(null, mediaId) {
         value = try {
             client.lookupMedia(mediaId)
@@ -74,91 +70,83 @@ fun MediaScreen(
             e.printStackTrace()
             null
         }
-        lookupIdFlow
-            .filterNotNull()
-            .debounce(1_000L)
-            .collect {
-                try {
-                    value?.mediaLinks
-                        ?.filter { it.descriptor.isMediaFileLink() }
-                        ?.forEach { mediaLink ->
-                            client.analyzeMediaLink(mediaLink.id)
-                        }
-                    value = client.refreshMetadata(mediaId)
-                } catch (_: Throwable) {
-                }
-            }
     }
-    Scaffold(
-        modifier = Modifier
+
+    MediaScreen(
+        response = mediaResponse,
+        onPlayClick = onPlayClick,
+        onMetadataClick = onMetadataClick,
+        onBackClicked = onBackClicked,
+        modifier = modifier,
+    )
+}
+
+@Composable
+fun MediaScreen(
+    response: MediaLookupResponse?,
+    onPlayClick: (mediaRefId: String) -> Unit,
+    onMetadataClick: (metadataId: String) -> Unit,
+    onBackClicked: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
             .fillMaxSize()
             .consumeWindowInsets(WindowInsets.statusBars)
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .consumeWindowInsets(padding)
-        ) {
-            when (val response = mediaResponse) {
-                is EpisodeResponse -> {
-                    val mediaItem = remember(response) { response.toMediaItem() }
-                    BaseDetailsView(
-                        mediaItem = mediaItem,
-                        refreshMetadata = refreshMetadata,
-                        client = client,
-                        backStack = backStack,
-                        onPlayClick = onPlayClick,
-                    )
-                }
-
-                is MovieResponse -> {
-                    BaseDetailsView(
-                        mediaItem = response.toMediaItem(),
-                        refreshMetadata = refreshMetadata,
-                        client = client,
-                        backStack = backStack,
-                        onPlayClick = onPlayClick,
-                    )
-                }
-
-                is SeasonResponse -> {
-                    BaseDetailsView(
-                        mediaItem = response.toMediaItem(),
-                        refreshMetadata = refreshMetadata,
-                        client = client,
-                        backStack = backStack,
-                        onPlayClick = onPlayClick,
-                    ) {
-                        if (response.episodes.isNotEmpty()) {
-                            EpisodeGrid(
-                                episodes = response.episodes,
-                                mediaLinks = response.mediaLinkMap,
-                                backStack = backStack,
-                            )
-                        }
-                    }
-                }
-
-                is TvShowResponse -> {
-                    BaseDetailsView(
-                        mediaItem = response.toMediaItem(),
-                        refreshMetadata = refreshMetadata,
-                        client = client,
-                        backStack = backStack,
-                        onPlayClick = onPlayClick,
-                    ) {
-                        if (response.seasons.isNotEmpty()) {
-                            SeasonRow(
-                                seasons = response.seasons,
-                                backStack = backStack,
-                            )
-                        }
-                    }
-                }
-
-                null -> Unit
+            .navigationBarsPadding()
+    ) {
+        when (response) {
+            is EpisodeResponse -> {
+                val mediaItem = remember(response) { response.toMediaItem() }
+                BaseDetailsView(
+                    mediaItem = mediaItem,
+                    onBackClicked = onBackClicked,
+                    onPlayClick = onPlayClick,
+                )
             }
+
+            is MovieResponse -> {
+                BaseDetailsView(
+                    mediaItem = response.toMediaItem(),
+                    onBackClicked = onBackClicked,
+                    onPlayClick = onPlayClick,
+                )
+            }
+
+            is SeasonResponse -> {
+                BaseDetailsView(
+                    mediaItem = response.toMediaItem(),
+                    onBackClicked = onBackClicked,
+                    onPlayClick = onPlayClick,
+                ) {
+                    if (response.episodes.isNotEmpty()) {
+                        EpisodeGrid(
+                            episodes = response.episodes,
+                            mediaLinks = response.mediaLinkMap,
+                            onEpisodeClick = { episode ->
+                                onMetadataClick(episode.id)
+                            }
+                        )
+                    }
+                }
+            }
+
+            is TvShowResponse -> {
+                BaseDetailsView(
+                    mediaItem = response.toMediaItem(),
+                    onBackClicked = onBackClicked,
+                    onPlayClick = onPlayClick,
+                ) {
+                    if (response.seasons.isNotEmpty()) {
+                        SeasonRow(
+                            seasons = response.seasons,
+                            onMetadataClick = onMetadataClick,
+                        )
+                    }
+                }
+            }
+
+            null -> Unit
         }
     }
 }
@@ -166,26 +154,27 @@ fun MediaScreen(
 @Composable
 private fun BaseDetailsView(
     mediaItem: MediaItem,
-    refreshMetadata: () -> Unit,
-    client: AnyStreamClient,
-    backStack: BackStack<Routes>,
+    onBackClicked: () -> Unit,
     onPlayClick: (mediaLinkId: String) -> Unit,
     subcontainer: @Composable () -> Unit = {},
 ) {
-    Column(Modifier.fillMaxSize()) {
+    val imageUrlBuilder = LocalImageProvider.current
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
         Box(
             Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(.37f),
         ) {
-
-            Box(
+            BoxWithConstraints(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(.7f)
+                //.fillMaxHeight(.7f)
             ) {
                 val painter = rememberAsyncImagePainter(
-                    model = client.buildImageUrl("backdrop", mediaItem.mediaId),
+                    model = imageUrlBuilder.url("backdrop", mediaItem.mediaId),
                     contentScale = ContentScale.Crop,
                 )
                 val state by painter.state.collectAsState()
@@ -194,7 +183,8 @@ private fun BaseDetailsView(
                         Image(
                             painter = painter,
                             contentDescription = null,
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop,
                         )
 
                     is AsyncImagePainter.State.Loading -> {
@@ -208,18 +198,20 @@ private fun BaseDetailsView(
                     AsyncImagePainter.State.Empty -> Unit
                     is AsyncImagePainter.State.Error -> Unit
                 }
-            }
 
-            Column(
-                modifier = Modifier
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(Color(0x99000000), Color(0x10000000)),
+                val bgColor = MaterialTheme.colorScheme.background
+                Spacer(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            brush = Brush.verticalGradient(
+                                colors = listOf(
+                                    bgColor.copy(alpha = 0f),
+                                    bgColor
+                                ),
+                            ),
                         ),
-                    )
-                    .fillMaxWidth()
-                    .fillMaxHeight(.8f),
-            ) {
+                )
             }
             Column(Modifier.fillMaxSize()) {
                 Row(
@@ -227,7 +219,7 @@ private fun BaseDetailsView(
                         .fillMaxWidth()
                         .padding(WindowInsets.statusBars.asPaddingValues()),
                 ) {
-                    IconButton(onClick = { backStack.pop() }) {
+                    IconButton(onClick = onBackClicked) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "",
@@ -250,43 +242,14 @@ private fun BaseDetailsView(
                         .padding(top = 32.dp)
                         .padding(horizontal = 16.dp),
                 ) {
-                    Box(
+                    PosterCard(
+                        title = null,
+                        mediaId = mediaItem.mediaId,
+                        onClick = null,
+                        onPlayClick = null,
                         modifier = Modifier
-                            .width(cardWidth)
-                            .align(Alignment.Bottom),
-                    ) {
-                        Card(elevation = CardDefaults.cardElevation(2.dp), shape = RectangleShape) {
-                            val painter = rememberAsyncImagePainter(
-                                model = client.buildImageUrl("poster", mediaItem.mediaId),
-                                contentScale = ContentScale.Crop,
-                            )
-                            val state by painter.state.collectAsState()
-                            Box(
-                                modifier = Modifier.fillMaxWidth(),
-                                contentAlignment = Alignment.BottomCenter,
-                            ) {
-                                when (state) {
-                                    is AsyncImagePainter.State.Success ->
-                                        Image(
-                                            painter = painter,
-                                            contentDescription = null,
-                                            modifier = Modifier.fillMaxSize()
-                                        )
-
-                                    is AsyncImagePainter.State.Loading -> {
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxSize()
-                                                .background(Color.DarkGray),
-                                        )
-                                    }
-
-                                    AsyncImagePainter.State.Empty -> Unit
-                                    is AsyncImagePainter.State.Error -> Unit
-                                }
-                            }
-                        }
-                    }
+                            .align(Alignment.Bottom)
+                    )
 
                     MediaMetadata(mediaItem)
                 }
@@ -297,16 +260,19 @@ private fun BaseDetailsView(
             onClick = {
                 mediaItem.playableMediaLink?.run { onPlayClick(id) }
             },
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Red,
+                contentColor = Color.White,
+            ),
             modifier = Modifier
                 .padding(top = 24.dp, start = 16.dp)
-                .width(cardWidth),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
+                .width(PosterCardWidth),
+            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
         ) {
             Icon(
-                imageVector = Icons.Filled.PlayArrow,
+                painterResource(Res.drawable.ic_play),
                 contentDescription = "",
-                modifier = Modifier.size(26.dp),
+                modifier = Modifier.size(20.dp),
             )
             Text(
                 text = if (mediaItem.playbackState != null) "Resume" else "Play",
@@ -318,7 +284,7 @@ private fun BaseDetailsView(
 
         Spacer(Modifier.height(12.dp))
 
-        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+        Box {
             subcontainer()
         }
     }
@@ -327,12 +293,15 @@ private fun BaseDetailsView(
 @Composable
 private fun MediaMetadata(mediaItem: MediaItem) {
     Column(
-        Modifier
+        modifier = Modifier
             .fillMaxWidth()
             .padding(start = 16.dp),
     ) {
         Spacer(modifier = Modifier.weight(1f))
-        Text(text = mediaItem.contentTitle, style = MaterialTheme.typography.bodyLarge)
+        Text(
+            text = mediaItem.contentTitle,
+            style = MaterialTheme.typography.headlineMedium
+        )
         Spacer(Modifier.height(4.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             val items = remember(mediaItem) {
@@ -347,24 +316,35 @@ private fun MediaMetadata(mediaItem: MediaItem) {
                     Text(
                         text = "•",
                         color = Color(0x80FFFFFF),
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.bodyLarge
                     )
                 }
                 Text(
                     text = item,
                     color = Color(0x80FFFFFF),
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodyLarge,
                 )
             }
         }
         Spacer(Modifier.height(2.dp))
         val tmdbRating = mediaItem.tmdbRating?.toString()
         if (tmdbRating != null) {
-            Text(
-                text = "$tmdbRating%",
-                color = Color(0x80FFFFFF),
-                style = MaterialTheme.typography.bodySmall,
-            )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "$tmdbRating%",
+                    color = Color(0x80FFFFFF),
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+
+                Image(
+                    painter = painterResource(Res.drawable.tmdb_small),
+                    contentDescription = null,
+                    modifier = Modifier.height(12.dp)
+                )
+            }
         }
     }
 }
@@ -372,21 +352,18 @@ private fun MediaMetadata(mediaItem: MediaItem) {
 @Composable
 private fun SeasonRow(
     seasons: List<TvSeason>,
-    backStack: BackStack<Routes>,
+    onMetadataClick: (metadataId: String) -> Unit,
 ) {
     BaseRow(
         title = "${seasons.size} Seasons",
-    ) {
-        seasons.forEach { season ->
-            PosterCard(
-                title = season.name,
-                mediaId = season.id,
-                onClick = {
-                    backStack.push(Routes.Details(season.id))
-                },
-                onPlayClick = {},
-            )
-        }
+        items = seasons,
+    ) { season ->
+        PosterCard(
+            title = season.name,
+            mediaId = season.id,
+            onClick = { onMetadataClick(season.id) },
+            onPlayClick = {},
+        )
     }
 }
 
@@ -394,47 +371,50 @@ private fun SeasonRow(
 private fun EpisodeGrid(
     episodes: List<Episode>,
     mediaLinks: Map<String, MediaLink>,
-    backStack: BackStack<Routes>,
+    onEpisodeClick: (episode: Episode) -> Unit,
 ) {
     BaseRow(
         title = "${episodes.size} Episodes",
-    ) {
-        episodes.forEach { episode ->
-            val link = mediaLinks[episode.id]
-            PosterCard(
-                title = episode.name,
-                /*subtitle1 = {
-                    LinkedText("/media/${episode.id}") {
-                        Text("Episode ${episode.number}")
-                    }
-                },*/
-                mediaId = episode.id,
-                // heightAndWidth = 178.px to 318.px,
-                onPlayClick = {
-                },
-                onClick = {
-                    backStack.push(Routes.Details(episode.id))
-                },
-            )
-        }
+        items = episodes,
+    ) { episode ->
+        val link = mediaLinks[episode.id]
+        PosterCard(
+            title = episode.name,
+            /*subtitle1 = {
+                LinkedText("/media/${episode.id}") {
+                    Text("Episode ${episode.number}")
+                }
+            },*/
+            mediaId = episode.id,
+            // heightAndWidth = 178.px to 318.px,
+            onPlayClick = null,
+            onClick = { onEpisodeClick(episode) },
+        )
     }
 }
 
 @Composable
-private fun BaseRow(
+private fun <T> BaseRow(
     title: String,
-    buildItems: @Composable () -> Unit,
+    items: List<T>,
+    buildItem: @Composable (T) -> Unit,
 ) {
     Column {
         Text(
             text = title,
             style = MaterialTheme.typography.headlineSmall,
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
         )
         Spacer(modifier = Modifier.height(6.dp))
-        Row(
+        LazyRow(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            buildItems()
+            item { Spacer(Modifier.width(4.dp)) }
+            items(items) {
+                buildItem(it)
+            }
+            item { Spacer(Modifier.width(4.dp)) }
         }
     }
 }
