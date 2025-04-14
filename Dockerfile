@@ -28,4 +28,12 @@ ENV PORT=8888
 COPY --from=build /build-project/server/application/build/install ./install/
 COPY --from=build /build-project/client/web/build/dist/js/productionExecutable ./client-web/
 
+ARG PUID=1000
+ARG PGID=1000
+ARG user=anystream
+
+RUN addgroup --gid "$PGID" "$user" \
+    && adduser  --gecos '' --uid "$PUID" --gid "$PGID" --disabled-password --shell /bin/bash "$user"
+USER $user
+
 ENTRYPOINT ["./install/anystream-server/bin/anystream"]
