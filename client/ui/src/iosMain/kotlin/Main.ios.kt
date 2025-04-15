@@ -15,16 +15,27 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.window.ComposeUIViewController
 import anystream.configure
 import anystream.ui.App
 import anystream.ui.UiModule
+import anystream.ui.util.LocalSystemBarController
+import anystream.ui.util.SystemBarController
 import platform.UIKit.UIViewController
 
 @Suppress("FunctionName") // called from Swift
-fun MainViewController(): UIViewController {
-    configure  {
+fun MainViewController(
+    statusBarController: SystemBarController,
+): UIViewController {
+    configure {
         modules(UiModule)
     }
-    return ComposeUIViewController { App() }
+    return ComposeUIViewController {
+        CompositionLocalProvider(
+            LocalSystemBarController provides statusBarController,
+        ) {
+            App()
+        }
+    }
 }

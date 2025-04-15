@@ -43,6 +43,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import anystream.router.BackStack
 import anystream.routing.Routes
 import anystream.ui.generated.resources.*
+import anystream.ui.util.EnableFullscreen
 import anystream.ui.util.PLAYER_CONTROLS_VISIBILITY
 import anystream.ui.util.noRippleClickable
 import anystream.util.formatted
@@ -73,6 +74,8 @@ internal fun VideoPlayer(
     val playerHandle = playerViewModel.playerHandle
     var shouldShowControls by remember { mutableStateOf(true) }
     val isPlaying by playerHandle.playWhenReadyFlow.collectAsState()
+
+    EnableFullscreen(isUserRequested = false)
 
     LaunchedEffect(shouldShowControls) {
         if (shouldShowControls) {
