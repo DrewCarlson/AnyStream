@@ -55,6 +55,7 @@ fun HomeScreen(
     onMetadataClick: (metadataId: String) -> Unit,
     onPlayClick: (mediaLinkId: String) -> Unit,
     onViewMoviesClicked: () -> Unit,
+    onViewTvShowsClicked: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val (modelState, eventConsumer) = rememberMobiusLoop(HomeScreenModel.Loading, HomeScreenInit) {
@@ -76,6 +77,7 @@ fun HomeScreen(
                     populars = currentModel.popular.movies.toList().take(7),
                     onMetadataClick = onMetadataClick,
                     onViewMoviesClicked = onViewMoviesClicked,
+                    onViewTvShowsClicked = onViewTvShowsClicked,
                     onContinueWatchingClick = onPlayClick,
                 )
 
@@ -94,6 +96,7 @@ private fun HomeScreenContent(
     populars: List<Pair<Movie, MediaLink?>>,
     onMetadataClick: (metadataId: String) -> Unit,
     onViewMoviesClicked: () -> Unit,
+    onViewTvShowsClicked: () -> Unit,
     onContinueWatchingClick: (mediaLinkId: String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -139,7 +142,7 @@ private fun HomeScreenContent(
             SectionHeader(
                 title = "Recently Added TV",
                 ctaText = "All Shows",
-                onCtaClicked = onViewMoviesClicked,
+                onCtaClicked = onViewTvShowsClicked,
             )
             TvRow(
                 shows = recentlyAdded.tvShows,

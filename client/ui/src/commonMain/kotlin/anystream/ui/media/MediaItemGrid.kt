@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2021 AnyStream Maintainers
+ * Copyright (C) 2025 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -15,10 +15,12 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.ui.movies
+package anystream.ui.media
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -28,44 +30,16 @@ import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import anystream.client.AnyStreamClient
 import anystream.models.Descriptor
+import anystream.models.MediaItem
 import anystream.models.MediaLink
-import anystream.models.Movie
-import anystream.models.api.MoviesResponse
-import anystream.ui.components.LoadingScreen
 import anystream.ui.components.PosterCard
 import anystream.ui.components.PosterCardWidth
 
-@Composable
-fun MoviesScreen(
-    client: AnyStreamClient,
-    onMediaClick: (metadataId: String) -> Unit,
-    onPlayMediaClick: (mediaLinkId: String) -> Unit,
-    modifier: Modifier
-) {
-    val response by produceState<MoviesResponse?>(null) {
-        value = client.getMovies()
-    }
-
-    AnimatedContent(targetState = response) { targetState ->
-        when (targetState) {
-            null -> LoadingScreen()
-            else -> MovieGrid(
-                modifier = modifier,
-                movies = targetState.movies,
-                mediaLinks = targetState.mediaLinks,
-                onMediaClick = onMediaClick,
-                onPlayMediaClick = onPlayMediaClick,
-            )
-        }
-    }
-}
 
 @Composable
-private fun MovieGrid(
-    movies: List<Movie>,
-    mediaLinks: Map<String, MediaLink>,
+internal fun MediaItemGrid(
+    mediaItems: List<MediaItem>,
     onMediaClick: (metadataId: String) -> Unit,
     onPlayMediaClick: (mediaLinkId: String) -> Unit,
     modifier: Modifier = Modifier
@@ -77,18 +51,18 @@ private fun MovieGrid(
         horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
         contentPadding = PaddingValues(8.dp),
     ) {
-        items(movies) { movie ->
+        items(mediaItems) { movie ->
             val mediaLink by produceState<MediaLink?>(null, movie) {
-                value = mediaLinks[movie.id]?.takeIf { it.descriptor == Descriptor.VIDEO }
+                value = movie.mediaLinks.firstOrNull { it.descriptor == Descriptor.VIDEO }
             }
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center,
             ) {
                 PosterCard(
-                    title = movie.title,
-                    mediaId = movie.id,
-                    onClick = { onMediaClick(movie.id) },
+                    title = movie.contentTitle,
+                    mediaId = movie.mediaId,
+                    onClick = { onMediaClick(movie.mediaId) },
                     modifier = Modifier,
                     onPlayClick = { mediaLink?.run { onPlayMediaClick(id) } },
                 )

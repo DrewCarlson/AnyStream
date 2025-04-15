@@ -17,10 +17,7 @@
  */
 package anystream.models
 
-import anystream.models.api.EpisodeResponse
-import anystream.models.api.MovieResponse
-import anystream.models.api.SeasonResponse
-import anystream.models.api.TvShowResponse
+import anystream.models.api.*
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -142,4 +139,39 @@ fun SeasonResponse.toMediaItem(): MediaItem {
         rootMetadataId = show.id,
         mediaType = MediaType.TV_SEASON,
     )
+}
+
+fun MoviesResponse.toMediaItems(): List<MediaItem> {
+    return movies.map { movie ->
+        MediaItem(
+            mediaId = movie.id,
+            contentTitle = movie.title,
+            overview = movie.overview,
+            releaseDate = movie.releaseDate,
+            mediaLinks = listOfNotNull(mediaLinks[movie.id]),
+            playbackState = null,
+            genres = movie.genres,
+            tmdbRating = movie.tmdbRating,
+            runtime = movie.runtime,
+            contentRating = movie.contentRating,
+            mediaType = MediaType.MOVIE,
+        )
+    }
+}
+
+fun TvShowsResponse.toMediaItems(): List<MediaItem> {
+    return tvShows.map { tvShow ->
+        MediaItem(
+            mediaId = tvShow.id,
+            contentTitle = tvShow.name,
+            overview = tvShow.overview,
+            releaseDate = tvShow.firstAirDate,
+            mediaLinks = mediaLinks,
+            playbackState = null,
+            genres = tvShow.genres,
+            tmdbRating = tvShow.tmdbRating,
+            contentRating = tvShow.contentRating,
+            mediaType = MediaType.TV_SHOW,
+        )
+    }
 }

@@ -34,7 +34,8 @@ import anystream.ui.home.HomeScreen
 import anystream.ui.login.LoginScreen
 import anystream.ui.login.WelcomeScreen
 import anystream.ui.media.MediaScreen
-import anystream.ui.movies.MoviesScreen
+import anystream.ui.media.MoviesScreen
+import anystream.ui.media.TvShowsScreen
 import anystream.ui.profile.DevicePairingScannerScreen
 import anystream.ui.profile.ProfileScreen
 import anystream.ui.theme.AppTheme
@@ -215,11 +216,29 @@ private fun DisplayRoute(
                 onViewMoviesClicked = {
                     stack.push(Routes.Movies)
                 },
+                onViewTvShowsClicked = {
+                    stack.push(Routes.Tv)
+                },
             )
         }
 
         Routes.Movies -> {
             MoviesScreen(
+                client = client,
+                modifier = Modifier
+                    .padding(padding)
+                    .consumeWindowInsets(padding),
+                onMediaClick = { metadataId ->
+                    stack.push(Routes.Details(metadataId))
+                },
+                onPlayMediaClick = { mediaLinkId ->
+                    stack.push(Routes.Player(mediaLinkId))
+                },
+            )
+        }
+
+        Routes.Tv -> {
+            TvShowsScreen(
                 client = client,
                 modifier = Modifier
                     .padding(padding)
@@ -262,7 +281,6 @@ private fun DisplayRoute(
             )
         }
 
-        Routes.Tv -> TODO("Tv route not implemented")
         Routes.Profile -> {
             ProfileScreen(
                 modifier = Modifier
