@@ -15,10 +15,10 @@ imageio = "3.12.0"
 [plugins]
 shadowjar = { id = "com.github.johnrengelman.shadow", version = "8.1.1" }
 jooq = { id = "nu.studer.jooq", version.ref = "jooqGradle" }
-flyway = { id = "org.flywaydb.flyway", version = "10.22.0" }
+flyway = { id = "org.flywaydb.flyway", version = "11.7.1" }
 
 [libraries]
-flyway-core = { module = "org.flywaydb:flyway-core", version = "10.22.0" }
+flyway-core = { module = "org.flywaydb:flyway-core", version = "11.7.1" }
 fastObjectPool = { module = "cn.danielw:fast-object-pool", version = "2.2.1" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 

@@ -5,12 +5,12 @@ compose = "1.7.8"
 compose_material = "1.7.8"
 compose_foundation = "1.7.8"
 composejb = "1.7.3"
-media3 = "1.6.0"
+media3 = "1.6.1"
 ax_runner = "1.5.2"
 mobiuskt = "1.3.1"
 objectstore = "0.2.0"
 vlc = "3.0.19"
-kotlinjs = "2025.4.4"
+kotlinjs = "2025.4.11"
 androidxCamera = "1.4.2"
 haze = "1.5.3"
 
@@ -38,7 +38,7 @@ compose-ui-ui = { module = "androidx.compose.ui:ui", version.ref = "compose" }
 compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
 compose-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "compose_foundation" }
 compose-icons = { module = "androidx.compose.material:material-icons-extended", version.ref = "compose_material" }
-compose-material = { module = "androidx.compose.material3:material3", version = "1.3.1" }
+compose-material = { module = "androidx.compose.material3:material3", version = "1.3.2" }
 compose-livedata = { module = "androidx.compose.runtime:runtime-livedata", version.ref = "compose" }
 compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
 compose-lifecycle = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version = "2.8.4" }
@@ -67,7 +67,7 @@ objectstore-json = { module = "org.drewcarlson:objectstore-json", version.ref = 
 objectstore-protobuf = { module = "org.drewcarlson:objectstore-protobuf", version.ref = "objectstore" }
 objectstore-secure = { module = "org.drewcarlson:objectstore-secure", version.ref = "objectstore" }
 
-vlcj = { module = "uk.co.caprica:vlcj", version = "4.8.2" }
+vlcj = { module = "uk.co.caprica:vlcj", version = "4.10.1" }
 
 jna = { module = "net.java.dev.jna:jna", version = "5.17.0" }
 
