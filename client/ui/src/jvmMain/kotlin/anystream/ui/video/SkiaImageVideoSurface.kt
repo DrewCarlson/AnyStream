@@ -19,12 +19,8 @@ package anystream.ui.video
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asComposeImageBitmap
-import org.jetbrains.skia.Bitmap
-import org.jetbrains.skia.ColorAlphaType.OPAQUE
-import org.jetbrains.skia.ColorType.BGRA_8888
-import org.jetbrains.skia.ImageInfo
+import org.jetbrains.skia.*
+import sun.misc.Unsafe
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.embedded.videosurface.CallbackVideoSurface
 import uk.co.caprica.vlcj.player.embedded.videosurface.VideoSurface
@@ -33,18 +29,17 @@ import uk.co.caprica.vlcj.player.embedded.videosurface.callback.BufferFormat
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.BufferFormatCallback
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.RenderCallback
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.format.RV32BufferFormat
+import java.lang.reflect.Field
+import java.nio.Buffer
 import java.nio.ByteBuffer
-import javax.swing.SwingUtilities
 
-class SkiaBitmapVideoSurface : VideoSurface(VideoSurfaceAdapters.getVideoSurfaceAdapter()) {
+class SkiaImageVideoSurface : VideoSurface(VideoSurfaceAdapters.getVideoSurfaceAdapter()) {
 
     private val videoSurface = SkiaBitmapVideoSurface()
-    private lateinit var imageInfo: ImageInfo
-    private lateinit var frameBytes: ByteArray
-    private val skiaBitmap: Bitmap = Bitmap()
-    private val composeBitmap = mutableStateOf<ImageBitmap?>(null)
+    private lateinit var pixmap: Pixmap
+    private val skiaImage = mutableStateOf<Image?>(null)
 
-    val bitmap: State<ImageBitmap?> = composeBitmap
+    val frame: State<Image?> = skiaImage
 
     override fun attach(mediaPlayer: MediaPlayer) {
         videoSurface.attach(mediaPlayer)
@@ -54,6 +49,14 @@ class SkiaBitmapVideoSurface : VideoSurface(VideoSurfaceAdapters.getVideoSurface
         private var sourceWidth: Int = 0
         private var sourceHeight: Int = 0
 
+        override fun newFormatSize(
+            bufferWidth: Int,
+            bufferHeight: Int,
+            displayWidth: Int,
+            displayHeight: Int
+        ) {
+        }
+
         override fun getBufferFormat(sourceWidth: Int, sourceHeight: Int): BufferFormat {
             this.sourceWidth = sourceWidth
             this.sourceHeight = sourceHeight
@@ -61,23 +64,29 @@ class SkiaBitmapVideoSurface : VideoSurface(VideoSurfaceAdapters.getVideoSurface
         }
 
         override fun allocatedBuffers(buffers: Array<ByteBuffer>) {
-            frameBytes = ByteArray(buffers[0].limit())
-            imageInfo = ImageInfo(sourceWidth, sourceHeight, BGRA_8888, OPAQUE)
+            val buffer = buffers[0]
+            val pointer = ByteBufferFactory.getAddress(buffer)
+            val imageInfo = ImageInfo.makeN32Premul(sourceWidth, sourceHeight, ColorSpace.sRGB)
+            pixmap = Pixmap.make(imageInfo, pointer, sourceWidth * 4)
         }
     }
 
     private inner class SkiaBitmapRenderCallback : RenderCallback {
+
         override fun display(
-            mediaPlayer: MediaPlayer,
-            nativeBuffers: Array<ByteBuffer>,
-            bufferFormat: BufferFormat,
+            mediaPlayer: MediaPlayer?,
+            nativeBuffers: Array<out ByteBuffer>,
+            bufferFormat: BufferFormat?,
+            displayWidth: Int,
+            displayHeight: Int
         ) {
-            SwingUtilities.invokeLater {
-                nativeBuffers[0].rewind()
-                nativeBuffers[0].get(frameBytes)
-                skiaBitmap.installPixels(imageInfo, frameBytes, imageInfo.minRowBytes)
-                composeBitmap.value = skiaBitmap.asComposeImageBitmap()
-            }
+            skiaImage.value = Image.makeFromPixmap(pixmap)
+        }
+
+        override fun lock(mediaPlayer: MediaPlayer?) {
+        }
+
+        override fun unlock(mediaPlayer: MediaPlayer?) {
         }
     }
 
@@ -87,4 +96,30 @@ class SkiaBitmapVideoSurface : VideoSurface(VideoSurfaceAdapters.getVideoSurface
         true,
         videoSurfaceAdapter,
     )
+}
+
+internal object ByteBufferFactory {
+    private val addressOffset = getAddressOffset()
+
+    fun getAddress(buffer: ByteBuffer?): Long {
+        return UnsafeAccess.UNSAFE.getLong(buffer, addressOffset)
+    }
+
+    @Suppress("DEPRECATION")
+    private fun getAddressOffset(): Long {
+        try {
+            return UnsafeAccess.UNSAFE.objectFieldOffset(Buffer::class.java.getDeclaredField("address"))
+        } catch (e: Exception) {
+            throw RuntimeException(e)
+        }
+    }
+
+    @Suppress("DiscouragedPrivateApi")
+    private object UnsafeAccess {
+        val UNSAFE: Unsafe = run {
+            val field: Field = Unsafe::class.java.getDeclaredField("theUnsafe")
+            field.setAccessible(true)
+            field.get(null) as Unsafe
+        }
+    }
 }
