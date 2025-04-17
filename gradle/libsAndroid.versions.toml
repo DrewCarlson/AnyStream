@@ -1,7 +1,6 @@
 [versions]
 zxing = "3.5.3"
 anr_watchdog = "1.4.0"
-composeCompiler = "1.5.4"
 ax_runner = "1.7.0"
 leakcanary = "2.14"
 koinAndroid = "4.1.0"

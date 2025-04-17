@@ -28,7 +28,6 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import anystream.router.BackPressHandler
 import anystream.router.LocalBackPressHandler
 import anystream.ui.App
-import org.koin.androidx.compose.KoinAndroidContext
 
 class LeanbackActivity : MainActivity()
 open class MainActivity : AppCompatActivity() {
@@ -36,7 +35,7 @@ open class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         enableEdgeToEdge(
-            navigationBarStyle = SystemBarStyle.light(0, 0)
+            navigationBarStyle = SystemBarStyle.light(0, 0),
         )
         super.onCreate(savedInstanceState)
         val backPressHandler = BackPressHandler()
@@ -49,9 +48,7 @@ open class MainActivity : AppCompatActivity() {
             CompositionLocalProvider(
                 LocalBackPressHandler provides backPressHandler,
             ) {
-                KoinAndroidContext {
-                    App()
-                }
+                App()
             }
         }
     }

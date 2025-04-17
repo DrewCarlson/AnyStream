@@ -34,14 +34,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.autofill.AutofillType
-import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.autofill.ContentDataType
+import androidx.compose.ui.autofill.ContentType
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.boundsInWindow
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalAutofill
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.semantics.contentDataType
+import androidx.compose.ui.semantics.contentType
+import androidx.compose.ui.semantics.onAutofillText
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -54,9 +55,7 @@ import androidx.compose.ui.unit.sp
 import anystream.client.AnyStreamClient
 import anystream.presentation.login.*
 import anystream.router.SharedRouter
-import anystream.ui.components.AutofillInput
 import anystream.ui.components.PrimaryButton
-import anystream.ui.components.onFocusStateChanged
 import anystream.ui.generated.resources.*
 import anystream.ui.generated.resources.Res
 import anystream.ui.generated.resources.ic_discovery
@@ -171,36 +170,32 @@ internal fun FormBody(
         )
 
         Spacer(Modifier.height(24.dp))
-        AutofillInput(
-            autofillTypes = listOf(AutofillType.EmailAddress, AutofillType.Username),
-            onFill = {
-                focusManager.clearFocus(force = true)
-                usernameValue = TextFieldValue(it)
-                eventConsumer.accept(LoginScreenEvent.OnUsernameChanged(it))
+        OutlineTextField(
+            textFieldValue = usernameValue,
+            onValueChange = {
+                usernameValue = it
+                eventConsumer.accept(LoginScreenEvent.OnUsernameChanged(it.text))
             },
-        ) { node ->
-            val autofill = LocalAutofill.current
-            OutlineTextField(
-                textFieldValue = usernameValue,
-                onValueChange = {
-                    usernameValue = it
-                    eventConsumer.accept(LoginScreenEvent.OnUsernameChanged(it.text))
+            leadingIcon = Res.drawable.ic_message,
+            placeHolder = "Username",
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.Next,
+            ),
+            isError = model.loginError?.usernameError != null,
+            readOnly = model.isInputLocked(),
+            modifier = Modifier
+                .semantics {
+                    contentType = ContentType.Username
+                    contentDataType = ContentDataType.Text
+                    onAutofillText {
+                        focusManager.clearFocus(force = true)
+                        usernameValue = TextFieldValue(it)
+                        eventConsumer.accept(LoginScreenEvent.OnUsernameChanged(it.text))
+                        true
+                    }
                 },
-                leadingIcon = Res.drawable.ic_message,
-                placeHolder = "Username",
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Text,
-                    imeAction = ImeAction.Next,
-                ),
-                isError = model.loginError?.usernameError != null,
-                readOnly = model.isInputLocked(),
-                modifier = Modifier.onGloballyPositioned {
-                    node.boundingBox = it.boundsInWindow()
-                }.onFocusChanged {
-                    autofill?.onFocusStateChanged(it, node)
-                },
-            )
-        }
+        )
 
         ErrorText(
             isError = model.loginError?.usernameError != null,
@@ -209,43 +204,39 @@ internal fun FormBody(
         )
         Spacer(Modifier.height(24.dp))
 
-        AutofillInput(
-            autofillTypes = listOf(AutofillType.Password),
-            onFill = {
-                focusManager.clearFocus(force = true)
-                passwordValue = TextFieldValue(it)
-                eventConsumer.accept(LoginScreenEvent.OnPasswordChanged(it))
+        OutlineTextField(
+            textFieldValue = passwordValue,
+            onValueChange = {
+                passwordValue = it
+                eventConsumer.accept(LoginScreenEvent.OnPasswordChanged(it.text))
             },
-        ) { node ->
-            val autofill = LocalAutofill.current
-            OutlineTextField(
-                textFieldValue = passwordValue,
-                onValueChange = {
-                    passwordValue = it
-                    eventConsumer.accept(LoginScreenEvent.OnPasswordChanged(it.text))
-                },
-                leadingIcon = Res.drawable.ic_lock,
-                placeHolder = "Password",
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Password,
-                    imeAction = ImeAction.Done,
-                ),
-                keyboardActions = KeyboardActions(
-                    onDone = {
+            leadingIcon = Res.drawable.ic_lock,
+            placeHolder = "Password",
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password,
+                imeAction = ImeAction.Done,
+            ),
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    focusManager.clearFocus(force = true)
+                    eventConsumer.accept(LoginScreenEvent.OnLoginSubmit)
+                }
+            ),
+            visualTransformation = PasswordVisualTransformation(),
+            isError = model.loginError?.passwordError != null,
+            readOnly = model.isInputLocked(),
+            modifier = Modifier
+                .semantics {
+                    contentType = ContentType.Password
+                    contentDataType = ContentDataType.Text
+                    onAutofillText {
                         focusManager.clearFocus(force = true)
-                        eventConsumer.accept(LoginScreenEvent.OnLoginSubmit)
+                        passwordValue = TextFieldValue(it)
+                        eventConsumer.accept(LoginScreenEvent.OnPasswordChanged(it.text))
+                        true
                     }
-                ),
-                visualTransformation = PasswordVisualTransformation(),
-                isError = model.loginError?.passwordError != null,
-                readOnly = model.isInputLocked(),
-                modifier = Modifier.onGloballyPositioned {
-                    node.boundingBox = it.boundsInWindow()
-                }.onFocusChanged {
-                    autofill?.onFocusStateChanged(it, node)
                 },
-            )
-        }
+        )
         ErrorText(
             isError = model.loginError?.passwordError != null,
             errorText = model.loginError?.passwordError?.name.orEmpty(),

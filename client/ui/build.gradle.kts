@@ -66,6 +66,7 @@ kotlin {
                 implementation(libsClient.compose.lifecycle)
                 implementation(libsClient.compose.bundle)
                 implementation(libsClient.compose.viewmodel)
+                implementation(libsClient.compose.backhandler)
                 implementation(compose.runtime)
                 implementation(compose.foundation)
                 implementation(compose.material3)

@@ -15,9 +15,6 @@ android {
     buildFeatures {
         compose = true
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion = libsAndroid.versions.composeCompiler.get()
-    }
     packaging {
         resources {
             excludes.add("META-INF/versions/*/*.bin")
@@ -65,7 +62,6 @@ dependencies {
     implementation(libsAndroid.androidx.leanback.core)
     implementation(libsAndroid.androidx.activity.ktx)
     implementation(libsAndroid.androidx.activity.compose)
-    implementation(libsAndroid.androidx.lifecycle.viewmodel.compose)
     implementation(libsAndroid.androidx.splashscreen)
     implementation(libsClient.compose.ui.ui)
     implementation(libsClient.compose.ui.tooling.preview)

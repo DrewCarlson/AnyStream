@@ -66,6 +66,17 @@ targets:
         UILaunchStoryboardName: SplashScreen
         NSCameraUsageDescription: Your camera is used to scan QR codes.
         NSFaceIDUsageDescription: FaceID is used to protect your account.
+        NSLocalNetworkUsageDescription: Connect to a local AnyStream servers running on nearby devices.
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: true
+          NSAllowsLocalNetworking: true
+          NSAllowsArbitraryLoadsInWebContent: true
+          NSExceptionDomains: {
+            "192.168.1.137": {
+              NSIncludesSubdomains: true,
+              NSExceptionAllowsInsecureHTTPLoads: true
+            }
+          }
         CFBundleURLTypes:
           - CFBundleTypeRole: Viewer
             CFBundleURLName: dev.anystream

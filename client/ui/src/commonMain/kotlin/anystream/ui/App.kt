@@ -15,16 +15,21 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-@file:OptIn(ExperimentalHazeMaterialsApi::class)
+@file:OptIn(ExperimentalHazeMaterialsApi::class, ExperimentalAnimationApi::class)
 
 package anystream.ui
 
 import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.backhandler.BackHandler
+import androidx.compose.ui.backhandler.PredictiveBackHandler
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import anystream.client.AnyStreamClient
 import anystream.router.*
 import anystream.router.Router
@@ -50,6 +55,9 @@ import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
@@ -272,6 +280,7 @@ private fun DisplayRoute(
                 modifier = Modifier,
             )
         }
+
         Routes.PairingScanner -> {
             DevicePairingScannerScreen(
                 // note: Don't provide modifiers consuming padding, enabling edge-to-edge display
