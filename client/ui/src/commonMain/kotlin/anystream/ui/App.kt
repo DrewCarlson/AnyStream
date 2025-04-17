@@ -15,11 +15,13 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-@file:OptIn(ExperimentalHazeMaterialsApi::class)
+@file:OptIn(ExperimentalHazeMaterialsApi::class, ExperimentalAnimationApi::class)
 
 package anystream.ui
 
 import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -27,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.backhandler.PredictiveBackHandler
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import anystream.client.AnyStreamClient
 import anystream.router.*
 import anystream.router.Router
@@ -52,6 +55,9 @@ import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
@@ -69,12 +75,24 @@ fun App() {
     var showBottomNavigation by remember { mutableStateOf(false) }
     var selectedRoute by remember { mutableStateOf<Routes?>(null) }
 
-    PredictiveBackHandler { events ->
-        events.collect { event ->
-            event.progress
+    // Track back gesture progress
+    var backGestureProgress by remember { mutableStateOf(0f) }
+    var canGoBack by remember { mutableStateOf(false) }
 
-            // todo: on complete call backPressHandler.handle()
-        }
+    PredictiveBackHandler { events ->
+        events
+            .filter { canGoBack }
+            .onCompletion {
+                if (backGestureProgress > 0.8) {
+                    backGestureProgress = 1f
+                    backPressHandler.handle()
+                }
+                backGestureProgress = 0f
+            }
+            .collect { event ->
+                // Update the back gesture progress
+                backGestureProgress = event.progress
+            }
     }
     CompositionLocalProvider(
         LocalBackPressHandler providesDefault backPressHandler,
@@ -96,15 +114,15 @@ fun App() {
                         Box(
                             Modifier
                                 .fillMaxWidth()
-                                /*.hazeEffect(
-                                    state = hazeState,
-                                    style = HazeMaterials.ultraThin(),
-                                ) {
-                                    progressive = HazeProgressive.verticalGradient(
-                                        startIntensity = 0.6f,
-                                        endIntensity = 0f,
-                                    )
-                                }*/
+                            /*.hazeEffect(
+                                state = hazeState,
+                                style = HazeMaterials.ultraThin(),
+                            ) {
+                                progressive = HazeProgressive.verticalGradient(
+                                    startIntensity = 0.6f,
+                                    endIntensity = 0f,
+                                )
+                            }*/
                         ) {
 
                             TopAppBar(
@@ -128,17 +146,17 @@ fun App() {
                         ) {
                             BottomNavigation(
                                 modifier = Modifier,
-                                    /*.hazeEffect(
-                                        state = hazeState,
-                                        style = HazeMaterials.regular(),
-                                    ),*/
+                                /*.hazeEffect(
+                                    state = hazeState,
+                                    style = HazeMaterials.regular(),
+                                ),*/
                                 selectedRoute = selectedRoute ?: Routes.Home,
                                 onRouteChanged = { scope.launch { routeChannel.send(it) } },
                             )
                         }
                     }
                 ) { padding ->
-                    Box(
+                    BoxWithConstraints(
                         modifier = Modifier
                             //.hazeSource(hazeState)
                             .fillMaxSize()
@@ -149,6 +167,9 @@ fun App() {
                         ) { stack ->
                             LaunchedEffect(stack) {
                                 router.setBackStack(stack)
+                            }
+                            LaunchedEffect(stack.size) {
+                                canGoBack = stack.size > 1
                             }
                             LaunchedEffect("track-route-requests") {
                                 routeChannel.consumeEach { route ->
@@ -168,6 +189,7 @@ fun App() {
                                     }
                             }
                             val route = stack.last()
+
                             LaunchedEffect(route) {
                                 val bottomNavRoots = listOf(
                                     Routes.Home,
@@ -176,11 +198,47 @@ fun App() {
                                 showBottomNavigation = bottomNavRoots.contains(route)
                                 selectedRoute = route
                             }
-                            DisplayRoute(
-                                route = route,
-                                stack = stack,
-                                padding = padding
-                            )
+
+                            // Get the previous route if available
+                            val previousRoute = if (stack.size > 1) {
+                                stack.elements[stack.lastIndex - 1]
+                            } else {
+                                null
+                            }
+
+                            // Only show both screens during back gesture
+                            // Calculate offsets for both screens
+                            val screenWidth = maxWidth // Arbitrary screen width value
+                            val currentRouteOffset = (screenWidth * backGestureProgress)
+                            val previousRouteOffset = (screenWidth * (backGestureProgress - 1))
+
+                            // Show both screens side by side with appropriate offsets
+                            Box(modifier = Modifier.fillMaxSize()) {
+                                // Previous route (sliding in from left)
+
+                                if (backGestureProgress > 0f && previousRoute != null) {
+                                    Box(
+                                        modifier = Modifier.offset(x = previousRouteOffset)
+                                    ) {
+                                        DisplayRoute(
+                                            route = previousRoute,
+                                            stack = stack,
+                                            padding = padding
+                                        )
+                                    }
+                                }
+
+                                // Current route (sliding out to right)
+                                Box(
+                                    modifier = Modifier.offset(x = currentRouteOffset)
+                                ) {
+                                    DisplayRoute(
+                                        route = route,
+                                        stack = stack,
+                                        padding = padding
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -281,6 +339,7 @@ private fun DisplayRoute(
                 modifier = Modifier,
             )
         }
+
         Routes.PairingScanner -> {
             DevicePairingScannerScreen(
                 // note: Don't provide modifiers consuming padding, enabling edge-to-edge display
