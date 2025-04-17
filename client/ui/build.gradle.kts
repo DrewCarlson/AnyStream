@@ -39,23 +39,11 @@ kotlin {
     ) {
         val main by compilations.getting
         main.cinterops.create("observer")
-        binaries {
-            framework {
-                baseName = "AnyStreamCore"
-                export(projects.client.core)
-                export(projects.client.dataModels)
-                freeCompilerArgs += listOf(
-                    "-linker-option", "-framework", "-linker-option", "Metal",
-                    "-linker-option", "-framework", "-linker-option", "CoreText",
-                    "-linker-option", "-framework", "-linker-option", "CoreGraphics",
-                )
-            }
-        }
     }
-
     sourceSets {
         all {
             languageSettings {
+                optIn("kt.mobius.gen.ExperimentalCodegenApi")
                 optIn("kotlinx.cinterop.ExperimentalForeignApi")
                 optIn("androidx.compose.foundation.ExperimentalFoundationApi")
                 optIn("org.jetbrains.compose.resources.ExperimentalResourceApi")
@@ -69,10 +57,7 @@ kotlin {
             dependencies {
                 api(projects.client.core)
                 api(projects.client.dataModels)
-                api(libsClient.mobiuskt.core)
-                api(libsClient.mobiuskt.coroutines)
-                api(libsClient.mobiuskt.compose)
-
+                api(projects.client.presentation)
                 implementation(libsClient.coil.compose)
                 implementation(libsClient.coil.ktor)
                 implementation(libsClient.koin.compose)
@@ -117,7 +102,5 @@ kotlin {
                 implementation(libsClient.vlcj)
             }
         }
-
-        configureCommonIosSourceSets()
     }
 }

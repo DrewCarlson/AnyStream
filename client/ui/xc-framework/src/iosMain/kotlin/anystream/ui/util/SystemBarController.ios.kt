@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2023 AnyStream Maintainers
+ * Copyright (C) 2025 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -15,20 +15,14 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import androidx.compose.desktop.ui.tooling.preview.Preview
-import androidx.compose.runtime.Composable
-import anystream.ui.App
-import anystream.ui.login.FormBody
-import anystream.presentation.login.LoginScreenModel
+package anystream.ui.util
 
-@Composable
-fun MainView() = App()
+import kotlin.native.ObjCName
+import kotlin.experimental.ExperimentalObjCName
 
-@Preview
-@Composable
-fun AppPreview() {
-    FormBody(
-        LoginScreenModel(""),
-        {},
-    )
+
+@OptIn(ExperimentalObjCName::class)
+@ObjCName("SystemBarController", "SystemBarController")
+interface SystemBarControllerExport {
+    fun setSystemBars(hidden: Boolean)
 }

@@ -6,6 +6,8 @@ include(
     ":client:desktop",
     ":client:web",
     ":client:ui",
+    ":client:ui:xc-framework",
+    ":client:presentation",
     ":client:data-models",
     ":server:application",
     ":server:db-models",

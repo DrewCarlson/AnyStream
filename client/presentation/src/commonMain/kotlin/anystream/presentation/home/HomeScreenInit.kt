@@ -15,20 +15,22 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import androidx.compose.desktop.ui.tooling.preview.Preview
-import androidx.compose.runtime.Composable
-import anystream.ui.App
-import anystream.ui.login.FormBody
-import anystream.presentation.login.LoginScreenModel
+package anystream.presentation.home
 
-@Composable
-fun MainView() = App()
+import kt.mobius.First
+import kt.mobius.First.Companion.first
+import kt.mobius.Init
+import anystream.presentation.home.HomeScreenEffect as Effect
+import anystream.presentation.home.HomeScreenModel as Model
 
-@Preview
-@Composable
-fun AppPreview() {
-    FormBody(
-        LoginScreenModel(""),
-        {},
-    )
+object HomeScreenInit : Init<Model, Effect> {
+
+    override fun init(model: Model): First<Model, Effect> {
+        return when (model) {
+            is Model.Loaded -> first(model)
+            Model.Empty,
+            Model.Loading,
+            Model.LoadingFailed -> first(Model.Loading, Effect.LoadHomeData)
+        }
+    }
 }

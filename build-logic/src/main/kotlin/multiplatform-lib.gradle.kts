@@ -70,13 +70,10 @@ kotlin {
             }
         }
     }
-    // Note: Workaround build script errors when configuring frameworks
-    // "Could not create task of type 'KotlinNativeLink'."
-    if (project.name != "ui") {
-        iosArm64()
-        iosSimulatorArm64()
-        iosX64()
-    }
+
+    iosArm64()
+    iosSimulatorArm64()
+    iosX64()
     applyDefaultHierarchyTemplate()
     compilerOptions {
         freeCompilerArgs.add("-Xexpect-actual-classes")
@@ -138,12 +135,6 @@ kotlin {
                     implementation(kotlin("test-js"))
                 }
             }
-        }
-
-        // Note: Workaround build script errors when configuring frameworks
-        // "Could not create task of type 'KotlinNativeLink'."
-        if (project.name != "ui") {
-            configureCommonIosSourceSets()
         }
     }
 }
