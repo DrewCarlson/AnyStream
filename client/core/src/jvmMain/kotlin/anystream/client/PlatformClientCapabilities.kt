@@ -15,29 +15,38 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.service.stream
+package anystream.client
 
-import com.github.kokorin.jaffree.process.CommandSender
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.withTimeoutOrNull
-import kotlin.time.Duration.Companion.seconds
+import anystream.models.ClientCapabilities
 
-data class TranscodeJobHolder(
-    private val job: Job,
-    private val commandSender: CommandSender,
-) {
-    fun pause() {
-        commandSender.sendCommand("p")
-    }
+actual fun createPlatformClientCapabilities(): ClientCapabilities {
+    val supportedVideoCodecs = listOf(
+        "h264",
+        "h265",
+        "vp8",
+        "vp9",
+        "av1",
+    )
 
-    fun resume() {
-        commandSender.sendCommand("u")
-    }
+    val supportedAudioCodecs = listOf(
+        "aac",
+        "mp3",
+        "opus",
+        "flac",
+        "vorbis",
+    )
 
-    suspend fun cancel() {
-        withTimeoutOrNull(10.seconds) {
-            job.cancelAndJoin()
-        }
-    }
+    val supportedContainers = listOf(
+        "mp4",
+        "mkv",
+        "webm",
+        "avi",
+        "mov",
+    )
+    
+    return ClientCapabilities(
+        supportedVideoCodecs = supportedVideoCodecs,
+        supportedAudioCodecs = supportedAudioCodecs,
+        supportedContainers = supportedContainers,
+    )
 }

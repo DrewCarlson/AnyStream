@@ -17,19 +17,6 @@
  */
 package anystream.jobs
 
-import anystream.data.MetadataDbQueries
-import anystream.models.MediaLink
-import anystream.models.MediaLinkType
-import anystream.service.stream.executeAwait
-import com.github.kokorin.jaffree.JaffreeException
-import com.github.kokorin.jaffree.ffmpeg.FFmpeg
-import com.github.kokorin.jaffree.ffmpeg.UrlInput
-import com.github.kokorin.jaffree.ffmpeg.UrlOutput
-import org.slf4j.Logger
-import java.io.File
-import kotlin.io.path.Path
-import kotlin.io.path.absolutePathString
-import kotlin.io.path.createDirectories
 
 private const val PREVIEW_IMAGE_WIDTH = "240" // Image width, height will be scaled
 private const val PREVIEW_IMAGE_QUALITY = "5" // Possible values: 2-31

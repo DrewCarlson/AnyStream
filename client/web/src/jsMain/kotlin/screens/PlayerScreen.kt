@@ -46,7 +46,6 @@ import org.w3c.dom.HTMLElement
 import org.w3c.dom.get
 import kotlin.time.Duration.Companion.ZERO
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.DurationUnit
 import kotlin.time.DurationUnit.SECONDS
 
 private val playerControlsColor = rgba(35, 36, 38, .45)
@@ -97,7 +96,7 @@ fun PlayerScreen(mediaLinkId: String) {
     }
     val playbackState by produceState<PlaybackState?>(null) {
         var initialState: PlaybackState? = null
-        sessionHandle = client.playbackSession(mediaLinkId) { state ->
+        sessionHandle = client.playbackSession(this, mediaLinkId) { state ->
             println("[player] $state")
             if (initialState == null) {
                 initialState = state

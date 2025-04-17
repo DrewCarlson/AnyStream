@@ -32,9 +32,7 @@ import anystream.metadata.providers.TmdbMetadataProvider
 import anystream.models.Permission
 import anystream.routes.installRouting
 import anystream.service.search.SearchService
-import anystream.service.stream.StreamService
-import anystream.service.stream.StreamServiceQueries
-import anystream.service.stream.StreamServiceQueriesJooq
+import anystream.service.stream.*
 import anystream.service.user.UserService
 import anystream.util.SqlSessionStorage
 import anystream.util.WebsocketAuthorization
@@ -215,12 +213,13 @@ fun Application.module(testing: Boolean = false) {
                 single { UserService(get(), get(), get()) }
 
                 single<StreamServiceQueries> { StreamServiceQueriesJooq(get(), get(), get(), get(), get()) }
+                single { MediaFileProbe({ get() }) }
+                single { TranscodeSessionManager({ get() }, get(), get(), get()) }
                 single {
                     StreamService(
-                        scope = get(),
                         queries = get(),
-                        ffmpeg = { get() },
-                        ffprobe = { get() },
+                        mediaFileProbe = get(),
+                        transcodeSessionManager = get(),
                         transcodePath = get<AnyStreamConfig>().transcodePath,
                         fs = get(),
                     )

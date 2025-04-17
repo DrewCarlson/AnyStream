@@ -29,7 +29,6 @@ import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.http.HttpStatusCode.Companion.UnprocessableEntity
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.http.content.*
 import io.ktor.server.request.*
@@ -37,10 +36,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
-import kotlinx.coroutines.flow.*
-import kotlinx.serialization.encodeToString
 import org.drewcarlson.ktor.permissions.withPermission
-import kotlin.io.path.Path
 
 private const val PLAYBACK_COMPLETE_PERCENT = 90
 
@@ -95,7 +91,12 @@ fun Route.addStreamRoutes(
                     val mediaLinkId = call.parameters["mediaLinkId"]!!
                     val token = call.parameters["token"]
                         ?: return@get call.respond(Unauthorized)
-                    val playlist = streamService.getPlaylist(mediaLinkId, token)
+
+                    val clientCapabilities = call.request.queryParameters["capabilities"]!!.let {
+                        json.decodeFromString<ClientCapabilities>(it)
+                    }
+
+                    val playlist = streamService.getPlaylist(mediaLinkId, token, clientCapabilities)
                     if (playlist == null) {
                         call.respond(NotFound)
                     } else {
@@ -112,7 +113,12 @@ fun Route.addStreamRoutes(
                     if (filePath == null) {
                         call.respond(NotFound)
                     } else {
-                        call.respond(LocalPathContent(filePath, ContentType.Video.MPEG))
+                        val contentType = if (segmentFile.endsWith(".mp4")) {
+                            ContentType.Video.MP4
+                        } else {
+                            ContentType.Video.MPEG
+                        }
+                        call.respond(LocalPathContent(filePath, contentType))
                     }
                 }
             }
@@ -136,25 +142,29 @@ fun Route.addStreamWsRoutes(
         val userId = session.userId
         val mediaLinkId = call.parameters["mediaLinkId"]!!
 
-        val state = streamService.getPlaybackState(mediaLinkId, userId, create = true)
-            ?: return@webSocket close()
+        val clientCapabilities = receiveDeserialized<ClientCapabilities>()
+
+        val state = streamService.getPlaybackState(
+            mediaLinkId = mediaLinkId, 
+            userId = userId, 
+            create = true,
+            clientCapabilities = clientCapabilities
+        ) ?: return@webSocket close()
 
         send(Frame.Text(json.encodeToString(state)))
 
-        val finalState = incoming.receiveAsFlow()
-            .takeWhile { it !is Frame.Close }
-            .filterIsInstance<Frame.Text>()
-            .map { frame ->
-                val newState = json.decodeFromString<PlaybackState>(frame.readText())
-                streamService.updateStatePosition(state, newState.position)
-                newState
+        var finalState = state
+        for (frame in incoming) {
+            if (frame is Frame.Text) {
+                finalState = json.decodeFromString<PlaybackState>(frame.readText())
+                streamService.updateStatePosition(state, finalState.position)
             }
-            .lastOrNull() ?: state
+        }
 
         val isComplete = finalState.completedPercent >= PLAYBACK_COMPLETE_PERCENT
         if (isComplete) {
             streamService.deletePlaybackState(state.id)
         }
-        streamService.stopSession(state.id, isComplete)
+        streamService.stopSession(state.id, deleteOutput = true)
     }
 }

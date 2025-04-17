@@ -70,10 +70,10 @@ class AvPlayerHandle(
             return
         }
         currentMediaId = mediaLinkId
+        val handle = client.playbackSession(scope, mediaLinkId) { state ->
+            println("[player] $state")
+        }
         scope.launch {
-            val handle = client.playbackSession(mediaLinkId) { state ->
-                println("[player] $state")
-            }
             val url = handle.playbackUrl.await()
             val startPosition = handle.initialPlaybackState.await().position
             println("[player] $url")

@@ -174,7 +174,10 @@ private fun PlaybackSessionCard(
             }
         }
         Div { Text("User: ${user.displayName}") }
-        Div { Text("Transcoding: ${transcodeSession.state}") }
+        Div {
+            Text("Transcode (${transcodeSession.transcodeDecision.name.substringBefore('_')}): ")
+            Text(transcodeSession.state.name)
+        }
         Div {
             val progress = playbackState.position
             val runtime = playbackState.runtime

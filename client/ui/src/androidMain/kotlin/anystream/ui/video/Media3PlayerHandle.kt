@@ -99,13 +99,12 @@ class Media3PlayerHandle(
             return
         }
         currentMediaLinkId = mediaLinkId
+        val handle = client.playbackSession(scope, mediaLinkId) { state ->
+            println("[PlayerHandle] $state")
+            emitDuration(state.runtime)
+            emitProgress(state.position)
+        }
         scope.launch {
-            val handle = client.playbackSession(mediaLinkId) { state ->
-                println("[PlayerHandle] $state")
-                emitDuration(state.runtime)
-                emitProgress(state.position)
-            }
-
             val url = handle.playbackUrl.await()
             val startPosition = handle.initialPlaybackState.await().position
             println("[PlayerHandle] $url")

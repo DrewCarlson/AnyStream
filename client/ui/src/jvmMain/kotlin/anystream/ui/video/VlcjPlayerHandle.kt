@@ -27,7 +27,6 @@ import uk.co.caprica.vlcj.player.base.MediaPlayerEventListener
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.ZERO
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit.SECONDS
 
 
@@ -79,10 +78,10 @@ class VlcjPlayerHandle(
         }
         currentMediaLinkId = mediaLinkId
 
+        val handle = client.playbackSession(scope, mediaLinkId) { state ->
+            println("[player] $state")
+        }
         scope.launch {
-            val handle = client.playbackSession(mediaLinkId) { state ->
-                println("[player] $state")
-            }
             val url = handle.playbackUrl.await()
             val startPosition = handle.initialPlaybackState.await().position
             emitProgress(startPosition)

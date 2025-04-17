@@ -18,9 +18,6 @@
 package anystream.service.stream
 
 import com.github.kokorin.jaffree.ffmpeg.FFmpeg
-import com.github.kokorin.jaffree.ffmpeg.FFmpegResult
-import com.github.kokorin.jaffree.process.CommandSender
-import kotlinx.coroutines.future.await
 
 internal fun FFmpeg.buildCommandString(): String {
     val buildArguments = FFmpeg::class.java.getDeclaredMethod("buildArguments")
@@ -30,12 +27,4 @@ internal fun FFmpeg.buildCommandString(): String {
         separator = " ",
         prefix = "ffmpeg ",
     ) { if (it.contains(' ')) "\"$it\"" else it }
-}
-
-suspend fun FFmpeg.executeAwait(): FFmpegResult {
-    return executeAsync().toCompletableFuture().await()
-}
-
-suspend fun FFmpeg.executeAwait(commandSender: CommandSender): FFmpegResult {
-    return executeAsync(commandSender).toCompletableFuture().await()
 }

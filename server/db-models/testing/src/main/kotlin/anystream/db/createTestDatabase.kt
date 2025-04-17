@@ -18,6 +18,7 @@
 package anystream.db
 
 import anystream.db.converter.JooqConverterProvider
+import anystream.models.AuthType
 import anystream.models.User
 import anystream.util.ObjectId
 import io.kotest.core.spec.DslDrivenSpec
@@ -73,6 +74,7 @@ fun createUserObject(index: Int = 0): User {
         displayName = "Test$index",
         passwordHash = "test-pw-hash",
         createdAt = Clock.System.now(),
-        updatedAt = Clock.System.now()
+        updatedAt = Clock.System.now(),
+        authType = AuthType.INTERNAL,
     )
 }

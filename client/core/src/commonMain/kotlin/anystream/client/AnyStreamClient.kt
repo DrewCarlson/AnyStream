@@ -33,6 +33,7 @@ import io.ktor.http.*
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
+import io.ktor.http.URLBuilder
 import io.ktor.serialization.*
 import io.ktor.serialization.kotlinx.*
 import io.ktor.serialization.kotlinx.json.*
@@ -47,8 +48,6 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -428,44 +427,49 @@ class AnyStreamClient(
     }
 
     fun playbackSession(
+        scope: CoroutineScope,
         mediaLinkId: String,
         init: (state: PlaybackState) -> Unit,
     ): PlaybackSessionHandle {
-        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
         val currentState = MutableStateFlow<PlaybackState?>(null)
         val progressFlow = MutableSharedFlow<Duration>(0, 1, BufferOverflow.DROP_OLDEST)
-        val mutex = Mutex(locked = true)
-        scope.launch {
+        val clientCapabilities = createPlatformClientCapabilities()
+        val job = scope.launch {
             try {
                 http.wss("$serverUrlWs/api/ws/stream/$mediaLinkId/state") {
                     send(sessionManager.fetchToken()!!)
+
+                    sendSerialized(clientCapabilities)
+
                     val playbackState = receiveDeserialized<PlaybackState>()
                     currentState.value = playbackState
                     init(playbackState)
                     progressFlow
                         .sample(5000)
                         .distinctUntilChanged()
-                        .onEach { progress ->
+                        .collect { progress ->
                             currentState.update { it?.copy(position = progress) }
                             sendSerialized(currentState.value!!)
                         }
-                        .launchIn(this)
-                    mutex.withLock { close() }
                 }
             } catch (e: Throwable) {
-                if (e is CancellationException) throw e
-                e.printStackTrace()
+                // TODO: this will need to signal the consumer so it can:
+                //   - display error message to user
+                //   - enter idle state and prepare for new playback
+                if (e !is CancellationException) {
+                    println("Playback session failed: ${e.message}")
+                    e.printStackTrace()
+                }
             }
-            scope.cancel()
         }
         return PlaybackSessionHandle(
             update = progressFlow,
-            cancel = { mutex.unlock() },
+            cancel = { job.cancel() },
             initialPlaybackState = scope.async { currentState.filterNotNull().first() },
             playbackUrl = scope.async {
                 currentState
                     .filterNotNull()
-                    .map { createHlsStreamUrl(it.mediaLinkId, it.id) }
+                    .map { createHlsStreamUrl(it.mediaLinkId, it.id, clientCapabilities) }
                     .first()
             },
         )
@@ -659,8 +663,19 @@ class AnyStreamClient(
         return response.bodyOrThrow()
     }
 
-    fun createHlsStreamUrl(mediaLinkId: String, token: String): String {
-        return "$serverUrl/api/stream/$mediaLinkId/hls/playlist.m3u8?token=$token"
+    fun createHlsStreamUrl(
+        mediaLinkId: String,
+        token: String,
+        clientCapabilities: ClientCapabilities? = createPlatformClientCapabilities()
+    ): String {
+        return URLBuilder(serverUrl).apply {
+            path("api", "stream", mediaLinkId, "hls", "playlist.m3u8")
+            parameters["token"] = token
+
+            if (clientCapabilities != null) {
+                parameters["capabilities"] = json.encodeToString(clientCapabilities)
+            }
+        }.buildString()
     }
 
     class PlaybackSessionHandle(

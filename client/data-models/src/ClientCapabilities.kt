@@ -15,29 +15,13 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.service.stream
+package anystream.models
 
-import com.github.kokorin.jaffree.process.CommandSender
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.withTimeoutOrNull
-import kotlin.time.Duration.Companion.seconds
+import kotlinx.serialization.Serializable
 
-data class TranscodeJobHolder(
-    private val job: Job,
-    private val commandSender: CommandSender,
-) {
-    fun pause() {
-        commandSender.sendCommand("p")
-    }
-
-    fun resume() {
-        commandSender.sendCommand("u")
-    }
-
-    suspend fun cancel() {
-        withTimeoutOrNull(10.seconds) {
-            job.cancelAndJoin()
-        }
-    }
-}
+@Serializable
+data class ClientCapabilities(
+    val supportedVideoCodecs: List<String> = emptyList(),
+    val supportedAudioCodecs: List<String> = emptyList(),
+    val supportedContainers: List<String> = emptyList(),
+)
