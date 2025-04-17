@@ -40,11 +40,11 @@ internal class HlsPlaylistFactory {
         token: String,
         runtime: Duration,
         segmentDuration: Duration,
+        isHlsInFmp4: Boolean
     ): String {
         logger.debug("Creating variant playlist for {}", mediaFile)
 
-        val segmentContainer = null ?: "ts"
-        val isHlsInFmp4 = segmentContainer.equals("mp4", ignoreCase = true)
+        val segmentContainer = if (isHlsInFmp4) "mp4" else "ts"
         val hlsVersion = if (isHlsInFmp4) "7" else "3"
 
         val (segmentCount, finalSegLength) = getSegmentCountAndFinalLength(runtime, segmentDuration)
@@ -55,17 +55,19 @@ internal class HlsPlaylistFactory {
 
         return buildString(128) {
             appendLine("#EXTM3U")
+            appendLine("#EXT-X-PLAYLIST-TYPE:VOD")
             append("#EXT-X-VERSION:")
             appendLine(hlsVersion)
             append("#EXT-X-TARGETDURATION:")
-            appendLine(segmentDuration.toInt(DurationUnit.SECONDS))
+            appendLine(segmentDuration.inWholeSeconds)
             appendLine("#EXT-X-MEDIA-SEQUENCE:0")
 
             if (isHlsInFmp4) {
                 append("#EXT-X-MAP:URI=\"")
                 append(token)
                 append('-')
-                append("$name-1.")
+                append(name)
+                append("-init.")
                 append(segmentExtension)
                 appendLine('"')
             }

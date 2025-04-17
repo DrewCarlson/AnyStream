@@ -67,6 +67,7 @@ class StreamService(
     private val transcodePath: Path,
     private val fs: FileSystem,
 ) {
+    private val mediaAnalyzer = MediaAnalyzer(ffprobe)
     private val logger = LoggerFactory.getLogger(this::class.java)
     private val hlsPlaylistFactory = HlsPlaylistFactory()
     private val scope = CoroutineScope(IO + scope.coroutineContext)
@@ -116,6 +117,7 @@ class StreamService(
         mediaLinkId: String,
         userId: String,
         create: Boolean,
+        clientCapabilities: ClientCapabilities? = null
     ): PlaybackState? {
         val state = queries.fetchPlaybackState(mediaLinkId, userId)
         val mediaLink = checkNotNull(queries.fetchMediaLink(mediaLinkId))
@@ -141,6 +143,13 @@ class StreamService(
         if (create && !sessionMap.containsKey(newState.id)) {
             val (file, _) = fileAndMetadataId ?: return null
             val output = transcodePath.resolve(newState.id).resolve(mediaLinkId)
+
+            val transcodeDecision = determineTranscodeDecision(file, clientCapabilities)
+
+            val mediaInfo = mediaAnalyzer.analyzeMedia(file)
+            val isHevcVideo = mediaInfo?.videoCodec?.let {
+                it.startsWith("hevc") || it.startsWith("h265")
+            } ?: false
             startTranscode(
                 token = newState.id,
                 name = mediaLinkId,
@@ -150,6 +159,8 @@ class StreamService(
                 startAt = newState.position,
                 stopAt = newState.position + DEFAULT_THROTTLE_SECONDS,
                 segmentDuration = DEFAULT_SEGMENT_DURATION,
+                transcodeDecision = transcodeDecision,
+                isHlsInFmp4 = isHevcVideo,
             )
         }
         return newState
@@ -177,12 +188,26 @@ class StreamService(
         )
     }
 
-    suspend fun getPlaylist(mediaLinkId: String, token: String): String? {
+    suspend fun getPlaylist(
+        mediaLinkId: String,
+        token: String,
+        clientCapabilities: ClientCapabilities
+    ): String? {
         val mediaLink = queries.fetchMediaLink(mediaLinkId) ?: return null
         val file = mediaLink.filePath?.run(fs::getPath) ?: return null
 
         val runtime = getFileDuration(file).seconds
         val segmentDuration = DEFAULT_SEGMENT_DURATION
+
+        val transcodeDecision = determineTranscodeDecision(file, clientCapabilities)
+
+        val mediaInfo = mediaAnalyzer.analyzeMedia(file)
+        val isHlsInFmp4 = mediaInfo?.videoCodec?.let {
+            it.startsWith("hevc") || it.startsWith("h265")
+        } ?: false
+
+        logger.debug("Media info for {}: codec={}, isHevc={}", mediaLinkId, mediaInfo?.videoCodec, isHlsInFmp4)
+
         if (!sessionMap.containsKey(token)) {
             val output = transcodePath.resolve(token).resolve(mediaLinkId)
             startTranscode(
@@ -192,6 +217,8 @@ class StreamService(
                 outputDir = output,
                 runtime = runtime,
                 segmentDuration = segmentDuration,
+                transcodeDecision = transcodeDecision,
+                isHlsInFmp4 = isHlsInFmp4,
             )
         }
 
@@ -201,16 +228,21 @@ class StreamService(
             token = token,
             runtime = runtime,
             segmentDuration = segmentDuration,
+            isHlsInFmp4 = isHlsInFmp4
         )
     }
 
     suspend fun getFilePathForSegment(token: String, segmentFile: String): Path? {
         val session = sessionMap[token] ?: return null
+
         val segmentIndex = segmentFile
             .substringAfter("${session.mediaLinkId}-")
-            .substringBefore(".ts")
-            .toInt()
-        setSegmentTarget(token, segmentIndex)
+            .substringBeforeLast(".")
+            .toIntOrNull()
+
+        if (segmentIndex != null) {
+            setSegmentTarget(token, segmentIndex)
+        }
         return fs.getPath(session.outputPath)
             .resolve(segmentFile)
             .takeIf(Path::exists)
@@ -264,14 +296,17 @@ class StreamService(
         segmentDuration: Duration,
         startAt: Duration = ZERO,
         stopAt: Duration = runtime,
+        transcodeDecision: TranscodeSession.TranscodeDecision,
+        isHlsInFmp4: Boolean,
     ): TranscodeSession {
         logger.debug(
-            "Start Transcode: {}, runtime={}, startAt={}, stopAt={}, token={}",
+            "Start Transcode: {}, runtime={}, startAt={}, stopAt={}, token={}, transcodeDecision={}",
             name,
             runtime,
             startAt,
             stopAt,
             token,
+            transcodeDecision,
         )
         val existingSession = sessionMap[token]
         if (existingSession?.isActive() == true) {
@@ -280,9 +315,10 @@ class StreamService(
 
         outputDir.createDirectories()
 
+        val segmentExtension = if (isHlsInFmp4) "mp4" else "ts"
         val (segmentCount, lastSegmentDuration) =
             hlsPlaylistFactory.getSegmentCountAndFinalLength(runtime, segmentDuration)
-        val transcodedSegments = findExistingSegments(outputDir, name)
+        val transcodedSegments = findExistingSegments(outputDir, name, segmentExtension)
         val requestedStartTime = startAt.coerceIn(ZERO, (runtime - segmentDuration))
         val requestedStartSegment =
             floor(requestedStartTime / segmentDuration).toInt().coerceAtLeast(0)
@@ -319,6 +355,10 @@ class StreamService(
             endTime,
         )
 
+        if (transcodeDecision == TranscodeSession.TranscodeDecision.DIRECT) {
+            logger.debug("Direct streaming enabled for {}, copying codecs without transcoding", name)
+        }
+
         if (startSegment > lastSegmentIndex) {
             // Occurs when all required segments are completed, create the session without transcoding
             return sessionMap.compute(token) { _, session ->
@@ -330,6 +370,7 @@ class StreamService(
                     lastTranscodedSegment = lastSegmentIndex,
                     state = TranscodeSession.State.COMPLETE,
                     ffmpegCommand = "",
+                    transcodeDecision = transcodeDecision,
                 ) ?: TranscodeSession(
                     token = token,
                     mediaLinkId = name,
@@ -346,6 +387,7 @@ class StreamService(
                     startSegment = startSegment,
                     endSegment = endSegment,
                     transcodedSegments = transcodedSegments,
+                    transcodeDecision = transcodeDecision,
                 )
             }.run(::checkNotNull)
         }
@@ -354,18 +396,32 @@ class StreamService(
             val startSeconds = startTime.toDouble(SECONDS).toString()
             val segmentSeconds = segmentDuration.toDouble(SECONDS).toString()
             addArguments("-f", "hls")
-            // addArguments("-movflags", "+faststart")
-            addArguments("-preset", "veryfast")
-            addArguments("-b:a", "128000")
-            addArguments("-ac:a", "2")
-            addArguments("-force_key_frames", "expr:gte(t,$startSeconds+n_forced*$segmentSeconds)")
+
+            //addArguments("-movflags", "+faststart")
+            //addArguments("-preset", "veryfast")
+
+            if (transcodeDecision == TranscodeSession.TranscodeDecision.AUDIO_ONLY ||
+                transcodeDecision == TranscodeSession.TranscodeDecision.FULL
+            ) {
+                addArguments("-b:a", "128000")
+                addArguments("-ac:a", "2")
+            }
+
+            //addArguments("-force_key_frames", "expr:gte(t,$startSeconds+n_forced*$segmentSeconds)")
             addArguments("-start_number", startSegment.toString())
             addArguments("-hls_flags", "temp_file+independent_segments")
             addArguments("-hls_time", segmentSeconds)
             addArguments("-hls_playlist_type", "vod")
             addArguments("-hls_list_size", "0")
-            addArguments("-hls_segment_type", "mpegts")
-            addArguments("-hls_segment_filename", outputDir.resolve("$name-%01d.ts").absolutePathString())
+            addArguments("-hls_segment_type", if (isHlsInFmp4) "fmp4" else "mpegts")
+            addArguments(
+                "-hls_fmp4_init_filename",
+                outputDir.resolve("$name-init.$segmentExtension").absolutePathString()
+            )
+            addArguments(
+                "-hls_segment_filename",
+                outputDir.resolve("$name-%01d.$segmentExtension").absolutePathString()
+            )
             addArguments("-avoid_negative_ts", "0")
             addArguments("-vsync", "-1")
             addArgument("-copyts")
@@ -378,12 +434,37 @@ class StreamService(
             )
             addOutput(
                 UrlOutput.toPath(outputDir.resolve("$name.m3u8")).apply {
-                    setCodec(StreamType.VIDEO, "libx264")
-                    setCodec(StreamType.AUDIO, "aac")
-                    addArguments("-profile:v", "main")
-                    addArguments("-pix_fmt", "yuv420p")
-                    // copyCodec(StreamType.VIDEO)
-                    // copyCodec(StreamType.AUDIO)
+                    when (transcodeDecision) {
+                        TranscodeSession.TranscodeDecision.VIDEO_ONLY -> {
+                            setCodec(StreamType.VIDEO, "libx264")
+                            copyCodec(StreamType.AUDIO)
+                            addArguments("-profile:v", "main")
+                            addArguments("-pix_fmt", "yuv420p")
+                            logger.debug("Transcoding video only, copying audio")
+                        }
+
+                        TranscodeSession.TranscodeDecision.AUDIO_ONLY -> {
+                            copyCodec(StreamType.VIDEO)
+                            setCodec(StreamType.AUDIO, "aac")
+                            logger.debug("Transcoding audio only, copying video")
+                        }
+
+                        TranscodeSession.TranscodeDecision.FULL -> {
+                            setCodec(StreamType.VIDEO, "libx264")
+                            setCodec(StreamType.AUDIO, "aac")
+                            addArguments("-profile:v", "main")
+                            addArguments("-pix_fmt", "yuv420p")
+                            logger.debug("Transcoding both video and audio")
+                        }
+
+                        TranscodeSession.TranscodeDecision.DIRECT -> {
+                            copyCodec(StreamType.VIDEO)
+                            copyCodec(StreamType.AUDIO)
+                            addArguments("-pix_fmt", "yuv420p")
+                            addArguments("-tag:v", "hvc1")
+                            logger.debug("Direct streaming: copying both video and audio codecs")
+                        }
+                    }
                 },
             )
             setOverwriteOutput(false)
@@ -415,9 +496,10 @@ class StreamService(
                 startSegment = startSegment,
                 endSegment = endSegment,
                 transcodedSegments = transcodedSegments,
+                transcodeDecision = transcodeDecision,
             )
         }
-        transcodeJobs[token] = createTranscodeJob(name, outputDir, token, command)
+        transcodeJobs[token] = createTranscodeJob(name, outputDir, token, command, segmentExtension)
 
         val waitForSegment = (startSegment + 1).coerceAtMost(endSegment)
         return if (checkNotNull(startSession).isSegmentComplete(waitForSegment)) {
@@ -443,9 +525,10 @@ class StreamService(
         outputDir: Path,
         token: String,
         command: FFmpeg,
+        extension: String,
     ): TranscodeJobHolder {
         val commandSender = CommandSender()
-        val nameRegex = "$name-(\\d+)\\.ts\$".toRegex()
+        val nameRegex = "$name-(\\d+)\\.$extension\$".toRegex()
         val transcodeJob = scope.launch {
             createSegmentWatcher(outputDir, nameRegex)
                 .onEach { completedSegmentIndex ->
@@ -497,8 +580,8 @@ class StreamService(
         return TranscodeJobHolder(transcodeJob, commandSender)
     }
 
-    private fun findExistingSegments(outputDir: Path, name: String): List<Int> {
-        val nameRegex = "$name-(\\d+)\\.ts\$".toRegex()
+    private fun findExistingSegments(outputDir: Path, name: String, segmentExtension: String): List<Int> {
+        val nameRegex = "$name-(\\d+)\\.$segmentExtension\$".toRegex()
         return outputDir
             .listDirectoryEntries()
             .mapNotNull { nameRegex.find(it.name)?.groupValues?.lastOrNull()?.toInt() }
@@ -512,16 +595,33 @@ class StreamService(
         val runtime = session.runtime.seconds
         val stopAt = segmentTime + DEFAULT_THROTTLE_SECONDS
 
-        suspend fun restartTranscode() = startTranscode(
-            token = session.token,
-            name = session.mediaLinkId,
-            mediaFile = fs.getPath(session.mediaPath),
-            outputDir = fs.getPath(session.outputPath),
-            runtime = runtime,
-            segmentDuration = session.segmentLength.seconds,
-            startAt = segmentTime,
-            stopAt = stopAt,
-        )
+        suspend fun restartTranscode() {
+            val mediaFile = fs.getPath(session.mediaPath)
+            val mediaInfo = mediaAnalyzer.analyzeMedia(mediaFile)
+            val isHevcVideo = mediaInfo?.videoCodec?.let {
+                it.startsWith("hevc") || it.startsWith("h265")
+            } ?: false
+
+            logger.debug(
+                "Media info for {}: codec={}, isHevc={}",
+                session.mediaLinkId,
+                mediaInfo?.videoCodec,
+                isHevcVideo
+            )
+
+            startTranscode(
+                token = session.token,
+                name = session.mediaLinkId,
+                mediaFile = mediaFile,
+                outputDir = fs.getPath(session.outputPath),
+                runtime = runtime,
+                segmentDuration = session.segmentLength.seconds,
+                startAt = segmentTime,
+                stopAt = stopAt,
+                transcodeDecision = session.transcodeDecision,
+                isHlsInFmp4 = isHevcVideo
+            )
+        }
 
         if (session.isSegmentComplete(segment)) {
             if (segment > session.lastTranscodedSegment && session.state != TranscodeSession.State.PAUSED) {
@@ -584,6 +684,31 @@ class StreamService(
         }
         logger.debug("Segment request out of range, retargeting {}", segment)
         restartTranscode()
+    }
+
+    private suspend fun determineTranscodeDecision(
+        file: Path,
+        clientCapabilities: ClientCapabilities?
+    ): TranscodeSession.TranscodeDecision {
+        if (clientCapabilities == null) {
+            return TranscodeSession.TranscodeDecision.FULL
+        }
+
+        val mediaInfo = mediaAnalyzer.analyzeMedia(file)
+            ?: return TranscodeSession.TranscodeDecision.FULL
+        val analyzerDecision = mediaAnalyzer.determineTranscodeNeeds(
+            mediaInfo,
+            clientCapabilities.supportedVideoCodecs,
+            clientCapabilities.supportedAudioCodecs,
+            clientCapabilities.supportedContainers
+        )
+
+        return when (analyzerDecision) {
+            MediaAnalyzer.TranscodeDecision.DIRECT -> TranscodeSession.TranscodeDecision.DIRECT
+            MediaAnalyzer.TranscodeDecision.VIDEO_ONLY -> TranscodeSession.TranscodeDecision.VIDEO_ONLY
+            MediaAnalyzer.TranscodeDecision.AUDIO_ONLY -> TranscodeSession.TranscodeDecision.AUDIO_ONLY
+            MediaAnalyzer.TranscodeDecision.FULL -> TranscodeSession.TranscodeDecision.FULL
+        }
     }
 
     private fun createSegmentWatcher(directory: Path, fileMatchRegex: Regex): Flow<Int> {

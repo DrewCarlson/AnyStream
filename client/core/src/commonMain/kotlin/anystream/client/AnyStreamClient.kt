@@ -33,6 +33,9 @@ import io.ktor.http.*
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
+import io.ktor.http.URLBuilder
+import io.ktor.http.URLProtocol
+import io.ktor.http.Url
 import io.ktor.serialization.*
 import io.ktor.serialization.kotlinx.*
 import io.ktor.serialization.kotlinx.json.*
@@ -419,10 +422,14 @@ class AnyStreamClient(
         val currentState = MutableStateFlow<PlaybackState?>(null)
         val progressFlow = MutableSharedFlow<Duration>(0, 1, BufferOverflow.DROP_OLDEST)
         val mutex = Mutex(locked = true)
+        val clientCapabilities = createPlatformClientCapabilities()
         scope.launch {
             try {
                 http.wss("$serverUrlWs/api/ws/stream/$mediaLinkId/state") {
                     send(sessionManager.fetchToken()!!)
+
+                    sendSerialized(clientCapabilities)
+
                     val playbackState = receiveDeserialized<PlaybackState>()
                     currentState.value = playbackState
                     init(playbackState)
@@ -449,7 +456,7 @@ class AnyStreamClient(
             playbackUrl = scope.async {
                 currentState
                     .filterNotNull()
-                    .map { createHlsStreamUrl(it.mediaLinkId, it.id) }
+                    .map { createHlsStreamUrl(it.mediaLinkId, it.id, clientCapabilities) }
                     .first()
             },
         )
@@ -643,8 +650,19 @@ class AnyStreamClient(
         return response.bodyOrThrow()
     }
 
-    fun createHlsStreamUrl(mediaLinkId: String, token: String): String {
-        return "$serverUrl/api/stream/$mediaLinkId/hls/playlist.m3u8?token=$token"
+    fun createHlsStreamUrl(
+        mediaLinkId: String,
+        token: String,
+        clientCapabilities: ClientCapabilities? = createPlatformClientCapabilities()
+    ): String {
+        return URLBuilder(serverUrl).apply {
+            path("api", "stream", mediaLinkId, "hls", "playlist.m3u8")
+            parameters["token"] = token
+
+            if (clientCapabilities != null) {
+                parameters["capabilities"] = json.encodeToString(clientCapabilities)
+            }
+        }.buildString()
     }
 
     class PlaybackSessionHandle(

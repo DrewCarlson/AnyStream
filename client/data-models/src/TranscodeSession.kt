@@ -36,14 +36,32 @@ data class TranscodeSession(
     val lastTranscodedSegment: Int,
     val state: State,
     val transcodedSegments: List<Int>,
+    val transcodeDecision: TranscodeDecision,
 ) {
     enum class State {
         IDLE, RUNNING, PAUSED, COMPLETE
     }
 
+    @Serializable
+    enum class TranscodeDecision {
+        /** No transcoding needed, direct stream */
+        DIRECT,
+
+        /** Only transcode video, copy audio */
+        VIDEO_ONLY,
+
+        /** Only transcode audio, copy video */
+        AUDIO_ONLY,
+
+        /** Transcode both video and audio */
+        FULL
+    }
+
     fun isSegmentComplete(segment: Int): Boolean {
         return transcodedSegments.contains(segment)
     }
+
+    fun isDirectStream(): Boolean = transcodeDecision == TranscodeDecision.DIRECT
 
     fun isActive(): Boolean = state == State.RUNNING || state == State.PAUSED
 }

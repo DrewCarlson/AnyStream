@@ -61,6 +61,9 @@ jobs:
             gradle/libsClient.versions.toml
             gradle/libsAndroid.versions.toml
             **/client/ui/**
+            **/client/core/**
+            **/client/presentation/**
+            **/client/data-models/**
       - name: Get changed files
         id: data-models
         uses: tj-actions/changed-files@823fcebdb31bb35fdf2229d9f769b400309430d0
@@ -99,8 +102,7 @@ jobs:
             gradle/kotlin-js-store/**
             **/client/web/**
             **/client/core/src/commonMain/**
-            **/client/core/src/commonTest/**
-            **/client/core/src/androidMain/**
+            **/client/presentation/src/commonMain/**
             **/client/data-models/**
 
   client-core-tests:

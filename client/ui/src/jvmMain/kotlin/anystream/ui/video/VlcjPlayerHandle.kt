@@ -27,7 +27,6 @@ import uk.co.caprica.vlcj.player.base.MediaPlayerEventListener
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.ZERO
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit.SECONDS
 
 
