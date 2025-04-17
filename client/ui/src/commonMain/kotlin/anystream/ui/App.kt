@@ -24,6 +24,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.backhandler.BackHandler
+import androidx.compose.ui.backhandler.PredictiveBackHandler
 import androidx.compose.ui.graphics.Color
 import anystream.client.AnyStreamClient
 import anystream.router.*
@@ -62,11 +64,18 @@ fun App() {
     val client: AnyStreamClient = koinInject()
     val scope = rememberCoroutineScope()
     val backPressHandler = remember { BackPressHandler() }
-    val hazeState = remember { HazeState() }
+    //val hazeState = remember { HazeState() }
 
     var showBottomNavigation by remember { mutableStateOf(false) }
     var selectedRoute by remember { mutableStateOf<Routes?>(null) }
 
+    PredictiveBackHandler { events ->
+        events.collect { event ->
+            event.progress
+
+            // todo: on complete call backPressHandler.handle()
+        }
+    }
     CompositionLocalProvider(
         LocalBackPressHandler providesDefault backPressHandler,
         LocalAnyStreamClient provides client,
@@ -87,7 +96,7 @@ fun App() {
                         Box(
                             Modifier
                                 .fillMaxWidth()
-                                .hazeEffect(
+                                /*.hazeEffect(
                                     state = hazeState,
                                     style = HazeMaterials.ultraThin(),
                                 ) {
@@ -95,7 +104,7 @@ fun App() {
                                         startIntensity = 0.6f,
                                         endIntensity = 0f,
                                     )
-                                }
+                                }*/
                         ) {
 
                             TopAppBar(
@@ -118,11 +127,11 @@ fun App() {
                             label = "bottom-navigation-visibility-animation",
                         ) {
                             BottomNavigation(
-                                modifier = Modifier
-                                    .hazeEffect(
+                                modifier = Modifier,
+                                    /*.hazeEffect(
                                         state = hazeState,
                                         style = HazeMaterials.regular(),
-                                    ),
+                                    ),*/
                                 selectedRoute = selectedRoute ?: Routes.Home,
                                 onRouteChanged = { scope.launch { routeChannel.send(it) } },
                             )
@@ -131,7 +140,7 @@ fun App() {
                 ) { padding ->
                     Box(
                         modifier = Modifier
-                            .hazeSource(hazeState)
+                            //.hazeSource(hazeState)
                             .fillMaxSize()
                     ) {
                         Router(
