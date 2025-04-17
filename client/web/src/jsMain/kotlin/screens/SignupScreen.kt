@@ -22,8 +22,8 @@ import anystream.client.AnyStreamClient
 import anystream.models.*
 import anystream.models.api.CreateUserResponse
 import anystream.routing.WebRouter
-import anystream.ui.signup.*
-import anystream.ui.signup.SignupScreenModel.State
+import anystream.presentation.signup.*
+import anystream.presentation.signup.SignupScreenModel.State
 import anystream.util.get
 import app.softwork.routingcompose.Router
 import io.ktor.http.*

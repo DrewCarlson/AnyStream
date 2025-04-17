@@ -62,12 +62,12 @@ kotlin {
         named("jsMain") {
             dependencies {
                 implementation(projects.client.core)
+                implementation(projects.client.presentation)
                 implementation(libsCommon.coroutines.core)
                 implementation(libsCommon.ktor.client.js)
 
                 implementation(compose.html.core)
                 implementation(compose.runtime)
-                implementation(libsClient.mobiuskt.compose)
                 implementation(libsClient.routingCompose)
 
                 implementation(libsClient.kotlinjs.web)

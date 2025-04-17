@@ -36,6 +36,7 @@ import anystream.models.*
 import anystream.models.api.CurrentlyWatching
 import anystream.models.api.Popular
 import anystream.models.api.RecentlyAdded
+import anystream.presentation.home.*
 import anystream.ui.components.*
 import anystream.ui.components.CarouselAutoPlayHandler
 import anystream.ui.components.PagerIndicator

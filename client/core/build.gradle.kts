@@ -1,21 +1,10 @@
 plugins {
     id("multiplatform-lib")
-    id("com.google.devtools.ksp")
     id("org.jetbrains.kotlinx.atomicfu")
-}
-
-dependencies {
-    add("kspCommonMainMetadata", libsClient.mobiuskt.codegen)
 }
 
 kotlin {
     sourceSets {
-        all {
-            languageSettings {
-                optIn("kt.mobius.gen.ExperimentalCodegenApi")
-            }
-        }
-
         val commonMain by getting {
             dependencies {
                 api(projects.client.dataModels)
@@ -34,10 +23,6 @@ kotlin {
                 api(libsClient.objectstore.core)
                 api(libsClient.objectstore.json)
                 api(libsCommon.coroutines.core)
-                api(libsClient.mobiuskt.core)
-                api(libsClient.mobiuskt.extras)
-                api(libsClient.mobiuskt.coroutines)
-                implementation(libsClient.mobiuskt.codegen.api)
 
                 api(libsCommon.ktor.client.core)
                 api(libsCommon.ktor.client.websockets)
@@ -46,7 +31,6 @@ kotlin {
         }
         val commonTest by getting {
             dependencies {
-                implementation(libsClient.mobiuskt.test)
             }
         }
 

@@ -21,7 +21,7 @@ import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
 import anystream.libs.QRCodeImage
 import anystream.routing.WebRouter
-import anystream.ui.login.*
+import anystream.presentation.login.*
 import anystream.util.get
 import app.softwork.routingcompose.Router
 import kt.mobius.SimpleLogger

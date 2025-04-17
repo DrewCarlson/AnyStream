@@ -15,20 +15,23 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import androidx.compose.desktop.ui.tooling.preview.Preview
-import androidx.compose.runtime.Composable
-import anystream.ui.App
-import anystream.ui.login.FormBody
-import anystream.presentation.login.LoginScreenModel
+package anystream.presentation.home
 
-@Composable
-fun MainView() = App()
+import anystream.client.AnyStreamClient
+import kt.mobius.flow.FlowTransformer
+import kt.mobius.flow.subtypeEffectHandler
+import anystream.presentation.home.HomeScreenEffect as Effect
+import anystream.presentation.home.HomeScreenEvent as Event
 
-@Preview
-@Composable
-fun AppPreview() {
-    FormBody(
-        LoginScreenModel(""),
-        {},
-    )
-}
+class HomeScreenHandler(
+    client: AnyStreamClient,
+) : FlowTransformer<Effect, Event> by subtypeEffectHandler({
+
+    addFunction<Effect.LoadHomeData> {
+        try {
+            Event.OnHomeDataLoaded(client.getHomeData())
+        } catch (e: Throwable) {
+            Event.OnHomeDataError
+        }
+    }
+})

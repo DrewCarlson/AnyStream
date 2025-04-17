@@ -78,7 +78,7 @@ targets:
         shell: /usr/bin/env bash
         script: |
           cd "$SRCROOT/../.."
-          ./gradlew :client:ui:embedAndSignAppleFrameworkForXcode
+          ./gradlew :client:ui:xc-framework:embedAndSignAppleFrameworkForXcode
 
     scheme:
       gatherCoverageData: true
@@ -108,6 +108,6 @@ targets:
 settings:
   base:
     IPHONEOS_DEPLOYMENT_TARGET: 15.2
-    FRAMEWORK_SEARCH_PATHS[sdk=iphonesimulator*]: $(inherited) "../../ui/build/xcode-frameworks/$(CONFIGURATION)/iphonesimulator$(SDK_VERSION)"
-    FRAMEWORK_SEARCH_PATHS[sdk=iphoneos*]: $(inherited) "../../ui/build/xcode-frameworks/$(CONFIGURATION)/iphoneos$(SDK_VERSION)"
+    FRAMEWORK_SEARCH_PATHS[sdk=iphonesimulator*]: $(inherited) "../../ui/xc-framework/build/xcode-frameworks/$(CONFIGURATION)/iphonesimulator$(SDK_VERSION)"
+    FRAMEWORK_SEARCH_PATHS[sdk=iphoneos*]: $(inherited) "../../ui/xc-framework/build/xcode-frameworks/$(CONFIGURATION)/iphoneos$(SDK_VERSION)"
 

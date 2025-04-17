@@ -15,20 +15,17 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import androidx.compose.desktop.ui.tooling.preview.Preview
-import androidx.compose.runtime.Composable
-import anystream.ui.App
-import anystream.ui.login.FormBody
-import anystream.presentation.login.LoginScreenModel
+package anystream.presentation.home
 
-@Composable
-fun MainView() = App()
+import anystream.models.api.HomeResponse
+import dev.drewhamilton.poko.Poko
 
-@Preview
-@Composable
-fun AppPreview() {
-    FormBody(
-        LoginScreenModel(""),
-        {},
-    )
+sealed class HomeScreenEvent {
+
+    @Poko
+    class OnHomeDataLoaded(
+        val homeDate: HomeResponse,
+    ) : HomeScreenEvent()
+
+    data object OnHomeDataError : HomeScreenEvent()
 }
