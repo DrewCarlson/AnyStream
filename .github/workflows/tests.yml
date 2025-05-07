@@ -31,7 +31,7 @@ jobs:
           fetch-depth: 0
       - name: Get changed files
         id: android
-        uses: tj-actions/changed-files@823fcebdb31bb35fdf2229d9f769b400309430d0
+        uses: tj-actions/changed-files@11fe0a22639570798676000acac7be726130b5ee
         with:
           files: |
             build.gradle.kts
@@ -45,7 +45,7 @@ jobs:
             **/client/data-models/**
       - name: Get changed files
         id: client-core
-        uses: tj-actions/changed-files@823fcebdb31bb35fdf2229d9f769b400309430d0
+        uses: tj-actions/changed-files@11fe0a22639570798676000acac7be726130b5ee
         with:
           files: |
             gradle/libsCommon.versions.toml
@@ -54,7 +54,7 @@ jobs:
             **/client/data-models/**
       - name: Get changed files
         id: client-ui
-        uses: tj-actions/changed-files@823fcebdb31bb35fdf2229d9f769b400309430d0
+        uses: tj-actions/changed-files@11fe0a22639570798676000acac7be726130b5ee
         with:
           files: |
             gradle/libsCommon.versions.toml
@@ -63,14 +63,14 @@ jobs:
             **/client/ui/**
       - name: Get changed files
         id: data-models
-        uses: tj-actions/changed-files@823fcebdb31bb35fdf2229d9f769b400309430d0
+        uses: tj-actions/changed-files@11fe0a22639570798676000acac7be726130b5ee
         with:
           files: |
             gradle/libsCommon.versions.toml
             **/client/data-models/**
       - name: Get changed files
         id: server
-        uses: tj-actions/changed-files@823fcebdb31bb35fdf2229d9f769b400309430d0
+        uses: tj-actions/changed-files@11fe0a22639570798676000acac7be726130b5ee
         with:
           files: |
             gradle/libsCommon.versions.toml
@@ -79,7 +79,7 @@ jobs:
             **/server/**
       - name: Get changed files
         id: ios
-        uses: tj-actions/changed-files@823fcebdb31bb35fdf2229d9f769b400309430d0
+        uses: tj-actions/changed-files@11fe0a22639570798676000acac7be726130b5ee
         with:
           files: |
             gradle/libsCommon.versions.toml
@@ -91,7 +91,7 @@ jobs:
             **/client/data-models/**
       - name: Get changed files
         id: web
-        uses: tj-actions/changed-files@823fcebdb31bb35fdf2229d9f769b400309430d0
+        uses: tj-actions/changed-files@11fe0a22639570798676000acac7be726130b5ee
         with:
           files: |
             gradle/libsCommon.versions.toml
