@@ -358,7 +358,7 @@ jobs:
         uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e
         with:
           pattern: reports*
-      - uses: codecov/codecov-action@0565863a31f2c772f9f0395002a31e3f06189574
+      - uses: codecov/codecov-action@ad3126e916f78f00edff4ed0317cf185271ccc2d
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: "**/build/reports/kover/project-xml/report.xml"
