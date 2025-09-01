@@ -2,7 +2,7 @@ FROM azul/zulu-openjdk:21-jre-latest
 
 WORKDIR /app
 
-ENV FFMPEG_VERSION=7.0.2-9
+ENV FFMPEG_VERSION=7.1.1-7
 RUN apt-get update && apt-get install -y wget bash \
     && ARCH=$(dpkg --print-architecture) \
     && FFMPEG_MAJOR_VERSION=$(echo "$FFMPEG_VERSION" | cut -d'.' -f1)"_" \
