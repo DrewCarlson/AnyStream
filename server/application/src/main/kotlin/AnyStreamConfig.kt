@@ -30,6 +30,7 @@ class AnyStreamConfig(
     private val fs: FileSystem,
 ) {
 
+    val baseUrl: String = config.property("app.baseUrl").getString()
     val disableWebClient: Boolean = config.property("app.disableWebClient").getString().toBoolean()
     val webClientPath: String? = config.propertyOrNull("app.webClientPath")?.getString()
 

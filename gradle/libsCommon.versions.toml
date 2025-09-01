@@ -74,6 +74,7 @@ ktor-server-tests = { module = "io.ktor:ktor-server-test-host", version.ref = "k
 ktor-server-metrics = { module = "io.ktor:ktor-server-metrics", version.ref = "ktorio" }
 ktor-server-partialContent = { module = "io.ktor:ktor-server-partial-content", version.ref = "ktorio" }
 ktor-server-contentNegotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktorio" }
+ktor-server-forwardedHeader = { module = "io.ktor:ktor-server-forwarded-header", version.ref = "ktorio" }
 ktor-server-autoHeadResponse = { module = "io.ktor:ktor-server-auto-head-response", version.ref = "ktorio" }
 ktor-server-defaultHeaders = { module = "io.ktor:ktor-server-default-headers", version.ref = "ktorio" }
 ktor-server-cachingHeaders = { module = "io.ktor:ktor-server-caching-headers", version.ref = "ktorio" }

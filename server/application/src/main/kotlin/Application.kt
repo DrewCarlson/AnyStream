@@ -50,12 +50,10 @@ import io.ktor.serialization.kotlinx.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
-import io.ktor.server.config.HoconApplicationConfig
-import io.ktor.server.engine.CommandLineConfig
-import io.ktor.server.engine.applicationEnvironment
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.engine.loadCommonConfiguration
-import io.ktor.server.netty.Netty
+import io.ktor.server.config.*
+import io.ktor.server.engine.*
+import io.ktor.server.netty.*
+import io.ktor.server.plugins.*
 import io.ktor.server.plugins.autohead.*
 import io.ktor.server.plugins.cachingheaders.*
 import io.ktor.server.plugins.calllogging.*
@@ -64,7 +62,7 @@ import io.ktor.server.plugins.conditionalheaders.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.defaultheaders.*
-import io.ktor.server.plugins.origin
+import io.ktor.server.plugins.forwardedheaders.*
 import io.ktor.server.plugins.partialcontent.*
 import io.ktor.server.response.*
 import io.ktor.server.sessions.*
@@ -242,8 +240,8 @@ fun Application.module(testing: Boolean = false) {
     install(AutoHeadResponse)
     install(ConditionalHeaders)
     install(PartialContent)
-    // install(ForwardedHeaderSupport) WARNING: for security, do not include this if not behind a reverse proxy
-    // install(XForwardedHeaderSupport) WARNING: for security, do not include this if not behind a reverse proxy
+    install(ForwardedHeaders) // WARNING: for security, do not include this if not behind a reverse proxy
+    install(XForwardedHeaders) // WARNING: for security, do not include this if not behind a reverse proxy
     install(Compression) {
         gzip {
             priority = 1.0
@@ -298,11 +296,7 @@ fun Application.module(testing: Boolean = false) {
                     buildString {
                         append(request.origin.scheme)
                         append("://")
-                        append(request.origin.remoteHost)
-                        if (request.origin.serverPort != 443 && request.origin.serverPort != 80) {
-                            append(':')
-                            append(request.origin.serverPort)
-                        }
+                        append(config.baseUrl.trimEnd('/'))
                         append("/api/users/oidc/callback")
                     }
                 }

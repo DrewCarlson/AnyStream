@@ -79,6 +79,7 @@ dependencies {
     implementation(libsCommon.ktor.server.partialContent)
     implementation(libsCommon.ktor.server.defaultHeaders)
     implementation(libsCommon.ktor.server.cachingHeaders)
+    implementation(libsCommon.ktor.server.forwardedHeader)
     implementation(libsCommon.ktor.server.contentNegotiation)
     implementation(libsCommon.ktor.server.autoHeadResponse)
     implementation(libsCommon.ktor.server.compression)
