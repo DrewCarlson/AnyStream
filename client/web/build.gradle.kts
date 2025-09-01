@@ -5,6 +5,7 @@ plugins {
     kotlin("multiplatform")
     kotlin("plugin.compose")
     id("org.jetbrains.compose")
+    alias(libsCommon.plugins.jsPlainObjects)
     alias(libsCommon.plugins.spotless)
     alias(libsCommon.plugins.serialization)
 }

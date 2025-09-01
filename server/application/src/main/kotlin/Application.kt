@@ -79,7 +79,7 @@ import org.jooq.impl.DefaultConfiguration
 import org.koin.ktor.ext.get
 import org.koin.ktor.ext.getKoin
 import org.koin.ktor.plugin.Koin
-import org.koin.ktor.plugin.koin
+import org.koin.ktor.plugin.koinModule
 import org.koin.logger.slf4jLogger
 import org.slf4j.event.Level
 import org.sqlite.SQLiteConfig
@@ -122,111 +122,107 @@ fun Application.module(testing: Boolean = false) {
     }
 
     val applicationScope = this as CoroutineScope
-    koin {
-        modules(
-            org.koin.dsl.module {
-                val fs = FileSystems.getDefault()
-                val config = AnyStreamConfig(environment.config, fs)
-                single { config }
-                single { applicationScope }
-                single { fs }
+    koinModule {
+        val fs = FileSystems.getDefault()
+        val config = AnyStreamConfig(environment.config, fs)
+        single { config }
+        single { applicationScope }
+        single { fs }
 
-                factory { FFmpeg.atPath(config.ffmpegPath) }
-                factory { FFprobe.atPath(config.ffmpegPath) }
+        factory { FFmpeg.atPath(config.ffmpegPath) }
+        factory { FFprobe.atPath(config.ffmpegPath) }
 
-                single<DataSource> {
-                    SQLiteConnectionPoolDataSource().apply {
-                        url = config.databaseUrl
-                        this.config = SQLiteConfig().apply {
-                            enforceForeignKeys(true)
-                            setJournalMode(SQLiteConfig.JournalMode.WAL)
-                            setSynchronous(SQLiteConfig.SynchronousMode.NORMAL)
-                        }
-                    }
+        single<DataSource> {
+            SQLiteConnectionPoolDataSource().apply {
+                url = config.databaseUrl
+                this.config = SQLiteConfig().apply {
+                    enforceForeignKeys(true)
+                    setJournalMode(SQLiteConfig.JournalMode.WAL)
+                    setSynchronous(SQLiteConfig.SynchronousMode.NORMAL)
                 }
+            }
+        }
 
-                single { SqlSessionStorage(get(), get()) }
+        single { SqlSessionStorage(get(), get()) }
 
-                single { Tmdb3(config.tmdbApiKey) }
+        single { Tmdb3(config.tmdbApiKey) }
 
-                single {
-                    QBittorrentClient(
-                        baseUrl = config.qbittorrent.url,
-                        username = config.qbittorrent.user,
-                        password = config.qbittorrent.password,
-                    )
+        single {
+            QBittorrentClient(
+                baseUrl = config.qbittorrent.url,
+                username = config.qbittorrent.user,
+                password = config.qbittorrent.password,
+            )
+        }
+
+        /*single {
+            kjob(JdbiKJob) {
+                this.jdbi = get()
+                defaultJobExecutor = JobExecutionType.NON_BLOCKING
+            }.apply { start() }
+        }*/
+
+        single { SessionsDao(get()) }
+        single { MetadataDao(get()) }
+        single { UserDao(get()) }
+        single { LibraryDao(get()) }
+        single { InviteCodeDao(get()) }
+        single { TagsDao(get()) }
+        single { PlaybackStatesDao(get()) }
+        single { MediaLinkDao(get()) }
+        single { SearchableContentDao(get()) }
+        single { MetadataDbQueries(get(), get(), get(), get(), get()) }
+
+        single {
+            HttpClient {
+                install(HttpCache) {
+                    // TODO: Add disk catching
+                    publicStorage(CacheStorage.Unlimited())
                 }
-
-                /*single {
-                    kjob(JdbiKJob) {
-                        this.jdbi = get()
-                        defaultJobExecutor = JobExecutionType.NON_BLOCKING
-                    }.apply { start() }
-                }*/
-
-                single { SessionsDao(get()) }
-                single { MetadataDao(get()) }
-                single { UserDao(get()) }
-                single { LibraryDao(get()) }
-                single { InviteCodeDao(get()) }
-                single { TagsDao(get()) }
-                single { PlaybackStatesDao(get()) }
-                single { MediaLinkDao(get()) }
-                single { SearchableContentDao(get()) }
-                single { MetadataDbQueries(get(), get(), get(), get(), get()) }
-
-                single {
-                    HttpClient {
-                        install(HttpCache) {
-                            // TODO: Add disk catching
-                            publicStorage(CacheStorage.Unlimited())
-                        }
-                        install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
-                            json()
-                        }
-                    }
+                install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
+                    json()
                 }
+            }
+        }
 
-                single {
-                    ImageStore(
-                        dataPath = get<AnyStreamConfig>().dataPath,
-                        httpClient = get<HttpClient>(),
-                    )
-                }
-                single { MetadataService(listOf(TmdbMetadataProvider(get(), get(), get())), get(), get()) }
-                single { MediaFileAnalyzer({ get() }, get()) }
-                single<LibraryService> {
-                    val processors = listOf(
-                        MovieFileProcessor(get(), get(), get(), get()),
-                        TvFileProcessor(get(), get(), get(), get()),
-                    )
-                    LibraryService(get(), processors, get(), get(), get())
-                }
-                single {
-                    val dbConfig = DefaultConfiguration().apply {
-                        setDataSource(get())
-                        setSQLDialect(SQLDialect.SQLITE)
-                        set(JooqConverterProvider())
-                    }
-                    DSL.using(dbConfig)
-                }
-                single { UserService(get(), get(), get()) }
+        single {
+            ImageStore(
+                dataPath = get<AnyStreamConfig>().dataPath,
+                httpClient = get<HttpClient>(),
+            )
+        }
+        single { MetadataService(listOf(TmdbMetadataProvider(get(), get(), get())), get(), get()) }
+        single { MediaFileAnalyzer({ get() }, get()) }
+        single<LibraryService> {
+            val processors = listOf(
+                MovieFileProcessor(get(), get(), get(), get()),
+                TvFileProcessor(get(), get(), get(), get()),
+            )
+            LibraryService(get(), processors, get(), get(), get())
+        }
+        single {
+            val dbConfig = DefaultConfiguration().apply {
+                setDataSource(get())
+                setSQLDialect(SQLDialect.SQLITE)
+                set(JooqConverterProvider())
+            }
+            DSL.using(dbConfig)
+        }
+        single { UserService(get(), get(), get()) }
 
-                single<StreamServiceQueries> { StreamServiceQueriesJooq(get(), get(), get(), get(), get()) }
-                single { MediaFileProbe({ get() }) }
-                single { TranscodeSessionManager({ get() }, get(), get(), get()) }
-                single {
-                    StreamService(
-                        queries = get(),
-                        mediaFileProbe = get(),
-                        transcodeSessionManager = get(),
-                        transcodePath = get<AnyStreamConfig>().transcodePath,
-                        fs = get(),
-                    )
-                }
-                single { SearchService(get(), get(), get()) }
-            },
-        )
+        single<StreamServiceQueries> { StreamServiceQueriesJooq(get(), get(), get(), get(), get()) }
+        single { MediaFileProbe({ get() }) }
+        single { TranscodeSessionManager({ get() }, get(), get(), get()) }
+        single {
+            StreamService(
+                queries = get(),
+                mediaFileProbe = get(),
+                transcodeSessionManager = get(),
+                transcodePath = get<AnyStreamConfig>().transcodePath,
+                fs = get(),
+            )
+        }
+        single { SearchService(get(), get(), get()) }
     }
     val config = get<AnyStreamConfig>()
     monitor.subscribe(ApplicationStopped) {

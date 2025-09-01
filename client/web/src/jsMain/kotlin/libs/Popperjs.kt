@@ -18,7 +18,7 @@
 package anystream.libs
 
 import androidx.compose.runtime.*
-import js.objects.jso
+import kotlinx.js.JsPlainObject
 import org.jetbrains.compose.web.css.Position
 import org.jetbrains.compose.web.css.position
 import org.jetbrains.compose.web.dom.AttrBuilderContext
@@ -123,7 +123,8 @@ external class PopperState {
     var rects: PopperStateRects
 }
 
-external class PopperRect {
+@JsPlainObject
+external interface PopperRect {
     var width: Int
     var height: Int
     var top: Int
@@ -149,14 +150,14 @@ fun popperFixedPosition(x: Int, y: Int): PopperVirtualElement {
     return object : PopperVirtualElement {
         override val contextElement: HTMLElement? = null
         override fun getBoundingClientRect(): PopperRect {
-            return jso {
-                width = 0
-                height = 0
-                top = y
-                bottom = y
-                right = x
+            return PopperRect(
+                width = 0,
+                height = 0,
+                top = y,
+                bottom = y,
+                right = x,
                 left = x
-            }
+            )
         }
     }
 }
@@ -170,11 +171,12 @@ fun popperOptions(
     placement: String = "auto",
     // modifier: MutableList<PopperModifier> = mutableListOf(),
 ): PopperOptions {
-    return jso {
-        this.placement = placement
-    }
+    return PopperOptions(
+        placement = placement,
+    )
 }
 
+@JsPlainObject
 external interface PopperOptions {
     var placement: String
 }

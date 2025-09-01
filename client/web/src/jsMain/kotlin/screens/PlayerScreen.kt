@@ -31,7 +31,6 @@ import anystream.util.formatProgressAndRuntime
 import anystream.util.formatted
 import anystream.util.get
 import io.ktor.client.fetch.*
-import js.objects.jso
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.await
@@ -853,12 +852,14 @@ private fun SeekBar(
             popperVirtualElement = object : PopperVirtualElement {
                 override val contextElement: HTMLElement = scopeElement
                 override fun getBoundingClientRect(): PopperRect {
-                    return jso {
-                        right = mouseHoverX
-                        left = mouseHoverX
-                        width = 0
-                        height = 0
-                    }
+                    return PopperRect(
+                        right = mouseHoverX,
+                        left = mouseHoverX,
+                        width = 0,
+                        height = 0,
+                        top = 0,
+                        bottom = 0,
+                    )
                 }
             }
             onDispose {

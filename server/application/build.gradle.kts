@@ -3,7 +3,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     id("server-lib")
     application
-    id("com.github.johnrengelman.shadow")
+    id("com.gradleup.shadow")
 }
 
 application {
@@ -14,17 +14,17 @@ application {
 distributions.configureEach {
     distributionBaseName.set("anystream-server")
 }
+val web = evaluationDependsOn(":client:web")
 
 tasks.withType<ShadowJar> {
-    val clientWeb = projects.client.web.dependencyProject
-    dependsOn(clientWeb.tasks.getByName("jsBrowserDistribution"))
+    dependsOn(web.tasks.getByName("jsBrowserDistribution"))
     archiveFileName.set("anystream.jar")
     archiveBaseName.set("anystream")
     archiveClassifier.set("anystream")
     manifest {
         attributes(mapOf("Main-Class" to application.mainClass.get()))
     }
-    from(rootProject.file("client/web/build/dist/js/productionExecutable")) {
+    from(web.layout.buildDirectory.file("dist/js/productionExecutable")) {
         into("anystream-client-web")
     }
 }
@@ -116,18 +116,17 @@ dependencies {
 
     implementation(libsServer.qbittorrent.client)
     implementation(libsServer.torrentSearch)
-    implementation("io.ktor:ktor-client-apache:3.1.2")
+    implementation(libsCommon.ktor.client.apache)
     testImplementation(libsCommon.ktor.server.tests)
     testImplementation(projects.server.dbModels.testing)
 }
 
 tasks.getByName<JavaExec>("run") {
-    val clientWeb = projects.client.web.dependencyProject
-    dependsOn(clientWeb.tasks.getByName("jsBrowserDevelopmentExecutableDistribution"))
+    dependsOn(web.tasks.getByName("jsBrowserDevelopmentExecutableDistribution"))
     environment(
         "WEB_CLIENT_PATH",
         properties["webClientPath"] ?: environment["WEB_CLIENT_PATH"]
-        ?: clientWeb.layout.buildDirectory.dir("dist/js/developmentExecutable").get().asFile.absolutePath
+        ?: web.layout.buildDirectory.dir("dist/js/developmentExecutable").get().asFile.absolutePath
     )
     environment(
         "DATABASE_URL",

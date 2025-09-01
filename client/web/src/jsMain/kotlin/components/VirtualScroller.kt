@@ -24,6 +24,7 @@ import org.jetbrains.compose.web.dom.AttrBuilderContext
 import org.jetbrains.compose.web.dom.Div
 import org.w3c.dom.HTMLDivElement
 import web.animations.awaitAnimationFrame
+import web.dom.ElementId
 import web.resize.ResizeObserver
 import web.resize.ResizeObserverEntry
 import kotlin.math.absoluteValue
@@ -571,7 +572,7 @@ private fun ObserverResize(
         val observer = ResizeObserver { entries, _ ->
             entries.forEach(callback)
         }
-        val target = requireNotNull(web.dom.document.getElementById(id))
+        val target = requireNotNull(web.dom.document.getElementById(ElementId(id)))
         observer.observe(target)
         onDispose {
             observer.unobserve(target)

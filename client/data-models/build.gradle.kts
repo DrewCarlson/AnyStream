@@ -40,7 +40,7 @@ dependencies {
 
 val dbFile = layout.buildDirectory.file("anystream-reference.db")
 val dbUrl = "jdbc:sqlite:${dbFile.get().asFile.absolutePath}"
-val migrationPath = projects.server.dbModels.dependencyProject.file("src/main/resources/db/migration")
+val migrationPath = rootDir.resolve("server/db-models/src/main/resources/db/migration")
 
 val flywayMigrate by tasks.registering(FlywayMigrateTask::class) {
     driver.set("org.sqlite.JDBC")
@@ -52,7 +52,7 @@ val flywayMigrate by tasks.registering(FlywayMigrateTask::class) {
 jooq {
     version.set(libsServer.versions.jooq.get())
     configurations {
-        create("main") {
+        create("main").apply {
             jooqConfiguration.anystreamConfig(dbUrl)
         }
     }
