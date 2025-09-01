@@ -18,6 +18,8 @@
 package anystream
 
 import io.ktor.server.config.*
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import java.nio.file.FileSystem
 import java.nio.file.Path
 import kotlin.io.path.Path
@@ -64,28 +66,9 @@ class AnyStreamConfig(
     }
     val tmdbApiKey: String = config.property("app.tmdbApiKey").getString()
 
-    val qbittorrent = QbittorrentCredentials(
-        url = config.property("app.qbittorrent.url").getString(),
-        user = config.property("app.qbittorrent.user").getString(),
-        password = config.property("app.qbittorrent.password").getString(),
-    )
+    val qbittorrent = config.property("app.qbittorrent").getAs<QbittorrentCredentials>()
 
-    val oidc = Oidc(
-        enable = config.property("app.oidc.enable").getString().toBoolean(),
-        provider = Oidc.Provider(
-            name = config.property("app.oidc.provider.name").getString(),
-            authorizeUrl = config.property("app.oidc.provider.authorize_url").getString(),
-            accessTokenUrl = config.property("app.oidc.provider.access_token_url").getString(),
-            userInfoUrl = config.property("app.oidc.provider.user_info_url").getString(),
-            clientId = config.property("app.oidc.provider.client_id").getString(),
-            clientSecret = config.property("app.oidc.provider.client_secret").getString(),
-            adminGroup = config.property("app.oidc.provider.admin_group").getString(),
-            viewerGroup = config.property("app.oidc.provider.viewer_group").getString(),
-            groupsField = config.property("app.oidc.provider.groups_field").getString(),
-            usernameFields = config.property("app.oidc.provider.username_fields").getList(),
-            scopes = config.property("app.oidc.provider.scopes").getList(),
-        )
-    )
+    val oidc = config.property("app.oidc").getAs<Oidc>()
 
     private fun findInstalledFfmpeg(): Path? {
         return listOf(
@@ -99,25 +82,37 @@ class AnyStreamConfig(
             }
     }
 
-    data class Oidc(
+    @Serializable
+    class Oidc(
         val enable: Boolean,
         val provider: Provider,
     ) {
-        data class Provider(
+        @Serializable
+        class Provider(
             val name: String,
+            @SerialName("authorize_url")
             val authorizeUrl: String,
+            @SerialName("access_token_url")
             val accessTokenUrl: String,
+            @SerialName("user_info_url")
             val userInfoUrl: String,
+            @SerialName("client_id")
             val clientId: String,
+            @SerialName("client_secret")
             val clientSecret: String,
+            @SerialName("admin_group")
             val adminGroup: String,
+            @SerialName("viewer_group")
             val viewerGroup: String,
+            @SerialName("groups_field")
             val groupsField: String,
+            @SerialName("username_fields")
             val usernameFields: List<String>,
             val scopes: List<String>,
         )
     }
 
+    @Serializable
     data class QbittorrentCredentials(
         val url: String,
         val user: String,
