@@ -24,6 +24,7 @@ import anystream.routing.CommonRouter
 import anystream.routing.Routes
 import anystream.presentation.login.LoginScreenModel.ServerValidation
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterNotNull
@@ -31,6 +32,7 @@ import kotlinx.coroutines.flow.mapNotNull
 import kt.mobius.flow.ExecutionPolicy
 import kt.mobius.flow.FlowTransformer
 import kt.mobius.flow.subtypeEffectHandler
+import kotlin.time.Duration.Companion.seconds
 import anystream.presentation.login.LoginScreenEffect as Effect
 import anystream.presentation.login.LoginScreenEvent as Event
 
@@ -43,7 +45,17 @@ class LoginScreenHandler(
     // - Add anystream verification url to server and validate Server Url points to real instance
 
     addFunction<Effect.LoadAuthTypes>(ExecutionPolicy.Latest) {
-        Event.OnAuthTypesLoaded(client.fetchAuthTypes())
+        var authTypes: List<String>? = null
+        while (authTypes == null) {
+            authTypes = try {
+                client.fetchAuthTypes()
+            } catch (e: Throwable) {
+                if (e is CancellationException) throw e
+                null
+            }
+            delay(5.seconds)
+        }
+        Event.OnAuthTypesLoaded(authTypes)
     }
 
     addValueCollector<Effect.RedirectOnAuth>(ExecutionPolicy.Latest) {
