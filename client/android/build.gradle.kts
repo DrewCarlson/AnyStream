@@ -42,15 +42,18 @@ android {
         named("release") {
         }
     }
-    kotlinOptions.freeCompilerArgs += listOf(
-        "-opt-in=androidx.compose.ui.ExperimentalComposeUiApi",
-        "-opt-in=androidx.compose.foundation.ExperimentalFoundationApi",
-        "-opt-in=coil.annotation.ExperimentalCoilApi",
-        "-opt-in=kt.mobius.compose.ExperimentalMobiusktComposeApi",
-    )
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
+    }
+}
+
+kotlin {
+    compilerOptions {
+        optIn.add("androidx.compose.ui.ExperimentalComposeUiApi")
+        optIn.add("androidx.compose.foundation.ExperimentalFoundationApi")
+        optIn.add("coil.annotation.ExperimentalCoilApi")
+        optIn.add("kt.mobius.compose.ExperimentalMobiusktComposeApi")
     }
 }
 
