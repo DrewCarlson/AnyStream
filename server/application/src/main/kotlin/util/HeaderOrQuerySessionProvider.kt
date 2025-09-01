@@ -20,6 +20,9 @@ package anystream.util
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.sessions.*
+import io.ktor.util.AttributeKey
+
+val SetSessionCookie = AttributeKey<Boolean>("SetSessionCookie")
 
 inline fun <reified T : Any> SessionsConfig.headerOrQuery(
     key: String,
@@ -34,6 +37,14 @@ inline fun <reified T : Any> SessionsConfig.headerOrQuery(
             object : SessionTransport {
                 override fun send(call: ApplicationCall, value: String) {
                     call.response.header(key, value)
+                    if (call.attributes.getOrNull(SetSessionCookie) == true) {
+                        call.response.cookies.append(
+                            name = key,
+                            value = value,
+                            domain = null,
+                            path = "/",
+                        )
+                    }
                 }
                 override fun clear(call: ApplicationCall) = Unit
                 override fun receive(call: ApplicationCall): String? {

@@ -8,7 +8,7 @@ plugins {
 
 application {
     applicationName = "anystream"
-    mainClass.set("io.ktor.server.netty.EngineMain")
+    mainClass.set("anystream.ApplicationKt")
 }
 
 distributions.configureEach {
@@ -116,6 +116,7 @@ dependencies {
 
     implementation(libsServer.qbittorrent.client)
     implementation(libsServer.torrentSearch)
+    implementation("io.ktor:ktor-client-apache:3.1.2")
     testImplementation(libsCommon.ktor.server.tests)
     testImplementation(projects.server.dbModels.testing)
 }

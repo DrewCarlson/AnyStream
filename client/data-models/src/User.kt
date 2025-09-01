@@ -31,6 +31,10 @@ data class UserPublic(
     val displayName: String,
 )
 
+enum class AuthType {
+    INTERNAL, OIDC, BOTH;
+}
+
 fun User.toPublic(): UserPublic {
     return UserPublic(
         id = id,

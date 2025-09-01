@@ -17,6 +17,7 @@
  */
 package anystream.service.user
 
+import anystream.AnyStreamConfig
 import anystream.data.UserSession
 import anystream.db.InviteCodeDao
 import anystream.db.UserDao
@@ -37,12 +38,17 @@ private const val INVITE_CODE_SIZE = 32
 class UserService(
     private val queries: UserDao,
     private val inviteCodeDao: InviteCodeDao,
+    private val config: AnyStreamConfig,
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
     private val pairingCodes = ConcurrentHashMap<String, PairingMessage>()
 
     suspend fun getUser(userId: String): User? {
         return queries.fetchUser(userId)
+    }
+
+    suspend fun getUserByName(username: String): User? {
+        return queries.fetchUserByUsername(username)
     }
 
     suspend fun getUsers(): List<User> {
@@ -70,10 +76,12 @@ class UserService(
     }
 
     suspend fun createUser(body: CreateUserBody): CreateUserResponse {
+        val username = body.username.lowercase()
         val usernameError = when {
             body.username.isBlank() -> CreateUserResponse.UsernameError.BLANK
             body.username.length < USERNAME_LENGTH_MIN -> CreateUserResponse.UsernameError.TOO_SHORT
             body.username.length > USERNAME_LENGTH_MAX -> CreateUserResponse.UsernameError.TOO_LONG
+            queries.fetchUserByUsername(username) != null -> CreateUserResponse.UsernameError.ALREADY_EXISTS
             else -> null
         }
         val passwordError = when {
@@ -85,11 +93,6 @@ class UserService(
 
         if (usernameError != null || passwordError != null) {
             return CreateUserResponse.Error(usernameError, passwordError)
-        }
-
-        val username = body.username.lowercase()
-        if (queries.fetchUserByUsername(username) != null) {
-            return CreateUserResponse.Error(CreateUserResponse.UsernameError.ALREADY_EXISTS, null)
         }
 
         val inviteCode = body.inviteCode?.let { inviteCodeDao.fetchInviteCode(it) }
@@ -110,14 +113,83 @@ class UserService(
                 createdAt = now,
                 updatedAt = now,
                 passwordHash = hashPassword(body.password),
+                authType = AuthType.INTERNAL,
             ),
             permissions = permissions,
+            // todo: forward insert failure reason in response error model
         ) ?: return CreateUserResponse.Error(null, null)
         if (inviteCode != null) {
             inviteCodeDao.deleteInviteCode(inviteCode.secret, null)
         }
 
         return CreateUserResponse.Success(newUser.toPublic(), permissions)
+    }
+
+    suspend fun createOidcUser(
+        username: String,
+        groups: List<String>,
+    ): CreateUserResponse {
+        // todo: If preferred username is unusable, try email name before erroring
+        val usernameError = when {
+            username.isBlank() -> CreateUserResponse.UsernameError.BLANK
+            username.length < USERNAME_LENGTH_MIN -> CreateUserResponse.UsernameError.TOO_SHORT
+            username.length > USERNAME_LENGTH_MAX -> CreateUserResponse.UsernameError.TOO_LONG
+            queries.fetchUserByUsername(username) != null -> CreateUserResponse.UsernameError.ALREADY_EXISTS
+            else -> null
+        }
+
+        if (usernameError != null) {
+            return CreateUserResponse.Error(usernameError, null)
+        }
+
+        if (queries.countUsers() == 0 && !groups.contains(config.oidc.provider.adminGroup)) {
+            // todo: specify in response that first user must have 'anystream-admin' role
+            return CreateUserResponse.Error(null, null)
+        }
+
+        val permissions = when {
+            groups.contains(config.oidc.provider.adminGroup) -> setOf(Permission.Global)
+            groups.contains(config.oidc.provider.viewerGroup) -> setOf(Permission.ViewCollection)
+            else -> {
+                // todo: specify in response that required role is missing
+                return CreateUserResponse.Error(null, null)
+            }
+        }
+
+        val now = Clock.System.now()
+        val newUser = queries.insertUser(
+            User(
+                id = ObjectId.next(),
+                username = username,
+                displayName = username,
+                createdAt = now,
+                updatedAt = now,
+                passwordHash = null,
+                authType = AuthType.OIDC,
+            ),
+            permissions = permissions,
+            // todo: forward insert failure reason in response error model
+        ) ?: return CreateUserResponse.Error(null, null)
+
+        return CreateUserResponse.Success(newUser.toPublic(), permissions)
+    }
+
+    suspend fun createOidcSession(
+        username: String,
+    ): CreateSessionResponse {
+        val user = queries.fetchUserByUsername(username)
+            ?: return CreateSessionResponse.Error(
+                usernameError = CreateSessionResponse.UsernameError.NOT_FOUND,
+            )
+        if (user.authType == AuthType.INTERNAL) {
+            logger.info("Upgrading user ${user.id} with `OIDC` login support.")
+            queries.updateUser(user.copy(authType = AuthType.BOTH))
+        }
+        val permissions = queries.fetchPermissions(checkNotNull(user.id)).toSet()
+        return CreateSessionResponse.Success(
+            user = user.toPublic(),
+            permissions = permissions,
+        )
     }
 
     suspend fun updateUser(userId: String, body: UpdateUserBody): Boolean {
@@ -128,8 +200,8 @@ class UserService(
         val newPassword = body.password
         val currentPassword = body.currentPassword
         val newPasswordHash =
-            if (!newPassword.isNullOrBlank() && !currentPassword.isNullOrBlank()) {
-                if (verifyPassword(currentPassword, user.passwordHash)) {
+            if (user.authType != AuthType.OIDC && !newPassword.isNullOrBlank() && !currentPassword.isNullOrBlank()) {
+                if (verifyPassword(currentPassword, checkNotNull(user.passwordHash))) {
                     hashPassword(newPassword)
                 } else {
                     return false
@@ -212,7 +284,12 @@ class UserService(
             )
         val permissions = queries.fetchPermissions(checkNotNull(user.id)).toSet()
 
-        return if (verifyPassword(body.password, user.passwordHash)) {
+        if (user.authType == AuthType.OIDC) {
+            // todo: return message specifying account requires
+            return CreateSessionResponse.Error(null, null)
+        }
+
+        return if (verifyPassword(body.password, checkNotNull(user.passwordHash))) {
             CreateSessionResponse.Success(user.toPublic(), permissions)
         } else {
             CreateSessionResponse.Error(

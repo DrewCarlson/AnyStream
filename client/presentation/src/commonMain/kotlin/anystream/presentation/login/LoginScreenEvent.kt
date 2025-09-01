@@ -67,4 +67,9 @@ sealed class LoginScreenEvent {
         val serverUrl: String,
         val result: LoginScreenModel.ServerValidation,
     ) : LoginScreenEvent()
+
+    @Poko
+    class OnAuthTypesLoaded(
+        val authTypes: List<String>,
+    ) : LoginScreenEvent()
 }

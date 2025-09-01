@@ -26,6 +26,7 @@ import anystream.presentation.login.LoginScreenModel.ServerValidation
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.mapNotNull
 import kt.mobius.flow.ExecutionPolicy
 import kt.mobius.flow.FlowTransformer
@@ -40,6 +41,16 @@ class LoginScreenHandler(
 
     // Future improvements:
     // - Add anystream verification url to server and validate Server Url points to real instance
+
+    addFunction<Effect.LoadAuthTypes>(ExecutionPolicy.Latest) {
+        Event.OnAuthTypesLoaded(client.fetchAuthTypes())
+    }
+
+    addValueCollector<Effect.RedirectOnAuth>(ExecutionPolicy.Latest) {
+        client.user.filterNotNull().collect {
+            router.replaceTop(Routes.Home)
+        }
+    }
 
     addAction<Effect.NavigateToHome> { router.replaceTop(Routes.Home) }
 

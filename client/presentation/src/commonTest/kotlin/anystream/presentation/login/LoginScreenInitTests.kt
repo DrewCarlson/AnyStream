@@ -20,7 +20,6 @@ package anystream.presentation.login
 import anystream.presentation.login.LoginScreenModel.ServerValidation
 import kt.mobius.test.FirstMatchers.hasEffects
 import kt.mobius.test.FirstMatchers.hasModel
-import kt.mobius.test.FirstMatchers.hasNoEffects
 import kt.mobius.test.InitSpec
 import kt.mobius.test.InitSpec.Companion.assertThatFirst
 import kotlin.test.Test
@@ -28,14 +27,17 @@ import kotlin.test.Test
 class LoginScreenInitTests {
 
     @Test
-    fun test_ModelWithoutUrl_DoesNothing() {
+    fun test_ModelWithoutUrl_LoadsAuthTypes() {
         val startModel = LoginScreenModel.create()
         InitSpec(LoginScreenInit)
             .whenInit(startModel)
             .then(
                 assertThatFirst(
                     hasModel(startModel),
-                    hasNoEffects(),
+                    hasEffects(
+                        LoginScreenEffect.LoadAuthTypes,
+                        LoginScreenEffect.RedirectOnAuth
+                    ),
                 ),
             )
     }

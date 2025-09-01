@@ -27,7 +27,7 @@ import anystream.presentation.login.LoginScreenModel as Model
 object LoginScreenInit : Init<Model, Effect> {
 
     override fun init(model: Model): First<Model, Effect> {
-        val effects = mutableSetOf<Effect>()
+        val effects = mutableSetOf(Effect.RedirectOnAuth, Effect.LoadAuthTypes)
 
         if (model.isServerUrlValid() && model.supportsPairing) {
             effects.add(Effect.PairingSession(model.serverUrl))

@@ -30,6 +30,7 @@ import kt.mobius.flow.FlowMobius
 import org.jetbrains.compose.web.attributes.*
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
+import web.window.window
 
 @Composable
 fun LoginScreen() {
@@ -54,35 +55,55 @@ fun LoginScreen() {
         }
     }) {
         Div { H3 { Text("Login") } }
-        Div {
-            Input(InputType.Text) {
-                onInput { eventConsumer(LoginScreenEvent.OnUsernameChanged(it.value)) }
-                classes("form-control")
-                placeholder("Username")
-                type(InputType.Text)
-                if (model.isInputLocked()) disabled()
+        if (model.supportsPasswordAuth) {
+            Div {
+                Input(InputType.Text) {
+                    onInput { eventConsumer(LoginScreenEvent.OnUsernameChanged(it.value)) }
+                    classes("form-control")
+                    placeholder("Username")
+                    type(InputType.Text)
+                    if (model.isInputLocked()) disabled()
+                }
+            }
+            Div {
+                Input(InputType.Text) {
+                    onInput { eventConsumer(LoginScreenEvent.OnPasswordChanged(it.value)) }
+                    classes("form-control")
+                    placeholder("Password")
+                    type(InputType.Password)
+                    if (model.isInputLocked()) disabled()
+                }
+            }
+            Div {
+                model.loginError?.run { Text(toString()) }
+            }
+            Div {
+                Button({
+                    classes("btn", "btn-primary")
+                    type(ButtonType.Button)
+                    if (model.isInputLocked()) disabled()
+                    onClick { eventConsumer(LoginScreenEvent.OnLoginSubmit) }
+                }) {
+                    Text("Confirm")
+                }
             }
         }
-        Div {
-            Input(InputType.Text) {
-                onInput { eventConsumer(LoginScreenEvent.OnPasswordChanged(it.value)) }
-                classes("form-control")
-                placeholder("Password")
-                type(InputType.Password)
-                if (model.isInputLocked()) disabled()
-            }
-        }
-        Div {
-            model.loginError?.run { Text(toString()) }
-        }
-        Div {
-            Button({
-                classes("btn", "btn-primary")
-                type(ButtonType.Button)
-                if (model.isInputLocked()) disabled()
-                onClick { eventConsumer(LoginScreenEvent.OnLoginSubmit) }
-            }) {
-                Text("Confirm")
+        if (model.oidcProviderName != null) {
+            Div {
+                A(
+                    attrs = {
+                        style {
+                            property("cursor", "pointer")
+                        }
+                        onClick {
+                            if (model.state == LoginScreenModel.State.IDLE) {
+                                window.location.pathname = "/api/users/oidc/login"
+                            }
+                        }
+                    },
+                ) {
+                    Text("Login with ${model.oidcProviderName}")
+                }
             }
         }
         Div {

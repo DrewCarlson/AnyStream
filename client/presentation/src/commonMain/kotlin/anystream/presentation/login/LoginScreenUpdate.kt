@@ -149,4 +149,21 @@ object LoginScreenUpdate : Update<Model, LoginScreenEvent, Effect>, LoginScreenG
             noChange()
         }
     }
+
+    override fun onAuthTypesLoaded(
+        model: Model,
+        event: LoginScreenEvent.OnAuthTypesLoaded
+    ): Next<Model, Effect> {
+        val supportsPasswordAuth = event.authTypes.contains("internal")
+        return next(
+            model.copy(
+                supportsPasswordAuth = supportsPasswordAuth,
+                oidcProviderName = if (supportsPasswordAuth) {
+                    event.authTypes.getOrNull(1)
+                } else {
+                    event.authTypes.first()
+                },
+            )
+        )
+    }
 }

@@ -231,6 +231,22 @@ class AnyStreamClient(
         return sessionManager.fetchUser()
     }
 
+    suspend fun completeOauth(token: String) {
+        val response = http.get("$serverUrl/api/users/session") {
+            header(SESSION_KEY, token)
+        }
+        if (response.status == OK) {
+            val body = response.body<CreateSessionResponse.Success>()
+            sessionManager.writeToken(token)
+            sessionManager.writeUser(body.user)
+            sessionManager.writePermissions(body.permissions)
+        }
+    }
+
+    suspend fun fetchAuthTypes(): List<String> {
+        return http.get("$serverUrl/api/users/auth-types").bodyOrThrow()
+    }
+
     fun torrentListChanges(): Flow<List<String>> = callbackFlow {
         http.wss("$serverUrlWs/api/ws/torrents/observe") {
             send(sessionManager.fetchToken()!!)

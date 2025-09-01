@@ -28,6 +28,8 @@ data class LoginScreenModel(
     val state: State = State.IDLE,
     val serverValidation: ServerValidation = ServerValidation.VALIDATING,
     val loginError: CreateSessionResponse.Error? = null,
+    val supportsPasswordAuth: Boolean = true,
+    val oidcProviderName: String? = null,
 ) {
     enum class State {
         IDLE, AUTHENTICATING, AUTHENTICATED;

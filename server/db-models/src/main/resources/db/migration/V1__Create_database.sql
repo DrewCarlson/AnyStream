@@ -4,9 +4,10 @@ CREATE TABLE user
     id            VARCHAR(24) PRIMARY KEY NOT NULL,
     username      VARCHAR(255)            NOT NULL,
     display_name  VARCHAR(255)            NOT NULL,
-    password_hash TEXT                    NOT NULL,
+    password_hash TEXT,
     created_at    TEXT                    NOT NULL,
     updated_at    TEXT                    NOT NULL,
+    auth_type     TEXT                    NOT NULL,
     UNIQUE (username) ON CONFLICT FAIL
 );
 

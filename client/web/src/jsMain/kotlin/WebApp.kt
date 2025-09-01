@@ -29,6 +29,7 @@ import anystream.util.get
 import anystream.util.getKoin
 import app.softwork.routingcompose.BrowserRouter
 import app.softwork.routingcompose.Router
+import kotlinx.browser.document
 import kotlinx.coroutines.flow.*
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
@@ -42,6 +43,20 @@ val LocalAnyStreamClient = compositionLocalOf<AnyStreamClient> { error("AnyStrea
 fun webApp() = renderComposable(rootElementId = "root") {
     startKoin {
         modules(coreModule())
+    }
+    // Consume session token from cookie after oauth flow
+    val client = get<AnyStreamClient>()
+    LaunchedEffect(Unit) {
+        if (client.isAuthenticated()) return@LaunchedEffect
+        val cookies = document.cookie.split(';').toMutableSet()
+        cookies.forEach { cookie ->
+            if (cookie.startsWith("as_user_session")) {
+                cookies.remove(cookie)
+                document.cookie = cookies.joinToString(";")
+                client.completeOauth(cookie.substringAfter('='))
+                return@forEach
+            }
+        }
     }
     Div(
         attrs = {

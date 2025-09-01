@@ -42,6 +42,7 @@ import anystream.util.headerOrQuery
 import app.moviebase.tmdb.Tmdb3
 import com.github.kokorin.jaffree.ffmpeg.FFmpeg
 import com.github.kokorin.jaffree.ffprobe.FFprobe
+import com.typesafe.config.ConfigFactory
 import io.ktor.client.*
 import io.ktor.client.plugins.cache.*
 import io.ktor.client.plugins.cache.storage.CacheStorage
@@ -51,6 +52,12 @@ import io.ktor.serialization.kotlinx.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
+import io.ktor.server.config.HoconApplicationConfig
+import io.ktor.server.engine.CommandLineConfig
+import io.ktor.server.engine.applicationEnvironment
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.engine.loadCommonConfiguration
+import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.autohead.*
 import io.ktor.server.plugins.cachingheaders.*
 import io.ktor.server.plugins.calllogging.*
@@ -59,6 +66,7 @@ import io.ktor.server.plugins.conditionalheaders.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.defaultheaders.*
+import io.ktor.server.plugins.origin
 import io.ktor.server.plugins.partialcontent.*
 import io.ktor.server.response.*
 import io.ktor.server.sessions.*
@@ -71,6 +79,7 @@ import org.jooq.SQLDialect
 import org.jooq.impl.DSL
 import org.jooq.impl.DefaultConfiguration
 import org.koin.ktor.ext.get
+import org.koin.ktor.ext.getKoin
 import org.koin.ktor.plugin.Koin
 import org.koin.ktor.plugin.koin
 import org.koin.logger.slf4jLogger
@@ -84,7 +93,28 @@ import kotlin.random.Random
 import kotlin.time.Duration.Companion.seconds
 
 
-fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
+suspend fun main(args: Array<String>) {
+    val defaultConfig = ConfigFactory.load()
+    val userConfig = args
+        .firstOrNull { it.startsWith("-config=") }
+        ?.substringAfter("=")
+        ?.let { ConfigFactory.parseFile(java.io.File(it)) }
+    val mergedConfig = if (userConfig == null) {
+        defaultConfig
+    } else {
+        userConfig.withFallback(defaultConfig).resolve()
+    }
+    val appConfig = HoconApplicationConfig(mergedConfig)
+
+    embeddedServer(Netty, environment = applicationEnvironment {
+        config = appConfig
+    }, {
+        // TODO: this prevents user config files from setting engine config, is this a problem?
+        val config = CommandLineConfig(args.filter { !it.startsWith("-config") }.toTypedArray())
+        takeFrom(config.engineConfig)
+        loadCommonConfiguration(appConfig.config("ktor.deployment"))
+    }).startSuspend(wait = true)
+}
 
 @Suppress("unused", "UNUSED_PARAMETER") // Referenced in application.conf
 @JvmOverloads
@@ -123,9 +153,9 @@ fun Application.module(testing: Boolean = false) {
 
                 single {
                     QBittorrentClient(
-                        baseUrl = config.qbittorrentUrl,
-                        username = config.qbittorrentUser,
-                        password = config.qbittorrentPass,
+                        baseUrl = config.qbittorrent.url,
+                        username = config.qbittorrent.user,
+                        password = config.qbittorrent.password,
                     )
                 }
 
@@ -148,14 +178,21 @@ fun Application.module(testing: Boolean = false) {
                 single { MetadataDbQueries(get(), get(), get(), get(), get()) }
 
                 single {
+                    HttpClient {
+                        install(HttpCache) {
+                            // TODO: Add disk catching
+                            publicStorage(CacheStorage.Unlimited())
+                        }
+                        install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
+                            json()
+                        }
+                    }
+                }
+
+                single {
                     ImageStore(
                         dataPath = get<AnyStreamConfig>().dataPath,
-                        httpClient = HttpClient {
-                            install(HttpCache) {
-                                // TODO: Add disk catching
-                                publicStorage(CacheStorage.Unlimited())
-                            }
-                        }
+                        httpClient = get<HttpClient>(),
                     )
                 }
                 single { MetadataService(listOf(TmdbMetadataProvider(get(), get(), get())), get(), get()) }
@@ -175,7 +212,7 @@ fun Application.module(testing: Boolean = false) {
                     }
                     DSL.using(dbConfig)
                 }
-                single { UserService(get(), get()) }
+                single { UserService(get(), get(), get()) }
 
                 single<StreamServiceQueries> { StreamServiceQueriesJooq(get(), get(), get(), get(), get()) }
                 single {
@@ -192,6 +229,7 @@ fun Application.module(testing: Boolean = false) {
             },
         )
     }
+    val config = get<AnyStreamConfig>()
     monitor.subscribe(ApplicationStopped) {
         //get<KJob>().shutdown()
     }
@@ -252,10 +290,39 @@ fun Application.module(testing: Boolean = false) {
         contentConverter = KotlinxWebsocketSerializationConverter(json)
     }
 
+    val httpClient = getKoin().get<HttpClient>()
     install(Authentication) {
         session<UserSession> {
             challenge { call.respond(Unauthorized) }
             validate { it }
+        }
+        if (config.oidc.enable) {
+            oauth(config.oidc.provider.name) {
+                client = httpClient
+                urlProvider = {
+                    buildString {
+                        append(request.origin.scheme)
+                        append("://")
+                        append(request.origin.remoteHost)
+                        if (request.origin.serverPort != 443 && request.origin.serverPort != 80) {
+                            append(':')
+                            append(request.origin.serverPort)
+                        }
+                        append("/api/users/oidc/callback")
+                    }
+                }
+                providerLookup = {
+                    OAuthServerSettings.OAuth2ServerSettings(
+                        name = config.oidc.provider.name,
+                        authorizeUrl = config.oidc.provider.authorizeUrl,
+                        accessTokenUrl = config.oidc.provider.accessTokenUrl,
+                        requestMethod = HttpMethod.Post,
+                        clientId = config.oidc.provider.clientId,
+                        clientSecret = config.oidc.provider.clientSecret,
+                        defaultScopes = config.oidc.provider.scopes,
+                    )
+                }
+            }
         }
     }
     val sessionStorage = get<SqlSessionStorage>()

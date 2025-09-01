@@ -36,5 +36,9 @@ sealed class LoginScreenEffect {
         val cancel: Boolean = false,
     ) : LoginScreenEffect()
 
+    data object LoadAuthTypes : LoginScreenEffect()
+
+    data object RedirectOnAuth : LoginScreenEffect()
+
     data object NavigateToHome : LoginScreenEffect()
 }

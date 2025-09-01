@@ -185,8 +185,8 @@ private fun TorrentContextMenu(
     val client = get<AnyStreamClient>()
     val isPaused = remember(torrent.state) {
         when (torrent.state) {
-            Torrent.State.PAUSED_DL,
-            Torrent.State.PAUSED_UP,
+            Torrent.State.STOPPED_DL,
+            Torrent.State.STOPPED_UP,
             -> true
             else -> false
         }
@@ -247,7 +247,7 @@ private fun TorrentContextMenu(
 
 private fun stateIcon(torrent: Torrent): String {
     return when (torrent.state) {
-        Torrent.State.PAUSED_DL,
+        Torrent.State.STOPPED_DL,
         Torrent.State.QUEUED_UP,
         Torrent.State.QUEUED_DL,
         -> "bi-pause-fill"
@@ -255,7 +255,7 @@ private fun stateIcon(torrent: Torrent): String {
         Torrent.State.CHECKING_UP,
         Torrent.State.STALLED_UP,
         Torrent.State.FORCED_UP,
-        Torrent.State.ALLOCATING,
+        Torrent.State.FORCED_META_DL,
         Torrent.State.CHECKING_DL,
         Torrent.State.META_DL,
         Torrent.State.FORCED_DL,
@@ -268,6 +268,6 @@ private fun stateIcon(torrent: Torrent): String {
         Torrent.State.ERROR,
         Torrent.State.UNKNOWN,
         -> "bi-exclamation-triangle-fill"
-        Torrent.State.PAUSED_UP -> "bi-check-circle-fill"
+        Torrent.State.STOPPED_UP -> "bi-check-circle-fill"
     }
 }

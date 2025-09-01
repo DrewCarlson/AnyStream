@@ -62,9 +62,29 @@ class AnyStreamConfig(
         pathOrDefault
     }
     val tmdbApiKey: String = config.property("app.tmdbApiKey").getString()
-    val qbittorrentUrl: String = config.property("app.qbittorrentUrl").getString()
-    val qbittorrentUser: String = config.property("app.qbittorrentUser").getString()
-    val qbittorrentPass: String = config.property("app.qbittorrentPassword").getString()
+
+    val qbittorrent = QbittorrentCredentials(
+        url = config.property("app.qbittorrent.url").getString(),
+        user = config.property("app.qbittorrent.user").getString(),
+        password = config.property("app.qbittorrent.password").getString(),
+    )
+
+    val oidc = Oidc(
+        enable = config.property("app.oidc.enable").getString().toBoolean(),
+        provider = Oidc.Provider(
+            name = config.property("app.oidc.provider.name").getString(),
+            authorizeUrl = config.property("app.oidc.provider.authorize_url").getString(),
+            accessTokenUrl = config.property("app.oidc.provider.access_token_url").getString(),
+            userInfoUrl = config.property("app.oidc.provider.user_info_url").getString(),
+            clientId = config.property("app.oidc.provider.client_id").getString(),
+            clientSecret = config.property("app.oidc.provider.client_secret").getString(),
+            adminGroup = config.property("app.oidc.provider.admin_group").getString(),
+            viewerGroup = config.property("app.oidc.provider.viewer_group").getString(),
+            groupsField = config.property("app.oidc.provider.groups_field").getString(),
+            usernameFields = config.property("app.oidc.provider.username_fields").getList(),
+            scopes = config.property("app.oidc.provider.scopes").getList(),
+        )
+    )
 
     private fun findInstalledFfmpeg(): Path? {
         return listOf(
@@ -77,4 +97,29 @@ class AnyStreamConfig(
                 path.exists() && (path.resolve("ffmpeg").exists() || path.resolve("ffmpeg.exe").exists())
             }
     }
+
+    data class Oidc(
+        val enable: Boolean,
+        val provider: Provider,
+    ) {
+        data class Provider(
+            val name: String,
+            val authorizeUrl: String,
+            val accessTokenUrl: String,
+            val userInfoUrl: String,
+            val clientId: String,
+            val clientSecret: String,
+            val adminGroup: String,
+            val viewerGroup: String,
+            val groupsField: String,
+            val usernameFields: List<String>,
+            val scopes: List<String>,
+        )
+    }
+
+    data class QbittorrentCredentials(
+        val url: String,
+        val user: String,
+        val password: String,
+    )
 }
