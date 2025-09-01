@@ -10,7 +10,7 @@ ax_runner = "1.5.2"
 mobiuskt = "1.3.1"
 objectstore = "0.2.0"
 vlc = "3.0.19"
-kotlinjs = "2025.8.22"
+kotlinjs = "2025.9.0"
 androidxCamera = "1.4.2"
 haze = "1.6.10"
 
@@ -41,16 +41,16 @@ compose-icons = { module = "androidx.compose.material:material-icons-extended", 
 compose-material = { module = "androidx.compose.material3:material3", version = "1.3.2" }
 compose-livedata = { module = "androidx.compose.runtime:runtime-livedata", version.ref = "compose" }
 compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
-compose-lifecycle = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version = "2.8.4" }
-compose-viewmodel = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version = "2.8.4" }
+compose-lifecycle = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version = "2.9.3" }
+compose-viewmodel = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version = "2.9.3" }
 compose-bundle = { module = "org.jetbrains.androidx.core:core-bundle", version = "1.0.1" }
 haze-core = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
 haze-materials = { module = "dev.chrisbanes.haze:haze-materials", version.ref = "haze" }
 
-koin-compose = { module = "io.insert-koin:koin-compose", version = "4.0.4" }
+koin-compose = { module = "io.insert-koin:koin-compose", version = "4.1.0" }
 
-coil-compose = { module = "io.coil-kt.coil3:coil-compose", version = "3.1.0" }
-coil-ktor = { module = "io.coil-kt.coil3:coil-network-ktor3", version = "3.1.0" }
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version = "3.3.0" }
+coil-ktor = { module = "io.coil-kt.coil3:coil-network-ktor3", version = "3.3.0" }
 routingCompose = { module = "app.softwork:routing-compose", version = "0.4.0" }
 
 mobiuskt-core = { module = "org.drewcarlson:mobiuskt-core", version.ref = "mobiuskt" }
@@ -67,7 +67,7 @@ objectstore-json = { module = "org.drewcarlson:objectstore-json", version.ref = 
 objectstore-protobuf = { module = "org.drewcarlson:objectstore-protobuf", version.ref = "objectstore" }
 objectstore-secure = { module = "org.drewcarlson:objectstore-secure", version.ref = "objectstore" }
 
-vlcj = { module = "uk.co.caprica:vlcj", version = "4.10.1" }
+vlcj = { module = "uk.co.caprica:vlcj", version = "4.11.0" }
 
 jna = { module = "net.java.dev.jna:jna", version = "5.17.0" }
 
