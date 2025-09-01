@@ -360,7 +360,7 @@ jobs:
         uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e
         with:
           pattern: reports*
-      - uses: codecov/codecov-action@0565863a31f2c772f9f0395002a31e3f06189574
+      - uses: codecov/codecov-action@3cb13a12348ef4ffcf9783ac0f74954f92113e33
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: "**/build/reports/kover/project-xml/report.xml"
