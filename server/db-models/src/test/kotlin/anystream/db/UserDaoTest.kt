@@ -50,7 +50,7 @@ class UserDaoTest : FunSpec({
         newUser.id shouldBeEqual user.id
         newUser.username shouldBeEqual user.username
         newUser.displayName shouldBeEqual user.displayName
-        newUser.passwordHash shouldBeEqual user.passwordHash
+        newUser.passwordHash.shouldNotBeNull() shouldBeEqual user.passwordHash.shouldNotBeNull()
     }
 
     test("insert user with permissions") {
@@ -62,7 +62,7 @@ class UserDaoTest : FunSpec({
         newUser.id shouldBeEqual user.id
         newUser.username shouldBeEqual user.username
         newUser.displayName shouldBeEqual user.displayName
-        newUser.passwordHash shouldBeEqual user.passwordHash
+        newUser.passwordHash.shouldNotBeNull() shouldBeEqual user.passwordHash.shouldNotBeNull()
     }
 
     test("fetch user permissions") {
@@ -92,7 +92,7 @@ class UserDaoTest : FunSpec({
         loadedUser.id shouldBeEqual id
         loadedUser.username shouldBeEqual userObject.username
         loadedUser.displayName shouldBeEqual userObject.displayName
-        loadedUser.passwordHash shouldBeEqual userObject.passwordHash
+        loadedUser.passwordHash.shouldNotBeNull() shouldBeEqual userObject.passwordHash.shouldNotBeNull()
     }
 
     test("fetch users") {
@@ -134,7 +134,7 @@ class UserDaoTest : FunSpec({
                 id shouldBeEqual user.id
                 username shouldBeEqual user.username
                 displayName shouldBeEqual "updated-username"
-                passwordHash shouldBeEqual user.passwordHash
+                passwordHash.shouldNotBeNull() shouldBeEqual user.passwordHash.shouldNotBeNull()
                 createdAt shouldBeEqual user.createdAt
                 updatedAt shouldBeGreaterThan user.updatedAt
             }
@@ -151,7 +151,7 @@ class UserDaoTest : FunSpec({
         updatedUser.id shouldBeEqual user.id
         updatedUser.username shouldBeEqual user.username
         updatedUser.displayName shouldBeEqual user.displayName
-        updatedUser.passwordHash shouldBeEqual "updated-password-hash"
+        updatedUser.passwordHash.shouldNotBeNull() shouldBeEqual "updated-password-hash"
         updatedUser.createdAt shouldBeEqual user.createdAt
         updatedUser.updatedAt shouldBeGreaterThan user.updatedAt
     }

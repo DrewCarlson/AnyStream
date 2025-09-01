@@ -73,7 +73,8 @@ class PlaybackStatesDaoTest : FunSpec({
             passwordHash = "passwordHash",
             createdAt = Clock.System.now(),
             updatedAt = Clock.System.now(),
-            username = "user"
+            username = "user",
+            authType = AuthType.INTERNAL,
         )
 
         metadataDao.insertMetadata(metadata)

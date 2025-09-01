@@ -17,14 +17,19 @@
  */
 package anystream.service.user
 
+import anystream.AnyStreamConfig
 import anystream.db.*
 import anystream.models.*
 import anystream.models.api.*
 import anystream.util.ObjectId
+import com.typesafe.config.ConfigFactory
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.ktor.server.config.HoconApplicationConfig
+import io.ktor.server.config.HoconConfigLoader
 import kotlinx.datetime.Clock
 import org.jooq.DSLContext
+import java.nio.file.FileSystems
 import kotlin.test.*
 
 
@@ -37,7 +42,14 @@ class UserServiceTest : FunSpec({
     beforeTest {
         dao = UserDao(db)
         inviteDao = InviteCodeDao(db)
-        userService = UserService(dao, inviteDao)
+        userService = UserService(
+            queries = dao,
+            inviteCodeDao = inviteDao,
+            config = AnyStreamConfig(
+                config = HoconApplicationConfig(ConfigFactory.load()),
+                fs = FileSystems.getDefault()
+            )
+        )
     }
 
     test("create user blank validations") {
@@ -92,7 +104,8 @@ class UserServiceTest : FunSpec({
             displayName = "test",
             passwordHash = "123456",
             createdAt = Clock.System.now(),
-            updatedAt = Clock.System.now()
+            updatedAt = Clock.System.now(),
+            authType = AuthType.INTERNAL,
         )
         dao.insertUser(existingUser, emptySet())
 
@@ -129,6 +142,7 @@ class UserServiceTest : FunSpec({
             passwordHash = "123456",
             createdAt = Clock.System.now(),
             updatedAt = Clock.System.now(),
+            authType = AuthType.INTERNAL,
         )
         dao.insertUser(existingUser, emptySet())
 
@@ -152,6 +166,7 @@ class UserServiceTest : FunSpec({
             passwordHash = "",
             createdAt = Clock.System.now(),
             updatedAt = Clock.System.now(),
+            authType = AuthType.INTERNAL,
         )
         val userId = dao.insertUser(existingUser, emptySet()).shouldNotBeNull().id
 
@@ -198,6 +213,7 @@ class UserServiceTest : FunSpec({
             passwordHash = "123456",
             createdAt = Clock.System.now(),
             updatedAt = Clock.System.now(),
+            authType = AuthType.INTERNAL,
         )
         dao.insertUser(existingUser, emptySet())
         val body = CreateSessionBody(
@@ -219,6 +235,7 @@ class UserServiceTest : FunSpec({
             passwordHash = userService.hashPassword("123456"),
             createdAt = Clock.System.now(),
             updatedAt = Clock.System.now(),
+            authType = AuthType.INTERNAL,
         )
         dao.insertUser(existingUser, emptySet())
         val body = CreateSessionBody(
