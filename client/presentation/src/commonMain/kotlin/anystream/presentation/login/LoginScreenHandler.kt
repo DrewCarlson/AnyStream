@@ -53,7 +53,9 @@ class LoginScreenHandler(
                 if (e is CancellationException) throw e
                 null
             }
-            delay(5.seconds)
+            if (authTypes == null) {
+                delay(5.seconds)
+            }
         }
         Event.OnAuthTypesLoaded(authTypes)
     }
