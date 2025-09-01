@@ -18,8 +18,8 @@
 package anystream.models.api
 
 import anystream.models.Permission
-import anystream.models.User
 import anystream.models.UserPublic
+import dev.drewhamilton.poko.Poko
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -31,17 +31,26 @@ data class CreateSessionBody(
 @Serializable
 sealed class CreateSessionResponse {
 
+    @Poko
     @Serializable
-    data class Success(
+    class Success(
         val user: UserPublic,
         val permissions: Set<Permission>,
     ) : CreateSessionResponse()
 
+    @Poko
     @Serializable
-    data class Error(
+    class Error(
         val usernameError: UsernameError? = null,
         val passwordError: PasswordError? = null,
+        val reason: ErrorReason? = null,
     ) : CreateSessionResponse()
+
+    @Serializable
+    sealed class ErrorReason {
+        @Serializable
+        data object OidcRequired : ErrorReason()
+    }
 
     enum class UsernameError {
         INVALID, NOT_FOUND,

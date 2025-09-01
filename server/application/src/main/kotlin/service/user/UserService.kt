@@ -102,7 +102,9 @@ class UserService(
         // If no users exist, create user 1 with GLOBAL permission
             ?: setOf(Permission.Global).takeIf { queries.countUsers() == 0 }
             // otherwise ignore creation request
-            ?: return CreateUserResponse.Error(signupDisabled = true)
+            ?: return CreateUserResponse.Error(
+                reason = CreateUserResponse.ErrorReason.SignupDisabled
+            )
 
         val now = Clock.System.now()
         val newUser = queries.insertUser(
@@ -116,8 +118,7 @@ class UserService(
                 authType = AuthType.INTERNAL,
             ),
             permissions = permissions,
-            // todo: forward insert failure reason in response error model
-        ) ?: return CreateUserResponse.Error(null, null)
+        )
         if (inviteCode != null) {
             inviteCodeDao.deleteInviteCode(inviteCode.secret, null)
         }
@@ -143,16 +144,25 @@ class UserService(
         }
 
         if (queries.countUsers() == 0 && !groups.contains(config.oidc.provider.adminGroup)) {
-            // todo: specify in response that first user must have 'anystream-admin' role
-            return CreateUserResponse.Error(null, null)
+            return CreateUserResponse.Error(
+                reason = CreateUserResponse.ErrorReason.MissingOidcGroup(
+                    groups = listOf(config.oidc.provider.adminGroup)
+                )
+            )
         }
 
         val permissions = when {
             groups.contains(config.oidc.provider.adminGroup) -> setOf(Permission.Global)
             groups.contains(config.oidc.provider.viewerGroup) -> setOf(Permission.ViewCollection)
             else -> {
-                // todo: specify in response that required role is missing
-                return CreateUserResponse.Error(null, null)
+                return CreateUserResponse.Error(
+                    reason = CreateUserResponse.ErrorReason.MissingOidcGroup(
+                        groups = listOf(
+                            config.oidc.provider.adminGroup,
+                            config.oidc.provider.viewerGroup,
+                        )
+                    )
+                )
             }
         }
 
@@ -168,8 +178,7 @@ class UserService(
                 authType = AuthType.OIDC,
             ),
             permissions = permissions,
-            // todo: forward insert failure reason in response error model
-        ) ?: return CreateUserResponse.Error(null, null)
+        )
 
         return CreateUserResponse.Success(newUser.toPublic(), permissions)
     }
@@ -285,8 +294,9 @@ class UserService(
         val permissions = queries.fetchPermissions(checkNotNull(user.id)).toSet()
 
         if (user.authType == AuthType.OIDC) {
-            // todo: return message specifying account requires
-            return CreateSessionResponse.Error(null, null)
+            return CreateSessionResponse.Error(
+                reason = CreateSessionResponse.ErrorReason.OidcRequired
+            )
         }
 
         return if (verifyPassword(body.password, checkNotNull(user.passwordHash))) {

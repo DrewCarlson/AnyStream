@@ -64,19 +64,15 @@ fun Route.addUserRoutes(
             val createSession = call.parameters["createSession"]?.toBoolean() ?: true
 
             val result = userService.createUser(body)
-            if ((result as? CreateUserResponse.Error)?.signupDisabled == true) {
-                call.respond(Forbidden)
-            } else {
-                if (createSession && result is CreateUserResponse.Success) {
-                    call.sessions.getOrSet {
-                        UserSession(
-                            userId = checkNotNull(result.user.id),
-                            permissions = result.permissions,
-                        )
-                    }
+            if (createSession && result is CreateUserResponse.Success) {
+                call.sessions.getOrSet {
+                    UserSession(
+                        userId = checkNotNull(result.user.id),
+                        permissions = result.permissions,
+                    )
                 }
-                call.respond(result)
             }
+            call.respond(result)
         }
 
         authenticate {

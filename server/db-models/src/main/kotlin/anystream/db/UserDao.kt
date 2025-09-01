@@ -73,7 +73,7 @@ class UserDao(
     suspend fun insertUser(
         user: User,
         permissions: Set<Permission>,
-    ): User? {
+    ): User {
         return db.transactionCoroutine {
             val newUser: User = db.newRecordAsync(USER, UserRecord(user))
             val inserts = permissions.map { permission ->

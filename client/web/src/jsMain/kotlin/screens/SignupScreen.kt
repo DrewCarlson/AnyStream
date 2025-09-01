@@ -94,7 +94,12 @@ fun SignupScreen() {
         }
         Div {
             model.signupError?.run {
-                Text(usernameError?.message ?: passwordError?.message ?: "Unknown error")
+                Text(
+                    usernameError?.message
+                        ?: passwordError?.message
+                        ?: reason?.message
+                        ?: "Unknown error"
+                )
             }
         }
         Div {
@@ -128,6 +133,12 @@ fun SignupScreen() {
     }
 }
 
+private val CreateUserResponse.ErrorReason?.message: String?
+    get() = when (this) {
+        is CreateUserResponse.ErrorReason.MissingOidcGroup -> "Missing groups: $groups"
+        CreateUserResponse.ErrorReason.SignupDisabled -> "Signup is disabled"
+        null -> null
+    }
 private val CreateUserResponse.PasswordError?.message: String?
     get() = when (this) {
         CreateUserResponse.PasswordError.BLANK -> "Password cannot be blank"

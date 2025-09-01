@@ -18,8 +18,8 @@
 package anystream.models.api
 
 import anystream.models.Permission
-import anystream.models.User
 import anystream.models.UserPublic
+import dev.drewhamilton.poko.Poko
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -32,18 +32,29 @@ data class CreateUserBody(
 @Serializable
 sealed class CreateUserResponse {
 
+    @Poko
     @Serializable
-    data class Success(
+    class Success(
         val user: UserPublic,
         val permissions: Set<Permission>,
     ) : CreateUserResponse()
 
+    @Poko
     @Serializable
-    data class Error(
+    class Error(
         val usernameError: UsernameError? = null,
         val passwordError: PasswordError? = null,
-        val signupDisabled: Boolean = true,
+        val reason: ErrorReason? = null,
     ) : CreateUserResponse()
+
+    @Serializable
+    sealed class ErrorReason {
+        @Serializable
+        data object SignupDisabled : ErrorReason()
+        @Poko
+        @Serializable
+        class MissingOidcGroup(val groups: List<String>) : ErrorReason()
+    }
 
     enum class PasswordError {
         TOO_SHORT, TOO_LONG, BLANK
