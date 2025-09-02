@@ -48,7 +48,7 @@ class LoginScreenHandler(
         var authTypes: List<String>? = null
         while (authTypes == null) {
             authTypes = try {
-                client.fetchAuthTypes()
+                client.user.fetchAuthTypes()
             } catch (e: Throwable) {
                 if (e is CancellationException) throw e
                 null
@@ -61,7 +61,7 @@ class LoginScreenHandler(
     }
 
     addValueCollector<Effect.RedirectOnAuth>(ExecutionPolicy.Latest) {
-        client.user.filterNotNull().collect {
+        client.user.user.filterNotNull().collect {
             router.replaceTop(Routes.Home)
         }
     }
@@ -71,7 +71,7 @@ class LoginScreenHandler(
     addFunction<Effect.Login> { (username, password, serverUrl) ->
         try {
             check(client.verifyAndSetServerUrl(serverUrl))
-            client.login(username, password).toLoginScreenEvent()
+            client.user.login(username, password).toLoginScreenEvent()
         } catch (e: Throwable) {
             Event.OnLoginError(CreateSessionResponse.Error(null, null))
         }
@@ -96,7 +96,8 @@ class LoginScreenHandler(
         if (cancel || !client.verifyAndSetServerUrl(serverUrl)) return@addValueCollector
 
         lateinit var pairingCode: String
-        val pairingFlow = client.createPairingSession()
+        val pairingFlow = client.user
+            .createPairingSession()
             .catch { }
             .mapNotNull { message ->
                 when (message) {
@@ -107,7 +108,7 @@ class LoginScreenHandler(
                     }
 
                     is PairingMessage.Authorized -> {
-                        client.createPairedSession(pairingCode, message.secret).toLoginScreenEvent()
+                        client.user.createPairedSession(pairingCode, message.secret).toLoginScreenEvent()
                     }
 
                     PairingMessage.Failed -> Event.OnPairingEnded(pairingCode)

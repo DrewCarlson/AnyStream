@@ -20,16 +20,11 @@
 package anystream.ui
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.backhandler.BackHandler
-import androidx.compose.ui.backhandler.PredictiveBackHandler
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import anystream.client.AnyStreamClient
 import anystream.router.*
 import anystream.router.Router
@@ -55,9 +50,6 @@ import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.consumeEach
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
@@ -84,7 +76,7 @@ fun App() {
             BundleScope(null) {
                 val routeChannel = remember { Channel<Routes>() }
                 val defaultRoute = when {
-                    !client.isAuthenticated() -> Routes.Welcome
+                    !client.user.isAuthenticated() -> Routes.Welcome
                     else -> Routes.Home
                 }
                 Scaffold(
@@ -155,7 +147,8 @@ fun App() {
                                 }
                             }
                             LaunchedEffect("track-authentication-state") {
-                                client.authenticated
+                                client.user
+                                    .authenticated
                                     .collect { authed ->
                                         val isLoginRoute = listOf(
                                             Routes.Welcome,

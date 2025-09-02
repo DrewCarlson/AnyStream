@@ -26,8 +26,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,11 +48,7 @@ fun ProfileScreen(
 ) {
     val client = LocalAnyStreamClient.current
     val scope = rememberCoroutineScope()
-    val user by produceState(client.authedUser()) {
-        if (value == null) {
-            value = client.authedUser()
-        }
-    }
+    val user by client.user.user.collectAsState(client.user.authedUser())
     Column(modifier = modifier) {
         Row(
             modifier = Modifier
@@ -102,7 +98,7 @@ fun ProfileScreen(
         ProfileOption(
             label = "Logout",
             icon = Res.drawable.ic_curved_logout,
-            onClick = { scope.launch { client.logout() } },
+            onClick = { scope.launch { client.user.logout() } },
         )
     }
 }

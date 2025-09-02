@@ -19,6 +19,7 @@ package anystream.screens
 
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
+import anystream.client.PlaybackSessionHandle
 import anystream.components.LinkedText
 import anystream.libs.*
 import anystream.models.MediaItem
@@ -83,7 +84,7 @@ fun PlayerScreen(mediaLinkId: String) {
             isMouseOnPlayer || !playerIsPlaying
         }
     }
-    var sessionHandle by remember { mutableStateOf<AnyStreamClient.PlaybackSessionHandle?>(null) }
+    var sessionHandle by remember { mutableStateOf<PlaybackSessionHandle?>(null) }
     val mediaItem by produceState<MediaItem?>(null) {
         value = try {
             client.findMediaLink(mediaLinkId).let { (_, metadata) ->
@@ -96,7 +97,7 @@ fun PlayerScreen(mediaLinkId: String) {
     }
     val playbackState by produceState<PlaybackState?>(null) {
         var initialState: PlaybackState? = null
-        sessionHandle = client.playbackSession(
+        sessionHandle = client.stream.playbackSession(
             scope = this,
             mediaLinkId = mediaLinkId,
             onClosed = { playerMediaLinkId.value = null }
@@ -247,7 +248,7 @@ fun PlayerScreen(mediaLinkId: String) {
             }) {
                 LaunchedEffect(playbackState?.id, player) {
                     playbackState?.also { state ->
-                        val url = client.createHlsStreamUrl(mediaLinkId, state.id)
+                        val url = client.stream.createHlsStreamUrl(mediaLinkId, state.id)
                         println("[player] $url")
                         player?.src(url)
                         player?.play()
@@ -765,7 +766,7 @@ private fun SeekBar(
     }
     val previewUrl by derivedStateOf {
         val index = (mouseHoverProgress.inWholeSeconds / 5).coerceAtLeast(1)
-        "/api/image/previews/$mediaLinkId/preview$index.jpg?${AnyStreamClient.SESSION_KEY}=${client.token}"
+        "/api/image/previews/$mediaLinkId/preview$index.jpg?${AnyStreamClient.SESSION_KEY}=${client.user.token}"
     }
     val hasPreview by produceState(false, mediaLinkId) {
         value = try {

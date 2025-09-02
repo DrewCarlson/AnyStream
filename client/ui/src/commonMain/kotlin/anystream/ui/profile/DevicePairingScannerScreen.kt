@@ -38,9 +38,9 @@ fun DevicePairingScannerScreen(
     LaunchedEffect(scannedCode) {
         val currentCode = scannedCode
         if (currentCode != null) {
-            val user = client.user.filterNotNull().first()
+            val user = client.user.user.filterNotNull().first()
             try {
-                client.login(user.username, currentCode, pairing = true)
+                client.user.login(user.username, currentCode, pairing = true)
                 onPairingCompleted()
             } catch (e: Throwable) {
                 if (e is CancellationException) throw e

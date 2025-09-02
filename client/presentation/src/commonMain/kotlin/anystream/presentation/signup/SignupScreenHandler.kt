@@ -42,7 +42,7 @@ class SignupScreenHandler(
     addFunction<Effect.Signup> { (username, password, inviteCode, serverUrl) ->
         try {
             check(client.verifyAndSetServerUrl(serverUrl))
-            client.createUser(username, password, inviteCode).toSignupScreenEvent()
+            client.user.createUser(username, password, inviteCode).toSignupScreenEvent()
         } catch (e: Throwable) {
             Event.OnSignupError(CreateUserResponse.Error(null, null))
         }

@@ -42,9 +42,10 @@ private const val MENU_EXPANDED_KEY = "menu_expanded"
 fun SideMenu() {
     val client = get<AnyStreamClient>()
     val permissions by remember {
-        client.permissions
+        client.user
+            .permissions
             .map { it.orEmpty() }
-    }.collectAsState(client.userPermissions())
+    }.collectAsState(client.user.userPermissions())
     var expanded by remember {
         mutableStateOf(localStorage.getItem(MENU_EXPANDED_KEY)?.toBoolean() == true)
     }

@@ -47,13 +47,13 @@ fun webApp() = renderComposable(rootElementId = "root") {
     // Consume session token from cookie after oauth flow
     val client = get<AnyStreamClient>()
     LaunchedEffect(Unit) {
-        if (client.isAuthenticated()) return@LaunchedEffect
+        if (client.user.isAuthenticated()) return@LaunchedEffect
         val cookies = document.cookie.split(';').toMutableSet()
         cookies.forEach { cookie ->
             if (cookie.startsWith("as_user_session")) {
                 cookies.remove(cookie)
                 document.cookie = cookies.joinToString(";")
-                client.completeOauth(cookie.substringAfter('='))
+                client.user.completeOauth(cookie.substringAfter('='))
                 return@forEach
             }
         }
@@ -123,7 +123,7 @@ private fun ContentContainer(client: AnyStreamClient = get()) {
             string { id -> ScreenContainer { MediaScreen(id) } }
             noMatch { redirect("/home") }
         }
-        noMatch { redirect(if (client.isAuthenticated()) "/home" else "/login") }
+        noMatch { redirect(if (client.user.isAuthenticated()) "/home" else "/login") }
 
         val metadataId by playerMediaLinkId.collectAsState()
         metadataId?.let { PlayerScreen(it) }
@@ -137,7 +137,7 @@ private fun ScreenContainer(
 ) {
     val authRoutes = remember { listOf("/signup", "/login") }
     val client = get<AnyStreamClient>()
-    val isAuthenticated by client.authenticated.collectAsState(client.isAuthenticated())
+    val isAuthenticated by client.user.authenticated.collectAsState(client.user.isAuthenticated())
     val router = Router.current
     val currentPath by router.getPath("/")
 

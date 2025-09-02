@@ -113,7 +113,7 @@ private fun ActiveStreamsList() {
                     transcodeSession = transcodeSessions.getValue(playbackState.id),
                     onStopClicked = {
                         scope.launch {
-                            client.stopStreamSession(playbackState.id)
+                            client.stream.stopStreamSession(playbackState.id)
                         }
                     }
                 )

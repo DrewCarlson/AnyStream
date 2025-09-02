@@ -99,7 +99,7 @@ class Media3PlayerHandle(
             return
         }
         currentMediaLinkId = mediaLinkId
-        val handle = client.playbackSession(scope, mediaLinkId) { state ->
+        val handle = client.stream.playbackSession(scope, mediaLinkId) { state ->
             println("[PlayerHandle] $state")
             emitDuration(state.runtime)
             emitProgress(state.position)

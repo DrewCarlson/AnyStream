@@ -40,7 +40,7 @@ import org.w3c.dom.get
 fun UserManagerScreen() {
     val client = get<AnyStreamClient>()
     val users by produceState(emptyList<UserPublic>()) {
-        value = client.getUsers()
+        value = client.user.getUsers()
     }
     Div({ classes("d-flex", "flex-column", "pt-2", "ps-2") }) {
         Div { H3 { Text("Users") } }
@@ -93,14 +93,14 @@ private fun InviteCodeDialog(users: List<UserPublic>) {
     var inviteCodesState by remember {
         mutableStateOf<List<InviteCode>>(emptyList())
     }
-    scope.launch { inviteCodesState = client.getInvites() }
+    scope.launch { inviteCodesState = client.user.getInvites() }
     val createInviteCode: (Set<Permission>) -> Unit = { permissions ->
         scope.launch {
-            inviteCodesState = inviteCodesState + client.createInvite(permissions)
+            inviteCodesState = inviteCodesState + client.user.createInvite(permissions)
         }
     }
     val deleteInviteCode = { inviteCode: InviteCode ->
-        scope.launch { client.deleteInvite(inviteCode.secret) }
+        scope.launch { client.user.deleteInvite(inviteCode.secret) }
         inviteCodesState = inviteCodesState - inviteCode
     }
     val inviteCodeMap by derivedStateOf {

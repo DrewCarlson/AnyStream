@@ -55,7 +55,7 @@ internal fun AppTopBar(
     modifier: Modifier = Modifier,
 ) {
     val scope = rememberCoroutineScope()
-    val authed by client.authenticated.collectAsState(initial = client.isAuthenticated())
+    val authed by client.user.authenticated.collectAsState(client.user.isAuthenticated())
     TopAppBar(
         modifier = modifier,
         title = {
@@ -96,7 +96,7 @@ internal fun AppTopBar(
                         }
                     }
 
-                    IconButton(onClick = { scope.launch { client.logout() } }) {
+                    IconButton(onClick = { scope.launch { client.user.logout() } }) {
                         Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Sign out")
                     }
                 }

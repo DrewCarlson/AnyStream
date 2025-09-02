@@ -70,7 +70,7 @@ class AvPlayerHandle(
             return
         }
         currentMediaId = mediaLinkId
-        val handle = client.playbackSession(scope, mediaLinkId) { state ->
+        val handle = client.stream.playbackSession(scope, mediaLinkId) { state ->
             println("[player] $state")
         }
         scope.launch {

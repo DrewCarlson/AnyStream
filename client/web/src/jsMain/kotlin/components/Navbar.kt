@@ -46,7 +46,7 @@ val searchQuery = MutableStateFlow<String?>(null)
 fun Navbar() {
     val router = Router.current
     val client = get<AnyStreamClient>()
-    val isAuthenticated = client.authenticated.collectAsState(client.isAuthenticated())
+    val isAuthenticated = client.user.authenticated.collectAsState(client.user.isAuthenticated())
     Nav({ classes("navbar", "navbar-dark", "navbar-expand-lg", "bg-dark-translucent", "rounded", "shadow", "m-2") }) {
         Div({ classes("container-fluid") }) {
             A(attrs = {
@@ -59,7 +59,7 @@ fun Navbar() {
                 Img(src = "/images/as-logo.svg")
             }
             Div({ classes("collapse", "navbar-collapse") }) {
-                val permissionsState = client.permissions.collectAsState(null)
+                val permissionsState = client.user.permissions.collectAsState(null)
                 if (isAuthenticated.value) {
                     SearchBar()
                     SecondaryMenu(permissionsState.value ?: emptySet())
@@ -142,7 +142,7 @@ private fun SecondaryMenu(permissions: Set<Permission>) {
                     element,
                     onLogout = {
                         scope.launch {
-                            authMutex.withLock { client.logout() }
+                            authMutex.withLock { client.user.logout() }
                         }
                     },
                     onClose = { isMenuVisible = false },
