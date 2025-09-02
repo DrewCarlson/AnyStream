@@ -238,4 +238,21 @@ class MediaLinkDao(
             .where(MEDIA_LINK.ID.eq(id))
             .awaitFirstOrNull() == 1
     }
+
+    suspend fun findLinksToAnalyze(limit: Int = -1): List<String> {
+        // todo: add flag to media link when it cannot be probed, then filter here
+        return db.select(MEDIA_LINK.ID)
+            .from(MEDIA_LINK)
+            .leftJoin(STREAM_ENCODING)
+            .on(MEDIA_LINK.ID.eq(STREAM_ENCODING.MEDIA_LINK_ID))
+            .where(STREAM_ENCODING.MEDIA_LINK_ID.isNull)
+            .run {
+                if (limit == -1) {
+                    this
+                } else {
+                    limit(limit)
+                }
+            }
+            .awaitInto()
+    }
 }
