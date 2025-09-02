@@ -21,6 +21,7 @@ import anystream.data.MetadataDbQueries
 import anystream.data.UserSession
 import anystream.db.*
 import anystream.db.converter.JooqConverterProvider
+import anystream.jobs.GenerateVideoPreviewJob
 import anystream.jobs.registerJobs
 import anystream.media.LibraryService
 import anystream.media.analyzer.MediaFileAnalyzer
@@ -246,6 +247,7 @@ fun Application.module(testing: Boolean = false) {
             )
         }
         single { SearchService(get(), get(), get()) }
+        single { GenerateVideoPreviewJob({ get() }, get(), get(), get()) }
     }
     val config = get<AnyStreamConfig>()
     monitor.subscribe(ApplicationStopped) {

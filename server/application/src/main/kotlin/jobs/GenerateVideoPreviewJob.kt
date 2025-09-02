@@ -17,64 +17,77 @@
  */
 package anystream.jobs
 
+import anystream.AnyStreamConfig
+import anystream.db.MediaLinkDao
+import anystream.models.MediaLink
+import anystream.models.MediaLinkType
+import anystream.service.stream.MediaFileProbe
+import com.github.kokorin.jaffree.JaffreeException
+import com.github.kokorin.jaffree.ffmpeg.FFmpeg
+import com.github.kokorin.jaffree.ffmpeg.UrlInput
+import com.github.kokorin.jaffree.ffmpeg.UrlOutput
+import kotlinx.coroutines.future.await
+import org.slf4j.LoggerFactory
+import java.nio.file.Path
+import kotlin.io.path.createDirectories
+
 
 private const val PREVIEW_IMAGE_WIDTH = "240" // Image width, height will be scaled
-private const val PREVIEW_IMAGE_QUALITY = "5" // Possible values: 2-31
+private const val PREVIEW_IMAGE_QUALITY = "2" // Possible values: 2-31
 private const val PREVIEW_IMAGE_INTERVAL = "5" // Seconds between each image
 private const val PREVIEW_IMAGE_FILE_NAME = "preview%d.jpg"
 private const val FFMPEG_FILTER = "fps=fps=1/$PREVIEW_IMAGE_INTERVAL,scale=$PREVIEW_IMAGE_WIDTH:-1"
 
-/*object GenerateVideoPreviewJob : Job("generate-video-preview") {
-    private val MEDIA_LINK_ID = string("mediaLinkId")
+class GenerateVideoPreviewJob(
+    private val ffmpeg: () -> FFmpeg,
+    private val config: AnyStreamConfig,
+    private val mediaLinkDao: MediaLinkDao,
+    private val mediaFileProbe: MediaFileProbe,
+) {
+    private val logger = LoggerFactory.getLogger(GenerateVideoPreviewJob::class.java)
+    suspend fun execute(mediaLinkId: String) {
+        val basePath = config.dataPath
+            .resolve("previews")
+            .createDirectories()
 
-    fun register(
-        kjob: KJob,
-        ffmpeg: () -> FFmpeg,
-        rootStorageDir: String,
-        metadataDbQueries: MetadataDbQueries,
-    ) {
-        val previewStorage = "${rootStorageDir}${File.separator}previews"
-        kjob.register(GenerateVideoPreviewJob) {
-            execute {
-                val mediaLinkId = props[MEDIA_LINK_ID]
-                val mediaLink = metadataDbQueries.findMediaLinkByGid(mediaLinkId)
-                when (mediaLink?.type) {
-                    null -> logger.error("No mediaLink found for id: $mediaLinkId")
-                    MediaLinkType.DOWNLOAD ->  logger.error("Generating video previews for DownloadMediaLink is unsupported: $mediaLinkId")
-                    MediaLinkType.LOCAL -> generatePreview(logger, ffmpeg(), previewStorage, mediaLink)
-                }
-            }
-        }
-    }
-
-    suspend fun schedule(kjob: KJob, mediaLinkId: String) {
-        kjob.schedule(GenerateVideoPreviewJob) {
-            jobId = "$name-$mediaLinkId"
-            props[MEDIA_LINK_ID] = mediaLinkId
+        val mediaLink = mediaLinkDao.findById(mediaLinkId)
+        when (mediaLink?.type) {
+            null -> logger.error("No mediaLink found for id: $mediaLinkId")
+            MediaLinkType.DOWNLOAD -> logger.error("Generating video previews for DownloadMediaLink is unsupported: $mediaLinkId")
+            MediaLinkType.LOCAL -> generatePreview(basePath, mediaLink)
         }
     }
 
     private suspend fun generatePreview(
-        logger: Logger,
-        ffmpeg: FFmpeg,
-        rootStorageDir: String,
+        basePath: Path,
         mediaLink: MediaLink,
     ) {
-        val outputPath = Path(rootStorageDir, mediaLink.gid).createDirectories().absolutePathString()
-        val input = UrlInput.fromUrl(mediaLink.filePath)
-        val output = UrlOutput.toPath(Path(outputPath, PREVIEW_IMAGE_FILE_NAME))
-        logger.debug("Starting video preview generation in: $outputPath")
+        val outputPath = basePath.resolve(mediaLink.id)
+            .createDirectories()
+            .resolve(PREVIEW_IMAGE_FILE_NAME)
+        logger.debug("Starting video preview generation in: {}", outputPath)
         try {
-            ffmpeg
-                .addInput(input)
+            ffmpeg()
+                .addInput(UrlInput.fromUrl(mediaLink.filePath))
                 .addArguments("-vf", FFMPEG_FILTER)
                 .addArguments("-v:q", PREVIEW_IMAGE_QUALITY)
-                .addOutput(output)
-                .executeAwait()
+                .addOutput(UrlOutput.toPath(outputPath))
+                .executeAsync()
+                .toCompletableFuture()
+                .await()
+            /*val duration = mediaFileProbe.getFileDuration(FileSystems.getDefault().getPath(mediaLink.filePath!!))
+            val frames = duration.inWholeSeconds / 5
+            ffmpeg()
+                .addInput(UrlInput.fromUrl(mediaLink.filePath))
+                .addArguments("-vf", "fps=1/5,scale=240:135:force_original_aspect_ratio=increase,crop=240:135,tile=8x${frames / 8}")
+                .addOutput(UrlOutput.toPath(outputPath))
+                .executeAsync()
+                .toCompletableFuture()
+                .await()*/
             logger.debug("Video preview generation completed normally.")
         } catch (e: JaffreeException) {
             logger.error("Failed to generate video preview", e)
             return
         }
     }
-}*/
+}

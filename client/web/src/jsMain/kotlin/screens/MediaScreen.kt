@@ -33,6 +33,7 @@ import anystream.util.tooltip
 import app.softwork.routingcompose.Router
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.jetbrains.compose.web.css.*
@@ -46,6 +47,7 @@ val backdropImageUrl = MutableStateFlow<String?>(null)
 fun MediaScreen(mediaId: String) {
     val router = Router.current
     val client = get<AnyStreamClient>()
+    val scope = rememberCoroutineScope()
     val lookupIdFlow = remember(mediaId) { MutableStateFlow<Int?>(null) }
     val analyzeFiles: () -> Unit = remember(lookupIdFlow) { { lookupIdFlow.update { (it ?: 0) + 1 } } }
     val mediaResponse by produceState<MediaLookupResponse?>(null, mediaId) {
@@ -69,6 +71,15 @@ fun MediaScreen(mediaId: String) {
         }
     }
     val onFixMatch: (() -> Unit)? = remember(mediaResponse) { null }
+    val onGeneratePreview: (String?) -> Unit = remember(mediaResponse) {
+        { id: String? ->
+            if (!id.isNullOrBlank()) {
+                scope.launch {
+                    client.generatePreview(id)
+                }
+            }
+        }
+    }
     DisposableEffect(mediaId) {
         onDispose { backdropImageUrl.value = null }
     }
@@ -90,6 +101,9 @@ fun MediaScreen(mediaId: String) {
                     rootMetadataId = mediaItem.mediaId,
                     analyzeFiles = analyzeFiles,
                     onFixMatch = onFixMatch,
+                    onGeneratePreview = {
+                        onGeneratePreview(mediaItem.mediaLinks.firstOrNull()?.id)
+                    }
                 )
             }
 
@@ -104,6 +118,7 @@ fun MediaScreen(mediaId: String) {
                     analyzeFiles = analyzeFiles,
                     rootMetadataId = mediaItem.mediaId,
                     onFixMatch = onFixMatch,
+                    onGeneratePreview = null
                 )
 
                 if (response.seasons.isNotEmpty()) {
@@ -122,6 +137,7 @@ fun MediaScreen(mediaId: String) {
                     analyzeFiles = null,
                     rootMetadataId = response.show.id,
                     onFixMatch = onFixMatch,
+                    onGeneratePreview = null,
                 )
 
                 if (response.episodes.isNotEmpty()) {
@@ -144,6 +160,9 @@ fun MediaScreen(mediaId: String) {
                     parentMetadatId = response.episode.seasonId,
                     analyzeFiles = analyzeFiles,
                     onFixMatch = onFixMatch,
+                    onGeneratePreview = {
+                        onGeneratePreview(mediaItem.mediaLinks.firstOrNull()?.id)
+                    }
                 )
             }
         }
@@ -157,6 +176,7 @@ private fun BaseDetailsView(
     parentMetadatId: String? = null,
     analyzeFiles: (() -> Unit)?,
     onFixMatch: (() -> Unit)?,
+    onGeneratePreview: (() -> Unit)?,
 ) {
     Div({ classes("d-flex") }) {
         Div({ classes("d-flex", "flex-column", "align-items-center", "flex-shrink-0") }) {
@@ -278,6 +298,11 @@ private fun BaseDetailsView(
                             onAnalyzeFilesClicked = analyzeFiles,
                             onFixMatch = onFixMatch,
                             onClose = { isMenuVisible = false },
+                            onGeneratePreview = if (mediaItem.mediaLinks.isNotEmpty()) {
+                                onGeneratePreview
+                            } else {
+                                null
+                            }
                         )
                     }
                 }
@@ -602,6 +627,7 @@ private fun OptionsPopper(
     onFixMatch: (() -> Unit)? = null,
     onRefreshMetadata: (() -> Unit)? = null,
     onAnalyzeFilesClicked: (() -> Unit)?,
+    onGeneratePreview: (() -> Unit)?,
     onClose: () -> Unit,
 ) {
     var globalClickHandler by remember { mutableStateOf<ExternalClickMask?>(null) }
@@ -642,6 +668,17 @@ private fun OptionsPopper(
                             onClick { onAnalyzeFilesClicked() }
                         }) {
                             Text("Analyze Files")
+                        }
+                    }
+                }
+                if (onGeneratePreview != null) {
+                    Li {
+                        A(null, {
+                            classes("dropdown-item", "fs-6")
+                            style { cursor("pointer") }
+                            onClick { onGeneratePreview() }
+                        }) {
+                            Text("Generate Preview")
                         }
                     }
                 }

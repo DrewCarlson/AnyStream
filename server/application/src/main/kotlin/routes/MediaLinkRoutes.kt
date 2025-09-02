@@ -20,6 +20,7 @@ package anystream.routes
 import anystream.data.MetadataDbQueries
 import anystream.data.UserSession
 import anystream.db.MediaLinkDao
+import anystream.jobs.GenerateVideoPreviewJob
 import anystream.media.LibraryService
 import anystream.models.Descriptor
 import anystream.models.MediaLink
@@ -74,6 +75,13 @@ fun Route.addMediaLinkManageRoutes(
         }
 
         route("/{mediaLinkId}") {
+            get("/generate-preview") {
+                val mediaLink = mediaLink() ?: return@get call.respond(NotFound)
+                val generator = koinGet<GenerateVideoPreviewJob>()
+                application.launch { generator.execute(mediaLink.id) }
+                call.respond(OK)
+            }
+
             route("/matches") {
                 get {
                     val mediaLink = mediaLink() ?: return@get call.respond(NotFound)

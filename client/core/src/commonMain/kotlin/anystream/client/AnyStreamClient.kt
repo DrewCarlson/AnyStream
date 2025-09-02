@@ -680,6 +680,10 @@ class AnyStreamClient(
         }.buildString()
     }
 
+    suspend fun generatePreview(mediaLinkId: String): Boolean {
+        return http.get("$serverUrl/api/medialink/$mediaLinkId/generate-preview").status == OK
+    }
+
     suspend fun stopStreamSession(id: String): Boolean {
         val result = http.delete("$serverUrl/api/stream/stop/$id")
         return result.status == OK

@@ -927,7 +927,7 @@ private fun PreviewImage(src: String, isVisible: Boolean, onLoad: () -> Unit) {
     Div({
         classes("position-absolute")
         style {
-            property("transform", "translateY(-100%)")
+            property("transform", "translateY(-120%)")
             opacity(if (isVisible) 1 else 0)
         }
     }) {
