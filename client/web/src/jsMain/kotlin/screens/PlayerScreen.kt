@@ -31,6 +31,7 @@ import anystream.util.formatProgressAndRuntime
 import anystream.util.formatted
 import anystream.util.get
 import io.ktor.client.fetch.*
+import js.objects.unsafeJso
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.await
@@ -760,7 +761,7 @@ private fun SeekBar(
     var mouseHoverX by remember { mutableStateOf(0) }
     var mouseHoverProgress by remember { mutableStateOf(ZERO) }
     var popperVirtualElement by remember {
-        mutableStateOf(popperFixedPosition(-100, -100))
+        mutableStateOf(popperFixedPosition(-1000, -1000))
     }
     val previewUrl by derivedStateOf {
         val index = (mouseHoverProgress.inWholeSeconds / 5).coerceAtLeast(1)
@@ -856,18 +857,16 @@ private fun SeekBar(
             popperVirtualElement = object : PopperVirtualElement {
                 override val contextElement: HTMLElement = scopeElement
                 override fun getBoundingClientRect(): PopperRect {
-                    return PopperRect(
-                        right = mouseHoverX,
-                        left = mouseHoverX,
-                        width = 0,
-                        height = 0,
-                        top = 0,
-                        bottom = 0,
-                    )
+                    return unsafeJso {
+                        right = mouseHoverX
+                        left = mouseHoverX
+                        width = 0
+                        height = 0
+                    }
                 }
             }
             onDispose {
-                popperVirtualElement = popperFixedPosition(-100, -100)
+                popperVirtualElement = popperFixedPosition(-1000, -1000)
             }
         }
         if (hasPreview) {
