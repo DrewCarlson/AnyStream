@@ -42,11 +42,10 @@ class AnyStreamConfig(
         }
         fs.getPath(pathOrDefault).createDirectories()
     }
-    private val configPath = dataPath.resolve("config").createDirectories()
 
     val databaseUrl: String = run {
         val databaseUrl = config.property("app.databaseUrl").getString()
-            .ifBlank { configPath.resolve("anystream.db").absolutePathString() }
+            .ifBlank { dataPath.resolve("anystream.db").absolutePathString() }
         "jdbc:sqlite:$databaseUrl"
     }
 

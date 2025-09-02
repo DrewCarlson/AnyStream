@@ -85,16 +85,41 @@ import org.sqlite.javax.SQLiteConnectionPoolDataSource
 import qbittorrent.QBittorrentClient
 import java.nio.file.FileSystems
 import javax.sql.DataSource
+import kotlin.io.path.absolutePathString
+import kotlin.io.path.exists
+import kotlin.io.path.extension
+import kotlin.io.path.writeText
 import kotlin.random.Random
 import kotlin.time.Duration.Companion.seconds
 
 
+private val configFileSuffixes = listOf("conf", "yml", "yaml")
+
 suspend fun main(args: Array<String>) {
     val defaultConfig = ConfigFactory.load()
-    val userConfig = args
+    val configFile = args
         .firstOrNull { it.startsWith("-config=") }
         ?.substringAfter("=")
-        ?.let { ConfigFactory.parseFile(java.io.File(it)) }
+        .orEmpty()
+        .ifBlank { System.getenv("CONFIG_PATH") }
+        .takeIf { it.isNotBlank() && configFileSuffixes.contains(it.substringAfterLast('.')) }
+        ?.let { FileSystems.getDefault().getPath(it) }
+
+    if (configFile?.exists() == false) {
+        println("AnyStream config file does not exist, creating at '${configFile.absolutePathString()}'")
+        try {
+            val defaultConfig = when (configFile.extension) {
+                "conf" -> "app {\n\n}"
+                else -> "app:\n"
+            }
+            configFile.writeText(defaultConfig)
+        } catch (e: Throwable) {
+            println("Failed to write config file:")
+            e.printStackTrace()
+        }
+    }
+
+    val userConfig = configFile?.let { ConfigFactory.parseFile(it.toFile()) }
     val mergedConfig = if (userConfig == null) {
         defaultConfig
     } else {
