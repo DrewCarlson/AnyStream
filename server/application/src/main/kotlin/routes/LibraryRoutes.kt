@@ -70,7 +70,16 @@ fun Route.addLibraryModifyRoutes(
                     ?: return@get call.respond(NotFound)
 
                 application.launch {
-                    libraryService.scan(directory)
+                    when (val result = libraryService.scan(directory)) {
+                        is MediaScanResult.Success -> {
+                            // todo: New media links under existing directories will not get a metadata refresh
+                            result.directories.addedIds.forEach { id ->
+                                libraryService.refreshMetadata(id)
+                            }
+                        }
+
+                        else -> Unit // TODO: Handle errors
+                    }
                 }
 
                 call.respond(OK)

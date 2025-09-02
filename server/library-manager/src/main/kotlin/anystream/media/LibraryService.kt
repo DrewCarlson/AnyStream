@@ -183,6 +183,12 @@ class LibraryService(
         return mediaFileScanner.scan(directory)
     }
 
+    suspend fun refreshMetadata(directoryId: String): List<MediaLinkMatchResult> {
+        val directory = libraryDao.fetchDirectory(directoryId)
+            ?: return emptyList()// TODO: return no directory error
+        return refreshMetadata(directory)
+    }
+
     suspend fun refreshMetadata(directory: Directory): List<MediaLinkMatchResult> {
         val library = libraryDao.fetchLibraryForDirectory(directory.id)
             ?: return emptyList() // TODO: return no library error

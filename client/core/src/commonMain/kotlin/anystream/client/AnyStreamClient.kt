@@ -340,7 +340,7 @@ class AnyStreamClient(
 
     suspend fun scanDirectory(directoryId: String, refreshMetadata: Boolean = false) {
         try {
-            http.get("$serverUrl/api/directory/$directoryId/scan") {
+            http.get("$serverUrl/api/library/directory/$directoryId/scan") {
                 parameter("refreshMetadata", refreshMetadata)
             }.bodyOrThrow()
         } catch (e: Exception) {
