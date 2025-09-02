@@ -190,6 +190,10 @@ class StreamService(
         return transcodeSessionManager.getFilePathForSegment(token, segmentFile)
     }
 
+    fun isSessionActive(token: String): Boolean {
+        return transcodeSessionManager.allSessionIds().contains(token)
+    }
+
     suspend fun stopSession(token: String, deleteOutput: Boolean) {
         return transcodeSessionManager.stopSession(token, deleteOutput)
     }

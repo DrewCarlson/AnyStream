@@ -36,7 +36,10 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.drewcarlson.ktor.permissions.withPermission
+import kotlin.time.Duration.Companion.seconds
 
 private const val PLAYBACK_COMPLETE_PERCENT = 90
 
@@ -124,9 +127,9 @@ fun Route.addStreamRoutes(
             }
         }
 
-        get("/stop/{token}") {
+        delete("/stop/{token}") {
             val token = call.parameters["token"]!!
-            val delete = call.parameters["delete"]?.toBoolean() ?: false
+            val delete = call.parameters["delete"]?.toBoolean() ?: true
             streamService.stopSession(token, delete)
             call.respond(OK)
         }
@@ -145,13 +148,23 @@ fun Route.addStreamWsRoutes(
         val clientCapabilities = receiveDeserialized<ClientCapabilities>()
 
         val state = streamService.getPlaybackState(
-            mediaLinkId = mediaLinkId, 
-            userId = userId, 
+            mediaLinkId = mediaLinkId,
+            userId = userId,
             create = true,
             clientCapabilities = clientCapabilities
         ) ?: return@webSocket close()
 
         send(Frame.Text(json.encodeToString(state)))
+
+        launch {
+            // todo: provide flow from stream service, remove polling
+            while (true) {
+                delay(2.seconds)
+                if (!streamService.isSessionActive(state.id)) {
+                    close(CloseReason(CloseReason.Codes.GOING_AWAY, "Session ended by server"))
+                }
+            }
+        }
 
         var finalState = state
         for (frame in incoming) {

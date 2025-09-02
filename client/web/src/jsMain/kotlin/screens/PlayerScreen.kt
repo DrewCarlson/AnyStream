@@ -95,7 +95,11 @@ fun PlayerScreen(mediaLinkId: String) {
     }
     val playbackState by produceState<PlaybackState?>(null) {
         var initialState: PlaybackState? = null
-        sessionHandle = client.playbackSession(this, mediaLinkId) { state ->
+        sessionHandle = client.playbackSession(
+            scope = this,
+            mediaLinkId = mediaLinkId,
+            onClosed = { playerMediaLinkId.value = null }
+        ) { state ->
             println("[player] $state")
             if (initialState == null) {
                 initialState = state

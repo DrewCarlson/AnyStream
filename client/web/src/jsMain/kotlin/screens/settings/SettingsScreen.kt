@@ -30,6 +30,7 @@ import anystream.screens.settings.library.MediaLinkListScreen
 import anystream.util.formatProgressAndRuntime
 import anystream.util.get
 import app.softwork.routingcompose.RouteBuilder
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 
@@ -99,6 +100,7 @@ private fun ActiveStreamsList() {
     val mediaLookups = sessionsResponse.mediaLookups
     val playbackStates = sessionsResponse.playbackStates
     val users = sessionsResponse.users
+    val scope = rememberCoroutineScope()
 
     Div({ classes("d-flex", "flex-column", "pt-2", "ps-2") }) {
         Div { H3 { Text("Activity") } }
@@ -109,6 +111,11 @@ private fun ActiveStreamsList() {
                     user = users.getValue(playbackState.userId),
                     mediaLookup = mediaLookups.getValue(playbackState.metadataId),
                     transcodeSession = transcodeSessions.getValue(playbackState.id),
+                    onStopClicked = {
+                        scope.launch {
+                            client.stopStreamSession(playbackState.id)
+                        }
+                    }
                 )
             }
         }
@@ -121,6 +128,7 @@ private fun PlaybackSessionCard(
     transcodeSession: TranscodeSession,
     mediaLookup: MediaLookupResponse,
     playbackState: PlaybackState,
+    onStopClicked: () -> Unit,
 ) {
     val mediaItem = remember {
         checkNotNull(
@@ -143,7 +151,9 @@ private fun PlaybackSessionCard(
             },
         ) {
             Div { Text(mediaItem.contentTitle) }
-            Div {
+            Div({
+                classes("d-flex", "flex-row", "gap-2")
+            }) {
                 I(
                     {
                         classes("bi", "bi-filetype-json")
@@ -154,6 +164,12 @@ private fun PlaybackSessionCard(
                                 transcodeSession.toString(),
                             )
                         }
+                    },
+                )
+                I(
+                    {
+                        classes("bi", "bi-x-lg")
+                        onClick { onStopClicked() }
                     },
                 )
             }

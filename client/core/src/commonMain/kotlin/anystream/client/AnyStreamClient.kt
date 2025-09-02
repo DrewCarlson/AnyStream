@@ -429,6 +429,7 @@ class AnyStreamClient(
     fun playbackSession(
         scope: CoroutineScope,
         mediaLinkId: String,
+        onClosed: () -> Unit = {},
         init: (state: PlaybackState) -> Unit,
     ): PlaybackSessionHandle {
         val currentState = MutableStateFlow<PlaybackState?>(null)
@@ -462,6 +463,7 @@ class AnyStreamClient(
                 }
             }
         }
+        job.invokeOnCompletion { onClosed() }
         return PlaybackSessionHandle(
             update = progressFlow,
             cancel = { job.cancel() },
@@ -676,6 +678,11 @@ class AnyStreamClient(
                 parameters["capabilities"] = json.encodeToString(clientCapabilities)
             }
         }.buildString()
+    }
+
+    suspend fun stopStreamSession(id: String): Boolean {
+        val result = http.delete("$serverUrl/api/stream/stop/$id")
+        return result.status == OK
     }
 
     class PlaybackSessionHandle(
