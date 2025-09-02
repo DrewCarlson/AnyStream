@@ -20,6 +20,7 @@
     </logger>
 
     <logger name="org.jooq.impl.DefaultBinding" level="ERROR"/>
+    <logger name="org.jooq.impl.DefaultConnectionProvider" level="WARN"/>
     <logger name="org.jooq.tools.LoggerListener" level="INFO"/>
     <logger name="org.eclipse.jetty" level="INFO"/>
     <logger name="io.netty" level="INFO"/>
