@@ -18,10 +18,12 @@
 package anystream.models.api
 
 import anystream.models.MediaLink
+import anystream.models.StreamEncoding
 import kotlinx.serialization.Serializable
 
 @Serializable
 sealed interface MediaLookupResponse {
     val title: String?
     val mediaLinks: List<MediaLink>
+    val streamEncodings: Map<String, List<StreamEncoding>>
 }

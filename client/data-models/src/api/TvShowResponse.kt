@@ -19,6 +19,7 @@ package anystream.models.api
 
 import anystream.models.MediaLink
 import anystream.models.PlaybackState
+import anystream.models.StreamEncoding
 import anystream.models.TvSeason
 import anystream.models.TvShow
 import kotlinx.serialization.Serializable
@@ -28,6 +29,7 @@ data class TvShowResponse(
     val tvShow: TvShow,
     val seasons: List<TvSeason>,
     override val mediaLinks: List<MediaLink> = emptyList(),
+    override val streamEncodings: Map<String, List<StreamEncoding>> = emptyMap(),
     val playbackState: PlaybackState? = null,
 ) : MediaLookupResponse {
     override val title: String = tvShow.name

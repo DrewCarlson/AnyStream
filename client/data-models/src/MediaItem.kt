@@ -40,6 +40,7 @@ data class MediaItem(
     val parentMetadataId: String? = null,
     val rootMetadataId: String? = null,
     val mediaType: MediaType,
+    val streamEncodings: Map<String, List<StreamEncoding>> = emptyMap(),
 ) {
     val playableMediaLink: MediaLink? =
         mediaLinks.firstOrNull {
@@ -52,6 +53,11 @@ data class MediaItem(
             ?.toLocalDateTime(TimeZone.currentSystemDefault())
             ?.year
             ?.toString()
+
+    val hasStreamEncodings: Boolean =
+        mediaLinks.isNotEmpty() &&
+            streamEncodings.isNotEmpty() &&
+            streamEncodings.values.first().isNotEmpty()
 }
 
 fun Duration.asFriendlyString(): String {
@@ -83,6 +89,7 @@ fun MovieResponse.toMediaItem(): MediaItem {
         runtime = movie.runtime,
         contentRating = movie.contentRating,
         mediaType = MediaType.MOVIE,
+        streamEncodings = streamEncodings,
     )
 }
 
@@ -113,6 +120,7 @@ fun EpisodeResponse.toMediaItem(concise: Boolean = false): MediaItem {
         parentMetadataId = episode.seasonId,
         rootMetadataId = show.id,
         mediaType = MediaType.TV_EPISODE,
+        streamEncodings = streamEncodings,
         subtitle1 = if (concise) {
             "S${episode.seasonNumber}"
         } else {
@@ -138,6 +146,7 @@ fun SeasonResponse.toMediaItem(): MediaItem {
         parentMetadataId = show.id,
         rootMetadataId = show.id,
         mediaType = MediaType.TV_SEASON,
+        streamEncodings = streamEncodings,
     )
 }
 

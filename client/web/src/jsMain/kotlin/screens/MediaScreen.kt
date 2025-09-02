@@ -300,12 +300,7 @@ private fun BaseDetailsView(
                 }
             }
 
-            val hasStreamDetails = remember(mediaItem.mediaLinks) {
-                // todo: restore stream details
-                // mediaItem.mediaLinks.flatMap { it.streams }.isNotEmpty()
-                false
-            }
-            if (hasStreamDetails) {
+            if (mediaItem.hasStreamEncodings) {
                 StreamDetails(mediaItem)
             }
         }
@@ -336,24 +331,21 @@ private fun BadgeContainer(
 
 @Composable
 private fun StreamDetails(mediaItem: MediaItem) {
-    // TODO: Restore stream details
+    val defaultMediaLink = remember(mediaItem) {
+        mediaItem.mediaLinks.first()
+    }
+    val streams = remember(defaultMediaLink) {
+        mediaItem.streamEncodings[defaultMediaLink.id]
+            ?.map { it.typed() } ?: emptyList()
+    }
     val videoStreams = remember(mediaItem.mediaLinks) {
-        /*mediaItem.mediaLinks.flatMap {
-            it.streams.filterIsInstance<StreamEncoding.Video>()
-        }*/
-        emptyList<VideoStreamEncoding>()
+        streams.filterIsInstance<VideoStreamEncoding>()
     }
     val audioStreams = remember(mediaItem.mediaLinks) {
-        /*mediaItem.mediaLinks.flatMap {
-            it.streams.filterIsInstance<StreamEncoding.Audio>()
-        }*/
-        emptyList<AudioStreamEncoding>()
+        streams.filterIsInstance<AudioStreamEncoding>()
     }
     val subtitlesStreams = remember(mediaItem.mediaLinks) {
-        /*mediaItem.mediaLinks.flatMap {
-            it.streams.filterIsInstance<StreamEncoding.Subtitle>()
-        }*/
-        emptyList<SubtitleStreamEncoding>()
+        streams.filterIsInstance<SubtitleStreamEncoding>()
     }
 
     Div({ classes("d-flex", "flex-column") }) {
@@ -404,7 +396,7 @@ private fun <T : StreamEncodingTyped> EncodingDetailsItem(
     var isListVisible by remember { mutableStateOf(false) }
     var element by remember { mutableStateOf<HTMLElement?>(null) }
     val menuClickMask = remember { mutableStateOf<ExternalClickMask?>(null) }
-    val canSelectStream = items.size > 1 || allowDisable
+    val canSelectStream = items.size > 1 || (allowDisable && items.isNotEmpty())
     Div({ classes("d-flex", "flex-row", "align-items-center", "py-1") }) {
         val item = selectedItem.value
         Div({
@@ -489,7 +481,7 @@ private fun <T : StreamEncodingTyped> StreamSelectionMenu(
                     }
                 }
                 Ul({ classes("dropdown-menu", "dropdown-menu-dark", "show") }) {
-                    if (allowDisable) {
+                    if (allowDisable && items.isNotEmpty()) {
                         Li {
                             A(null, {
                                 classes("dropdown-item")

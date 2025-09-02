@@ -63,6 +63,19 @@ class MediaLinkDao(
         return db.fetchCountAsync(STREAM_ENCODING, STREAM_ENCODING.MEDIA_LINK_ID.eq(mediaLinkId))
     }
 
+    suspend fun findStreamEncodings(mediaLinkId: String): List<StreamEncoding> {
+        return db.selectFrom(STREAM_ENCODING)
+            .where(STREAM_ENCODING.MEDIA_LINK_ID.eq(mediaLinkId))
+            .awaitInto()
+    }
+
+    suspend fun findStreamEncodings(mediaLinkIds: List<String>): Map<String, List<StreamEncoding>> {
+        return db.selectFrom(STREAM_ENCODING)
+            .where(STREAM_ENCODING.MEDIA_LINK_ID.`in`(mediaLinkIds))
+            .awaitInto<StreamEncoding>()
+            .groupBy { it.mediaLinkId }
+    }
+
     suspend fun updateMetadataIds(updateModels: List<MediaLinkMetadataUpdate>) {
         val updateTime = Clock.System.now()
         val updates = updateModels.map { update ->

@@ -20,16 +20,13 @@ package anystream.data
 import anystream.db.*
 import anystream.db.util.*
 import anystream.db.pojos.*
-import anystream.db.tables.records.MetadataRecord
 import anystream.db.tables.references.MEDIA_LINK
 import anystream.db.tables.references.METADATA
 import anystream.models.*
 import anystream.models.PlaybackState
 import anystream.models.api.*
-import anystream.util.ObjectId
 import kotlinx.coroutines.future.await
 import org.jooq.DSLContext
-import org.jooq.kotlin.coroutines.transactionCoroutine
 
 class MetadataDbQueries(
     private val db: DSLContext,
@@ -106,6 +103,9 @@ class MetadataDbQueries(
             movie = mediaRecord.toMovieModel(),
             mediaLinks = mediaLinks,
             playbackState = playbackState,
+            streamEncodings = mediaLinks.associate { link ->
+                link.id to mediaLinkDao.findStreamEncodings(link.id)
+            }
         )
     }
 
@@ -201,11 +201,13 @@ class MetadataDbQueries(
         val playbackState = includePlaybackStateForUser?.let { userId ->
             playbackStatesDao.findByUserIdAndMetadataId(userId, episodeId)
         }
+        val streamEncodings = mediaLinkDao.findStreamEncodings(mediaLinks.map(MediaLink::id))
         return EpisodeResponse(
             episode = episodeRecord.toTvEpisodeModel(),
             show = showRecord.toTvShowModel(),
             mediaLinks = mediaLinks,
             playbackState = playbackState,
+            streamEncodings = streamEncodings,
         )
     }
 
