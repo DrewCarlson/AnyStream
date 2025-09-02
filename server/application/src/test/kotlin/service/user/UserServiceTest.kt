@@ -155,7 +155,7 @@ class UserServiceTest : FunSpec({
         val response = userService.createUser(body)
 
         assertIs<CreateUserResponse.Error>(response)
-        assertTrue(response.signupDisabled)
+        assertIs<CreateUserResponse.ErrorReason.SignupDisabled>(response.reason)
     }
 
     test("create second user with invite code succeeds") {
