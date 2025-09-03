@@ -75,7 +75,9 @@ fun webApp() = renderComposable(rootElementId = "root") {
             classes("position-absolute", "h-100", "w-100", "fade-in")
             style {
                 opacity(if (visible) 0.1 else 0)
-                backgroundImage("url('$actualBackgroundUrl')")
+                if (actualBackgroundUrl != null) {
+                    backgroundImage("url('$actualBackgroundUrl')")
+                }
                 backgroundPosition("center center")
                 backgroundSize("cover")
                 backgroundRepeat("no-repeat")
