@@ -52,14 +52,7 @@ import kotlinx.coroutines.flow.map
 class UserApiClient(
     private val http: HttpClient,
     private val sessionManager: SessionManager,
-    private val getServerUrl: () -> String?,
-    private val getServerUrlWs: () -> String?,
 ) {
-    private val serverUrl: String?
-        get() = getServerUrl()
-
-    private val serverUrlWs: String?
-        get() = getServerUrlWs()
 
     val authenticated: Flow<Boolean> = sessionManager.tokenFlow.map { it != null }
     val permissions: Flow<Set<Permission>?> = sessionManager.permissionsFlow
@@ -89,7 +82,7 @@ class UserApiClient(
         password: String,
         inviteCode: String?,
         rememberUser: Boolean = true,
-    ): CreateUserResponse = http.post("$serverUrl/api/users") {
+    ): CreateUserResponse = http.post("/api/users") {
         contentType(ContentType.Application.Json)
         parameter("createSession", rememberUser)
         setBody(CreateUserBody(username, password, inviteCode))
@@ -101,11 +94,11 @@ class UserApiClient(
     }
 
     suspend fun getUser(id: String): UserPublic {
-        return http.get("$serverUrl/api/users/$id").bodyOrThrow()
+        return http.get("/api/users/$id").bodyOrThrow()
     }
 
     suspend fun getUsers(): List<UserPublic> {
-        return http.get("$serverUrl/api/users").bodyOrThrow()
+        return http.get("/api/users").bodyOrThrow()
     }
 
     suspend fun updateUser(
@@ -114,7 +107,7 @@ class UserApiClient(
         password: String?,
         currentPassword: String?,
     ) {
-        http.put("$serverUrl/api/users/$userId") {
+        http.put("/api/users/$userId") {
             contentType(ContentType.Application.Json)
             setBody(
                 UpdateUserBody(
@@ -127,7 +120,7 @@ class UserApiClient(
     }
 
     suspend fun deleteUser(id: String) {
-        http.delete("$serverUrl/api/users/$id").orThrow()
+        http.delete("/api/users/$id").orThrow()
     }
 
     suspend fun login(
@@ -135,7 +128,7 @@ class UserApiClient(
         password: String,
         pairing: Boolean = false,
     ): CreateSessionResponse {
-        return http.post("$serverUrl/api/users/session") {
+        return http.post("/api/users/session") {
             contentType(ContentType.Application.Json)
             setBody(CreateSessionBody(username, password))
         }.bodyOrThrow<CreateSessionResponse>().also { response ->
@@ -147,7 +140,7 @@ class UserApiClient(
     }
 
     suspend fun completeOauth(token: String) {
-        val response = http.get("$serverUrl/api/users/session") {
+        val response = http.get("/api/users/session") {
             header(SESSION_KEY, token)
         }
         if (response.status == OK) {
@@ -161,13 +154,13 @@ class UserApiClient(
     suspend fun logout() {
         val token = sessionManager.fetchToken() ?: return
         sessionManager.clear()
-        http.delete("$serverUrl/api/users/session") {
+        http.delete("/api/users/session") {
             header(SESSION_KEY, token)
         }.orThrow()
     }
 
     suspend fun createPairedSession(pairingCode: String, secret: String): CreateSessionResponse {
-        val response = http.post("$serverUrl/api/users/session/paired") {
+        val response = http.post("/api/users/session/paired") {
             parameter("pairingCode", pairingCode)
             parameter("secret", secret)
         }.bodyOrThrow<CreateSessionResponse>()
@@ -182,7 +175,7 @@ class UserApiClient(
 
     @OptIn(DelicateCoroutinesApi::class)
     fun createPairingSession(): Flow<PairingMessage> = flow {
-        http.wss("$serverUrlWs/api/ws/users/pair") {
+        http.wss(path = "/api/ws/users/pair") {
             while (!incoming.isClosedForReceive) {
                 try {
                     emit(receiveDeserialized())
@@ -196,16 +189,16 @@ class UserApiClient(
     }
 
     suspend fun fetchAuthTypes(): List<String> {
-        return http.get("$serverUrl/api/users/auth-types").bodyOrThrow()
+        return http.get("/api/users/auth-types").bodyOrThrow()
     }
 
 
     suspend fun getInvites(): List<InviteCode> {
-        return http.get("$serverUrl/api/users/invite").bodyOrThrow()
+        return http.get("/api/users/invite").bodyOrThrow()
     }
 
     suspend fun createInvite(permissions: Set<Permission>): InviteCode {
-        return http.post("$serverUrl/api/users/invite") {
+        return http.post("/api/users/invite") {
             contentType(ContentType.Application.Json)
             setBody(permissions)
         }.bodyOrThrow()
@@ -213,7 +206,7 @@ class UserApiClient(
 
     suspend fun deleteInvite(id: String): Boolean {
         return try {
-            http.delete("$serverUrl/api/users/invite/$id").orThrow()
+            http.delete("/api/users/invite/$id").orThrow()
             true
         } catch (e: AnyStreamClientException) {
             if (e.response?.status == NotFound) false else throw e

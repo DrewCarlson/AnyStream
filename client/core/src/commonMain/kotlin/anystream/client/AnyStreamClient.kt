@@ -111,7 +111,12 @@ class AnyStreamClient(
         WebSockets {
             contentConverter = KotlinxWebsocketSerializationConverter(json)
         }
+        install(AdaptiveProtocolPlugin)
         defaultRequest {
+            attributes.put(ServerUrlAttribute, this@AnyStreamClient.serverUrl)
+            url {
+                takeFrom(this@AnyStreamClient.serverUrl)
+            }
             headers {
                 sessionManager.fetchToken()?.let { token ->
                     header(SESSION_KEY, token)
@@ -153,12 +158,10 @@ class AnyStreamClient(
         }
     }
 
-    val user  by lazy {
+    val user by lazy {
         UserApiClient(
             http = http,
             sessionManager = sessionManager,
-            getServerUrl = { this.serverUrl },
-            getServerUrlWs = { serverUrlWs },
         )
     }
     val stream by lazy {
@@ -166,7 +169,6 @@ class AnyStreamClient(
             http = http,
             sessionManager = sessionManager,
             getServerUrl = { this.serverUrl },
-            getServerUrlWs = { serverUrlWs },
         )
     }
 
@@ -187,7 +189,7 @@ class AnyStreamClient(
         return callbackFlow<T> {
             launch {
                 try {
-                    http.wss("$serverUrlWs$path") {
+                    http.wss(path = path) {
                         send(sessionManager.fetchToken()!!)
                         while (!incoming.isClosedForReceive && isActive) {
                             try {
@@ -212,7 +214,7 @@ class AnyStreamClient(
     }
 
     suspend fun getMediaLinkBif(mediaLinkId: String): Buffer? {
-        val response = http.get("${serverUrl}/api/image/previews/$mediaLinkId")
+        val response = http.get("/api/image/previews/$mediaLinkId")
         if (!response.status.isSuccess()) {
             return null
         }
@@ -232,7 +234,7 @@ class AnyStreamClient(
     }
 
     fun torrentListChanges(): Flow<List<String>> = callbackFlow {
-        http.wss("$serverUrlWs/api/ws/torrents/observe") {
+        http.wss(path = "/api/ws/torrents/observe") {
             send(sessionManager.fetchToken()!!)
             for (frame in incoming) {
                 if (frame is Frame.Text) {
@@ -248,7 +250,7 @@ class AnyStreamClient(
 
     @OptIn(DelicateCoroutinesApi::class)
     fun globalInfoChanges(): Flow<GlobalTransferInfo> = callbackFlow {
-        http.wss("$serverUrlWs/api/ws/torrents/global") {
+        http.wss(path = "/api/ws/torrents/global") {
             send(sessionManager.fetchToken()!!)
             while (!incoming.isClosedForReceive) {
                 try {
@@ -261,32 +263,32 @@ class AnyStreamClient(
         }
     }
 
-    suspend fun getHomeData(): HomeResponse = http.get("$serverUrl/api/home").bodyOrThrow()
+    suspend fun getHomeData(): HomeResponse = http.get("api/home").bodyOrThrow()
 
     suspend fun getHomeWatching(): CurrentlyWatching =
-        http.get("$serverUrl/api/home/watching").bodyOrThrow()
+        http.get("/api/home/watching").bodyOrThrow()
 
-    suspend fun getHomePopular(): Popular = http.get("$serverUrl/api/home/popular").bodyOrThrow()
+    suspend fun getHomePopular(): Popular = http.get("/api/home/popular").bodyOrThrow()
 
     suspend fun getMovies(): MoviesResponse =
-        http.get("$serverUrl/api/movies").bodyOrThrow()
+        http.get("/api/movies").bodyOrThrow()
 
     suspend fun getMovies(offset: Int, limit: Int = 30): MoviesResponse =
-        http.get("$serverUrl/api/movies") {
+        http.get("/api/movies") {
             parameter("offset", offset)
             parameter("limit", limit)
         }.bodyOrThrow()
 
     suspend fun getTvShows(page: Int = 1): TvShowsResponse =
-        http.get("$serverUrl/api/tv") { pageParam(page) }.bodyOrThrow()
+        http.get("/api/tv") { pageParam(page) }.bodyOrThrow()
 
     suspend fun getLibraries(): List<Library> {
-        return http.get("$serverUrl/api/library").bodyOrThrow()
+        return http.get("/api/library").bodyOrThrow()
     }
 
     suspend fun addLibraryFolder(libraryId: String, path: String): AddLibraryFolderResponse {
         return try {
-            http.put("$serverUrl/api/library/${libraryId}") {
+            http.put("/api/library/${libraryId}") {
                 contentType(ContentType.Application.Json)
                 setBody(AddLibraryFolderRequest(path))
             }.bodyOrThrow()
@@ -298,7 +300,7 @@ class AnyStreamClient(
 
     suspend fun removeMediaLink(mediaLinkId: String): Boolean {
         return try {
-            http.delete("$serverUrl/api/medialink/$mediaLinkId").orThrow()
+            http.delete("/api/medialink/$mediaLinkId").orThrow()
             true
         } catch (e: AnyStreamClientException) {
             if (e.response?.status == NotFound) false else throw e
@@ -307,7 +309,7 @@ class AnyStreamClient(
 
     suspend fun getDirectories(libraryId: String): List<Directory> {
         return try {
-            http.get("$serverUrl/api/library/$libraryId/directories").bodyOrThrow()
+            http.get("/api/library/$libraryId/directories").bodyOrThrow()
         } catch (e: Exception) {
             e.printStackTrace()
             emptyList()
@@ -316,7 +318,7 @@ class AnyStreamClient(
 
     suspend fun removeDirectory(directoryId: String): Boolean {
         return try {
-            http.delete("$serverUrl/api/library/directory/$directoryId").bodyOrThrow()
+            http.delete("/api/library/directory/$directoryId").bodyOrThrow()
         } catch (e: Exception) {
             e.printStackTrace()
             false
@@ -325,7 +327,7 @@ class AnyStreamClient(
 
     suspend fun scanDirectory(directoryId: String, refreshMetadata: Boolean = false) {
         try {
-            http.get("$serverUrl/api/library/directory/$directoryId/scan") {
+            http.get("/api/library/directory/$directoryId/scan") {
                 parameter("refreshMetadata", refreshMetadata)
             }.bodyOrThrow()
         } catch (e: Exception) {
@@ -335,7 +337,7 @@ class AnyStreamClient(
 
     suspend fun scanLibrary(libraryId: String) {
         try {
-            http.get("$serverUrl/api/library/$libraryId/scan").orThrow()
+            http.get("/api/library/$libraryId/scan").orThrow()
         } catch (e: Throwable) {
             e.printStackTrace()
         }
@@ -343,7 +345,7 @@ class AnyStreamClient(
 
     suspend fun getLibraryFolderList(): LibraryFolderList {
         return try {
-            http.get("$serverUrl/api/medialink/libraries").bodyOrThrow()
+            http.get("/api/medialink/libraries").bodyOrThrow()
         } catch (e: Exception) {
             e.printStackTrace()
             LibraryFolderList(emptyList())
@@ -351,59 +353,59 @@ class AnyStreamClient(
     }
 
     suspend fun unmappedMedia(mediaScanRequest: MediaScanRequest): List<String> {
-        return http.post("$serverUrl/api/metadata/libraries/unmapped") {
+        return http.post("/api/metadata/libraries/unmapped") {
             contentType(ContentType.Application.Json)
             setBody(mediaScanRequest)
         }.bodyOrThrow()
     }
 
     suspend fun refreshMetadata(metadataId: String): MediaLookupResponse {
-        return http.get("$serverUrl/api/media/$metadataId/refresh-metadata").bodyOrThrow()
+        return http.get("/api/media/$metadataId/refresh-metadata").bodyOrThrow()
     }
 
     suspend fun analyzeMediaLink(mediaLinkId: String): List<MediaAnalyzerResult> {
-        return http.get("$serverUrl/api/medialink/$mediaLinkId/analyze") {
+        return http.get("/api/medialink/$mediaLinkId/analyze") {
             parameter("waitForResult", true)
         }.bodyOrThrow()
     }
 
     suspend fun analyzeMediaLinksAsync(mediaLinkId: String) {
-        http.get("$serverUrl/api/medialink/$mediaLinkId/analyze") {
+        http.get("/api/medialink/$mediaLinkId/analyze") {
             parameter("waitForResult", false)
         }.bodyOrThrow<String>()
     }
 
     suspend fun lookupMedia(mediaId: String): MediaLookupResponse =
-        http.get("$serverUrl/api/media/$mediaId").bodyOrThrow()
+        http.get("/api/media/$mediaId").bodyOrThrow()
 
     suspend fun getTmdbSources(tmdbId: Int): List<TorrentDescription2> =
-        http.get("$serverUrl/api/media/tmdb/$tmdbId/sources").bodyOrThrow()
+        http.get("/api/media/tmdb/$tmdbId/sources").bodyOrThrow()
 
     suspend fun getGlobalTransferInfo(): GlobalTransferInfo =
-        http.get("$serverUrl/api/torrents/global").bodyOrThrow()
+        http.get("/api/torrents/global").bodyOrThrow()
 
     suspend fun getTorrents(): List<Torrent> =
-        http.get("$serverUrl/api/torrents").body()
+        http.get("/api/torrents").body()
 
     suspend fun getTorrentFiles(hash: String): List<TorrentFile> =
-        http.get("$serverUrl/api/torrents/$hash/files").bodyOrThrow()
+        http.get("/api/torrents/$hash/files").bodyOrThrow()
 
     suspend fun resumeTorrent(hash: String) {
-        http.get("$serverUrl/api/torrents/$hash/resume").orThrow()
+        http.get("/api/torrents/$hash/resume").orThrow()
     }
 
     suspend fun pauseTorrent(hash: String) {
-        http.get("$serverUrl/api/torrents/$hash/pause").orThrow()
+        http.get("/api/torrents/$hash/pause").orThrow()
     }
 
     suspend fun deleteTorrent(hash: String, deleteFiles: Boolean = false) {
-        http.delete("$serverUrl/api/torrents/$hash") {
+        http.delete("/api/torrents/$hash") {
             parameter("deleteFiles", deleteFiles)
         }.orThrow()
     }
 
     suspend fun downloadTorrent(description: TorrentDescription2, movieId: String?) {
-        http.post("$serverUrl/api/torrents") {
+        http.post("/api/torrents") {
             contentType(ContentType.Application.Json)
             setBody(description)
 
@@ -412,14 +414,14 @@ class AnyStreamClient(
     }
 
     suspend fun search(query: String, limit: Int? = null): SearchResponse {
-        return http.get("$serverUrl/api/search") {
+        return http.get("/api/search") {
             parameter("query", query)
             parameter("limit", limit)
         }.bodyOrThrow()
     }
 
     fun observeLogs(): Flow<String> = callbackFlow {
-        http.wss("$serverUrlWs/api/ws/admin/logs") {
+        http.wss(path = "/api/ws/admin/logs") {
             send(sessionManager.fetchToken()!!)
             for (frame in incoming) {
                 if (frame is Frame.Text) trySend(frame.readText())
@@ -429,11 +431,11 @@ class AnyStreamClient(
     }
 
     suspend fun getStreams(): PlaybackSessions {
-        return http.get("$serverUrl/api/stream").bodyOrThrow()
+        return http.get("/api/stream").bodyOrThrow()
     }
 
     suspend fun listFiles(path: String? = null, showFiles: Boolean = false): ListFilesResponse? {
-        val response = http.get("$serverUrl/api/medialink/libraries/list-files") {
+        val response = http.get("/api/medialink/libraries/list-files") {
             parameter("showFiles", showFiles)
             if (!path.isNullOrBlank()) {
                 parameter("root", path)
@@ -446,26 +448,26 @@ class AnyStreamClient(
     }
 
     suspend fun scanMediaLink(mediaLinkId: String): MediaScanResult? {
-        val response = http.get("$serverUrl/api/medialink/$mediaLinkId/scan")
+        val response = http.get("/api/medialink/$mediaLinkId/scan")
         return response.bodyOrThrow()
     }
 
     suspend fun matchesFor(mediaLinkId: String): List<MediaLinkMatchResult> {
-        return http.get("$serverUrl/api/medialink/$mediaLinkId/matches").bodyOrThrow()
+        return http.get("/api/medialink/$mediaLinkId/matches").bodyOrThrow()
     }
 
     suspend fun matchFor(mediaLinkId: String, remoteId: String) {
         val body = buildJsonObject {
             put("remoteId", remoteId)
         }
-        http.put("$serverUrl/api/medialink/$mediaLinkId/matches") {
+        http.put("/api/medialink/$mediaLinkId/matches") {
             contentType(ContentType.Application.Json)
             setBody(body)
         }
     }
 
     suspend fun getMediaLinks(parentId: String? = null): List<MediaLink> {
-        return http.get("$serverUrl/api/medialink") {
+        return http.get("/api/medialink") {
             parameter("parent", parentId)
         }.bodyOrThrow()
     }
@@ -474,7 +476,7 @@ class AnyStreamClient(
         mediaLinkId: String,
         includeMetadata: Boolean = true,
     ): MediaLinkResponse {
-        val response = http.get("$serverUrl/api/medialink/$mediaLinkId") {
+        val response = http.get("/api/medialink/$mediaLinkId") {
             parameter("includeMetadata", includeMetadata)
         }
         return response.bodyOrThrow()
@@ -482,7 +484,7 @@ class AnyStreamClient(
 
 
     suspend fun generatePreview(mediaLinkId: String): Boolean {
-        return http.get("$serverUrl/api/medialink/$mediaLinkId/generate-preview").status == OK
+        return http.get("/api/medialink/$mediaLinkId/generate-preview").status == OK
     }
 
 }

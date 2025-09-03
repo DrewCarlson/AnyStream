@@ -48,14 +48,9 @@ class StreamApiClient(
     private val http: HttpClient,
     private val sessionManager: SessionManager,
     private val getServerUrl: () -> String?,
-    private val getServerUrlWs: () -> String?,
 ) {
     private val serverUrl: String?
         get() = getServerUrl()
-
-    private val serverUrlWs: String?
-        get() = getServerUrlWs()
-
 
     fun playbackSession(
         scope: CoroutineScope,
@@ -68,7 +63,7 @@ class StreamApiClient(
         val clientCapabilities = createPlatformClientCapabilities()
         val job = scope.launch {
             try {
-                http.wss("$serverUrlWs/api/ws/stream/$mediaLinkId/state") {
+                http.wss(path = "/api/ws/stream/$mediaLinkId/state") {
                     send(sessionManager.fetchToken()!!)
 
                     sendSerialized(clientCapabilities)
@@ -125,7 +120,7 @@ class StreamApiClient(
     }
 
     suspend fun stopStreamSession(id: String): Boolean {
-        val result = http.delete("$serverUrl/api/stream/stop/$id")
+        val result = http.delete("/api/stream/stop/$id")
         return result.status == OK
     }
 }
