@@ -75,6 +75,7 @@ fun PosterCard(
                 backgroundColor(Color.darkgray)
                 height(posterHeight)
                 width(posterWidth)
+                property("clip-path", "inset(0px 0px 0px 0px round 0.4rem)")
             }
         }) {
             val isOverlayVisible by remember {
@@ -95,7 +96,7 @@ fun PosterCard(
             if (completedPercent != null) {
                 val progressBarHeight = 5.px
                 Div({
-                    classes("position-absolute", "w-100", "rounded-bottom")
+                    classes("position-absolute", "w-100", "fade-in-fast")
                     style {
                         height(progressBarHeight)
                         bottom(0.px)
@@ -104,6 +105,7 @@ fun PosterCard(
                         if (isOverlayVisible) {
                             opacity(0)
                         }
+                        property("z-index", 2)
                     }
                 }) {
                     Div({
@@ -112,13 +114,6 @@ fun PosterCard(
                             height(progressBarHeight)
                             backgroundColor(rgb(255, 8, 28))
                             width((completedPercent * 100).toInt().percent)
-                            val roundingRadius = .25.cssRem
-                            borderRadius(
-                                topLeft = 0.px,
-                                topRight = 0.px,
-                                bottomLeft = roundingRadius,
-                                bottomRight = if (completedPercent <= .98) 0.px else roundingRadius,
-                            )
                         }
                     })
                 }
@@ -135,12 +130,12 @@ fun PosterCard(
                     value = "/api/image/$metadataId/poster.jpg?width=300"
                 }
             }
-            Div({ classes("bg-dark-translucent", "rounded", "h-100", "w-100") }) {
+            Div({ classes("bg-dark-translucent", "h-100", "w-100") }) {
                 if (posterUrl == EMPTY_IMG) {
-                    Img(EMPTY_IMG) { classes("rounded", "h-100", "w-100") }
+                    Img(EMPTY_IMG) { classes("h-100", "w-100") }
                 } else {
                     Img(src = posterUrl) {
-                        classes("fade-in", "rounded", "h-100", "w-100")
+                        classes("fade-in", "h-100", "w-100")
                         attr("loading", "lazy")
                         attr("decoding", "async")
                         style {
@@ -185,7 +180,7 @@ private fun CardOverlay(
     onMenuClicked: (() -> Unit)? = null,
 ) {
     Div({
-        classes("position-absolute", "h-100", "w-100", "rounded")
+        classes("position-absolute", "h-100", "w-100")
         style {
             property("cursor", "pointer")
             property("z-index", 1)
@@ -208,9 +203,10 @@ private fun CardOverlay(
                 "w-100",
                 "p-3",
             )
-            classes("rounded", "border", "border-white")
+            classes("border", "border-white")
             style {
                 property("z-index", 3)
+                borderRadius(0.4.cssRem)
             }
         }) {
             val isPlaySelected = remember { mutableStateOf(onPlayClicked == null) }
@@ -274,7 +270,7 @@ private fun CardOverlay(
 
         Div({
             classes("position-absolute")
-            classes("rounded", "h-100", "w-100")
+            classes("h-100", "w-100")
             style {
                 backgroundColor(rgb(0, 0, 0))
                 property("z-index", 2)
