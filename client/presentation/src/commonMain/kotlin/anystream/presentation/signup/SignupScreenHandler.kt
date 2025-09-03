@@ -41,7 +41,7 @@ class SignupScreenHandler(
 
     addFunction<Effect.Signup> { (username, password, inviteCode, serverUrl) ->
         try {
-            check(client.verifyAndSetServerUrl(serverUrl))
+            check(client.core.verifyAndSetServerUrl(serverUrl))
             client.user.createUser(username, password, inviteCode).toSignupScreenEvent()
         } catch (e: Throwable) {
             Event.OnSignupError(CreateUserResponse.Error(null, null))
@@ -50,7 +50,7 @@ class SignupScreenHandler(
 
     addValueCollector<Effect.ValidateServerUrl>(ExecutionPolicy.Latest) { (serverUrl) ->
         val result = try {
-            client.verifyAndSetServerUrl(serverUrl)
+            client.core.verifyAndSetServerUrl(serverUrl)
             ServerValidation.VALID
         } catch (e: Throwable) {
             if (e is CancellationException) throw e

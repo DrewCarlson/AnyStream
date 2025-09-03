@@ -15,15 +15,18 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.client
+package anystream.client.api
 
+import anystream.client.createPlatformClientCapabilities
+import anystream.client.json
 import anystream.models.ClientCapabilities
 import anystream.models.PlaybackState
-import io.ktor.client.HttpClient
+import anystream.models.api.PlaybackSessions
 import io.ktor.client.plugins.websocket.receiveDeserialized
 import io.ktor.client.plugins.websocket.sendSerialized
 import io.ktor.client.plugins.websocket.wss
 import io.ktor.client.request.delete
+import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.URLBuilder
 import io.ktor.http.path
@@ -45,12 +48,12 @@ import kotlinx.coroutines.launch
 import kotlin.time.Duration
 
 class StreamApiClient(
-    private val http: HttpClient,
-    private val sessionManager: SessionManager,
-    private val getServerUrl: () -> String?,
+    private val core: AnyStreamApiCore,
 ) {
-    private val serverUrl: String?
-        get() = getServerUrl()
+
+    suspend fun getStreams(): PlaybackSessions {
+        return core.http.get("/api/stream").bodyOrThrow()
+    }
 
     fun playbackSession(
         scope: CoroutineScope,
@@ -63,8 +66,8 @@ class StreamApiClient(
         val clientCapabilities = createPlatformClientCapabilities()
         val job = scope.launch {
             try {
-                http.wss(path = "/api/ws/stream/$mediaLinkId/state") {
-                    send(sessionManager.fetchToken()!!)
+                core.http.wss(path = "/api/ws/stream/$mediaLinkId/state") {
+                    send( core.sessionManager.fetchToken()!!)
 
                     sendSerialized(clientCapabilities)
 
@@ -109,7 +112,7 @@ class StreamApiClient(
         token: String,
         clientCapabilities: ClientCapabilities? = createPlatformClientCapabilities()
     ): String {
-        return URLBuilder(serverUrl.orEmpty()).apply {
+        return URLBuilder( core.serverUrl.orEmpty()).apply {
             path("api", "stream", mediaLinkId, "hls", "playlist.m3u8")
             parameters["token"] = token
 
@@ -120,7 +123,7 @@ class StreamApiClient(
     }
 
     suspend fun stopStreamSession(id: String): Boolean {
-        val result = http.delete("/api/stream/stop/$id")
+        val result =  core.http.delete("/api/stream/stop/$id")
         return result.status == OK
     }
 }

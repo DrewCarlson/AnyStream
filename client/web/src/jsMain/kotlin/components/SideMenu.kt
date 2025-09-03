@@ -58,7 +58,7 @@ fun SideMenu() {
                 localStorage.removeItem("LIBRARIES_LIST")
                 null
             } ?: try {
-                client.getLibraries()
+                client.library.getLibraries()
             } catch (e: Throwable) {
                 e.printStackTrace()
                 emptyList()

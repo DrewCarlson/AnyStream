@@ -35,7 +35,7 @@ import org.jetbrains.compose.web.dom.Text
 fun TvShowScreen() {
     val client = get<AnyStreamClient>()
     val showResponse by produceState<TvShowsResponse?>(null) {
-        value = client.getTvShows()
+        value = client.library.getTvShows()
     }
 
     when (val response = showResponse) {

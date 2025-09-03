@@ -43,7 +43,7 @@ fun EditLibraryModal(
     val client = get<AnyStreamClient>()
     var folderListUpdate by remember { mutableStateOf(0) }
     val folderList by produceState<List<Directory>>(emptyList(), folderListUpdate) {
-        value = client.getDirectories(library.id)
+        value = client.library.getDirectories(library.id)
     }
     var screen by remember { mutableStateOf(LibraryModalScreen.DIRECTORY_LIST) }
     val scope = rememberCoroutineScope()
@@ -68,14 +68,14 @@ fun EditLibraryModal(
                     onRemoveClicked = { directory ->
                         scope.launch {
                             isLoading = true
-                            client.removeDirectory(directory.id)
+                            client.library.removeDirectory(directory.id)
                             isLoading = false
                         }
                     },
                     onScanClicked = { directory ->
                         scope.launch {
                             isLoading = true
-                            client.scanDirectory(directory.id, refreshMetadata = true)
+                            client.library.scanDirectory(directory.id, refreshMetadata = true)
                             isLoading = false
                         }
                     },

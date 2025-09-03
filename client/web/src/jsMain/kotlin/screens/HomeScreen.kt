@@ -54,7 +54,7 @@ fun HomeScreen() {
         while (value == null) {
             i = (i + 1).coerceAtMost(3)
             value = try {
-                client.getHomeData()
+                client.library.getHomeData()
             } catch (e: Throwable) {
                 null
             }

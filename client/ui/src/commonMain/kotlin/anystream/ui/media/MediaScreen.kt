@@ -63,7 +63,7 @@ fun MediaScreen(
     val client = LocalAnyStreamClient.current
     val mediaResponse by produceState<MediaLookupResponse?>(null, mediaId) {
         value = try {
-            client.lookupMedia(mediaId)
+            client.library.lookupMedia(mediaId)
         } catch (e: Throwable) {
             e.printStackTrace()
             null

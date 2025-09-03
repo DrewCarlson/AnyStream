@@ -42,14 +42,14 @@ fun MetadataMatchScreen(
         value = if (mediaLinkId == null) {
             null
         } else {
-            client.findMediaLink(mediaLinkId, includeMetadata = true)
+            client.library.findMediaLink(mediaLinkId, includeMetadata = true)
         }
     }
     val matches by produceState<List<MediaLinkMatchResult>>(emptyList(), mediaLinkId) {
         value = if (mediaLinkId == null) {
             emptyList()
         } else {
-            client.matchesFor(mediaLinkId)
+            client.library.matchesFor(mediaLinkId)
         }
     }
 
@@ -73,7 +73,7 @@ fun MetadataMatchScreen(
                         onMatchSelected = { match ->
                             scope.launch {
                                 onLoadingStatChanged(true)
-                                client.matchFor(mediaLinkResponse?.mediaLink?.id!!, match.remoteId)
+                                client.library.matchFor(mediaLinkResponse?.mediaLink?.id!!, match.remoteId)
                                 onLoadingStatChanged(false)
                                 closeScreen()
                             }
@@ -163,7 +163,7 @@ private fun MovieMatchResult(
         title = match.movie.title,
         year = match.movie.releaseYear.orEmpty(),
         overview = match.movie.overview,
-        posterUrl = client.buildImageUrl("poster", match.movie.id, 300),
+        posterUrl = client.images.buildImageUrl("poster", match.movie.id, 300),
         onClick = if (onClick == null) {
             null
         } else {
@@ -182,7 +182,7 @@ private fun TvShowMatchResult(
         title = match.tvShow.name,
         year = match.tvShow.releaseYear.orEmpty(),
         overview = match.tvShow.overview,
-        posterUrl = client.buildImageUrl("poster", match.tvShow.id, 300),
+        posterUrl = client.images.buildImageUrl("poster", match.tvShow.id, 300),
         onClick = if (onClick == null) {
             null
         } else {

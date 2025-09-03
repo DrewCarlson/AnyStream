@@ -95,7 +95,7 @@ fun SettingsSideMenu() {
 @Composable
 private fun ActiveStreamsList() {
     val client = get<AnyStreamClient>()
-    val sessionsResponse by client.playbackSessions.collectAsState(PlaybackSessions())
+    val sessionsResponse by client.admin.playbackSessions.collectAsState(PlaybackSessions())
     val transcodeSessions = sessionsResponse.transcodeSessions
     val mediaLookups = sessionsResponse.mediaLookups
     val playbackStates = sessionsResponse.playbackStates

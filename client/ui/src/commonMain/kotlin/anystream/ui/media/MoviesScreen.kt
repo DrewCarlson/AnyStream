@@ -36,7 +36,7 @@ fun MoviesScreen(
     modifier: Modifier
 ) {
     val response by produceState<MoviesResponse?>(null) {
-        value = client.getMovies()
+        value = client.library.getMovies()
     }
 
     AnimatedContent(targetState = response) { targetState ->

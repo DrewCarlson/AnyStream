@@ -75,7 +75,7 @@ internal fun LoginScreen(
     modifier: Modifier = Modifier,
 ) {
     val (modelState, eventConsumer) = rememberMobiusLoop(
-        LoginScreenModel.create(client.serverUrl, supportsPairing = false),
+        LoginScreenModel.create(client.core.serverUrl, supportsPairing = false),
         LoginScreenInit
     ) {
         FlowMobius.loop(

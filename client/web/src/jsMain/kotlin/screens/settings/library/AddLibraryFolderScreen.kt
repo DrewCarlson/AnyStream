@@ -51,7 +51,7 @@ fun AddLibraryFolderScreen(
         message = null
         value = ListFilesResponse()
         value = try {
-            client.listFiles(selectedPath)
+            client.library.listFiles(selectedPath)
         } catch (e: Throwable) {
             message = e.message
             null
@@ -99,7 +99,7 @@ fun AddLibraryFolderScreen(
                                 message = message?.substringBefore("....")
                             }
                         }
-                        val response = client.addLibraryFolder(library.id, selectedPath.orEmpty())
+                        val response = client.library.addLibraryFolder(library.id, selectedPath.orEmpty())
                         onLoadingStatChanged(false)
                         loadingJob.cancel()
                         isInputLocked = false

@@ -19,7 +19,7 @@ package anystream.screens
 
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
-import anystream.client.PlaybackSessionHandle
+import anystream.client.api.PlaybackSessionHandle
 import anystream.components.LinkedText
 import anystream.libs.*
 import anystream.models.MediaItem
@@ -89,7 +89,7 @@ fun PlayerScreen(mediaLinkId: String) {
     var sessionHandle by remember { mutableStateOf<PlaybackSessionHandle?>(null) }
     val mediaItem by produceState<MediaItem?>(null) {
         value = try {
-            client.findMediaLink(mediaLinkId).let { (_, metadata) ->
+            client.library.findMediaLink(mediaLinkId).let { (_, metadata) ->
                 (metadata as? MovieResponse)?.toMediaItem()
                     ?: (metadata as? EpisodeResponse)?.toMediaItem(concise = true)
             }
@@ -768,7 +768,7 @@ private fun SeekBar(
     }
     var bif by remember { mutableStateOf<BifFileReader?>(null) }
     LaunchedEffect(mediaLinkId) {
-        bif = client.getMediaLinkBif(mediaLinkId)
+        bif = client.images.getPreviewBif(mediaLinkId)
             ?.run(BifFileReader::open)
     }
     DisposableEffect(mediaLinkId) {

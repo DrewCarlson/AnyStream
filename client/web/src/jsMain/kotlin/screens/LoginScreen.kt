@@ -37,7 +37,7 @@ fun LoginScreen() {
     val router = Router.current
     val client = get<AnyStreamClient>()
     val (modelState, eventConsumer) = rememberMobiusLoop(
-        LoginScreenModel.create(client.serverUrl, supportsPairing = true),
+        LoginScreenModel.create(client.core.serverUrl, supportsPairing = true),
         LoginScreenInit
     ) {
         FlowMobius.loop(

@@ -37,7 +37,7 @@ fun TvShowsScreen(
     modifier: Modifier
 ) {
     val response by produceState<TvShowsResponse?>(null) {
-        value = client.getTvShows()
+        value = client.library.getTvShows()
     }
 
     AnimatedContent(targetState = response) { targetState ->

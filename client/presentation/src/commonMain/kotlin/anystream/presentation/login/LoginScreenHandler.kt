@@ -70,7 +70,7 @@ class LoginScreenHandler(
 
     addFunction<Effect.Login> { (username, password, serverUrl) ->
         try {
-            check(client.verifyAndSetServerUrl(serverUrl))
+            check(client.core.verifyAndSetServerUrl(serverUrl))
             client.user.login(username, password).toLoginScreenEvent()
         } catch (e: Throwable) {
             Event.OnLoginError(CreateSessionResponse.Error(null, null))
@@ -79,7 +79,7 @@ class LoginScreenHandler(
 
     addValueCollector<Effect.ValidateServerUrl>(ExecutionPolicy.Latest) { (serverUrl) ->
         val result = try {
-            if (client.verifyAndSetServerUrl(serverUrl)) {
+            if (client.core.verifyAndSetServerUrl(serverUrl)) {
                 ServerValidation.VALID
             } else {
                 ServerValidation.INVALID
@@ -93,7 +93,7 @@ class LoginScreenHandler(
     }
 
     addValueCollector<Effect.PairingSession>(ExecutionPolicy.Latest) { (serverUrl, cancel) ->
-        if (cancel || !client.verifyAndSetServerUrl(serverUrl)) return@addValueCollector
+        if (cancel || !client.core.verifyAndSetServerUrl(serverUrl)) return@addValueCollector
 
         lateinit var pairingCode: String
         val pairingFlow = client.user

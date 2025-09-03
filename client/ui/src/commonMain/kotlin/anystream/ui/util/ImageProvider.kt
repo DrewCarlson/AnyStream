@@ -40,7 +40,7 @@ private object StaticImageProvider : ImageProvider {
 fun AnyStreamClient.asImageProvider(): ImageProvider {
     return object : ImageProvider {
         override fun url(imageType: String, metadataId: String, width: Int): String {
-            return buildImageUrl(imageType, metadataId, width)
+            return images.buildImageUrl(imageType, metadataId, width)
         }
     }
 }

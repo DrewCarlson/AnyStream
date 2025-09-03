@@ -37,7 +37,7 @@ fun MediaLinkListScreen(libraryId: String) {
     val client = get<AnyStreamClient>()
     var updateIndex by remember { mutableStateOf(0) }
     val mediaLinks by produceState(emptyList<MediaLink>(), updateIndex) {
-        value = client.getMediaLinks(libraryId)
+        value = client.library.getMediaLinks(libraryId)
     }
     var matchMediaLinkId by remember { mutableStateOf<String?>(null) }
     val selectedMediaLinks = remember { mutableStateListOf<String>() }

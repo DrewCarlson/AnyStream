@@ -51,7 +51,7 @@ fun MediaScreen(mediaId: String) {
     val lookupIdFlow = remember(mediaId) { MutableStateFlow<Int?>(null) }
     val analyzeFiles: () -> Unit = remember(lookupIdFlow) { { lookupIdFlow.update { (it ?: 0) + 1 } } }
     val mediaResponse by produceState<MediaLookupResponse?>(null, mediaId) {
-        value = runCatching { client.lookupMedia(mediaId) }.getOrNull()
+        value = runCatching { client.library.lookupMedia(mediaId) }.getOrNull()
 
         val updateLock = Mutex()
         lookupIdFlow.filterNotNull().filter { !updateLock.isLocked }.collect {
@@ -60,9 +60,9 @@ fun MediaScreen(mediaId: String) {
                     value?.mediaLinks
                         ?.filter { it.descriptor.isMediaFileLink() }
                         ?.forEach { mediaLink ->
-                            client.analyzeMediaLink(mediaLink.id)
+                            client.library.analyzeMediaLink(mediaLink.id)
                         }
-                    value = client.lookupMedia(mediaId)
+                    value = client.library.lookupMedia(mediaId)
                 } catch (e: Throwable) {
                     e.printStackTrace()
                 }
@@ -75,7 +75,7 @@ fun MediaScreen(mediaId: String) {
         { id: String? ->
             if (!id.isNullOrBlank()) {
                 scope.launch {
-                    client.generatePreview(id)
+                    client.library.generatePreview(id)
                 }
             }
         }

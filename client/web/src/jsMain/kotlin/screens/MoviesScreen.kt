@@ -33,7 +33,7 @@ import org.jetbrains.compose.web.dom.Text
 fun MoviesScreen() {
     val client = get<AnyStreamClient>()
     val moviesResponse by produceState<MoviesResponse?>(null) {
-        value = client.getMovies()
+        value = client.library.getMovies()
     }
 
     when (val response = moviesResponse) {

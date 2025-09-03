@@ -39,12 +39,13 @@ import kotlin.math.roundToInt
 @Composable
 fun DownloadsScreen() {
     val client = get<AnyStreamClient>()
-    val globalInfoState by client.globalInfoChanges().collectAsState(null)
-    val torrents = client.torrentListChanges()
-        .debounce(2000)
-        .mapLatest { client.getTorrents() }
-        .onStart { emit(client.getTorrents()) }
-        .collectAsState(emptyList())
+    val globalInfoState by client.torrents.globalInfoChanges().collectAsState(null)
+    val torrents by remember {
+        client.torrents.torrentListChanges()
+            .debounce(2000)
+            .mapLatest { client.torrents.getTorrents() }
+            .onStart { emit(client.torrents.getTorrents()) }
+    }.collectAsState(emptyList())
     Div({ classes("d-flex", "flex-column", "pt-2") }) {
         Div({
             classes("d-flex", "flex-row", "align-items-center", "px-2", "pt-2", "rounded-top", "bg-dark")
@@ -76,7 +77,7 @@ fun DownloadsScreen() {
             }) {
                 Thead { TorrentHeader() }
                 Tbody {
-                    torrents.value.forEach { torrent ->
+                    torrents.forEach { torrent ->
                         TorrentRow(torrent)
                     }
                 }
@@ -213,7 +214,7 @@ private fun TorrentContextMenu(
                 classes("dropdown-item")
                 if (isPaused) classes("disabled")
                 onClick {
-                    scope.launch { client.pauseTorrent(torrent.hash) }
+                    scope.launch { client.torrents.pauseTorrent(torrent.hash) }
                 }
             }) { Text("Pause") }
         }
@@ -222,7 +223,7 @@ private fun TorrentContextMenu(
                 classes("dropdown-item")
                 if (!isPaused) classes("disabled")
                 onClick {
-                    scope.launch { client.resumeTorrent(torrent.hash) }
+                    scope.launch { client.torrents.resumeTorrent(torrent.hash) }
                 }
             }) { Text("Resume") }
         }
@@ -230,7 +231,7 @@ private fun TorrentContextMenu(
             A(attrs = {
                 classes("dropdown-item")
                 onClick {
-                    scope.launch { client.deleteTorrent(torrent.hash) }
+                    scope.launch { client.torrents.deleteTorrent(torrent.hash) }
                 }
             }) { Text("Delete") }
         }
@@ -238,7 +239,7 @@ private fun TorrentContextMenu(
             A(attrs = {
                 classes("dropdown-item")
                 onClick {
-                    scope.launch { client.deleteTorrent(torrent.hash, true) }
+                    scope.launch { client.torrents.deleteTorrent(torrent.hash, true) }
                 }
             }) { Text("Delete, Remove Files") }
         }

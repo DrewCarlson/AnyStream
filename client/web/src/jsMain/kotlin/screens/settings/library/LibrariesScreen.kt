@@ -38,7 +38,7 @@ fun LibrariesScreen() {
     var editLibrary by remember { mutableStateOf<Library?>(null) }
     val libraries by produceState(emptyList<Library>()) {
         value = try {
-            client.getLibraries()
+            client.library.getLibraries()
         } catch (e: Throwable) {
             emptyList()
         }
@@ -58,7 +58,7 @@ fun LibrariesScreen() {
                 onClick {
                     scope.launch {
                         libraries.forEach { library ->
-                            client.scanLibrary(library.id)
+                            client.library.scanLibrary(library.id)
                         }
                     }
                 }

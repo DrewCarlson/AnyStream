@@ -41,7 +41,7 @@ fun SignupScreen() {
     val client = get<AnyStreamClient>()
     val launchInviteCode = remember { Url(window.location.href).parameters["inviteCode"] }
     val (modelState, eventConsumer) = rememberMobiusLoop(
-        SignupScreenModel.create(client.serverUrl, launchInviteCode.orEmpty()),
+        SignupScreenModel.create(client.core.serverUrl, launchInviteCode.orEmpty()),
         SignupScreenInit
     ) {
         FlowMobius.loop(

@@ -79,9 +79,10 @@ private fun SecondaryMenu(permissions: Set<Permission>) {
     Ul({ classes("nav", "nav-pills", "ms-auto") }) {
         if (Permission.check(Permission.ConfigureSystem, permissions)) {
             var activityIsVisible by remember { mutableStateOf(false) }
-            val libraryActivity by client.libraryActivity
-                .throttleLatest(0.5.seconds)
-                .collectAsState(LibraryActivity())
+            val libraryActivity by remember {
+                client.admin.libraryActivity
+                    .throttleLatest(0.5.seconds)
+            }.collectAsState(LibraryActivity())
             val sessionCount by derivedStateOf { libraryActivity.playbackSessions.playbackStates.size }
             val scannerIsActive by derivedStateOf { libraryActivity.scannerState != MediaScannerState.Idle }
             val hasActivity by remember { derivedStateOf { sessionCount > 0 || scannerIsActive } }
@@ -213,7 +214,7 @@ private fun SearchBar() {
     val searchResponse by produceState<SearchResponse?>(null, queryState) {
         value = queryState?.let { query ->
             try {
-                client.search(query)
+                client.library.search(query)
             } catch (e: Throwable) {
                 null
             }
