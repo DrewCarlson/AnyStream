@@ -68,7 +68,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@3d1e2d2ca0a067f27da6fec484fce7f5256def85
         with:
-          python-version: '3.8'
+          python-version: '3.13'
           architecture: x64
           cache: 'pip'
           cache-dependency-path: 'docs/requirements.txt'
