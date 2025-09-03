@@ -45,11 +45,17 @@ val backdropImageUrl = MutableStateFlow<String?>(null)
 
 @Composable
 fun MediaScreen(mediaId: String) {
-    val router = Router.current
     val client = get<AnyStreamClient>()
     val scope = rememberCoroutineScope()
+    val permissions by client.user.permissions.collectAsState(client.user.userPermissions())
     val lookupIdFlow = remember(mediaId) { MutableStateFlow<Int?>(null) }
-    val analyzeFiles: () -> Unit = remember(lookupIdFlow) { { lookupIdFlow.update { (it ?: 0) + 1 } } }
+    val analyzeFiles: (() -> Unit)? = remember(lookupIdFlow, permissions) {
+        if (client.user.hasPermission(Permission.ManageCollection)) {
+            { lookupIdFlow.update { (it ?: 0) + 1 } }
+        } else {
+            null
+        }
+    }
     val mediaResponse by produceState<MediaLookupResponse?>(null, mediaId) {
         value = runCatching { client.library.lookupMedia(mediaId) }.getOrNull()
 
@@ -71,13 +77,17 @@ fun MediaScreen(mediaId: String) {
         }
     }
     val onFixMatch: (() -> Unit)? = remember(mediaResponse) { null }
-    val onGeneratePreview: (String?) -> Unit = remember(mediaResponse) {
-        { id: String? ->
-            if (!id.isNullOrBlank()) {
-                scope.launch {
-                    client.library.generatePreview(id)
+    val onGeneratePreview: ((String?) -> Unit)? = remember(mediaResponse, permissions) {
+        if (client.user.hasPermission(Permission.ManageCollection)) {
+            { id: String? ->
+                if (!id.isNullOrBlank()) {
+                    scope.launch {
+                        client.library.generatePreview(id)
+                    }
                 }
             }
+        } else {
+            null
         }
     }
     DisposableEffect(mediaId) {
@@ -101,9 +111,7 @@ fun MediaScreen(mediaId: String) {
                     rootMetadataId = mediaItem.mediaId,
                     analyzeFiles = analyzeFiles,
                     onFixMatch = onFixMatch,
-                    onGeneratePreview = {
-                        onGeneratePreview(mediaItem.mediaLinks.firstOrNull()?.id)
-                    }
+                    onGeneratePreview = onGeneratePreview
                 )
             }
 
@@ -160,9 +168,7 @@ fun MediaScreen(mediaId: String) {
                     parentMetadatId = response.episode.seasonId,
                     analyzeFiles = analyzeFiles,
                     onFixMatch = onFixMatch,
-                    onGeneratePreview = {
-                        onGeneratePreview(mediaItem.mediaLinks.firstOrNull()?.id)
-                    }
+                    onGeneratePreview = onGeneratePreview
                 )
             }
         }
@@ -176,7 +182,7 @@ private fun BaseDetailsView(
     parentMetadatId: String? = null,
     analyzeFiles: (() -> Unit)?,
     onFixMatch: (() -> Unit)?,
-    onGeneratePreview: (() -> Unit)?,
+    onGeneratePreview: ((id: String) -> Unit)?,
 ) {
     Div({ classes("d-flex") }) {
         Div({ classes("d-flex", "flex-column", "align-items-center", "flex-shrink-0") }) {
@@ -298,8 +304,8 @@ private fun BaseDetailsView(
                             onAnalyzeFilesClicked = analyzeFiles,
                             onFixMatch = onFixMatch,
                             onClose = { isMenuVisible = false },
-                            onGeneratePreview = if (mediaItem.mediaLinks.isNotEmpty()) {
-                                onGeneratePreview
+                            onGeneratePreview = if (mediaItem.mediaLinks.isNotEmpty() && onGeneratePreview != null) {
+                                { onGeneratePreview(mediaItem.mediaLinks.first().id) }
                             } else {
                                 null
                             }
