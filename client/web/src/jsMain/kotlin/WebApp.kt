@@ -84,7 +84,7 @@ fun webApp() = renderComposable(rootElementId = "root") {
         })
 
         CompositionLocalProvider(
-           LocalAnyStreamClient provides getKoin().get()
+            LocalAnyStreamClient provides getKoin().get()
         ) {
             ContentContainer()
         }

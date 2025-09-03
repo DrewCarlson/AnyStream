@@ -247,7 +247,7 @@ fun Application.module(testing: Boolean = false) {
             )
         }
         single { SearchService(get(), get(), get()) }
-        single { GenerateVideoPreviewJob({ get() }, get(), get(), get()) }
+        single { GenerateVideoPreviewJob({ get() }, get(), get()) }
     }
     val config = get<AnyStreamConfig>()
     monitor.subscribe(ApplicationStopped) {

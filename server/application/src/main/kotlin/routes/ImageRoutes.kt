@@ -20,7 +20,6 @@ package anystream.routes
 import anystream.AnyStreamConfig
 import anystream.metadata.MetadataService
 import anystream.util.koinGet
-import io.ktor.http.ContentDisposition
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode.Companion.NotFound
@@ -36,10 +35,12 @@ fun Route.addImageRoutes(
 ) {
     val dataPath = config.dataPath
     route("/image") {
-        get("/previews/{mediaLinkId}/{imageName}") {
+        get("/previews/{mediaLinkId}") {
             val mediaLinkId = call.parameters["mediaLinkId"] ?: return@get call.respond(NotFound)
-            val imageName = call.parameters["imageName"] ?: return@get call.respond(NotFound)
-            val imagePath = dataPath.resolve("previews").resolve(mediaLinkId).resolve(imageName)
+            val imagePath = dataPath
+                .resolve("previews")
+                .resolve(mediaLinkId)
+                .resolve("index-sd.bif")
             if (imagePath.exists()) {
                 call.respondFile(imagePath.toFile())
             } else {

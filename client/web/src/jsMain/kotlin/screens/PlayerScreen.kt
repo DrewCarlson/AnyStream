@@ -28,10 +28,12 @@ import anystream.models.api.EpisodeResponse
 import anystream.models.api.MovieResponse
 import anystream.models.toMediaItem
 import anystream.playerMediaLinkId
+import anystream.util.BifFileReader
 import anystream.util.formatProgressAndRuntime
 import anystream.util.formatted
 import anystream.util.get
 import io.ktor.client.fetch.*
+import io.ktor.util.encodeBase64
 import js.objects.unsafeJso
 import kotlinx.browser.document
 import kotlinx.browser.window
@@ -764,9 +766,34 @@ private fun SeekBar(
     var popperVirtualElement by remember {
         mutableStateOf(popperFixedPosition(-1000, -1000))
     }
-    val previewUrl by derivedStateOf {
-        val index = (mouseHoverProgress.inWholeSeconds / 5).coerceAtLeast(1)
-        "/api/image/previews/$mediaLinkId/preview$index.jpg?${AnyStreamClient.SESSION_KEY}=${client.user.token}"
+    var bif by remember { mutableStateOf<BifFileReader?>(null) }
+    LaunchedEffect(mediaLinkId) {
+        try {
+            val buffer = client.getMediaLinkBif(mediaLinkId)
+            bif = BifFileReader.open(buffer)
+        } catch (e: Exception) {
+            println("Failed to load bif ${e.message}")
+            e.printStackTrace()
+        }
+    }
+    DisposableEffect(mediaLinkId) {
+        onDispose {
+            bif?.close()
+            bif = null
+        }
+    }
+    val previewUrl by remember {
+        derivedStateOf {
+            val currentBif = bif
+            if (currentBif == null) {
+                ""
+            } else {
+                val index =
+                    (mouseHoverProgress.inWholeSeconds / 5)
+                        .coerceIn(0, currentBif.header.imageCount.toLong()).toInt()
+                "data:image/webp;base64,${currentBif.readFrame(index).bytes.encodeBase64()}"
+            }
+        }
     }
     val hasPreview by produceState(false, mediaLinkId) {
         value = try {
@@ -886,16 +913,7 @@ private fun SeekBar(
                         width(240.px)
                     }
                 }) {
-                    var nextImageHasLoaded by remember { mutableStateOf(false) }
-                    val images by produceState(previewUrl to "", previewUrl, nextImageHasLoaded) {
-                        value = if (nextImageHasLoaded) {
-                            previewUrl to value.second
-                        } else {
-                            value.first to previewUrl
-                        }
-                    }
-                    PreviewImage(images.first, !nextImageHasLoaded) { nextImageHasLoaded = false }
-                    PreviewImage(images.second, nextImageHasLoaded) { nextImageHasLoaded = true }
+                    PreviewImage(previewUrl)
                 }
             }
         }
@@ -924,17 +942,15 @@ private fun SeekBar(
 }
 
 @Composable
-private fun PreviewImage(src: String, isVisible: Boolean, onLoad: () -> Unit) {
+private fun PreviewImage(src: String) {
     Div({
         classes("position-absolute")
         style {
             property("transform", "translateY(-120%)")
-            opacity(if (isVisible) 1 else 0)
         }
     }) {
         Img(src = src, attrs = {
             style { width(240.px) }
-            addEventListener("load") { onLoad() }
         })
     }
 }

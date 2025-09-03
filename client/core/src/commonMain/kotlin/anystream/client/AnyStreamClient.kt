@@ -45,6 +45,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
+import kotlinx.io.Buffer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -208,6 +209,11 @@ class AnyStreamClient(
 
     fun buildImageUrl(imageType: String, metadataId: String, width: Int = 0): String {
         return "${serverUrl}/api/image/$metadataId/${imageType}.jpg?width=$width"
+    }
+
+    suspend fun getMediaLinkBif(mediaLinkId: String): Buffer {
+        val bytes = http.get("${serverUrl}/api/image/previews/$mediaLinkId").bodyAsBytes()
+        return Buffer().apply { write(bytes) }
     }
 
     suspend fun verifyAndSetServerUrl(serverUrl: String): Boolean {
