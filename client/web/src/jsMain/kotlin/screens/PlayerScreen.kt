@@ -768,13 +768,8 @@ private fun SeekBar(
     }
     var bif by remember { mutableStateOf<BifFileReader?>(null) }
     LaunchedEffect(mediaLinkId) {
-        try {
-            val buffer = client.getMediaLinkBif(mediaLinkId)
-            bif = BifFileReader.open(buffer)
-        } catch (e: Exception) {
-            println("Failed to load bif ${e.message}")
-            e.printStackTrace()
-        }
+        bif = client.getMediaLinkBif(mediaLinkId)
+            ?.run(BifFileReader::open)
     }
     DisposableEffect(mediaLinkId) {
         onDispose {

@@ -211,9 +211,12 @@ class AnyStreamClient(
         return "${serverUrl}/api/image/$metadataId/${imageType}.jpg?width=$width"
     }
 
-    suspend fun getMediaLinkBif(mediaLinkId: String): Buffer {
-        val bytes = http.get("${serverUrl}/api/image/previews/$mediaLinkId").bodyAsBytes()
-        return Buffer().apply { write(bytes) }
+    suspend fun getMediaLinkBif(mediaLinkId: String): Buffer? {
+        val response = http.get("${serverUrl}/api/image/previews/$mediaLinkId")
+        if (!response.status.isSuccess()) {
+            return null
+        }
+        return Buffer().apply { write(response.bodyAsBytes()) }
     }
 
     suspend fun verifyAndSetServerUrl(serverUrl: String): Boolean {
