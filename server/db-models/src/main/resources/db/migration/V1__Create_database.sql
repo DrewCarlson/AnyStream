@@ -174,7 +174,7 @@ CREATE TABLE stream_encoding
 CREATE
 VIRTUAL TABLE searchable_content USING fts5
 (
-    id,
+    id UNINDEXED,
     content,
     media_type
 );
