@@ -142,7 +142,9 @@ private fun InviteCodeDialog(users: List<UserPublic>) {
 
 @Composable
 private fun CreateInviteCodeGroup(createInviteCode: (Set<Permission>) -> Unit) {
-    var selectedPermissions by remember { mutableStateOf(emptySet<Permission>()) }
+    var selectedPermissions by remember {
+        mutableStateOf(setOf<Permission>(Permission.ViewCollection))
+    }
     Div({
         classes("input-group", "px-3")
     }) {
@@ -167,7 +169,7 @@ private fun CreateInviteCodeGroup(createInviteCode: (Set<Permission>) -> Unit) {
         }) {
             Permission.all.forEach { permission ->
                 Option(Json.encodeToString(permission), {
-                    if (permission == Permission.ViewCollection) {
+                    if (selectedPermissions.contains(permission)) {
                         selected()
                     }
                 }) {
