@@ -1,4 +1,3 @@
-config.resolve.modules.push("../../processedResources/js/main");
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 if (config.devServer) {

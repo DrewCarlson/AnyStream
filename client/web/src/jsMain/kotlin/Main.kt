@@ -19,8 +19,6 @@ package anystream
 
 fun main() {
     require<Any>("./scss/anystream.scss")
-    require<Any>("@popperjs/core/dist/umd/popper.min.js")
-    require<Any>("bootstrap/dist/js/bootstrap.min.js")
     require<Any>("bootstrap-icons/font/bootstrap-icons.css")
     require<Any>("@fontsource/open-sans/index.css")
     require<Any>("video.js/dist/video-js.min.css")
