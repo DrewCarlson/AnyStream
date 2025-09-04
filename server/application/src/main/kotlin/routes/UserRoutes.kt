@@ -115,7 +115,7 @@ fun Route.addUserRoutes(
                                 session.permissions.contains(Permission.Global)
                             },
                         )
-                        call.respond(if (result) NotFound else OK)
+                        call.respond(if (result) OK else NotFound)
                     }
                 }
             }
