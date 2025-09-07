@@ -26,7 +26,6 @@ import anystream.models.api.*
 import anystream.util.ObjectId
 import kotlinx.datetime.Clock
 import org.bouncycastle.crypto.generators.OpenBSDBCrypt
-import org.bouncycastle.util.encoders.Hex
 import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.random.Random
@@ -61,7 +60,7 @@ class UserService(
 
     suspend fun createInviteCode(userId: String, permissions: Set<Permission>): InviteCode? {
         return inviteCodeDao.createInviteCode(
-            secret = Hex.toHexString(Random.nextBytes(INVITE_CODE_SIZE)),
+            secret = Random.nextBytes(INVITE_CODE_SIZE).toHexString(),
             permissions = permissions,
             userId = userId,
         )
@@ -269,7 +268,7 @@ class UserService(
             val user = queries.fetchUserByUsername(username) ?: return null
             return if (session.userId == user.id) {
                 pairingCodes[body.password] = PairingMessage.Authorized(
-                    secret = Hex.toHexString(Random.nextBytes(28)),
+                    secret = Random.nextBytes(28).toHexString(),
                     userId = session.userId,
                 )
                 CreateSessionResponse.Success(user.toPublic(), session.permissions)

@@ -70,7 +70,6 @@ import io.ktor.server.sessions.*
 import io.ktor.server.websocket.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import org.bouncycastle.util.encoders.Hex
 import org.drewcarlson.ktor.permissions.PermissionAuthorization
 import org.jooq.SQLDialect
 import org.jooq.impl.DSL
@@ -344,7 +343,7 @@ fun Application.module(testing: Boolean = false) {
     val sessionStorage = get<SqlSessionStorage>()
     install(Sessions) {
         headerOrQuery(UserSession.KEY, sessionStorage, SqlSessionStorage.Serializer) {
-            Hex.toHexString(Random.nextBytes(48))
+            Random.nextBytes(48).toHexString()
         }
     }
     install(WebsocketAuthorization) {
