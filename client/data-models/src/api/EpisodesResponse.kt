@@ -25,12 +25,6 @@ import anystream.models.TvShow
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class EpisodesResponse(
-    val episodes: List<Episode>,
-    val mediaLinks: Map<String, MediaLink>,
-)
-
-@Serializable
 data class EpisodeResponse(
     val episode: Episode,
     val show: TvShow,

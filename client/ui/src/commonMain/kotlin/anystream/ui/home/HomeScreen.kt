@@ -55,8 +55,8 @@ fun HomeScreen(
     client: AnyStreamClient,
     onMetadataClick: (metadataId: String) -> Unit,
     onPlayClick: (mediaLinkId: String) -> Unit,
-    onViewMoviesClicked: () -> Unit,
-    onViewTvShowsClicked: () -> Unit,
+    onViewMoviesClicked: (libraryId: String) -> Unit,
+    onViewTvShowsClicked: (libraryId: String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val (modelState, eventConsumer) = rememberMobiusLoop(HomeScreenModel.Loading, HomeScreenInit) {
@@ -72,6 +72,7 @@ fun HomeScreen(
             is HomeScreenModel.Loaded ->
                 HomeScreenContent(
                     modifier = modifier,
+                    libraries = currentModel.libraries,
                     currentlyWatching = currentModel.currentlyWatching,
                     recentlyAdded = currentModel.recentlyAdded,
                     popular = currentModel.popular,
@@ -91,13 +92,14 @@ fun HomeScreen(
 
 @Composable
 private fun HomeScreenContent(
+    libraries: List<Library>,
     currentlyWatching: CurrentlyWatching,
     recentlyAdded: RecentlyAdded,
     popular: Popular,
     populars: List<Pair<Movie, MediaLink?>>,
     onMetadataClick: (metadataId: String) -> Unit,
-    onViewMoviesClicked: () -> Unit,
-    onViewTvShowsClicked: () -> Unit,
+    onViewMoviesClicked: (String) -> Unit,
+    onViewTvShowsClicked: (String) -> Unit,
     onContinueWatchingClick: (mediaLinkId: String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -129,9 +131,14 @@ private fun HomeScreenContent(
         }
 
         if (recentlyAdded.movies.isNotEmpty()) {
-            SectionHeader(title = "Recently Added Movies", ctaText = "All Movies") {
-                onViewMoviesClicked()
-            }
+            SectionHeader(
+                title = "Recently Added Movies",
+                ctaText = "All Movies",
+                onCtaClicked = {
+                    // todo: get id from home data response
+                    onViewMoviesClicked(libraries.first { it.mediaKind == MediaKind.MOVIE }.id)
+                }
+            )
             MovieRow(
                 movies = recentlyAdded.movies.toList(),
                 onMetadataClick = onMetadataClick,
@@ -143,7 +150,10 @@ private fun HomeScreenContent(
             SectionHeader(
                 title = "Recently Added TV",
                 ctaText = "All Shows",
-                onCtaClicked = onViewTvShowsClicked,
+                onCtaClicked = {
+                    // todo: get id from home data response
+                    onViewTvShowsClicked(libraries.first { it.mediaKind == MediaKind.TV }.id)
+                },
             )
             TvRow(
                 shows = recentlyAdded.tvShows,

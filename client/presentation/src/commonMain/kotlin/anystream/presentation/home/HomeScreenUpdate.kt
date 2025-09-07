@@ -38,9 +38,10 @@ object HomeScreenUpdate : Update<Model, Event, Effect>, HomeScreenGeneratedUpdat
     ): Next<Model, Effect> {
         return next(
             Model.Loaded(
-                currentlyWatching = event.homeDate.currentlyWatching,
-                recentlyAdded = event.homeDate.recentlyAdded,
-                popular = event.homeDate.popular,
+                currentlyWatching = event.homeData.currentlyWatching,
+                recentlyAdded = event.homeData.recentlyAdded,
+                popular = event.homeData.popular,
+                libraries = event.libraries,
             ),
         )
     }

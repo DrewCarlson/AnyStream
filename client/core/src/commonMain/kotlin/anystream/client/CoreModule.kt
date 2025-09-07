@@ -36,6 +36,7 @@ fun coreModule() = module {
             serverUrl = getOrNull(qualifier(INITIAL_SERVER_URL)),
             httpClient = get(),
             sessionManager = get(),
+            dataStore = get(),
         )
     }
 }

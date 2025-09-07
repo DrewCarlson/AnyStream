@@ -41,6 +41,7 @@ class AnyStreamClient(
     serverUrl: String?,
     httpClient: HttpClient,
     private val sessionManager: SessionManager,
+    private val dataStore: SessionDataStore,
 ) {
     val core = AnyStreamApiCore(
         serverUrl = serverUrl,
@@ -53,5 +54,5 @@ class AnyStreamClient(
     val admin = AdminApiClient(core = core)
     val torrents = TorrentsApiClient(core = core)
     val images = ImagesApiClient(core = core)
-    val library = LibraryApiClient(core = core)
+    val library = LibraryApiClient(core = core, dataStore = dataStore)
 }

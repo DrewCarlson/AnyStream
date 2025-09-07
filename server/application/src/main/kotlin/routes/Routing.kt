@@ -34,8 +34,6 @@ fun Application.installRouting() {
             authenticate {
                 addHomeRoutes()
                 withAnyPermission(Permission.ViewCollection) {
-                    addTvShowRoutes()
-                    addMovieRoutes()
                     addSearchRoutes()
                     addMediaViewRoutes()
                     addMediaLinkViewRoutes()

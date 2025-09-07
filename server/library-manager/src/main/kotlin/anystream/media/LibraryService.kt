@@ -63,6 +63,14 @@ class LibraryService(
 
     val mediaScannerState: StateFlow<MediaScannerState> = mediaFileScanner.state
 
+    suspend fun getLibrary(libraryId: String): Library? {
+        return try {
+            libraryDao.fetchLibrary(libraryId)
+        } catch (_: Throwable) {
+            null
+        }
+    }
+
     suspend fun getLibraries(): List<Library> {
         return try {
             libraryDao.all()

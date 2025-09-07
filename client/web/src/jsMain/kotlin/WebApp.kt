@@ -18,10 +18,12 @@
 package anystream
 
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
 import anystream.client.AnyStreamClient
 import anystream.client.coreModule
 import anystream.components.Navbar
 import anystream.components.SideMenu
+import anystream.models.MediaKind
 import anystream.screens.*
 import anystream.screens.settings.SettingsScreen
 import anystream.screens.settings.SettingsSideMenu
@@ -95,6 +97,7 @@ fun webApp() = renderComposable(rootElementId = "root") {
 
 @Composable
 private fun ContentContainer(client: AnyStreamClient = get()) {
+    val libraries by client.library.libraries.collectAsState()
     BrowserRouter("/") {
         route("home") {
             noMatch { ScreenContainer { HomeScreen() } }
@@ -105,11 +108,21 @@ private fun ContentContainer(client: AnyStreamClient = get()) {
         route("signup") {
             noMatch { ScreenContainer({}) { SignupScreen() } }
         }
-        route("movies") {
-            noMatch { ScreenContainer { MoviesScreen() } }
-        }
-        route("tv") {
-            noMatch { ScreenContainer { TvShowScreen() } }
+        route("library") {
+            string { id ->
+                val library = libraries.firstOrNull { it.id == id }
+                when (library?.mediaKind) {
+                    MediaKind.MOVIE -> ScreenContainer { MoviesScreen(libraryId = id) }
+                    MediaKind.TV -> ScreenContainer { TvShowScreen(libraryId = id) }
+                    null -> Router.current.navigate("/")
+                    else -> {
+                        ScreenContainer {
+                            Text("Displaying '${library.mediaKind}' libraries is not currently supported.")
+                        }
+                    }
+                }
+            }
+            noMatch { redirect("/") }
         }
         route("downloads") {
             noMatch { ScreenContainer { DownloadsScreen() } }

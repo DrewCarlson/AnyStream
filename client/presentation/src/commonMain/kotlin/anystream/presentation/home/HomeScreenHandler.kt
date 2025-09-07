@@ -29,7 +29,10 @@ class HomeScreenHandler(
 
     addFunction<Effect.LoadHomeData> {
         try {
-            Event.OnHomeDataLoaded(client.library.getHomeData())
+            Event.OnHomeDataLoaded(
+                homeData = client.library.getHomeData(),
+                libraries = client.library.getLibraries(),
+            )
         } catch (e: Throwable) {
             Event.OnHomeDataError
         }

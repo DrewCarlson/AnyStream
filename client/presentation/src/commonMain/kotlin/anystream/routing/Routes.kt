@@ -17,6 +17,8 @@
  */
 package anystream.routing
 
+import dev.drewhamilton.poko.Poko
+
 sealed class Routes {
     abstract val path: String
 
@@ -36,12 +38,11 @@ sealed class Routes {
         override val path: String = "pairing-scanner"
     }
 
-    data object Movies : Routes() {
-        override val path: String = "movies"
-    }
-
-    data object Tv : Routes() {
-        override val path: String = "tv"
+    @Poko
+    class Library(
+        val libraryId: String
+    ) : Routes() {
+        override val path: String = "library/$libraryId"
     }
 
     data class Details(

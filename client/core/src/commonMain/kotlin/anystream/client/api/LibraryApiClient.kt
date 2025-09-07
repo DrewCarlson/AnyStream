@@ -18,6 +18,8 @@
 package anystream.client.api
 
 import anystream.client.AnyStreamClientException
+import anystream.client.SessionDataStore
+import anystream.client.json
 import anystream.models.Directory
 import anystream.models.Library
 import anystream.models.MediaLink
@@ -48,12 +50,47 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.contentType
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.retryWhen
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
+import kotlin.time.Duration.Companion.seconds
 
 class LibraryApiClient(
     private val core: AnyStreamApiCore,
+    private val dataStore: SessionDataStore
 ) {
+
+    val libraries: StateFlow<List<Library>> =
+        core.sessionManager
+            .userFlow
+            .map { user ->
+                if (user == null) {
+                    dataStore.remove("libraries")
+                    emptyList()
+                } else {
+                    val cachedList: List<Library>? = try {
+                        dataStore.read("libraries")
+                            ?.run(json::decodeFromString)
+                    } catch (_: Throwable) {
+                        dataStore.remove("libraries")
+                        null
+                    }
+                    cachedList ?: getLibraries().also { newList ->
+                        dataStore.write("libraries", json.encodeToString(newList))
+                    }
+                }
+            }
+            .retryWhen { _, count ->
+                delay((2.seconds * count.toInt()).coerceAtMost(15.seconds))
+                true
+            }
+            .stateIn(core.scope, SharingStarted.Eagerly, emptyList())
+
     suspend fun getHomeData(): HomeResponse = core.http.get("/api/home").bodyOrThrow()
 
     suspend fun getHomeWatching(): CurrentlyWatching =
@@ -61,17 +98,17 @@ class LibraryApiClient(
 
     suspend fun getHomePopular(): Popular = core.http.get("/api/home/popular").bodyOrThrow()
 
-    suspend fun getMovies(): MoviesResponse =
-        core.http.get("/api/movies").bodyOrThrow()
+    suspend fun getMovies(libraryId: String): MoviesResponse =
+        core.http.get("/api/library/${libraryId}").bodyOrThrow()
 
-    suspend fun getMovies(offset: Int, limit: Int = 30): MoviesResponse =
-        core.http.get("/api/movies") {
+    suspend fun getMovies(libraryId: String, offset: Int, limit: Int = 30): MoviesResponse =
+        core.http.get("/api/library/${libraryId}") {
             parameter("offset", offset)
             parameter("limit", limit)
         }.bodyOrThrow()
 
-    suspend fun getTvShows(page: Int = 1): TvShowsResponse =
-        core.http.get("/api/tv") { pageParam(page) }.bodyOrThrow()
+    suspend fun getTvShows(libraryId: String, page: Int = 1): TvShowsResponse =
+        core.http.get("/api/library/${libraryId}") { pageParam(page) }.bodyOrThrow()
 
     suspend fun getLibraries(): List<Library> {
         return core.http.get("/api/library").bodyOrThrow()

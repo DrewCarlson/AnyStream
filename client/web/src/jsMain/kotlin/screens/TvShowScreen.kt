@@ -32,10 +32,12 @@ import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.Text
 
 @Composable
-fun TvShowScreen() {
+fun TvShowScreen(
+    libraryId: String,
+) {
     val client = get<AnyStreamClient>()
-    val showResponse by produceState<TvShowsResponse?>(null) {
-        value = client.library.getTvShows()
+    val showResponse by produceState<TvShowsResponse?>(null, libraryId) {
+        value = client.library.getTvShows(libraryId)
     }
 
     when (val response = showResponse) {

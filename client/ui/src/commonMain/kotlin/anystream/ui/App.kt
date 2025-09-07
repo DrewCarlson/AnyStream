@@ -34,8 +34,7 @@ import anystream.ui.home.HomeScreen
 import anystream.ui.login.LoginScreen
 import anystream.ui.login.WelcomeScreen
 import anystream.ui.media.MediaScreen
-import anystream.ui.media.MoviesScreen
-import anystream.ui.media.TvShowsScreen
+import anystream.ui.media.LibraryScreen
 import anystream.ui.profile.DevicePairingScannerScreen
 import anystream.ui.profile.ProfileScreen
 import anystream.ui.theme.AppTheme
@@ -188,6 +187,7 @@ private fun DisplayRoute(
     padding: PaddingValues,
 ) {
     val client = LocalAnyStreamClient.current
+    val libraries by client.library.libraries.collectAsState()
     when (route) {
         Routes.Welcome -> WelcomeScreen { stack.push(Routes.Login) }
         Routes.Login -> {
@@ -214,43 +214,40 @@ private fun DisplayRoute(
                 onPlayClick = { mediaLinkId ->
                     stack.push(Routes.Player(mediaLinkId))
                 },
-                onViewMoviesClicked = {
-                    stack.push(Routes.Movies)
+                onViewMoviesClicked = { libraryId ->
+                    stack.push(Routes.Library(libraryId))
                 },
-                onViewTvShowsClicked = {
-                    stack.push(Routes.Tv)
-                },
-            )
-        }
-
-        Routes.Movies -> {
-            MoviesScreen(
-                client = client,
-                modifier = Modifier
-                    .padding(padding)
-                    .consumeWindowInsets(padding),
-                onMediaClick = { metadataId ->
-                    stack.push(Routes.Details(metadataId))
-                },
-                onPlayMediaClick = { mediaLinkId ->
-                    stack.push(Routes.Player(mediaLinkId))
+                onViewTvShowsClicked = { libraryId ->
+                    stack.push(Routes.Library(libraryId))
                 },
             )
         }
 
-        Routes.Tv -> {
-            TvShowsScreen(
-                client = client,
-                modifier = Modifier
-                    .padding(padding)
-                    .consumeWindowInsets(padding),
-                onMediaClick = { metadataId ->
-                    stack.push(Routes.Details(metadataId))
-                },
-                onPlayMediaClick = { mediaLinkId ->
-                    stack.push(Routes.Player(mediaLinkId))
-                },
-            )
+        is Routes.Library -> {
+            val library = libraries.firstOrNull { it.id == route.libraryId }
+            if (library == null) {
+                LaunchedEffect(Unit) {
+                    if (stack.size == 1) {
+                        stack.replace(Routes.Home)
+                    } else {
+                        stack.pop()
+                    }
+                }
+            } else {
+                LibraryScreen(
+                    client = client,
+                    library = library,
+                    modifier = Modifier
+                        .padding(padding)
+                        .consumeWindowInsets(padding),
+                    onMediaClick = { metadataId ->
+                        stack.push(Routes.Details(metadataId))
+                    },
+                    onPlayMediaClick = { mediaLinkId ->
+                        stack.push(Routes.Player(mediaLinkId))
+                    },
+                )
+            }
         }
 
         is Routes.Details -> {

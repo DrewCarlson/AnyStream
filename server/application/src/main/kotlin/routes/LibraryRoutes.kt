@@ -17,8 +17,10 @@
  */
 package anystream.routes
 
+import anystream.data.MetadataDbQueries
 import anystream.media.AddLibraryFolderResult
 import anystream.media.LibraryService
+import anystream.models.MediaKind
 import anystream.models.Permission
 import anystream.models.api.AddLibraryFolderRequest
 import anystream.models.api.AddLibraryFolderResponse
@@ -36,18 +38,41 @@ import kotlinx.coroutines.launch
 import org.drewcarlson.ktor.permissions.withPermission
 
 fun Route.addLibraryViewRoutes(
-    libraryService: LibraryService = koinGet()
+    libraryService: LibraryService = koinGet(),
+    queries: MetadataDbQueries = koinGet(),
 ) {
     route("/library") {
         get {
             call.respond(libraryService.getLibraries())
         }
 
-        withPermission(Permission.ManageCollection) {
-            route("/{libraryId}") {
+        route("/{libraryId}") {
+            get {
+                val libraryId = call.parameters["libraryId"] ?: return@get call.respond(NotFound)
+                val includeLinks = call.parameters["includeLinks"]?.toBoolean() ?: false
+                val library = libraryService.getLibrary(libraryId) ?: return@get call.respond(NotFound)
+
+                when (library.mediaKind) {
+                    MediaKind.MOVIE -> {
+                        val offset = call.parameters["offset"]?.toIntOrNull() ?: 0
+                        val limit = call.parameters["limit"]?.toIntOrNull() ?: 0
+                        val response = queries.findMovies(
+                            includeLinks = includeLinks,
+                            offset = offset,
+                            limit = limit,
+                        )
+                        call.respond(response)
+                    }
+                    MediaKind.TV -> call.respond(queries.findShows(includeLinks = includeLinks))
+                    MediaKind.MUSIC -> TODO()
+                    else -> call.respond(NotFound)
+                }
+            }
+
+            withPermission(Permission.ManageCollection) {
                 route("/directories") {
                     get {
-                        val libraryId = call.parameters["libraryId"] ?: return@get call.respond(UnprocessableEntity)
+                        val libraryId = call.parameters["libraryId"] ?: return@get call.respond(NotFound)
                         call.respond(libraryService.getLibraryRootDirectories(libraryId))
                     }
                 }

@@ -17,6 +17,7 @@
  */
 package anystream.presentation.home
 
+import anystream.models.Library
 import anystream.models.api.HomeResponse
 import dev.drewhamilton.poko.Poko
 
@@ -24,7 +25,8 @@ sealed class HomeScreenEvent {
 
     @Poko
     class OnHomeDataLoaded(
-        val homeDate: HomeResponse,
+        val homeData: HomeResponse,
+        val libraries: List<Library>,
     ) : HomeScreenEvent()
 
     data object OnHomeDataError : HomeScreenEvent()

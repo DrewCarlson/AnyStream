@@ -30,10 +30,12 @@ import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.Text
 
 @Composable
-fun MoviesScreen() {
+fun MoviesScreen(
+    libraryId: String,
+) {
     val client = get<AnyStreamClient>()
-    val moviesResponse by produceState<MoviesResponse?>(null) {
-        value = client.library.getMovies()
+    val moviesResponse by produceState<MoviesResponse?>(null, libraryId) {
+        value = client.library.getMovies(libraryId)
     }
 
     when (val response = moviesResponse) {

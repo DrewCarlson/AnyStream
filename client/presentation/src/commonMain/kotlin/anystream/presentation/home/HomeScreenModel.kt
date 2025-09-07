@@ -17,6 +17,7 @@
  */
 package anystream.presentation.home
 
+import anystream.models.Library
 import anystream.models.api.CurrentlyWatching
 import anystream.models.api.Popular
 import anystream.models.api.RecentlyAdded
@@ -26,6 +27,7 @@ sealed class HomeScreenModel {
     data object Loading : HomeScreenModel()
 
     data class Loaded(
+        val libraries: List<Library>,
         val currentlyWatching: CurrentlyWatching,
         val recentlyAdded: RecentlyAdded,
         val popular: Popular,

@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2025 AnyStream Maintainers
+ * Copyright (C) 2021 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,33 +21,34 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import anystream.client.AnyStreamClient
-import anystream.models.api.TvShowsResponse
-import anystream.models.toMediaItems
+import anystream.models.*
 import anystream.ui.components.LoadingScreen
 
-
 @Composable
-fun TvShowsScreen(
+fun LibraryScreen(
     client: AnyStreamClient,
+    library: Library,
     onMediaClick: (metadataId: String) -> Unit,
     onPlayMediaClick: (mediaLinkId: String) -> Unit,
     modifier: Modifier
 ) {
-    val response by produceState<TvShowsResponse?>(null) {
-        value = client.library.getTvShows()
+    val response by produceState<List<MediaItem>?>(null, library) {
+        value = when (library.mediaKind) {
+            MediaKind.MOVIE -> client.library.getMovies(library.id).toMediaItems()
+            MediaKind.TV -> client.library.getTvShows(library.id).toMediaItems()
+            else -> null
+        }
     }
 
     AnimatedContent(targetState = response) { targetState ->
         when (targetState) {
             null -> LoadingScreen()
             else -> {
-                val mediaItems = remember { targetState.toMediaItems() }
                 MediaItemGrid(
                     modifier = modifier,
-                    mediaItems = mediaItems,
+                    mediaItems = targetState,
                     onMediaClick = onMediaClick,
                     onPlayMediaClick = onPlayMediaClick,
                 )
