@@ -18,6 +18,7 @@
 package anystream.components
 
 import androidx.compose.runtime.*
+import kotlinx.browser.document
 import org.jetbrains.compose.web.ExperimentalComposeWebApi
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.AttrBuilderContext
@@ -96,7 +97,7 @@ fun <T> HorizontalGridScroller(
         scrollbars = scrollbars,
         bufferPages = bufferPages,
         placeholderBody = placeholderBody,
-        itemBody = itemBody
+        itemBody = itemBody,
     )
 }
 
@@ -117,7 +118,7 @@ fun <T> VerticalScroller(
         scrollbars = scrollbars,
         bufferPages = bufferPages,
         placeholderBody = placeholderBody,
-        itemBody = itemBody
+        itemBody = itemBody,
     )
 }
 
@@ -138,7 +139,7 @@ fun <T> HorizontalScroller(
         scrollbars = scrollbars,
         bufferPages = bufferPages,
         placeholderBody = placeholderBody,
-        itemBody = itemBody
+        itemBody = itemBody,
     )
 }
 
@@ -350,7 +351,9 @@ private fun <T> VirtualScroller(
     placeholderBody: (@Composable () -> Unit)? = null,
     itemBody: @Composable (T) -> Unit,
 ) {
-    val scroller = remember { VirtualScrollerImpl<T>(layout, direction, bufferPages) }
+    val scroller = remember(layout, direction, bufferPages) {
+        VirtualScrollerImpl<T>(layout, direction, bufferPages)
+    }
 
     Div(
         {
@@ -445,7 +448,7 @@ private fun <T> VirtualScroller(
             }
 
             Div {
-                val itemSlice by remember {
+                val itemSlice by remember(items) {
                     derivedStateOf {
                         scroller.renderItemStartIndex.value
                         scroller.viewportWH.value
