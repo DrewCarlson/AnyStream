@@ -108,13 +108,16 @@ class BifFileReader private constructor(
     }
 
     fun readFrame(index: Int): Frame {
+        require(index < indices.lastIndex) {
+            "Invalid $index for image count ${header.imageCount}"
+        }
         return source.peek().use { peekSource ->
             val targetFrame = indices[index]
             peekSource.skip(targetFrame.offset.toLong())
 
-            val bytes = if (index == indices.lastIndex) {
-                // todo: get length for final frame using last (-1) index offset
-                peekSource.readByteArray()
+            val bytes = if (index == (indices.lastIndex - 1)) {
+                val lastFrameSize = indices.last().offset - targetFrame.offset
+                peekSource.readByteArray(lastFrameSize)
             } else {
                 val nextOffset = indices[index + 1].offset
                 val length = nextOffset - targetFrame.offset
