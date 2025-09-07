@@ -101,12 +101,6 @@ fun Route.addMediaLinkManageRoutes(
                 }
             }
 
-            get("/scan") {
-                val mediaLink = mediaLink() ?: return@get call.respond(NotFound)
-                //call.respond(libraryManager.scan(mediaLink))
-                // TODO: Restore scan endpoint
-            }
-
             delete {
                 val mediaLink = mediaLink() ?: return@delete call.respond(NotFound)
                 if (libraryService.removeMediaLink(mediaLink)) {

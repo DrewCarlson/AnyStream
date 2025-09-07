@@ -34,12 +34,10 @@ import anystream.models.api.MediaLinkMatchResult
 import anystream.models.api.MediaLinkResponse
 import anystream.models.api.MediaLookupResponse
 import anystream.models.api.MediaScanRequest
-import anystream.models.api.MediaScanResult
 import anystream.models.api.MoviesResponse
 import anystream.models.api.Popular
 import anystream.models.api.SearchResponse
 import anystream.models.api.TvShowsResponse
-import anystream.torrent.search.TorrentDescription2
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
@@ -187,10 +185,6 @@ class LibraryApiClient(
         }.bodyOrThrow()
     }
 
-    suspend fun refreshMetadata(metadataId: String): MediaLookupResponse {
-        return core.http.get("/api/media/$metadataId/refresh-metadata").bodyOrThrow()
-    }
-
     suspend fun analyzeMediaLink(mediaLinkId: String): List<MediaAnalyzerResult> {
         return core.http.get("/api/medialink/$mediaLinkId/analyze") {
             parameter("waitForResult", true)
@@ -205,9 +199,6 @@ class LibraryApiClient(
 
     suspend fun lookupMedia(mediaId: String): MediaLookupResponse =
         core.http.get("/api/media/$mediaId").bodyOrThrow()
-
-    suspend fun getTmdbSources(tmdbId: Int): List<TorrentDescription2> =
-        core.http.get("/api/media/tmdb/$tmdbId/sources").bodyOrThrow()
 
     suspend fun search(query: String, limit: Int? = null): SearchResponse {
         return core.http.get("/api/search") {
@@ -226,11 +217,6 @@ class LibraryApiClient(
 
         if (response.status == NotFound) return null
 
-        return response.bodyOrThrow()
-    }
-
-    suspend fun scanMediaLink(mediaLinkId: String): MediaScanResult? {
-        val response = core.http.get("/api/medialink/$mediaLinkId/scan")
         return response.bodyOrThrow()
     }
 

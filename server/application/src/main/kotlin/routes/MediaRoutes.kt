@@ -22,28 +22,14 @@ import anystream.metadata.MetadataService
 import anystream.models.api.*
 import anystream.util.isRemoteId
 import anystream.util.koinGet
-import anystream.util.logger
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Route.addMediaManageRoutes(
-    queries: MetadataDbQueries = koinGet(),
-) {
+fun Route.addMediaManageRoutes() {
     route("/media") {
         route("/{metadataId}") {
-            get("/refresh-metadata") {
-                val metadataId = call.parameters["metadataId"] ?: ""
-                val result = queries.findMediaById(metadataId)
-
-                // todo: implement metadata refresh
-
-                if (!result.hasResult()) {
-                    logger.warn("No media found for $metadataId")
-                    return@get call.respond(NotFound)
-                }
-            }
         }
     }
 }
