@@ -49,7 +49,7 @@ compose-bundle = { module = "org.jetbrains.androidx.core:core-bundle", version =
 haze-core = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
 haze-materials = { module = "dev.chrisbanes.haze:haze-materials", version.ref = "haze" }
 
-koin-compose = { module = "io.insert-koin:koin-compose", version = "4.1.0" }
+koin-compose = { module = "io.insert-koin:koin-compose", version = "4.1.1" }
 
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version = "3.3.0" }
 coil-ktor = { module = "io.coil-kt.coil3:coil-network-ktor3", version = "3.3.0" }
