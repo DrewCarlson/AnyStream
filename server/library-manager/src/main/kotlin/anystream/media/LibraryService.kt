@@ -23,6 +23,7 @@ import anystream.media.processor.MediaFileProcessor
 import anystream.media.scanner.MediaFileScanner
 import anystream.models.*
 import anystream.models.api.*
+import anystream.models.backend.MediaScannerMessage
 import anystream.models.backend.MediaScannerState
 import anystream.util.toHumanReadableSize
 import kotlinx.coroutines.*
@@ -62,6 +63,7 @@ class LibraryService(
     private val mediaFileScanner = MediaFileScanner(mediaLinkDao, libraryDao, fs)
 
     val mediaScannerState: StateFlow<MediaScannerState> = mediaFileScanner.state
+    val mediaScannerMessages: Flow<MediaScannerMessage> = mediaFileScanner.messages
 
     suspend fun getLibrary(libraryId: String): Library? {
         return try {

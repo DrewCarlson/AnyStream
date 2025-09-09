@@ -32,6 +32,7 @@ import ch.qos.logback.core.AppenderBase
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.isActive
@@ -43,6 +44,7 @@ fun Route.addAdminRoutes() {
     }
 }
 
+@OptIn(FlowPreview::class)
 fun Route.addAdminWsRoutes(
     libraryService: LibraryService = koinGet(),
     streamService: StreamService = koinGet(),
@@ -66,7 +68,8 @@ fun Route.addAdminWsRoutes(
         check(Permission.check(Permission.ConfigureSystem, session.permissions))
         combine(
             sessionsFlow,
-            libraryService.mediaScannerState,
+            libraryService.mediaScannerState
+                .debounce(0.5.seconds),
         ) { playbackSessions, mediaScannerState ->
             LibraryActivity(mediaScannerState, playbackSessions)
         }.collect { sendSerialized(it) }

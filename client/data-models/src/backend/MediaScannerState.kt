@@ -17,7 +17,7 @@
  */
 package anystream.models.backend
 
-import anystream.models.MediaLink
+import anystream.models.Directory
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -25,7 +25,7 @@ sealed class MediaScannerState {
 
     @Serializable
     data class Active(
-        val mediaLinkIds: Set<String> = emptySet(),
+        val directoryNames: Set<String> = emptySet(),
     ) : MediaScannerState()
 
     @Serializable
@@ -36,16 +36,15 @@ sealed class MediaScannerState {
 sealed class MediaScannerMessage {
 
     @Serializable
-    data class Scanning(
-        val link: MediaLink,
+    data class ScanDirectoryStarted(
+        val directoryName: String,
+        val directoryPath: String,
+        val childDirectoryName: String? = null,
     ) : MediaScannerMessage()
 
     @Serializable
-    data class ScanComplete(
-        val link: MediaLink,
-        val updatedLinkIds: List<String>,
+    data class ScanDirectoryCompleted(
+        val directory: Directory,
+        val child: Directory? = null,
     ) : MediaScannerMessage()
-
-    @Serializable
-    data object Idle : MediaScannerMessage()
 }

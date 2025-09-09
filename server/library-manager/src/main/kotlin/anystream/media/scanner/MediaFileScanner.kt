@@ -28,9 +28,10 @@ import anystream.models.MediaKind
 import anystream.models.Descriptor
 import anystream.models.api.ContentIdContainer
 import anystream.models.api.MediaScanResult
+import anystream.models.backend.MediaScannerMessage
 import anystream.models.backend.MediaScannerState
-import anystream.util.concurrentMap
-import kotlinx.coroutines.coroutineScope
+import anystream.util.ObjectId
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.*
 import org.slf4j.LoggerFactory
 import java.nio.file.FileSystem
@@ -55,17 +56,23 @@ class MediaFileScanner(
 
     private val logger = LoggerFactory.getLogger(this::class.java)
     private val mediaScannerState = MutableStateFlow<MediaScannerState>(MediaScannerState.Idle)
+    private val messageQueue = MutableSharedFlow<MediaScannerMessage>(
+        replay = 0,
+        extraBufferCapacity = Int.MAX_VALUE,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST,
+    )
 
     val state: StateFlow<MediaScannerState> = mediaScannerState.asStateFlow()
+    val messages: Flow<MediaScannerMessage> = messageQueue.asSharedFlow()
 
     /**
      * Scan the file or directory at the [path] to add [Directory] and
-     * [MediaLink] records for all files that can be tracked.
+     * [anystream.models.MediaLink] records for all files that can be tracked.
      *
      * @param path An absolute file path to a media directory or file.
      */
     //TODO: Still used for tests, but should be removed in favor of typed directory and media link params.
-    suspend fun scan(path: Path): MediaScanResult {
+    internal suspend fun scan(path: Path): MediaScanResult {
         if (!path.isAbsolute) {
             return MediaScanResult.ErrorAbsolutePathRequired
         }
@@ -78,7 +85,7 @@ class MediaFileScanner(
     }
 
     /**
-     * Scan the directory to update all nested [Directory] and [MediaLink]
+     * Scan the directory to update all nested [Directory] and [anystream.models.MediaLink]
      * records for all files that can be tracked.
      *
      * @param directory An existing [Directory] record.
@@ -102,7 +109,7 @@ class MediaFileScanner(
     private suspend fun scanDirectory(
         path: Path,
         directory: Directory?,
-        parentDirectory: Directory?
+        parentDirectory: Directory?,
     ): MediaScanResult {
         require(path.isAbsolute) { "scanDirectory path must be absolute: $path" }
 
@@ -111,6 +118,25 @@ class MediaFileScanner(
         } else {
             return pruneAllPathRecords(path)
         }
+
+        val scanName = if (parentDirectory == null) {
+            path.name
+        } else {
+            "${path.parent.name} > ${path.name}"
+        }
+        addIdOrSetActiveState(scanName)
+
+        val startedMessage = if (parentDirectory == null) {
+            MediaScannerMessage.ScanDirectoryStarted(path.name, path.absolutePathString())
+        } else {
+            val parentPath = fs.getPath(parentDirectory.filePath)
+            MediaScannerMessage.ScanDirectoryStarted(
+                directoryName = parentPath.name,
+                directoryPath = parentPath.absolutePathString(),
+                childDirectoryName = path.name,
+            )
+        }
+        messageQueue.emit(startedMessage)
 
         val pathString = path.absolutePathString()
         var resultIdContainer = ContentIdContainer.EMPTY
@@ -145,6 +171,14 @@ class MediaFileScanner(
                     }
                 }
                 .filterIsInstance<MediaScanResult.Success>()
+
+        val message = if (parentDirectory == null) {
+            MediaScannerMessage.ScanDirectoryCompleted(directoryDb)
+        } else {
+            MediaScannerMessage.ScanDirectoryCompleted(parentDirectory, directoryDb)
+        }
+        messageQueue.emit(message)
+        removeIdOrIdleState(scanName)
 
         return MediaScanResult.Success(
             directories = resultIdContainer,
@@ -230,22 +264,22 @@ class MediaFileScanner(
         }
     }
 
-    private fun addIdOrSetActiveState(mediaLinkId: String) {
+    private fun addIdOrSetActiveState(directoryName: String) {
         mediaScannerState.update { state ->
             (state as? MediaScannerState.Active ?: MediaScannerState.Active()).run {
-                copy(mediaLinkIds = mediaLinkIds + mediaLinkId)
+                copy(directoryNames = directoryNames + directoryName)
             }
         }
     }
 
-    private fun removeIdOrIdleState(mediaLinkId: String) {
+    private fun removeIdOrIdleState(directoryName: String) {
         mediaScannerState.update { state ->
             if (state is MediaScannerState.Active) {
-                val updatedIds = state.mediaLinkIds - mediaLinkId
-                if (updatedIds.isEmpty()) {
+                val updatedDirectoryNames = state.directoryNames - directoryName
+                if (updatedDirectoryNames.isEmpty()) {
                     MediaScannerState.Idle
                 } else {
-                    state.copy(mediaLinkIds = updatedIds)
+                    state.copy(directoryNames = updatedDirectoryNames)
                 }
             } else {
                 MediaScannerState.Idle

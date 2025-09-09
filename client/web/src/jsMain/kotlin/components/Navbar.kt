@@ -389,15 +389,12 @@ private fun ServerActivityPopper(
                 Li {
                     Div({ classes("vstack", "gap-1") }) {
                         Div { Text("Scanning Media") }
-                        activeState?.run {
+                        activeState?.let { state ->
                             Div({ classes("hstack", "gap-1") }) {
                                 LoadingIndicator(small = true)
-                                /* TODO: Restore media scanner details
-                                    (currentLink as? LocalMediaLink ?: libraryLink as? LocalMediaLink)?.let {
-                                    Div({ classes("text-nowrap", "overflow-hidden") }) {
-                                        Text(it.filename)
-                                    }
-                                }*/
+                                Div({ classes("text-nowrap", "overflow-hidden") }) {
+                                    Text(state.directoryNames.lastOrNull().orEmpty())
+                                }
                             }
                         }
                     }

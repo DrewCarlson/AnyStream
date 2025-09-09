@@ -25,6 +25,7 @@ import anystream.models.Permission
 import anystream.models.api.AddLibraryFolderRequest
 import anystream.models.api.AddLibraryFolderResponse
 import anystream.models.api.MediaScanResult
+import anystream.models.backend.MediaScannerMessage
 import anystream.util.koinGet
 import anystream.util.logger
 import io.ktor.http.HttpStatusCode.Companion.NotFound
@@ -34,6 +35,11 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 import org.drewcarlson.ktor.permissions.withPermission
 
@@ -63,6 +69,7 @@ fun Route.addLibraryViewRoutes(
                         )
                         call.respond(response)
                     }
+
                     MediaKind.TV -> call.respond(queries.findShows(includeLinks = includeLinks))
                     MediaKind.MUSIC -> TODO()
                     else -> call.respond(NotFound)
@@ -127,35 +134,31 @@ fun Route.addLibraryModifyRoutes(
                     logger.error("Failed to parse request body", e)
                     return@put call.respond(AddLibraryFolderResponse.RequestError(e.stackTraceToString()))
                 }
-                val response = when (val result = libraryService.addLibraryFolder(libraryId, request.path)) {
-                    is AddLibraryFolderResult.Success -> {
-                        val (library, directory) = result
 
-                        application.launch(Dispatchers.Default) {
-                            when (libraryService.scan(directory)) {
-                                is MediaScanResult.Success -> libraryService.refreshMetadata(directory)
+                val result = libraryService.addLibraryFolder(libraryId, request.path)
+                if (result is AddLibraryFolderResult.Success) {
+                    val (_, directory) = result
 
-                                else -> Unit // TODO: Handle errors
+                    application.launch(Dispatchers.Default) {
+                        var scanning = true
+                        libraryService.mediaScannerMessages
+                            .takeWhile { scanning }
+                            .filterIsInstance<MediaScannerMessage.ScanDirectoryCompleted>()
+                            .filter { it.directory.id == directory.id }
+                            .onEach { message ->
+                                val child = message.child
+                                if (child == null) {
+                                    scanning = false
+                                } else {
+                                    libraryService.refreshMetadata(child)
+                                }
                             }
-                        }
-
-                        AddLibraryFolderResponse.Success(library, directory)
+                            .launchIn(this)
+                        libraryService.scan(directory)
                     }
-
-                    is AddLibraryFolderResult.DatabaseError ->
-                        AddLibraryFolderResponse.DatabaseError(result.exception.stackTraceToString())
-
-                    is AddLibraryFolderResult.FileError ->
-                        AddLibraryFolderResponse.FileError(
-                            exists = result.exists,
-                            isDirectory = result.isDirectory,
-                        )
-
-                    AddLibraryFolderResult.NoLibrary, // TODO:
-                    AddLibraryFolderResult.LinkAlreadyExists ->
-                        AddLibraryFolderResponse.LibraryFolderExists
                 }
-                call.respond(response)
+
+                call.respond(result)
             }
 
             get("/scan") {
