@@ -4,7 +4,7 @@ anr_watchdog = "1.4.0"
 ax_runner = "1.7.0"
 leakcanary = "2.14"
 koinAndroid = "4.1.1"
-koinAndroidxCompose = "4.1.0"
+koinAndroidxCompose = "4.1.1"
 
 okhttp = "5.1.0"
 
