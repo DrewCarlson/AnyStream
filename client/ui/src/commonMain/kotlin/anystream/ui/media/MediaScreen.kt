@@ -21,9 +21,12 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
@@ -31,6 +34,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -101,6 +105,8 @@ fun MediaScreen(
                     onBackClicked = onBackClicked,
                     onPlayClick = onPlayClick,
                 )
+
+                CastAndCrewView(response.cast)
             }
 
             is MovieResponse -> {
@@ -109,6 +115,8 @@ fun MediaScreen(
                     onBackClicked = onBackClicked,
                     onPlayClick = onPlayClick,
                 )
+
+                CastAndCrewView(response.cast)
             }
 
             is SeasonResponse -> {
@@ -142,6 +150,8 @@ fun MediaScreen(
                         )
                     }
                 }
+
+                CastAndCrewView(response.cast)
             }
 
             null -> Unit
@@ -159,7 +169,7 @@ private fun BaseDetailsView(
     val imageUrlBuilder = LocalImageProvider.current
     Column(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
     ) {
         Box(
             Modifier
@@ -284,6 +294,76 @@ private fun BaseDetailsView(
 
         Box {
             subcontainer()
+        }
+    }
+}
+
+@Composable
+private fun CastAndCrewView(
+    credits: List<CastCredit>
+) {
+    val size = 140.dp
+    if (credits.isNotEmpty()) {
+        val imageUrlBuilder = LocalImageProvider.current
+        Row(
+            modifier = Modifier
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.Start),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Spacer(Modifier.width(6.dp))
+            credits.forEach { credit ->
+                Column(
+                    modifier = Modifier.width(size),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    val painter = rememberAsyncImagePainter(
+                        model = imageUrlBuilder.url("people", credit.person.id),
+                        contentScale = ContentScale.Crop,
+                    )
+                    val state by painter.state.collectAsState()
+                    when (state) {
+                        is AsyncImagePainter.State.Success -> {
+                            Image(
+                                painter = painter,
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .size(size)
+                                    .clip(CircleShape),
+                            )
+                        }
+
+                        AsyncImagePainter.State.Empty,
+                        is AsyncImagePainter.State.Error,
+                        is AsyncImagePainter.State.Loading -> {
+                            Box(
+                                modifier = Modifier
+                                    .size(size)
+                                    .background(Color.DarkGray)
+                                    .clip(CircleShape),
+                            )
+                        }
+
+                    }
+
+                    Spacer(Modifier.size(8.dp))
+                    Text(
+                        text = credit.person.name,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1,
+                        softWrap = false,
+                    )
+                    Text(
+                        text = credit.character,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1,
+                        softWrap = false,
+                    )
+                }
+            }
+            Spacer(Modifier.width(6.dp))
         }
     }
 }

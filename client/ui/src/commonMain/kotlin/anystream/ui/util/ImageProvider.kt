@@ -17,6 +17,7 @@
  */
 package anystream.ui.util
 
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.staticCompositionLocalOf
 import anystream.client.AnyStreamClient
 
@@ -24,6 +25,7 @@ val LocalImageProvider = staticCompositionLocalOf<ImageProvider> { StaticImagePr
 
 interface ImageProvider {
 
+    @Stable
     fun url(imageType: String, metadataId: String, width: Int = 0): String
 }
 
