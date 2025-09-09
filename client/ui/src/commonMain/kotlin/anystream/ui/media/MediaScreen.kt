@@ -19,14 +19,18 @@ package anystream.ui.media
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
@@ -35,13 +39,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import anystream.models.*
 import anystream.models.api.*
 import anystream.ui.LocalAnyStreamClient
@@ -53,6 +56,8 @@ import anystream.ui.generated.resources.tmdb_small
 import anystream.ui.util.LocalImageProvider
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.painterResource
 
 
@@ -96,6 +101,8 @@ fun MediaScreen(
             .fillMaxSize()
             .consumeWindowInsets(WindowInsets.statusBars)
             .navigationBarsPadding()
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.Top)
     ) {
         when (response) {
             is EpisodeResponse -> {
@@ -126,7 +133,7 @@ fun MediaScreen(
                     onPlayClick = onPlayClick,
                 ) {
                     if (response.episodes.isNotEmpty()) {
-                        EpisodeGrid(
+                        EpisodeList(
                             episodes = response.episodes,
                             mediaLinks = response.mediaLinkMap,
                             onEpisodeClick = { episode ->
@@ -207,15 +214,16 @@ private fun BaseDetailsView(
                     is AsyncImagePainter.State.Error -> Unit
                 }
 
-                val bgColor = MaterialTheme.colorScheme.background
                 Spacer(
-                    modifier = Modifier
-                        .fillMaxSize()
+                    Modifier
+                        .height(230.dp)
+                        .fillMaxWidth()
+                        .align(Alignment.BottomCenter)
                         .background(
                             brush = Brush.verticalGradient(
                                 colors = listOf(
-                                    bgColor.copy(alpha = 0f),
-                                    bgColor
+                                    Color(0x00181A20),
+                                    Color(0xFF181A20),
                                 ),
                             ),
                         ),
@@ -230,7 +238,7 @@ private fun BaseDetailsView(
                     IconButton(onClick = onBackClicked) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "",
+                            contentDescription = "Return to previous screen",
                             tint = MaterialTheme.colorScheme.onSurface,
                         )
                     }
@@ -238,7 +246,7 @@ private fun BaseDetailsView(
                     IconButton(onClick = { /*TODO*/ }) {
                         Icon(
                             Icons.Default.Search,
-                            contentDescription = "",
+                            contentDescription = null,
                             tint = MaterialTheme.colorScheme.onSurface,
                         )
                     }
@@ -249,14 +257,13 @@ private fun BaseDetailsView(
                         .fillMaxWidth()
                         .padding(top = 32.dp)
                         .padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.Bottom,
                 ) {
                     PosterCard(
                         title = null,
                         mediaId = mediaItem.mediaId,
                         onClick = null,
                         onPlayClick = null,
-                        modifier = Modifier
-                            .align(Alignment.Bottom)
                     )
 
                     MediaMetadata(mediaItem)
@@ -279,16 +286,56 @@ private fun BaseDetailsView(
         ) {
             Icon(
                 painterResource(Res.drawable.ic_play),
-                contentDescription = "",
+                contentDescription = null,
                 modifier = Modifier.size(20.dp),
             )
             Text(
-                text = if (mediaItem.playbackState != null) "Resume" else "Play",
+                text = if (mediaItem.playbackState == null) "Play" else "Resume",
                 modifier = Modifier.padding(start = 4.dp),
             )
         }
 
         ExpandableText(mediaItem.overview)
+
+        fun List<CrewCredit>.toUiString(prefix: String) =
+            if (isEmpty()) {
+                null
+            } else {
+                joinToString(
+                    transform = { it.person.name },
+                    separator = if (size > 2) ", " else " & ",
+                    prefix = prefix,
+                )
+            }
+        val crewCreditStrings by remember {
+            derivedStateOf {
+                when (mediaItem.mediaType) {
+                    MediaType.MOVIE -> {
+                        listOfNotNull(mediaItem.directors.toUiString("Directed by "))
+                    }
+                    MediaType.TV_SHOW,
+                    MediaType.TV_EPISODE,
+                    MediaType.TV_SEASON -> {
+                        listOfNotNull(
+                            mediaItem.directors.toUiString("Directed by "),
+                            mediaItem.writers.toUiString("Written by "),
+                            mediaItem.creators.toUiString("Created by "),
+                        ).take(2)
+                    }
+                }
+            }
+        }
+        crewCreditStrings.forEach { string ->
+            Text(
+                text = string,
+                color = Color(0x80FFFFFF),
+                style = MaterialTheme.typography.bodySmall,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+            )
+        }
 
         Spacer(Modifier.height(12.dp))
 
@@ -305,65 +352,74 @@ private fun CastAndCrewView(
     val size = 140.dp
     if (credits.isNotEmpty()) {
         val imageUrlBuilder = LocalImageProvider.current
-        Row(
-            modifier = Modifier
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.Start),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Spacer(Modifier.width(6.dp))
-            credits.forEach { credit ->
-                Column(
-                    modifier = Modifier.width(size),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    val painter = rememberAsyncImagePainter(
-                        model = imageUrlBuilder.url("people", credit.person.id),
-                        contentScale = ContentScale.Crop,
-                    )
-                    val state by painter.state.collectAsState()
-                    when (state) {
-                        is AsyncImagePainter.State.Success -> {
-                            Image(
-                                painter = painter,
-                                contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .size(size)
-                                    .clip(CircleShape),
-                            )
-                        }
 
-                        AsyncImagePainter.State.Empty,
-                        is AsyncImagePainter.State.Error,
-                        is AsyncImagePainter.State.Loading -> {
-                            Box(
-                                modifier = Modifier
-                                    .size(size)
-                                    .background(Color.DarkGray)
-                                    .clip(CircleShape),
-                            )
-                        }
-
+        BaseRow(
+            title = "Cast & Crew",
+            items = credits,
+        ) { credit ->
+            Column(
+                modifier = Modifier.width(size),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                val painter = rememberAsyncImagePainter(
+                    model = imageUrlBuilder.url("people", credit.person.id),
+                    contentScale = ContentScale.Crop,
+                )
+                val state by painter.state.collectAsState()
+                when (state) {
+                    is AsyncImagePainter.State.Success -> {
+                        Image(
+                            painter = painter,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(size)
+                                .clip(CircleShape),
+                        )
                     }
 
-                    Spacer(Modifier.size(8.dp))
-                    Text(
-                        text = credit.person.name,
-                        overflow = TextOverflow.Ellipsis,
-                        maxLines = 1,
-                        softWrap = false,
-                    )
-                    Text(
-                        text = credit.character,
-                        overflow = TextOverflow.Ellipsis,
-                        maxLines = 1,
-                        softWrap = false,
-                    )
+                    AsyncImagePainter.State.Empty,
+                    is AsyncImagePainter.State.Error,
+                    is AsyncImagePainter.State.Loading -> {
+                        Box(
+                            modifier = Modifier
+                                .size(size)
+                                .clip(CircleShape)
+                                .background(Color.DarkGray),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(
+                                text = buildString {
+                                    val nameParts = credit.person.name.split(" ")
+                                    append(nameParts.first().first().uppercase())
+                                    if (nameParts.size > 1) {
+                                        append(nameParts.last().first().uppercase())
+                                    }
+                                },
+                                style = MaterialTheme.typography.headlineLarge,
+                                maxLines = 1,
+                                overflow = TextOverflow.Clip,
+                            )
+                        }
+                    }
+
                 }
+
+                Spacer(Modifier.size(8.dp))
+                Text(
+                    text = credit.person.name,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1,
+                    softWrap = false,
+                )
+                Text(
+                    text = credit.character,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1,
+                    softWrap = false,
+                )
             }
-            Spacer(Modifier.width(6.dp))
         }
     }
 }
@@ -374,12 +430,22 @@ private fun MediaMetadata(mediaItem: MediaItem) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(start = 16.dp),
+        verticalArrangement = Arrangement.Bottom,
     ) {
         Spacer(modifier = Modifier.weight(1f))
         Text(
             text = mediaItem.contentTitle,
             style = MaterialTheme.typography.headlineMedium
         )
+        val subtitles by remember {
+            derivedStateOf { listOfNotNull(mediaItem.subtitle1, mediaItem.subtitle2) }
+        }
+        subtitles.forEach { subtitle ->
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.headlineSmall,
+            )
+        }
         Spacer(Modifier.height(4.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             val items = remember(mediaItem) {
@@ -446,28 +512,112 @@ private fun SeasonRow(
 }
 
 @Composable
-private fun EpisodeGrid(
+private fun EpisodeList(
     episodes: List<Episode>,
     mediaLinks: Map<String, MediaLink>,
     onEpisodeClick: (episode: Episode) -> Unit,
 ) {
-    BaseRow(
-        title = "${episodes.size} Episodes",
-        items = episodes,
-    ) { episode ->
-        val link = mediaLinks[episode.id]
-        PosterCard(
-            title = episode.name,
-            /*subtitle1 = {
-                LinkedText("/media/${episode.id}") {
-                    Text("Episode ${episode.number}")
-                }
-            },*/
-            mediaId = episode.id,
-            // heightAndWidth = 178.px to 318.px,
-            onPlayClick = null,
-            onClick = { onEpisodeClick(episode) },
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Text(
+            text = "${episodes.size} Episodes",
+            style = MaterialTheme.typography.headlineSmall,
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
         )
+        episodes.forEachIndexed { index, episode ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onEpisodeClick(episode) },
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .weight(1f)
+                        .aspectRatio(16f / 9f),
+                ) {
+                    val imageUrlBuilder = LocalImageProvider.current
+                    val painter = rememberAsyncImagePainter(
+                        model = imageUrlBuilder.url("poster", episode.id, 300),
+                        contentScale = ContentScale.FillBounds,
+                    )
+                    val state by painter.state.collectAsState()
+                    val loaded by produceState(state is AsyncImagePainter.State.Success, state) {
+                        value = state is AsyncImagePainter.State.Success
+                    }
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = loaded,
+                        enter = fadeIn(),
+                        exit = fadeOut(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(6.dp))
+                            .shadow(4.dp),
+                    ) {
+                        Image(
+                            painter = painter,
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.FillBounds,
+                        )
+                    }
+                }
+
+                Column(
+                    modifier = Modifier
+                        .weight(2f)
+                        .padding(12.dp),
+                ) {
+                    Text(
+                        text = episode.name,
+                        style = MaterialTheme.typography.labelLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        softWrap = false,
+                    )
+
+                    // TODO: proper datetime formatter
+                    Text(
+                        text = episode.airDate
+                            ?.toLocalDateTime(TimeZone.currentSystemDefault())
+                            ?.let {
+                                "${it.month.name.take(1)}${
+                                    it.month.name.substring(1, 3).lowercase()
+                                } ${it.dayOfMonth}, ${it.year}"
+                            }
+                            ?: "unaired",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color(0x80FFFFFF),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        softWrap = false,
+                    )
+
+                    Text(
+                        text = episode.overview,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0x80FFFFFF),
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+
+            if (index < episodes.lastIndex) {
+                Spacer(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp)
+                        .height(1.dp)
+                        .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f))
+                )
+            }
+        }
     }
 }
 
@@ -499,34 +649,18 @@ private fun <T> BaseRow(
 
 @Composable
 internal fun ExpandableText(overview: String) {
-    var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
-    val isExpandable by remember { derivedStateOf { textLayoutResult?.didOverflowHeight ?: false } }
     var isExpanded by remember { mutableStateOf(false) }
-    val isButtonShown by remember { derivedStateOf { isExpandable || isExpanded } }
 
-    Column(Modifier.animateContentSize(animationSpec = tween(100))) {
+    Column(Modifier) {
         Text(
             text = overview,
-            modifier = Modifier.padding(16.dp).animateContentSize(),
+            modifier = Modifier
+                .padding(16.dp)
+                .clickable { isExpanded = !isExpanded }
+                .animateContentSize(tween(150)),
             style = MaterialTheme.typography.bodyLarge,
             maxLines = if (isExpanded) Int.MAX_VALUE else 3,
             overflow = TextOverflow.Ellipsis,
-            onTextLayout = { textLayoutResult = it },
         )
-
-        if (isButtonShown) {
-            TextButton(
-                onClick = { isExpanded = !isExpanded },
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .align(Alignment.CenterHorizontally),
-            ) {
-                Text(
-                    text = if (isExpanded) "LESS" else "MORE",
-                    color = MaterialTheme.colorScheme.primary,
-                    lineHeight = 24.sp,
-                )
-            }
-        }
     }
 }

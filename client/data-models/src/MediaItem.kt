@@ -48,7 +48,7 @@ data class MediaItem(
     val playableMediaLink: MediaLink? =
         mediaLinks.firstOrNull {
             it.descriptor == Descriptor.VIDEO ||
-                it.descriptor == Descriptor.AUDIO
+                    it.descriptor == Descriptor.AUDIO
         }
 
     val releaseYear: String?
@@ -59,8 +59,12 @@ data class MediaItem(
 
     val hasStreamEncodings: Boolean =
         mediaLinks.isNotEmpty() &&
-            streamEncodings.isNotEmpty() &&
-            streamEncodings.values.first().isNotEmpty()
+                streamEncodings.isNotEmpty() &&
+                streamEncodings.values.first().isNotEmpty()
+
+    val directors: List<CrewCredit> = crew.filter { it.job == CreditJob.DIRECTOR }
+    val creators: List<CrewCredit> = crew.filter { it.job == CreditJob.CREATOR }
+    val writers: List<CrewCredit> = crew.filter { it.job == CreditJob.WRITER }
 }
 
 fun Duration.asFriendlyString(): String {
