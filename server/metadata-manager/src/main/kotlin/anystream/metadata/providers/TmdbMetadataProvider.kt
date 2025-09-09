@@ -131,7 +131,7 @@ class TmdbMetadataProvider(
             val metadata = queries.insertMovie(movie, genres, companies)
             val dbCredits = queries.insertCredits(metadata.id, credits)
             supervisorScope {
-                launch { tmdbMovie.cacheImage(movie.id, "poster", "w300") }
+                launch { tmdbMovie.cacheImage(movieId, "poster", "w300") }
                 launch { tmdbMovie.cacheImage(movieId, "backdrop", "w1280") }
 
                 val crew = tmdbMovie.credits?.crew.orEmpty()
@@ -172,7 +172,7 @@ class TmdbMetadataProvider(
             else -> null
         }
         if (path != null) {
-            imageStore.cacheImage(metadataId, "backdrop", "$IMAGE_URL/$size$path")
+            imageStore.cacheImage(metadataId, imageType, "$IMAGE_URL/$size$path")
         }
     }
 
