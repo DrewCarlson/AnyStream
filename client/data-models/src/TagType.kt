@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2021 AnyStream Maintainers
+ * Copyright (C) 2025 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -15,23 +15,10 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.models.api
+package anystream.models
 
-import anystream.models.CastCredit
-import anystream.models.CrewCredit
-import anystream.models.Genre
-import anystream.models.MediaLink
-import anystream.models.ProductionCompany
-import anystream.models.StreamEncoding
-import kotlinx.serialization.Serializable
-
-@Serializable
-sealed interface MediaLookupResponse {
-    val title: String?
-    val mediaLinks: List<MediaLink>
-    val streamEncodings: Map<String, List<StreamEncoding>>
-    val genres: List<Genre>
-    val companies: List<ProductionCompany>
-    val cast: List<CastCredit>
-    val crew: List<CrewCredit>
+enum class TagType {
+    GENRE,
+    COMPANY,
+    PERSON,
 }

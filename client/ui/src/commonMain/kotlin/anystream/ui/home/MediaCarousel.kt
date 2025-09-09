@@ -110,6 +110,8 @@ internal fun MediaCarousel(pagerState: PagerState, media: List<Pair<Movie, Media
                     style = MaterialTheme.typography.headlineMedium,
                 )
                 Spacer(Modifier.height(8.dp))
+                /*
+                TODO: Restore genre labels
                 Text(
                     media[pagerState.currentPage].first.genres.map { it.name }.take(3)
                         .joinToString(),
@@ -117,7 +119,7 @@ internal fun MediaCarousel(pagerState: PagerState, media: List<Pair<Movie, Media
                         fontWeight = FontWeight.Medium,
                         letterSpacing = 0.2.sp,
                     ),
-                )
+                )*/
                 Spacer(Modifier.height(8.dp))
                 CarouselMediaButtonRow()
             }

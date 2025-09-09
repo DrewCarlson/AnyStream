@@ -53,7 +53,10 @@ fun Route.addImageRoutes(
                 ?: return@get call.respond(UnprocessableEntity, "url param 'imageType' is required")
             val width = call.parameters["width"]?.toIntOrNull() ?: 0
 
-            val imagePath = metadataService.getImagePath(imageKey, imageType)
+            val imagePath = when (imageType) {
+                "people" -> metadataService.getImagePathForPerson(imageKey)
+                else ->  metadataService.getImagePath(imageKey, imageType)
+            }
             if (imagePath?.exists() == true) {
                 try {
                     call.response.header(

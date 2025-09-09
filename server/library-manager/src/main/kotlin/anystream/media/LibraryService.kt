@@ -127,7 +127,7 @@ class LibraryService(
 
         return try {
             val directory = libraryDao.insertDirectory(null, library.id, path)
-            logger.debug("Added new library {} with directory {}", library, directory)
+            logger.debug("Added directory {} to library {}", directory, library)
             AddLibraryFolderResult.Success(library, directory)
         } catch (e: Throwable) {
             logger.error("Failed to insert new library for $path", e)

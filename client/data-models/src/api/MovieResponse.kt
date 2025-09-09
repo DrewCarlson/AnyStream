@@ -17,9 +17,13 @@
  */
 package anystream.models.api
 
+import anystream.models.CastCredit
+import anystream.models.CrewCredit
+import anystream.models.Genre
 import anystream.models.MediaLink
 import anystream.models.Movie
 import anystream.models.PlaybackState
+import anystream.models.ProductionCompany
 import anystream.models.StreamEncoding
 import kotlinx.serialization.Serializable
 
@@ -28,6 +32,10 @@ data class MovieResponse(
     val movie: Movie,
     override val mediaLinks: List<MediaLink> = emptyList(),
     override val streamEncodings: Map<String, List<StreamEncoding>> = emptyMap(),
+    override val genres: List<Genre> = emptyList(),
+    override val companies: List<ProductionCompany> = emptyList(),
+    override val cast: List<CastCredit> = emptyList(),
+    override val crew: List<CrewCredit> = emptyList(),
     val playbackState: PlaybackState? = null,
 ) : MediaLookupResponse {
     override val title: String = movie.title

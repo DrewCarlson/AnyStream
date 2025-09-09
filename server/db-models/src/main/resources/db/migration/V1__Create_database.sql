@@ -55,15 +55,15 @@ CREATE TABLE metadata
     updated_at         TEXT                    NOT NULL,
     media_kind         TEXT                    NOT NULL,
     media_type         TEXT                    NOT NULL,
-    tmdb_rating        INTEGER,
-    UNIQUE (tmdb_id, media_kind) ON CONFLICT FAIL
+    tmdb_rating        INTEGER
 );
 
 CREATE TABLE tag
 (
     id      VARCHAR(24) PRIMARY KEY NOT NULL,
     name    TEXT                    NOT NULL,
-    tmdb_id INTEGER
+    tmdb_id INTEGER,
+    type    TEXT                    NOT NULL
 );
 
 CREATE TABLE metadata_company
@@ -80,6 +80,18 @@ CREATE TABLE metadata_genre
     genre_id    VARCHAR(24) NOT NULL,
     FOREIGN KEY (metadata_id) REFERENCES metadata (id) ON DELETE CASCADE,
     FOREIGN KEY (genre_id) REFERENCES tag (id) ON DELETE CASCADE
+);
+
+CREATE TABLE metadata_credit
+(
+    person_id   VARCHAR(24) NOT NULL,
+    metadata_id VARCHAR(24) NOT NULL,
+    type        TEXT        NOT NULL,
+    character   TEXT,
+    job         TEXT,
+
+    FOREIGN KEY (metadata_id) REFERENCES metadata (id) ON DELETE CASCADE,
+    FOREIGN KEY (person_id) REFERENCES tag (id) ON DELETE CASCADE
 );
 /* </editor-fold> */
 
@@ -171,8 +183,7 @@ CREATE TABLE stream_encoding
 /* </editor-fold> */
 
 /* <editor-fold desc="Triggers: Searchable Content"> */
-CREATE
-VIRTUAL TABLE searchable_content USING fts5
+CREATE VIRTUAL TABLE searchable_content USING fts5
 (
     id UNINDEXED,
     content,

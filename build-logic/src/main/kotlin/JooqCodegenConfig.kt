@@ -103,6 +103,9 @@ fun forcedTypes(): List<ForcedType> = listOf(
     forcedTypeEnum("anystream.models.MediaKind", "media_kind"),
     forcedTypeEnum("anystream.models.Descriptor", "descriptor"),
     forcedTypeEnum("anystream.models.AuthType", "user.auth_type"),
+    forcedTypeEnum("anystream.models.TagType", "tag.type"),
+    forcedTypeEnum("anystream.models.CreditType", "metadata_credit.type"),
+    forcedTypeEnum("anystream.models.CreditJob", "metadata_credit.job"),
     forcedType("kotlin.String", "searchable_content.id"),
     forcedType("kotlin.String", "searchable_content.content"),
 )

@@ -44,28 +44,93 @@ fun TmdbMovieDetail.asMovie(
     tmdbRating = (voteAverage * 10).roundToInt(),
     tagline = tagline,
     contentRating = releaseDates?.getCertification(Locale.getDefault().country),
-    // TODO: use remote ids
-    genres = genres.map { Genre("", it.name, it.id) },
-    companies = productionCompanies.orEmpty().map { tmdbCompany ->
-        ProductionCompany("", tmdbCompany.name.orEmpty(), tmdbCompany.id)
-    },
 )
 
-fun TmdbShowDetail.asTvShow(
-    tmdbSeasons: List<TmdbSeasonDetail>,
+fun processCredits(
+    people: MutableMap<Int, Person>,
+    credits: MutableMap<Person, List<MetadataCredit>>,
+    cast: List<TmdbCast>,
+    crew: List<TmdbCrew>,
+    imagePaths: MutableMap<Int, String>,
+) {
+    cast.forEach { cast ->
+        val person = people.getOrPut(cast.id) {
+            cast.profileImage?.run {
+                imagePaths[cast.id] = path
+            }
+            Person(
+                id = "",
+                name = cast.name,
+                tmdbId = cast.id,
+            )
+        }
+        val credit = MetadataCredit(
+            personId = "",
+            type = CreditType.CAST,
+            character = cast.character,
+            job = null,
+            metadataId = "",
+        )
+        credits.compute(person) { _, list ->
+            list?.plus(credit) ?: listOf(credit)
+        }
+    }
+    crew.forEach { cast ->
+        val job = try {
+            CreditJob.valueOf(cast.job.uppercase())
+        } catch (_: IllegalArgumentException) {
+            // ignore undefined job
+            return@forEach
+        }
+        val person = people.getOrPut(cast.id) {
+            cast.profileImage?.run {
+                imagePaths[cast.id] = path
+            }
+            Person(
+                id = "",
+                name = cast.name,
+                tmdbId = cast.id,
+            )
+        }
+        val credit = MetadataCredit(
+            personId = "",
+            type = CreditType.CREW,
+            character = null,
+            job = job,
+            metadataId = "",
+        )
+        credits.compute(person) { _, list ->
+            list?.plus(credit) ?: listOf(credit)
+        }
+    }
+}
+
+internal fun TmdbShowDetail.asTvShow(
     id: String,
+    tmdbSeasons: List<TmdbSeasonDetail>,
     existingEpisodes: Map<Int, Metadata>,
     existingSeasons: Map<Int, Metadata>,
-    posterPaths: MutableMap<String, List<Pair<String, String?>>>
-): Triple<Metadata, List<Metadata>, List<Metadata>> {
-    posterPaths[id] = listOf(
-        "poster" to posterPath,
-        "backdrop" to backdropPath,
+): ProcessedTmdbShow {
+    val posterPaths = mutableMapOf<String, Map<String, String?>>()
+    val personImagePaths = mutableMapOf<Int, String>()
+    val people = mutableMapOf<Int, Person>()
+    val showCredits = mutableMapOf<Person, List<MetadataCredit>>()
+    val episodeCredits = mutableMapOf<String, MutableMap<Person, List<MetadataCredit>>>()
+    posterPaths[id] = buildMap(2) {
+        put("poster", posterPath)
+        put("backdrop", backdropPath)
+    }
+    processCredits(
+        people = people,
+        credits = showCredits,
+        cast = this.credits?.cast.orEmpty(),
+        crew = this.credits?.crew.orEmpty(),
+        imagePaths = personImagePaths,
     )
     val seasons = tmdbSeasons.map { season ->
         val existingSeason = existingSeasons[season.seasonNumber]
         val seasonId = existingSeason?.id ?: ObjectId.next()
-        posterPaths[seasonId] = listOf("poster" to season.posterPath)
+        posterPaths[seasonId] = mapOf("poster" to season.posterPath)
         season.asTvSeason(
             id = seasonId,
             showId = id,
@@ -80,7 +145,15 @@ fun TmdbShowDetail.asTvShow(
         season.episodes.orEmpty().map { episode ->
             val existingEpisode = existingEpisodes[episode.episodeNumber]
             val episodeId = existingEpisode?.id ?: ObjectId.next()
-            posterPaths[episodeId] = listOf("poster" to episode.stillPath)
+            val currentEpisodeCredits = episodeCredits.getOrPut(episodeId) { mutableMapOf() }
+            processCredits(
+                people = people,
+                credits = currentEpisodeCredits,
+                cast = episode.guestStars.orEmpty(),
+                crew = episode.crew.orEmpty(),
+                imagePaths = personImagePaths,
+            )
+            posterPaths[episodeId] = mapOf("poster" to episode.stillPath)
             episode.asTvEpisode(
                 id = episodeId,
                 showId = id,
@@ -88,8 +161,26 @@ fun TmdbShowDetail.asTvShow(
             )
         }
     }
-    return Triple(asTvShow(id), seasons.values.toList(), episodes)
+    return ProcessedTmdbShow(
+        show = asTvShow(id),
+        seasons = seasons.values.toList(),
+        episodes = episodes,
+        showCredits = showCredits,
+        episodeCredits = episodeCredits,
+        posterPaths = posterPaths,
+        personImagePaths = personImagePaths,
+    )
 }
+
+internal data class ProcessedTmdbShow(
+    val show: Metadata,
+    val seasons: List<Metadata>,
+    val episodes: List<Metadata>,
+    val showCredits: Map<Person, List<MetadataCredit>>,
+    val episodeCredits: Map<String, Map<Person, List<MetadataCredit>>>,
+    val posterPaths: Map<String, Map<String, String?>>,
+    val personImagePaths: Map<Int, String?>,
+)
 
 fun TmdbEpisode.asTvEpisode(
     id: String,
@@ -101,8 +192,7 @@ fun TmdbEpisode.asTvEpisode(
         id = id,
         parentId = seasonId,
         rootId = showId,
-        // omit tmdb id because season ids are not unique across shows/seasons/episodes
-        tmdbId = null,
+        tmdbId = this.id,
         title = name ?: "",
         overview = overview.orEmpty(),
         firstAvailableAt = airDate?.atStartOfDayIn(TimeZone.UTC),
@@ -122,8 +212,7 @@ fun TmdbSeason.asTvSeason(id: String, showId: String): Metadata {
         id = id,
         parentId = showId,
         rootId = showId,
-        // omit tmdb id because season ids are not unique across shows/seasons/episodes
-        tmdbId = null,
+        tmdbId = this.id,
         title = name,
         overview = overview.orEmpty(),
         index = seasonNumber,

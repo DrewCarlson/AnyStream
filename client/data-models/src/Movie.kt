@@ -35,8 +35,6 @@ data class Movie(
     val releaseDate: Instant?,
     val createdAt: Instant,
     val tmdbRating: Int? = null,
-    val genres: List<Genre>,
-    val companies: List<ProductionCompany>,
     val contentRating: String?,
 ) {
     val isAdded: Boolean
@@ -70,8 +68,6 @@ fun Metadata.toMovieModel(): Movie {
         createdAt = createdAt,
         tagline = null,//tagline,
         tmdbRating = tmdbRating,
-        genres = emptyList(),
-        companies = emptyList(),
         contentRating = contentRating,
     )
 }

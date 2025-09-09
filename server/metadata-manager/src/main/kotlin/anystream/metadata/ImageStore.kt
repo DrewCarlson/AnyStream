@@ -36,7 +36,17 @@ class ImageStore(
     private val dataPath: Path,
     private val httpClient: HttpClient,
 ) {
-    fun getImagePath(
+
+    suspend fun cacheImage(
+        metadataId: String,
+        imageType: String,
+        url: String,
+        rootMetadataId: String = metadataId,
+    ): Boolean {
+        return downloadInto(getMetadataImagePath(imageType, metadataId, rootMetadataId), url)
+    }
+
+    fun getMetadataImagePath(
         imageType: String,
         metadataId: String,
         rootMetadataId: String = metadataId,
@@ -46,6 +56,14 @@ class ImageStore(
             .resolve(rootMetadataId)
             .resolve(imageType)
             .resolve(metadataId)
+            .createParentDirectories()
+    }
+
+    fun getPersonImagePath(personId: String): Path {
+        return dataPath
+            .resolve("metadata")
+            .resolve("people")
+            .resolve(personId)
             .createParentDirectories()
     }
 

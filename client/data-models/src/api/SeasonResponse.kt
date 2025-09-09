@@ -27,6 +27,10 @@ data class SeasonResponse(
     val episodes: List<Episode> = emptyList(),
     val mediaLinkMap: Map<String, MediaLink> = emptyMap(),
     override val streamEncodings: Map<String, List<StreamEncoding>> = emptyMap(),
+    override val genres: List<Genre> = emptyList(),
+    override val cast: List<CastCredit> = emptyList(),
+    override val crew: List<CrewCredit> = emptyList(),
+    override val companies: List<ProductionCompany> = emptyList(),
     val playbackState: PlaybackState? = null,
 ) : MediaLookupResponse {
     override val title: String = season.name

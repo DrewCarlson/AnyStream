@@ -113,6 +113,8 @@ fun MediaScreen(mediaId: String) {
                     onFixMatch = onFixMatch,
                     onGeneratePreview = onGeneratePreview
                 )
+
+                CastAndCrewView(mediaItem.cast)
             }
 
             is TvShowResponse -> {
@@ -132,6 +134,8 @@ fun MediaScreen(mediaId: String) {
                 if (response.seasons.isNotEmpty()) {
                     SeasonRow(response.seasons)
                 }
+
+                CastAndCrewView(mediaItem.cast)
             }
 
             is SeasonResponse -> {
@@ -169,6 +173,32 @@ fun MediaScreen(mediaId: String) {
                     analyzeFiles = analyzeFiles,
                     onFixMatch = onFixMatch,
                     onGeneratePreview = onGeneratePreview
+                )
+
+                CastAndCrewView(mediaItem.cast)
+            }
+        }
+    }
+}
+
+@Composable
+private fun CastAndCrewView(
+    credits: List<CastCredit>,
+) {
+    if (credits.isNotEmpty()) {
+        val client = get<AnyStreamClient>()
+        Div({ classes("px-4", "py-2", "fs-4") }) { Text("Cast & Crew") }
+        Div({
+            classes("d-flex", "flex-row", "gap-4", "px-4")
+            style {
+                overflowX("scroll")
+            }
+        }) {
+            credits.forEach { credit ->
+                PersonCard(
+                    imageUrl = client.images.buildImageUrl("people", credit.person.id),
+                    mainText = credit.person.name,
+                    secondaryText = credit.character,
                 )
             }
         }
@@ -333,6 +363,67 @@ private fun BaseDetailsView(
 
             if (mediaItem.hasStreamEncodings) {
                 StreamDetails(mediaItem)
+            }
+        }
+    }
+}
+
+@Composable
+private fun PersonCard(
+    imageUrl: String,
+    mainText: String,
+    secondaryText: String,
+) {
+    Div({
+        style {
+            width(150.px)
+            property("z-index", "1") // place above backdrop image layer
+        }
+    }) {
+        Div({
+            style {
+                width(150.px)
+                height(150.px)
+                borderRadius(50.percent)
+                overflow("hidden")
+                display(DisplayStyle.InlineBlock)
+            }
+        }) {
+            Img(src = imageUrl) {
+                classes("shadow")
+                attr("loading", "lazy")
+                style {
+                    width(100.percent)
+                    height(100.percent)
+                    property("object-fit", "cover")
+                    property("object-position", "position")
+                    display(DisplayStyle.Block)
+                }
+            }
+        }
+        Div({
+            style {
+                textAlign("center")
+            }
+        }) {
+            Div({
+                style {
+                    overflow("clip")
+                    whiteSpace("nowrap")
+                    property("text-overflow", "ellipsis")
+                }
+            }) {
+                Text(mainText)
+            }
+            Div({
+                style {
+                    color(Color("#b5b5b5"))
+                    overflow("clip")
+                    whiteSpace("nowrap")
+                    property("text-overflow", "ellipsis")
+                }
+            }) {
+                Text(secondaryText)
             }
         }
     }

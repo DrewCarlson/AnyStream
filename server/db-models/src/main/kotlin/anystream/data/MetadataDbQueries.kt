@@ -32,7 +32,7 @@ class MetadataDbQueries(
     private val db: DSLContext,
     val metadataDao: MetadataDao,
     private val tagsDao: TagsDao,
-    val mediaLinkDao: MediaLinkDao,
+    private val mediaLinkDao: MediaLinkDao,
     private val playbackStatesDao: PlaybackStatesDao,
 ) {
 
@@ -99,10 +99,18 @@ class MetadataDbQueries(
             playbackStatesDao.findByUserIdAndMetadataId(userId, movieId)
         }
 
+        val genres = tagsDao.findGenresForMetadata(movieId)
+        val companies = tagsDao.findCompaniesForMetadata(movieId)
+        val (cast, crew) = tagsDao.findCastAndCrewForMetadata(movieId)
+
         return MovieResponse(
             movie = mediaRecord.toMovieModel(),
             mediaLinks = mediaLinks,
             playbackState = playbackState,
+            genres = genres,
+            companies = companies,
+            cast = cast,
+            crew = crew,
             streamEncodings = mediaLinks.associate { link ->
                 link.id to mediaLinkDao.findStreamEncodings(link.id)
             }
@@ -144,10 +152,15 @@ class MetadataDbQueries(
                 playbackStatesDao.findByUserIdAndMetadataIds(userId, mediaLinkIds)
                     .maxByOrNull(PlaybackState::updatedAt)
             }
+        val (cast, crew)  = tagsDao.findCastAndCrewForMetadata(showId)
         return TvShowResponse(
             tvShow = show.toTvShowModel(),
             mediaLinks = mediaLinks,
             seasons = seasons.map(Metadata::toTvSeasonModel),
+            genres = tagsDao.findGenresForMetadata(showId),
+            companies = tagsDao.findCompaniesForMetadata(showId),
+            cast = cast,
+            crew = crew,
             playbackState = playbackState,
         )
     }
@@ -202,9 +215,12 @@ class MetadataDbQueries(
             playbackStatesDao.findByUserIdAndMetadataId(userId, episodeId)
         }
         val streamEncodings = mediaLinkDao.findStreamEncodings(mediaLinks.map(MediaLink::id))
+        val (cast, crew)  = tagsDao.findCastAndCrewForMetadata(listOf(showRecord.id, episodeId))
         return EpisodeResponse(
             episode = episodeRecord.toTvEpisodeModel(),
             show = showRecord.toTvShowModel(),
+            cast = cast,
+            crew = crew,
             mediaLinks = mediaLinks,
             playbackState = playbackState,
             streamEncodings = streamEncodings,
@@ -251,7 +267,7 @@ class MetadataDbQueries(
     suspend fun findRecentlyAddedMovies(limit: Int): Map<Movie, MediaLink?> {
         return db.select(METADATA.asterisk(), MEDIA_LINK.asterisk())
             .from(METADATA)
-            .leftJoin(MEDIA_LINK)
+            .join(MEDIA_LINK)
             .on(
                 METADATA.ID.eq(MEDIA_LINK.METADATA_ID)
                     .and(MEDIA_LINK.DESCRIPTOR.eq(Descriptor.VIDEO))
@@ -261,10 +277,10 @@ class MetadataDbQueries(
             .limit(limit)
             .fetchAsync()
             .thenApplyAsync { result ->
-                result.intoGroups(
+                result.intoMap(
                     { it.into(METADATA).into(Metadata::class.java).toMovieModel() },
                     { it.into(MEDIA_LINK).into(MediaLink::class.java) }
-                ).mapValues { (_, links) -> links.firstOrNull()  }
+                )
             }
             .await()
     }
@@ -324,26 +340,65 @@ class MetadataDbQueries(
         }
     }
 
-    suspend fun insertMovie(movie: Movie): Metadata {
+    suspend fun insertMovie(
+        movie: Movie,
+        genres: List<Genre>,
+        companies: List<ProductionCompany>,
+    ): Metadata {
         val movieRecord = movie.toMetadataDb()
         val id = metadataDao.insertMetadata(movieRecord)
-        val companies = movie.companies.map { company ->
-            if (company.id.isBlank()) {
-                company.tmdbId?.let { tagsDao.findCompanyByTmdbId(it) }
-                    ?: company.copy(id = tagsDao.insertTag(company.name, company.tmdbId))
-            } else {
-                company
-            }
-        }.onEach { company -> tagsDao.insertMetadataCompanyLink(id, company.id) }
-        val genres = movie.genres.map { genre ->
-            if (genre.id.isBlank()) {
+        insertGenres(id, genres)
+        insertCompanies(id, companies)
+        return movieRecord.copy(id = id)
+    }
+
+    suspend fun insertGenres(metadataId: String, genres: List<Genre>) {
+        genres.onEach { genre ->
+            val dbGenre = if (genre.id.isBlank()) {
                 genre.tmdbId?.let { tagsDao.findGenreByTmdbId(it) }
-                    ?: genre.copy(id = tagsDao.insertTag(genre.name, genre.tmdbId))
+                    ?: genre.copy(id = tagsDao.insertTag(genre.name, TagType.GENRE, genre.tmdbId))
             } else {
                 genre
             }
-        }.onEach { genre -> tagsDao.insertMetadataGenreLink(id, genre.id) }
-        return movieRecord.copy(id = id)
+            tagsDao.insertMetadataGenreLink(metadataId, dbGenre.id)
+        }
+    }
+
+    suspend fun insertCompanies(metadataId: String, companies: List<ProductionCompany>) {
+        companies.onEach { company ->
+            val dbCompany = if (company.id.isBlank()) {
+                company.tmdbId?.let { tagsDao.findCompanyByTmdbId(it) }
+                    ?: company.copy(id = tagsDao.insertTag(company.name, TagType.COMPANY, company.tmdbId))
+            } else {
+                company
+            }
+            tagsDao.insertMetadataCompanyLink(metadataId, dbCompany.id)
+        }
+    }
+
+    suspend fun insertCredits(
+        metadataId: String,
+        credits: Map<Person, List<MetadataCredit>>
+    ): Map<Person, List<MetadataCredit>> {
+        if (credits.isEmpty()) {
+            return emptyMap()
+        }
+        val dbCredits = credits.map { (person, credits) ->
+            val dbPerson = if (person.id.isBlank()) {
+                person.tmdbId?.let { tagsDao.findPersonByTmdbId(it) }
+                    ?: person.copy(id = tagsDao.insertTag(person.name, TagType.PERSON, person.tmdbId))
+            } else {
+                person
+            }
+            dbPerson to credits.map { credit ->
+                credit.copy(
+                    metadataId = metadataId,
+                    personId = dbPerson.id,
+                )
+            }
+        }.toMap()
+        tagsDao.insertCredits(dbCredits.values.flatten())
+        return dbCredits
     }
 
     suspend fun insertTvShow(

@@ -23,30 +23,36 @@ import anystream.metadata.MetadataProvider
 import anystream.models.*
 import anystream.models.api.*
 import anystream.util.ObjectId
-import anystream.util.concurrentMap
 import anystream.util.toRemoteId
 import app.moviebase.tmdb.Tmdb3
 import app.moviebase.tmdb.model.*
 import io.ktor.client.plugins.*
 import io.ktor.http.*
 import io.ktor.util.*
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import kotlinx.datetime.LocalDate
 import org.slf4j.LoggerFactory
 import java.net.SocketException
+import java.nio.file.Path
+import kotlin.collections.forEach
+import kotlin.collections.map
+import kotlin.collections.orEmpty
 import kotlin.io.path.exists
 import kotlin.time.Duration.Companion.seconds
+
+private const val IMAGE_URL = "https://image.tmdb.org/t/p"
 
 class TmdbMetadataProvider(
     private val tmdbApi: Tmdb3,
@@ -86,8 +92,7 @@ class TmdbMetadataProvider(
 
     private suspend fun importMovie(tmdbId: Int, request: ImportMetadata): ImportMetadataResult {
         val lockData = Pair(tmdbId, request.mediaKind)
-        awaitLock(lockData)
-        addLock(lockData)
+        awaitLockAndAcquire(lockData)
         logger.debug("Importing movie by id {}", tmdbId)
         val existingMovie = queries.findMovieByTmdbId(tmdbId)
         if (existingMovie != null && !request.refresh) {
@@ -110,27 +115,43 @@ class TmdbMetadataProvider(
             logger.debug("Refreshing metadata record for {}", existingMovie.id)
         }
         val movieId = existingMovie?.id ?: ObjectId.next()
-        val movieDb = try {
+        val tmdbMovie = try {
             checkNotNull(fetchMovie(tmdbId))
         } catch (e: Throwable) {
             removeLock(lockData)
             logger.error("Failed to fetch data from Tmdb", e)
             return ImportMetadataResult.ErrorDataProviderException(e.stackTraceToString())
         }
-        val movie = movieDb.asMovie(movieId)
+        val movie = tmdbMovie.asMovie(movieId)
 
         return try {
-            if (movieDb.posterPath != null) {
-                val posterCacheFile = imageStore.getImagePath("poster", movie.id)
-                val backdropCacheFile = imageStore.getImagePath("backdrop", movie.id)
-                imageStore.downloadInto(posterCacheFile, "https://image.tmdb.org/t/p/w300/${movieDb.posterPath}")
-                imageStore.downloadInto(backdropCacheFile, "https://image.tmdb.org/t/p/w1280/${movieDb.backdropPath}")
+            val genres = tmdbMovie.genres.toGenreDb()
+            val companies = tmdbMovie.productionCompanies.orEmpty().toCompanyDb()
+            val credits = tmdbMovie.credits?.toCreditsDb().orEmpty()
+            val metadata = queries.insertMovie(movie, genres, companies)
+            val dbCredits = queries.insertCredits(metadata.id, credits)
+            supervisorScope {
+                launch { tmdbMovie.cacheImage(movie.id, "poster", "w300") }
+                launch { tmdbMovie.cacheImage(movieId, "backdrop", "w1280") }
+
+                val crew = tmdbMovie.credits?.crew.orEmpty()
+                val cast = tmdbMovie.credits?.cast.orEmpty()
+                val allPeople = (crew + cast).associate { it.id to it.profileImage?.path }
+                dbCredits
+                    .mapNotNull { (person, _) ->
+                        val profileImagePath = allPeople[person.tmdbId]
+                        val imagePath = imageStore.getPersonImagePath(person.id).takeUnless(Path::exists)
+                        if (profileImagePath == null || imagePath == null) return@mapNotNull null
+                        async {
+                            imageStore.downloadInto(imagePath, "$IMAGE_URL/w276_and_h350_face$profileImagePath")
+                        }
+                    }
+                    .awaitAll()
             }
-            queries.insertMovie(movie)
             ImportMetadataResult.Success(
                 match = MetadataMatch.MovieMatch(
                     remoteMetadataId = movie.tmdbId.toString(),
-                    remoteId = movieDb.toRemoteId(),
+                    remoteId = tmdbMovie.toRemoteId(),
                     exists = true,
                     movie = movie,
                     providerId = this@TmdbMetadataProvider.id,
@@ -144,10 +165,20 @@ class TmdbMetadataProvider(
         }
     }
 
+    suspend fun TmdbMovieDetail.cacheImage(metadataId: String, imageType: String, size: String) {
+        val path = when (imageType) {
+            "backdrop" -> backdropPath
+            "poster" -> posterPath
+            else -> null
+        }
+        if (path != null) {
+            imageStore.cacheImage(metadataId, "backdrop", "$IMAGE_URL/$size$path")
+        }
+    }
+
     private suspend fun importTvShow(tmdbId: Int, request: ImportMetadata): ImportMetadataResult {
         val lockData = Pair(tmdbId, request.mediaKind)
-        awaitLock(lockData)
-        addLock(lockData)
+        awaitLockAndAcquire(lockData)
 
         val existingTvShow = queries.findTvShowByTmdbId(tmdbId)
 
@@ -193,40 +224,42 @@ class TmdbMetadataProvider(
         val existingEpisodes = queries.metadataDao
             .findAllByRootIdAndType(tvShowId, MediaType.TV_EPISODE)
             .associateBy { it.index!! }
-        val posterPaths = mutableMapOf<String, List<Pair<String, String?>>>()
-        val (tvShow, tvSeasons, episodes) = tmdbSeries.asTvShow(
-            tmdbSeasons,
-            tvShowId,
-            existingEpisodes,
-            existingSeasons,
-            posterPaths
-        )
-
-        val filteredPosters = posterPaths
-            .mapValues { (_, imageUrls) ->
-                imageUrls.filter { (_, imageUrl) ->
-                    !imageUrl.isNullOrBlank()
-                }
-            }
-            .entries
-            .asFlow()
+        val (tvShow, tvSeasons, episodes, showCredits, episodeCredits, posterPaths, personPosterPaths) =
+            tmdbSeries.asTvShow(
+                tvShowId,
+                tmdbSeasons,
+                existingEpisodes,
+                existingSeasons,
+            )
 
         return try {
-            coroutineScope {
-                launch { queries.insertTvShow(tvShow, tvSeasons, episodes) }
-                filteredPosters
-                    .concurrentMap(this, concurrencyLevel = 2) { (metadataId, imageUrls) ->
-                        imageUrls.forEach { (imageType, imageUrl) ->
-                            val cacheFile = imageStore.getImagePath(imageType, metadataId, tvShow.id)
-                            val url = when (imageType) {
-                                "poster" -> "https://image.tmdb.org/t/p/w300$imageUrl"
-                                "backdrop" -> "https://image.tmdb.org/t/p/w1280$imageUrl"
-                                else -> return@forEach
-                            }
-                            imageStore.downloadInto(cacheFile, url)
+            queries.insertTvShow(tvShow, tvSeasons, episodes)
+            val people1 = queries.insertCredits(tvShowId, showCredits).keys
+            val people2 = episodeCredits.flatMap { (episodeId, credits) ->
+                queries.insertCredits(episodeId, credits).keys
+            }
+            val allPeople = (people1 + people2).toSet().associate { it.tmdbId!! to it.id }
+            supervisorScope {
+                posterPaths.flatMap { (metadataId, imageUrls) ->
+                    imageUrls.mapNotNull { (imageType, imageUrl) ->
+                        if (imageUrl == null) return@mapNotNull null
+                        val cacheFile = imageStore.getMetadataImagePath(imageType, metadataId, tvShow.id)
+                        val url = when (imageType) {
+                            "poster" -> "$IMAGE_URL/w300$imageUrl"
+                            "backdrop" -> "$IMAGE_URL/w1280$imageUrl"
+                            else -> return@mapNotNull null
                         }
+                        async { imageStore.downloadInto(cacheFile, url) }
                     }
-                    .launchIn(this)
+                }.awaitAll()
+                personPosterPaths.mapNotNull { (tmdbId, profileImagePath) ->
+                    val personId = allPeople.getValue(tmdbId)
+                    val imagePath = imageStore.getPersonImagePath(personId).takeUnless(Path::exists)
+                    if (profileImagePath == null || imagePath == null) return@mapNotNull null
+                    async {
+                        imageStore.downloadInto(imagePath, "$IMAGE_URL/w276_and_h350_face$profileImagePath")
+                    }
+                }.awaitAll()
             }
             ImportMetadataResult.Success(
                 match = MetadataMatch.TvShowMatch(
@@ -309,7 +342,7 @@ class TmdbMetadataProvider(
                 seriesTmdbId,
                 null,
                 listOf(
-                    AppendResponse.TV_CREDITS,
+                    AppendResponse.CREDITS,
                     AppendResponse.CONTENT_RATING,
                     AppendResponse.IMAGES,
                     AppendResponse.EXTERNAL_IDS,
@@ -338,7 +371,6 @@ class TmdbMetadataProvider(
                         AppendResponse.RELEASES_DATES,
                         AppendResponse.IMAGES,
                         AppendResponse.CREDITS,
-                        AppendResponse.TV_CREDITS,
                         AppendResponse.EXTERNAL_IDS,
                     ),
                 )
@@ -366,7 +398,6 @@ class TmdbMetadataProvider(
                     AppendResponse.CREDITS,
                     AppendResponse.RELEASES_DATES,
                     AppendResponse.IMAGES,
-                    AppendResponse.MOVIE_CREDITS,
                 ),
             )
         } catch (e: ResponseException) {
@@ -565,30 +596,82 @@ class TmdbMetadataProvider(
 
     private suspend fun cacheImages(imageKey: String, imagePaths: List<Pair<String, String?>>) {
         imagePaths.forEach { (type, path) ->
-            val otherCachePath = imageStore.getImagePath(
+            val otherCachePath = imageStore.getMetadataImagePath(
                 type,
                 imageKey.encodeBase64(),
                 "remote-metadata-cache/${imageKey.substringBeforeLast('-').encodeBase64()}"
             )
             val url = when (type) {
-                "poster" -> "https://image.tmdb.org/t/p/w300$path"
-                "backdrop" -> "https://image.tmdb.org/t/p/w1280$path"
+                "poster" -> "$IMAGE_URL/w300$path"
+                "backdrop" -> "$IMAGE_URL/w1280$path"
                 else -> return@forEach
             }
             imageStore.downloadInto(otherCachePath, url)
         }
     }
 
-    private suspend fun awaitLock(lockData: Pair<Int, MediaKind>) {
+    private suspend fun awaitLockAndAcquire(lockData: Pair<Int, MediaKind>) {
         importLocks.first { locks -> !locks.contains(lockData) }
-    }
-
-    private fun addLock(lockData: Pair<Int, MediaKind>) {
         importLocks.update { it + lockData }
     }
 
     private fun removeLock(lockData: Pair<Int, MediaKind>) {
         importLocks.update { it - lockData }
+    }
+
+    private fun List<TmdbCompany>.toCompanyDb() = map { company ->
+        ProductionCompany(
+            id = "",
+            name = company.name.orEmpty(),
+            tmdbId = company.id,
+        )
+    }
+
+    private fun List<TmdbGenre>.toGenreDb() =
+        map { genre ->
+            Genre(
+                id = "",
+                name = genre.name,
+                tmdbId = genre.id,
+            )
+        }
+
+    private fun TmdbCredits.toCreditsDb(): Map<Person, List<MetadataCredit>> {
+        fun TmdbCast.toPerson() = Person(id = "", name = name, tmdbId = id)
+        fun TmdbCrew.toPerson() = Person(id = "", name = name, tmdbId = id)
+        fun createCredit(
+            creditType: CreditType,
+            job: CreditJob? = null,
+            character: String? = null,
+        ) = MetadataCredit(
+            personId = "",
+            metadataId = "",
+            character = character,
+            job = job,
+            type = creditType,
+        )
+        return buildMap(cast.size + crew.size) {
+            cast.forEach { cast ->
+                val person = cast.toPerson()
+                val credit = createCredit(CreditType.CAST, character = cast.character)
+                compute(person) { _, list ->
+                    list?.plus(credit) ?: listOf(credit)
+                }
+            }
+            crew.forEach { crew ->
+                val job = try {
+                    CreditJob.valueOf(crew.job.uppercase())
+                } catch (_: IllegalArgumentException) {
+                    // ignore undefined jobs
+                    return@forEach
+                }
+                val person = crew.toPerson()
+                val credit = createCredit(CreditType.CREW, job = job)
+                compute(person) { _, list ->
+                    list?.plus(credit) ?: listOf(credit)
+                }
+            }
+        }
     }
 }
 

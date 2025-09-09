@@ -108,8 +108,12 @@ class MetadataService(
         }
     }
 
+    fun getImagePathForPerson(personId: String): Path? {
+        return imageStore.getPersonImagePath(personId).takeIf { it.exists() }
+    }
+
     private suspend fun getImagePathForRemoteId(imageKey: String, imageType: String): Path? {
-        val cachePath = imageStore.getImagePath(
+        val cachePath = imageStore.getMetadataImagePath(
             imageType,
             imageKey.encodeBase64(),
             "remote-metadata-cache/${imageKey.substringBeforeLast('-').encodeBase64()}"
@@ -124,7 +128,7 @@ class MetadataService(
 
     private suspend fun getImagePathMetadataId(imageKey: String, imageType: String): Path? {
         val rootId = metadataDao.findRootIdOrSelf(imageKey) ?: return null
-        val cacheFile = imageStore.getImagePath(imageType, imageKey, rootId)
+        val cacheFile = imageStore.getMetadataImagePath(imageType, imageKey, rootId)
         return cacheFile.takeIf { it.exists() }
     }
 }
