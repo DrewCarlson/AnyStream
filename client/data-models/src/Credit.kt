@@ -30,6 +30,7 @@ data class Person(
 data class CastCredit(
     val person: Person,
     val character: String,
+    val order: Int,
 )
 
 @Serializable

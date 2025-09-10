@@ -88,6 +88,7 @@ CREATE TABLE metadata_credit
     metadata_id VARCHAR(24) NOT NULL,
     type        TEXT        NOT NULL,
     character   TEXT,
+    `order`     INTEGER,
     job         TEXT,
 
     FOREIGN KEY (metadata_id) REFERENCES metadata (id) ON DELETE CASCADE,

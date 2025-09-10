@@ -68,6 +68,7 @@ fun processCredits(
             personId = "",
             type = CreditType.CAST,
             character = cast.character,
+            order = cast.order,
             job = null,
             metadataId = "",
         )

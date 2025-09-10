@@ -126,6 +126,7 @@ class TagsDao(
                     where(METADATA_CREDIT.METADATA_ID.`in`(metadataIds))
                 }
             }
+            .orderBy(METADATA_CREDIT.ORDER.asc())
             .fetchAsync()
             .thenApplyAsync { records ->
                 records.forEach { (credit, tag) ->
@@ -138,6 +139,7 @@ class TagsDao(
                         CreditType.CAST -> CastCredit(
                             person = person,
                             character = credit.character!!,
+                            order = credit.order!!,
                         ).run(cast::add)
 
                         CreditType.CREW -> CrewCredit(

@@ -643,17 +643,19 @@ class TmdbMetadataProvider(
             creditType: CreditType,
             job: CreditJob? = null,
             character: String? = null,
+            order: Int? = null,
         ) = MetadataCredit(
             personId = "",
             metadataId = "",
             character = character,
+            order = order,
             job = job,
             type = creditType,
         )
         return buildMap(cast.size + crew.size) {
             cast.forEach { cast ->
                 val person = cast.toPerson()
-                val credit = createCredit(CreditType.CAST, character = cast.character)
+                val credit = createCredit(CreditType.CAST, character = cast.character, order = cast.order)
                 compute(person) { _, list ->
                     list?.plus(credit) ?: listOf(credit)
                 }
