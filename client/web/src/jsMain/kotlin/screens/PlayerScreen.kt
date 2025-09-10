@@ -90,9 +90,9 @@ fun PlayerScreen(mediaLinkId: String) {
     var sessionHandle by remember { mutableStateOf<PlaybackSessionHandle?>(null) }
     val mediaItem by produceState<MediaItem?>(null) {
         value = try {
-            client.library.findMediaLink(mediaLinkId).let { (_, metadata) ->
-                (metadata as? MovieResponse)?.toMediaItem()
-                    ?: (metadata as? EpisodeResponse)?.toMediaItem(concise = true)
+            client.library.findMediaLink(mediaLinkId).let { response ->
+                (response.metadata as? MovieResponse)?.toMediaItem()
+                    ?: (response.metadata as? EpisodeResponse)?.toMediaItem(concise = true)
             }
         } catch (e: Throwable) {
             null

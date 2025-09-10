@@ -18,10 +18,12 @@
 package anystream.models.api
 
 import anystream.models.*
+import dev.drewhamilton.poko.Poko
 import kotlinx.serialization.Serializable
 
+@Poko
 @Serializable
-data class SeasonResponse(
+class SeasonResponse(
     val show: TvShow,
     val season: TvSeason,
     val episodes: List<Episode> = emptyList(),

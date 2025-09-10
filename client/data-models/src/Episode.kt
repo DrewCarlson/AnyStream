@@ -17,11 +17,13 @@
  */
 package anystream.models
 
+import dev.drewhamilton.poko.Poko
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 
+@Poko
 @Serializable
-data class Episode(
+class Episode(
     val id: String,
     val showId: String,
     val seasonId: String,

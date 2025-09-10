@@ -19,10 +19,12 @@ package anystream.models.api
 
 import anystream.models.MediaLink
 import anystream.models.TvShow
+import dev.drewhamilton.poko.Poko
 import kotlinx.serialization.Serializable
 
+@Poko
 @Serializable
-data class TvShowsResponse(
+class TvShowsResponse(
     val tvShows: List<TvShow>,
     val mediaLinks: List<MediaLink>,
 )

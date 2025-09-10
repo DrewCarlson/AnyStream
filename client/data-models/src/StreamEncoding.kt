@@ -17,6 +17,7 @@
  */
 package anystream.models
 
+import dev.drewhamilton.poko.Poko
 import kotlinx.serialization.Serializable
 import kotlin.time.Duration
 
@@ -43,8 +44,9 @@ sealed class StreamEncodingTyped {
         }
 }
 
+@Poko
 @Serializable
-data class AudioStreamEncoding(
+class AudioStreamEncoding(
     override val id: String,
     override val streamId: String?,
     override val index: Int?,
@@ -63,8 +65,9 @@ data class AudioStreamEncoding(
     val sampleRate: Int?,
 ) : StreamEncodingTyped()
 
+@Poko
 @Serializable
-data class VideoStreamEncoding(
+class VideoStreamEncoding(
     override val id: String,
     override val streamId: String?,
     override val index: Int?,
@@ -88,8 +91,9 @@ data class VideoStreamEncoding(
     val fieldOrder: String?,
 ) : StreamEncodingTyped()
 
+@Poko
 @Serializable
-data class SubtitleStreamEncoding(
+class SubtitleStreamEncoding(
     override val id: String,
     override val streamId: String?,
     override val index: Int?,

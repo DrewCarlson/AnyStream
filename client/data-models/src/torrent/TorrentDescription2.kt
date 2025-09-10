@@ -17,11 +17,13 @@
  */
 package anystream.torrent.search
 
+import dev.drewhamilton.poko.Poko
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
+@Poko
 @Serializable
-data class TorrentDescription2(
+class TorrentDescription2(
     val provider: String,
     val magnetUrl: String,
     val title: String,

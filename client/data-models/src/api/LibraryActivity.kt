@@ -18,10 +18,12 @@
 package anystream.models.api
 
 import anystream.models.backend.MediaScannerState
+import dev.drewhamilton.poko.Poko
 import kotlinx.serialization.Serializable
 
+@Poko
 @Serializable
-data class LibraryActivity(
+class LibraryActivity(
     val scannerState: MediaScannerState = MediaScannerState.Idle,
     val playbackSessions: PlaybackSessions = PlaybackSessions(),
 )

@@ -22,8 +22,9 @@ import anystream.models.UserPublic
 import dev.drewhamilton.poko.Poko
 import kotlinx.serialization.Serializable
 
+@Poko
 @Serializable
-data class CreateUserBody(
+class CreateUserBody(
     val username: String,
     val password: String,
     val inviteCode: String?,

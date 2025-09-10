@@ -17,6 +17,7 @@
  */
 package anystream.models
 
+import dev.drewhamilton.poko.Poko
 import kotlinx.serialization.Serializable
 
 const val USERNAME_LENGTH_MIN = 4
@@ -24,8 +25,9 @@ const val USERNAME_LENGTH_MAX = 12
 const val PASSWORD_LENGTH_MIN = 6
 const val PASSWORD_LENGTH_MAX = 64
 
+@Poko
 @Serializable
-data class UserPublic(
+class UserPublic(
     val id: String,
     val username: String,
     val displayName: String,
@@ -43,9 +45,9 @@ fun User.toPublic(): UserPublic {
     )
 }
 
-
+@Poko
 @Serializable
-data class UpdateUserBody(
+class UpdateUserBody(
     val displayName: String,
     val password: String?,
     val currentPassword: String?,

@@ -18,6 +18,7 @@
 package anystream.models.backend
 
 import anystream.models.Directory
+import dev.drewhamilton.poko.Poko
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -35,15 +36,17 @@ sealed class MediaScannerState {
 @Serializable
 sealed class MediaScannerMessage {
 
+    @Poko
     @Serializable
-    data class ScanDirectoryStarted(
+    class ScanDirectoryStarted(
         val directoryName: String,
         val directoryPath: String,
         val childDirectoryName: String? = null,
     ) : MediaScannerMessage()
 
+    @Poko
     @Serializable
-    data class ScanDirectoryCompleted(
+    class ScanDirectoryCompleted(
         val directory: Directory,
         val child: Directory? = null,
     ) : MediaScannerMessage()

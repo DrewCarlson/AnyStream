@@ -186,9 +186,9 @@ class TmdbMetadataProviderTest : FunSpec({
         result.results
             .first()
             .shouldBeInstanceOf<MetadataMatch.MovieMatch>()
-            .asClue { (movie) ->
-                movie.title shouldBe "Teenage Mutant Ninja Turtles: Mutant Mayhem"
-                movie.releaseDate shouldBe Instant.parse("2023-07-31T00:00:00Z")
+            .asClue { match ->
+                match.movie.title shouldBe "Teenage Mutant Ninja Turtles: Mutant Mayhem"
+                match.movie.releaseDate shouldBe Instant.parse("2023-07-31T00:00:00Z")
             }
     }
 })

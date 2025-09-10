@@ -18,10 +18,12 @@
 package anystream.models.api
 
 import anystream.models.*
+import dev.drewhamilton.poko.Poko
 import kotlinx.serialization.Serializable
 
+@Poko
 @Serializable
-data class HomeResponse(
+class HomeResponse(
     val currentlyWatching: CurrentlyWatching,
     val recentlyAdded: RecentlyAdded,
     val popular: Popular,
@@ -35,14 +37,16 @@ data class CurrentlyWatching(
     val tvSeasons: List<TvSeason>,
 )
 
+@Poko
 @Serializable
-data class RecentlyAdded(
+class RecentlyAdded(
     val movies: Map<Movie, MediaLink?>,
     val tvShows: List<TvShow>,
 )
 
+@Poko
 @Serializable
-data class Popular(
+class Popular(
     val movies: Map<Movie, MediaLink?>,
     val tvShows: List<TvShow>,
 )

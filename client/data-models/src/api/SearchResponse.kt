@@ -21,10 +21,12 @@ import anystream.models.Episode
 import anystream.models.MediaLink
 import anystream.models.Movie
 import anystream.models.TvShow
+import dev.drewhamilton.poko.Poko
 import kotlinx.serialization.Serializable
 
+@Poko
 @Serializable
-data class SearchResponse(
+class SearchResponse(
     val movies: List<Movie> = emptyList(),
     val tvShows: List<TvShowResult> = emptyList(),
     val episodes: List<EpisodeResult> = emptyList(),
@@ -33,14 +35,16 @@ data class SearchResponse(
     fun hasResult(): Boolean =
         movies.isNotEmpty() || tvShows.isNotEmpty() || episodes.isNotEmpty()
 
+    @Poko
     @Serializable
-    data class TvShowResult(
+    class TvShowResult(
         val tvShow: TvShow,
         val seasonCount: Int,
     )
 
+    @Poko
     @Serializable
-    data class EpisodeResult(
+    class EpisodeResult(
         val episode: Episode,
         val tvShow: TvShow,
     )

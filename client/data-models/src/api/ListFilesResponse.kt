@@ -17,10 +17,12 @@
  */
 package anystream.models.api
 
+import dev.drewhamilton.poko.Poko
 import kotlinx.serialization.Serializable
 
+@Poko
 @Serializable
-data class ListFilesResponse(
+class ListFilesResponse(
     val folders: List<String> = emptyList(),
     val files: List<String> = emptyList(),
 ) {

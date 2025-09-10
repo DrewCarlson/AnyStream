@@ -17,14 +17,16 @@
  */
 package anystream.models
 
+import dev.drewhamilton.poko.Poko
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.Serializable
 import kotlin.time.Duration
 
+@Poko
 @Serializable
-data class Movie(
+class Movie(
     val id: String,
     val title: String,
     val overview: String,
@@ -47,8 +49,9 @@ data class Movie(
             ?.toString()
 }
 
+@Poko
 @Serializable
-data class Image(
+class Image(
     val filePath: String,
     val language: String,
 )

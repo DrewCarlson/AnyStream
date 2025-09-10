@@ -25,10 +25,12 @@ import anystream.models.Movie
 import anystream.models.PlaybackState
 import anystream.models.ProductionCompany
 import anystream.models.StreamEncoding
+import dev.drewhamilton.poko.Poko
 import kotlinx.serialization.Serializable
 
+@Poko
 @Serializable
-data class MovieResponse(
+class MovieResponse(
     val movie: Movie,
     override val mediaLinks: List<MediaLink> = emptyList(),
     override val streamEncodings: Map<String, List<StreamEncoding>> = emptyMap(),

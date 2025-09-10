@@ -17,6 +17,7 @@
  */
 package anystream.models
 
+import dev.drewhamilton.poko.Poko
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -26,15 +27,17 @@ data class Person(
     val tmdbId: Int?,
 )
 
+@Poko
 @Serializable
-data class CastCredit(
+class CastCredit(
     val person: Person,
     val character: String,
     val order: Int,
 )
 
+@Poko
 @Serializable
-data class CrewCredit(
+class CrewCredit(
     val person: Person,
     val job: CreditJob,
 )

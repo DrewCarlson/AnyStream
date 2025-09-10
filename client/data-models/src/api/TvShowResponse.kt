@@ -26,10 +26,12 @@ import anystream.models.ProductionCompany
 import anystream.models.StreamEncoding
 import anystream.models.TvSeason
 import anystream.models.TvShow
+import dev.drewhamilton.poko.Poko
 import kotlinx.serialization.Serializable
 
+@Poko
 @Serializable
-data class TvShowResponse(
+class TvShowResponse(
     val tvShow: TvShow,
     val seasons: List<TvSeason>,
     override val mediaLinks: List<MediaLink> = emptyList(),

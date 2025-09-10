@@ -19,10 +19,12 @@ package anystream.models.api
 
 import anystream.models.MediaLink
 import anystream.models.Movie
+import dev.drewhamilton.poko.Poko
 import kotlinx.serialization.Serializable
 
+@Poko
 @Serializable
-data class MoviesResponse(
+class MoviesResponse(
     val movies: List<Movie>,
     val mediaLinks: Map<String, MediaLink>,
     val total: Int,

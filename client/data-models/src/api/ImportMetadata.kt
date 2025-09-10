@@ -18,10 +18,12 @@
 package anystream.models.api
 
 import anystream.models.*
+import dev.drewhamilton.poko.Poko
 import kotlinx.serialization.Serializable
 
+@Poko
 @Serializable
-data class ImportMetadata(
+class ImportMetadata(
     val metadataIds: List<String>,
     val providerId: String,
     val mediaKind: MediaKind,
@@ -29,8 +31,9 @@ data class ImportMetadata(
     val refresh: Boolean = false,
 )
 
+@Poko
 @Serializable
-data class QueryMetadata(
+class QueryMetadata(
     val providerId: String?,
     val mediaKind: MediaKind,
     val query: String? = null,
@@ -42,8 +45,9 @@ data class QueryMetadata(
 ) {
     @Serializable
     sealed class Extras {
+        @Poko
         @Serializable
-        data class TvShowExtras(
+        class TvShowExtras(
             val seasonNumber: Int? = null,
             val episodeNumber: Int? = null,
         ) : Extras()
@@ -62,8 +66,9 @@ sealed class MetadataMatch {
     abstract val exists: Boolean
     abstract val metadataId: String?
 
+    @Poko
     @Serializable
-    data class MovieMatch(
+    class MovieMatch(
         val movie: Movie,
         override val remoteMetadataId: String?,
         override val remoteId: String,
@@ -73,8 +78,9 @@ sealed class MetadataMatch {
         override val metadataId: String? = if (exists) movie.id else null
     }
 
+    @Poko
     @Serializable
-    data class TvShowMatch(
+    class TvShowMatch(
         val tvShow: TvShow,
         val seasons: List<TvSeason>,
         val episodes: List<Episode>,
@@ -90,28 +96,32 @@ sealed class MetadataMatch {
 @Serializable
 sealed class MediaLinkMatchResult {
 
+    @Poko
     @Serializable
-    data class Success(
+    class Success(
         val mediaLink: MediaLink?,
         val directory: Directory?,
         val matches: List<MetadataMatch>,
         val subResults: List<MediaLinkMatchResult>,
     ) : MediaLinkMatchResult()
 
+    @Poko
     @Serializable
-    data class NoSupportedFiles(
+    class NoSupportedFiles(
         val mediaLink: MediaLink?,
         val directory: Directory?,
     ) : MediaLinkMatchResult()
 
+    @Poko
     @Serializable
-    data class FileNameParseFailed(
+    class FileNameParseFailed(
         val mediaLink: MediaLink?,
         val directory: Directory?,
     ) : MediaLinkMatchResult()
 
+    @Poko
     @Serializable
-    data class NoMatchesFound(
+    class NoMatchesFound(
         val mediaLink: MediaLink?,
         val directory: Directory?,
     ) : MediaLinkMatchResult()
@@ -120,25 +130,29 @@ sealed class MediaLinkMatchResult {
 @Serializable
 sealed class ImportMetadataResult {
 
+    @Poko
     @Serializable
-    data class Success(
+    class Success(
         val match: MetadataMatch,
         val subresults: List<ImportMetadataResult> = emptyList(),
     ) : ImportMetadataResult()
 
+    @Poko
     @Serializable
-    data class ErrorMetadataAlreadyExists(
+    class ErrorMetadataAlreadyExists(
         val existingMediaId: String,
         val match: MetadataMatch,
     ) : ImportMetadataResult()
 
+    @Poko
     @Serializable
-    data class ErrorDatabaseException(
+    class ErrorDatabaseException(
         val stacktrace: String,
     ) : ImportMetadataResult()
 
+    @Poko
     @Serializable
-    data class ErrorDataProviderException(
+    class ErrorDataProviderException(
         val stacktrace: String,
     ) : ImportMetadataResult()
 }
@@ -146,8 +160,9 @@ sealed class ImportMetadataResult {
 @Serializable
 sealed class QueryMetadataResult {
 
+    @Poko
     @Serializable
-    data class Success(
+    class Success(
         val providerId: String,
         val results: List<MetadataMatch>,
         val extras: QueryMetadata.Extras?,
@@ -156,13 +171,15 @@ sealed class QueryMetadataResult {
     @Serializable
     object ErrorProviderNotFound : QueryMetadataResult()
 
+    @Poko
     @Serializable
-    data class ErrorDatabaseException(
+    class ErrorDatabaseException(
         val stacktrace: String,
     ) : QueryMetadataResult()
 
+    @Poko
     @Serializable
-    data class ErrorDataProviderException(
+    class ErrorDataProviderException(
         val stacktrace: String,
     ) : QueryMetadataResult()
 }

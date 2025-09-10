@@ -18,10 +18,12 @@
 package anystream.models.api
 
 import anystream.models.MediaLink
+import dev.drewhamilton.poko.Poko
 import kotlinx.serialization.Serializable
 
+@Poko
 @Serializable
-data class MediaLinkResponse(
+class MediaLinkResponse(
     val mediaLink: MediaLink,
     val metadata: MediaLookupResponse?,
 )

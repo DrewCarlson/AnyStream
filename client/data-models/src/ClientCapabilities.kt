@@ -17,10 +17,12 @@
  */
 package anystream.models
 
+import dev.drewhamilton.poko.Poko
 import kotlinx.serialization.Serializable
 
+@Poko
 @Serializable
-data class ClientCapabilities(
+class ClientCapabilities(
     val supportedVideoCodecs: List<String> = emptyList(),
     val supportedAudioCodecs: List<String> = emptyList(),
     val supportedContainers: List<String> = emptyList(),

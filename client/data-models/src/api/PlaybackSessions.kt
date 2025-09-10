@@ -20,10 +20,12 @@ package anystream.models.api
 import anystream.models.PlaybackState
 import anystream.models.TranscodeSession
 import anystream.models.UserPublic
+import dev.drewhamilton.poko.Poko
 import kotlinx.serialization.Serializable
 
+@Poko
 @Serializable
-data class PlaybackSessions(
+class PlaybackSessions(
     val playbackStates: List<PlaybackState> = emptyList(),
     val transcodeSessions: Map<String, TranscodeSession> = emptyMap(),
     val users: Map<String, UserPublic> = emptyMap(),

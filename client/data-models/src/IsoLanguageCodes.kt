@@ -17,7 +17,10 @@
  */
 package anystream.models
 
-internal data class LangCode(
+import dev.drewhamilton.poko.Poko
+
+@Poko
+internal class LangCode(
     val name: String,
     val nativeNative: String,
     val iso639_1: String,

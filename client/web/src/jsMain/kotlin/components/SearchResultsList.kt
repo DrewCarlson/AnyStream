@@ -64,13 +64,13 @@ fun SearchResultsList(
             SectionTitle("TV Shows")
         }
         Div({ classes("d-flex", "flex-column", "flex-wrap", "w-100") }) {
-            searchResponse.tvShows.forEach { (show, seasonNumber) ->
+            searchResponse.tvShows.forEach { result ->
                 SearchResultItem(
-                    mediaId = show.id,
-                    title = show.name,
+                    mediaId = result.tvShow.id,
+                    title = result.tvShow.name,
                     subtitle = buildString {
-                        append(seasonNumber)
-                        if (seasonNumber > 1) {
+                        append(result.seasonCount)
+                        if (result.seasonCount > 1) {
                             append(" seasons")
                         } else {
                             append(" season")
@@ -84,11 +84,11 @@ fun SearchResultsList(
             SectionTitle("Episodes")
         }
         Div({ classes("d-flex", "flex-column", "flex-wrap", "w-100") }) {
-            searchResponse.episodes.forEach { (episode, show) ->
+            searchResponse.episodes.forEach { result ->
                 SearchResultItem(
-                    mediaId = episode.id,
-                    title = episode.name,
-                    subtitle = show.name,
+                    mediaId = result.episode.id,
+                    title = result.episode.name,
+                    subtitle = result.tvShow.name,
                     wide = true,
                 )
             }

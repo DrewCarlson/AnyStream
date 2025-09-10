@@ -20,18 +20,21 @@ package anystream.models.api
 import anystream.models.Directory
 import anystream.models.Library
 import anystream.models.MediaKind
+import dev.drewhamilton.poko.Poko
 import kotlinx.serialization.Serializable
 
+@Poko
 @Serializable
-data class AddLibraryFolderRequest(
+class AddLibraryFolderRequest(
     val path: String,
 )
 
 @Serializable
 sealed class AddLibraryFolderResponse {
 
+    @Poko
     @Serializable
-    data class Success(
+    class Success(
         val library: Library,
         val directory: Directory,
     ) : AddLibraryFolderResponse()
@@ -39,29 +42,34 @@ sealed class AddLibraryFolderResponse {
     @Serializable
     data object LibraryFolderExists : AddLibraryFolderResponse()
 
+    @Poko
     @Serializable
-    data class FileError(
+    class FileError(
         val exists: Boolean,
         val isDirectory: Boolean,
     ) : AddLibraryFolderResponse()
 
+    @Poko
     @Serializable
-    data class DatabaseError(
+    class DatabaseError(
         val stacktrace: String?,
     ) : AddLibraryFolderResponse()
 
+    @Poko
     @Serializable
-    data class RequestError(
+    class RequestError(
         val stacktrace: String?,
     ) : AddLibraryFolderResponse()
 }
 
+@Poko
 @Serializable
-data class LibraryFolderList(
+class LibraryFolderList(
     val folders: List<RootFolder>,
 ) {
+    @Poko
     @Serializable
-    data class RootFolder(
+    class RootFolder(
         val libraryId: String,
         val path: String,
         val mediaKind: MediaKind,

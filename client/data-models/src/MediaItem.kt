@@ -18,12 +18,14 @@
 package anystream.models
 
 import anystream.models.api.*
+import dev.drewhamilton.poko.Poko
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Duration
 
-data class MediaItem(
+@Poko
+class MediaItem(
     val mediaId: String,
     val contentTitle: String,
     val subtitle1: String? = null,

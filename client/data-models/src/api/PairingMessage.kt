@@ -17,6 +17,7 @@
  */
 package anystream.models.api
 
+import dev.drewhamilton.poko.Poko
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -25,11 +26,13 @@ sealed class PairingMessage {
     @Serializable
     data object Idle : PairingMessage()
 
+    @Poko
     @Serializable
-    data class Started(val pairingCode: String) : PairingMessage()
+    class Started(val pairingCode: String) : PairingMessage()
 
+    @Poko
     @Serializable
-    data class Authorized(
+    class Authorized(
         val secret: String,
         val userId: String,
     ) : PairingMessage()

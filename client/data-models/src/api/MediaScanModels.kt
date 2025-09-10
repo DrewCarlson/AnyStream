@@ -18,10 +18,12 @@
 package anystream.models.api
 
 import anystream.models.StreamEncoding
+import dev.drewhamilton.poko.Poko
 import kotlinx.serialization.Serializable
 
+@Poko
 @Serializable
-data class MediaScanRequest(
+class MediaScanRequest(
     val filePath: String,
 )
 
@@ -71,7 +73,6 @@ sealed class MediaScanResult {
     ) : MediaScanResult()
 }
 
-// @Poko
 @Serializable
 data class ContentIdContainer(
     val addedIds: List<String> = emptyList(),
@@ -93,14 +94,16 @@ data class ContentIdContainer(
 
 @Serializable
 sealed class MediaAnalyzerResult {
+    @Poko
     @Serializable
-    data class Success(
+    class Success(
         val mediaLinkId: String,
         val streams: List<StreamEncoding>,
     ) : MediaAnalyzerResult()
 
+    @Poko
     @Serializable
-    data class ProcessError(
+    class ProcessError(
         val stacktrace: String,
     ) : MediaAnalyzerResult()
 
@@ -110,8 +113,9 @@ sealed class MediaAnalyzerResult {
     @Serializable
     data object ErrorNothingToImport : MediaAnalyzerResult()
 
+    @Poko
     @Serializable
-    data class ErrorDatabaseException(
+    class ErrorDatabaseException(
         val stacktrace: String,
     ) : MediaAnalyzerResult()
 }

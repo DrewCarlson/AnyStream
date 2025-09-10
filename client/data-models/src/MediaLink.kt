@@ -17,6 +17,7 @@
  */
 package anystream.models
 
+import dev.drewhamilton.poko.Poko
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 
@@ -111,8 +112,9 @@ sealed class MediaLinkTyped {
 /**
  * A [MediaLink] that refers to a [filePath] on disk or network storage.
  */
+@Poko
 @Serializable
-data class LocalMediaLink(
+class LocalMediaLink(
     override val id: String,
     override val metadataId: String?,
     override val rootMetadataId: String? = null,
@@ -130,8 +132,9 @@ data class LocalMediaLink(
  * A [MediaLink] that refers to a [fileIndex] within a
  * torrent, identified by the [infoHash].
  */
+@Poko
 @Serializable
-data class DownloadMediaLink(
+class DownloadMediaLink(
     override val id: String,
     override val metadataId: String?,
     override val rootMetadataId: String? = null,
