@@ -109,7 +109,7 @@ fun MediaScreen(mediaId: String) {
                 BaseDetailsView(
                     mediaItem = mediaItem,
                     rootMetadataId = mediaItem.mediaId,
-                    analyzeFiles = analyzeFiles,
+                    analyzeFiles = analyzeFiles.takeIf { mediaItem.playableMediaLink != null },
                     onFixMatch = onFixMatch,
                     onGeneratePreview = onGeneratePreview
                 )
@@ -125,7 +125,7 @@ fun MediaScreen(mediaId: String) {
                 }
                 BaseDetailsView(
                     mediaItem = mediaItem,
-                    analyzeFiles = analyzeFiles,
+                    analyzeFiles = analyzeFiles.takeIf { mediaItem.playableMediaLink != null },
                     rootMetadataId = mediaItem.mediaId,
                     onFixMatch = onFixMatch,
                     onGeneratePreview = null
@@ -146,7 +146,7 @@ fun MediaScreen(mediaId: String) {
                 }
                 BaseDetailsView(
                     mediaItem = mediaItem,
-                    analyzeFiles = null,
+                    analyzeFiles = analyzeFiles.takeIf { mediaItem.playableMediaLink != null },
                     rootMetadataId = response.show.id,
                     onFixMatch = onFixMatch,
                     onGeneratePreview = null,
@@ -170,7 +170,7 @@ fun MediaScreen(mediaId: String) {
                     mediaItem = mediaItem,
                     rootMetadataId = response.show.id,
                     parentMetadatId = response.episode.seasonId,
-                    analyzeFiles = analyzeFiles,
+                    analyzeFiles = analyzeFiles.takeIf { mediaItem.playableMediaLink != null },
                     onFixMatch = onFixMatch,
                     onGeneratePreview = onGeneratePreview
                 )
