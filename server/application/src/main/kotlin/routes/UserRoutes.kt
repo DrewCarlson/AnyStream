@@ -19,6 +19,7 @@ package anystream.routes
 
 import anystream.AnyStreamConfig
 import anystream.data.UserSession
+import anystream.db.SessionsDao
 import anystream.json
 import anystream.models.*
 import anystream.models.api.*
@@ -34,6 +35,7 @@ import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
+import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.http.HttpStatusCode.Companion.UnprocessableEntity
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
@@ -55,6 +57,7 @@ private const val PAIRING_SESSION_SECONDS = 60
 
 fun Route.addUserRoutes(
     userService: UserService = koinGet(),
+    sessionsDao: SessionsDao = koinGet(),
     config: AnyStreamConfig = koinGet(),
 ) {
     route("/users") {
@@ -183,6 +186,20 @@ fun Route.addUserRoutes(
                         )
                     )
                 }
+            }
+
+            get("/adopt") {
+                val sessionToken = call.request.queryParameters["as_user_session"]
+                    ?: return@get call.respond(Unauthorized)
+                val redirectLocation = call.request.queryParameters["redirect"]
+
+                val sessionData: UserSession = sessionsDao.find(sessionToken)
+                    ?.run(json::decodeFromString)
+                    ?: return@get call.respond(NotFound)
+
+                call.sessions.set(sessionData)
+                call.attributes.put(SetSessionCookie, true)
+                call.respondRedirect(redirectLocation ?: "/")
             }
 
             authenticate(optional = true) {

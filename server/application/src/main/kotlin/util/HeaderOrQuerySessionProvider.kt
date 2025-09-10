@@ -48,7 +48,9 @@ inline fun <reified T : Any> SessionsConfig.headerOrQuery(
                 }
                 override fun clear(call: ApplicationCall) = Unit
                 override fun receive(call: ApplicationCall): String? {
-                    return call.request.queryParameters[key] ?: call.request.headers[key]
+                    return call.request.queryParameters[key]
+                        ?: call.request.headers[key]
+                        ?: call.request.cookies[key]
                 }
             },
             SessionTrackerById(T::class, serializer, storage, sessionIdProvider),
