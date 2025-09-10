@@ -42,6 +42,9 @@ sealed class AddLibraryFolderResponse {
     @Serializable
     data object LibraryFolderExists : AddLibraryFolderResponse()
 
+    @Serializable
+    data object LibraryDoesNotExists : AddLibraryFolderResponse()
+
     @Poko
     @Serializable
     class FileError(

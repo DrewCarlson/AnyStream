@@ -130,6 +130,10 @@ fun AddLibraryFolderScreen(
                             is AddLibraryFolderResponse.DatabaseError -> {
                                 message = "Database error"
                             }
+
+                            AddLibraryFolderResponse.LibraryDoesNotExists -> {
+                                message = "Library does not exist."
+                            }
                         }
                     }
                 }

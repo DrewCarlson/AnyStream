@@ -124,10 +124,10 @@ class LibraryService(
         return libraryDao.deleteDirectory(directoryId)
     }
 
-    suspend fun addLibraryFolderAndScan(libraryId: String, path: String): AddLibraryFolderResult {
+    suspend fun addLibraryFolderAndScan(libraryId: String, path: String): AddLibraryFolderResponse {
         val result = addLibraryFolder(libraryId, path)
-        if (result is AddLibraryFolderResult.Success) {
-            val (_, directory) = result
+        if (result is AddLibraryFolderResponse.Success) {
+            val directory = result.directory
 
             scope.launch(Dispatchers.Default) {
                 var scanning = true
@@ -150,31 +150,31 @@ class LibraryService(
         return result
     }
 
-    suspend fun addLibraryFolder(libraryId: String, path: String): AddLibraryFolderResult {
+    suspend fun addLibraryFolder(libraryId: String, path: String): AddLibraryFolderResponse {
         val libraryFile = Path(path)
         if (!libraryFile.exists() || !libraryFile.isDirectory()) {
             logger.debug("Invalid library folder path '{}'", path)
-            return AddLibraryFolderResult.FileError(
+            return AddLibraryFolderResponse.FileError(
                 exists = libraryFile.exists(),
                 isDirectory = false,
             )
         }
 
         val library = libraryDao.fetchLibrary(libraryId)
-            ?: return AddLibraryFolderResult.NoLibrary
+            ?: return AddLibraryFolderResponse.LibraryFolderExists
 
         if (libraryDao.fetchDirectoryByPath(path) != null) {
             logger.debug("Library already exists with directory '{}'", path)
-            return AddLibraryFolderResult.LinkAlreadyExists
+            return AddLibraryFolderResponse.LibraryFolderExists
         }
 
         return try {
             val directory = libraryDao.insertDirectory(null, library.id, path)
             logger.debug("Added directory {} to library {}", directory, library)
-            AddLibraryFolderResult.Success(library, directory)
+            AddLibraryFolderResponse.Success(library, directory)
         } catch (e: Throwable) {
             logger.error("Failed to insert new library for $path", e)
-            AddLibraryFolderResult.DatabaseError(e)
+            AddLibraryFolderResponse.DatabaseError(e.stackTraceToString())
         }
     }
 
