@@ -96,17 +96,27 @@ class LibraryApiClient(
 
     suspend fun getHomePopular(): Popular = core.http.get("/api/home/popular").bodyOrThrow()
 
-    suspend fun getMovies(libraryId: String): MoviesResponse =
-        core.http.get("/api/library/${libraryId}").bodyOrThrow()
-
-    suspend fun getMovies(libraryId: String, offset: Int, limit: Int = 30): MoviesResponse =
+    suspend fun getMovies(libraryId: String, offset: Int = -1, limit: Int = -1): MoviesResponse =
         core.http.get("/api/library/${libraryId}") {
-            parameter("offset", offset)
-            parameter("limit", limit)
+            if (offset != -1) {
+                parameter("offset", offset)
+            }
+            if (limit != -1) {
+                parameter("limit", limit)
+            }
+            parameter("includeLinks", true)
         }.bodyOrThrow()
 
-    suspend fun getTvShows(libraryId: String, page: Int = 1): TvShowsResponse =
-        core.http.get("/api/library/${libraryId}") { pageParam(page) }.bodyOrThrow()
+    suspend fun getTvShows(libraryId: String, offset: Int = -1, limit: Int = -1): TvShowsResponse =
+        core.http.get("/api/library/${libraryId}") {
+            if (offset != -1) {
+                parameter("offset", offset)
+            }
+            if (limit != -1) {
+                parameter("limit", limit)
+            }
+            parameter("includeLinks", false)
+        }.bodyOrThrow()
 
     suspend fun getLibraries(): List<Library> {
         return core.http.get("/api/library").bodyOrThrow()
