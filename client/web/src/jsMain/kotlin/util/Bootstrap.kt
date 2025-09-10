@@ -20,15 +20,45 @@ package anystream.util
 import org.w3c.dom.Element
 
 @Suppress("PropertyName")
-@JsNonModule
-@JsModule("bootstrap")
-external class Bootstrap {
+//@JsNonModule
+//@JsModule("bootstrap")
+class Bootstrap {
     object Tooltip {
-        fun getOrCreateInstance(element: Element): TooltipInstance
+        fun getOrCreateInstance(element: Element): TooltipInstance {
+            return object : TooltipInstance {
+                override fun show() {
+                }
+
+                override fun hide() {
+                }
+
+                override fun dispose() {
+                }
+            }
+        }
     }
 
     object Modal {
-        fun getOrCreateInstance(element: Element): ModalInstance
+        fun getOrCreateInstance(element: Element): ModalInstance {
+            return object : ModalInstance {
+                override fun show() {
+                }
+
+                override fun hide() {
+                }
+
+                override val _config: ModalInstance.Config
+                    get() = object : ModalInstance.Config {
+                        override var backdrop: String
+                            get() = ""
+                            set(value) {}
+                        override var keyboard: Boolean
+                            get() = false
+                            set(value) {}
+
+                    }
+            }
+        }
     }
 
     interface TooltipInstance {

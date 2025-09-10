@@ -18,11 +18,11 @@
 package anystream
 
 fun main() {
-    require<Any>("./scss/anystream.scss")
-    require<Any>("bootstrap-icons/font/bootstrap-icons.css")
-    require<Any>("@fontsource/open-sans/index.css")
-    require<Any>("video.js/dist/video-js.min.css")
+    require("./css/anystream.css")
+    require("bootstrap-icons/font/bootstrap-icons.css")
+    require("@fontsource/open-sans/index.css")
+    require("video.js/dist/video-js.min.css")
     webApp()
 }
 
-external fun <T> require(module: String): T
+external fun require(module: String): dynamic

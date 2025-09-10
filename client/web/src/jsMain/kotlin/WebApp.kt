@@ -59,12 +59,13 @@ fun webApp() = renderComposable(rootElementId = "root") {
             }
         }
     }
-    Div(
-        attrs = {
-            id("main-panel")
-            classes("d-flex", "flex-column", "h-100", "w-100")
-        },
-    ) {
+    Div({
+        classes("d-flex", "flex-column", "h-100", "w-100")
+        style {
+            backgroundImage("../images/noise.webp")
+            backgroundRepeat("repeat")
+        }
+    }) {
         val backgroundUrl by backdropImageUrl.collectAsState(null)
         var visible by remember { mutableStateOf(false) }
         val actualBackgroundUrl by produceState(backgroundUrl, backgroundUrl) {
