@@ -36,6 +36,7 @@ import io.ktor.client.fetch.*
 import io.ktor.util.encodeBase64
 import js.objects.unsafeJso
 import kotlinx.browser.document
+import kotlinx.browser.localStorage
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.coroutines.channels.BufferOverflow
@@ -649,6 +650,18 @@ private fun PlaybackControls(
             var muted by remember { mutableStateOf(player.muted()) }
             var volume by remember { mutableStateOf(player.volume()) }
             val volumeScale by derivedStateOf { if (muted) 0f else volume }
+            LaunchedEffect(Unit) {
+                localStorage.getItem("PLAYER_VOLUME")
+                    ?.toFloatOrNull()
+                    ?.run(player::volume)
+                localStorage.getItem("PLAYER_MUTED")
+                    ?.toBoolean()
+                    ?.run(player::muted)
+            }
+             LaunchedEffect(volume, muted) {
+                 localStorage.setItem("PLAYER_VOLUME", volume.toString())
+                 localStorage.setItem("PLAYER_MUTED", muted.toString())
+             }
             Div({
                 style {
                     cursor("pointer")
