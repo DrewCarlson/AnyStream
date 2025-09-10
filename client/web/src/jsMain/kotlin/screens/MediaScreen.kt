@@ -95,8 +95,7 @@ fun MediaScreen(mediaId: String) {
     }
 
     Div({
-        classes("d-flex", "flex-column", "h-100")
-        style { overflow("hidden scroll") }
+        classes("d-flex", "flex-column")
     }) {
         when (val response = mediaResponse) {
             null -> FullSizeCenteredLoader()

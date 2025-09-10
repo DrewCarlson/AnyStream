@@ -163,7 +163,10 @@ private fun ScreenContainer(
     }) {
         menu()
 
-        Div({ classes("vstack", "h-100", "w-100", "overflow-hidden") }, content)
+        Div({
+            classes("vstack", "w-100")
+            style { overflowX("hidden") }
+        }, content)
     }
 
     remember(isAuthenticated, currentPath) {
