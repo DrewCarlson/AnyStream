@@ -69,6 +69,8 @@ class AnyStreamConfig(
 
     val oidc = config.property("app.oidc").getAs<Oidc>()
 
+    val libraries = config.property("app.libraries").getAs<LibrariesConfig>()
+
     private fun findInstalledFfmpeg(): Path? {
         return listOf(
             "/usr/bin",
@@ -112,9 +114,21 @@ class AnyStreamConfig(
     }
 
     @Serializable
-    data class QbittorrentCredentials(
+    class QbittorrentCredentials(
         val url: String,
         val user: String,
         val password: String,
+    )
+
+    @Serializable
+    class LibrariesConfig(
+        val tv: LibraryConfig = LibraryConfig(),
+        val movies: LibraryConfig = LibraryConfig(),
+        val music: LibraryConfig = LibraryConfig(),
+    )
+
+    @Serializable
+    class LibraryConfig(
+        val directories: List<String> = emptyList(),
     )
 }

@@ -30,6 +30,7 @@ import anystream.media.processor.TvFileProcessor
 import anystream.metadata.ImageStore
 import anystream.metadata.MetadataService
 import anystream.metadata.providers.TmdbMetadataProvider
+import anystream.models.MediaKind
 import anystream.models.Permission
 import anystream.routes.installRouting
 import anystream.service.search.SearchService
@@ -255,7 +256,13 @@ fun Application.module(testing: Boolean = false) {
 
     check(runMigrations(get<AnyStreamConfig>().databaseUrl, log))
     applicationScope.launch {
-        get<LibraryDao>().insertDefaultLibraries()
+        get<LibraryService>().initializeLibraries(
+            buildMap {
+                put(MediaKind.TV, config.libraries.tv.directories)
+                put(MediaKind.MOVIE, config.libraries.movies.directories)
+                put(MediaKind.MUSIC, config.libraries.music.directories)
+            }
+        )
     }
     registerJobs()
 

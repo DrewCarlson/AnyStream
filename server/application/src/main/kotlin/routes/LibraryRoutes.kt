@@ -18,14 +18,12 @@
 package anystream.routes
 
 import anystream.data.MetadataDbQueries
-import anystream.media.AddLibraryFolderResult
 import anystream.media.LibraryService
 import anystream.models.MediaKind
 import anystream.models.Permission
 import anystream.models.api.AddLibraryFolderRequest
 import anystream.models.api.AddLibraryFolderResponse
 import anystream.models.api.MediaScanResult
-import anystream.models.backend.MediaScannerMessage
 import anystream.util.koinGet
 import anystream.util.logger
 import io.ktor.http.HttpStatusCode.Companion.NotFound
@@ -34,12 +32,6 @@ import io.ktor.http.HttpStatusCode.Companion.UnprocessableEntity
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 import org.drewcarlson.ktor.permissions.withPermission
 
@@ -135,30 +127,7 @@ fun Route.addLibraryModifyRoutes(
                     return@put call.respond(AddLibraryFolderResponse.RequestError(e.stackTraceToString()))
                 }
 
-                val result = libraryService.addLibraryFolder(libraryId, request.path)
-                if (result is AddLibraryFolderResult.Success) {
-                    val (_, directory) = result
-
-                    application.launch(Dispatchers.Default) {
-                        var scanning = true
-                        libraryService.mediaScannerMessages
-                            .takeWhile { scanning }
-                            .filterIsInstance<MediaScannerMessage.ScanDirectoryCompleted>()
-                            .filter { it.directory.id == directory.id }
-                            .onEach { message ->
-                                val child = message.child
-                                if (child == null) {
-                                    scanning = false
-                                } else {
-                                    libraryService.refreshMetadata(child)
-                                }
-                            }
-                            .launchIn(this)
-                        libraryService.scan(directory)
-                    }
-                }
-
-                call.respond(result)
+                call.respond(libraryService.addLibraryFolderAndScan(libraryId, request.path))
             }
 
             get("/scan") {

@@ -60,10 +60,25 @@ class LibraryService(
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val mediaFileScanner = MediaFileScanner(mediaLinkDao, libraryDao, fs)
 
     val mediaScannerState: StateFlow<MediaScannerState> = mediaFileScanner.state
     val mediaScannerMessages: Flow<MediaScannerMessage> = mediaFileScanner.messages
+
+    suspend fun initializeLibraries(
+        preconfiguredDirectories: Map<MediaKind, List<String>>
+    ) {
+        if (!libraryDao.insertDefaultLibraries()) {
+            return
+        }
+        libraryDao.all().forEach { library ->
+            val directories = preconfiguredDirectories[library.mediaKind] ?: return@forEach
+            directories.forEach { directory ->
+                addLibraryFolderAndScan(library.id, directory)
+            }
+        }
+    }
 
     suspend fun getLibrary(libraryId: String): Library? {
         return try {
@@ -107,6 +122,32 @@ class LibraryService(
         libraryDao.deleteDirectoriesByParent(directory.id)
 
         return libraryDao.deleteDirectory(directoryId)
+    }
+
+    suspend fun addLibraryFolderAndScan(libraryId: String, path: String): AddLibraryFolderResult {
+        val result = addLibraryFolder(libraryId, path)
+        if (result is AddLibraryFolderResult.Success) {
+            val (_, directory) = result
+
+            scope.launch(Dispatchers.Default) {
+                var scanning = true
+                mediaScannerMessages
+                    .takeWhile { scanning }
+                    .filterIsInstance<MediaScannerMessage.ScanDirectoryCompleted>()
+                    .filter { it.directory.id == directory.id }
+                    .onEach { message ->
+                        val child = message.child
+                        if (child == null) {
+                            scanning = false
+                        } else {
+                            refreshMetadata(child)
+                        }
+                    }
+                    .launchIn(this)
+                scan(directory)
+            }
+        }
+        return result
     }
 
     suspend fun addLibraryFolder(libraryId: String, path: String): AddLibraryFolderResult {
