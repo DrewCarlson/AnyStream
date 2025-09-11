@@ -3,7 +3,7 @@ FROM azul/zulu-openjdk:21-latest AS build
 COPY . /build-project
 WORKDIR /build-project
 
-RUN ./gradlew :server:application:installShadowDist :client:web:jsBrowserProductionWebpack --console=plain --no-daemon
+RUN ./gradlew :server:application:installShadowDist :client:web:jsBrowserProductionDist --console=plain --no-daemon
 
 FROM azul/zulu-openjdk:21-jre-latest
 
@@ -27,7 +27,7 @@ ENV WEB_CLIENT_PATH=/app/client-web
 ENV PORT=8888
 
 COPY --from=build /build-project/server/application/build/install ./install/
-COPY --from=build /build-project/client/web/build/dist/js/productionExecutable ./client-web/
+COPY --from=build /build-project/client/web/build/vite/js/productionExecutable ./client-web/
 
 ARG PUID=1000
 ARG PGID=1000

@@ -1,6 +1,6 @@
-@import "../../../../node_modules/bootstrap-icons/font/bootstrap-icons.css";
-@import "../../../../node_modules/@fontsource/open-sans/index.css";
-@import "../../../../node_modules/video.js/dist/video-js.min.css";
+@import "bootstrap-icons/font/bootstrap-icons.css";
+@import "@fontsource/open-sans/index.css";
+@import "video.js/dist/video-js.min.css";
 
 .body {
   background-color: rgba(0, 0, 0, 0.5);
