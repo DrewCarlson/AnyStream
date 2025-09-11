@@ -118,7 +118,6 @@ tasks.register<Task>("viteServe") {
     val nodeJs = rootProject.extensions.getByType<NodeJsRootExtension>()
     val nodeExecutable = nodeJs.requireConfigured().executable
 
-    inputs.dir(project.layout.projectDirectory.dir("src"))
     doFirst {
         val processBuilder = ProcessBuilder(
             nodeExecutable,
@@ -166,6 +165,16 @@ open class ProcessDeploymentHandle @Inject constructor(
                 process?.inputStream?.bufferedReader()?.use { reader ->
                     reader.lines().forEach { line ->
                         println(line)
+                    }
+                }
+            } catch (_: Throwable) {
+            }
+        }
+        GlobalScope.launch {
+            try {
+                process?.errorStream?.bufferedReader()?.use { reader ->
+                    reader.lines().forEach { line ->
+                        println("e: $line")
                     }
                 }
             } catch (_: Throwable) {
