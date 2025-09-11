@@ -62,7 +62,7 @@ fun webApp() = renderComposable(rootElementId = "root") {
     Div({
         classes("flex", "flex-col", "size-full")
         style {
-            backgroundImage("../images/noise.webp")
+            backgroundImage("url(\"images/noise.webp\")")
             backgroundRepeat("repeat")
         }
     }) {
