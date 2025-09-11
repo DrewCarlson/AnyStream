@@ -42,7 +42,7 @@ fun MediaLinkListScreen(libraryId: String) {
     var matchMediaLinkId by remember { mutableStateOf<String?>(null) }
     val selectedMediaLinks = remember { mutableStateListOf<String>() }
 
-    Div({ classes("vstack", "h-100", "w-100", "gap-1", "p-2") }) {
+    Div({ classes("flex", "flex-col", "size-full", "gap-1", "p-2") }) {
         Div {
             H3 {
                 if (mediaLinks.isEmpty()) {
@@ -68,7 +68,7 @@ fun MediaLinkListScreen(libraryId: String) {
                 )
             }
         }
-        /*Div({ classes("d-flex", "gap-1") }) {
+        /*Div({ classes("flex", "gap-1") }) {
             Button({
                 classes("btn", "btn-primary")
                 onClick { }
@@ -126,7 +126,7 @@ private fun MediaLinkRow(
     onScanClicked: (LocalMediaLink) -> Unit,
     onMatchMetadata: (LocalMediaLink) -> Unit,
 ) {
-    Div({ classes("hstack", "m-2", "gap-3") }) {
+    Div({ classes("flex", "flex-row", "m-2", "gap-3") }) {
         Div({ classes("me-2") }) {
             CheckboxInput(checked = isSelected) {
                 classes("form-check-input")
@@ -135,7 +135,7 @@ private fun MediaLinkRow(
                 }
             }
         }
-        Div({ classes("hstack", "gap-2") }) {
+        Div({ classes("flex", "flex-row", "gap-2") }) {
             MediaLinkAction("Scan Files", "arrow-clockwise") { onScanClicked(mediaLink) }
             MediaLinkAction("Match Metadata", "binoculars") { onMatchMetadata(mediaLink) }
         }
@@ -147,7 +147,7 @@ private fun MediaLinkRow(
                 I({ classes("bi", "bi-check-circle-fill") })
             }
         }
-        Div({ classes("w-100") }) {
+        Div({ classes("w-full") }) {
             //Text(mediaLink.filename)
             /*if (mediaLink.metadataId == null) {
                 Text(mediaLink.filename)

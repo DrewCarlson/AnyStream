@@ -53,15 +53,15 @@ fun MetadataMatchScreen(
         }
     }
 
-    Div({ classes("vstack", "w-100", "h-100", "align-items-center", "gap-2") }) {
-        Div({ classes("w-100") }) {
+    Div({ classes("flex", "flex-col", "w-full", "h-full", "align-items-center", "gap-2") }) {
+        Div({ classes("w-full") }) {
             Text("Location: ${mediaLinkResponse?.mediaLink?.filePath}")
         }
         if (mediaLinkId != null && matches.isEmpty()) {
             LoadingIndicator()
         } else {
             Div({
-                classes("vstack", "w-100")
+                classes("flex", "flex-col", "w-full")
                 style {
                     overflowY("scroll")
                 }
@@ -201,13 +201,13 @@ private fun MatchResultContainer(
 ) {
     val isSelected = remember(onClick) { onClick == null }
     Div({
-        classes("vstack")
+        classes("flex", "flex-col")
         if (onClick != null) {
             onClick { onClick() }
         }
     }) {
         Div({
-            classes("hstack", "m-1", "gap-3")
+            classes("flex", "flex-row", "m-1", "gap-3")
             style {
                 justifyContent(JustifyContent.SpaceBetween)
             }
@@ -222,7 +222,7 @@ private fun MatchResultContainer(
             Div { Text(year) }
         }
         Div({
-            classes("hstack", "m-1", "gap-3")
+            classes("flex", "flex-row", "m-1", "gap-3")
             style {
                 justifyContent(JustifyContent.SpaceBetween)
             }

@@ -61,10 +61,10 @@ fun BifViewer() {
     }) {
         bif?.apply {
             Div({
-                classes("position-absolute", "h-100", "w-100", "bg-dark")
+                classes("absolute", "size-full", "bg-dark")
             }) {
                 Div({
-                    classes("d-flex", "flex-row", "gap-2", "overflow-scroll")
+                    classes("flex", "flex-row", "gap-2", "overflow-scroll")
                 }) {
                     repeat(header.imageCount) { i ->
                         Img(

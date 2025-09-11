@@ -37,8 +37,11 @@ import org.jetbrains.compose.web.attributes.InputType
 import org.jetbrains.compose.web.attributes.max
 import org.jetbrains.compose.web.attributes.min
 import org.jetbrains.compose.web.attributes.step
+import org.jetbrains.compose.web.css.height
 import org.jetbrains.compose.web.css.overflow
 import org.jetbrains.compose.web.css.px
+import org.jetbrains.compose.web.css.vh
+import org.jetbrains.compose.web.css.vw
 import org.jetbrains.compose.web.css.width
 import org.jetbrains.compose.web.dom.*
 import kotlin.time.Duration.Companion.seconds
@@ -70,7 +73,7 @@ fun HomeScreen() {
     }
 
     homeResponse?.run {
-        Div({ classes("d-flex", "justify-content-between", "align-items-center", "p-3") }) {
+        Div({ classes("flex", "justify-content-between", "align-items-center", "p-3") }) {
             Div { H4 { Text("Home") } }
             PosterSizeSelector(sizeMultiplier) {
                 sizeMultiplier = it
@@ -79,9 +82,11 @@ fun HomeScreen() {
         }
 
         Div({
-            classes("vh-100")
+            //classes("w-screen", "h-screen")
             style {
                 overflow("hidden auto")
+                width(100.vw)
+                height(100.vh)
             }
         }) {
             if (currentlyWatching.playbackStates.isNotEmpty()) {
@@ -138,7 +143,7 @@ private fun CurrentlyWatching.ContinueWatchingRow(sizeMultiplier: Float) {
             subtitle2 = {
                 episode?.run {
                     "S$seasonNumber"
-                    Div({ classes("d-flex", "flex-row") }) {
+                    Div({ classes("flex", "flex-row") }) {
                         tvSeasons
                         LinkedText(
                             tvSeasons
@@ -286,7 +291,7 @@ private fun MovieRow(
 @Composable
 private fun PosterSizeSelector(sizeMultiplier: Float, onInput: (Float) -> Unit) {
     Div({
-        classes("d-flex", "align-items-center", "gap-2")
+        classes("flex", "align-items-center", "gap-2")
         style { width(120.px) }
     }) {
         Input(InputType.Range) {

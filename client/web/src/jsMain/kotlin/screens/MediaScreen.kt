@@ -95,7 +95,7 @@ fun MediaScreen(mediaId: String) {
     }
 
     Div({
-        classes("d-flex", "flex-column")
+        classes("flex", "flex-col")
     }) {
         when (val response = mediaResponse) {
             null -> FullSizeCenteredLoader()
@@ -188,7 +188,7 @@ private fun CastAndCrewView(
         val client = get<AnyStreamClient>()
         Div({ classes("px-4", "py-2", "fs-4") }) { Text("Cast & Crew") }
         Div({
-            classes("d-flex", "flex-row", "gap-4", "px-4")
+            classes("flex", "flex-row", "gap-4", "px-4")
             style {
                 overflowX("scroll")
             }
@@ -213,8 +213,8 @@ private fun BaseDetailsView(
     onFixMatch: (() -> Unit)?,
     onGeneratePreview: ((id: String) -> Unit)?,
 ) {
-    Div({ classes("d-flex") }) {
-        Div({ classes("d-flex", "flex-column", "align-items-center", "flex-shrink-0") }) {
+    Div({ classes("flex") }) {
+        Div({ classes("flex", "flex-col", "align-items-center", "flex-shrink-0") }) {
             PosterCard(
                 title = null,
                 metadataId = mediaItem.mediaId,
@@ -240,8 +240,8 @@ private fun BaseDetailsView(
                 }
             }
         }
-        Div({ classes("d-flex", "flex-column", "flex-grow-1", "p-4") }) {
-            Div({ classes("d-flex", "align-items-center") }) {
+        Div({ classes("flex", "flex-col", "flex-grow-1", "p-4") }) {
+            Div({ classes("flex", "align-items-center") }) {
                 Div({ classes("fs-3") }) {
                     LinkedText("/media/$rootMetadataId") {
                         Text(mediaItem.contentTitle)
@@ -263,7 +263,7 @@ private fun BaseDetailsView(
                 Div({ classes("fs-5") }) { Text(subtitle2) }
             }
 
-            Div({ classes("d-flex", "flex-row", "align-items-center", "gap-3", "py-1") }) {
+            Div({ classes("flex", "flex-row", "align-items-center", "gap-3", "py-1") }) {
                 mediaItem.releaseYear?.also { releaseYear ->
                     Div({ classes("fs-6") }) { Text(releaseYear) }
                 }
@@ -275,7 +275,7 @@ private fun BaseDetailsView(
                 }
             }
 
-            Div({ classes("d-flex", "gap-2") }) {
+            Div({ classes("flex", "gap-2") }) {
                 mediaItem.contentRating?.also { contentRating ->
                     BadgeContainer { Text(contentRating) }
                 }
@@ -292,7 +292,7 @@ private fun BaseDetailsView(
                 }
             }
 
-            Div({ classes("d-flex", "flex-row", "py-3", "gap-2") }) {
+            Div({ classes("flex", "flex-row", "py-3", "gap-2") }) {
                 val mediaLink = mediaItem.playableMediaLink
                 if (mediaLink != null) {
                     Button({
@@ -347,7 +347,7 @@ private fun BaseDetailsView(
                 classes("pt-2", "pb-4")
             }) { Text(mediaItem.overview) }
 
-            Div({ classes("d-flex", "flex-row", "gap-2") }) {
+            Div({ classes("flex", "flex-row", "gap-2") }) {
                 mediaItem.genres.forEach { genre ->
                     Div({
                         classes("rounded-2", "p-2", "bg-dark-translucent")
@@ -434,7 +434,7 @@ private fun BadgeContainer(
 ) {
     Div({
         classes(
-            "d-flex",
+            "flex",
             "align-items-center",
             "gap-2",
             "py-1",
@@ -469,7 +469,7 @@ private fun StreamDetails(mediaItem: MediaItem) {
         streams.filterIsInstance<SubtitleStreamEncoding>()
     }
 
-    Div({ classes("d-flex", "flex-column") }) {
+    Div({ classes("flex", "flex-col") }) {
         val selectedVideoStream = remember(videoStreams) {
             mutableStateOf(videoStreams.firstOrNull { it.default } ?: videoStreams.firstOrNull())
         }
@@ -518,14 +518,14 @@ private fun <T : StreamEncodingTyped> EncodingDetailsItem(
     var element by remember { mutableStateOf<HTMLElement?>(null) }
     val menuClickMask = remember { mutableStateOf<ExternalClickMask?>(null) }
     val canSelectStream = items.size > 1 || (allowDisable && items.isNotEmpty())
-    Div({ classes("d-flex", "flex-row", "align-items-center", "py-1") }) {
+    Div({ classes("flex", "flex-row", "align-items-center", "py-1") }) {
         val item = selectedItem.value
         Div({
             classes("pe-2")
             style { fontSize(20.px) }
         }) { title(item) }
         Div({
-            classes("d-flex", "flex-row", "align-items-center")
+            classes("flex", "flex-row", "align-items-center")
             onClick { event ->
                 event.stopImmediatePropagation()
                 isListVisible = !isListVisible
@@ -701,7 +701,7 @@ private fun BaseRow(
         }
     }
     Div({
-        classes("d-flex", "flex-row")
+        classes("flex", "flex-row")
         style {
             if (wrap) {
                 flexWrap(FlexWrap.Wrap)

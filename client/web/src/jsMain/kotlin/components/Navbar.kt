@@ -47,8 +47,12 @@ fun Navbar() {
     val router = Router.current
     val client = get<AnyStreamClient>()
     val isAuthenticated = client.user.authenticated.collectAsState(client.user.isAuthenticated())
-    Nav({ classes("navbar", "navbar-dark", "navbar-expand-lg", "bg-dark-translucent", "rounded", "shadow", "m-2") }) {
-        Div({ classes("container-fluid") }) {
+    //flex flex-wrap items-center justify-between p-4 bg-gray-900 text-white rounded shadow m-2 lg:flex-row
+    Nav({
+        classes("flex", "flex-wrap", "lg:flex-row", "items-center", "justify-between", "p-4", "rounded", "shadow", "m-2")
+        classes("bg-dark-translucent")
+    }) {
+        Div({ classes("flex", "flex-row", "w-full") }) {
             A(attrs = {
                 classes("navbar-brand", "mx-2")
                 style {
@@ -89,7 +93,7 @@ private fun SecondaryMenu(permissions: Set<Permission>) {
             Li({ classes("nav-item") }) {
                 val activityIconRef by rememberDomElement()
                 A(attrs = {
-                    classes("nav-link", "nav-link-large", "d-flex", "align-items-center")
+                    classes("nav-link", "nav-link-large", "flex", "align-items-center")
                     if (hasActivity) {
                         classes("active")
                     }
@@ -166,7 +170,7 @@ private fun OverflowMenu(
             style { property("z-index", 100) }
         },
     ) { popper ->
-        Div({ classes("d-flex", "flex-column", "px-2", "bg-dark", "rounded", "shadow", "animate-popup") }) {
+        Div({ classes("flex", "flex-col", "px-2", "bg-dark", "rounded", "shadow", "animate-popup") }) {
             var globalClickHandler by remember { mutableStateOf<ExternalClickMask?>(null) }
             DisposableEffect(Unit) {
                 globalClickHandler = ExternalClickMask(scopeElement) { remove ->
@@ -223,7 +227,7 @@ private fun SearchBar() {
 
     Form(null, {
         onSubmit { it.preventDefault() }
-        classes("d-flex", "flex-row", "mx-4", "p-1", "rounded-pill")
+        classes("flex", "flex-row", "mx-4", "p-1", "rounded-pill")
         style {
             width(320.px)
             maxWidth(320.px)
@@ -262,7 +266,7 @@ private fun SearchBar() {
                 searchQuery.value = event.value.takeUnless(String::isNullOrBlank)
                 elementValue = event.value
             }
-            classes("w-100")
+            classes("w-full")
             style {
                 backgroundColor(Color.transparent)
                 outline("0")
@@ -387,10 +391,10 @@ private fun ServerActivityPopper(
             if (libraryActivity.scannerState != MediaScannerState.Idle) {
                 val activeState by derivedStateOf { libraryActivity.scannerState as? MediaScannerState.Active }
                 Li {
-                    Div({ classes("vstack", "gap-1") }) {
+                    Div({ classes("flex", "flex-col", "gap-1") }) {
                         Div { Text("Scanning Media") }
                         activeState?.let { state ->
-                            Div({ classes("hstack", "gap-1") }) {
+                            Div({ classes("flex", "flex-row", "gap-1") }) {
                                 LoadingIndicator(small = true)
                                 Div({ classes("text-nowrap", "overflow-hidden") }) {
                                     Text(state.directoryNames.lastOrNull().orEmpty())

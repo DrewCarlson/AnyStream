@@ -126,7 +126,7 @@ private fun LibraryDirectories(
                 directories.forEach { directory ->
                     Tr {
                         Td {
-                            Div({ classes("hstack", "gap-3") }) {
+                            Div({ classes("flex", "flex-row", "gap-3") }) {
                                 FolderAction("Remove", "trash") { onRemoveClicked(directory) }
                                 FolderAction("Scan", "arrow-clockwise") { onScanClicked(directory) }
                                 //FolderAction("Edit", "gear-wide") { onEditClicked(folder) }
@@ -195,9 +195,9 @@ private fun DeleteFolderDialog(
     onDeleteClicked: () -> Unit,
     onCancelClicked: () -> Unit,
 ) {
-    Div({ classes("vstack", "gap-1") }) {
+    Div({ classes("flex", "flex-col", "gap-1") }) {
         Div { Text("Are you sure you want to delete this folder?") }
-        Div({ classes("hstack", "justify-content-end", "py-1", "gap-2") }) {
+        Div({ classes("flex", "flex-row", "justify-content-end", "py-1", "gap-2") }) {
             Button({
                 classes("btn", "btn-primary")
                 onClick { onDeleteClicked() }
@@ -237,7 +237,7 @@ private fun FolderRow(
 ) {
     Tr {
         Td {
-            Div({ classes("hstack", "gap-3") }) {
+            Div({ classes("flex", "flex-row", "gap-3") }) {
                 FolderAction("Delete Library", "trash") { onDeleteClicked(folder) }
                 FolderAction("Scan Files", "arrow-clockwise") { onScanClicked(folder) }
                 FolderAction("Edit Library", "gear-wide") { onEditClicked(folder) }

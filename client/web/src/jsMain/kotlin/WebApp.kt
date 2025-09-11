@@ -60,7 +60,7 @@ fun webApp() = renderComposable(rootElementId = "root") {
         }
     }
     Div({
-        classes("d-flex", "flex-column", "h-100", "w-100")
+        classes("flex", "flex-col", "size-full")
         style {
             backgroundImage("../images/noise.webp")
             backgroundRepeat("repeat")
@@ -74,7 +74,7 @@ fun webApp() = renderComposable(rootElementId = "root") {
         }
 
         Div({
-            classes("position-absolute", "h-100", "w-100", "fade-in")
+            classes("absolute", "size-full", "fade-in")
             style {
                 opacity(if (visible) 0.1 else 0)
                 if (actualBackgroundUrl != null) {
@@ -150,8 +150,8 @@ private fun ScreenContainer(
     Div { Navbar() }
     Div({
         classes(
-            "container-fluid",
-            "d-flex",
+            "w-full",
+            "flex",
             "flex-row",
             "flex-grow-1",
             "flex-shrink-1",
@@ -165,7 +165,7 @@ private fun ScreenContainer(
         menu()
 
         Div({
-            classes("vstack", "w-100")
+            classes("flex", "flex-col", "w-full")
             style { overflowX("hidden") }
         }, content)
     }

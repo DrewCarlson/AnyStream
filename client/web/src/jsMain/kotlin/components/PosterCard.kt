@@ -46,7 +46,7 @@ fun PosterCard(
     val isMouseOver = remember { mutableStateOf(false) }
     val isMenuVisible = remember { mutableStateOf(false) }
     Div({
-        classes("d-flex", "flex-column")
+        classes("flex", "flex-col")
         if (classes == null) {
             classes("p-3")
         } else {
@@ -96,7 +96,7 @@ fun PosterCard(
             if (completedPercent != null) {
                 val progressBarHeight = 5.px
                 Div({
-                    classes("position-absolute", "w-100", "fade-in-fast")
+                    classes("absolute", "w-full", "fade-in-fast")
                     style {
                         height(progressBarHeight)
                         bottom(0.px)
@@ -109,7 +109,7 @@ fun PosterCard(
                     }
                 }) {
                     Div({
-                        classes("position-absolute")
+                        classes("absolute")
                         style {
                             height(progressBarHeight)
                             backgroundColor(rgb(255, 8, 28))
@@ -130,12 +130,12 @@ fun PosterCard(
                     value = "/api/image/$metadataId/poster.jpg?width=300"
                 }
             }
-            Div({ classes("bg-dark-translucent", "h-100", "w-100") }) {
+            Div({ classes("bg-dark-translucent", "size-full") }) {
                 if (posterUrl == EMPTY_IMG) {
-                    Img(EMPTY_IMG) { classes("h-100", "w-100") }
+                    Img(EMPTY_IMG) { classes("size-full") }
                 } else {
                     Img(src = posterUrl) {
-                        classes("fade-in", "h-100", "w-100")
+                        classes("fade-in", "size-full")
                         attr("loading", "lazy")
                         attr("decoding", "async")
                         style {
@@ -157,7 +157,7 @@ fun PosterCard(
         }
 
         Div({
-            classes("d-flex", "flex-column")
+            classes("flex", "flex-col")
             style {
                 width(posterWidth)
                 overflow("hidden")
@@ -180,7 +180,7 @@ private fun CardOverlay(
     onMenuClicked: (() -> Unit)? = null,
 ) {
     Div({
-        classes("position-absolute", "h-100", "w-100")
+        classes("absolute", "size-full")
         style {
             property("cursor", "pointer")
             property("z-index", 1)
@@ -194,13 +194,13 @@ private fun CardOverlay(
     }) {
         Div({
             classes(
-                "d-flex",
-                "flex-column",
+                "flex",
+                "flex-col",
                 "justify-content-between",
                 "align-items-center",
-                "position-absolute",
-                "h-100",
-                "w-100",
+                "absolute",
+                "h-full",
+                "w-full",
                 "p-3",
             )
             classes("border", "border-white")
@@ -214,7 +214,7 @@ private fun CardOverlay(
                 isPlaySelected.value = onPlayClicked == null
             }
             I({
-                classes("d-flex", "align-self-end", "bi", "bi-three-dots-vertical")
+                classes("flex", "align-self-end", "bi", "bi-three-dots-vertical")
                 style {
                     fontSize(22.px)
                     color(rgb(255, 255, 255))
@@ -230,7 +230,7 @@ private fun CardOverlay(
                 }
             })
             Div({
-                classes("d-flex")
+                classes("flex")
                 if (onPlayClicked != null) {
                     onMouseEnter {
                         isPlaySelected.value = true
@@ -255,7 +255,7 @@ private fun CardOverlay(
                     }
                 })
             }
-            Div({ classes("d-flex", "align-self-end") }) {
+            Div({ classes("flex", "align-self-end") }) {
                 I({
                     classes("bi", if (isAdded == true) "bi-check-lg" else "bi-plus-lg")
                     style {
@@ -269,8 +269,8 @@ private fun CardOverlay(
         }
 
         Div({
-            classes("position-absolute")
-            classes("h-100", "w-100")
+            classes("absolute")
+            classes("size-full")
             style {
                 backgroundColor(rgb(0, 0, 0))
                 property("z-index", 2)

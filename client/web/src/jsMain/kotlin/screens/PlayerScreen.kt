@@ -118,11 +118,11 @@ fun PlayerScreen(mediaLinkId: String) {
         }
     }
     Div({
-        classes("w-100")
+        classes("w-full")
         if (isInMiniMode) {
-            classes("d-flex")
+            classes("flex")
         } else {
-            classes("position-absolute", "h-100", "overflow-hidden")
+            classes("absolute", "h-full", "overflow-hidden")
         }
         style {
             property("z-index", 100)
@@ -140,7 +140,7 @@ fun PlayerScreen(mediaLinkId: String) {
     }) {
         if (isInMiniMode) {
             Div({
-                classes("position-absolute", "w-100")
+                classes("absolute", "w-full")
                 style {
                     left(0.px)
                 }
@@ -161,7 +161,7 @@ fun PlayerScreen(mediaLinkId: String) {
                     height(miniPlayerHeight)
                 }
             } else {
-                classes("h-100", "w-100")
+                classes("size-full")
             }
         }) {
             if (isInMiniMode) {
@@ -178,7 +178,7 @@ fun PlayerScreen(mediaLinkId: String) {
             }*/
             Video({
                 id("player")
-                classes("video-js", "h-100", "w-100")
+                classes("video-js", "size-full")
                 style {
                     cursor(if (areControlsVisible) "pointer" else "none")
                 }
@@ -274,7 +274,7 @@ fun PlayerScreen(mediaLinkId: String) {
                         "bi",
                         "bi-play-circle-fill",
                         "user-select-none",
-                        "position-absolute",
+                        "absolute",
                         "start-50",
                         "top-50",
                     )
@@ -288,7 +288,7 @@ fun PlayerScreen(mediaLinkId: String) {
                 })
                 I({
                     classes("bi", "bi-play-circle", "user-select-none")
-                    classes("position-absolute", "start-50", "top-50")
+                    classes("absolute", "start-50", "top-50")
                     onClick { if (player?.paused() == true) player?.play() else player?.pause() }
                     style {
                         fontSize(82.px)
@@ -323,7 +323,7 @@ private fun MiniModeOverlay(
 ) {
     var isVisible by remember { mutableStateOf(false) }
     Div({
-        classes("position-absolute", "d-flex", "justify-content-center", "align-items-center")
+        classes("absolute", "flex", "justify-content-center", "align-items-center")
         style {
             property("z-index", "1")
             width(width)
@@ -349,12 +349,12 @@ private fun MaxPlayerTopBar(
 ) {
     Div({
         classes(
-            "position-absolute",
-            "d-flex",
+            "absolute",
+            "flex",
             "flex-row",
             "justify-content-between",
             "align-items-center",
-            "w-100",
+            "w-full",
             "p-3",
             "top-0",
         )
@@ -422,7 +422,7 @@ private fun PlaybackControls(
     overlayMode: Boolean,
 ) {
     Div({
-        classes("d-flex", "justify-content-between", "align-items-center", "w-100", "p-3")
+        classes("flex", "justify-content-between", "align-items-center", "w-full", "p-3")
         style {
             if (overlayMode) {
                 position(Position.Absolute)
@@ -439,7 +439,7 @@ private fun PlaybackControls(
         }
     }) {
         Div({
-            classes("d-flex", "flex-column", "overflow-hidden")
+            classes("flex", "flex-col", "overflow-hidden")
             style {
                 flexBasis(33.percent)
             }
@@ -454,7 +454,7 @@ private fun PlaybackControls(
                 }
             }
             Div({
-                classes("d-flex", "justify-content-start", "align-items-center")
+                classes("flex", "justify-content-start", "align-items-center")
                 style {
                     gap(10.px)
                 }
@@ -512,7 +512,7 @@ private fun PlaybackControls(
         }
 
         Div({
-            classes("d-flex", "justify-content-center", "fs-3")
+            classes("flex", "justify-content-center", "fs-3")
             style {
                 flexBasis(33.percent)
                 gap(6.px)
@@ -601,7 +601,7 @@ private fun PlaybackControls(
         var isPipAvailable by remember { mutableStateOf(false) }
         var isInPipMode by remember { mutableStateOf(false) }
         Div({
-            classes("d-flex", "flex-row-reverse", "align-items-center")
+            classes("flex", "flex-row-reverse", "align-items-center")
             style {
                 flexBasis(33.percent)
                 fontSize(20.px)
@@ -690,7 +690,7 @@ private fun PlaybackControls(
                 }
             }) {
                 Div({
-                    classes("position-absolute")
+                    classes("absolute")
                     style {
                         height(50.px)
                         backgroundColor(Color.white)
@@ -699,7 +699,7 @@ private fun PlaybackControls(
                     }
                 })
                 Div({
-                    classes("position-absolute")
+                    classes("absolute")
                     style {
                         height(50.px)
                         backgroundColor(rgb(199, 8, 28))
@@ -746,7 +746,7 @@ private fun PlaybackControls(
 
         if (overlayMode) {
             Div({
-                classes("position-absolute", "w-100", "h-auto", "top-0", "start-0")
+                classes("absolute", "w-full", "h-auto", "top-0", "start-0")
                 style {
                     if (!areControlsVisible) {
                         property("transform", "translateY(100%)")
@@ -811,7 +811,7 @@ private fun SeekBar(
         }
     }
     Div({
-        classes("w-100")
+        classes("w-full")
         style {
             paddingTop(8.px)
             paddingBottom(8.px)
@@ -847,7 +847,7 @@ private fun SeekBar(
         }
     }) {
         I({
-            classes("position-absolute", "bi", "bi-circle-fill", "user-select-none")
+            classes("absolute", "bi", "bi-circle-fill", "user-select-none")
             style {
                 opacity(if (isThumbVisible) 1 else 0)
                 color(Color.white)
@@ -860,7 +860,7 @@ private fun SeekBar(
             }
         })
         Div({
-            classes("w-100")
+            classes("w-full")
             style {
                 height(4.px)
                 property("transform", "translateY(-50%)")
@@ -868,7 +868,7 @@ private fun SeekBar(
             }
         }) {
             Div({
-                classes("position-absolute", "w-100", "h-100")
+                classes("absolute", "w-full", "h-full")
                 style {
                     backgroundColor(Color("#C7081C"))
                     opacity(.5)
@@ -879,7 +879,7 @@ private fun SeekBar(
                 }
             })
             Div({
-                classes("position-absolute", "w-100", "h-100")
+                classes("absolute", "w-full", "h-full")
                 style {
                     backgroundColor(Color("#C7081C"))
                     property("pointer-events", "none")
@@ -952,7 +952,7 @@ private fun SeekBar(
 @Composable
 private fun PreviewImage(src: String) {
     Div({
-        classes("position-absolute")
+        classes("absolute")
         style {
             property("transform", "translateY(-120%)")
         }

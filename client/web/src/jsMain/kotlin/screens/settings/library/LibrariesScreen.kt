@@ -43,9 +43,9 @@ fun LibrariesScreen() {
             emptyList()
         }
     }
-    Div({ classes("vstack", "h-100", "w-100", "gap-1", "p-2") }) {
+    Div({ classes("flex", "flex-col", "size-full", "gap-1", "p-2") }) {
         H3 { Text("Libraries") }
-        Div({ classes("d-flex", "gap-1") }) {
+        Div({ classes("flex", "gap-1") }) {
             /*Button({
                 classes("btn", "btn-primary")
                 //onClick { modal?.show() }
@@ -73,7 +73,7 @@ fun LibrariesScreen() {
                     libraries.forEach { library ->
                         Tr {
                             Th({ scope(Scope.Row) }) {
-                                Div({ classes("hstack", "gap-3") }) {
+                                Div({ classes("flex", "flex-row", "gap-3") }) {
                                     FolderAction("Edit Library", "gear-wide") {
                                         editLibrary = library
                                     }

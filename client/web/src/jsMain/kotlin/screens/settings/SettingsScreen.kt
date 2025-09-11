@@ -36,7 +36,7 @@ import org.jetbrains.compose.web.dom.*
 
 @Composable
 fun RouteBuilder.SettingsScreen(subscreen: String) {
-    Div({ classes("d-flex", "p-2", "h-100") }) {
+    Div({ classes("flex", "p-2", "h-full") }) {
         when (subscreen) {
             "activity" -> ActiveStreamsList()
             "users" -> UserManagerScreen()
@@ -54,7 +54,7 @@ fun RouteBuilder.SettingsScreen(subscreen: String) {
 fun SettingsSideMenu() {
     Div(
         {
-            classes("d-inline-block", "mx-2", "py-2")
+            classes("inline-block", "mx-2", "py-2")
             style {
                 property("transition", "width .2s ease-in-out 0s")
                 width(250.px)
@@ -65,8 +65,8 @@ fun SettingsSideMenu() {
         Ul(
             {
                 classes(
-                    "nav", "nav-pills", "bg-dark-translucent", "flex-column",
-                    "h-100", "py-2", "mb-auto", "rounded", "shadow",
+                    "nav", "nav-pills", "bg-dark-translucent", "flex-col",
+                    "h-full", "py-2", "mb-auto", "rounded", "shadow",
                 )
                 style {
                     overflow("hidden")
@@ -102,9 +102,9 @@ private fun ActiveStreamsList() {
     val users = sessionsResponse.users
     val scope = rememberCoroutineScope()
 
-    Div({ classes("d-flex", "flex-column", "pt-2", "ps-2") }) {
+    Div({ classes("flex", "flex-col", "pt-2", "ps-2") }) {
         Div { H3 { Text("Activity") } }
-        Div({ classes("d-flex", "flex-row", "gap-1") }) {
+        Div({ classes("flex", "flex-row", "gap-1") }) {
             playbackStates.forEach { playbackState ->
                 PlaybackSessionCard(
                     playbackState = playbackState,
@@ -138,7 +138,7 @@ private fun PlaybackSessionCard(
     }
     Div(
         {
-            classes("d-flex", "flex-column", "p-3", "rounded")
+            classes("flex", "flex-col", "p-3", "rounded")
             style {
                 backgroundColor(rgba(0, 0, 0, 0.2))
                 width(300.px)
@@ -147,12 +147,12 @@ private fun PlaybackSessionCard(
     ) {
         Div(
             {
-                classes("d-flex", "flex-row", "align-items-center", "justify-content-between")
+                classes("flex", "flex-row", "align-items-center", "justify-content-between")
             },
         ) {
             Div { Text(mediaItem.contentTitle) }
             Div({
-                classes("d-flex", "flex-row", "gap-2")
+                classes("flex", "flex-row", "gap-2")
             }) {
                 I(
                     {

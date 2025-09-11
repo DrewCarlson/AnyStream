@@ -60,9 +60,9 @@ fun AddLibraryFolderScreen(
     }
     var isInputLocked by remember { mutableStateOf(false) }
     var inputRef by remember { mutableStateOf<HTMLInputElement?>(null) }
-    Div({ classes("vstack", "gap-2") }) {
+    Div({ classes("flex", "flex-col", "gap-2") }) {
         Div { Text("Select a folder for the ${library.name} library:") }
-        Div({ classes("hstack", "gap-2", "m2", "justify-content-end") }) {
+        Div({ classes("flex", "flex-row", "gap-2", "m2", "justify-content-end") }) {
             Div({ classes("input-group") }) {
                 Span({ classes("input-group-text") }) {
                     Text("Media Folder")
@@ -151,15 +151,15 @@ fun AddLibraryFolderScreen(
         }
 
         Div({
-            classes("vstack", "gap-1", "justify-content-center", "align-items-center")
+            classes("flex", "flex-col", "gap-1", "justify-content-center", "align-items-center")
         }) {
             if (isLoading) {
                 Div { LoadingIndicator() }
             } else if (subfolders == null) {
                 Div { H4 { Text("Invalid directory") } }
             } else {
-                Div({ classes("w-100") }) {
-                    Table({ classes("w-100") }) {
+                Div({ classes("w-full") }) {
+                    Table({ classes("w-full") }) {
                         Tbody {
                             if (!selectedPath.isNullOrBlank()) {
                                 FolderListItem("Up", "bi-folder2-open") {
@@ -224,7 +224,7 @@ private fun MediaKindButton(
 ) {
 
     /*Div { Text("Select the kind of media to search for:") }
-    Div({ classes("hstack", "gap-4") }) {
+    Div({ classes("flex", "flex-row", "gap-4") }) {
         MediaKindButton(
             name = "Movies",
             isSelected = selectedMediaKind == MediaKind.MOVIE,
@@ -264,7 +264,7 @@ private fun MediaKindButton(
             classes("active")
         }
     }) {
-        Div({ classes("vstack", "m-2", "fs-6", "text-center") }) {
+        Div({ classes("flex", "flex-col", "m-2", "fs-6", "text-center") }) {
             I({ classes("bi", "bi-$icon", "fs-2") })
             Text(name)
         }

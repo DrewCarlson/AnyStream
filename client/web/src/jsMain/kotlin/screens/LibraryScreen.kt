@@ -58,7 +58,7 @@ fun LibraryScreen(
         null -> FullSizeCenteredLoader()
         else -> {
             if (items.isEmpty()) {
-                Div({ classes("d-flex", "justify-content-center", "align-items-center", "h-100") }) {
+                Div({ classes("flex", "justify-content-center", "align-items-center", "h-full") }) {
                     Text("${library?.mediaKind?.libraryName} will appear here.")
                 }
             } else {

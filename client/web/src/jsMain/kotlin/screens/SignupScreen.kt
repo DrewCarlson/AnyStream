@@ -53,7 +53,7 @@ fun SignupScreen() {
     val model by remember { modelState }
 
     Div({
-        classes("d-flex", "flex-column", "justify-content-center", "align-items-center", "py-4")
+        classes("flex", "flex-col", "justify-content-center", "align-items-center", "py-4")
         style {
             property("gap", 12.px)
         }

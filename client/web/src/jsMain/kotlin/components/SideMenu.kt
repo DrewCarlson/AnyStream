@@ -47,7 +47,7 @@ fun SideMenu() {
         mutableStateOf(localStorage.getItem(MENU_EXPANDED_KEY)?.toBoolean() == true)
     }
     Div({
-        classes("d-inline-block", "mx-2", "py-2")
+        classes("inline-block", "mx-2", "py-2")
         style {
             property("transition", "width .2s ease-in-out 0s")
             if (expanded) {
@@ -64,8 +64,9 @@ fun SideMenu() {
                 "nav",
                 "nav-pills",
                 "bg-dark-translucent",
-                "flex-column",
-                "h-100",
+                "flex",
+                "flex-col",
+                "h-full",
                 "py-2",
                 "mb-auto",
                 "rounded",

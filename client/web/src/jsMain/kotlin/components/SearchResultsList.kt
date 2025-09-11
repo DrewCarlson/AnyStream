@@ -34,7 +34,7 @@ fun SearchResultsList(
     searchResponse: SearchResponse,
 ) {
     Div({
-        classes("d-flex", "flex-column", "rounded", "shadow", "py-3", "animate-popup")
+        classes("flex", "flex-col", "rounded", "shadow", "py-3", "animate-popup")
         style {
             overflowY("scroll")
             backgroundColor(rgb(28, 28, 28))
@@ -46,7 +46,7 @@ fun SearchResultsList(
         if (searchResponse.movies.isNotEmpty()) {
             SectionTitle("Movies")
         }
-        Div({ classes("d-flex", "flex-column", "flex-wrap", "w-100") }) {
+        Div({ classes("flex", "flex-col", "flex-wrap", "w-full") }) {
             searchResponse.movies.forEach { movie ->
                 SearchResultItem(
                     mediaId = movie.id,
@@ -63,7 +63,7 @@ fun SearchResultsList(
         if (searchResponse.tvShows.isNotEmpty()) {
             SectionTitle("TV Shows")
         }
-        Div({ classes("d-flex", "flex-column", "flex-wrap", "w-100") }) {
+        Div({ classes("flex", "flex-col", "flex-wrap", "w-full") }) {
             searchResponse.tvShows.forEach { result ->
                 SearchResultItem(
                     mediaId = result.tvShow.id,
@@ -83,7 +83,7 @@ fun SearchResultsList(
         if (searchResponse.episodes.isNotEmpty()) {
             SectionTitle("Episodes")
         }
-        Div({ classes("d-flex", "flex-column", "flex-wrap", "w-100") }) {
+        Div({ classes("flex", "flex-col", "flex-wrap", "w-full") }) {
             searchResponse.episodes.forEach { result ->
                 SearchResultItem(
                     mediaId = result.episode.id,
@@ -95,7 +95,7 @@ fun SearchResultsList(
         }
 
         if (!searchResponse.hasResult()) {
-            Div({ classes("text-center", "w-100") }) {
+            Div({ classes("text-center", "w-full") }) {
                 H5 { Text("No results") }
             }
         }
@@ -124,7 +124,7 @@ private fun SearchResultItem(
     }
 
     Div({
-        classes("d-flex", "flex-row", "align-items-center", "px-3", "py-1")
+        classes("flex", "flex-row", "align-items-center", "px-3", "py-1")
         style {
             cursor("pointer")
         }
@@ -143,13 +143,13 @@ private fun SearchResultItem(
             Img(
                 src = "/api/image/$mediaId/poster.jpg?w=300",
                 attrs = {
-                    classes("h-100", "w-100")
+                    classes("size-full")
                     attr("loading", "lazy")
                 },
             )
         }
 
-        Div({ classes("d-flex", "flex-column", "px-2") }) {
+        Div({ classes("flex", "flex-col", "px-2") }) {
             Div {
                 Text(title)
             }
