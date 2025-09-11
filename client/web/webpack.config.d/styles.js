@@ -9,7 +9,6 @@ config.module.rules.push({
                 postcssOptions: {
                     plugins: [
                         'postcss-import',
-                        '@tailwindcss/postcss',
                         'autoprefixer',
                     ]
                 }

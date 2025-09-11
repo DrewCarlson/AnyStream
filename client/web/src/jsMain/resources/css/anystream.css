@@ -1,6 +1,8 @@
-@import "tailwindcss";
+@import "../../../../node_modules/bootstrap-icons/font/bootstrap-icons.css";
+@import "../../../../node_modules/@fontsource/open-sans/index.css";
+@import "../../../../node_modules/video.js/dist/video-js.min.css";
 
-.bg-dark-translucent {
+.body {
   background-color: rgba(0, 0, 0, 0.5);
 }
 

@@ -18,11 +18,5 @@
 package anystream
 
 fun main() {
-    require("./css/anystream.css")
-    require("bootstrap-icons/font/bootstrap-icons.css")
-    require("@fontsource/open-sans/index.css")
-    require("video.js/dist/video-js.min.css")
     webApp()
 }
-
-external fun require(module: String): dynamic
