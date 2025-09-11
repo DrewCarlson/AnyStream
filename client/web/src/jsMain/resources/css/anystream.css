@@ -2,8 +2,9 @@
 @import "@fontsource/open-sans/index.css";
 @import "video.js/dist/video-js.min.css";
 
-.body {
+body {
   background-color: rgba(0, 0, 0, 0.5);
+  font-family: 'Open Sans Variable', sans-serif;
 }
 
 .btn-primary {
