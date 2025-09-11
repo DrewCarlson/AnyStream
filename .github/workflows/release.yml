@@ -150,7 +150,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Upload build to Github Release
-        uses: softprops/action-gh-release@fbadcc90e88ecface60a0a0d123795b784ceb239
+        uses: softprops/action-gh-release@19cd0bcd2b95a5f9e0aab8377b3cae33e51c2234
         if: startsWith(github.ref, 'refs/tags/v')
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
