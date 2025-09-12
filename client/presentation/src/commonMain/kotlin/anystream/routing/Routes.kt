@@ -60,4 +60,8 @@ sealed class Routes {
     data object Profile : Routes() {
         override val path: String = "profile"
     }
+
+    data object Search : Routes() {
+        override val path: String = "search"
+    }
 }
