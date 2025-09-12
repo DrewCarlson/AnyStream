@@ -37,6 +37,7 @@ import anystream.ui.media.MediaScreen
 import anystream.ui.media.LibraryScreen
 import anystream.ui.profile.DevicePairingScannerScreen
 import anystream.ui.profile.ProfileScreen
+import anystream.ui.search.SearchScreen
 import anystream.ui.theme.AppTheme
 import anystream.ui.util.LocalImageProvider
 import anystream.ui.util.asImageProvider
@@ -220,6 +221,9 @@ private fun DisplayRoute(
                 onViewTvShowsClicked = { libraryId ->
                     stack.push(Routes.Library(libraryId))
                 },
+                onSearchClicked = {
+                    stack.push(Routes.Search)
+                },
             )
         }
 
@@ -286,6 +290,18 @@ private fun DisplayRoute(
                     .padding(padding)
                     .consumeWindowInsets(padding),
                 onPairDeviceClicked = { stack.push(Routes.PairingScanner) }
+            )
+        }
+
+        Routes.Search -> {
+            SearchScreen(
+                modifier = Modifier
+                    .padding(padding)
+                    .consumeWindowInsets(padding),
+                onBackClicked = { stack.pop() },
+                onMetadataClick = { metadataId ->
+                    stack.push(Routes.Details(metadataId))
+                }
             )
         }
     }

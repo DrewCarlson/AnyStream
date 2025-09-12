@@ -25,7 +25,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -60,6 +59,7 @@ fun HomeScreen(
     onPlayClick: (mediaLinkId: String) -> Unit,
     onViewMoviesClicked: (libraryId: String) -> Unit,
     onViewTvShowsClicked: (libraryId: String) -> Unit,
+    onSearchClicked: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val (modelState, eventConsumer) = rememberMobiusLoop(HomeScreenModel.Loading, HomeScreenInit) {
@@ -84,6 +84,7 @@ fun HomeScreen(
                     onViewMoviesClicked = onViewMoviesClicked,
                     onViewTvShowsClicked = onViewTvShowsClicked,
                     onContinueWatchingClick = onPlayClick,
+                    onSearchClicked = onSearchClicked,
                 )
 
             is HomeScreenModel.LoadingFailed -> Unit // TODO: add error view
@@ -104,6 +105,7 @@ private fun HomeScreenContent(
     onViewMoviesClicked: (String) -> Unit,
     onViewTvShowsClicked: (String) -> Unit,
     onContinueWatchingClick: (mediaLinkId: String) -> Unit,
+    onSearchClicked: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -125,7 +127,20 @@ private fun HomeScreenContent(
 
         CarouselAutoPlayHandler(pagerState, populars.count())
         
-        SearchBar()
+        Button(
+            onClick = onSearchClicked,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .padding(top = 8.dp)
+        ) {
+            Icon(
+                Icons.Default.Search,
+                contentDescription = null,
+                modifier = Modifier.padding(end = 8.dp)
+            )
+            Text("Search")
+        }
 
         if (currentlyWatching.playbackStates.isNotEmpty()) {
             SectionHeader(title = "Continue Watching")
@@ -359,50 +374,5 @@ private fun TvRow(
 
             item { Spacer(Modifier.width(CARD_SPACING)) }
         },
-    )
-}
-
-@Composable
-private fun SearchBar() {
-    var searchText by remember { mutableStateOf("") }
-    
-    OutlinedTextField(
-        value = searchText,
-        onValueChange = { searchText = it },
-        placeholder = { 
-            Text(
-                text = "Search movies and shows...",
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-            ) 
-        },
-        leadingIcon = {
-            Icon(
-                Icons.Default.Search,
-                contentDescription = "Search",
-                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-            )
-        },
-        trailingIcon = {
-            if (searchText.isNotEmpty()) {
-                IconButton(
-                    onClick = { searchText = "" }
-                ) {
-                    Icon(
-                        Icons.Default.Clear,
-                        contentDescription = "Clear search",
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                    )
-                }
-            }
-        },
-        shape = RoundedCornerShape(28.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
-        ),
-        singleLine = true,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .padding(top = 8.dp)
     )
 }
