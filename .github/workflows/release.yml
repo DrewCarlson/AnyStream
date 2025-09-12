@@ -28,7 +28,7 @@ jobs:
           fetch-depth: 0
       - name: Get changed files
         id: check
-        uses: tj-actions/changed-files@3b04099b21072562f07469c10deb182b24236ca9
+        uses: tj-actions/changed-files@9a6755550a331fdcc8ec45443738933f8fa22eea
         with:
           files: |
             .github/workflows/release.yml
@@ -44,7 +44,7 @@ jobs:
             Dockerfile-local
       - name: Get changed files
         id: docs
-        uses: tj-actions/changed-files@3b04099b21072562f07469c10deb182b24236ca9
+        uses: tj-actions/changed-files@9a6755550a331fdcc8ec45443738933f8fa22eea
         with:
           files: |
             .github/workflows/release.yml
