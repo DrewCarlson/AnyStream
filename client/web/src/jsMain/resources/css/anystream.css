@@ -1,153 +1,154 @@
+@import "./modern-normalize.css";
 @import "bootstrap-icons/font/bootstrap-icons.css";
 @import "@fontsource/open-sans/index.css";
 @import "video.js/dist/video-js.min.css";
 
 body {
-  background-color: rgba(0, 0, 0, 0.5);
-  font-family: 'Open Sans Variable', sans-serif;
+    background-color: rgba(0, 0, 0, 0.5);
+    font-family: 'Open Sans Variable', sans-serif;
 }
 
 .btn-primary {
-  /*@extend .btn-primary;*/
-  color: white;
+    /*@extend .btn-primary;*/
+    color: white;
 
-  /*&:hover {
-    color: darken(white, 10%);
-  }
+    /*&:hover {
+      color: darken(white, 10%);
+    }
 
-  &:focus {
-    color: darken(white, 10%);
-  }*/
+    &:focus {
+      color: darken(white, 10%);
+    }*/
 }
 
 .plain-link {
-  color: white;
+    color: white;
 }
 
 .media-kind-link {
-  color: white;
-  text-decoration: none;
+    color: white;
+    text-decoration: none;
 
-  /*&:hover {
-    background-color: transparentize(white, 0.9);
-  }
+    /*&:hover {
+      background-color: transparentize(white, 0.9);
+    }
 
-  &:focus {
-    background-color: transparentize(white, 0.9);
-  }*/
+    &:focus {
+      background-color: transparentize(white, 0.9);
+    }*/
 }
 
 .media-kind-link.active {
-  color: #ff081c;
+    color: #ff081c;
 }
 
 body {
-  overflow: hidden;
+    overflow: hidden;
 }
 
 :root {
-  scrollbar-color: #403f3e transparent;
+    scrollbar-color: #403f3e transparent;
 }
 
 .nav-link-large {
-  cursor: pointer;
-  font-size: 16pt;
+    cursor: pointer;
+    font-size: 16pt;
 }
 
 .nav-link-small {
-  cursor: pointer;
-  font-size: 14pt;
+    cursor: pointer;
+    font-size: 14pt;
 }
 
 .navbar.bg-dark {
-  border: none;
+    border: none;
 }
 
 .navbar-brand img {
-  height: 46px;
+    height: 46px;
 }
 
 video {
-  background-color: black;
+    background-color: black;
 }
 
 .animate-popup {
-  animation-duration: 0.15s;
-  animation-name: animate-popup-transition;
-  animation-fill-mode: backwards;
-  animation-timing-function: cubic-bezier(0.8, 1, 1, 1);
+    animation-duration: 0.15s;
+    animation-name: animate-popup-transition;
+    animation-fill-mode: backwards;
+    animation-timing-function: cubic-bezier(0.8, 1, 1, 1);
 }
 
 @keyframes animate-popup-transition {
-  0% {
-    opacity: 0.1;
-    margin-top: -10px;
-    scale: 0.90;
-  }
-  100% {
-    opacity: 1;
-    margin-top: 0;
-    scale: 1;
-  }
+    0% {
+        opacity: 0.1;
+        margin-top: -10px;
+        scale: 0.90;
+    }
+    100% {
+        opacity: 1;
+        margin-top: 0;
+        scale: 1;
+    }
 }
 
 .fade-in {
-  transition: opacity 0.5s ease;
-  -webkit-transition: opacity 0.5s ease;
-  -moz-transition: opacity 0.5s ease;
-  -o-transition: opacity 0.5s ease;
-  -ms-transition: opacity 0.5s ease;
+    transition: opacity 0.5s ease;
+    -webkit-transition: opacity 0.5s ease;
+    -moz-transition: opacity 0.5s ease;
+    -o-transition: opacity 0.5s ease;
+    -ms-transition: opacity 0.5s ease;
 }
 
 .fade-in-fast {
-  transition: opacity 0.3s ease;
-  -webkit-transition: opacity 0.3s ease;
-  -moz-transition: opacity 0.3s ease;
-  -o-transition: opacity 0.3s ease;
-  -ms-transition: opacity 0.3s ease;
+    transition: opacity 0.3s ease;
+    -webkit-transition: opacity 0.3s ease;
+    -moz-transition: opacity 0.3s ease;
+    -o-transition: opacity 0.3s ease;
+    -ms-transition: opacity 0.3s ease;
 }
 
 @keyframes fadeIn {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
 }
 
 @-moz-keyframes fadeIn {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
 }
 
 @-webkit-keyframes fadeIn {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
 }
 
 @-o-keyframes fadeIn {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
 }
 
 @-ms-keyframes fadeIn {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
 }
