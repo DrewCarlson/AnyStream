@@ -115,6 +115,7 @@ open class KotlinJsVite : Plugin<Project> {
             viteScript.set(npm.nodeJsRoot.rootPackageDirectory.map { it.file("node_modules/vite/bin/vite.js") })
             nodeExecutable.set(npm.nodeJs.executable)
             configFile.set(configFilePath.get())
+            environment["NODE_PATH"] = npm.nodeJsRoot.rootPackageDirectory.get().asFile.absolutePath + "/node_modules"
             env.set(environment)
             if (this is ViteDistTask) {
                 publicDir.set(project.layout.buildDirectory.dir("processedResources/${targetName}/${compilation.name}/public"))
