@@ -118,7 +118,6 @@ open class KotlinJsVite : Plugin<Project> {
             environment["NODE_PATH"] = npm.nodeJsRoot.rootPackageDirectory.get().asFile.absolutePath + "/node_modules"
             env.set(environment)
             if (this is ViteDistTask) {
-                publicDir.set(project.layout.buildDirectory.dir("processedResources/${targetName}/${compilation.name}/public"))
                 outputDir.set(project.layout.buildDirectory.dir("vite/${targetName}/${binary.name}"))
             }
 
@@ -147,10 +146,6 @@ abstract class BaseViteTask(
 
     @get:InputDirectory
     abstract val workingDir: DirectoryProperty
-
-    @get:Optional
-    @get:InputDirectory
-    abstract val publicDir: DirectoryProperty
 
     @get:Input
     abstract val env: MapProperty<String, String>
@@ -232,7 +227,7 @@ abstract class ViteDistTask @Inject constructor(
                     "--emptyOutDir",
                 )
 
-                environment(env.get() + ("VITE_PUBLIC_DIR" to publicDir.asFile.get().absolutePath))
+                environment(env.get())
             }
         )
 

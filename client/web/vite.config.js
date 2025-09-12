@@ -1,5 +1,4 @@
 export default {
-    publicDir: process.env.VITE_PUBLIC_DIR,
     server: {
         port: 3000,
         open: true,
