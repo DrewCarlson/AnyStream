@@ -47,12 +47,26 @@ fun Navbar() {
     val router = Router.current
     val client = get<AnyStreamClient>()
     val isAuthenticated = client.user.authenticated.collectAsState(client.user.isAuthenticated())
-    //flex flex-wrap items-center justify-between p-4 bg-gray-900 text-white rounded shadow m-2 lg:flex-row
     Nav({
-        classes("flex", "flex-wrap", "lg:flex-row", "items-center", "justify-between", "p-4", "rounded", "shadow", "m-2")
         classes("bg-dark-translucent")
+
+        style {
+            display(DisplayStyle.Flex)
+            flexWrap(FlexWrap.Wrap)
+            flexDirection(FlexDirection.Row)
+            justifyContent(JustifyContent.SpaceBetween)
+            padding(32.px)
+            borderRadius(1.px)
+            margin(16.px)
+        }
     }) {
-        Div({ classes("flex", "flex-row", "w-full") }) {
+        Div({
+            style {
+                display(DisplayStyle.Flex)
+                flexDirection(FlexDirection.Row)
+                width(100.percent)
+            }
+        }) {
             A(attrs = {
                 classes("navbar-brand", "mx-2")
                 style {

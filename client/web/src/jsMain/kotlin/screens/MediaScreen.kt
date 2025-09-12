@@ -383,7 +383,7 @@ private fun PersonCard(
             style {
                 width(150.px)
                 height(150.px)
-                borderRadius(50.percent)
+                borderRadius(1.px)
                 overflow("hidden")
                 display(DisplayStyle.InlineBlock)
             }

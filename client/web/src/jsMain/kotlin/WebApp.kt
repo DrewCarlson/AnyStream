@@ -60,9 +60,12 @@ fun webApp() = renderComposable(rootElementId = "root") {
         }
     }
     Div({
-        classes("flex", "flex-col", "size-full")
         style {
-            backgroundImage("url(\"images/noise.webp\")")
+            display(DisplayStyle.Flex)
+            flexDirection(FlexDirection.Column)
+            width(100.percent)
+            height(100.percent)
+            backgroundImage("../images/noise.webp")
             backgroundRepeat("repeat")
         }
     }) {
@@ -74,8 +77,12 @@ fun webApp() = renderComposable(rootElementId = "root") {
         }
 
         Div({
-            classes("absolute", "size-full", "fade-in")
+            classes( "fade-in")
             style {
+                position(Position.Absolute)
+                width(100.percent)
+                height(100.percent)
+
                 opacity(if (visible) 0.1 else 0)
                 if (actualBackgroundUrl != null) {
                     backgroundImage("url('$actualBackgroundUrl')")
@@ -149,24 +156,25 @@ private fun ScreenContainer(
 
     Div { Navbar() }
     Div({
-        classes(
-            "w-full",
-            "flex",
-            "flex-row",
-            "flex-grow-1",
-            "flex-shrink-1",
-            "px-0",
-            "overflow-hidden",
-        )
         style {
+            width(100.percent)
+            display(DisplayStyle.Flex)
+            flexDirection(FlexDirection.Row)
+            flexGrow(1)
+            flexShrink(1)
+            padding(0.px)
+            overflow("hidden")
             flexBasis("auto")
         }
     }) {
         menu()
 
         Div({
-            classes("flex", "flex-col", "w-full")
-            style { overflowX("hidden") }
+            style {
+                width(100.percent)
+                display(DisplayStyle.Flex)
+                flexDirection(FlexDirection.Column)
+                overflowX("hidden") }
         }, content)
     }
 
