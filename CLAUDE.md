@@ -117,3 +117,4 @@ mkdocs serve
 - Uses Kotlin test framework
 - Database testing utilities in `server/db-models/testing`
 - Run with `./gradlew test` or `./gradlew :module:test`
+- rememebr when creating a copyright section, always use the current year
