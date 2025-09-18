@@ -66,7 +66,7 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
       - name: Set up Python
-        uses: actions/setup-python@3d1e2d2ca0a067f27da6fec484fce7f5256def85
+        uses: actions/setup-python@4267e283df95c05d9f16ece6624106f44613b489
         with:
           python-version: '3.13'
           architecture: x64
