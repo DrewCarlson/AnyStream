@@ -71,7 +71,7 @@ objectstore-secure = { module = "org.drewcarlson:objectstore-secure", version.re
 
 vlcj = { module = "uk.co.caprica:vlcj", version = "4.11.0" }
 
-jna = { module = "net.java.dev.jna:jna", version = "5.17.0" }
+jna = { module = "net.java.dev.jna:jna", version = "5.18.1" }
 
 [bundles]
 media3 = ["media3-core", "media3-ui", "media3-hls", "media3-okhttp", "media3-cast", "media3-session"]
