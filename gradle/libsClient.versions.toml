@@ -53,7 +53,7 @@ koin-compose = { module = "io.insert-koin:koin-compose", version = "4.1.1" }
 
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version = "3.3.0" }
 coil-ktor = { module = "io.coil-kt.coil3:coil-network-ktor3", version = "3.3.0" }
-routingCompose = { module = "app.softwork:routing-compose", version = "0.4.0" }
+routingCompose = { module = "app.softwork:routing-compose", version = "0.5.0" }
 
 mobiuskt-core = { module = "org.drewcarlson:mobiuskt-core", version.ref = "mobiuskt" }
 mobiuskt-test = { module = "org.drewcarlson:mobiuskt-test", version.ref = "mobiuskt" }
