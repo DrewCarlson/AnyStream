@@ -12,7 +12,7 @@ mobiuskt = "1.4.0"
 objectstore = "0.2.0"
 vlc = "3.0.19"
 kotlinjs = "2025.9.0"
-androidxCamera = "1.4.2"
+androidxCamera = "1.5.2"
 haze = "1.6.10"
 
 [plugins]
