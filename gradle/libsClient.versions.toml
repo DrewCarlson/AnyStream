@@ -69,7 +69,7 @@ objectstore-json = { module = "org.drewcarlson:objectstore-json", version.ref = 
 objectstore-protobuf = { module = "org.drewcarlson:objectstore-protobuf", version.ref = "objectstore" }
 objectstore-secure = { module = "org.drewcarlson:objectstore-secure", version.ref = "objectstore" }
 
-vlcj = { module = "uk.co.caprica:vlcj", version = "4.11.0" }
+vlcj = { module = "uk.co.caprica:vlcj", version = "4.12.1" }
 
 jna = { module = "net.java.dev.jna:jna", version = "5.17.0" }
 
