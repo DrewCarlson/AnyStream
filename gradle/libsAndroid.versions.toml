@@ -20,7 +20,7 @@ androidx-core-ktx = { module = "androidx.core:core-ktx", version = "1.17.0" }
 androidx-appcompat-core = { module = "androidx.appcompat:appcompat", version = "1.7.1" }
 androidx-leanback-core = { module = "androidx.leanback:leanback", version = "1.2.0" }
 androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version = "1.10.1" }
-androidx-activity-compose = { module = "androidx.activity:activity-compose", version = "1.10.1" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version = "1.12.2" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version = "2.9.3" }
 androidx-test-runner = { module = "androidx.test:runner", version.ref = "ax_runner" }
 androidx-splashscreen = { module = "androidx.core:core-splashscreen", version = "1.0.1" }
