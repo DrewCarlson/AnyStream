@@ -1,7 +1,7 @@
 [versions]
 zxing = "3.5.3"
 anr_watchdog = "1.4.0"
-compose = "1.9.0"
+compose = "1.10.1"
 compose_material = "1.7.8"
 compose_foundation = "1.9.0"
 composejb = "1.8.2"
