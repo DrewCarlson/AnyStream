@@ -3,7 +3,7 @@ zxing = "3.5.3"
 anr_watchdog = "1.4.0"
 compose = "1.9.0"
 compose_material = "1.7.8"
-compose_foundation = "1.9.0"
+compose_foundation = "1.10.1"
 composejb = "1.8.2"
 composejb_lifecycle = "2.9.1" # Fails on >=2.9.2
 media3 = "1.8.0"
