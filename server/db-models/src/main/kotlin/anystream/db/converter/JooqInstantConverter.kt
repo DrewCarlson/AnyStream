@@ -17,15 +17,12 @@
  */
 package anystream.db.converter
 
-import kotlinx.datetime.Instant
-import kotlinx.datetime.toJavaInstant
-import kotlinx.datetime.toKotlinInstant
+import kotlin.time.Instant
 import org.jooq.BindingGetResultSetContext
 import org.jooq.BindingSetStatementContext
 import org.jooq.Converter
 import org.jooq.impl.AbstractBinding
 import org.jooq.impl.SQLDataType
-import java.sql.Timestamp
 
 
 @Suppress("UNUSED")

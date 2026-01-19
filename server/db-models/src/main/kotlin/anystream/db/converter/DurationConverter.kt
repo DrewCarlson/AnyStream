@@ -20,7 +20,9 @@ package anystream.db.converter
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.jooq.BindingGetResultSetContext
 import org.jooq.BindingSetStatementContext
+import org.jooq.ContextConverter
 import org.jooq.Converter
+import org.jooq.ConverterContext
 import org.jooq.ConverterProvider
 import org.jooq.impl.AbstractBinding
 import kotlin.time.Duration
@@ -60,9 +62,21 @@ class JooqDurationConverter : Converter<String, Duration> {
     }
 }
 
-class DurationLongConverter : Converter<Duration, Long> {
+class DurationLongConverter : Converter<Duration, Long>, ContextConverter<Duration, Long> {
     override fun from(databaseObject: Duration?): Long =
         databaseObject?.inWholeNanoseconds?.shl(1) ?: 0
+
+    override fun from(
+        databaseObject: Duration?,
+        ctx: ConverterContext?
+    ): Long {
+        return databaseObject?.inWholeNanoseconds?.shl(1) ?: 0
+    }
+
+    override fun to(
+        userObject: Long?,
+        ctx: ConverterContext?
+    ): Duration = error("unsupported mapping")
 
     override fun to(userObject: Long?): Duration = error("unsupported mapping")
 

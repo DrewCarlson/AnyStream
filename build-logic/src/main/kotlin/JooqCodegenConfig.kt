@@ -63,7 +63,7 @@ fun forcedTypes(): List<ForcedType> = listOf(
     ForcedType().apply {
         includeTypes = "TEXT"
         includeExpression = ".*_at"
-        userType = "kotlinx.datetime.Instant"
+        userType = "kotlin.time.Instant"
         binding = "anystream.db.converter.JooqInstantBinding"
     },
     ForcedType().apply {

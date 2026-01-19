@@ -11,7 +11,6 @@ plugins {
     alias(libsCommon.plugins.ksp) apply false
     alias(libsCommon.plugins.kover)
     alias(libsCommon.plugins.downloadPlugin) apply false
-    alias(libsCommon.plugins.atomicfu) apply false
     alias(libsCommon.plugins.redacted) apply false
     alias(libsCommon.plugins.poko) apply false
 }
@@ -53,6 +52,6 @@ subprojects {
         return@subprojects
     }
 
-    apply(plugin = "org.jetbrains.kotlinx.kover")
-    kover {}
+    //apply(plugin = "org.jetbrains.kotlinx.kover")
+    //kover {}
 }

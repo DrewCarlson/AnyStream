@@ -26,7 +26,7 @@ import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import org.jooq.DSLContext
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds

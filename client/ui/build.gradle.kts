@@ -1,3 +1,6 @@
+import com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget
+import kotlin.apply
+
 plugins {
     id("multiplatform-lib")
     kotlin("plugin.compose")
@@ -5,31 +8,20 @@ plugins {
 }
 
 compose {
-    /*android {
-        useAndroidX = true
-    }*/
-
     resources {
         publicResClass = true
         generateResClass = always
     }
 }
 
-if (hasAndroidSdk) {
-    configure<com.android.build.gradle.LibraryExtension> {
-        sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
-        sourceSets["main"].res.srcDirs("src/androidMain/res")
+kotlin {
 
-        // needed for @Preview
-        buildFeatures {
-            compose = true
-        }
-        composeOptions {
+    if (hasAndroidSdk) {
+        (targets.getByName("android") as KotlinMultiplatformAndroidLibraryTarget).apply {
+            androidResources.enable = true
         }
     }
-}
 
-kotlin {
     configure(
         listOf(
             iosX64(),
@@ -67,11 +59,11 @@ kotlin {
                 implementation(libsClient.compose.bundle)
                 implementation(libsClient.compose.viewmodel)
                 implementation(libsClient.compose.backhandler)
-                implementation(compose.runtime)
-                implementation(compose.foundation)
-                implementation(compose.material3)
-                implementation(compose.materialIconsExtended)
-                api(compose.components.resources)
+                implementation(libsClient.compose.runtime)
+                implementation(libsClient.compose.foundationjb)
+                implementation(libsClient.compose.materialjb)
+                implementation(libsClient.compose.materialjb.icons)
+                api(libsClient.compose.resources)
             }
         }
 
@@ -99,7 +91,7 @@ kotlin {
         named("jvmMain") {
             dependsOn(jvmCommonMain)
             dependencies {
-                implementation(compose.desktop.common)
+                implementation(libsClient.compose.desktop)
                 implementation(libsClient.vlcj)
             }
         }

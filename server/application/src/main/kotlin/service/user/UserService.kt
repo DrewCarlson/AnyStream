@@ -24,7 +24,7 @@ import anystream.db.UserDao
 import anystream.models.*
 import anystream.models.api.*
 import anystream.util.ObjectId
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import org.bouncycastle.crypto.generators.OpenBSDBCrypt
 import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentHashMap

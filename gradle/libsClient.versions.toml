@@ -1,19 +1,19 @@
 [versions]
-zxing = "3.5.3"
+zxing = "3.5.4"
 anr_watchdog = "1.4.0"
-compose = "1.9.0"
+compose = "1.10.1"
 compose_material = "1.7.8"
-compose_foundation = "1.9.0"
-composejb = "1.8.2"
-composejb_lifecycle = "2.9.1" # Fails on >=2.9.2
-media3 = "1.8.0"
-ax_runner = "1.5.2"
+compose_foundation = "1.10.1"
+composejb = "1.11.0-alpha01"
+composejb_lifecycle = "2.10.0-alpha07"
+media3 = "1.9.0"
 mobiuskt = "1.4.0"
 objectstore = "0.2.0"
 vlc = "3.0.19"
-kotlinjs = "2025.9.0"
-androidxCamera = "1.4.2"
-haze = "1.6.10"
+kotlinjs = "2026.1.9"
+androidxCamera = "1.5.2"
+haze = "1.7.1"
+io-coil-kt-coil3 = "3.3.0"
 
 [plugins]
 composejb = { id = "org.jetbrains.compose", version.ref = "composejb" }
@@ -21,10 +21,8 @@ composejb = { id = "org.jetbrains.compose", version.ref = "composejb" }
 [libraries]
 kotlinjs-browser = { module = "org.jetbrains.kotlin-wrappers:kotlin-browser", version.ref = "kotlinjs" }
 kotlinjs-web = { module = "org.jetbrains.kotlin-wrappers:kotlin-web", version.ref = "kotlinjs" }
-
 anrWatchdog = { module = "com.github.anrwatchdog:anrwatchdog", version.ref = "anr_watchdog" }
 zxing-core = { module = "com.google.zxing:core", version.ref = "zxing" }
-
 media3-core = { module = "androidx.media3:media3-exoplayer", version.ref = "media3" }
 media3-ui = { module = "androidx.media3:media3-ui-compose", version.ref = "media3" }
 media3-hls = { module = "androidx.media3:media3-exoplayer-hls", version.ref = "media3" }
@@ -34,27 +32,29 @@ media3-cast = { module = "androidx.media3:media3-cast", version.ref = "media3" }
 camerax-core = { module = "androidx.camera:camera-camera2", version.ref = "androidxCamera" }
 camerax-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "androidxCamera" }
 camerax-view = { module = "androidx.camera:camera-view", version.ref = "androidxCamera" }
-
 compose-ui-ui = { module = "androidx.compose.ui:ui", version.ref = "compose" }
 compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
 compose-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "compose_foundation" }
 compose-icons = { module = "androidx.compose.material:material-icons-extended", version.ref = "compose_material" }
-compose-material = { module = "androidx.compose.material3:material3", version = "1.3.2" }
+compose-material = "androidx.compose.material3:material3:1.4.0"
 compose-livedata = { module = "androidx.compose.runtime:runtime-livedata", version.ref = "compose" }
 compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
 compose-lifecycle = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "composejb_lifecycle" }
 compose-viewmodel = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "composejb_lifecycle" }
-compose-backhandler = { module = "org.jetbrains.compose.ui:ui-backhandler", version = "1.9.0-rc01" }
-compose-bundle = { module = "org.jetbrains.androidx.core:core-bundle", version = "1.0.1" }
+compose-desktop = { module = "org.jetbrains.compose.desktop:desktop", version.ref = "composejb" }
+compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "composejb" }
+compose-foundationjb = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "composejb" }
+compose-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composejb" }
+compose-materialjb = "org.jetbrains.compose.material3:material3:1.11.0-alpha01"
+compose-materialjb-icons = "org.jetbrains.compose.material:material-icons-extended:1.7.3"
+compose-backhandler = { module = "org.jetbrains.compose.ui:ui-backhandler", version.ref = "composejb" }
+compose-bundle = "org.jetbrains.androidx.core:core-bundle:1.0.1"
 haze-core = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
 haze-materials = { module = "dev.chrisbanes.haze:haze-materials", version.ref = "haze" }
-
-koin-compose = { module = "io.insert-koin:koin-compose", version = "4.1.1" }
-
-coil-compose = { module = "io.coil-kt.coil3:coil-compose", version = "3.3.0" }
-coil-ktor = { module = "io.coil-kt.coil3:coil-network-ktor3", version = "3.3.0" }
-routingCompose = { module = "app.softwork:routing-compose", version = "0.4.0" }
-
+koin-compose = "io.insert-koin:koin-compose:4.1.1"
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "io-coil-kt-coil3" }
+coil-ktor = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "io-coil-kt-coil3" }
+routingCompose = "app.softwork:routing-compose:0.5.0"
 mobiuskt-core = { module = "org.drewcarlson:mobiuskt-core", version.ref = "mobiuskt" }
 mobiuskt-test = { module = "org.drewcarlson:mobiuskt-test", version.ref = "mobiuskt" }
 mobiuskt-extras = { module = "org.drewcarlson:mobiuskt-extras", version.ref = "mobiuskt" }
@@ -62,18 +62,32 @@ mobiuskt-coroutines = { module = "org.drewcarlson:mobiuskt-coroutines", version.
 mobiuskt-compose = { module = "org.drewcarlson:mobiuskt-compose", version.ref = "mobiuskt" }
 mobiuskt-codegen = { module = "org.drewcarlson:mobiuskt-codegen", version.ref = "mobiuskt" }
 mobiuskt-codegen-api = { module = "org.drewcarlson:mobiuskt-codegen-api", version.ref = "mobiuskt" }
-
 objectstore-core = { module = "org.drewcarlson:objectstore-core", version.ref = "objectstore" }
 objectstore-fs = { module = "org.drewcarlson:objectstore-fs", version.ref = "objectstore" }
 objectstore-json = { module = "org.drewcarlson:objectstore-json", version.ref = "objectstore" }
 objectstore-protobuf = { module = "org.drewcarlson:objectstore-protobuf", version.ref = "objectstore" }
 objectstore-secure = { module = "org.drewcarlson:objectstore-secure", version.ref = "objectstore" }
-
-vlcj = { module = "uk.co.caprica:vlcj", version = "4.11.0" }
-
-jna = { module = "net.java.dev.jna:jna", version = "5.17.0" }
+vlcj = "uk.co.caprica:vlcj:4.12.1"
+jna = "net.java.dev.jna:jna:5.18.1"
 
 [bundles]
-media3 = ["media3-core", "media3-ui", "media3-hls", "media3-okhttp", "media3-cast", "media3-session"]
-compose = ["compose-ui-ui", "compose-ui-tooling", "compose-foundation", "compose-material", "compose-livedata"]
-camerax = ["camerax-core", "camerax-lifecycle", "camerax-view"]
+media3 = [
+    "media3-cast",
+    "media3-core",
+    "media3-hls",
+    "media3-okhttp",
+    "media3-session",
+    "media3-ui",
+]
+compose = [
+    "compose-foundation",
+    "compose-livedata",
+    "compose-material",
+    "compose-ui-tooling",
+    "compose-ui-ui",
+]
+camerax = [
+    "camerax-core",
+    "camerax-lifecycle",
+    "camerax-view",
+]

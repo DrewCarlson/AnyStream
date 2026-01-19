@@ -18,7 +18,7 @@
 package anystream.db.pojos
 
 import anystream.models.*
-import kotlinx.datetime.*
+import kotlin.time.Clock
 
 
 fun Movie.toMetadataDb(): Metadata {

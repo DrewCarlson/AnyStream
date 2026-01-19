@@ -1,4 +1,4 @@
-import com.android.build.gradle.LibraryExtension
+import com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget
 import dev.zacsweers.redacted.gradle.RedactedPluginExtension
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
@@ -7,28 +7,12 @@ plugins {
     kotlin("multiplatform")
     id("com.diffplug.spotless")
     kotlin("plugin.serialization")
-    id("org.jetbrains.kotlinx.atomicfu")
     id("dev.zacsweers.redacted")
     id("dev.drewhamilton.poko")
 }
 
 if (hasAndroidSdk) {
-    apply(plugin = "com.android.library")
-    configure<LibraryExtension> {
-        compileSdk = 36
-        defaultConfig {
-            minSdk = 23
-            testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        }
-        namespace = "anystream.${project.name.replace("-", "")}"
-        compileOptions {
-            sourceCompatibility = JAVA_TARGET_ANDROID
-            targetCompatibility = JAVA_TARGET_ANDROID
-        }
-        packaging {
-            resources.excludes.add("META-INF/versions/*/*.bin")
-        }
-    }
+    apply(plugin = "com.android.kotlin.multiplatform.library")
 }
 
 
@@ -64,9 +48,19 @@ kotlin {
     }
     jvm()
     if (hasAndroidSdk) {
-        androidTarget {
+        (targets.getByName("android") as KotlinMultiplatformAndroidLibraryTarget).apply {
             compilerOptions {
                 jvmTarget.set(JVM_TARGET_ANDROID)
+            }
+            compileSdk { version = release(36) }
+            minSdk { version = release(23) }
+            namespace = "anystream.${project.name.replace("-", "")}"
+            packaging {
+                resources.excludes.add("META-INF/versions/*/*.bin")
+            }
+            withHostTest {
+            }
+            withDeviceTest {
             }
         }
     }
@@ -113,7 +107,7 @@ kotlin {
                 }
             }
 
-            val androidUnitTest by getting {
+            val androidHostTest by getting {
                 dependencies {
                     implementation(libsAndroid.findLibrary("androidx-test-runner").get())
                     implementation(kotlin("test"))

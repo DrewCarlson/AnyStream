@@ -1,19 +1,17 @@
 [versions]
-kotlin = { strictly = "2.2.10" }
+kotlin = { strictly = "2.3.0" }
 coroutines = "1.10.2"
-serialization = "1.9.0"
-ktorio = "3.2.3"
-ksp = "2.2.10-2.0.2"
-atomicfu = "0.29.0"
-kover = "0.9.1"
-datetime = "0.6.2"
-spotless = "7.2.1"
-ktlint = "1.0.1"
+serialization = "1.10.0-RC"
+ktorio = "3.3.3"
+ksp = "2.3.4"
+kover = "0.9.4"
+datetime = "0.7.1"
+spotless = "8.1.0"
 koin = "4.1.1"
-agp = "8.11.1"
-kotest = "6.0.3"
-redacted = "1.14.1"
-poko = "0.19.3"
+agp = "9.0.0"
+kotest = "6.0.7"
+redacted = "1.15.1"
+poko = "0.21.1"
 
 [plugins]
 multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
@@ -22,41 +20,29 @@ jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 jsPlainObjects = { id = "org.jetbrains.kotlin.plugin.js-plain-objects", version.ref = "kotlin" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
-androidkt = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
-downloadPlugin = { id = "de.undercouch.download", version = "5.6.0" }
+downloadPlugin = "de.undercouch.download:5.6.0"
 kotest = { id = "io.kotest.multiplatform", version.ref = "kotest" }
-atomicfu = { id = "org.jetbrains.kotlinx.atomicfu", version.ref = "atomicfu" }
 redacted = { id = "dev.zacsweers.redacted", version.ref = "redacted" }
 poko = { id = "dev.drewhamilton.poko", version.ref = "poko" }
 
 [libraries]
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
-
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 coroutines-jdk8 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8", version.ref = "coroutines" }
 coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
-
 serialization-plugin = { module = "org.jetbrains.kotlin:kotlin-serialization", version.ref = "kotlin" }
 serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "serialization" }
 serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
-
 datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "datetime" }
-
 poko = { module = "dev.drewhamilton.poko:poko-gradle-plugin", version.ref = "poko" }
 redacted = { module = "dev.zacsweers.redacted:redacted-compiler-plugin-gradle", version.ref = "redacted" }
 redacted-annotations = { module = "dev.zacsweers.redacted:redacted-compiler-plugin-annotations", version.ref = "redacted" }
-atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu" }
-atomicfu-plugin = { module = "org.jetbrains.kotlinx:atomicfu-gradle-plugin", version.ref = "atomicfu" }
-
 agp = { module = "com.android.tools.build:gradle", version.ref = "agp" }
-
 spotless-plugin = { module = "com.diffplug.spotless:spotless-plugin-gradle", version.ref = "spotless" }
-kotlin-gradle-conventions = { module = "org.gradle.kotlin:gradle-kotlin-dsl-conventions", version = "0.9.0" }
-
+kotlin-gradle-conventions = "org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.9.0"
 ktor-serialization = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktorio" }
-
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktorio" }
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktorio" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktorio" }
@@ -66,7 +52,6 @@ ktor-client-apache = { module = "io.ktor:ktor-client-apache", version.ref = "kto
 ktor-client-contentNegotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktorio" }
 ktor-client-websockets = { module = "io.ktor:ktor-client-websockets", version.ref = "ktorio" }
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktorio" }
-
 ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktorio" }
 ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktorio" }
 ktor-server-sessions = { module = "io.ktor:ktor-server-sessions", version.ref = "ktorio" }
@@ -85,13 +70,9 @@ ktor-server-cors = { module = "io.ktor:ktor-server-cors", version.ref = "ktorio"
 ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktorio" }
 ktor-server-authJwt = { module = "io.ktor:ktor-server-auth-jwt", version.ref = "ktorio" }
 ktor-server-websockets = { module = "io.ktor:ktor-server-websockets", version.ref = "ktorio" }
-
 ksp = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }
-
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
-
 kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
 kotest-framework-engine = { module = "io.kotest:kotest-framework-engine", version.ref = "kotest" }
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
 kotest-property = { module = "io.kotest:kotest-property", version.ref = "kotest" }
-

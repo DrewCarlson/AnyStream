@@ -19,7 +19,7 @@ package anystream.models
 
 import anystream.models.api.*
 import dev.drewhamilton.poko.Poko
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Duration
