@@ -23,7 +23,7 @@ import anystream.models.User
 import anystream.util.ObjectId
 import io.kotest.core.spec.DslDrivenSpec
 import io.kotest.matchers.booleans.shouldBeTrue
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import org.jooq.DSLContext
 import org.jooq.SQLDialect
 import org.jooq.impl.DSL

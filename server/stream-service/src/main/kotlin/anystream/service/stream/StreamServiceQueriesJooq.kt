@@ -27,7 +27,7 @@ import anystream.db.util.awaitFirstOrNullInto
 import anystream.models.*
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.reactive.awaitFirstOrNull
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import org.jooq.DSLContext
 import org.slf4j.LoggerFactory
 import kotlin.time.Duration

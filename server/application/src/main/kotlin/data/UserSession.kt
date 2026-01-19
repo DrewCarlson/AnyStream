@@ -18,7 +18,7 @@
 package anystream.data
 
 import anystream.models.Permission
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlinx.serialization.Serializable
 
 @Serializable

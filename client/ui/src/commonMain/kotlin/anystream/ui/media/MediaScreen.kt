@@ -588,7 +588,7 @@ private fun EpisodeList(
                             ?.let {
                                 "${it.month.name.take(1)}${
                                     it.month.name.substring(1, 3).lowercase()
-                                } ${it.dayOfMonth}, ${it.year}"
+                                } ${it.day}, ${it.year}"
                             }
                             ?: "unaired",
                         style = MaterialTheme.typography.labelSmall,

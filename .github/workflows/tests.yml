@@ -141,7 +141,7 @@ jobs:
         run: echo "FIREFOX_BIN=${{ steps.install-firefox.outputs.firefox-path }}" >> $GITHUB_ENV
 
       - name: All Tests
-        run: ./gradlew client:core:allTests client:core:koverXmlReport
+        run: ./gradlew client:core:allTests #client:core:koverXmlReport
 
       - name: Archive Reports
         uses: actions/upload-artifact@de65e23aa2b7e23d713bb51fbfcb6d502f8667d8
@@ -186,7 +186,7 @@ jobs:
           key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v3
 
       - name: All Tests
-        run: ./gradlew client:ui:allTests client:ui:koverXmlReport
+        run: ./gradlew client:ui:allTests #client:ui:koverXmlReport
 
       - name: Archive Reports
         uses: actions/upload-artifact@de65e23aa2b7e23d713bb51fbfcb6d502f8667d8
@@ -290,7 +290,7 @@ jobs:
         run: echo "FIREFOX_BIN=${{ steps.install-firefox.outputs.firefox-path }}" >> $GITHUB_ENV
 
       - name: Web Tests
-        run: ./gradlew client:web:jsBrowserTest client:web:koverXmlReport
+        run: ./gradlew client:web:jsBrowserTest #client:web:koverXmlReport
 
       - name: Archive Reports
         uses: actions/upload-artifact@de65e23aa2b7e23d713bb51fbfcb6d502f8667d8
@@ -331,12 +331,12 @@ jobs:
       - name: Run Server Tests
         run: >
           ./gradlew
-          server:application:test server:application:koverXmlReport
-          server:db-models:test server:db-models:koverXmlReport
-          server:library-manager:test server:library-manager:koverXmlReport
-          server:metadata-manager:test server:metadata-manager:koverXmlReport
-          server:shared:test server:shared:koverXmlReport
-          server:stream-service:test server:stream-service:koverXmlReport
+          server:application:test
+          server:db-models:test
+          server:library-manager:test
+          server:metadata-manager:test
+          server:shared:test
+          server:stream-service:test
 
       - name: Archive Reports
         uses: actions/upload-artifact@de65e23aa2b7e23d713bb51fbfcb6d502f8667d8

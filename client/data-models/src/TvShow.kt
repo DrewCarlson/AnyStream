@@ -18,7 +18,12 @@
 package anystream.models
 
 import dev.drewhamilton.poko.Poko
-import kotlinx.datetime.*
+import kotlin.time.Instant
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.number
+import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.Serializable
 
 @Poko
@@ -63,7 +68,7 @@ fun Metadata.toTvShowModel(): TvShow {
 }
 
 fun Instant.instantToTmdbDate(): String {
-    return toLocalDateTime(TimeZone.UTC).run { "$year-$monthNumber-$dayOfMonth" }
+    return toLocalDateTime(TimeZone.UTC).run { "$year-${month.number}-$day" }
 }
 
 fun String.tmdbDateToInstant(): Instant? {

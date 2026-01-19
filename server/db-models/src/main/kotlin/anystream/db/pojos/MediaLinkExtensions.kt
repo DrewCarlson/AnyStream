@@ -22,7 +22,7 @@ import anystream.models.MediaKind
 import anystream.models.MediaLink
 import anystream.models.MediaLinkType
 import anystream.util.ObjectId
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
 

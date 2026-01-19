@@ -23,7 +23,7 @@ import anystream.models.api.MediaLookupResponse
 import anystream.models.api.MovieResponse
 import anystream.models.api.PlaybackSessions
 import anystream.util.ObjectId
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import org.slf4j.LoggerFactory
 import java.nio.file.FileSystem
 import java.nio.file.Path

@@ -41,7 +41,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.contentDataType
 import androidx.compose.ui.semantics.contentType
-import androidx.compose.ui.semantics.onAutofillText
+import androidx.compose.ui.semantics.onFillData
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -188,10 +188,11 @@ internal fun FormBody(
                 .semantics {
                     contentType = ContentType.Username
                     contentDataType = ContentDataType.Text
-                    onAutofillText {
+                    onFillData {
+                        val value = it.textValue?.toString().orEmpty()
                         focusManager.clearFocus(force = true)
-                        usernameValue = TextFieldValue(it)
-                        eventConsumer.accept(LoginScreenEvent.OnUsernameChanged(it.text))
+                        usernameValue = TextFieldValue(value)
+                        eventConsumer.accept(LoginScreenEvent.OnUsernameChanged(value))
                         true
                     }
                 },
@@ -229,10 +230,11 @@ internal fun FormBody(
                 .semantics {
                     contentType = ContentType.Password
                     contentDataType = ContentDataType.Text
-                    onAutofillText {
+                    onFillData {
+                        val value = it.textValue?.toString().orEmpty()
                         focusManager.clearFocus(force = true)
-                        passwordValue = TextFieldValue(it)
-                        eventConsumer.accept(LoginScreenEvent.OnPasswordChanged(it.text))
+                        passwordValue = TextFieldValue(value)
+                        eventConsumer.accept(LoginScreenEvent.OnPasswordChanged(value))
                         true
                     }
                 },

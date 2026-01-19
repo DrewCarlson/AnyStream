@@ -57,10 +57,11 @@ import io.ktor.util.AttributeKey
 import io.ktor.util.date.GMTDate
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.InternalAPI
-import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlin.concurrent.atomics.AtomicReference
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 
 private val KEY_INTERNAL_ERROR = AttributeKey<Throwable>("INTERNAL_ERROR")
@@ -68,6 +69,7 @@ private val KEY_INTERNAL_ERROR = AttributeKey<Throwable>("INTERNAL_ERROR")
 private const val PAGE = "page"
 private const val QUERY = "query"
 
+@OptIn(ExperimentalAtomicApi::class)
 class AnyStreamApiCore(
     serverUrl: String?,
     httpClient: HttpClient,
@@ -78,13 +80,13 @@ class AnyStreamApiCore(
     }
 
     internal val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
-    private val serverUrlInternal = atomic(serverUrl ?: sessionManager.fetchServerUrl() ?: "")
+    private val serverUrlInternal = AtomicReference(serverUrl ?: sessionManager.fetchServerUrl() ?: "")
 
     var serverUrl: String
-        get() = serverUrlInternal.value
+        get() = serverUrlInternal.load()
         private set(value) {
             val trimmedUrl = value.trimEnd('/')
-            serverUrlInternal.value = trimmedUrl
+            serverUrlInternal.store(trimmedUrl)
         }
 
     val http = httpClient.config {

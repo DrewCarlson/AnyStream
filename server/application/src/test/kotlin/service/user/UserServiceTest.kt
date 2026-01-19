@@ -27,7 +27,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.ktor.server.config.HoconApplicationConfig
 import io.ktor.server.config.HoconConfigLoader
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import org.jooq.DSLContext
 import java.nio.file.FileSystems
 import kotlin.test.*

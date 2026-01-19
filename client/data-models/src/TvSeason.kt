@@ -18,7 +18,7 @@
 package anystream.models
 
 import dev.drewhamilton.poko.Poko
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.serialization.Serializable
 
 @Poko
