@@ -35,5 +35,6 @@ internal val colors = darkColorScheme(
     primary = Color(0xFFE21221),
     background = Color(0xFF181A20),
     error = Color(0xFFE21221),
-    surface = Color(0xFF181A20)
+    surface = Color(0xFF181A20),
+    onPrimary = Color(0xFFFFFFFF)
 )

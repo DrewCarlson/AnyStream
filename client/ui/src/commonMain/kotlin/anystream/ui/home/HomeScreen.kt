@@ -24,6 +24,8 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -57,6 +59,7 @@ fun HomeScreen(
     onPlayClick: (mediaLinkId: String) -> Unit,
     onViewMoviesClicked: (libraryId: String) -> Unit,
     onViewTvShowsClicked: (libraryId: String) -> Unit,
+    onSearchClicked: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val (modelState, eventConsumer) = rememberMobiusLoop(HomeScreenModel.Loading, HomeScreenInit) {
@@ -81,6 +84,7 @@ fun HomeScreen(
                     onViewMoviesClicked = onViewMoviesClicked,
                     onViewTvShowsClicked = onViewTvShowsClicked,
                     onContinueWatchingClick = onPlayClick,
+                    onSearchClicked = onSearchClicked,
                 )
 
             is HomeScreenModel.LoadingFailed -> Unit // TODO: add error view
@@ -101,6 +105,7 @@ private fun HomeScreenContent(
     onViewMoviesClicked: (String) -> Unit,
     onViewTvShowsClicked: (String) -> Unit,
     onContinueWatchingClick: (mediaLinkId: String) -> Unit,
+    onSearchClicked: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -121,6 +126,21 @@ private fun HomeScreenContent(
         }
 
         CarouselAutoPlayHandler(pagerState, populars.count())
+        
+        Button(
+            onClick = onSearchClicked,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .padding(top = 8.dp)
+        ) {
+            Icon(
+                Icons.Default.Search,
+                contentDescription = null,
+                modifier = Modifier.padding(end = 8.dp)
+            )
+            Text("Search")
+        }
 
         if (currentlyWatching.playbackStates.isNotEmpty()) {
             SectionHeader(title = "Continue Watching")
