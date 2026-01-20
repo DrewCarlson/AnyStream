@@ -90,7 +90,7 @@ jobs:
           java-version: 21
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@76d3b998d4cef76a821dbcee71a9172ce986bb30
+        uses: gradle/actions/setup-gradle@576fcbecfed70890e466eeffd7c78d93b30b0472
 
       - name: Cache Build files
         uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7
@@ -118,7 +118,7 @@ jobs:
           java-version: 21
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@76d3b998d4cef76a821dbcee71a9172ce986bb30
+        uses: gradle/actions/setup-gradle@576fcbecfed70890e466eeffd7c78d93b30b0472
 
       - name: Cache Build files
         uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7
@@ -146,7 +146,7 @@ jobs:
           java-version: 21
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@76d3b998d4cef76a821dbcee71a9172ce986bb30
+        uses: gradle/actions/setup-gradle@576fcbecfed70890e466eeffd7c78d93b30b0472
 
       - name: Cache Build files
         uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7
@@ -174,7 +174,7 @@ jobs:
           java-version: 21
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@76d3b998d4cef76a821dbcee71a9172ce986bb30
+        uses: gradle/actions/setup-gradle@576fcbecfed70890e466eeffd7c78d93b30b0472
 
       - name: Cache Build files
         uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7
@@ -202,7 +202,7 @@ jobs:
           java-version: 21
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@76d3b998d4cef76a821dbcee71a9172ce986bb30
+        uses: gradle/actions/setup-gradle@576fcbecfed70890e466eeffd7c78d93b30b0472
 
       - name: Cache Build files
         uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7
@@ -230,7 +230,7 @@ jobs:
           java-version: 21
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@76d3b998d4cef76a821dbcee71a9172ce986bb30
+        uses: gradle/actions/setup-gradle@576fcbecfed70890e466eeffd7c78d93b30b0472
 
       - name: Cache Build files
         uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7
