@@ -28,48 +28,48 @@ jobs:
           fetch-depth: 0
       - name: Get changed files
         id: android
-        uses: tj-actions/changed-files@3b04099b21072562f07469c10deb182b24236ca9
+        uses: tj-actions/changed-files@7d5bbf4e8d5c63a42c94e1c1bff2394247117e96
         with:
           files: |
             **/client/android/**/*.kt
             **/client/android/**/*.kts
       - name: Get changed files
         id: client-core
-        uses: tj-actions/changed-files@3b04099b21072562f07469c10deb182b24236ca9
+        uses: tj-actions/changed-files@7d5bbf4e8d5c63a42c94e1c1bff2394247117e96
         with:
           files: |
             **/client/core/**/*.kt
             **/client/core/**/*.kts
       - name: Get changed files
         id: data-models
-        uses: tj-actions/changed-files@3b04099b21072562f07469c10deb182b24236ca9
+        uses: tj-actions/changed-files@7d5bbf4e8d5c63a42c94e1c1bff2394247117e96
         with:
           files: |
             **/client/data-models/**/*.kt
             **/client/data-models/**/*.kts
       - name: Get changed files
         id: client-ui
-        uses: tj-actions/changed-files@3b04099b21072562f07469c10deb182b24236ca9
+        uses: tj-actions/changed-files@7d5bbf4e8d5c63a42c94e1c1bff2394247117e96
         with:
           files: |
             **/client/ui/**/*.kt
             **/client/ui/**/*.kts
       - name: Get changed files
         id: server
-        uses: tj-actions/changed-files@3b04099b21072562f07469c10deb182b24236ca9
+        uses: tj-actions/changed-files@7d5bbf4e8d5c63a42c94e1c1bff2394247117e96
         with:
           files: |
             **/server/**/*.kt
             **/server/**/*.kts
       - name: Get changed files
         id: ios
-        uses: tj-actions/changed-files@3b04099b21072562f07469c10deb182b24236ca9
+        uses: tj-actions/changed-files@7d5bbf4e8d5c63a42c94e1c1bff2394247117e96
         with:
           files: |
             **/client/ios/**
       - name: Get changed files
         id: web
-        uses: tj-actions/changed-files@3b04099b21072562f07469c10deb182b24236ca9
+        uses: tj-actions/changed-files@7d5bbf4e8d5c63a42c94e1c1bff2394247117e96
         with:
           files: |
             **/client/web/**/*.kt
