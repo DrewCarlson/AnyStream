@@ -357,7 +357,7 @@ jobs:
     steps:
       - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
       - name: Download kover reports
-        uses: actions/download-artifact@abefc31eafcfbdf6c5336127c1346fdae79ff41c
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
           pattern: reports*
       - uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de
