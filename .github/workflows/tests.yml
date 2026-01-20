@@ -151,7 +151,7 @@ jobs:
           path: '**/build/reports/*'
 
       - name: Publish Unit Test Results
-        uses: mikepenz/action-junit-report@e5453d864979a2b201453695ee1db0acac11b14b
+        uses: mikepenz/action-junit-report@a294a61c909bd8a4b563024a2faa28897fd53ebc
         if: ${{ always() }}
         with:
           report_paths: '**/TEST-*.xml'
@@ -196,7 +196,7 @@ jobs:
           path: '**/build/reports/*'
 
       - name: Publish Unit Test Results
-        uses: mikepenz/action-junit-report@e5453d864979a2b201453695ee1db0acac11b14b
+        uses: mikepenz/action-junit-report@a294a61c909bd8a4b563024a2faa28897fd53ebc
         if: ${{ always() }}
         with:
           report_paths: '**/TEST-*.xml'
@@ -249,7 +249,7 @@ jobs:
           path: '**/build/reports/*'
 
       - name: Publish Unit Test Results
-        uses: mikepenz/action-junit-report@e5453d864979a2b201453695ee1db0acac11b14b
+        uses: mikepenz/action-junit-report@a294a61c909bd8a4b563024a2faa28897fd53ebc
         if: ${{ always() }}
         with:
           report_paths: '**/TEST-*.xml'
@@ -300,7 +300,7 @@ jobs:
           path: '**/build/reports/*'
 
       - name: Publish Unit Test Results
-        uses: mikepenz/action-junit-report@e5453d864979a2b201453695ee1db0acac11b14b
+        uses: mikepenz/action-junit-report@a294a61c909bd8a4b563024a2faa28897fd53ebc
         if: ${{ always() }}
         with:
           report_paths: '**/TEST-*.xml'
@@ -346,7 +346,7 @@ jobs:
           path: '**/build/reports/*'
 
       - name: Publish Unit Test Results
-        uses: mikepenz/action-junit-report@e5453d864979a2b201453695ee1db0acac11b14b
+        uses: mikepenz/action-junit-report@a294a61c909bd8a4b563024a2faa28897fd53ebc
         if: ${{ always() }}
         with:
           report_paths: '**/TEST-*.xml'
