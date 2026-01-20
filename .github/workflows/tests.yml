@@ -144,7 +144,7 @@ jobs:
         run: ./gradlew client:core:allTests #client:core:koverXmlReport
 
       - name: Archive Reports
-        uses: actions/upload-artifact@de65e23aa2b7e23d713bb51fbfcb6d502f8667d8
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         if: ${{ always() }}
         with:
           name: reports-client-core-${{ matrix.os }}
@@ -189,7 +189,7 @@ jobs:
         run: ./gradlew client:ui:allTests #client:ui:koverXmlReport
 
       - name: Archive Reports
-        uses: actions/upload-artifact@de65e23aa2b7e23d713bb51fbfcb6d502f8667d8
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         if: ${{ always() }}
         with:
           name: reports-client-ui-${{ matrix.os }}
@@ -242,7 +242,7 @@ jobs:
           script: ./gradlew connectedCheck
 
       - name: Archive Reports
-        uses: actions/upload-artifact@de65e23aa2b7e23d713bb51fbfcb6d502f8667d8
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         if: ${{ always() }}
         with:
           name: reports-client-android
@@ -293,7 +293,7 @@ jobs:
         run: ./gradlew client:web:jsBrowserTest #client:web:koverXmlReport
 
       - name: Archive Reports
-        uses: actions/upload-artifact@de65e23aa2b7e23d713bb51fbfcb6d502f8667d8
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         if: ${{ always() }}
         with:
           name: reports-client-web-${{ matrix.os }}
@@ -339,7 +339,7 @@ jobs:
           server:stream-service:test
 
       - name: Archive Reports
-        uses: actions/upload-artifact@de65e23aa2b7e23d713bb51fbfcb6d502f8667d8
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         if: ${{ always() }}
         with:
           name: reports-server
