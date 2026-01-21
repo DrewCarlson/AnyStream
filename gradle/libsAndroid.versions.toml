@@ -1,5 +1,5 @@
 [versions]
-zxing = "3.5.3"
+zxing = "3.5.4"
 anr_watchdog = "1.4.0"
 ax_runner = "1.7.0"
 leakcanary = "2.14"
