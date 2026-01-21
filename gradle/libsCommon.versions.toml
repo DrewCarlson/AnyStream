@@ -1,7 +1,7 @@
 [versions]
 kotlin = { strictly = "2.3.0" }
 coroutines = "1.10.2"
-serialization = "1.10.0-RC"
+serialization = "1.10.0"
 ktorio = "3.3.3"
 ksp = "2.3.4"
 kover = "0.9.4"
