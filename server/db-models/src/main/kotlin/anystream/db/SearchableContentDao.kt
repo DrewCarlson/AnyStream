@@ -21,6 +21,7 @@ import anystream.db.tables.references.SEARCHABLE_CONTENT
 import anystream.db.util.awaitFirstOrNullInto
 import anystream.db.util.awaitInto
 import anystream.models.MediaType
+import kotlinx.coroutines.reactive.awaitFirst
 import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.Record
@@ -63,6 +64,27 @@ class SearchableContentDao(
             .orderBy(RANK)
             .limit(limit)
             .awaitInto()
+    }
+
+    /**
+     * Delete searchable content for a metadata entry.
+     * @return The number of records deleted.
+     */
+    suspend fun deleteById(metadataId: String): Int {
+        return db.deleteFrom(SEARCHABLE_CONTENT)
+            .where(SEARCHABLE_CONTENT.ID.eq(metadataId))
+            .awaitFirst()
+    }
+
+    /**
+     * Delete searchable content for multiple metadata entries.
+     * @return The number of records deleted.
+     */
+    suspend fun deleteByIds(metadataIds: List<String>): Int {
+        if (metadataIds.isEmpty()) return 0
+        return db.deleteFrom(SEARCHABLE_CONTENT)
+            .where(SEARCHABLE_CONTENT.ID.`in`(metadataIds))
+            .awaitFirst()
     }
 }
 

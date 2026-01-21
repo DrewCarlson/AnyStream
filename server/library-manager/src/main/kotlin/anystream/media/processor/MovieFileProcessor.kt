@@ -51,13 +51,27 @@ class MovieFileProcessor(
         val libraryRootIds = libraryDao.fetchLibraryRootDirectories(directory.libraryId)
             .map(Directory::id)
             .takeIf { it.isNotEmpty() }
-            ?: return emptyList()  // TODO: return no library error
+
+        if (libraryRootIds == null) {
+            logger.error("No library roots found for library {}", directory.libraryId)
+            return listOf(MediaLinkMatchResult.LibraryNotFound(directory.id, directory.libraryId))
+        }
+
         val contentRootDirectories = when {
             // directory is a library root, scan all direct children
             libraryRootIds.contains(directory.id) -> libraryDao.fetchChildDirectories(directory.id)
-            // directory is child of library root, scan it
+            // directory is child of library root (movie folder), scan it
             libraryRootIds.contains(directory.parentId) -> listOf(directory)
-            else -> TODO("Handle scanning from season folder")
+            else -> {
+                // Nested directory - walk up to find the movie folder
+                val movieFolder = findContentRootDirectory(directory, libraryRootIds)
+                if (movieFolder == null) {
+                    logger.error("Could not find movie folder for nested directory {}", directory.filePath)
+                    return listOf(MediaLinkMatchResult.NoSupportedFiles(null, directory))
+                }
+                logger.debug("Found movie folder {} for nested directory {}", movieFolder.filePath, directory.filePath)
+                listOf(movieFolder)
+            }
         }
 
         return coroutineScope {
@@ -97,7 +111,9 @@ class MovieFileProcessor(
             )
         )
 
-        // TODO: Update supplementary files (SUBTITLE/IMAGE)
+        // Link supplementary files (SUBTITLE/IMAGE) in the same directory
+        linkSupplementaryFiles(mediaLink.directoryId, match.movie.id, match.movie.id)
+
         return match
     }
 
@@ -160,6 +176,13 @@ class MovieFileProcessor(
                     directory = directory,
                 )
 
+            is MediaLinkMatchResult.ImportFailed ->
+                MediaLinkMatchResult.ImportFailed(
+                    mediaLink = null,
+                    directory = directory,
+                    reason = subMatch.reason,
+                )
+
             is MediaLinkMatchResult.Success -> {
                 MediaLinkMatchResult.Success(
                     mediaLink = null,
@@ -168,6 +191,10 @@ class MovieFileProcessor(
                     subResults = listOf(subMatch),
                 )
             }
+
+            is MediaLinkMatchResult.LibraryNotFound,
+            is MediaLinkMatchResult.NotImplemented,
+            is MediaLinkMatchResult.ProviderError -> subMatch
         }
     }
 
@@ -201,8 +228,10 @@ class MovieFileProcessor(
 
         val metadataMatch = if (import) {
             val match = importMetadataMatch(mediaLink, matches.first())
-            // TODO: Return real error for import failure
-                ?: return MediaLinkMatchResult.NoMatchesFound(mediaLink, null)
+            if (match == null) {
+                logger.error("Failed to import metadata for '{}' with match '{}'", mediaLink.filePath, matches.first())
+                return MediaLinkMatchResult.ImportFailed(mediaLink, null, "Metadata import failed for ${matches.first().movie.title}")
+            }
             listOf(match)
         } else {
             matches
@@ -240,5 +269,69 @@ class MovieFileProcessor(
                 (importResults.first().match as MetadataMatch.MovieMatch)
             }
         }
+    }
+
+    /**
+     * Walk up the directory tree to find the content root directory (movie folder).
+     * The content root is the directory whose parent is a library root.
+     *
+     * @param directory The starting directory (e.g., a nested subfolder)
+     * @param libraryRootIds The set of library root directory IDs
+     * @return The content root directory, or null if not found
+     */
+    private suspend fun findContentRootDirectory(
+        directory: Directory,
+        libraryRootIds: List<String>
+    ): Directory? {
+        var current: Directory? = directory
+        var maxDepth = 10 // Prevent infinite loops
+
+        while (current != null && maxDepth > 0) {
+            val parentId = current.parentId ?: return null
+
+            if (libraryRootIds.contains(parentId)) {
+                // Found it - current directory's parent is a library root
+                return current
+            }
+
+            // Move up to the parent directory
+            current = libraryDao.fetchDirectory(parentId)
+            maxDepth--
+        }
+
+        return null
+    }
+
+    /**
+     * Link supplementary files (SUBTITLE/IMAGE) in a directory to a metadata ID.
+     * These files support the main video file and should share its metadata reference.
+     *
+     * @param directoryId The directory containing the supplementary files
+     * @param metadataId The metadata ID to link to
+     * @param rootMetadataId The root metadata ID to link to
+     */
+    private suspend fun linkSupplementaryFiles(
+        directoryId: String,
+        metadataId: String,
+        rootMetadataId: String,
+    ) {
+        val supplementaryLinks = mediaLinkDao.findByDirectoryId(directoryId)
+            .filter { it.descriptor == Descriptor.SUBTITLE || it.descriptor == Descriptor.IMAGE }
+            .filter { it.metadataId == null } // Only link unlinked files
+
+        if (supplementaryLinks.isEmpty()) {
+            return
+        }
+
+        val updates = supplementaryLinks.map { link ->
+            MediaLinkMetadataUpdate(
+                mediaLinkId = checkNotNull(link.id),
+                metadataId = metadataId,
+                rootMetadataId = rootMetadataId,
+            )
+        }
+
+        mediaLinkDao.updateMetadataIds(updates)
+        logger.debug("Linked {} supplementary files to metadata {}", supplementaryLinks.size, metadataId)
     }
 }

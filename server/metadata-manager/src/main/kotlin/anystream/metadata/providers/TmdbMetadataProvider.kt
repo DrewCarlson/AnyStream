@@ -124,12 +124,24 @@ class TmdbMetadataProvider(
         }
         val movie = tmdbMovie.asMovie(movieId)
 
+        val isRefresh = existingMovie != null
+
         return try {
             val genres = tmdbMovie.genres.toGenreDb()
             val companies = tmdbMovie.productionCompanies.orEmpty().toCompanyDb()
             val credits = tmdbMovie.credits?.toCreditsDb().orEmpty()
-            val metadata = queries.insertMovie(movie, genres, companies)
-            val dbCredits = queries.insertCredits(metadata.id, credits)
+
+            val metadata = if (isRefresh) {
+                queries.updateMovie(movie, genres, companies)
+            } else {
+                queries.insertMovie(movie, genres, companies)
+            }
+
+            val dbCredits = if (isRefresh) {
+                queries.refreshCredits(metadata.id, credits)
+            } else {
+                queries.insertCredits(metadata.id, credits)
+            }
             supervisorScope {
                 launch { tmdbMovie.cacheImage(movieId, "poster", "w300") }
                 launch { tmdbMovie.cacheImage(movieId, "backdrop", "w1280") }
@@ -160,7 +172,8 @@ class TmdbMetadataProvider(
             )
         } catch (e: Throwable) {
             removeLock(lockData)
-            logger.error("Failed to insert new movie metadata", e)
+            val operation = if (isRefresh) "refresh" else "insert"
+            logger.error("Failed to {} movie metadata", operation, e)
             ImportMetadataResult.ErrorDatabaseException(e.stackTraceToString())
         }
     }
@@ -210,8 +223,6 @@ class TmdbMetadataProvider(
         }
         val tmdbSeasons = try {
             tmdbSeries.seasons
-                //TODO: handle extras/special season types
-                .filter { it.seasonNumber > 0 }
                 .mapNotNull { season -> fetchSeason(tmdbSeries.id, season.seasonNumber) }
         } catch (e: Throwable) {
             removeLock(lockData)
@@ -232,11 +243,26 @@ class TmdbMetadataProvider(
                 existingSeasons,
             )
 
+        val isRefresh = existingTvShow != null
+
         return try {
-            queries.insertTvShow(tvShow, tvSeasons, episodes)
-            val people1 = queries.insertCredits(tvShowId, showCredits).keys
+            if (isRefresh) {
+                queries.updateTvShow(tvShow, tvSeasons, episodes)
+            } else {
+                queries.insertTvShow(tvShow, tvSeasons, episodes)
+            }
+
+            val people1 = if (isRefresh) {
+                queries.refreshCredits(tvShowId, showCredits).keys
+            } else {
+                queries.insertCredits(tvShowId, showCredits).keys
+            }
             val people2 = episodeCredits.flatMap { (episodeId, credits) ->
-                queries.insertCredits(episodeId, credits).keys
+                if (isRefresh) {
+                    queries.refreshCredits(episodeId, credits).keys
+                } else {
+                    queries.insertCredits(episodeId, credits).keys
+                }
             }
             val allPeople = (people1 + people2).toSet().associate { it.tmdbId!! to it.id }
             supervisorScope {
@@ -273,7 +299,8 @@ class TmdbMetadataProvider(
                 ),
             )
         } catch (e: Throwable) {
-            logger.error("Failed to insert tv show data showId=$tvShowId", e)
+            val operation = if (isRefresh) "refresh" else "insert"
+            logger.error("Failed to {} tv show data showId=$tvShowId", operation, e)
             ImportMetadataResult.ErrorDatabaseException(e.stackTraceToString())
         } finally {
             removeLock(lockData)

@@ -35,8 +35,9 @@ class MetadataServiceTests : FunSpec({
         val tagsDao = TagsDao(db)
         val playbackStatesDao = PlaybackStatesDao(db)
         val mediaLinkDao = MediaLinkDao(db)
+        val searchableContentDao = SearchableContentDao(db)
 
-        MetadataDbQueries(db, metadataDao, tagsDao, mediaLinkDao, playbackStatesDao)
+        MetadataDbQueries(db, metadataDao, tagsDao, mediaLinkDao, playbackStatesDao, searchableContentDao)
     })
     val tmdb by bindForTest({
         Tmdb3 {

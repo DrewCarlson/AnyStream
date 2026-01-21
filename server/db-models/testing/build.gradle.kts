@@ -10,6 +10,7 @@ buildscript {
 
 dependencies {
     implementation(projects.server.dbModels)
+    implementation(projects.server.metadataManager)
     implementation(projects.client.dataModels)
     implementation(projects.server.shared)
 

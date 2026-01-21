@@ -24,7 +24,9 @@ import anystream.db.util.awaitFirstOrNullInto
 import anystream.models.Metadata
 import anystream.models.MediaType
 import kotlinx.coroutines.future.await
+import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlin.time.Clock
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.coalesce
@@ -176,15 +178,84 @@ class MetadataDao(
             .await()
     }
 
-    suspend fun deleteById(metadataId: String) {
-        db.delete(METADATA)
+    suspend fun deleteById(metadataId: String): Int {
+        return db.delete(METADATA)
             .where(METADATA.ID.eq(metadataId))
-            .awaitFirstOrNull()
+            .awaitFirst()
     }
 
-    suspend fun deleteByRootId(rootId: String) {
-        db.delete(METADATA)
+    suspend fun deleteByRootId(rootId: String): Int {
+        return db.delete(METADATA)
             .where(METADATA.ROOT_ID.eq(rootId))
+            .awaitFirst()
+    }
+
+    /**
+     * Find all metadata IDs that belong to a root (e.g., all seasons and episodes for a TV show).
+     * Does NOT include the root ID itself.
+     */
+    suspend fun findAllIdsByRootId(rootId: String): List<String> {
+        return db.select(METADATA.ID)
+            .from(METADATA)
+            .where(METADATA.ROOT_ID.eq(rootId))
+            .awaitInto()
+    }
+
+    /**
+     * Update an existing metadata record.
+     * @param metadata The metadata to update (must have an existing ID)
+     * @return The number of rows updated (0 or 1)
+     */
+    suspend fun updateMetadata(metadata: Metadata): Int {
+        val updatedMetadata = metadata.copy(updatedAt = Clock.System.now())
+        return db.update(METADATA)
+            .set(MetadataRecord(updatedMetadata))
+            .where(METADATA.ID.eq(metadata.id))
+            .awaitFirst()
+    }
+
+    /**
+     * Insert or update metadata.
+     * If a record with the same ID exists, it will be updated. Otherwise, a new record is inserted.
+     * @param metadata The metadata to upsert
+     * @return The ID of the metadata record
+     */
+    suspend fun upsertMetadata(metadata: Metadata): String {
+        val now = Clock.System.now()
+        val record = MetadataRecord(metadata.copy(updatedAt = now))
+
+        db.insertInto(METADATA)
+            .set(record)
+            .onDuplicateKeyUpdate()
+            .set(METADATA.TITLE, metadata.title)
+            .set(METADATA.OVERVIEW, metadata.overview)
+            .set(METADATA.TMDB_ID, metadata.tmdbId)
+            .set(METADATA.IMDB_ID, metadata.imdbId)
+            .set(METADATA.RUNTIME, metadata.runtime)
+            .set(METADATA.INDEX, metadata.index)
+            .set(METADATA.CONTENT_RATING, metadata.contentRating)
+            .set(METADATA.FIRST_AVAILABLE_AT, metadata.firstAvailableAt)
+            .set(METADATA.TMDB_RATING, metadata.tmdbRating)
+            .set(METADATA.UPDATED_AT, now)
             .awaitFirstOrNull()
+
+        return metadata.id
+    }
+
+    /**
+     * Batch update multiple metadata records.
+     * @param metadataList List of metadata to update
+     * @return Number of records updated
+     */
+    suspend fun updateMetadataBatch(metadataList: List<Metadata>): Int {
+        if (metadataList.isEmpty()) return 0
+
+        val now = Clock.System.now()
+        val updates = metadataList.map { metadata ->
+            db.update(METADATA)
+                .set(MetadataRecord(metadata.copy(updatedAt = now)))
+                .where(METADATA.ID.eq(metadata.id))
+        }
+        return db.batch(updates).executeAsync().await().sum()
     }
 }

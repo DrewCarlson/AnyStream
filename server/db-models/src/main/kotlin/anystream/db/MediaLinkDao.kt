@@ -19,7 +19,9 @@ package anystream.db
 
 import anystream.db.tables.records.MediaLinkRecord
 import anystream.db.tables.records.StreamEncodingRecord
+import anystream.db.tables.references.DIRECTORY
 import anystream.db.tables.references.MEDIA_LINK
+import anystream.db.tables.references.METADATA
 import anystream.db.tables.references.STREAM_ENCODING
 import anystream.db.util.*
 import anystream.models.MediaLink
@@ -200,16 +202,16 @@ class MediaLinkDao(
             .awaitInto()
     }
 
-    suspend fun deleteByMetadataId(metadataId: String) {
-        db.deleteFrom(MEDIA_LINK)
+    suspend fun deleteByMetadataId(metadataId: String): Int {
+        return db.deleteFrom(MEDIA_LINK)
             .where(MEDIA_LINK.METADATA_ID.eq(metadataId))
-            .awaitFirstOrNull()
+            .awaitFirst()
     }
 
-    suspend fun deleteByRootMetadataId(rootMetadataId: String) {
-        db.deleteFrom(MEDIA_LINK)
+    suspend fun deleteByRootMetadataId(rootMetadataId: String): Int {
+        return db.deleteFrom(MEDIA_LINK)
             .where(MEDIA_LINK.ROOT_METADATA_ID.eq(rootMetadataId))
-            .awaitFirstOrNull()
+            .awaitFirst()
     }
 
     suspend fun deleteByBasePath(filePath: String): List<String> {
@@ -254,5 +256,43 @@ class MediaLinkDao(
                 }
             }
             .awaitInto()
+    }
+
+    /**
+     * Find media links whose directory no longer exists in the database.
+     * These are orphaned links that should be deleted.
+     */
+    suspend fun findWithMissingDirectory(): List<MediaLink> {
+        return db.select(MEDIA_LINK.asterisk())
+            .from(MEDIA_LINK)
+            .leftJoin(DIRECTORY)
+            .on(MEDIA_LINK.DIRECTORY_ID.eq(DIRECTORY.ID))
+            .where(DIRECTORY.ID.isNull)
+            .awaitInto()
+    }
+
+    /**
+     * Find media links that reference metadata which no longer exists.
+     * These may be candidates for re-matching or cleanup.
+     */
+    suspend fun findWithMissingMetadata(): List<MediaLink> {
+        return db.select(MEDIA_LINK.asterisk())
+            .from(MEDIA_LINK)
+            .leftJoin(METADATA)
+            .on(MEDIA_LINK.METADATA_ID.eq(METADATA.ID))
+            .where(MEDIA_LINK.METADATA_ID.isNotNull)
+            .and(METADATA.ID.isNull)
+            .awaitInto()
+    }
+
+    /**
+     * Delete multiple media links by their IDs.
+     * @return The number of links deleted.
+     */
+    suspend fun deleteByIds(ids: List<String>): Int {
+        if (ids.isEmpty()) return 0
+        return db.deleteFrom(MEDIA_LINK)
+            .where(MEDIA_LINK.ID.`in`(ids))
+            .awaitFirst()
     }
 }

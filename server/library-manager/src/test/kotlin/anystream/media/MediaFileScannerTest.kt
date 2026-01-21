@@ -219,4 +219,173 @@ class MediaFileScannerTest : FunSpec({
             .removedIds
             .shouldContainExactly(deletedMovieDirectoryRecord.id)
     }
+
+    test("scan - empty directory returns success with no links") {
+        libraryDao.insertDefaultLibraries().shouldBeTrue()
+
+        val movieLibrary = libraryDao.fetchLibraries()
+            .firstOrNull { it.mediaKind == MediaKind.MOVIE }
+            .shouldNotBeNull()
+
+        val emptyRoot = fs.getPath("/empty-movies").createDirectory()
+        val emptySubdir = emptyRoot.resolve("Empty Movie Folder").createDirectory()
+
+        val mediaDirectory = libraryDao.insertDirectory(
+            parentId = null,
+            libraryId = movieLibrary.id,
+            path = emptyRoot.absolutePathString(),
+        )
+
+        val result = mediaFileScanner.scan(directory = mediaDirectory)
+            .shouldBeInstanceOf<MediaScanResult.Success>()
+
+        result.mediaLinks.addedIds.shouldBeEmpty()
+        libraryDao.fetchDirectoriesByLibrary(movieLibrary.id).shouldHaveSize(2)
+    }
+
+    test("scan - incremental rescan detects new files") {
+        libraryDao.insertDefaultLibraries().shouldBeTrue()
+
+        val movieLibrary = libraryDao.fetchLibraries()
+            .firstOrNull { it.mediaKind == MediaKind.MOVIE }
+            .shouldNotBeNull()
+
+        val moviesRoot = fs.getPath("/incremental-movies").createDirectory()
+        val movie1Dir = moviesRoot.resolve("Movie One (2020)").createDirectory()
+        movie1Dir.resolve("Movie One (2020).mp4").createFile()
+
+        val mediaDirectory = libraryDao.insertDirectory(
+            parentId = null,
+            libraryId = movieLibrary.id,
+            path = moviesRoot.absolutePathString(),
+        )
+
+        // First scan
+        val firstResult = mediaFileScanner.scan(directory = mediaDirectory)
+            .shouldBeInstanceOf<MediaScanResult.Success>()
+
+        firstResult.mediaLinks.addedIds.shouldHaveSize(1)
+
+        // Add new movie
+        val movie2Dir = moviesRoot.resolve("Movie Two (2021)").createDirectory()
+        movie2Dir.resolve("Movie Two (2021).mp4").createFile()
+
+        // Rescan
+        val secondResult = mediaFileScanner.scan(directory = mediaDirectory)
+            .shouldBeInstanceOf<MediaScanResult.Success>()
+
+        secondResult.mediaLinks.addedIds.shouldHaveSize(1)
+        secondResult.mediaLinks.removedIds.shouldBeEmpty()
+        mediaLinkDao.all().shouldHaveSize(2)
+    }
+
+    test("scan - handles TV show with multiple seasons") {
+        libraryDao.insertDefaultLibraries().shouldBeTrue()
+
+        val tvLibrary = libraryDao.fetchLibraries()
+            .firstOrNull { it.mediaKind == MediaKind.TV }
+            .shouldNotBeNull()
+
+        val tvRoot = fs.getPath("/multi-season-tv").createDirectory()
+        val showDir = tvRoot.resolve("Test Show").createDirectory()
+
+        // Create 3 seasons with varying episode counts
+        val season1 = showDir.resolve("Season 1").createDirectory()
+        (1..5).forEach { ep -> season1.resolve("S01E0$ep.mp4").createFile() }
+
+        val season2 = showDir.resolve("Season 2").createDirectory()
+        (1..8).forEach { ep ->
+            val epNum = if (ep < 10) "0$ep" else "$ep"
+            season2.resolve("S02E$epNum.mp4").createFile()
+        }
+
+        val season3 = showDir.resolve("Season 3").createDirectory()
+        (1..3).forEach { ep -> season3.resolve("S03E0$ep.mp4").createFile() }
+
+        val mediaDirectory = libraryDao.insertDirectory(
+            parentId = null,
+            libraryId = tvLibrary.id,
+            path = tvRoot.absolutePathString(),
+        )
+
+        val result = mediaFileScanner.scan(directory = mediaDirectory)
+            .shouldBeInstanceOf<MediaScanResult.Success>()
+
+        // 5 + 8 + 3 = 16 episode files
+        result.mediaLinks.addedIds.shouldHaveSize(16)
+
+        // Root + Show + 3 Seasons = 5 directories
+        libraryDao.fetchDirectoriesByLibrary(tvLibrary.id).shouldHaveSize(5)
+    }
+
+    test("scan - handles mixed file types in movie directory") {
+        libraryDao.insertDefaultLibraries().shouldBeTrue()
+
+        val movieLibrary = libraryDao.fetchLibraries()
+            .firstOrNull { it.mediaKind == MediaKind.MOVIE }
+            .shouldNotBeNull()
+
+        val moviesRoot = fs.getPath("/mixed-movies").createDirectory()
+        val movieDir = moviesRoot.resolve("Mixed Movie (2020)").createDirectory()
+
+        // Video file
+        movieDir.resolve("Mixed Movie (2020).mkv").createFile()
+        // Subtitle files
+        movieDir.resolve("Mixed Movie (2020).srt").createFile()
+        movieDir.resolve("Mixed Movie (2020).en.srt").createFile()
+        // Poster (should be ignored by scanner)
+        movieDir.resolve("poster.jpg").createFile()
+
+        val mediaDirectory = libraryDao.insertDirectory(
+            parentId = null,
+            libraryId = movieLibrary.id,
+            path = moviesRoot.absolutePathString(),
+        )
+
+        val result = mediaFileScanner.scan(directory = mediaDirectory)
+            .shouldBeInstanceOf<MediaScanResult.Success>()
+
+        // 1 video + 2 subtitles = 3 media links
+        result.mediaLinks.addedIds.shouldHaveSize(3)
+
+        val links = mediaLinkDao.all()
+        links.shouldHaveSize(3)
+    }
+
+    test("scan - rescan after adding new movie directory") {
+        libraryDao.insertDefaultLibraries().shouldBeTrue()
+
+        val movieLibrary = libraryDao.fetchLibraries()
+            .firstOrNull { it.mediaKind == MediaKind.MOVIE }
+            .shouldNotBeNull()
+
+        val moviesRoot = fs.getPath("/change-movies").createDirectory()
+        val movie1Dir = moviesRoot.resolve("Movie One (2020)").createDirectory()
+        movie1Dir.resolve("Movie One (2020).mp4").createFile()
+
+        val mediaDirectory = libraryDao.insertDirectory(
+            parentId = null,
+            libraryId = movieLibrary.id,
+            path = moviesRoot.absolutePathString(),
+        )
+
+        // First scan
+        mediaFileScanner.scan(directory = mediaDirectory)
+            .shouldBeInstanceOf<MediaScanResult.Success>()
+
+        val firstLinks = mediaLinkDao.all()
+        firstLinks.shouldHaveSize(1)
+
+        // Add new movie
+        val movie2Dir = moviesRoot.resolve("Movie Two (2021)").createDirectory()
+        movie2Dir.resolve("Movie Two (2021).mp4").createFile()
+
+        // Rescan root directory
+        val secondResult = mediaFileScanner.scan(directory = mediaDirectory)
+            .shouldBeInstanceOf<MediaScanResult.Success>()
+
+        // Should detect the new movie file
+        secondResult.mediaLinks.addedIds.shouldHaveSize(1)
+        mediaLinkDao.all().shouldHaveSize(2)
+    }
 })

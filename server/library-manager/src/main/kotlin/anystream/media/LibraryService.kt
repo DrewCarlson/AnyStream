@@ -115,13 +115,49 @@ class LibraryService(
     suspend fun removeDirectory(directoryId: String): Boolean {
         val directory = libraryDao.fetchDirectory(directoryId) ?: return false
 
-        // TODO: cleanup abandoned media links and directories since they
-        //      are not be updated with correct parents when re-added.
         mediaLinkDao.deleteByBasePath(directory.filePath)
-
         libraryDao.deleteDirectoriesByParent(directory.id)
 
         return libraryDao.deleteDirectory(directoryId)
+    }
+
+    /**
+     * Result of cleaning up orphaned media links.
+     *
+     * @property deletedOrphanedLinks Number of links deleted because their directory no longer exists.
+     * @property unlinkedMetadataReferences Number of links that reference missing metadata (not auto-deleted).
+     */
+    data class CleanupResult(
+        val deletedOrphanedLinks: Int,
+        val unlinkedMetadataReferences: Int,
+    )
+
+    /**
+     * Clean up orphaned media links.
+     * - Deletes links whose directory no longer exists in the database.
+     * - Reports links that reference missing metadata (user may want to re-match).
+     */
+    suspend fun cleanupOrphanedMediaLinks(): CleanupResult {
+        val orphanedByDirectory = mediaLinkDao.findWithMissingDirectory()
+        val orphanedByMetadata = mediaLinkDao.findWithMissingMetadata()
+
+        if (orphanedByDirectory.isNotEmpty()) {
+            val deletedCount = mediaLinkDao.deleteByIds(orphanedByDirectory.map { it.id })
+            logger.info("Deleted {} orphaned media links (missing directory)", deletedCount)
+        }
+
+        if (orphanedByMetadata.isNotEmpty()) {
+            logger.warn(
+                "{} media links reference missing metadata (may need re-matching): {}",
+                orphanedByMetadata.size,
+                orphanedByMetadata.take(5).map { it.filePath }
+            )
+        }
+
+        return CleanupResult(
+            deletedOrphanedLinks = orphanedByDirectory.size,
+            unlinkedMetadataReferences = orphanedByMetadata.size,
+        )
     }
 
     suspend fun addLibraryFolderAndScan(libraryId: String, path: String): AddLibraryFolderResponse {

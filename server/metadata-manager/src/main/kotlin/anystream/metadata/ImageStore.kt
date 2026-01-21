@@ -32,6 +32,21 @@ import kotlin.io.path.outputStream
 import kotlin.time.Duration.Companion.seconds
 
 
+/**
+ * Result of an image download operation.
+ */
+sealed class ImageDownloadResult {
+    /** Image was downloaded successfully. */
+    data object Success : ImageDownloadResult()
+    /** Image was not found (404). */
+    data object NotFound : ImageDownloadResult()
+    /** Network or other error occurred. */
+    data class Error(val message: String) : ImageDownloadResult()
+
+    /** Returns true if the download was successful. */
+    val isSuccess: Boolean get() = this is Success
+}
+
 class ImageStore(
     private val dataPath: Path,
     private val httpClient: HttpClient,
@@ -42,7 +57,7 @@ class ImageStore(
         imageType: String,
         url: String,
         rootMetadataId: String = metadataId,
-    ): Boolean {
+    ): ImageDownloadResult {
         return downloadInto(getMetadataImagePath(imageType, metadataId, rootMetadataId), url)
     }
 
@@ -67,29 +82,45 @@ class ImageStore(
             .createParentDirectories()
     }
 
-    suspend fun downloadInto(path: Path, url: String, retry: Boolean = true): Boolean {
+    suspend fun downloadInto(path: Path, url: String, retry: Boolean = true): ImageDownloadResult {
         val response = try {
             withContext(IO) { httpClient.get(url) }
-        } catch (_: Throwable) {
-            null
+        } catch (e: Throwable) {
+            return ImageDownloadResult.Error("Network error: ${e.message}")
         }
-        if (response?.status?.isSuccess() == true) {
-            val body = response.bodyAsChannel()
-            withContext(IO) {
-                path.outputStream()
-                    .use { out -> body.copyTo(out) }
-            }
-            return true
-        } else if (retry && response?.status != NotFound) {
-            var attempt = 0
-            do {
-                attempt += 1
-                if (attempt == 4) {
-                    return false
+
+        return when {
+            response.status.isSuccess() -> {
+                val body = response.bodyAsChannel()
+                withContext(IO) {
+                    path.outputStream()
+                        .use { out -> body.copyTo(out) }
                 }
-                delay(1.seconds * attempt)
-            } while (!downloadInto(path, url, retry = false))
+                ImageDownloadResult.Success
+            }
+
+            response.status == NotFound -> {
+                ImageDownloadResult.NotFound
+            }
+
+            retry -> {
+                // Retry on non-404 errors
+                var attempt = 0
+                var lastResult: ImageDownloadResult
+                do {
+                    attempt += 1
+                    if (attempt > 3) {
+                        return ImageDownloadResult.Error("Max retries exceeded for status ${response.status}")
+                    }
+                    delay(1.seconds * attempt)
+                    lastResult = downloadInto(path, url, retry = false)
+                } while (!lastResult.isSuccess && lastResult !is ImageDownloadResult.NotFound)
+                lastResult
+            }
+
+            else -> {
+                ImageDownloadResult.Error("HTTP error: ${response.status}")
+            }
         }
-        return true
     }
 }

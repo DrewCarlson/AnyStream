@@ -125,6 +125,38 @@ sealed class MediaLinkMatchResult {
         val mediaLink: MediaLink?,
         val directory: Directory?,
     ) : MediaLinkMatchResult()
+
+    @Poko
+    @Serializable
+    class LibraryNotFound(
+        val directoryId: String,
+        val libraryId: String,
+    ) : MediaLinkMatchResult()
+
+    @Poko
+    @Serializable
+    class ImportFailed(
+        val mediaLink: MediaLink?,
+        val directory: Directory?,
+        val reason: String,
+    ) : MediaLinkMatchResult()
+
+    @Poko
+    @Serializable
+    class ProviderError(
+        val mediaLink: MediaLink?,
+        val directory: Directory?,
+        val providerId: String,
+        val message: String,
+    ) : MediaLinkMatchResult()
+
+    @Poko
+    @Serializable
+    class NotImplemented(
+        val mediaLink: MediaLink?,
+        val directory: Directory?,
+        val feature: String,
+    ) : MediaLinkMatchResult()
 }
 
 @Serializable

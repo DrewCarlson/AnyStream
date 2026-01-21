@@ -195,7 +195,7 @@ fun Application.module(testing: Boolean = false) {
         single { PlaybackStatesDao(get()) }
         single { MediaLinkDao(get()) }
         single { SearchableContentDao(get()) }
-        single { MetadataDbQueries(get(), get(), get(), get(), get()) }
+        single { MetadataDbQueries(get(), get(), get(), get(), get(), get()) }
 
         single {
             HttpClient {

@@ -37,6 +37,7 @@ import anystream.models.Tag
 import anystream.models.TagType
 import anystream.util.ObjectId
 import kotlinx.coroutines.future.await
+import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.jooq.DSLContext
 
@@ -168,5 +169,91 @@ class TagsDao(
             .where(TAG.TMDB_ID.eq(tmdbId))
             .and(TAG.TYPE.eq(type))
             .awaitFirstOrNullInto()
+    }
+
+    /**
+     * Delete all credits for a metadata entry.
+     * @return The number of credits deleted.
+     */
+    suspend fun deleteCreditsForMetadata(metadataId: String): Int {
+        return db.deleteFrom(METADATA_CREDIT)
+            .where(METADATA_CREDIT.METADATA_ID.eq(metadataId))
+            .awaitFirst()
+    }
+
+    /**
+     * Delete all credits for multiple metadata entries.
+     * @return The number of credits deleted.
+     */
+    suspend fun deleteCreditsForMetadataIds(metadataIds: List<String>): Int {
+        if (metadataIds.isEmpty()) return 0
+        return db.deleteFrom(METADATA_CREDIT)
+            .where(METADATA_CREDIT.METADATA_ID.`in`(metadataIds))
+            .awaitFirst()
+    }
+
+    /**
+     * Delete all genre links for a metadata entry.
+     * @return The number of genre links deleted.
+     */
+    suspend fun deleteGenresForMetadata(metadataId: String): Int {
+        return db.deleteFrom(METADATA_GENRE)
+            .where(METADATA_GENRE.METADATA_ID.eq(metadataId))
+            .awaitFirst()
+    }
+
+    /**
+     * Delete all genre links for multiple metadata entries.
+     * @return The number of genre links deleted.
+     */
+    suspend fun deleteGenresForMetadataIds(metadataIds: List<String>): Int {
+        if (metadataIds.isEmpty()) return 0
+        return db.deleteFrom(METADATA_GENRE)
+            .where(METADATA_GENRE.METADATA_ID.`in`(metadataIds))
+            .awaitFirst()
+    }
+
+    /**
+     * Delete all company links for a metadata entry.
+     * @return The number of company links deleted.
+     */
+    suspend fun deleteCompaniesForMetadata(metadataId: String): Int {
+        return db.deleteFrom(METADATA_COMPANY)
+            .where(METADATA_COMPANY.METADATA_ID.eq(metadataId))
+            .awaitFirst()
+    }
+
+    /**
+     * Delete all company links for multiple metadata entries.
+     * @return The number of company links deleted.
+     */
+    suspend fun deleteCompaniesForMetadataIds(metadataIds: List<String>): Int {
+        if (metadataIds.isEmpty()) return 0
+        return db.deleteFrom(METADATA_COMPANY)
+            .where(METADATA_COMPANY.METADATA_ID.`in`(metadataIds))
+            .awaitFirst()
+    }
+
+    /**
+     * Delete all tag associations (credits, genres, companies) for a metadata entry.
+     * @return A map of deleted counts by type.
+     */
+    suspend fun deleteAllTagsForMetadata(metadataId: String): Map<String, Int> {
+        val credits = deleteCreditsForMetadata(metadataId)
+        val genres = deleteGenresForMetadata(metadataId)
+        val companies = deleteCompaniesForMetadata(metadataId)
+        return mapOf("credits" to credits, "genres" to genres, "companies" to companies)
+    }
+
+    /**
+     * Delete all tag associations for multiple metadata entries.
+     * @return A map of deleted counts by type.
+     */
+    suspend fun deleteAllTagsForMetadataIds(metadataIds: List<String>): Map<String, Int> {
+        if (metadataIds.isEmpty()) return emptyMap()
+        val credits = deleteCreditsForMetadataIds(metadataIds)
+        val genres = deleteGenresForMetadataIds(metadataIds)
+        val companies = deleteCompaniesForMetadataIds(metadataIds)
+        return mapOf("credits" to credits, "genres" to genres, "companies" to companies)
     }
 }

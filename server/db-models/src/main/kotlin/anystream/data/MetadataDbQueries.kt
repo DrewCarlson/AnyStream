@@ -27,6 +27,7 @@ import anystream.models.PlaybackState
 import anystream.models.api.*
 import kotlinx.coroutines.future.await
 import org.jooq.DSLContext
+import org.slf4j.LoggerFactory
 
 class MetadataDbQueries(
     private val db: DSLContext,
@@ -34,7 +35,9 @@ class MetadataDbQueries(
     private val tagsDao: TagsDao,
     private val mediaLinkDao: MediaLinkDao,
     private val playbackStatesDao: PlaybackStatesDao,
+    private val searchableContentDao: SearchableContentDao,
 ) {
+    private val logger = LoggerFactory.getLogger(MetadataDbQueries::class.java)
 
     suspend fun findMovies(
         includeLinks: Boolean = false,
@@ -409,16 +412,141 @@ class MetadataDbQueries(
         metadataDao.insertMetadata(listOf(tvShow) + tvSeasons + episodes)
     }
 
-    suspend fun deleteMovie(metadataId: String): Boolean {
-        metadataDao.deleteById(metadataId)
-        return true
+    /**
+     * Update an existing movie's metadata and tags.
+     * This method is used for refreshing movie metadata from the provider.
+     * @param movie The updated movie data
+     * @param genres The updated genre list
+     * @param companies The updated production company list
+     * @return The updated metadata record
+     */
+    suspend fun updateMovie(
+        movie: Movie,
+        genres: List<Genre>,
+        companies: List<ProductionCompany>,
+    ): Metadata {
+        val movieRecord = movie.toMetadataDb()
+        metadataDao.updateMetadata(movieRecord)
+
+        // Refresh tags by deleting old and inserting new
+        tagsDao.deleteGenresForMetadata(movieRecord.id)
+        tagsDao.deleteCompaniesForMetadata(movieRecord.id)
+
+        insertGenres(movieRecord.id, genres)
+        insertCompanies(movieRecord.id, companies)
+
+        return movieRecord
     }
 
-    suspend fun deleteTvShow(metadataId: String): Boolean {
-        mediaLinkDao.deleteByRootMetadataId(metadataId)
-        metadataDao.deleteByRootId(metadataId)
-        metadataDao.deleteById(metadataId)
-        return true
+    /**
+     * Refresh credits for a metadata record.
+     * Deletes existing credits and inserts new ones.
+     */
+    suspend fun refreshCredits(
+        metadataId: String,
+        credits: Map<Person, List<MetadataCredit>>
+    ): Map<Person, List<MetadataCredit>> {
+        tagsDao.deleteCreditsForMetadata(metadataId)
+        return insertCredits(metadataId, credits)
+    }
+
+    /**
+     * Update an existing TV show's metadata, seasons, and episodes.
+     * This method is used for refreshing TV show metadata from the provider.
+     * Existing seasons/episodes are updated, new ones are inserted.
+     * @param tvShow The updated TV show metadata
+     * @param tvSeasons The updated season list
+     * @param episodes The updated episode list
+     */
+    suspend fun updateTvShow(
+        tvShow: Metadata,
+        tvSeasons: List<Metadata>,
+        episodes: List<Metadata>,
+    ) {
+        // Update the show itself
+        metadataDao.updateMetadata(tvShow)
+
+        // Refresh tags
+        tagsDao.deleteGenresForMetadata(tvShow.id)
+        tagsDao.deleteCompaniesForMetadata(tvShow.id)
+
+        // Upsert seasons and episodes (update existing, insert new)
+        (tvSeasons + episodes).forEach { metadata ->
+            metadataDao.upsertMetadata(metadata)
+        }
+    }
+
+    /**
+     * Delete a movie and all its associated data.
+     * Deletes in order: media links, tags (credits/genres/companies), searchable content, metadata.
+     * @return A DeleteResult with details of what was deleted.
+     */
+    suspend fun deleteMovie(metadataId: String): DeleteResult {
+        return db.transactionDelete("movie", metadataId) {
+            val linksDeleted = mediaLinkDao.deleteByMetadataId(metadataId)
+            val tagsDeleted = tagsDao.deleteAllTagsForMetadata(metadataId)
+            val searchDeleted = searchableContentDao.deleteById(metadataId)
+            val metadataDeleted = metadataDao.deleteById(metadataId)
+
+            logger.info(
+                "Deleted movie {}: {} links, {} tags, {} search entries, {} metadata",
+                metadataId, linksDeleted, tagsDeleted.values.sum(), searchDeleted, metadataDeleted
+            )
+
+            mapOf(
+                "mediaLinks" to linksDeleted,
+                "credits" to (tagsDeleted["credits"] ?: 0),
+                "genres" to (tagsDeleted["genres"] ?: 0),
+                "companies" to (tagsDeleted["companies"] ?: 0),
+                "searchableContent" to searchDeleted,
+                "metadata" to metadataDeleted
+            )
+        }
+    }
+
+    /**
+     * Delete a TV show and all its associated data (seasons, episodes, links, tags, etc.).
+     * Deletes in order: media links, tags (credits/genres/companies), searchable content, metadata.
+     * @return A DeleteResult with details of what was deleted.
+     */
+    suspend fun deleteTvShow(metadataId: String): DeleteResult {
+        return db.transactionDelete("tvShow", metadataId) {
+            // Get all metadata IDs (seasons + episodes) that belong to this show
+            val childMetadataIds = metadataDao.findAllIdsByRootId(metadataId)
+            val allMetadataIds = listOf(metadataId) + childMetadataIds
+
+            logger.info(
+                "Deleting TV show {} with {} seasons/episodes",
+                metadataId, childMetadataIds.size
+            )
+
+            // Delete media links for all metadata (show, seasons, episodes)
+            val linksDeleted = mediaLinkDao.deleteByRootMetadataId(metadataId)
+
+            // Delete tags for all metadata entries
+            val tagsDeleted = tagsDao.deleteAllTagsForMetadataIds(allMetadataIds)
+
+            // Delete searchable content for all metadata entries
+            val searchDeleted = searchableContentDao.deleteByIds(allMetadataIds)
+
+            // Delete child metadata (seasons, episodes) then the show itself
+            val childrenDeleted = metadataDao.deleteByRootId(metadataId)
+            val showDeleted = metadataDao.deleteById(metadataId)
+
+            logger.info(
+                "Deleted TV show {}: {} links, {} tags, {} search entries, {} metadata",
+                metadataId, linksDeleted, tagsDeleted.values.sum(), searchDeleted, childrenDeleted + showDeleted
+            )
+
+            mapOf(
+                "mediaLinks" to linksDeleted,
+                "credits" to (tagsDeleted["credits"] ?: 0),
+                "genres" to (tagsDeleted["genres"] ?: 0),
+                "companies" to (tagsDeleted["companies"] ?: 0),
+                "searchableContent" to searchDeleted,
+                "metadata" to (childrenDeleted + showDeleted)
+            )
+        }
     }
 
     suspend fun deleteLinksByContentId(metadataId: String) {
