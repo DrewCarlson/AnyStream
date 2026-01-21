@@ -67,8 +67,8 @@ kotlin {
                 implementation(libsCommon.coroutines.core)
                 implementation(libsCommon.ktor.client.js)
 
-                implementation(compose.html.core)
-                implementation(compose.runtime)
+                implementation(libsClient.compose.html.core)
+                implementation(libsClient.compose.runtime)
                 implementation(libsClient.routingCompose)
 
                 implementation(libsClient.kotlinjs.web)

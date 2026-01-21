@@ -28,10 +28,10 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(projects.client.ui)
-                implementation(compose.runtime)
-                implementation(compose.foundation)
-                implementation(compose.material)
-                implementation(compose.ui)
+                implementation(libsClient.compose.runtime)
+                implementation(libsClient.compose.foundationjb)
+                implementation(libsClient.compose.materialjb)
+                implementation(libsClient.compose.ui)
             }
         }
     }

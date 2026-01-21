@@ -45,6 +45,8 @@ compose-foundationjb = { module = "org.jetbrains.compose.foundation:foundation",
 compose-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composejb" }
 compose-materialjb = "org.jetbrains.compose.material3:material3:1.11.0-alpha01"
 compose-materialjb-icons = "org.jetbrains.compose.material:material-icons-extended:1.7.3"
+compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "composejb" }
+compose-html-core = { module = "org.jetbrains.compose.html:html-core", version.ref = "composejb" }
 compose-backhandler = { module = "org.jetbrains.compose.ui:ui-backhandler", version.ref = "composejb" }
 compose-bundle = "org.jetbrains.androidx.core:core-bundle:1.0.1"
 haze-core = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
