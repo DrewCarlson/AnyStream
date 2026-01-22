@@ -105,9 +105,14 @@ private fun MatchResultContainer(
 
         is MediaLinkMatchResult.FileNameParseFailed,
         is MediaLinkMatchResult.NoMatchesFound,
+        is MediaLinkMatchResult.ImportFailed,
+        is MediaLinkMatchResult.LibraryNotFound,
+        is MediaLinkMatchResult.NotImplemented,
+        is MediaLinkMatchResult.ProviderError,
         is MediaLinkMatchResult.NoSupportedFiles -> {
             Div { Text("Response: $result") }
         }
+
     }
 }
 
