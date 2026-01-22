@@ -28,7 +28,7 @@ import anystream.models.api.*
 import anystream.models.toMediaItem
 import anystream.playerMediaLinkId
 import anystream.util.ExternalClickMask
-import anystream.util.get
+import anystream.util.koinGet
 import anystream.util.tooltip
 import app.softwork.routingcompose.Router
 import kotlinx.coroutines.delay
@@ -45,7 +45,7 @@ val backdropImageUrl = MutableStateFlow<String?>(null)
 
 @Composable
 fun MediaScreen(mediaId: String) {
-    val client = get<AnyStreamClient>()
+    val client = koinGet<AnyStreamClient>()
     val scope = rememberCoroutineScope()
     val permissions by client.user.permissions.collectAsState(client.user.userPermissions())
     val lookupIdFlow = remember(mediaId) { MutableStateFlow<Int?>(null) }
@@ -185,7 +185,7 @@ private fun CastAndCrewView(
     credits: List<CastCredit>,
 ) {
     if (credits.isNotEmpty()) {
-        val client = get<AnyStreamClient>()
+        val client = koinGet<AnyStreamClient>()
         Div({ classes("px-4", "py-2", "fs-4") }) { Text("Cast & Crew") }
         Div({
             classes("d-flex", "flex-row", "gap-4", "px-4")

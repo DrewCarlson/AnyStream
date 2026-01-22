@@ -26,7 +26,7 @@ import anystream.components.SideMenu
 import anystream.screens.*
 import anystream.screens.settings.SettingsScreen
 import anystream.screens.settings.SettingsSideMenu
-import anystream.util.get
+import anystream.util.koinGet
 import anystream.util.getKoin
 import app.softwork.routingcompose.BrowserRouter
 import app.softwork.routingcompose.Router
@@ -46,7 +46,7 @@ fun webApp() = renderComposable(rootElementId = "root") {
         modules(coreModule())
     }
     // Consume session token from cookie after oauth flow
-    val client = get<AnyStreamClient>()
+    val client = koinGet<AnyStreamClient>()
     LaunchedEffect(Unit) {
         if (client.user.isAuthenticated()) return@LaunchedEffect
         val cookies = document.cookie.split(';').toMutableSet()
@@ -95,7 +95,7 @@ fun webApp() = renderComposable(rootElementId = "root") {
 }
 
 @Composable
-private fun ContentContainer(client: AnyStreamClient = get()) {
+private fun ContentContainer(client: AnyStreamClient = koinGet()) {
     BrowserRouter("/") {
         route("home") {
             noMatch { ScreenContainer { HomeScreen() } }
@@ -141,7 +141,7 @@ private fun ScreenContainer(
     content: ContentBuilder<HTMLDivElement>,
 ) {
     val authRoutes = remember { listOf("/signup", "/login") }
-    val client = get<AnyStreamClient>()
+    val client = koinGet<AnyStreamClient>()
     val isAuthenticated by client.user.authenticated.collectAsState(client.user.isAuthenticated())
     val router = Router.current
     val currentPath by router.getPath("/")

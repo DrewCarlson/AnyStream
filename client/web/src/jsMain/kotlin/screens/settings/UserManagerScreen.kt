@@ -22,7 +22,7 @@ import anystream.client.AnyStreamClient
 import anystream.models.InviteCode
 import anystream.models.Permission
 import anystream.models.UserPublic
-import anystream.util.get
+import anystream.util.koinGet
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
@@ -38,7 +38,7 @@ import org.w3c.dom.get
 
 @Composable
 fun UserManagerScreen() {
-    val client = get<AnyStreamClient>()
+    val client = koinGet<AnyStreamClient>()
     val users by produceState(emptyList<UserPublic>()) {
         value = client.user.getUsers()
     }
@@ -88,7 +88,7 @@ private fun UserRow(user: UserPublic) {
 
 @Composable
 private fun InviteCodeDialog(users: List<UserPublic>) {
-    val client = get<AnyStreamClient>()
+    val client = koinGet<AnyStreamClient>()
     val scope = rememberCoroutineScope()
     var inviteCodesState by remember {
         mutableStateOf<List<InviteCode>>(emptyList())

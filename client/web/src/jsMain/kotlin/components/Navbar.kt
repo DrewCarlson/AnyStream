@@ -45,7 +45,7 @@ val searchQuery = MutableStateFlow<String?>(null)
 @Composable
 fun Navbar() {
     val router = Router.current
-    val client = get<AnyStreamClient>()
+    val client = koinGet<AnyStreamClient>()
     val isAuthenticated = client.user.authenticated.collectAsState(client.user.isAuthenticated())
     Nav({ classes("navbar", "navbar-dark", "navbar-expand-lg", "bg-dark-translucent", "rounded", "shadow", "m-2") }) {
         Div({ classes("container-fluid") }) {
@@ -72,7 +72,7 @@ fun Navbar() {
 @Composable
 private fun SecondaryMenu(permissions: Set<Permission>) {
     val router = Router.current
-    val client = get<AnyStreamClient>()
+    val client = koinGet<AnyStreamClient>()
     val scope = rememberCoroutineScope()
     val authMutex = remember { Mutex() }
     var isMenuVisible by remember { mutableStateOf(false) }
@@ -200,7 +200,7 @@ private fun OverflowMenu(
 
 @Composable
 private fun SearchBar() {
-    val client = get<AnyStreamClient>()
+    val client = koinGet<AnyStreamClient>()
     val focused = remember { mutableStateOf(false) }
     var elementValue by remember { mutableStateOf<String?>(null) }
     val inputRef = remember { mutableStateOf<HTMLInputElement?>(null) }

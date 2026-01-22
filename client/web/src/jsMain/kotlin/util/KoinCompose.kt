@@ -38,7 +38,7 @@ import org.koin.core.scope.Scope
  */
 @OptIn(KoinInternalApi::class)
 @Composable
-inline fun <reified T> get(
+inline fun <reified T> koinGet(
     qualifier: Qualifier? = null,
     scope: Scope = GlobalContext.get().scopeRegistry.rootScope,
     noinline parameters: ParametersDefinition? = null,

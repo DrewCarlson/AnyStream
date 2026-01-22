@@ -22,7 +22,7 @@ import anystream.client.AnyStreamClient
 import anystream.libs.QRCodeImage
 import anystream.routing.WebRouter
 import anystream.presentation.login.*
-import anystream.util.get
+import anystream.util.koinGet
 import app.softwork.routingcompose.Router
 import kt.mobius.SimpleLogger
 import kt.mobius.compose.rememberMobiusLoop
@@ -35,7 +35,7 @@ import web.window.window
 @Composable
 fun LoginScreen() {
     val router = Router.current
-    val client = get<AnyStreamClient>()
+    val client = koinGet<AnyStreamClient>()
     val (modelState, eventConsumer) = rememberMobiusLoop(
         LoginScreenModel.create(client.core.serverUrl, supportsPairing = true),
         LoginScreenInit

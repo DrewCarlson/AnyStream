@@ -24,7 +24,7 @@ import anystream.models.MediaItem
 import anystream.models.MediaKind
 import anystream.models.toMediaItems
 import anystream.playerMediaLinkId
-import anystream.util.get
+import anystream.util.koinGet
 import app.softwork.routingcompose.Router
 import kotlinx.coroutines.flow.mapNotNull
 import org.jetbrains.compose.web.dom.Div
@@ -35,7 +35,7 @@ fun LibraryScreen(
     libraryId: String,
 ) {
     val router = Router.current
-    val client = get<AnyStreamClient>()
+    val client = koinGet<AnyStreamClient>()
     val library by remember(libraryId) {
         client.library.libraries
             .mapNotNull { libraries ->

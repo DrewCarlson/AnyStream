@@ -28,7 +28,7 @@ import anystream.models.api.PlaybackSessions
 import anystream.screens.settings.library.LibrariesScreen
 import anystream.screens.settings.library.MediaLinkListScreen
 import anystream.util.formatProgressAndRuntime
-import anystream.util.get
+import anystream.util.koinGet
 import app.softwork.routingcompose.RouteBuilder
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.web.css.*
@@ -94,7 +94,7 @@ fun SettingsSideMenu() {
 
 @Composable
 private fun ActiveStreamsList() {
-    val client = get<AnyStreamClient>()
+    val client = koinGet<AnyStreamClient>()
     val sessionsResponse by client.admin.playbackSessions.collectAsState(PlaybackSessions())
     val transcodeSessions = sessionsResponse.transcodeSessions
     val mediaLookups = sessionsResponse.mediaLookups

@@ -24,7 +24,7 @@ import anystream.components.LoadingIndicator
 import anystream.models.api.MediaLinkMatchResult
 import anystream.models.api.MediaLinkResponse
 import anystream.models.api.MetadataMatch
-import anystream.util.get
+import anystream.util.koinGet
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
@@ -36,7 +36,7 @@ fun MetadataMatchScreen(
     onLoadingStatChanged: (isLoading: Boolean) -> Unit,
     closeScreen: () -> Unit,
 ) {
-    val client = get<AnyStreamClient>()
+    val client = koinGet<AnyStreamClient>()
     val scope = rememberCoroutineScope()
     val mediaLinkResponse by produceState<MediaLinkResponse?>(null, mediaLinkId) {
         value = if (mediaLinkId == null) {

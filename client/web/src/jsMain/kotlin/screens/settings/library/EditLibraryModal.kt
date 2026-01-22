@@ -24,7 +24,7 @@ import anystream.components.ModalSize
 import anystream.models.Directory
 import anystream.models.Library
 import anystream.models.api.LibraryFolderList
-import anystream.util.get
+import anystream.util.koinGet
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.web.attributes.Scope
 import org.jetbrains.compose.web.attributes.scope
@@ -40,7 +40,7 @@ fun EditLibraryModal(
     library: Library,
     onClosed: () -> Unit,
 ) {
-    val client = get<AnyStreamClient>()
+    val client = koinGet<AnyStreamClient>()
     var folderListUpdate by remember { mutableStateOf(0) }
     val folderList by produceState<List<Directory>>(emptyList(), folderListUpdate) {
         value = client.library.getDirectories(library.id)

@@ -23,7 +23,7 @@ import anystream.components.*
 import anystream.models.LocalMediaLink
 import anystream.models.MediaLink
 import anystream.models.typed
-import anystream.util.get
+import anystream.util.koinGet
 import anystream.util.tooltip
 import org.jetbrains.compose.web.attributes.Scope
 import org.jetbrains.compose.web.attributes.scope
@@ -34,7 +34,7 @@ import org.jetbrains.compose.web.dom.*
 
 @Composable
 fun MediaLinkListScreen(libraryId: String) {
-    val client = get<AnyStreamClient>()
+    val client = koinGet<AnyStreamClient>()
     var updateIndex by remember { mutableStateOf(0) }
     val mediaLinks by produceState(emptyList<MediaLink>(), updateIndex) {
         value = client.library.getMediaLinks(libraryId)

@@ -23,7 +23,7 @@ import anystream.components.LoadingIndicator
 import anystream.models.Library
 import anystream.models.api.AddLibraryFolderResponse
 import anystream.models.api.ListFilesResponse
-import anystream.util.get
+import anystream.util.koinGet
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -41,7 +41,7 @@ fun AddLibraryFolderScreen(
     onLoadingStatChanged: (isLoading: Boolean) -> Unit,
     closeScreen: () -> Unit,
 ) {
-    val client = get<AnyStreamClient>()
+    val client = koinGet<AnyStreamClient>()
     val scope = rememberCoroutineScope()
     var message by remember { mutableStateOf<String?>(null) }
     var selectedPath by remember(library) { mutableStateOf<String?>(null) }

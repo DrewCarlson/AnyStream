@@ -31,7 +31,7 @@ import anystream.playerMediaLinkId
 import anystream.util.BifFileReader
 import anystream.util.formatProgressAndRuntime
 import anystream.util.formatted
-import anystream.util.get
+import anystream.util.koinGet
 import io.ktor.client.fetch.*
 import io.ktor.util.encodeBase64
 import js.objects.unsafeJso
@@ -58,7 +58,7 @@ private const val CONTROL_HIDE_DELAY = 2_750L
 
 @Composable
 fun PlayerScreen(mediaLinkId: String) {
-    val client = get<AnyStreamClient>()
+    val client = koinGet<AnyStreamClient>()
     var player: VjsPlayer? by remember { mutableStateOf(null) }
     var playerIsPlaying by remember { mutableStateOf(false) }
     var isInMiniMode by remember { mutableStateOf(false) }
@@ -771,7 +771,7 @@ private fun SeekBar(
     progressScale: Double,
     bufferedPercent: Double,
 ) {
-    val client = get<AnyStreamClient>()
+    val client = koinGet<AnyStreamClient>()
     var isThumbVisible by remember { mutableStateOf(false) }
     var isMouseDown by remember { mutableStateOf(false) }
     var mouseHoverX by remember { mutableStateOf(0) }

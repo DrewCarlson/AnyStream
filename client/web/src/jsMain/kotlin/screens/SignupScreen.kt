@@ -24,7 +24,7 @@ import anystream.models.api.CreateUserResponse
 import anystream.routing.WebRouter
 import anystream.presentation.signup.*
 import anystream.presentation.signup.SignupScreenModel.State
-import anystream.util.get
+import anystream.util.koinGet
 import app.softwork.routingcompose.Router
 import io.ktor.http.*
 import kotlinx.browser.window
@@ -38,7 +38,7 @@ import org.jetbrains.compose.web.dom.*
 @Composable
 fun SignupScreen() {
     val router = Router.current
-    val client = get<AnyStreamClient>()
+    val client = koinGet<AnyStreamClient>()
     val launchInviteCode = remember { Url(window.location.href).parameters["inviteCode"] }
     val (modelState, eventConsumer) = rememberMobiusLoop(
         SignupScreenModel.create(client.core.serverUrl, launchInviteCode.orEmpty()),
