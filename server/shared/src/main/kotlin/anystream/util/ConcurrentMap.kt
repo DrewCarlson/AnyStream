@@ -22,12 +22,17 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.slf4j.MDCContext
+import org.slf4j.MDC
 
 fun <T, R> Flow<T>.concurrentMap(
     scope: CoroutineScope,
     concurrencyLevel: Int,
     transform: suspend (T) -> R,
-): Flow<R> = this
-    .map { scope.async { transform(it) } }
-    .buffer(concurrencyLevel)
-    .map { it.await() }
+): Flow<R> {
+    val contextMap = MDC.getCopyOfContextMap() ?: emptyMap()
+    return this
+        .map { item -> scope.async(MDCContext(contextMap)) { transform(item) } }
+        .buffer(concurrencyLevel)
+        .map { it.await() }
+}

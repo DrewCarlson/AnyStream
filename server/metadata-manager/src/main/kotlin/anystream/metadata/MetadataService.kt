@@ -74,8 +74,8 @@ class MetadataService(
         block: QueryMetadataBuilder.() -> Unit
     ): List<QueryMetadataResult> {
         val request = QueryMetadataBuilder(mediaKind).apply(block).build()
-        logger.debug("Performing metadata search for {}", request)
-        return if (request.providerId == null) {
+        logger.debug("Searching: query='{}', kind={}", request.query, mediaKind)
+        val results = if (request.providerId == null) {
             providers
                 .filter { it.mediaKinds.contains(request.mediaKind) }
                 .map { provider -> provider.search(request) }
@@ -83,11 +83,14 @@ class MetadataService(
             providers.find { it.id == request.providerId }
                 ?.search(request)
                 .run(::listOfNotNull)
-        }.also { selectedProviders ->
-            if (selectedProviders.isEmpty()) {
-                logger.warn("No providers available for ${request.providerId}")
-            }
         }
+        if (results.isEmpty()) {
+            logger.warn("No providers available for ${request.providerId}")
+        } else {
+            val successCount = results.filterIsInstance<QueryMetadataResult.Success>().sumOf { it.results.size }
+            logger.debug("Search returned {} results from {} providers", successCount, results.size)
+        }
+        return results
     }
 
     suspend fun importMetadata(request: ImportMetadata): List<ImportMetadataResult> {

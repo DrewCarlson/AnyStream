@@ -27,7 +27,9 @@ import anystream.media.file.TvFileNameParser
 import anystream.metadata.MetadataService
 import anystream.models.*
 import anystream.models.api.*
+import anystream.util.ProcessingPhase
 import anystream.util.concurrentMap
+import anystream.util.withLoggingContext
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.toList
@@ -96,158 +98,202 @@ class TvFileProcessor(
     }
 
     private suspend fun findMatchesForMediaDir(directory: Directory, import: Boolean): MediaLinkMatchResult {
-        val episodeLinks = mediaLinkDao.findByBasePathAndDescriptor(directory.filePath, Descriptor.VIDEO)
-        if (episodeLinks.isEmpty()) {
-            return MediaLinkMatchResult.NoSupportedFiles(null, directory)
-        }
-
-        val (tvShowName, year) = when (val result = fileNameParser.parseFileName(fs.getPath(directory.filePath))) {
-            is ParsedFileNameResult.Tv.ShowFolder -> result
-            else -> {
-                logger.debug("Expected to find show folder but could not parse '{}' {}", directory.filePath, result)
-                return MediaLinkMatchResult.FileNameParseFailed(null, directory)
+        return withLoggingContext({
+            directoryId(directory.id)
+            phase(ProcessingPhase.MATCH)
+        }) {
+            val episodeLinks = mediaLinkDao.findByBasePathAndDescriptor(directory.filePath, Descriptor.VIDEO)
+            if (episodeLinks.isEmpty()) {
+                return@withLoggingContext MediaLinkMatchResult.NoSupportedFiles(null, directory)
             }
-        }
-        val results = metadataService.search(MediaKind.TV) {
-            this.query = tvShowName
-            this.year = year
-            firstResultOnly = import
-        }
-        val matches = results
-            .filterIsInstance<QueryMetadataResult.Success>()
-            .flatMap { it.results }
-            .filterIsInstance<MetadataMatch.TvShowMatch>()
-        if (matches.isEmpty()) {
-            logger.debug("No metadata match results '{}' (year {})", tvShowName, year)
-            return MediaLinkMatchResult.NoMatchesFound(null, directory)
-        }
 
-        logger.debug("Found {} Metadata match results '{}' (year {})", matches.size, tvShowName, year)
-
-        val matchResults = if (import) {
-            // When importing, do not include unused metadata matches
-            val importedMatch = importMetadataMatch(directory, matches.first())
-            if (importedMatch == null) {
-                logger.error("Failed to import metadata for directory '{}' with match '{}'", directory.filePath, matches.first())
-                return MediaLinkMatchResult.ImportFailed(null, directory, "Metadata import failed for ${matches.first().tvShow.name}")
+            val (tvShowName, year) = when (val result = fileNameParser.parseFileName(fs.getPath(directory.filePath))) {
+                is ParsedFileNameResult.Tv.ShowFolder -> result
+                else -> {
+                    logger.debug("Could not parse show folder: {}", directory.filePath)
+                    return@withLoggingContext MediaLinkMatchResult.FileNameParseFailed(null, directory)
+                }
             }
-            listOf(importedMatch)
-        } else {
-            matches
-        }
+            logger.debug("Parsed show: '{}' (year {})", tvShowName, year)
 
-        return MediaLinkMatchResult.Success(
-            mediaLink = null,
-            directory = directory,
-            matches = matchResults,
-            subResults = emptyList(),
-        )
+            val results = metadataService.search(MediaKind.TV) {
+                this.query = tvShowName
+                this.year = year
+                firstResultOnly = import
+            }
+            val matches = results
+                .filterIsInstance<QueryMetadataResult.Success>()
+                .flatMap { it.results }
+                .filterIsInstance<MetadataMatch.TvShowMatch>()
+
+            logger.debug("Found {} metadata matches for '{}'", matches.size, tvShowName)
+
+            if (matches.isEmpty()) {
+                return@withLoggingContext MediaLinkMatchResult.NoMatchesFound(null, directory)
+            }
+
+            val matchResults = if (import) {
+                val importedMatch = withLoggingContext({ phase(ProcessingPhase.IMPORT) }) {
+                    // When importing, do not include unused metadata matches
+                    val imported = importMetadataMatch(directory, matches.first())
+                    if (imported == null) {
+                        logger.error("Failed to import metadata for directory '{}' with match '{}'", directory.filePath, matches.first())
+                        return@withLoggingContext null
+                    }
+                    imported
+                } ?: return@withLoggingContext MediaLinkMatchResult.ImportFailed(
+                    null, directory, "Metadata import failed for ${matches.first().tvShow.name}"
+                )
+                val tvShowMatch = importedMatch as MetadataMatch.TvShowMatch
+                withLoggingContext({
+                    phase(ProcessingPhase.LINK)
+                    rootMetadataId(tvShowMatch.tvShow.id)
+                }) {
+                    logger.info("Linked show directory to metadata: '{}'", tvShowMatch.tvShow.name)
+                }
+                listOf(tvShowMatch)
+            } else {
+                matches
+            }
+
+            MediaLinkMatchResult.Success(
+                mediaLink = null,
+                directory = directory,
+                matches = matchResults,
+                subResults = emptyList(),
+            )
+        }
     }
 
     private suspend fun findMatchesForFile(
         mediaLink: MediaLink,
         import: Boolean,
     ): MediaLinkMatchResult {
-        val filePath = requireNotNull(mediaLink.filePath)
-        val file = fs.getPath(filePath)
+        return withLoggingContext({
+            mediaLinkId(mediaLink.id)
+            phase(ProcessingPhase.MATCH)
+        }) {
+            val filePath = requireNotNull(mediaLink.filePath)
+            val file = fs.getPath(filePath)
 
-        // Parse the episode filename to get season/episode numbers
-        val episodeParseResult = when (val result = fileNameParser.parseFileName(file)) {
-            is ParsedFileNameResult.Tv.EpisodeFile -> result
-            else -> {
-                logger.debug("Could not parse episode file '{}' - got {}", filePath, result)
-                return MediaLinkMatchResult.FileNameParseFailed(mediaLink, null)
+            // Parse the episode filename to get season/episode numbers
+            val episodeParseResult = when (val result = fileNameParser.parseFileName(file)) {
+                is ParsedFileNameResult.Tv.EpisodeFile -> result
+                else -> {
+                    logger.debug("Could not parse episode file: {}", file.fileName)
+                    return@withLoggingContext MediaLinkMatchResult.FileNameParseFailed(mediaLink, null)
+                }
             }
-        }
 
-        // Walk up to find the show folder by looking at directory hierarchy
-        val seasonDirectory = libraryDao.fetchDirectory(mediaLink.directoryId)
-            ?: return MediaLinkMatchResult.NoSupportedFiles(mediaLink, null)
+            // Walk up to find the show folder by looking at directory hierarchy
+            val seasonDirectory = libraryDao.fetchDirectory(mediaLink.directoryId)
+                ?: return@withLoggingContext MediaLinkMatchResult.NoSupportedFiles(mediaLink, null)
 
-        // The season folder's parent should be the show folder
-        val showDirectoryId = seasonDirectory.parentId
-            ?: return MediaLinkMatchResult.NoSupportedFiles(mediaLink, null)
-        val showDirectory = libraryDao.fetchDirectory(showDirectoryId)
-            ?: return MediaLinkMatchResult.NoSupportedFiles(mediaLink, null)
+            // The season folder's parent should be the show folder
+            val showDirectoryId = seasonDirectory.parentId
+                ?: return@withLoggingContext MediaLinkMatchResult.NoSupportedFiles(mediaLink, null)
+            val showDirectory = libraryDao.fetchDirectory(showDirectoryId)
+                ?: return@withLoggingContext MediaLinkMatchResult.NoSupportedFiles(mediaLink, null)
 
-        // Parse the show folder name
-        val showPath = fs.getPath(showDirectory.filePath)
-        val (showName, year) = when (val result = fileNameParser.parseFileName(showPath)) {
-            is ParsedFileNameResult.Tv.ShowFolder -> result
-            else -> {
-                logger.debug("Could not parse show folder '{}' - got {}", showDirectory.filePath, result)
-                return MediaLinkMatchResult.FileNameParseFailed(mediaLink, null)
+            // Parse the show folder name
+            val showPath = fs.getPath(showDirectory.filePath)
+            val (showName, year) = when (val result = fileNameParser.parseFileName(showPath)) {
+                is ParsedFileNameResult.Tv.ShowFolder -> result
+                else -> {
+                    logger.debug("Could not parse show folder: {}", showDirectory.filePath)
+                    return@withLoggingContext MediaLinkMatchResult.FileNameParseFailed(mediaLink, null)
+                }
             }
-        }
 
-        logger.debug("Matching episode file '{}' from show '{}' (year {}), S{}E{}",
-            filePath, showName, year, episodeParseResult.seasonNumber, episodeParseResult.episodeNumber)
+            logger.debug(
+                "Parsed episode: '{}' S{}E{} from show '{}'",
+                file.fileName,
+                episodeParseResult.seasonNumber,
+                episodeParseResult.episodeNumber,
+                showName,
+            )
 
-        // Search for the show
-        val results = metadataService.search(MediaKind.TV) {
-            this.query = showName
-            this.year = year
-            firstResultOnly = import
-        }
-        val matches = results
-            .filterIsInstance<QueryMetadataResult.Success>()
-            .flatMap { it.results }
-            .filterIsInstance<MetadataMatch.TvShowMatch>()
+            // Search for the show
+            val results = metadataService.search(MediaKind.TV) {
+                this.query = showName
+                this.year = year
+                firstResultOnly = import
+            }
+            val matches = results
+                .filterIsInstance<QueryMetadataResult.Success>()
+                .flatMap { it.results }
+                .filterIsInstance<MetadataMatch.TvShowMatch>()
 
-        if (matches.isEmpty()) {
-            logger.debug("No metadata match results for show '{}' (year {})", showName, year)
-            return MediaLinkMatchResult.NoMatchesFound(mediaLink, null)
-        }
+            logger.debug("Found {} metadata matches for show '{}'", matches.size, showName)
 
-        if (!import) {
-            // Just return the matches without importing
-            return MediaLinkMatchResult.Success(
+            if (matches.isEmpty()) {
+                return@withLoggingContext MediaLinkMatchResult.NoMatchesFound(mediaLink, null)
+            }
+
+            if (!import) {
+                // Just return the matches without importing
+                return@withLoggingContext MediaLinkMatchResult.Success(
+                    mediaLink = mediaLink,
+                    directory = null,
+                    matches = matches,
+                    subResults = emptyList(),
+                )
+            }
+
+            // Import the show and link the specific episode
+            val match = matches.first()
+            val importedMatch = withLoggingContext({ phase(ProcessingPhase.IMPORT) }) {
+                getOrImportMetadata(match)
+            }
+            if (importedMatch == null) {
+                logger.error("Failed to import metadata for show '{}' while matching episode '{}'", showName, filePath)
+                return@withLoggingContext MediaLinkMatchResult.ImportFailed(
+                    mediaLink, null, "Failed to import show metadata for $showName"
+                )
+            }
+
+            // Find the episode metadata
+            val seasonNumber = episodeParseResult.seasonNumber
+            val episodeNumber = episodeParseResult.episodeNumber
+            val episodeMetadata = importedMatch.episodes.find {
+                it.seasonNumber == seasonNumber && it.number == episodeNumber
+            }
+
+            if (episodeMetadata == null) {
+                logger.warn(
+                    "No episode S{}E{} found in show '{}' for file '{}'",
+                    seasonNumber, episodeNumber, showName, filePath
+                )
+                return@withLoggingContext MediaLinkMatchResult.NoMatchesFound(mediaLink, null)
+            }
+
+            // Link the file to the episode metadata
+            withLoggingContext({
+                phase(ProcessingPhase.LINK)
+                metadataId(episodeMetadata.id)
+                rootMetadataId(importedMatch.tvShow.id)
+            }) {
+                mediaLinkDao.updateMetadataIds(
+                    MediaLinkMetadataUpdate(
+                        mediaLinkId = checkNotNull(mediaLink.id),
+                        metadataId = episodeMetadata.id,
+                        rootMetadataId = importedMatch.tvShow.id,
+                    )
+                )
+
+                logger.info(
+                    "Linked to metadata: '{}' S{}E{}",
+                    showName, seasonNumber, episodeNumber
+                )
+            }
+
+            MediaLinkMatchResult.Success(
                 mediaLink = mediaLink,
                 directory = null,
-                matches = matches,
+                matches = listOf(importedMatch),
                 subResults = emptyList(),
             )
         }
-
-        // Import the show and link the specific episode
-        val match = matches.first()
-        val importedMatch = getOrImportMetadata(match)
-        if (importedMatch == null) {
-            logger.error("Failed to import metadata for show '{}' while matching episode '{}'", showName, filePath)
-            return MediaLinkMatchResult.ImportFailed(mediaLink, null, "Failed to import show metadata for $showName")
-        }
-
-        // Find the episode metadata
-        val seasonNumber = episodeParseResult.seasonNumber
-        val episodeNumber = episodeParseResult.episodeNumber
-        val episodeMetadata = importedMatch.episodes.find {
-            it.seasonNumber == seasonNumber && it.number == episodeNumber
-        }
-
-        if (episodeMetadata == null) {
-            logger.warn("No episode S{}E{} found in show '{}' for file '{}'",
-                seasonNumber, episodeNumber, showName, filePath)
-            return MediaLinkMatchResult.NoMatchesFound(mediaLink, null)
-        }
-
-        // Link the file to the episode metadata
-        mediaLinkDao.updateMetadataIds(
-            MediaLinkMetadataUpdate(
-                mediaLinkId = checkNotNull(mediaLink.id),
-                metadataId = episodeMetadata.id,
-                rootMetadataId = importedMatch.tvShow.id,
-            )
-        )
-
-        logger.info("Linked episode file '{}' to metadata {} (S{}E{} of '{}')",
-            filePath, episodeMetadata.id, seasonNumber, episodeNumber, showName)
-
-        return MediaLinkMatchResult.Success(
-            mediaLink = mediaLink,
-            directory = null,
-            matches = listOf(importedMatch),
-            subResults = emptyList(),
-        )
     }
 
     override suspend fun findMetadata(mediaLink: MediaLink, remoteId: String): MetadataMatch? {

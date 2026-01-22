@@ -27,7 +27,9 @@ import anystream.media.file.ParsedFileNameResult
 import anystream.metadata.MetadataService
 import anystream.models.*
 import anystream.models.api.*
+import anystream.util.ProcessingPhase
 import anystream.util.concurrentMap
+import anystream.util.withLoggingContext
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.toList
@@ -199,50 +201,69 @@ class MovieFileProcessor(
     }
 
     private suspend fun findMatchesForFile(mediaLink: MediaLink, import: Boolean): MediaLinkMatchResult {
-        val movieFile = fs.getPath(requireNotNull(mediaLink.filePath))
-        if (!VIDEO_EXTENSIONS.contains(movieFile.extension)) {
-            return MediaLinkMatchResult.NoSupportedFiles(mediaLink, null)
-        }
-        val (movieName, year) = when (val result = fileNameParser.parseFileName(movieFile)) {
-            is ParsedFileNameResult.MovieFile -> result
-            else -> {
-                logger.debug("Expected to find movie file but could not parse '{}'", movieFile)
-                return MediaLinkMatchResult.FileNameParseFailed(mediaLink, null)
+        return withLoggingContext({
+            mediaLinkId(mediaLink.id)
+            phase(ProcessingPhase.MATCH)
+        }) {
+            val movieFile = fs.getPath(requireNotNull(mediaLink.filePath))
+            if (!VIDEO_EXTENSIONS.contains(movieFile.extension)) {
+                return@withLoggingContext MediaLinkMatchResult.NoSupportedFiles(mediaLink, null)
             }
-        }
-        logger.debug("Querying provider for '{}' (year {})", movieName, year)
-
-        val results = metadataService.search(MediaKind.MOVIE) {
-            this.query = movieName
-            this.year = year
-            firstResultOnly = import
-        }
-        val matches = results
-            .filterIsInstance<QueryMetadataResult.Success>()
-            .flatMap { it.results }
-            .filterIsInstance<MetadataMatch.MovieMatch>()
-        if (matches.isEmpty()) {
-            logger.debug("No metadata match results")
-            return MediaLinkMatchResult.NoMatchesFound(mediaLink, null)
-        }
-
-        val metadataMatch = if (import) {
-            val match = importMetadataMatch(mediaLink, matches.first())
-            if (match == null) {
-                logger.error("Failed to import metadata for '{}' with match '{}'", mediaLink.filePath, matches.first())
-                return MediaLinkMatchResult.ImportFailed(mediaLink, null, "Metadata import failed for ${matches.first().movie.title}")
+            val (movieName, year) = when (val result = fileNameParser.parseFileName(movieFile)) {
+                is ParsedFileNameResult.MovieFile -> result
+                else -> {
+                    logger.debug("Could not parse filename: {}", movieFile.name)
+                    return@withLoggingContext MediaLinkMatchResult.FileNameParseFailed(mediaLink, null)
+                }
             }
-            listOf(match)
-        } else {
-            matches
-        }
+            logger.debug("Parsed: '{}' (year {})", movieName, year)
 
-        return MediaLinkMatchResult.Success(
-            mediaLink = mediaLink,
-            directory = null,
-            matches = metadataMatch,
-            subResults = emptyList(),
-        )
+            val results = metadataService.search(MediaKind.MOVIE) {
+                this.query = movieName
+                this.year = year
+                firstResultOnly = import
+            }
+            val matches = results
+                .filterIsInstance<QueryMetadataResult.Success>()
+                .flatMap { it.results }
+                .filterIsInstance<MetadataMatch.MovieMatch>()
+
+            logger.debug("Found {} metadata matches", matches.size)
+
+            if (matches.isEmpty()) {
+                return@withLoggingContext MediaLinkMatchResult.NoMatchesFound(mediaLink, null)
+            }
+
+            val metadataMatch = if (import) {
+                val importedMatch = withLoggingContext({ phase(ProcessingPhase.IMPORT) }) {
+                    val match = importMetadataMatch(mediaLink, matches.first())
+                    if (match == null) {
+                        logger.error("Failed to import metadata for '{}' with match '{}'", mediaLink.filePath, matches.first())
+                        return@withLoggingContext null
+                    }
+                    match
+                } ?: return@withLoggingContext MediaLinkMatchResult.ImportFailed(
+                    mediaLink, null, "Metadata import failed for ${matches.first().movie.title}"
+                )
+                val movieMatch = importedMatch as MetadataMatch.MovieMatch
+                withLoggingContext({
+                    phase(ProcessingPhase.LINK)
+                    metadataId(movieMatch.movie.id)
+                }) {
+                    logger.info("Linked to metadata: '{}'", movieMatch.movie.title)
+                }
+                listOf(movieMatch)
+            } else {
+                matches
+            }
+
+            MediaLinkMatchResult.Success(
+                mediaLink = mediaLink,
+                directory = null,
+                matches = metadataMatch,
+                subResults = emptyList(),
+            )
+        }
     }
 
     private suspend fun getOrImportMetadata(

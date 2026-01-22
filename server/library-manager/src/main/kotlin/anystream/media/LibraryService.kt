@@ -25,7 +25,10 @@ import anystream.models.*
 import anystream.models.api.*
 import anystream.models.backend.MediaScannerMessage
 import anystream.models.backend.MediaScannerState
+import anystream.util.ProcessingPhase
+import anystream.util.newScanId
 import anystream.util.toHumanReadableSize
+import anystream.util.withLoggingContext
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
@@ -161,26 +164,53 @@ class LibraryService(
     }
 
     suspend fun addLibraryFolderAndScan(libraryId: String, path: String): AddLibraryFolderResponse {
+        val library = libraryDao.fetchLibrary(libraryId)
+            ?: return AddLibraryFolderResponse.LibraryDoesNotExists
+
         val result = addLibraryFolder(libraryId, path)
         if (result is AddLibraryFolderResponse.Success) {
             val directory = result.directory
 
             scope.launch(Dispatchers.Default) {
-                var scanning = true
-                mediaScannerMessages
-                    .takeWhile { scanning }
-                    .filterIsInstance<MediaScannerMessage.ScanDirectoryCompleted>()
-                    .filter { it.directory.id == directory.id }
-                    .onEach { message ->
-                        val child = message.child
-                        if (child == null) {
-                            scanning = false
-                        } else {
-                            refreshMetadata(child)
+                withLoggingContext({
+                    scanId(newScanId())
+                    libraryId(libraryId)
+                    libraryName(library.name)
+                    mediaKind(library.mediaKind)
+                    phase(ProcessingPhase.SCAN)
+                }) {
+                    logger.info("Starting library scan for path: {}", path)
+                    var scanning = true
+                    mediaScannerMessages
+                        .takeWhile { scanning }
+                        .filterIsInstance<MediaScannerMessage.ScanDirectoryCompleted>()
+                        .filter { it.directory.id == directory.id }
+                        .onEach { message ->
+                            val child = message.child
+                            if (child == null) {
+                                scanning = false
+                            } else {
+                                refreshMetadata(child)
+                            }
+                        }
+                        .launchIn(this)
+                    when (val scanResult = scan(directory)) {
+                        is MediaScanResult.Success -> {
+                            logger.info(
+                                "Library scan completed - directories: added={}, existing={}, removed={}; mediaLinks: added={}, existing={}, removed={}",
+                                scanResult.directories.addedIds.size,
+                                scanResult.directories.existingIds.size,
+                                scanResult.directories.removedIds.size,
+                                scanResult.mediaLinks.addedIds.size,
+                                scanResult.mediaLinks.existingIds.size,
+                                scanResult.mediaLinks.removedIds.size,
+                            )
+                        }
+                        else -> {
+                            logger.warn("Library scan failed: {}", scanResult)
                         }
                     }
-                    .launchIn(this)
-                scan(directory)
+                }
             }
         }
         return result

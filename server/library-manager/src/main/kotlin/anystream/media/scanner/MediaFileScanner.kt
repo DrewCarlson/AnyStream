@@ -31,6 +31,8 @@ import anystream.models.api.MediaScanResult
 import anystream.models.backend.MediaScannerMessage
 import anystream.models.backend.MediaScannerState
 import anystream.util.ObjectId
+import anystream.util.abbreviatePath
+import anystream.util.withLoggingContext
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.*
 import org.slf4j.LoggerFactory
@@ -158,32 +160,50 @@ class MediaFileScanner(
                 newDirectory
             }
 
-        // TODO: currently only returns information when sub results are successful.
-        //  modify this to propagate any errors and include any affected ids in error cases.
-        //  this also applies to the pruning process which is done above.
-        val subResults =
-            path.listDirectoryEntries()
-                .map { childPath ->
-                    if (childPath.isDirectory()) {
-                        scanDirectory(childPath, null, directoryDb)
-                    } else {
-                        scanFile(childPath, directoryDb)
+        return withLoggingContext({
+            directoryId(directoryDb.id)
+            directoryPath(pathString.abbreviatePath())
+        }) {
+            logger.debug("Scanning directory: {}", pathString.abbreviatePath())
+
+            // TODO: currently only returns information when sub results are successful.
+            //  modify this to propagate any errors and include any affected ids in error cases.
+            //  this also applies to the pruning process which is done above.
+            val subResults =
+                path.listDirectoryEntries()
+                    .map { childPath ->
+                        if (childPath.isDirectory()) {
+                            scanDirectory(childPath, null, directoryDb)
+                        } else {
+                            scanFile(childPath, directoryDb)
+                        }
                     }
-                }
-                .filterIsInstance<MediaScanResult.Success>()
+                    .filterIsInstance<MediaScanResult.Success>()
 
-        val message = if (parentDirectory == null) {
-            MediaScannerMessage.ScanDirectoryCompleted(directoryDb)
-        } else {
-            MediaScannerMessage.ScanDirectoryCompleted(parentDirectory, directoryDb)
+            val message = if (parentDirectory == null) {
+                MediaScannerMessage.ScanDirectoryCompleted(directoryDb)
+            } else {
+                MediaScannerMessage.ScanDirectoryCompleted(parentDirectory, directoryDb)
+            }
+            messageQueue.emit(message)
+            removeIdOrIdleState(scanName)
+
+            val result = MediaScanResult.Success(
+                directories = resultIdContainer,
+                mediaLinks = ContentIdContainer.EMPTY
+            ).merge(subResults)
+
+            if (result is MediaScanResult.Success) {
+                logger.debug(
+                    "Scan complete - added: {}, existing: {}, removed: {}",
+                    result.mediaLinks.addedIds.size,
+                    result.mediaLinks.existingIds.size,
+                    result.mediaLinks.removedIds.size
+                )
+            }
+
+            result
         }
-        messageQueue.emit(message)
-        removeIdOrIdleState(scanName)
-
-        return MediaScanResult.Success(
-            directories = resultIdContainer,
-            mediaLinks = ContentIdContainer.EMPTY
-        ).merge(subResults)
     }
 
     private suspend fun pruneAllPathRecords(path: Path): MediaScanResult.Success {
@@ -242,6 +262,7 @@ class MediaFileScanner(
         val mediaLink = path.toMediaLink(library.mediaKind, descriptor, directoryDb.id)
         try {
             check(mediaLinkDao.insertLink(mediaLink))
+            logger.debug("Created media link: {}", path.name)
         } catch (e: Throwable) {
             logger.error("Failed to insert media link", e)
             return MediaScanResult.ErrorDatabaseException(e.stackTraceToString())

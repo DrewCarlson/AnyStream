@@ -12,6 +12,7 @@ dependencies {
     implementation(libsCommon.serialization.json)
     implementation(libsCommon.coroutines.core)
     implementation(libsCommon.coroutines.jdk8)
+    implementation(libsCommon.coroutines.slf4j)
 
     implementation(libsServer.logback)
 
