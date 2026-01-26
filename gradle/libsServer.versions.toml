@@ -15,10 +15,10 @@ imageio = "3.13.0"
 [plugins]
 shadowjar = "com.gradleup.shadow:9.3.1"
 jooq = { id = "nu.studer.jooq", version.ref = "jooqGradle" }
-flyway = "org.flywaydb.flyway:11.20.2"
+flyway = "org.flywaydb.flyway:11.20.3"
 
 [libraries]
-flyway-core = "org.flywaydb:flyway-core:11.20.2"
+flyway-core = "org.flywaydb:flyway-core:11.20.3"
 fastObjectPool = "cn.danielw:fast-object-pool:2.2.1"
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 jdbc-sqlite = { module = "org.xerial:sqlite-jdbc", version.ref = "jdbc_sqlite" }
