@@ -93,7 +93,7 @@ jobs:
         uses: gradle/actions/setup-gradle@576fcbecfed70890e466eeffd7c78d93b30b0472
 
       - name: Cache Build files
-        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7
+        uses: actions/cache@b7e8d49f17405cc70c1c120101943203c98d3a4b
         with:
           path: |
             ~/.konan
@@ -121,7 +121,7 @@ jobs:
         uses: gradle/actions/setup-gradle@576fcbecfed70890e466eeffd7c78d93b30b0472
 
       - name: Cache Build files
-        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7
+        uses: actions/cache@b7e8d49f17405cc70c1c120101943203c98d3a4b
         with:
           path: |
             ~/.konan
@@ -149,7 +149,7 @@ jobs:
         uses: gradle/actions/setup-gradle@576fcbecfed70890e466eeffd7c78d93b30b0472
 
       - name: Cache Build files
-        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7
+        uses: actions/cache@b7e8d49f17405cc70c1c120101943203c98d3a4b
         with:
           path: |
             ~/.konan
@@ -177,7 +177,7 @@ jobs:
         uses: gradle/actions/setup-gradle@576fcbecfed70890e466eeffd7c78d93b30b0472
 
       - name: Cache Build files
-        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7
+        uses: actions/cache@b7e8d49f17405cc70c1c120101943203c98d3a4b
         with:
           path: |
             ~/.konan
@@ -205,7 +205,7 @@ jobs:
         uses: gradle/actions/setup-gradle@576fcbecfed70890e466eeffd7c78d93b30b0472
 
       - name: Cache Build files
-        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7
+        uses: actions/cache@b7e8d49f17405cc70c1c120101943203c98d3a4b
         with:
           path: |
             ~/.konan
@@ -233,7 +233,7 @@ jobs:
         uses: gradle/actions/setup-gradle@576fcbecfed70890e466eeffd7c78d93b30b0472
 
       - name: Cache Build files
-        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7
+        uses: actions/cache@b7e8d49f17405cc70c1c120101943203c98d3a4b
         with:
           path: |
             ~/.konan
