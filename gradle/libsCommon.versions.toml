@@ -22,7 +22,7 @@ jsPlainObjects = { id = "org.jetbrains.kotlin.plugin.js-plain-objects", version.
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
-downloadPlugin = "de.undercouch.download:5.6.0"
+downloadPlugin = "de.undercouch.download:5.7.0"
 kotest = { id = "io.kotest.multiplatform", version.ref = "kotest" }
 redacted = { id = "dev.zacsweers.redacted", version.ref = "redacted" }
 poko = { id = "dev.drewhamilton.poko", version.ref = "poko" }
