@@ -9,7 +9,7 @@ datetime = "0.7.1"
 spotless = "8.1.0"
 koin = "4.1.1"
 agp = "9.0.0"
-kotest = "6.1.0"
+kotest = "6.1.3"
 redacted = "1.15.1"
 poko = "0.21.1"
 
