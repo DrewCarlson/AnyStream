@@ -11,7 +11,7 @@ objectstore = "0.2.0"
 vlc = "3.0.23"
 kotlinjs = "2026.1.10"
 androidxCamera = "1.5.2"
-haze = "1.7.1"
+haze = "1.7.2"
 io-coil-kt-coil3 = "3.3.0"
 
 [plugins]
