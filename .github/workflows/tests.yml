@@ -123,7 +123,7 @@ jobs:
           java-version: 21
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@576fcbecfed70890e466eeffd7c78d93b30b0472
+        uses: gradle/actions/setup-gradle@78f7dee6337f393c0a872d0afbda4c51a20e543d
 
       - name: Cache Build files
         uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7
@@ -174,7 +174,7 @@ jobs:
           java-version: 21
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@576fcbecfed70890e466eeffd7c78d93b30b0472
+        uses: gradle/actions/setup-gradle@78f7dee6337f393c0a872d0afbda4c51a20e543d
 
       - name: Cache Build files
         uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7
@@ -216,7 +216,7 @@ jobs:
           java-version: 21
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@576fcbecfed70890e466eeffd7c78d93b30b0472
+        uses: gradle/actions/setup-gradle@78f7dee6337f393c0a872d0afbda4c51a20e543d
 
       - name: Cache Build files
         uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7
@@ -272,7 +272,7 @@ jobs:
           java-version: 21
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@576fcbecfed70890e466eeffd7c78d93b30b0472
+        uses: gradle/actions/setup-gradle@78f7dee6337f393c0a872d0afbda4c51a20e543d
 
       - name: Cache Build files
         uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7
@@ -318,7 +318,7 @@ jobs:
           java-version: 21
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@576fcbecfed70890e466eeffd7c78d93b30b0472
+        uses: gradle/actions/setup-gradle@78f7dee6337f393c0a872d0afbda4c51a20e543d
 
       - name: Cache Build files
         uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7
