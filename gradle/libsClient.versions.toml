@@ -43,7 +43,7 @@ compose-desktop = { module = "org.jetbrains.compose.desktop:desktop", version.re
 compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "composejb" }
 compose-foundationjb = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "composejb" }
 compose-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composejb" }
-compose-materialjb = "org.jetbrains.compose.material3:material3:1.11.0-alpha01"
+compose-materialjb = "org.jetbrains.compose.material3:material3:1.11.0-SNAPSHOT+migrate-dev-maven"
 compose-materialjb-icons = "org.jetbrains.compose.material:material-icons-extended:1.7.3"
 compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "composejb" }
 compose-html-core = { module = "org.jetbrains.compose.html:html-core", version.ref = "composejb" }
