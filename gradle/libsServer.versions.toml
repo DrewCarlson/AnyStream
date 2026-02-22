@@ -10,7 +10,7 @@ koinKtor = "4.1.1"
 icu4j = "78.2"
 mockk = "1.14.7"
 jooqGradle = "10.2"
-imageio = "3.13.0"
+imageio = "3.13.1"
 
 [plugins]
 shadowjar = "com.gradleup.shadow:9.3.1"
