@@ -20,7 +20,7 @@ ENV WEB_CLIENT_PATH=/app/client-web
 ENV PORT=8888
 
 COPY server/application/build/install ./install/
-COPY client/web/build/dist/js/productionExecutable ./client-web/
+COPY client/web/build/vite/js/productionExecutable ./client-web/
 
 ARG PUID=1000
 ARG PGID=1000
