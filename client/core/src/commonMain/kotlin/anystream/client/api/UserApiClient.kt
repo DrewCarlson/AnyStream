@@ -45,7 +45,7 @@ import io.ktor.serialization.WebsocketDeserializeException
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.map
 
 class UserApiClient(
@@ -172,14 +172,14 @@ class UserApiClient(
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    fun createPairingSession(): Flow<PairingMessage> = flow {
+    fun createPairingSession(): Flow<PairingMessage> = channelFlow {
         core.http.wss(path = "/api/ws/users/pair") {
             while (!incoming.isClosedForReceive) {
                 try {
-                    emit(receiveDeserialized())
-                } catch (e: WebsocketDeserializeException) {
+                    trySend(receiveDeserialized<PairingMessage>())
+                } catch (_: WebsocketDeserializeException) {
                     // ignored
-                } catch (e: ClosedReceiveChannelException) {
+                } catch (_: ClosedReceiveChannelException) {
                     // ignored
                 }
             }
