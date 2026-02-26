@@ -103,7 +103,7 @@ suspend fun main(args: Array<String>) {
         ?.substringAfter("=")
         .orEmpty()
         .ifBlank { System.getenv("CONFIG_PATH") }
-        .takeIf { it.isNotBlank() && configFileSuffixes.contains(it.substringAfterLast('.')) }
+        ?.takeIf { it.isNotBlank() && configFileSuffixes.contains(it.substringAfterLast('.')) }
         ?.let { FileSystems.getDefault().getPath(it) }
 
     if (configFile?.exists() == false) {
@@ -354,7 +354,10 @@ fun Application.module(testing: Boolean = false) {
         }
     }
     install(WebsocketAuthorization) {
+        try {
         extractUserSession(sessionStorage::readSession)
+        } catch (_: NoSuchElementException) {
+        }
     }
     install(PermissionAuthorization) {
         global(Permission.Global)
