@@ -19,6 +19,8 @@ package anystream.ui.login
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -56,6 +58,7 @@ import anystream.client.AnyStreamClient
 import anystream.presentation.login.*
 import anystream.router.SharedRouter
 import anystream.ui.components.PrimaryButton
+import anystream.ui.components.QrCodeImage
 import anystream.ui.generated.resources.*
 import anystream.ui.generated.resources.Res
 import anystream.ui.generated.resources.ic_discovery
@@ -74,68 +77,133 @@ internal fun LoginScreen(
     router: SharedRouter,
     modifier: Modifier = Modifier,
 ) {
-    val (modelState, eventConsumer) = rememberMobiusLoop(
-        LoginScreenModel.create(client.core.serverUrl, supportsPairing = false),
-        LoginScreenInit
-    ) {
-        FlowMobius.loop(
-            LoginScreenUpdate,
-            LoginScreenHandler(client, router),
-        ).logger(SimpleLogger("Login"))
-    }
+    BoxWithConstraints(modifier = modifier.fillMaxSize()) {
+        val isLargeScreen = remember(constraints) {
+            maxWidth >= 840.dp && maxHeight >= 600.dp
+        }
 
-    /*Scaffold(
-        modifier = modifier
-            .windowInsetsPadding(WindowInsets.systemBars),
-        topBar = {
-            TopAppBar(
-                title = {},
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent,
-                ),
-                navigationIcon = {
-                    IconButton(
-                        onClick = { router.popCurrentRoute() },
-                        content = {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Back",
-                                tint = MaterialTheme.colorScheme.onBackground,
-                            )
-                        },
-                    )
+        val (modelState, eventConsumer) = rememberMobiusLoop(
+            LoginScreenModel.create(client.core.serverUrl, supportsPairing = isLargeScreen),
+            LoginScreenInit
+        ) {
+            FlowMobius.loop(
+                LoginScreenUpdate,
+                LoginScreenHandler(client, router),
+            ).logger(SimpleLogger("Login"))
+        }
+
+        val focusManager = LocalFocusManager.current
+        if (isLargeScreen) {
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pointerInput(Unit) {
+                        detectTapGestures {
+                            focusManager.clearFocus(force = true)
+                        }
+                    }
+                    .padding(vertical = 16.dp, horizontal = 24.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                // Left: QR code pairing panel
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    QrCodePairingPanel(pairingCode = modelState.value.pairingCode)
                 }
-            )
-        },
-    ) { padding ->
-    }*/
-    val focusManager = LocalFocusManager.current
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .pointerInput(Unit) {
-                detectTapGestures {
-                    focusManager.clearFocus(force = true)
+                // Right: Login form
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    Image(
+                        painter = painterResource(Res.drawable.logo_login),
+                        contentDescription = null,
+                        modifier = Modifier.size(120.dp),
+                    )
+                    Text(
+                        text = "Login to Your Account",
+                        style = MaterialTheme.typography.displaySmall,
+                        modifier = Modifier.padding(vertical = 16.dp),
+                        textAlign = TextAlign.Center,
+                    )
+                    FormBody(modelState.value, eventConsumer)
                 }
             }
-            .verticalScroll(rememberScrollState())
-            .padding(vertical = 16.dp, horizontal = 24.dp),
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pointerInput(Unit) {
+                        detectTapGestures {
+                            focusManager.clearFocus(force = true)
+                        }
+                    }
+                    .verticalScroll(rememberScrollState())
+                    .padding(vertical = 16.dp, horizontal = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Spacer(Modifier.weight(1f))
+                Image(
+                    painter = painterResource(Res.drawable.logo_login),
+                    contentDescription = null,
+                    modifier = Modifier.size(120.dp),
+                )
+                Text(
+                    text = "Login to Your Account",
+                    style = MaterialTheme.typography.displaySmall,
+                    modifier = Modifier.padding(vertical = 16.dp),
+                    textAlign = TextAlign.Center,
+                )
+                FormBody(modelState.value, eventConsumer)
+                Spacer(Modifier.weight(1f))
+            }
+        }
+    }
+}
+
+@Composable
+private fun QrCodePairingPanel(pairingCode: String?) {
+    Column(
         horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
     ) {
-        Spacer(Modifier.weight(1f))
-        Image(
-            painter = painterResource(Res.drawable.logo_login),
-            contentDescription = null,
-            modifier = Modifier.size(120.dp),
-        )
+        if (pairingCode == null) {
+            Box(
+                modifier = Modifier
+                    .size(300.dp)
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outlineVariant,
+                        shape = RoundedCornerShape(16.dp),
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                CircularProgressIndicator()
+            }
+        } else {
+            QrCodeImage(
+                content = pairingCode,
+                modifier = Modifier
+                    .size(300.dp)
+                    .background(Color.White, RoundedCornerShape(16.dp))
+                    .padding(12.dp),
+            )
+        }
+        Spacer(Modifier.height(16.dp))
         Text(
-            text = "Login to Your Account",
-            style = MaterialTheme.typography.displaySmall,
-            modifier = Modifier.padding(vertical = 16.dp),
-            textAlign = TextAlign.Center,
+            text = "Scan to sign in",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onBackground,
         )
-        FormBody(modelState.value, eventConsumer)
-        Spacer(Modifier.weight(1f))
     }
 }
 
