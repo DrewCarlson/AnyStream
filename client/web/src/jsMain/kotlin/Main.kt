@@ -17,9 +17,6 @@
  */
 package anystream
 
-import js.import.import
-
-suspend fun main() {
-    import<Any>("./scss/anystream.scss")
+fun main() {
     webApp()
 }
