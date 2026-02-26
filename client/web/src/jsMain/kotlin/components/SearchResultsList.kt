@@ -38,7 +38,7 @@ fun SearchResultsList(
         style {
             overflowY("scroll")
             backgroundColor(rgb(28, 28, 28))
-            backgroundImage("url('../images/noise.webp')")
+            backgroundImage("url('/images/noise.webp')")
             backgroundRepeat("repeat")
             width(320.px)
         }
