@@ -24,7 +24,6 @@ kotlin {
 
     configure(
         listOf(
-            iosX64(),
             iosArm64(),
             iosSimulatorArm64(),
         )
@@ -32,6 +31,12 @@ kotlin {
         val main by compilations.getting
         main.cinterops.create("observer")
     }
+    if (hasAndroidSdk) {
+        configure<com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget> {
+            androidResources { enable = true }
+        }
+    }
+
     sourceSets {
         all {
             languageSettings {

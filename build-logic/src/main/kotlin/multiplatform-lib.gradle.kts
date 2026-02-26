@@ -1,4 +1,3 @@
-import com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget
 import dev.zacsweers.redacted.gradle.RedactedPluginExtension
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
@@ -14,7 +13,6 @@ plugins {
 if (hasAndroidSdk) {
     apply(plugin = "com.android.kotlin.multiplatform.library")
 }
-
 
 afterEvaluate {
     spotless {
@@ -48,7 +46,8 @@ kotlin {
     }
     jvm()
     if (hasAndroidSdk) {
-        (targets.getByName("android") as KotlinMultiplatformAndroidLibraryTarget).apply {
+        configure<com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget> {
+            namespace = "anystream.${project.name.replace("-", "")}"
             compilerOptions {
                 jvmTarget.set(JVM_TARGET_ANDROID)
             }
@@ -59,15 +58,18 @@ kotlin {
                 resources.excludes.add("META-INF/versions/*/*.bin")
             }
             withHostTest {
+                isIncludeAndroidResources = true
             }
             withDeviceTest {
+            }
+            lint {
+                disable.add("InvalidPackage")
             }
         }
     }
 
     iosArm64()
     iosSimulatorArm64()
-    iosX64()
     applyDefaultHierarchyTemplate()
     compilerOptions {
         freeCompilerArgs.add("-Xexpect-actual-classes")
