@@ -49,11 +49,11 @@ internal actual fun QrCodeImageNative(
         value = withContext(Dispatchers.Default) {
             Encoder.encode(
                 content,
-                ErrorCorrectionLevel.H,
+                ErrorCorrectionLevel.L,
                 mapOf(
                     EncodeHintType.CHARACTER_SET to "UTF-8",
                     EncodeHintType.MARGIN to 16,
-                    EncodeHintType.ERROR_CORRECTION to ErrorCorrectionLevel.H
+                    EncodeHintType.ERROR_CORRECTION to ErrorCorrectionLevel.L,
                 )
             ).matrix
         }
