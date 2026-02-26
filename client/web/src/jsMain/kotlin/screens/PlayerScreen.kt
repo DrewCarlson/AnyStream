@@ -33,7 +33,6 @@ import anystream.util.formatProgressAndRuntime
 import anystream.util.formatted
 import anystream.util.get
 import io.ktor.client.fetch.*
-import io.ktor.util.encodeBase64
 import js.objects.unsafeJso
 import kotlinx.browser.document
 import kotlinx.browser.localStorage
@@ -48,6 +47,7 @@ import org.jetbrains.compose.web.dom.*
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.get
+import kotlin.io.encoding.Base64
 import kotlin.time.Duration.Companion.ZERO
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit.SECONDS
@@ -799,7 +799,7 @@ private fun SeekBar(
                 val index =
                     (mouseHoverProgress.inWholeSeconds / 5)
                         .coerceIn(0, currentBif.header.imageCount.toLong()).toInt()
-                "data:image/webp;base64,${currentBif.readFrame(index).bytes.encodeBase64()}"
+                "data:image/webp;base64,${Base64.encode(currentBif.readFrame(index).bytes)}"
             }
         }
     }

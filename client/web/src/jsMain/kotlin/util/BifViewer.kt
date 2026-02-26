@@ -23,7 +23,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import io.ktor.util.encodeBase64
 import js.buffer.ArrayBuffer
 import js.typedarrays.Int8Array
 import kotlinx.browser.window
@@ -33,6 +32,7 @@ import org.jetbrains.compose.web.css.height
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.Img
 import org.w3c.files.get
+import kotlin.io.encoding.Base64
 
 @Composable
 fun BifViewer() {
@@ -68,7 +68,7 @@ fun BifViewer() {
                 }) {
                     repeat(header.imageCount) { i ->
                         Img(
-                            src = "data:image/webp;base64,${readFrame(i).bytes.encodeBase64()}",
+                            src = "data:image/webp;base64,${Base64.encode(readFrame(i).bytes)}",
                             attrs = {
                                 style {
                                     height(100.dppx)

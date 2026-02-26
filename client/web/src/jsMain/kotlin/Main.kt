@@ -17,12 +17,9 @@
  */
 package anystream
 
-fun main() {
-    require<Any>("./scss/anystream.scss")
-    require<Any>("bootstrap-icons/font/bootstrap-icons.css")
-    require<Any>("@fontsource/open-sans/index.css")
-    require<Any>("video.js/dist/video-js.min.css")
+import js.import.import
+
+suspend fun main() {
+    import<Any>("./scss/anystream.scss")
     webApp()
 }
-
-external fun <T> require(module: String): T

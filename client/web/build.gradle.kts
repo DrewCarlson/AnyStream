@@ -1,5 +1,4 @@
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
-import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig.*
 
 plugins {
     kotlin("multiplatform")
@@ -8,46 +7,21 @@ plugins {
     alias(libsCommon.plugins.jsPlainObjects)
     alias(libsCommon.plugins.spotless)
     alias(libsCommon.plugins.serialization)
+    alias(libsCommon.plugins.kotlinVite)
 }
 
 val localProperties = gradleLocalProperties(rootDir, providers)
 
+kotlinVite {
+    val anystreamUrl = localProperties.getProperty("anystream.serverUrl", "http://localhost:8888")
+    environment["ANYSTREAM_SERVER_URL"] = anystreamUrl
+}
+
 kotlin {
     js(IR) {
-        useCommonJs()
+        useEsModules()
         browser {
             binaries.executable()
-            commonWebpackConfig {
-                cssSupport {
-                    enabled.set(true)
-                }
-            }
-            runTask {
-                val anystreamUrl = localProperties.getProperty("anystream.serverUrl", "http://localhost:8888")
-                mainOutputFileName.set("main.bundle.js")
-                devtool = "eval-source-map"
-                devServerProperty.set(
-                    DevServer(
-                        open = false,
-                        port = 3000,
-                        static = mutableListOf(
-                            layout.buildDirectory.dir("processedResources/js/main").get().asFile.absolutePath
-                        ),
-                        proxy = mutableListOf(
-                            DevServer.Proxy(
-                                target = anystreamUrl,
-                                secure = anystreamUrl.startsWith("https"),
-                                context = mutableListOf("/api"),
-                                changeOrigin = true,
-                            )
-                        )
-                    )
-                )
-            }
-            webpackTask {
-                mainOutputFileName.set("main.bundle.js")
-                //devtool = "eval-source-map"
-            }
         }
     }
 
@@ -76,23 +50,14 @@ kotlin {
                 implementation(devNpm("jquery", "3.7.1"))
                 implementation(devNpm("bootstrap", "5.3.8"))
                 implementation(devNpm("bootstrap-icons", "1.13.1"))
-                implementation(devNpm("@fontsource/open-sans", "5.2.6"))
+                implementation(devNpm("@fontsource/open-sans", "5.2.7"))
                 implementation(devNpm("@popperjs/core", "2.11.8"))
                 implementation(devNpm("video.js", "8.6.1"))
-                implementation(devNpm("@videojs/http-streaming", "3.9.1"))
+                implementation(devNpm("@videojs/http-streaming", "3.17.4"))
                 implementation(devNpm("mpd-parser", "1.3.1"))
                 implementation(devNpm("mux.js", "6.3.0"))
-                implementation(devNpm("webworkify-webpack-dropin", "1.1.9"))
-                implementation(devNpm("mini-css-extract-plugin", "2.9.4"))
-                implementation(devNpm("file-loader", "6.2.0"))
-                implementation(devNpm("webpack-bundle-analyzer", "4.10.2"))
                 implementation(devNpm("qrcode", "1.5.4"))
-                implementation(devNpm("sass", "1.91.0"))
-                implementation(devNpm("sass-loader", "16.0.5"))
-                implementation(devNpm("postcss-loader", "8.2.0"))
-                implementation(devNpm("postcss", "8.5.6"))
-                implementation(devNpm("autoprefixer", "10.4.21"))
-                implementation(devNpm("terser-webpack-plugin", "5.3.14"))
+                implementation(devNpm("sass", "1.79.6"))
             }
         }
     }

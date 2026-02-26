@@ -39,14 +39,16 @@ import org.koin.core.context.startKoin
 import org.w3c.dom.HTMLDivElement
 
 val playerMediaLinkId = MutableStateFlow<String?>(null)
-val LocalAnyStreamClient = compositionLocalOf<AnyStreamClient> { error("AnyStream client not provided") }
+val LocalAnyStreamClient =
+    compositionLocalOf<AnyStreamClient> { error("AnyStream client not provided") }
 
 fun webApp() = renderComposable(rootElementId = "root") {
     startKoin {
         modules(coreModule())
     }
     // Consume session token from cookie after oauth flow
-    val client = get<AnyStreamClient>()
+    val koin = getKoin()
+    val client = remember { koin.get<AnyStreamClient>() }
     LaunchedEffect(Unit) {
         if (client.user.isAuthenticated()) return@LaunchedEffect
         val cookies = document.cookie.split(';').toMutableSet()

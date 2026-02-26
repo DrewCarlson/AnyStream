@@ -28,7 +28,7 @@ fun <TElement : Element> AttrsScope<TElement>.tooltip(
     attr("data-bs-placement", placement)
     title(title)
     ref {
-        val tooltip = Bootstrap.Tooltip.getOrCreateInstance(it)
+        val tooltip = Tooltip.getOrCreateInstance(it)
         onDispose {
             tooltip.dispose()
         }

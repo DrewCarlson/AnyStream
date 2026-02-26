@@ -17,14 +17,14 @@ distributions.configureEach {
 val web = evaluationDependsOn(":client:web")
 
 tasks.withType<ShadowJar> {
-    dependsOn(web.tasks.getByName("jsBrowserDistribution"))
+    dependsOn(web.tasks.getByName("jsBrowserProductionDist"))
     archiveFileName.set("anystream.jar")
     archiveBaseName.set("anystream")
     archiveClassifier.set("anystream")
     manifest {
         attributes(mapOf("Main-Class" to application.mainClass.get()))
     }
-    from(web.layout.buildDirectory.file("dist/js/productionExecutable")) {
+    from(web.layout.buildDirectory.file("vite/js/productionExecutable")) {
         into("anystream-client-web")
     }
 }
@@ -123,11 +123,11 @@ dependencies {
 }
 
 tasks.getByName<JavaExec>("run") {
-    dependsOn(web.tasks.getByName("jsBrowserDevelopmentExecutableDistribution"))
+    dependsOn(web.tasks.getByName("jsBrowserDevelopmentDist"))
     environment(
         "WEB_CLIENT_PATH",
         properties["webClientPath"] ?: environment["WEB_CLIENT_PATH"]
-        ?: web.layout.buildDirectory.dir("dist/js/developmentExecutable").get().asFile.absolutePath
+        ?: web.layout.buildDirectory.dir("vite/js/developmentExecutable").get().asFile.absolutePath
     )
     environment(
         "DATABASE_URL",

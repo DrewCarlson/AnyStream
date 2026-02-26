@@ -18,7 +18,8 @@
 package anystream.components
 
 import androidx.compose.runtime.*
-import anystream.util.Bootstrap
+import anystream.util.Modal as BootstrapModal
+import anystream.util.ModalInstance
 import anystream.util.newElementId
 import org.jetbrains.compose.web.attributes.AttrsScope
 import org.jetbrains.compose.web.attributes.ButtonType
@@ -66,10 +67,10 @@ fun Modal(
     onHidden: (() -> Unit)? = null,
     header: (@Composable ElementScope<HTMLDivElement>.(labelId: String) -> Unit)? = null,
     footer: (@Composable ElementScope<HTMLDivElement>.() -> Unit)? = null,
-    body: @Composable ElementScope<HTMLDivElement>.(modalRef: Bootstrap.ModalInstance) -> Unit,
+    body: @Composable ElementScope<HTMLDivElement>.(modalRef: ModalInstance) -> Unit,
 ) {
     val labelId = remember(id) { "modal_${newElementId()}" }
-    var modal by remember(id) { mutableStateOf<Bootstrap.ModalInstance?>(null) }
+    var modal by remember(id) { mutableStateOf<ModalInstance?>(null) }
     Div({
         id(id)
         tabIndex(-1)
@@ -82,7 +83,7 @@ fun Modal(
         }
     }) {
         DisposableEffect(Unit) {
-            modal = Bootstrap.Modal.getOrCreateInstance(scopeElement)
+            modal = BootstrapModal.getOrCreateInstance(scopeElement)
             if (showOnComposition) {
                 modal?.show()
             }
