@@ -1,31 +1,31 @@
 [versions]
 qbittorrent = "1.1.0-alpha02"
-jdbc_sqlite = "3.51.1.0"
-jooq = "3.20.10"
+jdbc_sqlite = "3.51.2.0"
+jooq = "3.20.11"
 kjob = "0.6.0"
 bouncy_castle = "1.83"
 jaffree = "0.0.1"
-logback = "1.5.25"
+logback = "1.5.32"
 koinKtor = "4.1.1"
-icu4j = "78.2"
-mockk = "1.14.7"
+mockk = "1.14.9"
 jooqGradle = "10.2"
-imageio = "3.13.0"
+imageio = "3.13.1"
+icu4j = "78.2"
 
 [plugins]
 shadowjar = "com.gradleup.shadow:9.3.1"
 jooq = { id = "nu.studer.jooq", version.ref = "jooqGradle" }
-flyway = "org.flywaydb.flyway:11.20.2"
+flyway = "org.flywaydb.flyway:12.0.2"
 
 [libraries]
-flyway-core = "org.flywaydb:flyway-core:11.20.2"
+flyway-core = "org.flywaydb:flyway-core:12.0.2"
 fastObjectPool = "cn.danielw:fast-object-pool:2.2.1"
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 jdbc-sqlite = { module = "org.xerial:sqlite-jdbc", version.ref = "jdbc_sqlite" }
 kjob-core = { module = "org.drewcarlson:kjob-core", version.ref = "kjob" }
 qbittorrent-models = { module = "org.drewcarlson:qbittorrent-models", version.ref = "qbittorrent" }
 qbittorrent-client = { module = "org.drewcarlson:qbittorrent-client", version.ref = "qbittorrent" }
-torrentSearch = "org.drewcarlson:torrentsearch:0.10.0"
+torrentSearch = "org.drewcarlson:torrentsearch:0.11.0"
 jaffree = { module = "org.drewcarlson:jaffree", version.ref = "jaffree" }
 bouncyCastle = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncy_castle" }
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }

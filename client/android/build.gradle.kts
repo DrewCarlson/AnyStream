@@ -9,7 +9,7 @@ android {
     compileSdk = 36
     defaultConfig {
         minSdk = 24
-        targetSdk = 35
+        targetSdk = 36
     }
     buildFeatures {
         compose = true
@@ -69,7 +69,6 @@ dependencies {
     implementation(libsClient.compose.material)
     implementation(libsClient.compose.icons)
     implementation(libsClient.coil.compose)
-    implementation(libsAndroid.zxing.core)
     implementation(libsAndroid.okhttp)
     implementation(libsCommon.ktor.client.cio)
     implementation(libsCommon.koin.core)

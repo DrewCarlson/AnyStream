@@ -45,13 +45,14 @@ allprojects {
     }
 }
 
-val moduleGroupFolders = listOf("libs", "anystream-server")
-
-subprojects {
-    if (moduleGroupFolders.contains(name)) {
-        return@subprojects
+kover {
+    dependencies {
+        val moduleGroupFolders = listOf("libs", "anystream-server")
+        subprojects {
+            if (moduleGroupFolders.contains(name)) {
+                return@subprojects
+            }
+            kover(rootProject.project(project.path))
+        }
     }
-
-    //apply(plugin = "org.jetbrains.kotlinx.kover")
-    //kover {}
 }
