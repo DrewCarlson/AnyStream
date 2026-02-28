@@ -244,13 +244,13 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - uses: reactivecircus/android-emulator-runner@b530d96654c385303d652368551fb075bc2f0b6b
+      - uses: DrewCarlson/android-emulator-runner@400f29c9684faec377be4e12c97daddf5c779c75
         name: Test Android Targets
         with:
           api-level: 36
           target: google_apis
           arch: x86_64
-          profile: Nexus 6
+          profile: pixel_7_pro
           script: ./gradlew connectedCheck
 
       - name: Archive Reports
