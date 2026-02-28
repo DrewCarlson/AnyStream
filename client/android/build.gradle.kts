@@ -72,10 +72,6 @@ dependencies {
     implementation(libsClient.molecule)
     implementation(libsAndroid.okhttp)
     implementation(libsCommon.ktor.client.cio)
-    implementation(libsCommon.koin.core)
-    implementation(libsAndroid.koin.android)
-    implementation(libsAndroid.koin.android.compat)
-    implementation(libsAndroid.koin.androidx.compose)
 
     debugImplementation(libsAndroid.anrWatchdog)
     debugImplementation(libsAndroid.leakcanary)

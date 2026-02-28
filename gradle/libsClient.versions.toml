@@ -53,7 +53,6 @@ compose-backhandler = { module = "org.jetbrains.compose.ui:ui-backhandler", vers
 compose-bundle = "org.jetbrains.androidx.core:core-bundle:1.0.1"
 haze-core = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
 haze-materials = { module = "dev.chrisbanes.haze:haze-materials", version.ref = "haze" }
-koin-compose = "io.insert-koin:koin-compose:4.1.1"
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "io-coil-kt-coil3" }
 coil-ktor = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "io-coil-kt-coil3" }
 routingCompose = "app.softwork:routing-compose:0.5.0"
