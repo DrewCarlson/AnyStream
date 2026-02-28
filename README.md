@@ -24,7 +24,8 @@
 
 - [server](server) &mdash; Web server for managing and streaming media built with [Ktor](https://github.com/ktorio/ktor)
 - [client/data-models](client/data-models) &mdash; Data models shared between the server and clients
-- [client/core](client/core) &mdash; Multiplatform infrastructure for AnyStream client applications built with [Mobius.kt](https://github.com/DrewCarlson/mobius.kt)
+- [client/core](client/core) &mdash; Multiplatform infrastructure for AnyStream client applications
+- [client/presentation](client/presentation) &mdash; Multiplatform presentation logic for AnyStream client applications
 - [client/web](client/web) &mdash; Web client implementation built with [Compose HTML](https://github.com/JetBrains/compose-multiplatform#libraries)
 - [client/ui](client/ui) &mdash; Shared [Compose Multiplatform](https://github.com/JetBrains/compose-multiplatform/) UI for Mobile & Desktop
 - [client/android](client/android) &mdash; Android client implementation built with [Jetpack Compose](https://developer.android.com/jetpack/compose)

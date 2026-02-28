@@ -47,7 +47,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import anystream.models.*
 import anystream.models.api.*
-import anystream.ui.LocalAnyStreamClient
+import anystream.presentation.media.MediaScreenModel
+import anystream.ui.components.LoadingScreen
 import anystream.ui.components.PosterCard
 import anystream.ui.components.PosterCardWidth
 import anystream.ui.generated.resources.Res
@@ -63,29 +64,33 @@ import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun MediaScreen(
-    mediaId: String,
+    model: MediaScreenModel,
     onPlayClick: (mediaLinkId: String) -> Unit,
     onMetadataClick: (metadataId: String) -> Unit,
     onBackClicked: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val client = LocalAnyStreamClient.current
-    val mediaResponse by produceState<MediaLookupResponse?>(null, mediaId) {
-        value = try {
-            client.library.lookupMedia(mediaId)
-        } catch (e: Throwable) {
-            e.printStackTrace()
-            null
+    when (model) {
+        is MediaScreenModel.Loaded -> {
+            MediaScreen(
+                response = model.response,
+                onPlayClick = onPlayClick,
+                onMetadataClick = onMetadataClick,
+                onBackClicked = onBackClicked,
+                modifier = modifier,
+            )
+        }
+        MediaScreenModel.Loading -> {
+            Box(modifier = modifier) {
+                LoadingScreen()
+            }
+        }
+        MediaScreenModel.LoadingFailed -> {
+            Box(modifier = modifier) {
+                Text("Failed to load...")
+            }
         }
     }
-
-    MediaScreen(
-        response = mediaResponse,
-        onPlayClick = onPlayClick,
-        onMetadataClick = onMetadataClick,
-        onBackClicked = onBackClicked,
-        modifier = modifier,
-    )
 }
 
 @Composable

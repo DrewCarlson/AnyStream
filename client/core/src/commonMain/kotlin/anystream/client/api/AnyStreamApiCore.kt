@@ -59,7 +59,10 @@ import io.ktor.utils.io.InternalAPI
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlin.concurrent.atomics.AtomicReference
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 
@@ -79,13 +82,17 @@ class AnyStreamApiCore(
     }
 
     internal val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
-    private val serverUrlInternal = AtomicReference(serverUrl ?: sessionManager.fetchServerUrl() ?: "")
+    private val serverUrlInternal = MutableStateFlow(serverUrl ?: sessionManager.fetchServerUrl())
 
-    var serverUrl: String
-        get() = serverUrlInternal.load()
+    val serverUrlFlow: StateFlow<String?> = serverUrlInternal.asStateFlow()
+    var serverUrl: String?
+        get() = serverUrlInternal.value
         private set(value) {
-            val trimmedUrl = value.trimEnd('/')
-            serverUrlInternal.store(trimmedUrl)
+            val trimmedUrl = value?.trimEnd('/') ?: run {
+                serverUrlInternal.update { null }
+                return
+            }
+            serverUrlInternal.update { trimmedUrl }
         }
 
     val http = httpClient.config {
@@ -104,9 +111,11 @@ class AnyStreamApiCore(
         }
         install(AdaptiveProtocolPlugin)
         defaultRequest {
-            attributes.put(ServerUrlAttribute, this@AnyStreamApiCore.serverUrl)
-            url {
-                takeFrom(this@AnyStreamApiCore.serverUrl)
+            this@AnyStreamApiCore.serverUrl?.let { currentServerUrl ->
+                attributes.put(ServerUrlAttribute, currentServerUrl)
+                url {
+                    takeFrom(currentServerUrl)
+                }
             }
             headers {
                 sessionManager.fetchToken()?.let { token ->
@@ -150,13 +159,14 @@ class AnyStreamApiCore(
     }
 
     suspend fun verifyAndSetServerUrl(serverUrl: String): Boolean {
+        if (serverUrl.isBlank()) return false
         if (this.serverUrl.equals(serverUrl, ignoreCase = true)) return true
         return try {
             check(http.get(serverUrl).status == OK)
             this.serverUrl = serverUrl
-            sessionManager.writeServerUrl(this.serverUrl)
+            sessionManager.writeServerUrl(this.serverUrl.orEmpty())
             true
-        } catch (e: Throwable) {
+        } catch (_: Throwable) {
             false
         }
     }

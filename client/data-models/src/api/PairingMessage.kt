@@ -33,6 +33,7 @@ sealed class PairingMessage {
     @Poko
     @Serializable
     class Authorized(
+        val pairingCode: String,
         val secret: String,
         val userId: String,
     ) : PairingMessage()

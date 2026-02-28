@@ -23,82 +23,32 @@ import androidx.activity.addCallback
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.runtime.*
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import anystream.router.BackPressHandler
-import anystream.router.LocalBackPressHandler
 import anystream.ui.App
 
 class LeanbackActivity : MainActivity()
 open class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val app = application as anystream.android.App
         installSplashScreen()
         enableEdgeToEdge(
             navigationBarStyle = SystemBarStyle.light(0, 0),
         )
         super.onCreate(savedInstanceState)
-        val backPressHandler = BackPressHandler()
         onBackPressedDispatcher.addCallback(this) {
-            if (!backPressHandler.handle()) {
+            if (!app.appModels.value.appUiModel.goBack()) {
                 finish()
             }
         }
         setContent {
-            CompositionLocalProvider(
-                LocalBackPressHandler provides backPressHandler,
-            ) {
-                App()
-            }
+            val appModel by app.appModels.collectAsState()
+            App(
+                appGraph = app.appGraph,
+                appModel = appModel,
+            )
         }
     }
 }
-
-/*@Composable
-fun AppTopBar(client: AnyStreamClient?, backStack: BackStack<Routes>?) {
-    TopAppBar {
-        val scope = rememberCoroutineScope()
-        Image(
-            imageVector = ImageVector.vectorResource(id = R.drawable.as_logo),
-            modifier = Modifier
-                .padding(all = 8.dp)
-                .size(width = 150.dp, height = 50.dp),
-            contentDescription = null,
-        )
-
-        if (client != null) {
-            val authed by client.authenticated.collectAsState(initial = client.isAuthenticated())
-            if (authed) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.End,
-                    modifier = Modifier.fillMaxSize(),
-                ) {
-                    val packageManager = LocalContext.current.packageManager
-                    val hasCamera = remember {
-                        packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)
-                    }
-                    if (hasCamera) {
-                        IconButton(
-                            onClick = { backStack?.push(Routes.PairingScanner) },
-                        ) {
-                            Icon(
-                                imageVector = ImageVector.vectorResource(
-                                    R.drawable.ic_qr_code_scanner,
-                                ),
-                                contentDescription = "Pair a device.",
-                            )
-                        }
-                    }
-
-                    IconButton(onClick = { scope.launch { client.logout() } }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ExitToApp,
-                            contentDescription = "Sign out",
-                        )
-                    }
-                }
-            }
-        }
-    }
-}*/

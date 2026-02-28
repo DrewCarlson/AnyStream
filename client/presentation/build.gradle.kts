@@ -1,17 +1,15 @@
 plugins {
     id("multiplatform-lib")
-    id("com.google.devtools.ksp")
-}
-
-dependencies {
-    add("kspCommonMainMetadata", libsClient.mobiuskt.codegen)
+    kotlin("plugin.compose")
+    alias(libsCommon.plugins.ksp)
+    alias(libsClient.plugins.metro)
+    alias(libsClient.plugins.composejb)
 }
 
 kotlin {
     sourceSets {
         all {
             languageSettings {
-                optIn("kt.mobius.gen.ExperimentalCodegenApi")
                 optIn("kotlinx.cinterop.ExperimentalForeignApi")
             }
         }
@@ -20,16 +18,14 @@ kotlin {
             dependencies {
                 api(projects.client.core)
                 api(projects.client.dataModels)
-                api(libsClient.mobiuskt.core)
-                api(libsClient.mobiuskt.compose)
-                api(libsClient.mobiuskt.coroutines)
-                implementation(libsClient.mobiuskt.codegen.api)
+                //api(libsClient.compose.resources)
+                api(libsClient.compose.runtime)
+                api(libsClient.molecule)
             }
         }
 
         val commonTest by getting {
             dependencies {
-                implementation(libsClient.mobiuskt.test)
             }
         }
     }

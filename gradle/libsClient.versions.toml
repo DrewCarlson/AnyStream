@@ -8,7 +8,6 @@ composejb = "1.11.0-alpha03"
 composejb_lifecycle = "2.10.0-alpha08" # Fails on >=2.9.2
 media3 = "1.9.2"
 ax_runner = "1.5.2"
-mobiuskt = "1.4.0"
 objectstore = "0.2.0"
 vlc = "3.0.19"
 kotlinjs = "2026.2.21"
@@ -18,6 +17,7 @@ io-coil-kt-coil3 = "3.4.0"
 
 [plugins]
 composejb = { id = "org.jetbrains.compose", version.ref = "composejb" }
+metro = "dev.zacsweers.metro:0.11.1"
 
 [libraries]
 kotlinjs-browser = { module = "org.jetbrains.kotlin-wrappers:kotlin-browser", version.ref = "kotlinjs" }
@@ -57,13 +57,6 @@ koin-compose = "io.insert-koin:koin-compose:4.1.1"
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "io-coil-kt-coil3" }
 coil-ktor = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "io-coil-kt-coil3" }
 routingCompose = "app.softwork:routing-compose:0.5.0"
-mobiuskt-core = { module = "org.drewcarlson:mobiuskt-core", version.ref = "mobiuskt" }
-mobiuskt-test = { module = "org.drewcarlson:mobiuskt-test", version.ref = "mobiuskt" }
-mobiuskt-extras = { module = "org.drewcarlson:mobiuskt-extras", version.ref = "mobiuskt" }
-mobiuskt-coroutines = { module = "org.drewcarlson:mobiuskt-coroutines", version.ref = "mobiuskt" }
-mobiuskt-compose = { module = "org.drewcarlson:mobiuskt-compose", version.ref = "mobiuskt" }
-mobiuskt-codegen = { module = "org.drewcarlson:mobiuskt-codegen", version.ref = "mobiuskt" }
-mobiuskt-codegen-api = { module = "org.drewcarlson:mobiuskt-codegen-api", version.ref = "mobiuskt" }
 objectstore-core = { module = "org.drewcarlson:objectstore-core", version.ref = "objectstore" }
 objectstore-fs = { module = "org.drewcarlson:objectstore-fs", version.ref = "objectstore" }
 objectstore-json = { module = "org.drewcarlson:objectstore-json", version.ref = "objectstore" }
@@ -71,6 +64,7 @@ objectstore-protobuf = { module = "org.drewcarlson:objectstore-protobuf", versio
 objectstore-secure = { module = "org.drewcarlson:objectstore-secure", version.ref = "objectstore" }
 vlcj = "uk.co.caprica:vlcj:4.12.1"
 jna = "net.java.dev.jna:jna:5.18.1"
+molecule = "app.cash.molecule:molecule-runtime:2.2.0"
 
 [bundles]
 media3 = [

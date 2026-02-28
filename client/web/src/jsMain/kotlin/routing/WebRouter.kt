@@ -18,6 +18,7 @@
 package anystream.routing
 
 import app.softwork.routingcompose.Router
+import kotlinx.browser.window
 
 // TODO: BrowserRouter is not customizable and can only push routes,
 //  a custom Router utilizing window.history.state data can emulate
@@ -32,10 +33,11 @@ class WebRouter(private val router: Router) : CommonRouter {
     }
 
     override fun replaceStack(routes: List<Routes>) {
-        TODO("Not yet implemented")
+        routes.forEach(::pushRoute)
     }
 
-    override fun popCurrentRoute() {
-        TODO("Not yet implemented")
+    override fun popCurrentRoute(): Boolean {
+        window.history.back()
+        return true
     }
 }

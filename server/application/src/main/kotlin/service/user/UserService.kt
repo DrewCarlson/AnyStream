@@ -268,6 +268,7 @@ class UserService(
             val user = queries.fetchUserByUsername(username) ?: return null
             return if (session.userId == user.id) {
                 pairingCodes[body.password] = PairingMessage.Authorized(
+                    pairingCode = body.password,
                     secret = Random.nextBytes(28).toHexString(),
                     userId = session.userId,
                 )

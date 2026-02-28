@@ -18,40 +18,20 @@
 package anystream.screens
 
 import androidx.compose.runtime.*
-import anystream.client.AnyStreamClient
 import anystream.models.*
 import anystream.models.api.CreateUserResponse
-import anystream.routing.WebRouter
-import anystream.presentation.signup.*
+import anystream.presentation.signup.SignupScreenModel
 import anystream.presentation.signup.SignupScreenModel.State
-import anystream.util.get
 import app.softwork.routingcompose.Router
-import io.ktor.http.*
-import kotlinx.browser.window
-import kt.mobius.SimpleLogger
-import kt.mobius.compose.rememberMobiusLoop
-import kt.mobius.flow.FlowMobius
 import org.jetbrains.compose.web.attributes.*
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 
 @Composable
-fun SignupScreen() {
+fun SignupScreen(
+    model: SignupScreenModel
+) {
     val router = Router.current
-    val client = get<AnyStreamClient>()
-    val launchInviteCode = remember { Url(window.location.href).parameters["inviteCode"] }
-    val (modelState, eventConsumer) = rememberMobiusLoop(
-        SignupScreenModel.create(client.core.serverUrl, launchInviteCode.orEmpty()),
-        SignupScreenInit
-    ) {
-        FlowMobius.loop(
-            SignupScreenUpdate,
-            SignupScreenHandler(client, WebRouter(router)),
-        ).logger(SimpleLogger("Signup"))
-    }
-
-    val model by remember { modelState }
-
     Div({
         classes("d-flex", "flex-column", "justify-content-center", "align-items-center", "py-4")
         style {
@@ -61,20 +41,26 @@ fun SignupScreen() {
         Div { H3 { Text("Signup") } }
         Div {
             Input(InputType.Text) {
-                onInput { eventConsumer(SignupScreenEvent.OnUsernameChanged(it.value)) }
+                onInput { model.onUsernameChanged(it.value) }
                 classes("form-control")
                 placeholder("Username")
                 type(InputType.Text)
-                if (model.isInputLocked()) disabled()
+                if (model.isInputLocked) disabled()
             }
         }
         Div {
             Input(InputType.Text) {
-                onInput { eventConsumer(SignupScreenEvent.OnPasswordChanged(it.value)) }
+                onInput { model.onPasswordChanged(it.value) }
+                onKeyDown {
+                    if (it.key == "Enter") {
+                        it.preventDefault()
+                        model.onSubmitSignup()
+                    }
+                }
                 classes("form-control")
                 placeholder("Password")
                 type(InputType.Password)
-                if (model.isInputLocked()) disabled()
+                if (model.isInputLocked) disabled()
             }
         }
         Div {
@@ -84,12 +70,12 @@ fun SignupScreen() {
                     if (model.isInviteCodeLocked) {
                         return@onInput it.preventDefault()
                     }
-                    eventConsumer(SignupScreenEvent.OnInviteCodeChanged(it.value))
+                    model.onInviteCodeChanged(it.value)
                 }
                 classes("form-control")
                 placeholder("Invite Code")
                 type(InputType.Text)
-                if (model.isInputLocked() || model.isInviteCodeLocked) disabled()
+                if (model.isInputLocked || model.isInviteCodeLocked) disabled()
             }
         }
         Div {
@@ -106,9 +92,9 @@ fun SignupScreen() {
             Button({
                 classes("btn", "btn-primary")
                 type(ButtonType.Button)
-                if (model.isInputLocked()) disabled()
+                if (model.isInputLocked) disabled()
                 onClick {
-                    eventConsumer(SignupScreenEvent.OnSignupSubmit)
+                    model.onSubmitSignup()
                 }
             }) {
                 Text("Confirm")
@@ -116,11 +102,13 @@ fun SignupScreen() {
         }
         Div {
             A(
+                href = "/login",
                 attrs = {
                     style {
                         property("cursor", "pointer")
                     }
                     onClick {
+                        it.preventDefault()
                         if (model.state == State.IDLE) {
                             router.navigate("/login")
                         }

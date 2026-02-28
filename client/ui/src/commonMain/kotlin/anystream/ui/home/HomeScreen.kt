@@ -31,7 +31,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import anystream.client.AnyStreamClient
 import anystream.models.*
 import anystream.models.api.CurrentlyWatching
 import anystream.models.api.Popular
@@ -44,28 +43,18 @@ import anystream.ui.components.PosterCard
 import anystream.ui.util.LocalImageProvider
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
-import kt.mobius.SimpleLogger
-import kt.mobius.compose.rememberMobiusLoop
-import kt.mobius.flow.FlowMobius
 
 private val CARD_SPACING = 8.dp
 
 @Composable
 fun HomeScreen(
-    client: AnyStreamClient,
+    model: HomeScreenModel,
     onMetadataClick: (metadataId: String) -> Unit,
     onPlayClick: (mediaLinkId: String) -> Unit,
     onViewMoviesClicked: (libraryId: String) -> Unit,
     onViewTvShowsClicked: (libraryId: String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val (modelState, eventConsumer) = rememberMobiusLoop(HomeScreenModel.Loading, HomeScreenInit) {
-        FlowMobius.loop(
-            HomeScreenUpdate,
-            HomeScreenHandler(client),
-        ).logger(SimpleLogger("HomeScreen"))
-    }
-    val model by modelState
     AnimatedContent(model) { currentModel ->
         when (currentModel) {
             is HomeScreenModel.Loading -> LoadingScreen(modifier = modifier)

@@ -1,5 +1,6 @@
 plugins {
     id("multiplatform-lib")
+    alias(libsClient.plugins.metro)
 }
 
 kotlin {
@@ -17,7 +18,6 @@ kotlin {
                 implementation(libsCommon.ktor.serialization)
                 implementation(libsCommon.ktor.client.logging)
 
-                api(libsCommon.koin.core)
                 api(libsClient.objectstore.core)
                 api(libsClient.objectstore.json)
                 api(libsCommon.coroutines.core)

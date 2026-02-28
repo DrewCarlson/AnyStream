@@ -19,12 +19,10 @@ package anystream.screens.settings.library
 
 import androidx.compose.runtime.*
 import anystream.LocalAnyStreamClient
-import anystream.client.AnyStreamClient
 import anystream.components.LoadingIndicator
 import anystream.models.api.MediaLinkMatchResult
 import anystream.models.api.MediaLinkResponse
 import anystream.models.api.MetadataMatch
-import anystream.util.get
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
@@ -36,7 +34,7 @@ fun MetadataMatchScreen(
     onLoadingStatChanged: (isLoading: Boolean) -> Unit,
     closeScreen: () -> Unit,
 ) {
-    val client = get<AnyStreamClient>()
+    val client = LocalAnyStreamClient.current
     val scope = rememberCoroutineScope()
     val mediaLinkResponse by produceState<MediaLinkResponse?>(null, mediaLinkId) {
         value = if (mediaLinkId == null) {

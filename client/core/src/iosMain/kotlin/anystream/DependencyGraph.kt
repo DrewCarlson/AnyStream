@@ -17,17 +17,4 @@
  */
 package anystream
 
-import anystream.client.coreModule
-import org.koin.core.KoinApplication
-import org.koin.core.context.startKoin
-
-private var koinApp: KoinApplication? = null
-
-fun configure(body: KoinApplication.() -> Unit = {}) {
-    if (koinApp == null) {
-        koinApp = startKoin {
-            modules(coreModule())
-            body()
-        }
-    }
-}
+// TODO

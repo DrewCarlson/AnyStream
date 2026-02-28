@@ -18,6 +18,7 @@
 package anystream.screens.settings
 
 import androidx.compose.runtime.*
+import anystream.LocalAnyStreamClient
 import anystream.client.AnyStreamClient
 import anystream.components.NavLink
 import anystream.models.*
@@ -28,7 +29,6 @@ import anystream.models.api.PlaybackSessions
 import anystream.screens.settings.library.LibrariesScreen
 import anystream.screens.settings.library.MediaLinkListScreen
 import anystream.util.formatProgressAndRuntime
-import anystream.util.get
 import app.softwork.routingcompose.RouteBuilder
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.web.css.*
@@ -94,7 +94,7 @@ fun SettingsSideMenu() {
 
 @Composable
 private fun ActiveStreamsList() {
-    val client = get<AnyStreamClient>()
+    val client = LocalAnyStreamClient.current
     val sessionsResponse by client.admin.playbackSessions.collectAsState(PlaybackSessions())
     val transcodeSessions = sessionsResponse.transcodeSessions
     val mediaLookups = sessionsResponse.mediaLookups

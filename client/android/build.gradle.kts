@@ -2,6 +2,7 @@ plugins {
     id("com.android.application")
     kotlin("plugin.compose")
     alias(libsCommon.plugins.spotless)
+    alias(libsClient.plugins.metro)
 }
 
 android {
@@ -49,7 +50,6 @@ kotlin {
         optIn.add("androidx.compose.ui.ExperimentalComposeUiApi")
         optIn.add("androidx.compose.foundation.ExperimentalFoundationApi")
         optIn.add("coil.annotation.ExperimentalCoilApi")
-        optIn.add("kt.mobius.compose.ExperimentalMobiusktComposeApi")
     }
 }
 
@@ -69,6 +69,7 @@ dependencies {
     implementation(libsClient.compose.material)
     implementation(libsClient.compose.icons)
     implementation(libsClient.coil.compose)
+    implementation(libsClient.molecule)
     implementation(libsAndroid.okhttp)
     implementation(libsCommon.ktor.client.cio)
     implementation(libsCommon.koin.core)

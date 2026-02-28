@@ -17,11 +17,29 @@
  */
 package anystream.client
 
+import android.content.Context
 import anystream.AndroidSessionDataStore
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.BindingContainer
+import dev.zacsweers.metro.ContributesTo
+import dev.zacsweers.metro.Provides
+import dev.zacsweers.metro.SingleIn
+import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.cio.*
-import org.koin.dsl.module
 
-actual fun platformCoreModule() = module {
-    single { CIO.create { } }
-    single<SessionDataStore> { AndroidSessionDataStore(prefs = get()) }
+@ContributesTo(AppScope::class)
+@BindingContainer
+actual object PlatformCoreBindings {
+
+    @SingleIn(AppScope::class)
+    @Provides
+    actual fun provideHttpClientEngine(): HttpClientEngine =
+        CIO.create {  }
+
+    @SingleIn(AppScope::class)
+    @Provides
+    fun provideDataStore(context: Context): SessionDataStore =
+        AndroidSessionDataStore(
+            prefs = context.getSharedPreferences("session", Context.MODE_PRIVATE)
+        )
 }
