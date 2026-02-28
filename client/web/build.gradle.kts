@@ -8,6 +8,7 @@ plugins {
     alias(libsCommon.plugins.spotless)
     alias(libsCommon.plugins.serialization)
     alias(libsCommon.plugins.kotlinVite)
+    alias(libsClient.plugins.metro)
 }
 
 val localProperties = gradleLocalProperties(rootDir, providers)
@@ -31,7 +32,6 @@ kotlin {
                 optIn("kotlinx.coroutines.ExperimentalCoroutinesApi")
                 optIn("kotlinx.coroutines.FlowPreview")
                 optIn("kotlin.time.ExperimentalTime")
-                optIn("kt.mobius.compose.ExperimentalMobiusktComposeApi")
             }
         }
         named("jsMain") {

@@ -20,35 +20,39 @@ package anystream
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
 import anystream.client.AnyStreamClient
-import anystream.client.coreModule
 import anystream.components.Navbar
 import anystream.components.SideMenu
+import anystream.di.JsAppGraph
+import anystream.presentation.app.AppProps
+import anystream.presentation.app.AppUiProps
+import anystream.presentation.core.ScreenModel
+import anystream.presentation.login.LoginScreenModel
+import anystream.presentation.signup.SignupScreenModel
+import anystream.routing.Routes
+import anystream.routing.WebRouter
 import anystream.screens.*
 import anystream.screens.settings.SettingsScreen
 import anystream.screens.settings.SettingsSideMenu
-import anystream.util.get
-import anystream.util.getKoin
 import app.softwork.routingcompose.BrowserRouter
 import app.softwork.routingcompose.Router
+import io.ktor.http.Url
 import kotlinx.browser.document
+import kotlinx.browser.window
 import kotlinx.coroutines.flow.*
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 import org.jetbrains.compose.web.renderComposable
-import org.koin.core.context.startKoin
 import org.w3c.dom.HTMLDivElement
 
 val playerMediaLinkId = MutableStateFlow<String?>(null)
 val LocalAnyStreamClient =
     compositionLocalOf<AnyStreamClient> { error("AnyStream client not provided") }
 
-fun webApp() = renderComposable(rootElementId = "root") {
-    startKoin {
-        modules(coreModule())
-    }
+fun webApp(
+    appGraph: JsAppGraph
+) = renderComposable(rootElementId = "root") {
     // Consume session token from cookie after oauth flow
-    val koin = getKoin()
-    val client = remember { koin.get<AnyStreamClient>() }
+    val client = remember { appGraph.client }
     LaunchedEffect(Unit) {
         if (client.user.isAuthenticated()) return@LaunchedEffect
         val cookies = document.cookie.split(';').toMutableSet()
@@ -89,49 +93,83 @@ fun webApp() = renderComposable(rootElementId = "root") {
         })
 
         CompositionLocalProvider(
-            LocalAnyStreamClient provides getKoin().get()
+            LocalAnyStreamClient provides appGraph.client
         ) {
-            ContentContainer()
+            ContentContainer(appGraph = appGraph)
         }
     }
 }
 
 @Composable
-private fun ContentContainer(client: AnyStreamClient = get()) {
+private fun ContentContainer(
+    appGraph: JsAppGraph,
+) {
+    val client = appGraph.client
+    var currentRoute by remember { mutableStateOf<Routes>(Routes.Home) }
     BrowserRouter("/") {
         route("home") {
-            noMatch { ScreenContainer { HomeScreen() } }
+            noMatch {
+                currentRoute = Routes.Home
+                ScreenContainer(client) { HomeScreen() }
+            }
         }
         route("login") {
-            noMatch { ScreenContainer({}) { LoginScreen() } }
+            noMatch { currentRoute = Routes.Login }
         }
         route("signup") {
-            noMatch { ScreenContainer({}) { SignupScreen() } }
+            noMatch { currentRoute = Routes.SignUp }
         }
         route("library") {
             string { id ->
-                ScreenContainer {
+                currentRoute = Routes.Library(id)
+                ScreenContainer(client) {
                     LibraryScreen(libraryId = id)
                 }
             }
-            noMatch { redirect("/") }
+            noMatch { redirect("/home") }
         }
         route("downloads") {
-            noMatch { ScreenContainer { DownloadsScreen() } }
+            noMatch { ScreenContainer(client) { DownloadsScreen() } }
         }
         route("settings") {
             string { subScreen ->
-                ScreenContainer({ SettingsSideMenu() }) {
+                ScreenContainer(client, { SettingsSideMenu() }) {
                     SettingsScreen(subScreen)
                 }
             }
         }
         route("media") {
-            string { id -> ScreenContainer { MediaScreen(id) } }
+            string { id ->
+                currentRoute = Routes.Home
+                ScreenContainer(client) { MediaScreen(id) }
+            }
             noMatch { redirect("/home") }
         }
         noMatch { redirect(if (client.user.isAuthenticated()) "/home" else "/login") }
 
+        val launchInviteCode = remember { Url(window.location.href).parameters["inviteCode"] }
+        val webRouter = WebRouter(Router.current)
+        val appModel = appGraph.appPresenter.model(
+            AppProps(
+                inviteCode = launchInviteCode,
+                externalRouter = webRouter,
+                externalRoute = currentRoute,
+            )
+        )
+
+        when (val screenModel = appModel.appUiModel.screen) {
+            is LoginScreenModel -> {
+                ScreenContainer(client, {}) {
+                    LoginScreen(screenModel)
+                }
+            }
+            is SignupScreenModel -> {
+                ScreenContainer(client, {}) {
+                    SignupScreen(screenModel)
+                }
+            }
+            else -> Unit
+        }
         val metadataId by playerMediaLinkId.collectAsState()
         metadataId?.let { PlayerScreen(it) }
     }
@@ -139,11 +177,11 @@ private fun ContentContainer(client: AnyStreamClient = get()) {
 
 @Composable
 private fun ScreenContainer(
+    client: AnyStreamClient,
     menu: @Composable () -> Unit = { SideMenu() },
     content: ContentBuilder<HTMLDivElement>,
 ) {
     val authRoutes = remember { listOf("/signup", "/login") }
-    val client = get<AnyStreamClient>()
     val isAuthenticated by client.user.authenticated.collectAsState(client.user.isAuthenticated())
     val router = Router.current
     val currentPath by router.getPath("/")

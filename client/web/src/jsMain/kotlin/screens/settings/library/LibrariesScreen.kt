@@ -18,10 +18,10 @@
 package anystream.screens.settings.library
 
 import androidx.compose.runtime.*
+import anystream.LocalAnyStreamClient
 import anystream.client.AnyStreamClient
 import anystream.models.Library
 import anystream.util.bootstrapIcon
-import anystream.util.get
 import anystream.util.tooltip
 import app.softwork.routingcompose.Router
 import kotlinx.coroutines.launch
@@ -33,7 +33,7 @@ import org.jetbrains.compose.web.dom.*
 @Composable
 fun LibrariesScreen() {
     val router = Router.current
-    val client = get<AnyStreamClient>()
+    val client = LocalAnyStreamClient.current
     val scope = rememberCoroutineScope()
     var editLibrary by remember { mutableStateOf<Library?>(null) }
     val libraries by produceState(emptyList<Library>()) {

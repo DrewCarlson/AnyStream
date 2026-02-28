@@ -1,10 +1,8 @@
-import com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget
-import kotlin.apply
-
 plugins {
     id("multiplatform-lib")
     kotlin("plugin.compose")
-    id("org.jetbrains.compose")
+    alias(libsClient.plugins.composejb)
+    alias(libsClient.plugins.metro)
 }
 
 compose {
@@ -15,13 +13,6 @@ compose {
 }
 
 kotlin {
-
-    if (hasAndroidSdk) {
-        (targets.getByName("android") as KotlinMultiplatformAndroidLibraryTarget).apply {
-            androidResources.enable = true
-        }
-    }
-
     configure(
         listOf(
             iosArm64(),
@@ -40,13 +31,11 @@ kotlin {
     sourceSets {
         all {
             languageSettings {
-                optIn("kt.mobius.gen.ExperimentalCodegenApi")
                 optIn("kotlinx.cinterop.ExperimentalForeignApi")
                 optIn("androidx.compose.foundation.ExperimentalFoundationApi")
                 optIn("org.jetbrains.compose.resources.ExperimentalResourceApi")
                 optIn("androidx.compose.material3.ExperimentalMaterial3Api")
                 optIn("androidx.compose.ui.ExperimentalComposeUiApi")
-                optIn("kt.mobius.compose.ExperimentalMobiusktComposeApi")
             }
         }
 
@@ -57,7 +46,6 @@ kotlin {
                 api(projects.client.presentation)
                 implementation(libsClient.coil.compose)
                 implementation(libsClient.coil.ktor)
-                implementation(libsClient.koin.compose)
                 implementation(libsClient.haze.core)
                 implementation(libsClient.haze.materials)
                 implementation(libsClient.compose.lifecycle)

@@ -17,31 +17,34 @@
  */
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.window.ComposeUIViewController
-import anystream.configure
+import anystream.di.IosAppGraph
+import anystream.presentation.app.AppProps
 import anystream.ui.App
-import anystream.ui.UiModule
 import anystream.ui.util.LocalSystemBarController
 import anystream.ui.util.SystemBarController
 import anystream.ui.util.SystemBarControllerExport
+import dev.zacsweers.metro.createGraphFactory
 import platform.UIKit.UIViewController
 
-@Suppress("FunctionName") // called from Swift
+@Suppress("FunctionName", "Unused") // called from Swift
 fun MainViewController(
     statusBarController: SystemBarControllerExport,
 ): UIViewController {
-    configure {
-        modules(UiModule)
-    }
+    val appGraph = createGraphFactory<IosAppGraph.Factory>().create()
     val actualSystemBarController = object : SystemBarController {
         override fun setSystemBars(hidden: Boolean) {
             statusBarController.setSystemBars(hidden)
         }
     }
     return ComposeUIViewController {
+        val appModel = appGraph.appPresenter.model(AppProps())
         CompositionLocalProvider(
             LocalSystemBarController provides actualSystemBarController,
         ) {
-            App()
+            App(
+                appGraph = appGraph,
+                appModel = appModel,
+            )
         }
     }
 }

@@ -18,35 +18,20 @@
 package anystream.screens
 
 import androidx.compose.runtime.*
-import anystream.client.AnyStreamClient
 import anystream.libs.QRCodeImage
-import anystream.routing.WebRouter
-import anystream.presentation.login.*
-import anystream.util.get
+import anystream.presentation.login.LoginScreenModel
+import anystream.presentation.login.LoginScreenModel.State
 import app.softwork.routingcompose.Router
-import kt.mobius.SimpleLogger
-import kt.mobius.compose.rememberMobiusLoop
-import kt.mobius.flow.FlowMobius
 import org.jetbrains.compose.web.attributes.*
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 import web.window.window
 
 @Composable
-fun LoginScreen() {
+fun LoginScreen(
+    model: LoginScreenModel,
+) {
     val router = Router.current
-    val client = get<AnyStreamClient>()
-    val (modelState, eventConsumer) = rememberMobiusLoop(
-        LoginScreenModel.create(client.core.serverUrl, supportsPairing = true),
-        LoginScreenInit
-    ) {
-        FlowMobius.loop(
-            LoginScreenUpdate,
-            LoginScreenHandler(client, WebRouter(router)),
-        ).logger(SimpleLogger("Login"))
-    }
-
-    val model by remember { modelState }
 
     Div({
         classes("d-flex", "flex-column", "justify-content-center", "align-items-center", "py-4")
@@ -58,20 +43,26 @@ fun LoginScreen() {
         if (model.supportsPasswordAuth) {
             Div {
                 Input(InputType.Text) {
-                    onInput { eventConsumer(LoginScreenEvent.OnUsernameChanged(it.value)) }
+                    onInput { model.onUsernameChanged(it.value) }
                     classes("form-control")
                     placeholder("Username")
                     type(InputType.Text)
-                    if (model.isInputLocked()) disabled()
+                    if (model.isInputLocked) disabled()
                 }
             }
             Div {
                 Input(InputType.Text) {
-                    onInput { eventConsumer(LoginScreenEvent.OnPasswordChanged(it.value)) }
+                    onInput { model.onPasswordChanged(it.value) }
+                    onKeyDown {
+                        if (it.key == "Enter") {
+                            it.preventDefault()
+                            model.onSubmitLogin()
+                        }
+                    }
                     classes("form-control")
                     placeholder("Password")
                     type(InputType.Password)
-                    if (model.isInputLocked()) disabled()
+                    if (model.isInputLocked) disabled()
                 }
             }
             Div {
@@ -81,8 +72,8 @@ fun LoginScreen() {
                 Button({
                     classes("btn", "btn-primary")
                     type(ButtonType.Button)
-                    if (model.isInputLocked()) disabled()
-                    onClick { eventConsumer(LoginScreenEvent.OnLoginSubmit) }
+                    if (model.isInputLocked) disabled()
+                    onClick { model.onSubmitLogin() }
                 }) {
                     Text("Confirm")
                 }
@@ -96,7 +87,7 @@ fun LoginScreen() {
                             property("cursor", "pointer")
                         }
                         onClick {
-                            if (model.state == LoginScreenModel.State.IDLE) {
+                            if (model.state == State.IDLE) {
                                 window.location.pathname = "/api/users/oidc/login"
                             }
                         }
@@ -108,12 +99,14 @@ fun LoginScreen() {
         }
         Div {
             A(
+                href = "/signup",
                 attrs = {
                     style {
                         property("cursor", "pointer")
                     }
                     onClick {
-                        if (model.state == LoginScreenModel.State.IDLE) {
+                        it.preventDefault()
+                        if (model.state == State.IDLE) {
                             router.navigate("/signup")
                         }
                     }

@@ -25,5 +25,5 @@ interface CommonRouter {
 
     fun replaceStack(routes: List<Routes>)
 
-    fun popCurrentRoute()
+    fun popCurrentRoute(): Boolean
 }

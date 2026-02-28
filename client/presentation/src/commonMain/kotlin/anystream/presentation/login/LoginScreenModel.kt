@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2022 AnyStream Maintainers
+ * Copyright (C) 2026 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -18,6 +18,8 @@
 package anystream.presentation.login
 
 import anystream.models.api.CreateSessionResponse
+import anystream.presentation.core.ScreenModel
+
 
 data class LoginScreenModel(
     val serverUrl: String = "",
@@ -26,11 +28,20 @@ data class LoginScreenModel(
     val supportsPairing: Boolean = false,
     val pairingCode: String? = null,
     val state: State = State.IDLE,
+    val authTypes: List<String>? = null,
     val serverValidation: ServerValidation = ServerValidation.VALIDATING,
     val loginError: CreateSessionResponse.Error? = null,
     val supportsPasswordAuth: Boolean = true,
     val oidcProviderName: String? = null,
-) {
+    // events
+    val onServerUrlChanged: (String) -> Unit = {},
+    val onUsernameChanged: (String) -> Unit = {},
+    val onPasswordChanged: (String) -> Unit = {},
+    val onSubmitLogin: () -> Unit = {},
+) : ScreenModel {
+    val isInputLocked: Boolean = state != State.IDLE
+    val isServerUrlValid: Boolean = serverValidation == ServerValidation.VALID
+
     enum class State {
         IDLE, AUTHENTICATING, AUTHENTICATED;
 
@@ -40,45 +51,5 @@ data class LoginScreenModel(
 
     enum class ServerValidation {
         VALID, INVALID, VALIDATING,
-    }
-
-    fun credentialsAreSet(): Boolean {
-        return username.isNotBlank() && password.isNotBlank()
-    }
-
-    fun isServerUrlValid(): Boolean {
-        return serverValidation == ServerValidation.VALID
-    }
-
-    fun isInputLocked(): Boolean {
-        return state != State.IDLE
-    }
-
-    override fun toString(): String {
-        return "LoginScreenModel(serverUrl='$serverUrl', " +
-            "username='$username', " +
-            "password='***', " +
-            "supportsPairing=$supportsPairing, " +
-            "pairingCode=$pairingCode, state=$state, " +
-            "serverValidation=$serverValidation, " +
-            "loginError=$loginError)"
-    }
-
-    companion object {
-        fun create(): LoginScreenModel {
-            return LoginScreenModel()
-        }
-
-        fun create(supportsPairing: Boolean): LoginScreenModel {
-            return LoginScreenModel(supportsPairing = supportsPairing)
-        }
-
-        fun create(serverUrl: String, supportsPairing: Boolean): LoginScreenModel {
-            return LoginScreenModel(
-                serverUrl = serverUrl,
-                supportsPairing = supportsPairing,
-                serverValidation = ServerValidation.VALID,
-            )
-        }
     }
 }

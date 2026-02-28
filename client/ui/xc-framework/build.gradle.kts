@@ -1,7 +1,8 @@
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.compose")
-    id("org.jetbrains.compose")
+    alias(libsClient.plugins.composejb)
+    alias(libsClient.plugins.metro)
 }
 
 kotlin {
