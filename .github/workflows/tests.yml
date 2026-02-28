@@ -236,7 +236,7 @@ jobs:
           path: |
             ~/.konan
             ~/.gradle
-          key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v3
+          key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v4
 
       - name: Enable KVM group perms
         run: |
