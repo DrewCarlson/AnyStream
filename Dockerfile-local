@@ -1,4 +1,4 @@
-FROM azul/zulu-openjdk:21-jre-latest
+FROM azul/zulu-openjdk:25-jre-latest
 
 WORKDIR /app
 

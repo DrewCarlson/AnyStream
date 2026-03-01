@@ -1,11 +1,11 @@
-FROM azul/zulu-openjdk:21-latest AS build
+FROM azul/zulu-openjdk:25-latest AS build
 
 COPY . /build-project
 WORKDIR /build-project
 
 RUN ./gradlew :server:application:installShadowDist :client:web:jsBrowserProductionWebpack --console=plain --no-daemon
 
-FROM azul/zulu-openjdk:21-jre-latest
+FROM azul/zulu-openjdk:25-jre-latest
 
 WORKDIR /app
 
