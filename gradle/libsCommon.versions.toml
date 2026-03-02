@@ -11,7 +11,7 @@ koin = "4.1.1"
 agp = "9.0.1"
 kotest = "6.1.4"
 redacted = "1.15.1"
-poko = "0.21.1"
+poko = "0.21.3"
 
 [plugins]
 multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
