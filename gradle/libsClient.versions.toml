@@ -4,7 +4,7 @@ anr_watchdog = "1.4.0"
 compose = "1.10.4"
 compose_material = "1.7.8"
 compose_foundation = "1.10.4"
-composejb = "1.11.0-alpha03"
+composejb = "1.11.0-SNAPSHOT+ok-check-kotlin-2-3-20"
 composejb_lifecycle = "2.10.0-alpha08" # Fails on >=2.9.2
 media3 = "1.9.2"
 ax_runner = "1.5.2"
