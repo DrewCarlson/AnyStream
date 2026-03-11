@@ -17,13 +17,11 @@
  */
 package anystream.db.converter
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.jooq.BindingGetResultSetContext
 import org.jooq.BindingSetStatementContext
 import org.jooq.ContextConverter
 import org.jooq.Converter
 import org.jooq.ConverterContext
-import org.jooq.ConverterProvider
 import org.jooq.impl.AbstractBinding
 import kotlin.time.Duration
 
