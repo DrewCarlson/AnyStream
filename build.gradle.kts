@@ -14,6 +14,7 @@ plugins {
     alias(libsCommon.plugins.redacted) apply false
     alias(libsCommon.plugins.poko) apply false
     alias(libsCommon.plugins.kotlinVite) apply false
+    alias(libsCommon.plugins.spotless) apply false
 }
 
 buildscript {
