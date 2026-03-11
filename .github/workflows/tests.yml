@@ -138,7 +138,7 @@ jobs:
         uses: gradle/actions/setup-gradle@576fcbecfed70890e466eeffd7c78d93b30b0472
 
       - name: Cache Build files
-        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7
+        uses: actions/cache@565629816435f6c0b50676926c9b05c254113c0c
         if: ${{ !startsWith(matrix.os, 'windows') }}
         with:
           path: |
@@ -189,7 +189,7 @@ jobs:
         uses: gradle/actions/setup-gradle@576fcbecfed70890e466eeffd7c78d93b30b0472
 
       - name: Cache Build files
-        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7
+        uses: actions/cache@565629816435f6c0b50676926c9b05c254113c0c
         if: ${{ !startsWith(matrix.os, 'windows') }}
         with:
           path: |
@@ -231,7 +231,7 @@ jobs:
         uses: gradle/actions/setup-gradle@576fcbecfed70890e466eeffd7c78d93b30b0472
 
       - name: Cache Build files
-        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7
+        uses: actions/cache@565629816435f6c0b50676926c9b05c254113c0c
         with:
           path: |
             ~/.konan
@@ -287,7 +287,7 @@ jobs:
         uses: gradle/actions/setup-gradle@576fcbecfed70890e466eeffd7c78d93b30b0472
 
       - name: Cache Build files
-        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7
+        uses: actions/cache@565629816435f6c0b50676926c9b05c254113c0c
         if: ${{ !startsWith(matrix.os, 'windows') }}
         with:
           path: |
@@ -338,7 +338,7 @@ jobs:
         uses: gradle/actions/setup-gradle@576fcbecfed70890e466eeffd7c78d93b30b0472
 
       - name: Cache Build files
-        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7
+        uses: actions/cache@565629816435f6c0b50676926c9b05c254113c0c
         if: ${{ !startsWith(matrix.os, 'windows') }}
         with:
           path: |
@@ -365,7 +365,7 @@ jobs:
         uses: gradle/actions/setup-gradle@576fcbecfed70890e466eeffd7c78d93b30b0472
 
       - name: Cache Build files
-        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7
+        uses: actions/cache@565629816435f6c0b50676926c9b05c254113c0c
         with:
           path: |
             ~/.konan
