@@ -7,6 +7,12 @@ plugins {
 }
 
 kotlin {
+    if (hasAndroidSdk) {
+        configure<com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget> {
+            androidResources { enable = true }
+        }
+    }
+
     sourceSets {
         all {
             languageSettings {

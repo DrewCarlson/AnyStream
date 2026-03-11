@@ -27,8 +27,15 @@ val Project.hasAndroidSdk: Boolean
         }
         val localProps = File(rootDir, "local.properties")
         if (localProps.exists() && localProps.readText().contains("sdk.dir")) {
-            sdkFound = true
-            return true
+            val sdkDir = localProps.readLines().firstNotNullOfOrNull {
+                it.substringAfter("sdk.dir=", "")
+                    .takeUnless(String::isEmpty)
+            }
+            if (sdkDir != null) {
+                logger.lifecycle("[AnyStream Meta] Found SDK dir in local.properties: $sdkDir")
+                sdkFound = true
+                return true
+            }
         }
         val trySdkDir = sequenceOf(
             System.getProperty("user.home") + "/Library",
@@ -41,14 +48,14 @@ val Project.hasAndroidSdk: Boolean
                 .takeIf(File::exists)
         }
         sdkFound = if (trySdkDir?.exists() == true) {
-            if (!localProps.exists()) {
-                val pathString = trySdkDir.absolutePath
-                    .replace("\\", "\\\\")
-                    .replace(":", "\\:")
-                localProps.appendText("\nsdk.dir=$pathString")
-            }
+            val pathString = trySdkDir.absolutePath
+                .replace("\\", "\\\\")
+                .replace(":", "\\:")
+            logger.lifecycle("[AnyStream Meta] Writing SDK dir to local.properties: $pathString")
+            localProps.appendText("\nsdk.dir=$pathString")
             true
         } else {
+            logger.lifecycle("[AnyStream Meta] Android SDK is not installed")
             false
         }
         return sdkFound!!
