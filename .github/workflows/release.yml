@@ -120,7 +120,7 @@ jobs:
           :server:application:shadowDistTar
 
       - name: Container registry Log in
-        uses: docker/login-action@0567fa5ae8c9a197cb207537dc5cbb43ca3d803f
+        uses: docker/login-action@9fe7774c8f8ebfade96f0a62aa10f3882309d517
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
