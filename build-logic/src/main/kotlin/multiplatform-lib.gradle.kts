@@ -1,6 +1,5 @@
 import dev.zacsweers.redacted.gradle.RedactedPluginExtension
 import org.gradle.kotlin.dsl.*
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 
 plugins {
     kotlin("multiplatform")
@@ -88,7 +87,6 @@ kotlin {
         val libsAndroid = project.extensions.getByType<VersionCatalogsExtension>().named("libsAndroid")
 
         val commonMain by getting {
-            kotlin.srcDir("build/generated/ksp/metadata/$name/kotlin")
             dependencies {
                 implementation(kotlin("stdlib-common"))
                 implementation(libsCommon.findLibrary("redacted-annotations").get())
@@ -130,16 +128,6 @@ kotlin {
                 dependencies {
                     implementation(kotlin("test-js"))
                 }
-            }
-        }
-    }
-}
-
-afterEvaluate {
-    if (extensions.findByName("ksp") != null) {
-        tasks.withType<KotlinCompilationTask<*>>().all {
-            if (name != "kspCommonMainKotlinMetadata") {
-                dependsOn("kspCommonMainKotlinMetadata")
             }
         }
     }

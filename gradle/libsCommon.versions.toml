@@ -3,7 +3,6 @@ kotlin = { strictly = "2.3.10" }
 coroutines = "1.10.2"
 serialization = "1.10.0"
 ktorio = "3.4.1"
-ksp = "2.3.6"
 kover = "0.9.7"
 datetime = "0.7.1"
 spotless = "8.3.0"
@@ -19,7 +18,6 @@ jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 jsPlainObjects = { id = "org.jetbrains.kotlin.plugin.js-plain-objects", version.ref = "kotlin" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 downloadPlugin = "de.undercouch.download:5.7.0"
 kotest = { id = "io.kotest.multiplatform", version.ref = "kotest" }
@@ -70,7 +68,6 @@ ktor-server-cors = { module = "io.ktor:ktor-server-cors", version.ref = "ktorio"
 ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktorio" }
 ktor-server-authJwt = { module = "io.ktor:ktor-server-auth-jwt", version.ref = "ktorio" }
 ktor-server-websockets = { module = "io.ktor:ktor-server-websockets", version.ref = "ktorio" }
-ksp = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }
 kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
 kotest-framework-engine = { module = "io.kotest:kotest-framework-engine", version.ref = "kotest" }
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }

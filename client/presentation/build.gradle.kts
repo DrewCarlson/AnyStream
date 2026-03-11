@@ -1,7 +1,6 @@
 plugins {
     id("multiplatform-lib")
     kotlin("plugin.compose")
-    alias(libsCommon.plugins.ksp)
     alias(libsClient.plugins.metro)
     alias(libsClient.plugins.composejb)
 }

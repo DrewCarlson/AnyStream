@@ -7,7 +7,6 @@ dependencies {
     implementation(libsCommon.redacted)
     implementation(libsCommon.poko)
     implementation(libsCommon.kotlin.gradle.plugin)
-    implementation(libsCommon.ksp)
     implementation(libsCommon.serialization.plugin)
     implementation(libsCommon.spotless.plugin)
     implementation(libsCommon.kotlin.gradle.conventions)

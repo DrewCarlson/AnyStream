@@ -8,7 +8,6 @@ plugins {
     alias(libsCommon.plugins.compose) apply false
     alias(libsClient.plugins.composejb) apply false
     alias(libsServer.plugins.shadowjar) apply false
-    alias(libsCommon.plugins.ksp) apply false
     alias(libsCommon.plugins.kover)
     alias(libsCommon.plugins.downloadPlugin) apply false
     alias(libsCommon.plugins.redacted) apply false
