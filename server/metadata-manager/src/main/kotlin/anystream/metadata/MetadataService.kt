@@ -127,7 +127,7 @@ class MetadataService(
             Base64.encode(imageKey.encodeToByteArray()),
             "remote-metadata-cache/${
                 Base64.encode(
-                    imageKey.substringBeforeLast('-').encodeToByteArray()
+                    imageKey.substringBeforeLast('-').encodeToByteArray(),
                 )
             }",
         )

@@ -65,6 +65,7 @@ class ObjectId :
      * @throws IllegalArgumentException if the high order byte of counter is not zero
      */
     constructor(timestamp: Int, counter: Int) : this(timestamp, counter, true)
+
     @Suppress("RedundantCompanionReference", "RemoveRedundantQualifierName")
     private constructor(timestamp: Int, counter: Int, checkCounter: Boolean) : this(
         timestamp,
