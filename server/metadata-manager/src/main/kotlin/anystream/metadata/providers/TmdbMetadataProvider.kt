@@ -28,7 +28,6 @@ import app.moviebase.tmdb.Tmdb3
 import app.moviebase.tmdb.model.*
 import io.ktor.client.plugins.*
 import io.ktor.http.*
-import io.ktor.util.*
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
@@ -49,6 +48,7 @@ import java.nio.file.Path
 import kotlin.collections.forEach
 import kotlin.collections.map
 import kotlin.collections.orEmpty
+import kotlin.io.encoding.Base64
 import kotlin.io.path.exists
 import kotlin.time.Duration.Companion.seconds
 
@@ -627,8 +627,12 @@ class TmdbMetadataProvider(
         imagePaths.forEach { (type, path) ->
             val otherCachePath = imageStore.getMetadataImagePath(
                 type,
-                imageKey.encodeBase64(),
-                "remote-metadata-cache/${imageKey.substringBeforeLast('-').encodeBase64()}",
+                Base64.encode(imageKey.encodeToByteArray()),
+                "remote-metadata-cache/${
+                    Base64.encode(
+                        imageKey.substringBeforeLast('-').encodeToByteArray()
+                    )
+                }",
             )
             val url = when (type) {
                 "poster" -> "$IMAGE_URL/w300$path"

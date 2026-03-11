@@ -21,9 +21,9 @@ import anystream.db.MetadataDao
 import anystream.models.MediaKind
 import anystream.models.api.*
 import anystream.util.isRemoteId
-import io.ktor.util.encodeBase64
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
+import kotlin.io.encoding.Base64
 import kotlin.io.path.exists
 
 class MetadataService(
@@ -124,8 +124,12 @@ class MetadataService(
     ): Path? {
         val cachePath = imageStore.getMetadataImagePath(
             imageType,
-            imageKey.encodeBase64(),
-            "remote-metadata-cache/${imageKey.substringBeforeLast('-').encodeBase64()}",
+            Base64.encode(imageKey.encodeToByteArray()),
+            "remote-metadata-cache/${
+                Base64.encode(
+                    imageKey.substringBeforeLast('-').encodeToByteArray()
+                )
+            }",
         )
         if (cachePath.exists()) {
             return cachePath
