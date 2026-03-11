@@ -15,11 +15,12 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+@file:Suppress("ktlint:standard:no-consecutive-comments")
+
 package anystream.screens.settings.library
 
 import androidx.compose.runtime.*
 import anystream.LocalAnyStreamClient
-import anystream.client.AnyStreamClient
 import anystream.components.Modal
 import anystream.components.ModalSize
 import anystream.models.Directory
@@ -32,7 +33,7 @@ import org.jetbrains.compose.web.dom.*
 
 private enum class LibraryModalScreen {
     DIRECTORY_LIST,
-    ADD_FOLDER
+    ADD_FOLDER,
 }
 
 @Composable
@@ -56,7 +57,7 @@ fun EditLibraryModal(
         size = ModalSize.Large,
         scrollable = true,
         onHidden = onClosed,
-        onHide = {}.takeIf { isLoading }
+        onHide = {}.takeIf { isLoading },
     ) {
         when (screen) {
             LibraryModalScreen.DIRECTORY_LIST -> {
@@ -79,7 +80,7 @@ fun EditLibraryModal(
                             isLoading = false
                         }
                     },
-                    onAnalyzeClicked = {}
+                    onAnalyzeClicked = {},
                 )
             }
 
@@ -90,7 +91,7 @@ fun EditLibraryModal(
                     onLoadingStatChanged = {},
                     closeScreen = {
                         screen = LibraryModalScreen.DIRECTORY_LIST
-                    }
+                    },
                 )
             }
         }
@@ -129,7 +130,7 @@ private fun LibraryDirectories(
                             Div({ classes("hstack", "gap-3") }) {
                                 FolderAction("Remove", "trash") { onRemoveClicked(directory) }
                                 FolderAction("Scan", "arrow-clockwise") { onScanClicked(directory) }
-                                //FolderAction("Edit", "gear-wide") { onEditClicked(folder) }
+                                // FolderAction("Edit", "gear-wide") { onEditClicked(folder) }
                                 FolderAction("Analyze", "file-earmark-play") { onAnalyzeClicked(directory) }
                             }
                         }

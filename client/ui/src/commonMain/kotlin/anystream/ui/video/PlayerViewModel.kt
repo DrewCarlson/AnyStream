@@ -1,6 +1,6 @@
 /*
  * AnyStream
- * Copyright (C) 2023 AnyStream Maintainers
+ * Copyright (C) 2026 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -15,13 +15,18 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.android
+package anystream.ui.video
 
-import com.github.anrwatchdog.ANRWatchDog
+import androidx.lifecycle.ViewModel
 
-class InitVariantFeaturesImpl : InitVariantFeatures {
-
-    override fun init() {
-        ANRWatchDog().apply { start() }
+/**
+ * Hold [PlayerHandle]s in a [ViewModel] to bind them to
+ * the current route, managing cleanup and config changes.
+ */
+internal class PlayerViewModel(
+    val playerHandle: PlayerHandle,
+) : ViewModel() {
+    override fun onCleared() {
+        playerHandle.dispose()
     }
 }

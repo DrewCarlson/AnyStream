@@ -29,7 +29,6 @@ import kotlin.time.Duration.Companion.ZERO
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.DurationUnit.SECONDS
 
-
 // Same as MediaPlayerComponentDefaults.EMBEDDED_MEDIA_PLAYER_ARGS
 private val PLAYER_ARGS = listOf(
     "--video-title=vlcj video output",
@@ -126,7 +125,10 @@ class VlcjPlayerHandle(
             emitPlayWhenReady(false)
         }
 
-        override fun buffering(mediaPlayer: MediaPlayer, newCache: Float) {
+        override fun buffering(
+            mediaPlayer: MediaPlayer,
+            newCache: Float,
+        ) {
             if (newCache == 100f) {
                 emitState(PlayerHandle.State.BUFFERING)
             } else {
@@ -138,15 +140,24 @@ class VlcjPlayerHandle(
             emitState(PlayerHandle.State.ENDED)
         }
 
-        override fun timeChanged(mediaPlayer: MediaPlayer, newTime: Long) {
+        override fun timeChanged(
+            mediaPlayer: MediaPlayer,
+            newTime: Long,
+        ) {
             emitProgress(newTime.milliseconds)
         }
 
-        override fun lengthChanged(mediaPlayer: MediaPlayer?, newLength: Long) {
+        override fun lengthChanged(
+            mediaPlayer: MediaPlayer?,
+            newLength: Long,
+        ) {
             emitDuration(newLength.milliseconds)
         }
 
-        override fun mediaChanged(mediaPlayer: MediaPlayer?, media: MediaRef?) {
+        override fun mediaChanged(
+            mediaPlayer: MediaPlayer?,
+            media: MediaRef?,
+        ) {
         }
 
         override fun opening(mediaPlayer: MediaPlayer?) {
@@ -161,49 +172,97 @@ class VlcjPlayerHandle(
         override fun backward(mediaPlayer: MediaPlayer?) {
         }
 
-        override fun positionChanged(mediaPlayer: MediaPlayer?, newPosition: Float) {
+        override fun positionChanged(
+            mediaPlayer: MediaPlayer?,
+            newPosition: Float,
+        ) {
         }
 
-        override fun seekableChanged(mediaPlayer: MediaPlayer?, newSeekable: Int) {
+        override fun seekableChanged(
+            mediaPlayer: MediaPlayer?,
+            newSeekable: Int,
+        ) {
         }
 
-        override fun pausableChanged(mediaPlayer: MediaPlayer?, newPausable: Int) {
+        override fun pausableChanged(
+            mediaPlayer: MediaPlayer?,
+            newPausable: Int,
+        ) {
         }
 
-        override fun titleChanged(mediaPlayer: MediaPlayer?, newTitle: Int) {
+        override fun titleChanged(
+            mediaPlayer: MediaPlayer?,
+            newTitle: Int,
+        ) {
         }
 
-        override fun snapshotTaken(mediaPlayer: MediaPlayer?, filename: String?) {
+        override fun snapshotTaken(
+            mediaPlayer: MediaPlayer?,
+            filename: String?,
+        ) {
         }
 
-        override fun videoOutput(mediaPlayer: MediaPlayer?, newCount: Int) {
+        override fun videoOutput(
+            mediaPlayer: MediaPlayer?,
+            newCount: Int,
+        ) {
         }
 
-        override fun scrambledChanged(mediaPlayer: MediaPlayer?, newScrambled: Int) {
+        override fun scrambledChanged(
+            mediaPlayer: MediaPlayer?,
+            newScrambled: Int,
+        ) {
         }
 
-        override fun elementaryStreamAdded(mediaPlayer: MediaPlayer?, type: TrackType?, id: Int) {
+        override fun elementaryStreamAdded(
+            mediaPlayer: MediaPlayer?,
+            type: TrackType?,
+            id: Int,
+        ) {
         }
 
-        override fun elementaryStreamDeleted(mediaPlayer: MediaPlayer?, type: TrackType?, id: Int) {
+        override fun elementaryStreamDeleted(
+            mediaPlayer: MediaPlayer?,
+            type: TrackType?,
+            id: Int,
+        ) {
         }
 
-        override fun elementaryStreamSelected(mediaPlayer: MediaPlayer?, type: TrackType?, id: Int) {
+        override fun elementaryStreamSelected(
+            mediaPlayer: MediaPlayer?,
+            type: TrackType?,
+            id: Int,
+        ) {
         }
 
-        override fun corked(mediaPlayer: MediaPlayer?, corked: Boolean) {
+        override fun corked(
+            mediaPlayer: MediaPlayer?,
+            corked: Boolean,
+        ) {
         }
 
-        override fun muted(mediaPlayer: MediaPlayer?, muted: Boolean) {
+        override fun muted(
+            mediaPlayer: MediaPlayer?,
+            muted: Boolean,
+        ) {
         }
 
-        override fun volumeChanged(mediaPlayer: MediaPlayer?, volume: Float) {
+        override fun volumeChanged(
+            mediaPlayer: MediaPlayer?,
+            volume: Float,
+        ) {
         }
 
-        override fun audioDeviceChanged(mediaPlayer: MediaPlayer?, audioDevice: String?) {
+        override fun audioDeviceChanged(
+            mediaPlayer: MediaPlayer?,
+            audioDevice: String?,
+        ) {
         }
 
-        override fun chapterChanged(mediaPlayer: MediaPlayer?, newChapter: Int) {
+        override fun chapterChanged(
+            mediaPlayer: MediaPlayer?,
+            newChapter: Int,
+        ) {
         }
 
         override fun error(mediaPlayer: MediaPlayer?) {

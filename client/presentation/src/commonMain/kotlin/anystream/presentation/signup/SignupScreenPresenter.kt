@@ -34,7 +34,6 @@ import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 
-
 data class SignupScreenProps(
     val inviteCode: String?,
     val serverUrl: String? = null,

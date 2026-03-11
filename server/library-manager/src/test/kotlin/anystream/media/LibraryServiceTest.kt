@@ -34,39 +34,41 @@ import io.kotest.matchers.shouldBe
 import org.jooq.DSLContext
 import java.nio.file.FileSystem
 
-class LibraryServiceTest : FunSpec({
-    val db: DSLContext by bindTestDatabase()
-    val libraryDao by bindForTest({ LibraryDao(db) })
-    val fs by bindFileSystem()
-    val libraryService by bindForTest({
-        val mediaLinkDao = MediaLinkDao(db)
-        LibraryService(
-            mediaFileAnalyzer = MediaFileAnalyzer({ error("not implemented!") }, mediaLinkDao),
-            processors = emptyList(),
-            mediaLinkDao = mediaLinkDao,
-            libraryDao = libraryDao,
-            fs = fs
-        )
+class LibraryServiceTest :
+    FunSpec({
+        val db: DSLContext by bindTestDatabase()
+        val libraryDao by bindForTest({ LibraryDao(db) })
+        val fs by bindFileSystem()
+        val libraryService by bindForTest({
+            val mediaLinkDao = MediaLinkDao(db)
+            LibraryService(
+                mediaFileAnalyzer = MediaFileAnalyzer({ error("not implemented!") }, mediaLinkDao),
+                processors = emptyList(),
+                mediaLinkDao = mediaLinkDao,
+                libraryDao = libraryDao,
+                fs = fs,
+            )
+        })
+
+        test("get empty library list") {
+            libraryService.getLibraryFolders().shouldBeEmpty()
+        }
+
+        test("get library list without directory") {
+            libraryDao.insertLibrary(MediaKind.MOVIE)
+
+            libraryService.getLibraryFolders().shouldBeEmpty()
+        }
+
+        test("get library") {
+            val library = libraryDao.insertLibrary(MediaKind.MOVIE)
+            val directory = libraryDao.insertDirectory(null, library.id, "test")
+
+            val libFolders = libraryService
+                .getLibraryFolders()
+                .shouldHaveSize(1)
+
+            directory.parentId.shouldBeNull()
+            libFolders.first().mediaKind shouldBe library.mediaKind
+        }
     })
-
-    test("get empty library list") {
-        libraryService.getLibraryFolders().shouldBeEmpty()
-    }
-
-    test("get library list without directory") {
-        libraryDao.insertLibrary(MediaKind.MOVIE)
-
-        libraryService.getLibraryFolders().shouldBeEmpty()
-    }
-
-    test("get library") {
-        val library = libraryDao.insertLibrary(MediaKind.MOVIE)
-        val directory = libraryDao.insertDirectory(null, library.id, "test")
-
-        val libFolders = libraryService.getLibraryFolders()
-            .shouldHaveSize(1)
-
-        directory.parentId.shouldBeNull()
-        libFolders.first().mediaKind shouldBe library.mediaKind
-    }
-})

@@ -35,7 +35,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
-internal fun BoxScope.PagerIndicator(count: Int, currentPage: Int) {
+internal fun BoxScope.PagerIndicator(
+    count: Int,
+    currentPage: Int,
+) {
     Row(
         Modifier
             .fillMaxWidth()
@@ -54,8 +57,7 @@ internal fun BoxScope.PagerIndicator(count: Int, currentPage: Int) {
                         } else {
                             Color(0xFFC4C4C4)
                         },
-                    )
-                    .size(8.dp),
+                    ).size(8.dp),
             )
         }
     }

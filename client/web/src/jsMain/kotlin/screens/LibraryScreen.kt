@@ -19,7 +19,6 @@ package anystream.screens
 
 import androidx.compose.runtime.*
 import anystream.LocalAnyStreamClient
-import anystream.client.AnyStreamClient
 import anystream.components.*
 import anystream.models.MediaItem
 import anystream.models.MediaKind
@@ -31,9 +30,7 @@ import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.Text
 
 @Composable
-fun LibraryScreen(
-    libraryId: String,
-) {
+fun LibraryScreen(libraryId: String) {
     val router = Router.current
     val client = LocalAnyStreamClient.current
     val library by remember(libraryId) {
@@ -41,12 +38,21 @@ fun LibraryScreen(
             .mapNotNull { libraries ->
                 libraries.firstOrNull { it.id == libraryId }
             }
-    }.collectAsState(client.library.libraries.value.firstOrNull { it.id == libraryId })
+    }.collectAsState(
+        client.library.libraries.value
+            .firstOrNull { it.id == libraryId },
+    )
     val mediaItems by produceState<List<MediaItem>?>(null, libraryId) {
         value = null
         value = when (library?.mediaKind) {
-            MediaKind.MOVIE -> client.library.getMovies(libraryId).toMediaItems()
-            MediaKind.TV -> client.library.getTvShows(libraryId).toMediaItems()
+            MediaKind.MOVIE -> {
+                client.library.getMovies(libraryId).toMediaItems()
+            }
+
+            MediaKind.TV -> {
+                client.library.getTvShows(libraryId).toMediaItems()
+            }
+
             else -> {
                 router.navigate("/")
                 null
@@ -55,7 +61,10 @@ fun LibraryScreen(
     }
 
     when (val items = mediaItems) {
-        null -> FullSizeCenteredLoader()
+        null -> {
+            FullSizeCenteredLoader()
+        }
+
         else -> {
             if (items.isEmpty()) {
                 Div({ classes("d-flex", "justify-content-center", "align-items-center", "h-100") }) {
@@ -84,4 +93,3 @@ fun LibraryScreen(
         }
     }
 }
-

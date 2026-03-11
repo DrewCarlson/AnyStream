@@ -18,7 +18,6 @@
 package anystream.components
 
 import androidx.compose.runtime.*
-import anystream.util.Modal as BootstrapModal
 import anystream.util.ModalInstance
 import anystream.util.newElementId
 import org.jetbrains.compose.web.attributes.AttrsScope
@@ -26,8 +25,11 @@ import org.jetbrains.compose.web.attributes.ButtonType
 import org.jetbrains.compose.web.attributes.type
 import org.jetbrains.compose.web.dom.*
 import org.w3c.dom.HTMLDivElement
+import anystream.util.Modal as BootstrapModal
 
-enum class ModalSize(val value: String?) {
+enum class ModalSize(
+    val value: String?,
+) {
     Small("modal-sm"),
     Default(null),
     Large("modal-lg"),

@@ -89,13 +89,12 @@ sealed class MetadataMatch {
         override val exists: Boolean,
         override val providerId: String,
     ) : MetadataMatch() {
-        override val metadataId:  String? = if (exists) tvShow.id else null
+        override val metadataId: String? = if (exists) tvShow.id else null
     }
 }
 
 @Serializable
 sealed class MediaLinkMatchResult {
-
     @Poko
     @Serializable
     class Success(
@@ -129,7 +128,6 @@ sealed class MediaLinkMatchResult {
 
 @Serializable
 sealed class ImportMetadataResult {
-
     @Poko
     @Serializable
     class Success(
@@ -159,7 +157,6 @@ sealed class ImportMetadataResult {
 
 @Serializable
 sealed class QueryMetadataResult {
-
     @Poko
     @Serializable
     class Success(

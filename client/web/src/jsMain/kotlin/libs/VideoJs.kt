@@ -38,42 +38,57 @@ external object VideoJs {
 
 external class VjsPlayer {
     fun src(src: String?)
+
     fun src(): String?
 
     fun play()
+
     fun pause()
 
     fun paused(): Boolean
 
     fun controls(show: Boolean)
+
     fun controls(): Boolean
 
     fun show()
+
     fun hide()
 
     fun supportsFullscreen(): Boolean
+
     fun isFullscreen(): Boolean
+
     fun isFullscreen(isFullscreen: Boolean)
 
     fun isInPictureInPicture(): Boolean
+
     fun requestPictureInPicture()
+
     fun exitPictureInPicture()
 
     fun volume(): Float
+
     fun volume(volume: Float)
 
     fun muted(): Boolean
+
     fun muted(muted: Boolean)
 
     fun currentTime(): Double
+
     fun currentTime(currentTime: Double)
 
     fun duration(): Double
+
     fun duration(duration: Double)
 
     fun dispose()
 
-    fun on(event: String, callback: () -> Unit)
+    fun on(
+        event: String,
+        callback: () -> Unit,
+    )
 }
 
 @Suppress("UnsafeCastFromDynamic")
@@ -83,7 +98,7 @@ fun VjsOptions(configure: VjsOptions.() -> Unit): VjsOptions {
     return options
 }
 
-@Suppress("UnsafeCastFromDynamic")
+@Suppress("UnsafeCastFromDynamic", "ktlint:standard:function-naming")
 fun VjsControlBarOptions(configure: ControlBarOptions.() -> Unit): ControlBarOptions {
     val options = js("{}")
     configure(options)

@@ -43,15 +43,17 @@ import qbittorrent.models.TorrentFile
 class TorrentsApiClient(
     private val core: AnyStreamApiCore,
 ) {
+    suspend fun getGlobalTransferInfo(): GlobalTransferInfo {
+        return core.http.get("/api/torrents/global").bodyOrThrow()
+    }
 
-    suspend fun getGlobalTransferInfo(): GlobalTransferInfo =
-        core.http.get("/api/torrents/global").bodyOrThrow()
+    suspend fun getTorrents(): List<Torrent> {
+        return core.http.get("/api/torrents").body()
+    }
 
-    suspend fun getTorrents(): List<Torrent> =
-        core.http.get("/api/torrents").body()
-
-    suspend fun getTorrentFiles(hash: String): List<TorrentFile> =
-        core.http.get("/api/torrents/$hash/files").bodyOrThrow()
+    suspend fun getTorrentFiles(hash: String): List<TorrentFile> {
+        return core.http.get("/api/torrents/$hash/files").bodyOrThrow()
+    }
 
     suspend fun resumeTorrent(hash: String) {
         core.http.get("/api/torrents/$hash/resume").orThrow()
@@ -61,49 +63,58 @@ class TorrentsApiClient(
         core.http.get("/api/torrents/$hash/pause").orThrow()
     }
 
-    suspend fun deleteTorrent(hash: String, deleteFiles: Boolean = false) {
-        core.http.delete("/api/torrents/$hash") {
-            parameter("deleteFiles", deleteFiles)
-        }.orThrow()
+    suspend fun deleteTorrent(
+        hash: String,
+        deleteFiles: Boolean = false,
+    ) {
+        core.http
+            .delete("/api/torrents/$hash") {
+                parameter("deleteFiles", deleteFiles)
+            }.orThrow()
     }
 
-    suspend fun downloadTorrent(description: TorrentDescription2, movieId: String?) {
-        core.http.post("/api/torrents") {
-            contentType(ContentType.Application.Json)
-            setBody(description)
+    suspend fun downloadTorrent(
+        description: TorrentDescription2,
+        movieId: String?,
+    ) {
+        core.http
+            .post("/api/torrents") {
+                contentType(ContentType.Application.Json)
+                setBody(description)
 
-            movieId?.let { parameter("movieId", it) }
-        }.orThrow()
+                movieId?.let { parameter("movieId", it) }
+            }.orThrow()
     }
 
-    fun torrentListChanges(): Flow<List<String>> = callbackFlow {
-        core.http.wss(path = "/api/ws/torrents/observe") {
-            send(core.sessionManager.fetchToken()!!)
-            for (frame in incoming) {
-                if (frame is Frame.Text) {
-                    val message = frame.readText()
-                    if (message.isNotBlank()) {
-                        trySend(message.split(","))
+    fun torrentListChanges(): Flow<List<String>> =
+        callbackFlow {
+            core.http.wss(path = "/api/ws/torrents/observe") {
+                send(core.sessionManager.fetchToken()!!)
+                for (frame in incoming) {
+                    if (frame is Frame.Text) {
+                        val message = frame.readText()
+                        if (message.isNotBlank()) {
+                            trySend(message.split(","))
+                        }
                     }
                 }
+                awaitClose()
             }
-            awaitClose()
         }
-    }
 
     @OptIn(DelicateCoroutinesApi::class)
-    fun globalInfoChanges(): Flow<GlobalTransferInfo> = callbackFlow {
-        core.http.wss(path = "/api/ws/torrents/global") {
-            send(core.sessionManager.fetchToken()!!)
-            while (!incoming.isClosedForReceive) {
-                try {
-                    trySend(receiveDeserialized())
-                } catch (e: WebsocketDeserializeException) {
-                    // ignored
+    fun globalInfoChanges(): Flow<GlobalTransferInfo> =
+        callbackFlow {
+            core.http.wss(path = "/api/ws/torrents/global") {
+                send(core.sessionManager.fetchToken()!!)
+                while (!incoming.isClosedForReceive) {
+                    try {
+                        trySend(receiveDeserialized())
+                    } catch (e: WebsocketDeserializeException) {
+                        // ignored
+                    }
                 }
+                awaitClose()
             }
-            awaitClose()
         }
-    }
-
 }

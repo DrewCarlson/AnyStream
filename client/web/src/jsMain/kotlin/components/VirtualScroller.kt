@@ -47,16 +47,18 @@ private data class ItemStateHolder<T>(
     constructor(item: T, top: Int, left: Int) : this(
         state = mutableStateOf(item),
         left = mutableStateOf(left),
-        top = mutableStateOf(top)
+        top = mutableStateOf(top),
     )
 }
 
 private enum class ScrollerDirection {
-    Vertical, Horizontal;
+    Vertical,
+    Horizontal,
 }
 
 private enum class ScrollerLayout {
-    LINEAR, GRID;
+    LINEAR,
+    GRID,
 }
 
 @Composable
@@ -76,7 +78,7 @@ fun <T> VerticalGridScroller(
         scrollbars = scrollbars,
         bufferPages = bufferPages,
         placeholderBody = placeholderBody,
-        itemBody = itemBody
+        itemBody = itemBody,
     )
 }
 
@@ -149,7 +151,6 @@ private class VirtualScrollerImpl<T>(
     private val direction: ScrollerDirection,
     private val bufferPages: Int,
 ) {
-
     val instanceId = Random.nextLong().absoluteValue
     val parentId = "vs-parent-$instanceId"
     val containerId = "vs-container-$instanceId"
@@ -174,7 +175,11 @@ private class VirtualScrollerImpl<T>(
     // Any unused holders are kept here, waiting for a new item
     private val cachedHolders = ArrayDeque<ItemStateHolder<T>>()
 
-    fun bindHolder(item: T, top: Int, left: Int) {
+    fun bindHolder(
+        item: T,
+        top: Int,
+        left: Int,
+    ) {
         // Find the active holder unless the content is unchanged,
         // or pull one from the cache, otherwise create a new one.
         val currentBinding = boundHolders[item]
@@ -307,7 +312,7 @@ private class VirtualScrollerImpl<T>(
         itemWidth: Int,
         viewportHeight: Int,
         itemHeight: Int,
-        items: List<T>
+        items: List<T>,
     ): List<List<T>> {
         val itemsPerRow = viewportWidth / itemWidth
         val totalYCount = viewportHeight / itemHeight.toFloat()
@@ -327,7 +332,7 @@ private class VirtualScrollerImpl<T>(
     private fun getLinearSlice(
         viewportSize: Int,
         itemSize: Int,
-        items: List<T>
+        items: List<T>,
     ): List<List<T>> {
         val total = viewportSize / itemSize.toFloat()
         val remainder = if (total % 1 > 0) 1 else 0
@@ -558,7 +563,7 @@ private fun <T> DrawHolder(
             }
         }
         CompositionLocalProvider(
-            LocalInVirtualScrollCache provides isCached
+            LocalInVirtualScrollCache provides isCached,
         ) {
             itemBody(currentItem)
         }

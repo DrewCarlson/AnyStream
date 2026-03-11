@@ -19,7 +19,6 @@ package anystream.components
 
 import androidx.compose.runtime.*
 import anystream.LocalAnyStreamClient
-import anystream.client.AnyStreamClient
 import anystream.libs.PopperElement
 import anystream.libs.popperOptions
 import anystream.models.Permission

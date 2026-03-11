@@ -1,4 +1,3 @@
-import dev.zacsweers.redacted.gradle.RedactedPluginExtension
 import org.gradle.kotlin.dsl.*
 
 plugins {
@@ -9,28 +8,14 @@ plugins {
     id("dev.drewhamilton.poko")
 }
 
+enableSpotlessPlugin(enableComposeRules = true)
+
 if (hasAndroidSdk) {
     apply(plugin = "com.android.kotlin.multiplatform.library")
 }
 
-afterEvaluate {
-    spotless {
-        kotlin {
-            target("**/**.kt")
-            licenseHeaderFile(rootDir.resolve("licenseHeader.txt"))
-            val libsCommon = extensions.getByType<VersionCatalogsExtension>().named("libsCommon")
-            ktlint(libsCommon.findVersion("ktlint").get().requiredVersion)
-                .setEditorConfigPath(rootDir.resolve(".editorconfig"))
-                .customRuleSets(
-                    listOf(
-                        libsCommon.findLibrary("ktlint-composeRules").get().get().toString()
-                    )
-                )
-        }
-    }
-    extensions.getByType<RedactedPluginExtension>().apply {
-        replacementString.set("***")
-    }
+redacted {
+    replacementString.set("***")
 }
 
 val enableJsTarget = project.name != "ui"
@@ -88,8 +73,10 @@ kotlin {
             }
         }
 
-        val libsCommon = project.extensions.getByType<VersionCatalogsExtension>().named("libsCommon")
-        val libsAndroid = project.extensions.getByType<VersionCatalogsExtension>().named("libsAndroid")
+        val libsCommon =
+            project.extensions.getByType<VersionCatalogsExtension>().named("libsCommon")
+        val libsAndroid =
+            project.extensions.getByType<VersionCatalogsExtension>().named("libsAndroid")
 
         val commonMain by getting {
             dependencies {

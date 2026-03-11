@@ -18,16 +18,10 @@
 package anystream.prefs
 
 import platform.Foundation.NSUserDefaults
-import kotlin.native.concurrent.freeze
 
 class IosPreferences(
     private val prefs: NSUserDefaults,
 ) : Preferences {
-
-    init {
-        freeze()
-    }
-
     @Suppress("UNCHECKED_CAST")
     override val keys: Set<String>
         get() = prefs.dictionaryRepresentation().keys as Set<String>
@@ -47,11 +41,17 @@ class IosPreferences(
         prefs.removeObjectForKey(key)
     }
 
-    override fun putInt(key: String, value: Int) {
+    override fun putInt(
+        key: String,
+        value: Int,
+    ) {
         prefs.setInteger(value.toLong(), key)
     }
 
-    override fun getInt(key: String, defaultValue: Int): Int {
+    override fun getInt(
+        key: String,
+        defaultValue: Int,
+    ): Int {
         return if (contains(key)) prefs.integerForKey(key).toInt() else defaultValue
     }
 
@@ -59,11 +59,17 @@ class IosPreferences(
         return if (contains(key)) prefs.integerForKey(key).toInt() else null
     }
 
-    override fun putLong(key: String, value: Long) {
+    override fun putLong(
+        key: String,
+        value: Long,
+    ) {
         prefs.setInteger(value, key)
     }
 
-    override fun getLong(key: String, defaultValue: Long): Long {
+    override fun getLong(
+        key: String,
+        defaultValue: Long,
+    ): Long {
         return if (contains(key)) prefs.integerForKey(key) else defaultValue
     }
 
@@ -71,11 +77,17 @@ class IosPreferences(
         return if (contains(key)) prefs.integerForKey(key) else null
     }
 
-    override fun putString(key: String, value: String) {
+    override fun putString(
+        key: String,
+        value: String,
+    ) {
         prefs.setObject(value, key)
     }
 
-    override fun getString(key: String, defaultValue: String): String {
+    override fun getString(
+        key: String,
+        defaultValue: String,
+    ): String {
         return if (contains(key)) prefs.stringForKey(key) ?: defaultValue else defaultValue
     }
 
@@ -83,11 +95,17 @@ class IosPreferences(
         return if (contains(key)) prefs.stringForKey(key) else null
     }
 
-    override fun putDouble(key: String, value: Double) {
+    override fun putDouble(
+        key: String,
+        value: Double,
+    ) {
         prefs.setDouble(value, key)
     }
 
-    override fun getDouble(key: String, defaultValue: Double): Double {
+    override fun getDouble(
+        key: String,
+        defaultValue: Double,
+    ): Double {
         return if (contains(key)) prefs.doubleForKey(key) else defaultValue
     }
 
@@ -95,11 +113,17 @@ class IosPreferences(
         return if (contains(key)) prefs.doubleForKey(key) else null
     }
 
-    override fun putBoolean(key: String, value: Boolean) {
+    override fun putBoolean(
+        key: String,
+        value: Boolean,
+    ) {
         prefs.setBool(value, key)
     }
 
-    override fun getBoolean(key: String, defaultValue: Boolean): Boolean {
+    override fun getBoolean(
+        key: String,
+        defaultValue: Boolean,
+    ): Boolean {
         return if (contains(key)) prefs.boolForKey(key) else defaultValue
     }
 
@@ -107,11 +131,17 @@ class IosPreferences(
         return if (contains(key)) prefs.boolForKey(key) else null
     }
 
-    override fun putFloat(key: String, value: Float) {
+    override fun putFloat(
+        key: String,
+        value: Float,
+    ) {
         prefs.setFloat(value, key)
     }
 
-    override fun getFloat(key: String, defaultValue: Float): Float {
+    override fun getFloat(
+        key: String,
+        defaultValue: Float,
+    ): Float {
         return if (contains(key)) prefs.floatForKey(key) else defaultValue
     }
 

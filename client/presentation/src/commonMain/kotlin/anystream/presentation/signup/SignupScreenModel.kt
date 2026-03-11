@@ -20,7 +20,6 @@ package anystream.presentation.signup
 import anystream.models.api.CreateUserResponse
 import anystream.presentation.core.ScreenModel
 
-
 data class SignupScreenModel(
     val serverUrl: String = "",
     val username: String = "",
@@ -41,10 +40,14 @@ data class SignupScreenModel(
     val isServerUrlValid: Boolean = serverValidation == ServerValidation.VALID
 
     enum class State {
-        IDLE, AUTHENTICATING, AUTHENTICATED,
+        IDLE,
+        AUTHENTICATING,
+        AUTHENTICATED,
     }
 
     enum class ServerValidation {
-        VALID, INVALID, VALIDATING,
+        VALID,
+        INVALID,
+        VALIDATING,
     }
 }

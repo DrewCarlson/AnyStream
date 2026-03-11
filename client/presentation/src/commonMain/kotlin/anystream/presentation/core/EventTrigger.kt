@@ -22,7 +22,6 @@ import androidx.compose.runtime.remember
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
-
 class EventTrigger(
     private val scope: CoroutineScope,
     private val handler: suspend () -> Unit,

@@ -22,7 +22,7 @@ import anystream.models.api.QueryMetadata
 import anystream.models.api.QueryMetadata.Extras
 
 class QueryMetadataBuilder(
-    private val mediaKind: MediaKind
+    private val mediaKind: MediaKind,
 ) {
     var providerId: String? = null
     var query: String? = null

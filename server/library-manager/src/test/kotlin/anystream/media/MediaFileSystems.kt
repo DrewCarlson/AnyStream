@@ -22,7 +22,6 @@ import java.nio.file.Path
 import kotlin.io.path.createDirectory
 import kotlin.io.path.createFile
 
-
 fun FileSystem.createMovieDirectory(): Pair<Path, Map<Path, List<Path>>> {
     val moviesRoot = getPath("/movies").createDirectory()
     val fileMap = mapOf(
@@ -31,16 +30,17 @@ fun FileSystem.createMovieDirectory(): Pair<Path, Map<Path, List<Path>>> {
         "Conquest Of The Planet Of The Apes (1972)" to listOf("avi", "en.srt", "es.sub"),
         "Futureworld (1976)" to listOf("webm", "en.ass"),
         "It's a Mad, Mad, Mad, Mad World (1963)" to listOf("mov", "de.ssa"),
-        "The Last Man on Earth (1964)" to listOf("wmv")
+        "The Last Man on Earth (1964)" to listOf("wmv"),
     )
 
-    val createdFiles = fileMap.map { (name, extensions) ->
-        val root = moviesRoot.resolve(name).createDirectory()
-        val files = extensions.map { extension ->
-            root.resolve("$name.$extension").createFile()
-        }
-        root to files
-    }.toMap()
+    val createdFiles = fileMap
+        .map { (name, extensions) ->
+            val root = moviesRoot.resolve(name).createDirectory()
+            val files = extensions.map { extension ->
+                root.resolve("$name.$extension").createFile()
+            }
+            root to files
+        }.toMap()
 
     return moviesRoot to createdFiles
 }
@@ -55,8 +55,8 @@ fun FileSystem.createTvDirectory(): Pair<Path, Map<Path, Map<Path, List<Path>>>>
             ),
             "Season 02" to listOf(
                 "S02E01 - Breaking and Entering.mp4",
-                "S02E02 - Turn and Burn.mp4"
-            )
+                "S02E02 - Turn and Burn.mp4",
+            ),
         ),
         "Doctor Who (2005)" to mapOf(
             "Season 01" to listOf(
@@ -67,22 +67,24 @@ fun FileSystem.createTvDirectory(): Pair<Path, Map<Path, Map<Path, List<Path>>>>
             ),
             "Season 02" to listOf(
                 "S02E01 - New Earth.mkv",
-                "S02E02 - Tooth and Claw.mkv"
-            )
-        )
+                "S02E02 - Tooth and Claw.mkv",
+            ),
+        ),
     )
 
-    val createdFiles = fileMap.map { (showName, seasonDirectories) ->
-        val showDirectory = tvRoot.resolve(showName).createDirectory()
-        val showFiles = seasonDirectories.map { (seasonName, files) ->
-            val seasonDirectory = showDirectory.resolve(seasonName).createDirectory()
-            val seasonFiles = files.map { name ->
-                seasonDirectory.resolve("$showName - $name").createFile()
-            }
-            seasonDirectory to seasonFiles
+    val createdFiles = fileMap
+        .map { (showName, seasonDirectories) ->
+            val showDirectory = tvRoot.resolve(showName).createDirectory()
+            val showFiles = seasonDirectories
+                .map { (seasonName, files) ->
+                    val seasonDirectory = showDirectory.resolve(seasonName).createDirectory()
+                    val seasonFiles = files.map { name ->
+                        seasonDirectory.resolve("$showName - $name").createFile()
+                    }
+                    seasonDirectory to seasonFiles
+                }.toMap()
+            showDirectory to showFiles
         }.toMap()
-        showDirectory to showFiles
-    }.toMap()
 
     return tvRoot to createdFiles
 }

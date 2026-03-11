@@ -33,11 +33,11 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 internal fun PrimaryButton(
-    leftIcon: @Composable (() -> Unit)? = null,
     text: String,
-    modifier: Modifier = Modifier,
-    isLoading: Boolean = false,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    leftIcon: @Composable (() -> Unit)? = null,
+    isLoading: Boolean = false,
 ) {
     Button(
         onClick = onClick,

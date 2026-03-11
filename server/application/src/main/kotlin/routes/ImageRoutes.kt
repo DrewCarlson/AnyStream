@@ -55,13 +55,13 @@ fun Route.addImageRoutes(
 
             val imagePath = when (imageType) {
                 "people" -> metadataService.getImagePathForPerson(imageKey)
-                else ->  metadataService.getImagePath(imageKey, imageType)
+                else -> metadataService.getImagePath(imageKey, imageType)
             }
             if (imagePath?.exists() == true) {
                 try {
                     call.response.header(
                         name = HttpHeaders.ContentType,
-                        value = ContentType.Image.JPEG.toString()
+                        value = ContentType.Image.JPEG.toString(),
                     )
                     call.respondPath(imagePath)
                 } catch (_: ClosedByteChannelException) {

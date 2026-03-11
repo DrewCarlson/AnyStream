@@ -20,7 +20,6 @@ package anystream.presentation.profile
 import anystream.models.UserPublic
 import anystream.presentation.core.ScreenModel
 
-
 data class ProfileScreenModel(
     val user: UserPublic? = null,
     val onPairDeviceClicked: () -> Unit = {},

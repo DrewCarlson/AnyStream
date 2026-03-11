@@ -36,13 +36,12 @@ import anystream.models.MediaLink
 import anystream.ui.components.PosterCard
 import anystream.ui.components.PosterCardWidth
 
-
 @Composable
 internal fun MediaItemGrid(
     mediaItems: List<MediaItem>,
     onMediaClick: (metadataId: String) -> Unit,
     onPlayMediaClick: (mediaLinkId: String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     LazyVerticalGrid(
         columns = GridCells.Adaptive(PosterCardWidth),

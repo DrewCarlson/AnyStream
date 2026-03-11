@@ -22,10 +22,14 @@ import org.flywaydb.core.api.FlywayException
 import org.slf4j.Logger
 import javax.sql.DataSource
 
-fun runMigrations(connectionString: String, logger: Logger? = null): Boolean {
-    val flyway = Flyway.configure()
+fun runMigrations(
+    connectionString: String,
+    logger: Logger? = null,
+): Boolean {
+    val flyway = Flyway
+        .configure()
         .loggers("slf4j")
-        .dataSource("${connectionString}?foreign_keys=on;", null, null)
+        .dataSource("$connectionString?foreign_keys=on;", null, null)
         .load()
     return try {
         flyway.migrate()
@@ -36,8 +40,12 @@ fun runMigrations(connectionString: String, logger: Logger? = null): Boolean {
     }
 }
 
-fun runMigrations(dataSource: DataSource, logger: Logger? = null): Boolean {
-    val flyway = Flyway.configure()
+fun runMigrations(
+    dataSource: DataSource,
+    logger: Logger? = null,
+): Boolean {
+    val flyway = Flyway
+        .configure()
         .loggers("slf4j")
         .dataSource(dataSource)
         .load()

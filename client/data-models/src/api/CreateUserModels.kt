@@ -32,7 +32,6 @@ class CreateUserBody(
 
 @Serializable
 sealed class CreateUserResponse {
-
     @Poko
     @Serializable
     class Success(
@@ -52,16 +51,24 @@ sealed class CreateUserResponse {
     sealed class ErrorReason {
         @Serializable
         data object SignupDisabled : ErrorReason()
+
         @Poko
         @Serializable
-        class MissingOidcGroup(val groups: List<String>) : ErrorReason()
+        class MissingOidcGroup(
+            val groups: List<String>,
+        ) : ErrorReason()
     }
 
     enum class PasswordError {
-        TOO_SHORT, TOO_LONG, BLANK
+        TOO_SHORT,
+        TOO_LONG,
+        BLANK,
     }
 
     enum class UsernameError {
-        TOO_SHORT, TOO_LONG, BLANK, ALREADY_EXISTS
+        TOO_SHORT,
+        TOO_LONG,
+        BLANK,
+        ALREADY_EXISTS,
     }
 }

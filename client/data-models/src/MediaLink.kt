@@ -18,8 +18,8 @@
 package anystream.models
 
 import dev.drewhamilton.poko.Poko
-import kotlin.time.Instant
 import kotlinx.serialization.Serializable
+import kotlin.time.Instant
 
 /**
  * [Descriptor] identifies the file contents of a [MediaLink].
@@ -56,7 +56,6 @@ enum class Descriptor {
     }
 }
 
-
 val MediaLink.filename: String
     get() = (filePath ?: "(no name)")
         .substringAfterLast('/')
@@ -77,10 +76,11 @@ fun MediaLink.typed(): MediaLinkTyped {
             type = type,
             createdAt = createdAt,
             updatedAt = updatedAt,
-            mediaKind =  mediaKind,
+            mediaKind = mediaKind,
             descriptor = descriptor,
             filePath = checkNotNull(filePath),
         )
+
         MediaLinkType.LOCAL -> LocalMediaLink(
             id = id,
             metadataId = metadataId,
@@ -89,9 +89,9 @@ fun MediaLink.typed(): MediaLinkTyped {
             type = type,
             createdAt = createdAt,
             updatedAt = updatedAt,
-            mediaKind =  mediaKind,
+            mediaKind = mediaKind,
             descriptor = descriptor,
-            filePath = checkNotNull(filePath)
+            filePath = checkNotNull(filePath),
         )
     }
 }
@@ -122,7 +122,7 @@ class LocalMediaLink(
     override val type: MediaLinkType,
     override val createdAt: Instant,
     override val updatedAt: Instant,
-    //override val addedByUserId: Int,
+    // override val addedByUserId: Int,
     override val mediaKind: MediaKind,
     override val descriptor: Descriptor,
     override val filePath: String,
@@ -142,7 +142,7 @@ class DownloadMediaLink(
     override val type: MediaLinkType,
     override val createdAt: Instant,
     override val updatedAt: Instant,
-    //override val addedByUserId: Int,
+    // override val addedByUserId: Int,
     override val mediaKind: MediaKind,
     override val descriptor: Descriptor,
     val infoHash: String,

@@ -19,7 +19,6 @@ package anystream.presentation.pairing
 
 import anystream.presentation.core.ScreenModel
 
-
 data class PairingScannerScreenModel(
     val onScanned: (String) -> Unit = {},
     val onCancelled: () -> Unit = {},

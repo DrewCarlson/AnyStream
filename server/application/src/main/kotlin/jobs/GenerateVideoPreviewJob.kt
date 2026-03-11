@@ -35,7 +35,6 @@ import kotlin.io.path.deleteIfExists
 import kotlin.io.path.getLastModifiedTime
 import kotlin.io.path.listDirectoryEntries
 
-
 private const val PREVIEW_IMAGE_WIDTH = "240" // Image width, height will be scaled
 private const val PREVIEW_IMAGE_QUALITY = "2" // Possible values: 2-31
 private const val PREVIEW_IMAGE_INTERVAL = "5" // Seconds between each image
@@ -87,7 +86,8 @@ class GenerateVideoPreviewJob(
 
         val contentDir = previewsPath.resolve(mediaLink.id)
         val bifPath = contentDir.resolve("index-sd.bif")
-        val frames = contentDir.listDirectoryEntries("preview*")
+        val frames = contentDir
+            .listDirectoryEntries("preview*")
             .sortedBy { it.getLastModifiedTime() }
         try {
             val builder = BifFileBuilder(bifPath, frames.size)

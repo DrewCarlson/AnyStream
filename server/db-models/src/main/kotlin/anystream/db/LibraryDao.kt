@@ -36,13 +36,15 @@ import org.jooq.impl.DSL.select
 private val DEFAULT_LIBRARIES = listOf(MediaKind.MOVIE, MediaKind.TV, MediaKind.MUSIC)
 
 class LibraryDao(
-    private val db: DSLContext
+    private val db: DSLContext,
 ) {
-
     /**
      * Insert a new Library for the MediaKind [kind].
      */
-    suspend fun insertLibrary(kind: MediaKind, name: String = kind.libraryName): Library {
+    suspend fun insertLibrary(
+        kind: MediaKind,
+        name: String = kind.libraryName,
+    ): Library {
         val record = LibraryRecord(
             id = ObjectId.next(),
             mediaKind = kind,
@@ -54,7 +56,11 @@ class LibraryDao(
     /**
      * Insert a new Directory for the [path] in the Library by [libraryId].
      */
-    suspend fun insertDirectory(parentId: String?, libraryId: String, path: String): Directory {
+    suspend fun insertDirectory(
+        parentId: String?,
+        libraryId: String,
+        path: String,
+    ): Directory {
         val record = DirectoryRecord(
             id = ObjectId.next(),
             parentId = parentId,
@@ -82,7 +88,8 @@ class LibraryDao(
                 name = mediaKind.libraryName,
             )
         }
-        return db.batchInsert(inserts)
+        return db
+            .batchInsert(inserts)
             .executeAsync()
             .await()
             .isNotEmpty()
@@ -99,13 +106,15 @@ class LibraryDao(
      * Fetch the [Library] by [libraryId] or null if not found.
      */
     suspend fun fetchLibrary(libraryId: String): Library? {
-        return db.selectFrom(LIBRARY)
+        return db
+            .selectFrom(LIBRARY)
             .where(LIBRARY.ID.eq(libraryId))
             .awaitFirstOrNullInto()
     }
 
     suspend fun fetchLibraryForDirectory(directoryId: String): Library? {
-        return db.select()
+        return db
+            .select()
             .from(LIBRARY)
             .join(DIRECTORY)
             .on(LIBRARY.ID.eq(DIRECTORY.LIBRARY_ID))
@@ -114,7 +123,8 @@ class LibraryDao(
     }
 
     suspend fun fetchChildDirectories(directoryId: String): List<Directory> {
-        return db.select(DIRECTORY)
+        return db
+            .select(DIRECTORY)
             .from(DIRECTORY)
             .where(DIRECTORY.PARENT_ID.eq(directoryId))
             .awaitInto()
@@ -124,7 +134,8 @@ class LibraryDao(
      * Fetch the [Directory] by the [path] or null if not found.
      */
     suspend fun fetchDirectoryByPath(path: String): Directory? {
-        return db.selectFrom(DIRECTORY)
+        return db
+            .selectFrom(DIRECTORY)
             .where(DIRECTORY.FILE_PATH.eq(path))
             .awaitFirstOrNullInto()
     }
@@ -133,19 +144,22 @@ class LibraryDao(
      * Fetch all [Directory]s by the [libraryId].
      */
     suspend fun fetchDirectoriesByLibrary(libraryId: String): List<Directory> {
-        return db.selectFrom(DIRECTORY)
+        return db
+            .selectFrom(DIRECTORY)
             .where(DIRECTORY.LIBRARY_ID.eq(libraryId))
             .awaitInto()
     }
 
     suspend fun fetchDirectory(directoryId: String): Directory? {
-        return db.selectFrom(DIRECTORY)
+        return db
+            .selectFrom(DIRECTORY)
             .where(DIRECTORY.ID.eq(directoryId))
             .awaitFirstOrNullInto()
     }
 
     suspend fun deleteDirectory(directoryId: String): Boolean {
-        return db.deleteFrom(DIRECTORY)
+        return db
+            .deleteFrom(DIRECTORY)
             .where(DIRECTORY.ID.eq(directoryId))
             .awaitFirstOrNull() == 1
     }
@@ -158,7 +172,8 @@ class LibraryDao(
             .awaitInto()
 
         // TODO: verify list of removed ids and filter the results
-        val deleted = db.deleteFrom(DIRECTORY)
+        val deleted = db
+            .deleteFrom(DIRECTORY)
             .where(DIRECTORY.PARENT_ID.eq(directoryId))
             .awaitFirst() == ids.size
 
@@ -170,29 +185,32 @@ class LibraryDao(
     }
 
     suspend fun fetchLibrariesAndRootDirectories(): Map<Library, Directory?> {
-        return db.select()
+        return db
+            .select()
             .from(LIBRARY)
             .join(DIRECTORY)
             .on(
-                DIRECTORY.LIBRARY_ID.eq(LIBRARY.ID)
-                    .and(DIRECTORY.PARENT_ID.isNull)
+                DIRECTORY.LIBRARY_ID
+                    .eq(LIBRARY.ID)
+                    .and(DIRECTORY.PARENT_ID.isNull),
             ).awaitIntoMap()
     }
 
     suspend fun fetchLibraryByPath(path: String): Library? {
-        return db.selectFrom(LIBRARY)
+        return db
+            .selectFrom(LIBRARY)
             .where(
                 LIBRARY.ID.eq(
                     select(DIRECTORY.LIBRARY_ID)
                         .from(DIRECTORY)
-                        .where(DIRECTORY.FILE_PATH.eq(path))
-                )
-            )
-            .awaitFirstOrNullInto()
+                        .where(DIRECTORY.FILE_PATH.eq(path)),
+                ),
+            ).awaitFirstOrNullInto()
     }
 
     suspend fun fetchLibraryRootDirectories(libraryId: String? = null): List<Directory> {
-        return db.selectFrom(DIRECTORY)
+        return db
+            .selectFrom(DIRECTORY)
             .where(DIRECTORY.PARENT_ID.isNull)
             .run {
                 if (libraryId == null) {
@@ -200,7 +218,6 @@ class LibraryDao(
                 } else {
                     and(DIRECTORY.LIBRARY_ID.eq(libraryId))
                 }
-            }
-            .awaitInto()
+            }.awaitInto()
     }
 }

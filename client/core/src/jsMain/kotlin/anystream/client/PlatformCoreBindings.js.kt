@@ -31,7 +31,6 @@ import kotlinx.browser.window
 @ContributesTo(AppScope::class)
 @BindingContainer
 actual object PlatformCoreBindings {
-
     @Named(INITIAL_SERVER_URL)
     @SingleIn(AppScope::class)
     @Provides
@@ -41,11 +40,9 @@ actual object PlatformCoreBindings {
 
     @SingleIn(AppScope::class)
     @Provides
-    actual fun provideHttpClientEngine(): HttpClientEngine =
-        JsClient().create { }
+    actual fun provideHttpClientEngine(): HttpClientEngine = JsClient().create { }
 
     @SingleIn(AppScope::class)
     @Provides
-    fun provideDataStore(): SessionDataStore =
-        JsSessionDataStore()
+    fun provideDataStore(): SessionDataStore = JsSessionDataStore()
 }

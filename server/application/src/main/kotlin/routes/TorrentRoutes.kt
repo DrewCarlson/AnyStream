@@ -186,7 +186,8 @@ fun Route.addTorrentWsRoutes(qbClient: QBittorrentClient = koinGet()) {
     webSocket("/ws/torrents/observe") {
         val session = checkNotNull(extractUserSession())
         check(Permission.check(Permission.ManageTorrents, session.permissions))
-        qbClient.observeMainData()
+        qbClient
+            .observeMainData()
             .takeWhile { !outgoing.isClosedForSend }
             .collect { data ->
                 val changed = data.torrents.keys
@@ -202,7 +203,8 @@ fun Route.addTorrentWsRoutes(qbClient: QBittorrentClient = koinGet()) {
     webSocket("/ws/torrents/global") {
         val session = checkNotNull(extractUserSession())
         check(Permission.check(Permission.ManageTorrents, session.permissions))
-        qbClient.observeMainData()
+        qbClient
+            .observeMainData()
             .takeWhile { !outgoing.isClosedForSend }
             .collect { data ->
                 outgoing.send(Frame.Text(json.encodeToString(data.serverState)))

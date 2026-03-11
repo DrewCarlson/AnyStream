@@ -24,68 +24,76 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
 import kotlin.io.path.Path
 
-class TvFileNameParserTest : FunSpec({
-    lateinit var fileNameParser: TvFileNameParser
-    beforeEach {
-        fileNameParser = TvFileNameParser()
-    }
+class TvFileNameParserTest :
+    FunSpec({
+        lateinit var fileNameParser: TvFileNameParser
+        beforeEach {
+            fileNameParser = TvFileNameParser()
+        }
 
-    test("parse season folder with number") {
-        val fileName = Path("1")
-        val result = fileNameParser.parseFileName(fileName)
-            .shouldBeTypeOf<ParsedFileNameResult.Tv.SeasonFolder>()
+        test("parse season folder with number") {
+            val fileName = Path("1")
+            val result = fileNameParser
+                .parseFileName(fileName)
+                .shouldBeTypeOf<ParsedFileNameResult.Tv.SeasonFolder>()
 
-        result.seasonNumber shouldBe 1
-    }
+            result.seasonNumber shouldBe 1
+        }
 
-    test("parse season folder with padded number") {
-        val fileName = Path("01")
-        val result = fileNameParser.parseFileName(fileName)
-            .shouldBeTypeOf<ParsedFileNameResult.Tv.SeasonFolder>()
+        test("parse season folder with padded number") {
+            val fileName = Path("01")
+            val result = fileNameParser
+                .parseFileName(fileName)
+                .shouldBeTypeOf<ParsedFileNameResult.Tv.SeasonFolder>()
 
-        result.seasonNumber shouldBe 1
-    }
+            result.seasonNumber shouldBe 1
+        }
 
-    test("parse season folder with Season and number") {
-        val fileName = Path("Season 1")
-        val result = fileNameParser.parseFileName(fileName)
-            .shouldBeTypeOf<ParsedFileNameResult.Tv.SeasonFolder>()
+        test("parse season folder with Season and number") {
+            val fileName = Path("Season 1")
+            val result = fileNameParser
+                .parseFileName(fileName)
+                .shouldBeTypeOf<ParsedFileNameResult.Tv.SeasonFolder>()
 
-        result.seasonNumber shouldBe 1
-    }
+            result.seasonNumber shouldBe 1
+        }
 
-    test("parse season folder with Season and padded number") {
-        val fileName = Path("Season 01")
-        val result = fileNameParser.parseFileName(fileName)
-            .shouldBeTypeOf<ParsedFileNameResult.Tv.SeasonFolder>()
+        test("parse season folder with Season and padded number") {
+            val fileName = Path("Season 01")
+            val result = fileNameParser
+                .parseFileName(fileName)
+                .shouldBeTypeOf<ParsedFileNameResult.Tv.SeasonFolder>()
 
-        result.seasonNumber shouldBe 1
-    }
+            result.seasonNumber shouldBe 1
+        }
 
-    test("parse simple episode file") {
-        val fileName = Path("Friends.S1E1.mkv")
-        val result = fileNameParser.parseFileName(fileName)
-            .shouldBeTypeOf<ParsedFileNameResult.Tv.EpisodeFile>()
+        test("parse simple episode file") {
+            val fileName = Path("Friends.S1E1.mkv")
+            val result = fileNameParser
+                .parseFileName(fileName)
+                .shouldBeTypeOf<ParsedFileNameResult.Tv.EpisodeFile>()
 
-        result.seasonNumber shouldBe 1
-        result.episodeNumber shouldBe 1
-    }
+            result.seasonNumber shouldBe 1
+            result.episodeNumber shouldBe 1
+        }
 
-    test("parse simple episode file with padded numbers") {
-        val fileName = Path("Friends.S01E01.mkv")
-        val result = fileNameParser.parseFileName(fileName)
-            .shouldBeTypeOf<ParsedFileNameResult.Tv.EpisodeFile>()
+        test("parse simple episode file with padded numbers") {
+            val fileName = Path("Friends.S01E01.mkv")
+            val result = fileNameParser
+                .parseFileName(fileName)
+                .shouldBeTypeOf<ParsedFileNameResult.Tv.EpisodeFile>()
 
-        result.seasonNumber shouldBe 1
-        result.episodeNumber shouldBe 1
-    }
+            result.seasonNumber shouldBe 1
+            result.episodeNumber shouldBe 1
+        }
 
-    test("should parse show folder") {
-        val fileName = Path("Friends (1994)")
-        val result = fileNameParser.parseFileName(fileName)
-            .shouldBeTypeOf<ParsedFileNameResult.Tv.ShowFolder>()
+        test("should parse show folder") {
+            val fileName = Path("Friends (1994)")
+            val result = fileNameParser
+                .parseFileName(fileName)
+                .shouldBeTypeOf<ParsedFileNameResult.Tv.ShowFolder>()
 
-        result.name shouldBe "Friends"
-        result.year shouldBe 1994
-    }
-})
+            result.name shouldBe "Friends"
+            result.year shouldBe 1994
+        }
+    })

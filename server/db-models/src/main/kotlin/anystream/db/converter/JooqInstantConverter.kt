@@ -17,17 +17,15 @@
  */
 package anystream.db.converter
 
-import kotlin.time.Instant
 import org.jooq.BindingGetResultSetContext
 import org.jooq.BindingSetStatementContext
 import org.jooq.Converter
 import org.jooq.impl.AbstractBinding
 import org.jooq.impl.SQLDataType
-
+import kotlin.time.Instant
 
 @Suppress("UNUSED")
 private class JooqInstantConverter : Converter<String, Instant> {
-
     override fun fromType(): Class<String> = String::class.java
 
     override fun toType(): Class<Instant> = Instant::class.java
@@ -48,6 +46,7 @@ val INSTANT_DATATYPE = SQLDataType
 @Suppress("UNUSED")
 class JooqInstantBinding : AbstractBinding<String, Instant>() {
     private val convert = JooqInstantConverter()
+
     override fun converter(): Converter<String, Instant> {
         return convert
     }

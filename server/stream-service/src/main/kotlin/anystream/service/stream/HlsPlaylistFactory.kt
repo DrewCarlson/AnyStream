@@ -26,7 +26,6 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.DurationUnit
 
 internal class HlsPlaylistFactory {
-
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     private val segLenFormatter = DecimalFormat().apply {
@@ -40,7 +39,7 @@ internal class HlsPlaylistFactory {
         token: String,
         runtime: Duration,
         segmentDuration: Duration,
-        isHlsInFmp4: Boolean
+        isHlsInFmp4: Boolean,
     ): String {
         logger.debug("Creating variant playlist for {}", mediaFile)
 

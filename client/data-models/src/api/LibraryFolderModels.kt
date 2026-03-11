@@ -31,7 +31,6 @@ class AddLibraryFolderRequest(
 
 @Serializable
 sealed class AddLibraryFolderResponse {
-
     @Poko
     @Serializable
     class Success(

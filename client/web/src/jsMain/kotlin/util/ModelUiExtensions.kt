@@ -19,7 +19,6 @@ package anystream.util
 
 import anystream.models.MediaKind
 
-
 val MediaKind.bootstrapIcon: String
     get() = when (this) {
         MediaKind.MOVIE -> "bi-film"

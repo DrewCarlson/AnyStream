@@ -26,7 +26,9 @@ import java.util.concurrent.atomic.AtomicInteger
 /**
  * A globally unique identifier for objects.
  */
-class ObjectId : Comparable<ObjectId?>, Serializable {
+class ObjectId :
+    Comparable<ObjectId?>,
+    Serializable {
     /**
      * Gets the timestamp (number of seconds since the Unix epoch).
      *
@@ -65,8 +67,8 @@ class ObjectId : Comparable<ObjectId?>, Serializable {
     constructor(timestamp: Int, counter: Int) : this(timestamp, counter, true)
     private constructor(timestamp: Int, counter: Int, checkCounter: Boolean) : this(
         timestamp,
-        RANDOM_VALUE1,
-        RANDOM_VALUE2,
+        randomValue1,
+        randomValue2,
         counter,
         checkCounter,
     )
@@ -79,7 +81,9 @@ class ObjectId : Comparable<ObjectId?>, Serializable {
         checkCounter: Boolean,
     ) {
         require(randomValue1 and -0x1000000 == 0) { "The machine identifier must be between 0 and 16777215 (it must fit in three bytes)." }
-        require(!(checkCounter && counter and -0x1000000 != 0)) { "The counter must be between 0 and 16777215 (it must fit in three bytes)." }
+        require(
+            !(checkCounter && counter and -0x1000000 != 0),
+        ) { "The counter must be between 0 and 16777215 (it must fit in three bytes)." }
         this.timestamp = timestamp
         this.counter = counter and LOW_ORDER_THREE_BYTES
         this.randomValue1 = randomValue1
@@ -116,8 +120,8 @@ class ObjectId : Comparable<ObjectId?>, Serializable {
         // Note: Cannot use ByteBuffer.getInt because it depends on tbe buffer's byte order
         // and ObjectId's are always in big-endian order.
         timestamp = makeInt(buffer.get(), buffer.get(), buffer.get(), buffer.get())
-        randomValue1 = makeInt(0.toByte(), buffer.get(), buffer.get(), buffer.get())
-        randomValue2 = makeShort(buffer.get(), buffer.get())
+        this@ObjectId.randomValue1 = makeInt(0.toByte(), buffer.get(), buffer.get(), buffer.get())
+        this@ObjectId.randomValue2 = makeShort(buffer.get(), buffer.get())
         counter = makeInt(0.toByte(), buffer.get(), buffer.get(), buffer.get())
     }
 
@@ -145,11 +149,11 @@ class ObjectId : Comparable<ObjectId?>, Serializable {
         buffer.put(int2(timestamp))
         buffer.put(int1(timestamp))
         buffer.put(int0(timestamp))
-        buffer.put(int2(randomValue1))
-        buffer.put(int1(randomValue1))
-        buffer.put(int0(randomValue1))
-        buffer.put(short1(randomValue2))
-        buffer.put(short0(randomValue2))
+        buffer.put(int2(this@ObjectId.randomValue1))
+        buffer.put(int1(this@ObjectId.randomValue1))
+        buffer.put(int0(this@ObjectId.randomValue1))
+        buffer.put(short1(this@ObjectId.randomValue2))
+        buffer.put(short0(this@ObjectId.randomValue2))
         buffer.put(int2(counter))
         buffer.put(int1(counter))
         buffer.put(int0(counter))
@@ -191,17 +195,17 @@ class ObjectId : Comparable<ObjectId?>, Serializable {
         if (timestamp != objectId.timestamp) {
             return false
         }
-        if (randomValue1 != objectId.randomValue1) {
+        if (this@ObjectId.randomValue1 != objectId.randomValue1) {
             return false
         }
-        return randomValue2 == objectId.randomValue2
+        return this@ObjectId.randomValue2 == objectId.randomValue2
     }
 
     override fun hashCode(): Int {
         var result = timestamp
         result = 31 * result + counter
-        result = 31 * result + randomValue1
-        result = 31 * result + randomValue2
+        result = 31 * result + this@ObjectId.randomValue1
+        result = 31 * result + this@ObjectId.randomValue2
         return result
     }
 
@@ -226,7 +230,9 @@ class ObjectId : Comparable<ObjectId?>, Serializable {
         return SerializationProxy(this)
     }
 
-    private class SerializationProxy(objectId: ObjectId) : Serializable {
+    private class SerializationProxy(
+        objectId: ObjectId,
+    ) : Serializable {
         private val bytes = objectId.toByteArray()
 
         private fun readResolve(): Any {
@@ -245,12 +251,26 @@ class ObjectId : Comparable<ObjectId?>, Serializable {
         private const val LOW_ORDER_THREE_BYTES = 0x00ffffff
 
         // Use primitives to represent the 5-byte random value.
-        private var RANDOM_VALUE1 = 0
-        private var RANDOM_VALUE2: Short = 0
+        private var randomValue1 = 0
+        private var randomValue2: Short = 0
         private val NEXT_COUNTER: AtomicInteger = AtomicInteger(SecureRandom().nextInt())
         private val HEX_CHARS = charArrayOf(
-            '0', '1', '2', '3', '4', '5', '6', '7',
-            '8', '9', 'a', 'b', 'c', 'd', 'e', 'f',
+            '0',
+            '1',
+            '2',
+            '3',
+            '4',
+            '5',
+            '6',
+            '7',
+            '8',
+            '9',
+            'a',
+            'b',
+            'c',
+            'd',
+            'e',
+            'f',
         )
 
         /**
@@ -307,8 +327,8 @@ class ObjectId : Comparable<ObjectId?>, Serializable {
         init {
             try {
                 val secureRandom = SecureRandom()
-                RANDOM_VALUE1 = secureRandom.nextInt(0x01000000)
-                RANDOM_VALUE2 = secureRandom.nextInt(0x00008000).toShort()
+                randomValue1 = secureRandom.nextInt(0x01000000)
+                randomValue2 = secureRandom.nextInt(0x00008000).toShort()
             } catch (e: Exception) {
                 throw RuntimeException(e)
             }
@@ -328,14 +348,22 @@ class ObjectId : Comparable<ObjectId?>, Serializable {
         }
 
         // Big-Endian helpers, in this class because all other BSON numbers are little-endian
-        private fun makeInt(b3: Byte, b2: Byte, b1: Byte, b0: Byte): Int {
+        private fun makeInt(
+            b3: Byte,
+            b2: Byte,
+            b1: Byte,
+            b0: Byte,
+        ): Int {
             return b3.toInt() shl 24 or
                 (b2.toInt() and 0xff shl 16) or
                 (b1.toInt() and 0xff shl 8) or
                 (b0.toInt() and 0xff)
         }
 
-        private fun makeShort(b1: Byte, b0: Byte): Short {
+        private fun makeShort(
+            b1: Byte,
+            b0: Byte,
+        ): Short {
             return (b1.toInt() and 0xff shl 8 or (b0.toInt() and 0xff)).toShort()
         }
 

@@ -20,9 +20,12 @@ package anystream.presentation.media
 import anystream.models.api.MediaLookupResponse
 import anystream.presentation.core.ScreenModel
 
-
 sealed interface MediaScreenModel : ScreenModel {
     data object Loading : MediaScreenModel
-    data class Loaded(val response: MediaLookupResponse) : MediaScreenModel
+
+    data class Loaded(
+        val response: MediaLookupResponse,
+    ) : MediaScreenModel
+
     data object LoadingFailed : MediaScreenModel
 }

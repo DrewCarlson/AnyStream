@@ -34,7 +34,9 @@ class UserPublic(
 )
 
 enum class AuthType {
-    INTERNAL, OIDC, BOTH;
+    INTERNAL,
+    OIDC,
+    BOTH,
 }
 
 fun User.toPublic(): UserPublic {

@@ -20,12 +20,12 @@ package anystream.media.scanner
 import anystream.db.LibraryDao
 import anystream.db.MediaLinkDao
 import anystream.db.pojos.toMediaLink
-import anystream.models.Directory
 import anystream.media.AUDIO_EXTENSIONS
 import anystream.media.SUBTITLE_EXTENSIONS
 import anystream.media.VIDEO_EXTENSIONS
-import anystream.models.MediaKind
 import anystream.models.Descriptor
+import anystream.models.Directory
+import anystream.models.MediaKind
 import anystream.models.api.ContentIdContainer
 import anystream.models.api.MediaScanResult
 import anystream.models.backend.MediaScannerMessage
@@ -43,7 +43,6 @@ class MediaFileScanner(
     private val libraryDao: LibraryDao,
     private val fs: FileSystem,
 ) {
-
     companion object {
         private val MOVIE_TV_DESCRIPTOR_EXTENSION_MAP = mapOf(
             VIDEO_EXTENSIONS to Descriptor.VIDEO,
@@ -69,9 +68,10 @@ class MediaFileScanner(
      * Scan the file or directory at the [path] to add [Directory] and
      * [anystream.models.MediaLink] records for all files that can be tracked.
      *
+     * TODO: Still used for tests, but should be removed in favor of typed directory and media link params.
+     *
      * @param path An absolute file path to a media directory or file.
      */
-    //TODO: Still used for tests, but should be removed in favor of typed directory and media link params.
     internal suspend fun scan(path: Path): MediaScanResult {
         if (!path.isAbsolute) {
             return MediaScanResult.ErrorAbsolutePathRequired
@@ -94,7 +94,7 @@ class MediaFileScanner(
         return scanDirectory(
             path = fs.getPath(directory.filePath),
             directory = directory,
-            parentDirectory = null
+            parentDirectory = null,
         )
     }
 
@@ -150,10 +150,10 @@ class MediaFileScanner(
                 val newDirectory = libraryDao.insertDirectory(
                     parentId = parentDirectoryDb.id,
                     libraryId = parentDirectoryDb.libraryId,
-                    path = pathString
+                    path = pathString,
                 )
                 resultIdContainer = resultIdContainer.copy(
-                    addedIds = listOf(newDirectory.id)
+                    addedIds = listOf(newDirectory.id),
                 )
                 newDirectory
             }
@@ -162,15 +162,15 @@ class MediaFileScanner(
         //  modify this to propagate any errors and include any affected ids in error cases.
         //  this also applies to the pruning process which is done above.
         val subResults =
-            path.listDirectoryEntries()
+            path
+                .listDirectoryEntries()
                 .map { childPath ->
                     if (childPath.isDirectory()) {
                         scanDirectory(childPath, null, directoryDb)
                     } else {
                         scanFile(childPath, directoryDb)
                     }
-                }
-                .filterIsInstance<MediaScanResult.Success>()
+                }.filterIsInstance<MediaScanResult.Success>()
 
         val message = if (parentDirectory == null) {
             MediaScannerMessage.ScanDirectoryCompleted(directoryDb)
@@ -180,25 +180,27 @@ class MediaFileScanner(
         messageQueue.emit(message)
         removeIdOrIdleState(scanName)
 
-        return MediaScanResult.Success(
-            directories = resultIdContainer,
-            mediaLinks = ContentIdContainer.EMPTY
-        ).merge(subResults)
+        return MediaScanResult
+            .Success(
+                directories = resultIdContainer,
+                mediaLinks = ContentIdContainer.EMPTY,
+            ).merge(subResults)
     }
 
     private suspend fun pruneAllPathRecords(path: Path): MediaScanResult.Success {
         val pathString = path.absolutePathString()
         val deletedMediaLinks = mediaLinkDao.deleteByBasePath(pathString)
-        val deletedIds = libraryDao.fetchDirectoryByPath(pathString)
+        val deletedIds = libraryDao
+            .fetchDirectoryByPath(pathString)
             ?.run {
-                libraryDao.deleteDirectoriesByParent(id)
+                libraryDao
+                    .deleteDirectoriesByParent(id)
                     .plus(listOfNotNull(id.takeIf { libraryDao.deleteDirectory(id) }))
-            }
-            .orEmpty()
+            }.orEmpty()
 
         return MediaScanResult.Success(
             directories = ContentIdContainer(removedIds = deletedIds),
-            mediaLinks = ContentIdContainer(removedIds = deletedMediaLinks)
+            mediaLinks = ContentIdContainer(removedIds = deletedMediaLinks),
         )
     }
 
@@ -215,8 +217,8 @@ class MediaFileScanner(
             return MediaScanResult.Success(
                 directories = ContentIdContainer.EMPTY,
                 mediaLinks = ContentIdContainer(
-                    existingIds = listOf(existingMediaLink.id)
-                )
+                    existingIds = listOf(existingMediaLink.id),
+                ),
             )
         }
 
@@ -250,19 +252,26 @@ class MediaFileScanner(
         return MediaScanResult.Success(
             directories = ContentIdContainer.EMPTY,
             mediaLinks = ContentIdContainer(
-                addedIds = listOf(mediaLink.id)
-            )
+                addedIds = listOf(mediaLink.id),
+            ),
         )
     }
 
-    private fun descriptorExtensionMapFor(mediaKind: MediaKind) = when (mediaKind) {
-        MediaKind.MOVIE, MediaKind.TV -> MOVIE_TV_DESCRIPTOR_EXTENSION_MAP
-        MediaKind.AUDIOBOOK, MediaKind.MUSIC -> AUDIOBOOK_MUSIC_DESCRIPTOR_EXTENSION_MAP
-        else -> {
-            logger.warn("No supported file extensions for MediaKind {}", mediaKind)
-            null
+    private fun descriptorExtensionMapFor(mediaKind: MediaKind) =
+        when (mediaKind) {
+            MediaKind.MOVIE, MediaKind.TV -> {
+                MOVIE_TV_DESCRIPTOR_EXTENSION_MAP
+            }
+
+            MediaKind.AUDIOBOOK, MediaKind.MUSIC -> {
+                AUDIOBOOK_MUSIC_DESCRIPTOR_EXTENSION_MAP
+            }
+
+            else -> {
+                logger.warn("No supported file extensions for MediaKind {}", mediaKind)
+                null
+            }
         }
-    }
 
     private fun addIdOrSetActiveState(directoryName: String) {
         mediaScannerState.update { state ->

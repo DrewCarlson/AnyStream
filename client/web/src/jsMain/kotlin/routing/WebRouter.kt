@@ -23,7 +23,9 @@ import kotlinx.browser.window
 // TODO: BrowserRouter is not customizable and can only push routes,
 //  a custom Router utilizing window.history.state data can emulate
 //  a full BackStack.
-class WebRouter(private val router: Router) : CommonRouter {
+class WebRouter(
+    private val router: Router,
+) : CommonRouter {
     override fun replaceTop(route: Routes) {
         router.navigate("/${route.path}")
     }

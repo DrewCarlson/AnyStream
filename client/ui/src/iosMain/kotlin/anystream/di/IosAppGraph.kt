@@ -26,7 +26,6 @@ import dev.zacsweers.metro.DependencyGraph
     bindingContainers = [CoreBindings::class],
 )
 interface IosAppGraph : AppGraph {
-
     @DependencyGraph.Factory
     fun interface Factory {
         fun create(): IosAppGraph

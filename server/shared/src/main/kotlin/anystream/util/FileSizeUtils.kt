@@ -35,16 +35,25 @@ fun discoverUsedSpace(path: Path): Long {
         Files.walkFileTree(
             path,
             object : SimpleFileVisitor<Path>() {
-                override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
+                override fun visitFile(
+                    file: Path,
+                    attrs: BasicFileAttributes,
+                ): FileVisitResult {
                     size.addAndGet(attrs.size())
                     return FileVisitResult.CONTINUE
                 }
 
-                override fun visitFileFailed(file: Path, exc: IOException?): FileVisitResult {
+                override fun visitFileFailed(
+                    file: Path,
+                    exc: IOException?,
+                ): FileVisitResult {
                     return FileVisitResult.CONTINUE
                 }
 
-                override fun postVisitDirectory(dir: Path, exc: IOException?): FileVisitResult {
+                override fun postVisitDirectory(
+                    dir: Path,
+                    exc: IOException?,
+                ): FileVisitResult {
                     return FileVisitResult.CONTINUE
                 }
             },

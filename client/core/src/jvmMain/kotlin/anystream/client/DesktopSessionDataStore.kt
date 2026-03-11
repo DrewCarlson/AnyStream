@@ -23,8 +23,10 @@ import java.util.prefs.Preferences
 internal class DesktopSessionDataStore(
     private val prefs: Preferences = Preferences.userRoot().node("anystream.client"),
 ) : SessionDataStore {
-
-    override fun write(key: String, value: String) {
+    override fun write(
+        key: String,
+        value: String,
+    ) {
         prefs.put(key.lowercase(), value)
     }
 

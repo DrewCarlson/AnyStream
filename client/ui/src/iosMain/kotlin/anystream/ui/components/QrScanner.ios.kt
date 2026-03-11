@@ -41,26 +41,32 @@ import platform.UIKit.UIDeviceOrientation.UIDeviceOrientationLandscapeLeft
 import platform.UIKit.UIDeviceOrientation.UIDeviceOrientationLandscapeRight
 import platform.UIKit.UIDeviceOrientation.UIDeviceOrientationPortraitUpsideDown
 import platform.UIKit.UIView
-import platform.UIKit.UIWindow
 import platform.darwin.NSObject
 import platform.darwin.dispatch_get_main_queue
 
 private enum class PermissionState {
-    UNSET, GRANTED, DENIED;
+    UNSET,
+    GRANTED,
+    DENIED,
 }
 
 @Composable
 internal actual fun QrScannerNative(
-    onScanned: (String) -> Unit,
+    onScan: (String) -> Unit,
     onClose: () -> Unit,
     modifier: Modifier,
 ) {
     val permissionState by produceState<PermissionState>(PermissionState.UNSET) {
         when (AVCaptureDevice.authorizationStatusForMediaType(AVMediaTypeVideo)) {
-            AVAuthorizationStatusAuthorized -> value = PermissionState.GRANTED
+            AVAuthorizationStatusAuthorized -> {
+                value = PermissionState.GRANTED
+            }
+
             AVAuthorizationStatusDenied,
             AVAuthorizationStatusRestricted,
-                -> value = PermissionState.DENIED
+            -> {
+                value = PermissionState.DENIED
+            }
 
             AVAuthorizationStatusNotDetermined -> {
                 AVCaptureDevice.requestAccessForMediaType(AVMediaTypeVideo) { granted ->
@@ -78,7 +84,7 @@ internal actual fun QrScannerNative(
             camera?.let {
                 UIKitScannerView(
                     camera = it,
-                    onDataScanned = onScanned
+                    onScan = onScan,
                 )
             }
         }
@@ -97,7 +103,7 @@ internal actual fun QrScannerNative(
 private fun PermissionDeniedDialog(onClose: () -> Unit) {
     Box(
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Text("Camera permission denied")
         /*
@@ -117,13 +123,13 @@ NSURL.URLWithString(UIApplicationOpenSettingsURLString)
 @Composable
 private fun UIKitScannerView(
     camera: AVCaptureDevice,
-    onDataScanned: (String) -> Unit,
+    onScan: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val cameraScannerController = remember {
         CameraScannerController(
             camera = camera,
-            onDataScanned = onDataScanned
+            onScan = onScan,
         )
     }
 
@@ -155,8 +161,8 @@ private fun UIKitScannerView(
         onRelease = { cameraScannerController.dispose() },
         properties = UIKitInteropProperties(
             isInteractive = false,
-            isNativeAccessibilityEnabled = false
-        )
+            isNativeAccessibilityEnabled = false,
+        ),
     )
 }
 
@@ -164,8 +170,9 @@ private fun UIKitScannerView(
 @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
 private class CameraScannerController(
     private val camera: AVCaptureDevice,
-    private val onDataScanned: (String) -> Unit,
-) : NSObject(), AVCaptureMetadataOutputObjectsDelegateProtocol {
+    private val onScan: (String) -> Unit,
+) : NSObject(),
+    AVCaptureMetadataOutputObjectsDelegateProtocol {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default.limitedParallelism(1))
     private lateinit var cameraPreview: AVCaptureVideoPreviewLayer
     private lateinit var captureSession: AVCaptureSession
@@ -239,11 +246,12 @@ private class CameraScannerController(
         fromConnection: AVCaptureConnection,
     ) {
         scope.launch {
-            didOutputMetadataObjects.firstOrNull()
+            didOutputMetadataObjects
+                .firstOrNull()
                 ?.let { it as? AVMetadataMachineReadableCodeObject }
                 ?.takeIf { it.type == AVMetadataObjectTypeQRCode && !it.stringValue.isNullOrBlank() }
                 ?.stringValue
-                ?.run(onDataScanned)
+                ?.run(onScan)
         }
     }
 

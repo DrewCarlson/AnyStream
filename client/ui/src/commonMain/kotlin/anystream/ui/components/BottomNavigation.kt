@@ -28,11 +28,10 @@ import anystream.routing.Routes
 import anystream.ui.generated.resources.*
 import org.jetbrains.compose.resources.painterResource
 
-
 @Composable
 internal fun BottomNavigation(
     selectedRoute: Routes,
-    onRouteChanged: (Routes) -> Unit,
+    onRouteChange: (Routes) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     NavigationBar(
@@ -40,7 +39,7 @@ internal fun BottomNavigation(
         modifier = modifier,
     ) {
         CompositionLocalProvider(
-            LocalRippleConfiguration provides null
+            LocalRippleConfiguration provides null,
         ) {
             val colors = NavigationBarItemDefaults.colors(
                 indicatorColor = Color.Transparent,
@@ -61,14 +60,14 @@ internal fun BottomNavigation(
                                 Res.drawable.ic_home_fill
                             } else {
                                 Res.drawable.ic_home_outline
-                            }
+                            },
                         ),
                         contentDescription = null,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(20.dp),
                     )
                 },
                 colors = colors,
-                onClick = { onRouteChanged(Routes.Home) },
+                onClick = { onRouteChange(Routes.Home) },
             )
 
             NavigationBarItem(
@@ -81,14 +80,14 @@ internal fun BottomNavigation(
                                 Res.drawable.ic_profile_fill
                             } else {
                                 Res.drawable.ic_curved_profile
-                            }
+                            },
                         ),
                         contentDescription = null,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(20.dp),
                     )
                 },
                 colors = colors,
-                onClick = { onRouteChanged(Routes.Profile) },
+                onClick = { onRouteChange(Routes.Profile) },
             )
         }
     }

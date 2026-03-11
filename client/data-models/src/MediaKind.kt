@@ -29,7 +29,8 @@ enum class MediaKind {
     AUDIOBOOK,
     COMIC,
     GAME,
-    PROGRAM;
+    PROGRAM,
+    ;
 
     val libraryName: String
         get() = when (this) {

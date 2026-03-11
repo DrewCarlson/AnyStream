@@ -30,14 +30,11 @@ import platform.Foundation.NSUserDefaults
 @ContributesTo(AppScope::class)
 @BindingContainer
 actual object PlatformCoreBindings {
+    @SingleIn(AppScope::class)
+    @Provides
+    actual fun provideHttpClientEngine(): HttpClientEngine = Darwin.create { }
 
     @SingleIn(AppScope::class)
     @Provides
-    actual fun provideHttpClientEngine(): HttpClientEngine =
-        Darwin.create { }
-
-    @SingleIn(AppScope::class)
-    @Provides
-    fun provideDataStore(): SessionDataStore =
-        IosSessionDataStore(NSUserDefaults())
+    fun provideDataStore(): SessionDataStore = IosSessionDataStore(NSUserDefaults())
 }

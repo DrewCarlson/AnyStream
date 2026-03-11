@@ -42,8 +42,8 @@ import anystream.ui.components.BottomNavigation
 import anystream.ui.home.HomeScreen
 import anystream.ui.login.LoginScreen
 import anystream.ui.login.WelcomeScreen
-import anystream.ui.media.MediaScreen
 import anystream.ui.media.LibraryScreen
+import anystream.ui.media.MediaScreen
 import anystream.ui.profile.DevicePairingScannerScreen
 import anystream.ui.profile.ProfileScreen
 import anystream.ui.theme.AppTheme
@@ -63,6 +63,7 @@ val LocalAppGraph = compositionLocalOf<AppGraph> { error("No AppGraph provided")
 fun App(
     appGraph: AppGraph,
     appModel: AppModel,
+    modifier: Modifier = Modifier,
 ) {
     val client = appGraph.client
     val hazeState = remember { HazeState() }
@@ -73,7 +74,7 @@ fun App(
     ) {
         AppTheme {
             Scaffold(
-                modifier = Modifier
+                modifier = modifier
                     .fillMaxSize()
                     .consumeWindowInsets(WindowInsets.statusBars),
                 topBar = {
@@ -88,9 +89,8 @@ fun App(
                                     startIntensity = 0.6f,
                                     endIntensity = 0f,
                                 )
-                            }
+                            },
                     ) {
-
                         TopAppBar(
                             title = {},
                             colors = TopAppBarDefaults.topAppBarColors(
@@ -101,12 +101,11 @@ fun App(
                                 .height(
                                     WindowInsets.statusBars
                                         .asPaddingValues()
-                                        .calculateTopPadding()
+                                        .calculateTopPadding(),
                                 ),
                         )
                     }
                 },
-
                 bottomBar = {
                     AnimatedVisibility(
                         visible = appModel.appUiModel.showBottomNavigation,
@@ -121,15 +120,15 @@ fun App(
                                     style = HazeMaterials.regular(),
                                 ),
                             selectedRoute = appModel.appUiModel.selectedRoute,
-                            onRouteChanged = appModel.appUiModel.onNavigateToRoot,
+                            onRouteChange = appModel.appUiModel.onNavigateToRoot,
                         )
                     }
-                }
+                },
             ) { padding ->
                 Box(
                     modifier = Modifier
                         .hazeSource(hazeState)
-                        .fillMaxSize()
+                        .fillMaxSize(),
                 ) {
                     DisplayScreenModel(appModel.appUiModel, padding)
                 }
@@ -164,10 +163,10 @@ private fun DisplayScreenModel(
                 onPlayClick = { mediaLinkId ->
                     appUiModel.navigate(Routes.Player(mediaLinkId))
                 },
-                onViewMoviesClicked = { libraryId ->
+                onViewMoviesClick = { libraryId ->
                     appUiModel.navigate(Routes.Library(libraryId))
                 },
-                onViewTvShowsClicked = { libraryId ->
+                onViewTvShowsClick = { libraryId ->
                     appUiModel.navigate(Routes.Library(libraryId))
                 },
             )
@@ -202,7 +201,7 @@ private fun DisplayScreenModel(
                 onMetadataClick = { metadataId ->
                     appUiModel.navigate(Routes.Details(metadataId))
                 },
-                onBackClicked = { appUiModel.goBack() },
+                onBackClick = { appUiModel.goBack() },
             )
         }
 

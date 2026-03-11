@@ -40,7 +40,6 @@ import kotlinx.coroutines.launch
 class AdminApiClient(
     private val core: AnyStreamApiCore,
 ) {
-
     private val playbackSessionsFlow by lazy {
         createWsStateFlow("/api/ws/admin/sessions", PlaybackSessions())
     }
@@ -53,18 +52,22 @@ class AdminApiClient(
     val libraryActivity: StateFlow<LibraryActivity>
         get() = libraryActivityFlow
 
-    fun observeLogs(): Flow<String> = callbackFlow {
-        core.http.wss(path = "/api/ws/admin/logs") {
-            send(core.sessionManager.fetchToken()!!)
-            for (frame in incoming) {
-                if (frame is Frame.Text) trySend(frame.readText())
+    fun observeLogs(): Flow<String> =
+        callbackFlow {
+            core.http.wss(path = "/api/ws/admin/logs") {
+                send(core.sessionManager.fetchToken()!!)
+                for (frame in incoming) {
+                    if (frame is Frame.Text) trySend(frame.readText())
+                }
+                awaitClose()
             }
-            awaitClose()
         }
-    }
 
     @OptIn(DelicateCoroutinesApi::class)
-    private inline fun <reified T> createWsStateFlow(path: String, default: T): StateFlow<T> {
+    private inline fun <reified T> createWsStateFlow(
+        path: String,
+        default: T,
+    ): StateFlow<T> {
         return callbackFlow<T> {
             launch {
                 try {

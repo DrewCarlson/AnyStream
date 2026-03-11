@@ -20,7 +20,8 @@ package anystream.service.stream
 import com.github.kokorin.jaffree.ffmpeg.FFmpeg
 
 internal fun FFmpeg.buildCommandString(): String {
-    val buildArguments = FFmpeg::class.java.getDeclaredMethod("buildArguments")
+    val buildArguments = FFmpeg::class.java
+        .getDeclaredMethod("buildArguments")
         .apply { isAccessible = true }
     @Suppress("UNCHECKED_CAST")
     return (buildArguments(this) as List<String>).joinToString(

@@ -23,10 +23,12 @@ import org.jooq.impl.DefaultConverterProvider
 import kotlin.time.Duration
 
 class JooqConverterProvider : ConverterProvider {
-
     private val delegate: ConverterProvider = DefaultConverterProvider()
 
-    override fun <T : Any?, U : Any?> provide(tType: Class<T>, uType: Class<U>): Converter<T, U>? {
+    override fun <T : Any?, U : Any?> provide(
+        tType: Class<T>,
+        uType: Class<U>,
+    ): Converter<T, U>? {
         if (tType == Duration::class.java && uType == Long::class.java) {
             @Suppress("UNCHECKED_CAST")
             return DurationLongConverter() as Converter<T, U>

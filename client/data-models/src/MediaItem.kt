@@ -19,10 +19,10 @@ package anystream.models
 
 import anystream.models.api.*
 import dev.drewhamilton.poko.Poko
-import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Duration
+import kotlin.time.Instant
 
 @Poko
 class MediaItem(
@@ -50,7 +50,7 @@ class MediaItem(
     val playableMediaLink: MediaLink? =
         mediaLinks.firstOrNull {
             it.descriptor == Descriptor.VIDEO ||
-                    it.descriptor == Descriptor.AUDIO
+                it.descriptor == Descriptor.AUDIO
         }
 
     val releaseYear: String?
@@ -61,8 +61,8 @@ class MediaItem(
 
     val hasStreamEncodings: Boolean =
         mediaLinks.isNotEmpty() &&
-                streamEncodings.isNotEmpty() &&
-                streamEncodings.values.first().isNotEmpty()
+            streamEncodings.isNotEmpty() &&
+            streamEncodings.values.first().isNotEmpty()
 
     val directors: List<CrewCredit> = crew.filter { it.job == CreditJob.DIRECTOR }
     val creators: List<CrewCredit> = crew.filter { it.job == CreditJob.CREATOR }

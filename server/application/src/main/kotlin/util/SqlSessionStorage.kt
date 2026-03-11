@@ -34,9 +34,8 @@ import kotlin.NoSuchElementException
 
 class SqlSessionStorage(
     private val db: DSLContext,
-    private val sessionsDao: SessionsDao
+    private val sessionsDao: SessionsDao,
 ) : SessionStorage {
-
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     private val sessionsCache = ConcurrentHashMap<String, String>()
@@ -51,7 +50,10 @@ class SqlSessionStorage(
         }
     }
 
-    override suspend fun write(id: String, value: String) {
+    override suspend fun write(
+        id: String,
+        value: String,
+    ) {
         logger.trace("Writing session {}, {}", id, value)
         sessionsCache[id] = value
         try {
@@ -72,7 +74,8 @@ class SqlSessionStorage(
         logger.trace("Deleting session {}", id)
         sessionsCache.remove(id)
         try {
-            db.deleteFrom(SESSION)
+            db
+                .deleteFrom(SESSION)
                 .where(SESSION.ID.eq(id))
                 .executeAsync()
                 .await()

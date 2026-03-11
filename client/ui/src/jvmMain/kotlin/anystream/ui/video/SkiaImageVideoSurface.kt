@@ -34,7 +34,6 @@ import java.nio.Buffer
 import java.nio.ByteBuffer
 
 class SkiaImageVideoSurface : VideoSurface(VideoSurfaceAdapters.getVideoSurfaceAdapter()) {
-
     private val videoSurface = SkiaBitmapVideoSurface()
     private lateinit var pixmap: Pixmap
     private val skiaImage = mutableStateOf<Image?>(null)
@@ -53,11 +52,14 @@ class SkiaImageVideoSurface : VideoSurface(VideoSurfaceAdapters.getVideoSurfaceA
             bufferWidth: Int,
             bufferHeight: Int,
             displayWidth: Int,
-            displayHeight: Int
+            displayHeight: Int,
         ) {
         }
 
-        override fun getBufferFormat(sourceWidth: Int, sourceHeight: Int): BufferFormat {
+        override fun getBufferFormat(
+            sourceWidth: Int,
+            sourceHeight: Int,
+        ): BufferFormat {
             this.sourceWidth = sourceWidth
             this.sourceHeight = sourceHeight
             return RV32BufferFormat(sourceWidth, sourceHeight)
@@ -72,13 +74,12 @@ class SkiaImageVideoSurface : VideoSurface(VideoSurfaceAdapters.getVideoSurfaceA
     }
 
     private inner class SkiaBitmapRenderCallback : RenderCallback {
-
         override fun display(
             mediaPlayer: MediaPlayer?,
             nativeBuffers: Array<out ByteBuffer>,
             bufferFormat: BufferFormat?,
             displayWidth: Int,
-            displayHeight: Int
+            displayHeight: Int,
         ) {
             skiaImage.value = Image.makeFromPixmap(pixmap)
         }
@@ -90,12 +91,13 @@ class SkiaImageVideoSurface : VideoSurface(VideoSurfaceAdapters.getVideoSurfaceA
         }
     }
 
-    private inner class SkiaBitmapVideoSurface : CallbackVideoSurface(
-        SkiaBitmapBufferFormatCallback(),
-        SkiaBitmapRenderCallback(),
-        true,
-        videoSurfaceAdapter,
-    )
+    private inner class SkiaBitmapVideoSurface :
+        CallbackVideoSurface(
+            SkiaBitmapBufferFormatCallback(),
+            SkiaBitmapRenderCallback(),
+            true,
+            videoSurfaceAdapter,
+        )
 }
 
 internal object ByteBufferFactory {

@@ -50,7 +50,6 @@ import kotlin.time.Duration
 class StreamApiClient(
     private val core: AnyStreamApiCore,
 ) {
-
     suspend fun getStreams(): PlaybackSessions {
         return core.http.get("/api/stream").bodyOrThrow()
     }
@@ -67,7 +66,7 @@ class StreamApiClient(
         val job = scope.launch {
             try {
                 core.http.wss(path = "/api/ws/stream/$mediaLinkId/state") {
-                    send( core.sessionManager.fetchToken()!!)
+                    send(core.sessionManager.fetchToken()!!)
 
                     sendSerialized(clientCapabilities)
 
@@ -106,28 +105,27 @@ class StreamApiClient(
         )
     }
 
-
     fun createHlsStreamUrl(
         mediaLinkId: String,
         token: String,
-        clientCapabilities: ClientCapabilities? = createPlatformClientCapabilities()
+        clientCapabilities: ClientCapabilities? = createPlatformClientCapabilities(),
     ): String {
-        return URLBuilder( core.serverUrl.orEmpty()).apply {
-            path("api", "stream", mediaLinkId, "hls", "playlist.m3u8")
-            parameters["token"] = token
+        return URLBuilder(core.serverUrl.orEmpty())
+            .apply {
+                path("api", "stream", mediaLinkId, "hls", "playlist.m3u8")
+                parameters["token"] = token
 
-            if (clientCapabilities != null) {
-                parameters["capabilities"] = json.encodeToString(clientCapabilities)
-            }
-        }.buildString()
+                if (clientCapabilities != null) {
+                    parameters["capabilities"] = json.encodeToString(clientCapabilities)
+                }
+            }.buildString()
     }
 
     suspend fun stopStreamSession(id: String): Boolean {
-        val result =  core.http.delete("/api/stream/stop/$id")
+        val result = core.http.delete("/api/stream/stop/$id")
         return result.status == OK
     }
 }
-
 
 class PlaybackSessionHandle(
     val initialPlaybackState: Deferred<PlaybackState>,

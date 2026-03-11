@@ -53,7 +53,10 @@ import coil3.compose.rememberAsyncImagePainter
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-internal fun MediaCarousel(pagerState: PagerState, media: List<Pair<Movie, MediaLink?>>) {
+internal fun MediaCarousel(
+    pagerState: PagerState,
+    media: List<Pair<Movie, MediaLink?>>,
+) {
     HorizontalPager(pagerState, modifier = Modifier.height(375.dp)) {
         Box(Modifier.fillMaxWidth()) {
             val imageUrlBuilder = LocalImageProvider.current
@@ -64,22 +67,29 @@ internal fun MediaCarousel(pagerState: PagerState, media: List<Pair<Movie, Media
             val state by painter.state.collectAsState()
             Box(
                 modifier = Modifier.height(375.dp),
-                contentAlignment = Alignment.BottomCenter
+                contentAlignment = Alignment.BottomCenter,
             ) {
                 when (state) {
-                    is AsyncImagePainter.State.Success ->
+                    is AsyncImagePainter.State.Success -> {
                         Image(
                             painter = painter,
                             contentDescription = "Movie Poster",
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop,
                         )
+                    }
 
                     is AsyncImagePainter.State.Loading -> {
                         Box(Modifier.size(375.dp).background(color = Color(0xFFBDBDBD)))
                     }
-                    AsyncImagePainter.State.Empty -> Unit
-                    is AsyncImagePainter.State.Error -> Unit
+
+                    AsyncImagePainter.State.Empty -> {
+                        Unit
+                    }
+
+                    is AsyncImagePainter.State.Error -> {
+                        Unit
+                    }
                 }
             }
 
@@ -176,6 +186,7 @@ private fun CarouselMediaButtonRow() {
 
 @Preview
 @Composable
-private fun CarouselMediaButtonRow_Preview() = AppTheme {
-    MediaCarousel(rememberPagerState(0) { 5 }, media = listOf())
-}
+private fun CarouselMediaButtonRow_Preview() =
+    AppTheme {
+        MediaCarousel(rememberPagerState(0) { 5 }, media = listOf())
+    }

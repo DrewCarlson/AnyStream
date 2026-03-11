@@ -19,7 +19,6 @@ package anystream.screens
 
 import androidx.compose.runtime.*
 import anystream.LocalAnyStreamClient
-import anystream.client.AnyStreamClient
 import anystream.components.FullSizeCenteredLoader
 import anystream.components.HorizontalScroller
 import anystream.components.LinkedText
@@ -239,7 +238,6 @@ private fun Popular.PopularMovies(sizeMultiplier: Float) {
             },
         )
     }
-
 }
 
 @Composable
@@ -271,9 +269,7 @@ private fun Popular.PopularTvShows(sizeMultiplier: Float) {
 }
 
 @Composable
-private fun MovieRow(
-    title: @Composable () -> Unit,
-) {
+private fun MovieRow(title: @Composable () -> Unit) {
     Div {
         H4({
             classes("px-3", "pt-3", "pb-1")
@@ -284,7 +280,10 @@ private fun MovieRow(
 }
 
 @Composable
-private fun PosterSizeSelector(sizeMultiplier: Float, onInput: (Float) -> Unit) {
+private fun PosterSizeSelector(
+    sizeMultiplier: Float,
+    onInput: (Float) -> Unit,
+) {
     Div({
         classes("d-flex", "align-items-center", "gap-2")
         style { width(120.px) }
@@ -296,7 +295,10 @@ private fun PosterSizeSelector(sizeMultiplier: Float, onInput: (Float) -> Unit) 
             max("1.2")
             step(0.01)
             onInput {
-                it.value?.toFloat()?.takeUnless(Float::isNaN)?.run(onInput)
+                it.value
+                    ?.toFloat()
+                    ?.takeUnless(Float::isNaN)
+                    ?.run(onInput)
             }
         }
         I({ classes("bi", "bi-grid-3x3-gap-fill") })

@@ -43,9 +43,7 @@ import kotlin.time.Duration.Companion.seconds
 
 private const val PLAYBACK_COMPLETE_PERCENT = 90
 
-fun Route.addStreamRoutes(
-    streamService: StreamService = koinGet(),
-) {
+fun Route.addStreamRoutes(streamService: StreamService = koinGet()) {
     route("/stream") {
         authenticate {
             withPermission(Permission.ConfigureSystem) {
@@ -136,9 +134,7 @@ fun Route.addStreamRoutes(
     }
 }
 
-fun Route.addStreamWsRoutes(
-    streamService: StreamService = koinGet(),
-) {
+fun Route.addStreamWsRoutes(streamService: StreamService = koinGet()) {
     webSocket("/ws/stream/{mediaLinkId}/state") {
         val session = checkNotNull(extractUserSession())
         check(Permission.check(Permission.ViewCollection, session.permissions))
@@ -151,7 +147,7 @@ fun Route.addStreamWsRoutes(
             mediaLinkId = mediaLinkId,
             userId = userId,
             create = true,
-            clientCapabilities = clientCapabilities
+            clientCapabilities = clientCapabilities,
         ) ?: return@webSocket close()
 
         send(Frame.Text(json.encodeToString(state)))

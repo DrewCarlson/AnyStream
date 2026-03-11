@@ -20,7 +20,6 @@ package anystream.presentation.app
 import anystream.presentation.core.ScreenModel
 import anystream.routing.Routes
 
-
 data class AppUiModel(
     val screen: ScreenModel,
     val showBottomNavigation: Boolean,

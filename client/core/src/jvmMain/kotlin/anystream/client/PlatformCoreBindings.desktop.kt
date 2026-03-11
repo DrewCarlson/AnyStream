@@ -28,14 +28,11 @@ import io.ktor.client.engine.cio.CIO
 @ContributesTo(AppScope::class)
 @BindingContainer
 actual object PlatformCoreBindings {
+    @SingleIn(AppScope::class)
+    @Provides
+    actual fun provideHttpClientEngine(): HttpClientEngine = CIO.create { }
 
     @SingleIn(AppScope::class)
     @Provides
-    actual fun provideHttpClientEngine(): HttpClientEngine =
-        CIO.create { }
-
-    @SingleIn(AppScope::class)
-    @Provides
-    fun provideDataStore(): SessionDataStore =
-        DesktopSessionDataStore()
+    fun provideDataStore(): SessionDataStore = DesktopSessionDataStore()
 }

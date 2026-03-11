@@ -25,28 +25,29 @@ import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNull
 
-class MovieFileNameParserTest : FunSpec({
-    lateinit var fileNameParser: MovieFileNameParser
+class MovieFileNameParserTest :
+    FunSpec({
+        lateinit var fileNameParser: MovieFileNameParser
 
-    beforeTest {
-        fileNameParser = MovieFileNameParser()
-    }
+        beforeTest {
+            fileNameParser = MovieFileNameParser()
+        }
 
-    test("parse movie file") {
-        val fileName = Path("The Shawshank Redemption (1994).mp4")
-        val result = fileNameParser.parseFileName(fileName)
+        test("parse movie file") {
+            val fileName = Path("The Shawshank Redemption (1994).mp4")
+            val result = fileNameParser.parseFileName(fileName)
 
-        assertIs<ParsedFileNameResult.MovieFile>(result)
-        assertEquals("The Shawshank Redemption", result.name)
-        assertEquals(1994, result.year)
-    }
+            assertIs<ParsedFileNameResult.MovieFile>(result)
+            assertEquals("The Shawshank Redemption", result.name)
+            assertEquals(1994, result.year)
+        }
 
-    test("parse movie file without year") {
-        val fileName = Path("Inception.mkv")
-        val result = fileNameParser.parseFileName(fileName)
+        test("parse movie file without year") {
+            val fileName = Path("Inception.mkv")
+            val result = fileNameParser.parseFileName(fileName)
 
-        assertIs<ParsedFileNameResult.MovieFile>(result)
-        assertEquals("Inception", result.name)
-        assertNull(result.year)
-    }
-})
+            assertIs<ParsedFileNameResult.MovieFile>(result)
+            assertEquals("Inception", result.name)
+            assertNull(result.year)
+        }
+    })

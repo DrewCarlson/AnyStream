@@ -111,6 +111,7 @@ external class PopperInstance {
     val state: PopperState
 
     fun forceUpdate()
+
     fun update()
 
     // fun setOptions(options): Promise<State>
@@ -140,15 +141,20 @@ external class PopperStateRects {
 
 external interface PopperVirtualElement {
     fun getBoundingClientRect(): PopperRect
+
     val contextElement: HTMLElement?
 }
 
 /**
  * A fixed position element for static placement of the popper.
  */
-fun popperFixedPosition(x: Int, y: Int): PopperVirtualElement {
+fun popperFixedPosition(
+    x: Int,
+    y: Int,
+): PopperVirtualElement {
     return object : PopperVirtualElement {
         override val contextElement: HTMLElement? = null
+
         override fun getBoundingClientRect(): PopperRect {
             return PopperRect(
                 width = 0,
@@ -156,7 +162,7 @@ fun popperFixedPosition(x: Int, y: Int): PopperVirtualElement {
                 top = y,
                 bottom = y,
                 right = x,
-                left = x
+                left = x,
             )
         }
     }

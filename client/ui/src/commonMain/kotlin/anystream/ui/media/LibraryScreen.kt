@@ -20,11 +20,7 @@ package anystream.ui.media
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
-import anystream.client.AnyStreamClient
-import anystream.models.*
 import anystream.presentation.library.LibraryScreenModel
 import anystream.ui.components.LoadingScreen
 
@@ -33,9 +29,8 @@ fun LibraryScreen(
     model: LibraryScreenModel,
     onMediaClick: (metadataId: String) -> Unit,
     onPlayMediaClick: (mediaLinkId: String) -> Unit,
-    modifier: Modifier
+    modifier: Modifier = Modifier,
 ) {
-
     AnimatedContent(targetState = model) { targetState ->
         when (targetState) {
             is LibraryScreenModel.Loaded -> {
@@ -46,9 +41,18 @@ fun LibraryScreen(
                     onPlayMediaClick = onPlayMediaClick,
                 )
             }
-            LibraryScreenModel.Loading -> LoadingScreen()
-            LibraryScreenModel.LoadingFailed -> Text("Failed to load...")
-            LibraryScreenModel.NotFound -> Text("Library not found...")
+
+            LibraryScreenModel.Loading -> {
+                LoadingScreen()
+            }
+
+            LibraryScreenModel.LoadingFailed -> {
+                Text("Failed to load...")
+            }
+
+            LibraryScreenModel.NotFound -> {
+                Text("Library not found...")
+            }
         }
     }
 }

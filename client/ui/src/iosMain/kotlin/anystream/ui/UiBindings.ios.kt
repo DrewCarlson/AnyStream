@@ -28,11 +28,8 @@ import dev.zacsweers.metro.Provides
 @ContributesTo(AppScope::class)
 @BindingContainer
 object UiBindings {
-
     @Provides
-    fun providePlayerHandle(
-        client: AnyStreamClient,
-    ): PlayerHandle {
+    fun providePlayerHandle(client: AnyStreamClient): PlayerHandle {
         return AvPlayerHandle(
             client = client,
         )

@@ -50,7 +50,7 @@ import com.google.zxing.qrcode.QRCodeReader
 
 @Composable
 internal actual fun QrScannerNative(
-    onScanned: (String) -> Unit,
+    onScan: (String) -> Unit,
     onClose: () -> Unit,
     modifier: Modifier,
 ) {
@@ -93,11 +93,11 @@ internal actual fun QrScannerNative(
                         lifecycleOwner = lifecycleOwner,
                         cameraProvider = cameraProvider,
                         previewView = previewView,
-                        onScanned = onScanned
+                        onScanned = onScan,
                     )
 
                     previewView
-                }
+                },
             )
         }
     }
@@ -110,30 +110,34 @@ private fun Context.createQrCodeImageAnalysisUseCase(
     onScanned: (String) -> Unit,
 ) {
     val preview =
-        Preview.Builder()
+        Preview
+            .Builder()
             .build()
             .apply {
                 surfaceProvider = previewView.surfaceProvider
             }
     val selector =
-        CameraSelector.Builder()
+        CameraSelector
+            .Builder()
             .requireLensFacing(CameraSelector.LENS_FACING_BACK)
             .build()
 
     val imageAnalysis =
-        ImageAnalysis.Builder()
+        ImageAnalysis
+            .Builder()
             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
             .build()
 
     imageAnalysis.setAnalyzer(
         ContextCompat.getMainExecutor(this),
         QrCodeAnalyzer(
-            onScanned = onScanned
-        )
+            onScanned = onScanned,
+        ),
     )
 
     val useCaseGroup =
-        UseCaseGroup.Builder()
+        UseCaseGroup
+            .Builder()
             .addUseCase(preview)
             .addUseCase(imageAnalysis)
             .build()
@@ -142,7 +146,7 @@ private fun Context.createQrCodeImageAnalysisUseCase(
         cameraProvider.bindToLifecycle(
             lifecycleOwner,
             selector,
-            useCaseGroup
+            useCaseGroup,
         )
     } catch (e: Throwable) {
         // TODO: display error when camera start failed
@@ -152,7 +156,6 @@ private fun Context.createQrCodeImageAnalysisUseCase(
 private class QrCodeAnalyzer(
     private val onScanned: (String) -> Unit,
 ) : ImageAnalysis.Analyzer {
-
     private val reader = QRCodeReader()
     private val supportedFormats =
         listOf(YUV_420_888, YUV_422_888, YUV_444_888)
@@ -171,7 +174,7 @@ private class QrCodeAnalyzer(
             0,
             image.width,
             image.height,
-            false
+            false,
         )
         val zxingBinaryBitmap = BinaryBitmap(HybridBinarizer(source))
         try {

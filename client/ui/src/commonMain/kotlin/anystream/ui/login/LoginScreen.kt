@@ -84,8 +84,7 @@ internal fun LoginScreen(
                         detectTapGestures {
                             focusManager.clearFocus(force = true)
                         }
-                    }
-                    .padding(vertical = 16.dp, horizontal = 24.dp),
+                    }.padding(vertical = 16.dp, horizontal = 24.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 // Left: QR code pairing panel
@@ -129,8 +128,7 @@ internal fun LoginScreen(
                         detectTapGestures {
                             focusManager.clearFocus(force = true)
                         }
-                    }
-                    .verticalScroll(rememberScrollState())
+                    }.verticalScroll(rememberScrollState())
                     .padding(vertical = 16.dp, horizontal = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
@@ -191,9 +189,7 @@ private fun QrCodePairingPanel(pairingCode: String?) {
 }
 
 @Composable
-internal fun FormBody(
-    model: LoginScreenModel,
-) {
+internal fun FormBody(model: LoginScreenModel) {
     var serverUrlValue by remember { mutableStateOf(TextFieldValue(model.serverUrl)) }
     var usernameValue by remember { mutableStateOf(TextFieldValue(model.username)) }
     var passwordValue by remember { mutableStateOf(TextFieldValue(model.password)) }
@@ -251,7 +247,10 @@ internal fun FormBody(
 
         ErrorText(
             isError = model.loginError?.usernameError != null,
-            errorText = model.loginError?.usernameError?.name.orEmpty(),
+            errorText = model.loginError
+                ?.usernameError
+                ?.name
+                .orEmpty(),
             label = "Username is",
         )
         Spacer(Modifier.height(24.dp))
@@ -272,7 +271,7 @@ internal fun FormBody(
                 onDone = {
                     focusManager.clearFocus(force = true)
                     model.onSubmitLogin()
-                }
+                },
             ),
             visualTransformation = PasswordVisualTransformation(),
             isError = model.loginError?.passwordError != null,
@@ -292,7 +291,10 @@ internal fun FormBody(
         )
         ErrorText(
             isError = model.loginError?.passwordError != null,
-            errorText = model.loginError?.passwordError?.name.orEmpty(),
+            errorText = model.loginError
+                ?.passwordError
+                ?.name
+                .orEmpty(),
             label = "Password is",
         )
 
@@ -331,13 +333,13 @@ private fun OutlineTextField(
     onValueChange: (TextFieldValue) -> Unit,
     leadingIcon: DrawableResource?,
     placeHolder: String,
-    keyboardOptions: KeyboardOptions,
-    keyboardActions: KeyboardActions = KeyboardActions(),
-    visualTransformation: VisualTransformation = VisualTransformation.None,
     isError: Boolean,
     readOnly: Boolean,
-    showSuccess: Boolean = false,
+    keyboardOptions: KeyboardOptions,
     modifier: Modifier = Modifier,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
+    keyboardActions: KeyboardActions = KeyboardActions(),
+    showSuccess: Boolean = false,
 ) {
     OutlinedTextField(
         value = textFieldValue,

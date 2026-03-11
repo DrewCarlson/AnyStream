@@ -27,96 +27,118 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import org.jooq.DSLContext
 
-class InviteCodeDaoTest : FunSpec({
+class InviteCodeDaoTest :
+    FunSpec({
 
-    val db: DSLContext by bindTestDatabase()
-    val userDao: UserDao by bindForTest({ UserDao(db) })
-    val dao: InviteCodeDao by bindForTest({ InviteCodeDao(db) })
+        val db: DSLContext by bindTestDatabase()
+        val userDao: UserDao by bindForTest({ UserDao(db) })
+        val dao: InviteCodeDao by bindForTest({ InviteCodeDao(db) })
 
-    test("create invite code") {
-        val user = userDao.insertUser(createUserObject(), emptySet())
-            .shouldNotBeNull()
-        val inviteCode = dao.createInviteCode("secret", Permission.all, user.id)
-            .shouldNotBeNull()
-
-        inviteCode.secret shouldBe "secret"
-        inviteCode.permissions shouldBe Permission.all
-        inviteCode.createdByUserId shouldBe user.id
-    }
-
-    test("fetch invite codes") {
-        val user = userDao.insertUser(createUserObject(), emptySet())
-            .shouldNotBeNull()
-        val inviteCode1 = dao.createInviteCode("secret1", Permission.all, user.id)
-            .shouldNotBeNull()
-        val inviteCode2 = dao.createInviteCode("secret2", Permission.all, user.id)
-            .shouldNotBeNull()
-
-        val inviteCodes = dao.fetchInviteCodes()
-
-        inviteCodes.shouldBe(listOf(inviteCode1, inviteCode2))
-    }
-
-    test("fetch invite codes when empty") {
-        dao.fetchInviteCodes().shouldBeEmpty()
-    }
-
-    test("delete invite code") {
-        val user = userDao.insertUser(createUserObject(), emptySet())
-            .shouldNotBeNull()
-
-        dao.createInviteCode("secret", Permission.all, user.id)
-            .shouldNotBeNull()
-
-        dao.deleteInviteCode("secret", null)
-            .shouldBeTrue()
-
-        dao.fetchInviteCodes(user.id)
-            .shouldBeEmpty()
-    }
-
-    test("delete invite code with user id") {
-        val user = userDao.insertUser(createUserObject(), emptySet())
-            .shouldNotBeNull()
-
-        dao.createInviteCode("secret", Permission.all, user.id)
-            .shouldNotBeNull()
-
-        dao.deleteInviteCode("secret", user.id)
-            .shouldBeTrue()
-
-        dao.fetchInviteCodes(user.id)
-            .shouldBeEmpty()
-    }
-
-    test("delete invite code with incorrect user id") {
-        val user = userDao.insertUser(createUserObject(), emptySet())
-            .shouldNotBeNull()
-
-        val inviteCode = dao.createInviteCode("secret", Permission.all, user.id)
-            .shouldNotBeNull()
-
-        dao.deleteInviteCode("secret", "00000000000000")
-            .shouldBeFalse()
-
-        dao.fetchInviteCode("secret")
-            .shouldNotBeNull()
-            .shouldBeEqual(inviteCode)
-    }
-
-    test("user delete triggers invite code delete") {
-        val user = userDao.insertUser(createUserObject(), emptySet())
-            .shouldNotBeNull()
-
-        repeat(3) { i ->
-            dao.createInviteCode("secret-$i", Permission.all, user.id)
+        test("create invite code") {
+            val user = userDao
+                .insertUser(createUserObject(), emptySet())
                 .shouldNotBeNull()
+            val inviteCode = dao
+                .createInviteCode("secret", Permission.all, user.id)
+                .shouldNotBeNull()
+
+            inviteCode.secret shouldBe "secret"
+            inviteCode.permissions shouldBe Permission.all
+            inviteCode.createdByUserId shouldBe user.id
         }
 
-        userDao.deleteUser(user.id)
-            .shouldBeTrue()
+        test("fetch invite codes") {
+            val user = userDao
+                .insertUser(createUserObject(), emptySet())
+                .shouldNotBeNull()
+            val inviteCode1 = dao
+                .createInviteCode("secret1", Permission.all, user.id)
+                .shouldNotBeNull()
+            val inviteCode2 = dao
+                .createInviteCode("secret2", Permission.all, user.id)
+                .shouldNotBeNull()
 
-        dao.fetchInviteCodes(user.id)
-            .shouldBeEmpty()
-    }
-})
+            val inviteCodes = dao.fetchInviteCodes()
+
+            inviteCodes.shouldBe(listOf(inviteCode1, inviteCode2))
+        }
+
+        test("fetch invite codes when empty") {
+            dao.fetchInviteCodes().shouldBeEmpty()
+        }
+
+        test("delete invite code") {
+            val user = userDao
+                .insertUser(createUserObject(), emptySet())
+                .shouldNotBeNull()
+
+            dao
+                .createInviteCode("secret", Permission.all, user.id)
+                .shouldNotBeNull()
+
+            dao
+                .deleteInviteCode("secret", null)
+                .shouldBeTrue()
+
+            dao
+                .fetchInviteCodes(user.id)
+                .shouldBeEmpty()
+        }
+
+        test("delete invite code with user id") {
+            val user = userDao
+                .insertUser(createUserObject(), emptySet())
+                .shouldNotBeNull()
+
+            dao
+                .createInviteCode("secret", Permission.all, user.id)
+                .shouldNotBeNull()
+
+            dao
+                .deleteInviteCode("secret", user.id)
+                .shouldBeTrue()
+
+            dao
+                .fetchInviteCodes(user.id)
+                .shouldBeEmpty()
+        }
+
+        test("delete invite code with incorrect user id") {
+            val user = userDao
+                .insertUser(createUserObject(), emptySet())
+                .shouldNotBeNull()
+
+            val inviteCode = dao
+                .createInviteCode("secret", Permission.all, user.id)
+                .shouldNotBeNull()
+
+            dao
+                .deleteInviteCode("secret", "00000000000000")
+                .shouldBeFalse()
+
+            dao
+                .fetchInviteCode("secret")
+                .shouldNotBeNull()
+                .shouldBeEqual(inviteCode)
+        }
+
+        test("user delete triggers invite code delete") {
+            val user = userDao
+                .insertUser(createUserObject(), emptySet())
+                .shouldNotBeNull()
+
+            repeat(3) { i ->
+                dao
+                    .createInviteCode("secret-$i", Permission.all, user.id)
+                    .shouldNotBeNull()
+            }
+
+            userDao
+                .deleteUser(user.id)
+                .shouldBeTrue()
+
+            dao
+                .fetchInviteCodes(user.id)
+                .shouldBeEmpty()
+        }
+    })

@@ -27,7 +27,9 @@ import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.CancellationException
 
-data class MediaScreenProps(val mediaId: String)
+data class MediaScreenProps(
+    val mediaId: String,
+)
 
 @SingleIn(AppScope::class)
 @Inject

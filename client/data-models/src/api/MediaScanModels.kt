@@ -29,7 +29,6 @@ class MediaScanRequest(
 
 @Serializable
 sealed class MediaScanResult {
-
     @Serializable
     data class Success(
         val directories: ContentIdContainer,
@@ -39,7 +38,7 @@ sealed class MediaScanResult {
             return others.fold(this) { result, next ->
                 Success(
                     directories = result.directories.merge(next.directories),
-                    mediaLinks = result.mediaLinks.merge(next.mediaLinks)
+                    mediaLinks = result.mediaLinks.merge(next.mediaLinks),
                 )
             }
         }

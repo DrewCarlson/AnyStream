@@ -30,7 +30,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.StateFlow
 
 class App : Application() {
-
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     val appGraph by lazy {
         createGraphFactory<AndroidAppGraph.Factory>().create(this)

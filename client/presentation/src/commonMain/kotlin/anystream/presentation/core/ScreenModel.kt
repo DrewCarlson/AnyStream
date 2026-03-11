@@ -17,5 +17,4 @@
  */
 package anystream.presentation.core
 
-interface ScreenModel {
-}
+interface ScreenModel

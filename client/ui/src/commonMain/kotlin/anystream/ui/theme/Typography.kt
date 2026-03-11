@@ -113,6 +113,6 @@ fun getTypography(): Typography {
             fontSize = 12.sp,
             lineHeight = 16.0.sp,
             letterSpacing = 0.5.sp,
-        )
+        ),
     )
 }

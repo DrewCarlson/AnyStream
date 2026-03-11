@@ -61,13 +61,12 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.painterResource
 
-
 @Composable
 fun MediaScreen(
     model: MediaScreenModel,
     onPlayClick: (mediaLinkId: String) -> Unit,
     onMetadataClick: (metadataId: String) -> Unit,
-    onBackClicked: () -> Unit,
+    onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     when (model) {
@@ -76,15 +75,17 @@ fun MediaScreen(
                 response = model.response,
                 onPlayClick = onPlayClick,
                 onMetadataClick = onMetadataClick,
-                onBackClicked = onBackClicked,
+                onBackClick = onBackClick,
                 modifier = modifier,
             )
         }
+
         MediaScreenModel.Loading -> {
             Box(modifier = modifier) {
                 LoadingScreen()
             }
         }
+
         MediaScreenModel.LoadingFailed -> {
             Box(modifier = modifier) {
                 Text("Failed to load...")
@@ -98,7 +99,7 @@ fun MediaScreen(
     response: MediaLookupResponse?,
     onPlayClick: (mediaRefId: String) -> Unit,
     onMetadataClick: (metadataId: String) -> Unit,
-    onBackClicked: () -> Unit,
+    onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -107,14 +108,14 @@ fun MediaScreen(
             .consumeWindowInsets(WindowInsets.statusBars)
             .navigationBarsPadding()
             .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.Top)
+        verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.Top),
     ) {
         when (response) {
             is EpisodeResponse -> {
                 val mediaItem = remember(response) { response.toMediaItem() }
                 BaseDetailsView(
                     mediaItem = mediaItem,
-                    onBackClicked = onBackClicked,
+                    onBackClick = onBackClick,
                     onPlayClick = onPlayClick,
                 )
 
@@ -124,7 +125,7 @@ fun MediaScreen(
             is MovieResponse -> {
                 BaseDetailsView(
                     mediaItem = response.toMediaItem(),
-                    onBackClicked = onBackClicked,
+                    onBackClick = onBackClick,
                     onPlayClick = onPlayClick,
                 )
 
@@ -134,7 +135,7 @@ fun MediaScreen(
             is SeasonResponse -> {
                 BaseDetailsView(
                     mediaItem = response.toMediaItem(),
-                    onBackClicked = onBackClicked,
+                    onBackClick = onBackClick,
                     onPlayClick = onPlayClick,
                 ) {
                     if (response.episodes.isNotEmpty()) {
@@ -143,7 +144,7 @@ fun MediaScreen(
                             mediaLinks = response.mediaLinkMap,
                             onEpisodeClick = { episode ->
                                 onMetadataClick(episode.id)
-                            }
+                            },
                         )
                     }
                 }
@@ -152,7 +153,7 @@ fun MediaScreen(
             is TvShowResponse -> {
                 BaseDetailsView(
                     mediaItem = response.toMediaItem(),
-                    onBackClicked = onBackClicked,
+                    onBackClick = onBackClick,
                     onPlayClick = onPlayClick,
                 ) {
                     if (response.seasons.isNotEmpty()) {
@@ -166,7 +167,9 @@ fun MediaScreen(
                 CastAndCrewView(response.cast)
             }
 
-            null -> Unit
+            null -> {
+                Unit
+            }
         }
     }
 }
@@ -174,14 +177,14 @@ fun MediaScreen(
 @Composable
 private fun BaseDetailsView(
     mediaItem: MediaItem,
-    onBackClicked: () -> Unit,
+    onBackClick: () -> Unit,
     onPlayClick: (mediaLinkId: String) -> Unit,
     subcontainer: @Composable () -> Unit = {},
 ) {
     val imageUrlBuilder = LocalImageProvider.current
     Column(
         modifier = Modifier
-            .fillMaxWidth()
+            .fillMaxWidth(),
     ) {
         Box(
             Modifier
@@ -190,8 +193,8 @@ private fun BaseDetailsView(
         ) {
             BoxWithConstraints(
                 modifier = Modifier
-                    .fillMaxWidth()
-                //.fillMaxHeight(.7f)
+                    .fillMaxWidth(),
+                // .fillMaxHeight(.7f)
             ) {
                 val painter = rememberAsyncImagePainter(
                     model = imageUrlBuilder.url("backdrop", mediaItem.mediaId),
@@ -199,13 +202,14 @@ private fun BaseDetailsView(
                 )
                 val state by painter.state.collectAsState()
                 when (state) {
-                    is AsyncImagePainter.State.Success ->
+                    is AsyncImagePainter.State.Success -> {
                         Image(
                             painter = painter,
                             contentDescription = null,
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop,
                         )
+                    }
 
                     is AsyncImagePainter.State.Loading -> {
                         Box(
@@ -215,8 +219,13 @@ private fun BaseDetailsView(
                         )
                     }
 
-                    AsyncImagePainter.State.Empty -> Unit
-                    is AsyncImagePainter.State.Error -> Unit
+                    AsyncImagePainter.State.Empty -> {
+                        Unit
+                    }
+
+                    is AsyncImagePainter.State.Error -> {
+                        Unit
+                    }
                 }
 
                 Spacer(
@@ -240,7 +249,7 @@ private fun BaseDetailsView(
                         .fillMaxWidth()
                         .padding(WindowInsets.statusBars.asPaddingValues()),
                 ) {
-                    IconButton(onClick = onBackClicked) {
+                    IconButton(onClick = onBackClick) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Return to previous screen",
@@ -318,9 +327,11 @@ private fun BaseDetailsView(
                     MediaType.MOVIE -> {
                         listOfNotNull(mediaItem.directors.toUiString("Directed by "))
                     }
+
                     MediaType.TV_SHOW,
                     MediaType.TV_EPISODE,
-                    MediaType.TV_SEASON -> {
+                    MediaType.TV_SEASON,
+                    -> {
                         listOfNotNull(
                             mediaItem.directors.toUiString("Directed by "),
                             mediaItem.writers.toUiString("Written by "),
@@ -338,7 +349,7 @@ private fun BaseDetailsView(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
-                    .padding(horizontal = 16.dp)
+                    .padding(horizontal = 16.dp),
             )
         }
 
@@ -351,9 +362,7 @@ private fun BaseDetailsView(
 }
 
 @Composable
-private fun CastAndCrewView(
-    credits: List<CastCredit>
-) {
+private fun CastAndCrewView(credits: List<CastCredit>) {
     val size = 140.dp
     if (credits.isNotEmpty()) {
         val imageUrlBuilder = LocalImageProvider.current
@@ -386,7 +395,8 @@ private fun CastAndCrewView(
 
                     AsyncImagePainter.State.Empty,
                     is AsyncImagePainter.State.Error,
-                    is AsyncImagePainter.State.Loading -> {
+                    is AsyncImagePainter.State.Loading,
+                    -> {
                         Box(
                             modifier = Modifier
                                 .size(size)
@@ -408,7 +418,6 @@ private fun CastAndCrewView(
                             )
                         }
                     }
-
                 }
 
                 Spacer(Modifier.size(8.dp))
@@ -440,7 +449,7 @@ private fun MediaMetadata(mediaItem: MediaItem) {
         Spacer(modifier = Modifier.weight(1f))
         Text(
             text = mediaItem.contentTitle,
-            style = MaterialTheme.typography.headlineMedium
+            style = MaterialTheme.typography.headlineMedium,
         )
         val subtitles by remember {
             derivedStateOf { listOfNotNull(mediaItem.subtitle1, mediaItem.subtitle2) }
@@ -465,7 +474,7 @@ private fun MediaMetadata(mediaItem: MediaItem) {
                     Text(
                         text = "•",
                         color = Color(0x80FFFFFF),
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyLarge,
                     )
                 }
                 Text(
@@ -491,7 +500,7 @@ private fun MediaMetadata(mediaItem: MediaItem) {
                 Image(
                     painter = painterResource(Res.drawable.tmdb_small),
                     contentDescription = null,
-                    modifier = Modifier.height(12.dp)
+                    modifier = Modifier.height(12.dp),
                 )
             }
         }
@@ -530,7 +539,7 @@ private fun EpisodeList(
             text = "${episodes.size} Episodes",
             style = MaterialTheme.typography.headlineSmall,
             modifier = Modifier
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 16.dp),
         )
         episodes.forEachIndexed { index, episode ->
             Row(
@@ -619,7 +628,7 @@ private fun EpisodeList(
                         .fillMaxWidth()
                         .padding(horizontal = 12.dp)
                         .height(1.dp)
-                        .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f))
+                        .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f)),
                 )
             }
         }
@@ -637,7 +646,7 @@ private fun <T> BaseRow(
             text = title,
             style = MaterialTheme.typography.headlineSmall,
             modifier = Modifier
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 16.dp),
         )
         Spacer(modifier = Modifier.height(6.dp))
         LazyRow(

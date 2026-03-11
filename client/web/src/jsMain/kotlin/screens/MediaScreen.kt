@@ -62,7 +62,8 @@ fun MediaScreen(mediaId: String) {
         lookupIdFlow.filterNotNull().filter { !updateLock.isLocked }.collect {
             updateLock.withLock {
                 try {
-                    value?.mediaLinks
+                    value
+                        ?.mediaLinks
                         ?.filter { it.descriptor.isMediaFileLink() }
                         ?.forEach { mediaLink ->
                             client.library.analyzeMediaLink(mediaLink.id)
@@ -97,7 +98,10 @@ fun MediaScreen(mediaId: String) {
         classes("d-flex", "flex-column")
     }) {
         when (val response = mediaResponse) {
-            null -> FullSizeCenteredLoader()
+            null -> {
+                FullSizeCenteredLoader()
+            }
+
             is MovieResponse -> {
                 val mediaItem = remember(response) {
                     response.toMediaItem().also {
@@ -109,7 +113,7 @@ fun MediaScreen(mediaId: String) {
                     rootMetadataId = mediaItem.mediaId,
                     analyzeFiles = analyzeFiles.takeIf { mediaItem.playableMediaLink != null },
                     onFixMatch = onFixMatch,
-                    onGeneratePreview = onGeneratePreview
+                    onGeneratePreview = onGeneratePreview,
                 )
 
                 CastAndCrewView(mediaItem.cast)
@@ -126,7 +130,7 @@ fun MediaScreen(mediaId: String) {
                     analyzeFiles = analyzeFiles.takeIf { mediaItem.playableMediaLink != null },
                     rootMetadataId = mediaItem.mediaId,
                     onFixMatch = onFixMatch,
-                    onGeneratePreview = null
+                    onGeneratePreview = null,
                 )
 
                 if (response.seasons.isNotEmpty()) {
@@ -170,7 +174,7 @@ fun MediaScreen(mediaId: String) {
                     parentMetadatId = response.episode.seasonId,
                     analyzeFiles = analyzeFiles.takeIf { mediaItem.playableMediaLink != null },
                     onFixMatch = onFixMatch,
-                    onGeneratePreview = onGeneratePreview
+                    onGeneratePreview = onGeneratePreview,
                 )
 
                 CastAndCrewView(mediaItem.cast)
@@ -180,9 +184,7 @@ fun MediaScreen(mediaId: String) {
 }
 
 @Composable
-private fun CastAndCrewView(
-    credits: List<CastCredit>,
-) {
+private fun CastAndCrewView(credits: List<CastCredit>) {
     if (credits.isNotEmpty()) {
         val client = LocalAnyStreamClient.current
         Div({ classes("px-4", "py-2", "fs-4") }) { Text("Cast & Crew") }
@@ -336,7 +338,7 @@ private fun BaseDetailsView(
                                 { onGeneratePreview(mediaItem.mediaLinks.first().id) }
                             } else {
                                 null
-                            }
+                            },
                         )
                     }
                 }
@@ -428,9 +430,7 @@ private fun PersonCard(
 }
 
 @Composable
-private fun BadgeContainer(
-    content: ContentBuilder<HTMLDivElement>
-) {
+private fun BadgeContainer(content: ContentBuilder<HTMLDivElement>) {
     Div({
         classes(
             "d-flex",
@@ -439,7 +439,7 @@ private fun BadgeContainer(
             "py-1",
             "px-2",
             "rounded-2",
-            "bg-dark-translucent"
+            "bg-dark-translucent",
         )
         style {
             fontSize(14.px)

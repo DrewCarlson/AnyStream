@@ -67,7 +67,7 @@ internal fun PosterCard(
     Column(
         modifier = modifier
             .width(width),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Column(
             modifier = Modifier
@@ -81,9 +81,8 @@ internal fun PosterCard(
                         Modifier
                     } else {
                         Modifier.clickable(onClick = onClick)
-                    }
-                )
-                .pointerMover { showPlayButtonOverlay = it },
+                    },
+                ).pointerMover { showPlayButtonOverlay = it },
             verticalArrangement = Arrangement.spacedBy(0.dp),
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
@@ -130,9 +129,8 @@ internal fun PosterCard(
                                         Modifier
                                     } else {
                                         Modifier.clickable(showPlayButtonOverlay, onClick = onPlayClick)
-                                    }
-                                )
-                                .padding(2.dp),
+                                    },
+                                ).padding(2.dp),
                             tint = Color.Red,
                         )
                     }
@@ -146,7 +144,7 @@ internal fun PosterCard(
                 style = MaterialTheme.typography.titleSmall,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.width(width)
+                modifier = Modifier.width(width),
             )
         }
     }
@@ -154,11 +152,12 @@ internal fun PosterCard(
 
 @Preview
 @Composable
-private fun PosterCardPreview() = AppTheme {
-    PosterCard(
-        title = "Gremlins",
-        mediaId = "",
-        onClick = {},
-        onPlayClick = {},
-    )
-}
+private fun PosterCardPreview() =
+    AppTheme {
+        PosterCard(
+            title = "Gremlins",
+            mediaId = "",
+            onClick = {},
+            onPlayClick = {},
+        )
+    }

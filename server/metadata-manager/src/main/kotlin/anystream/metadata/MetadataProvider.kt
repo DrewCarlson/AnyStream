@@ -21,7 +21,6 @@ import anystream.models.MediaKind
 import anystream.models.api.*
 
 interface MetadataProvider {
-
     val id: String
 
     val mediaKinds: List<MediaKind>

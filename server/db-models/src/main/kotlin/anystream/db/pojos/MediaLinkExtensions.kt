@@ -22,9 +22,9 @@ import anystream.models.MediaKind
 import anystream.models.MediaLink
 import anystream.models.MediaLinkType
 import anystream.util.ObjectId
-import kotlin.time.Clock
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
+import kotlin.time.Clock
 
 fun Path.toMediaLink(
     mediaKind: MediaKind,
@@ -42,6 +42,6 @@ fun Path.toMediaLink(
         directoryId = directoryId,
         descriptor = descriptor,
         createdAt = now,
-        updatedAt = now
+        updatedAt = now,
     )
 }

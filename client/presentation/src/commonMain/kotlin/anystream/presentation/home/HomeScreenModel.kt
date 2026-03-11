@@ -23,15 +23,17 @@ import anystream.models.api.Popular
 import anystream.models.api.RecentlyAdded
 import anystream.presentation.core.ScreenModel
 
-
 sealed interface HomeScreenModel : ScreenModel {
     data object Loading : HomeScreenModel
+
     data class Loaded(
         val libraries: List<Library>,
         val currentlyWatching: CurrentlyWatching,
         val recentlyAdded: RecentlyAdded,
         val popular: Popular,
     ) : HomeScreenModel
+
     data object Empty : HomeScreenModel
+
     data object LoadingFailed : HomeScreenModel
 }

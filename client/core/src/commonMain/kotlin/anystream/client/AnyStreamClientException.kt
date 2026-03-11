@@ -19,9 +19,7 @@ package anystream.client
 
 import io.ktor.client.statement.HttpResponse
 
-
 class AnyStreamClientException : Exception {
-
     private var body: String? = null
     var response: HttpResponse? = null
         private set

@@ -28,9 +28,7 @@ import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 
 @Composable
-fun SignupScreen(
-    model: SignupScreenModel
-) {
+fun SignupScreen(model: SignupScreenModel) {
     val router = Router.current
     Div({
         classes("d-flex", "flex-column", "justify-content-center", "align-items-center", "py-4")
@@ -84,7 +82,7 @@ fun SignupScreen(
                     usernameError?.message
                         ?: passwordError?.message
                         ?: reason?.message
-                        ?: "Unknown error"
+                        ?: "Unknown error",
                 )
             }
         }

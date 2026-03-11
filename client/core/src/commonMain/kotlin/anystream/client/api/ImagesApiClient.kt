@@ -25,8 +25,12 @@ import kotlinx.io.Buffer
 class ImagesApiClient(
     private val core: AnyStreamApiCore,
 ) {
-    fun buildImageUrl(imageType: String, metadataId: String, width: Int = 0): String {
-        return "${core.serverUrl}/api/image/$metadataId/${imageType}.jpg?width=$width"
+    fun buildImageUrl(
+        imageType: String,
+        metadataId: String,
+        width: Int = 0,
+    ): String {
+        return "${core.serverUrl}/api/image/$metadataId/$imageType.jpg?width=$width"
     }
 
     suspend fun getPreviewBif(mediaLinkId: String): Buffer? {

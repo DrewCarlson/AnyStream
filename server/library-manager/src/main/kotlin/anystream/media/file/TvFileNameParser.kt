@@ -23,7 +23,6 @@ import kotlin.io.path.name
 import kotlin.io.path.nameWithoutExtension
 
 class TvFileNameParser : FileNameParser {
-
     private val yearRegex = "\\s\\((\\d{4})\\)\$".toRegex()
     private val seasonFolderRegex = "^(?:[S|s]eason )?(\\d{1,2})\$".toRegex()
     private val episodeIndexRegex = "\\b[sS](\\d{1,2})[eE](\\d{1,3})\\b".toRegex()
@@ -43,9 +42,18 @@ class TvFileNameParser : FileNameParser {
         }
 
         val matchResult = when {
-            episodeIndexRegex.containsMatchIn(fileName) -> checkNotNull(episodeIndexRegex.find(fileName))
-            episodeNumberRegex.containsMatchIn(fileName) -> checkNotNull(episodeNumberRegex.find(fileName))
-            simpleEpisodeIndexRegex.containsMatchIn(fileName) -> checkNotNull(simpleEpisodeIndexRegex.find(fileName))
+            episodeIndexRegex.containsMatchIn(fileName) -> {
+                checkNotNull(episodeIndexRegex.find(fileName))
+            }
+
+            episodeNumberRegex.containsMatchIn(fileName) -> {
+                checkNotNull(episodeNumberRegex.find(fileName))
+            }
+
+            simpleEpisodeIndexRegex.containsMatchIn(fileName) -> {
+                checkNotNull(simpleEpisodeIndexRegex.find(fileName))
+            }
+
             else -> {
                 val match = yearRegex.find(fileName)
                 val year = match?.groupValues?.lastOrNull()?.toIntOrNull()

@@ -31,16 +31,16 @@ import kotlin.math.min
 
 @Composable
 fun QrScanner(
-    onScanned: (String) -> Unit,
+    onScan: (String) -> Unit,
     onClose: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Box(
         modifier = modifier,
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         QrScannerNative(
-            onScanned = onScanned,
+            onScan = onScan,
             onClose = onClose,
         )
         QrCodeScannerOverlay()
@@ -49,7 +49,7 @@ fun QrScanner(
 
 @Composable
 internal expect fun QrScannerNative(
-    onScanned: (String) -> Unit,
+    onScan: (String) -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
 )
@@ -64,7 +64,7 @@ private fun QrCodeScannerOverlay() {
         val viewFinderTop = (size.height - viewFinderSize) / 2
         val viewFinderRect = Rect(
             offset = Offset(viewFinderLeft, viewFinderTop),
-            size = Size(viewFinderSize, viewFinderSize)
+            size = Size(viewFinderSize, viewFinderSize),
         )
 
         val path = Path().apply {
@@ -77,14 +77,14 @@ private fun QrCodeScannerOverlay() {
             addRoundRect(
                 RoundRect(
                     rect = viewFinderRect,
-                    cornerRadius = CornerRadius(radius, radius)
-                )
+                    cornerRadius = CornerRadius(radius, radius),
+                ),
             )
         }
 
         drawPath(
             path = path,
-            color = Color.Black.copy(alpha = 0.6f)
+            color = Color.Black.copy(alpha = 0.6f),
         )
 
         drawRoundRect(
@@ -92,7 +92,7 @@ private fun QrCodeScannerOverlay() {
             topLeft = viewFinderRect.topLeft,
             size = viewFinderRect.size,
             cornerRadius = CornerRadius(radius, radius),
-            style = Stroke(width = 3.dp.toPx())
+            style = Stroke(width = 3.dp.toPx()),
         )
     }
 }

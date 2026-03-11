@@ -36,159 +36,164 @@ import io.ktor.client.HttpClient
 import io.ktor.client.plugins.logging.*
 import kotlin.time.Instant
 
-class TmdbMetadataProviderTest : FunSpec({
-    val db by bindTestDatabase()
-    val metadataDao by bindForTest({ MetadataDao(db) })
-    val queries by bindForTest({
-        val tagsDao = TagsDao(db)
-        val playbackStatesDao = PlaybackStatesDao(db)
-        val mediaLinkDao = MediaLinkDao(db)
+class TmdbMetadataProviderTest :
+    FunSpec({
+        val db by bindTestDatabase()
+        val metadataDao by bindForTest({ MetadataDao(db) })
+        val queries by bindForTest({
+            val tagsDao = TagsDao(db)
+            val playbackStatesDao = PlaybackStatesDao(db)
+            val mediaLinkDao = MediaLinkDao(db)
 
-        MetadataDbQueries(db, metadataDao, tagsDao, mediaLinkDao, playbackStatesDao)
-    })
-    val tmdb by bindForTest({
-        Tmdb3 {
-            tmdbApiKey = "c1e9e8ade306dd9cbc5e17b05ed4badd"
-            this.httpClient {
-                install(Logging) {
-                    level = LogLevel.ALL
-                    logger = Logger.SIMPLE
+            MetadataDbQueries(db, metadataDao, tagsDao, mediaLinkDao, playbackStatesDao)
+        })
+        val tmdb by bindForTest({
+            Tmdb3 {
+                tmdbApiKey = "c1e9e8ade306dd9cbc5e17b05ed4badd"
+                this.httpClient {
+                    install(Logging) {
+                        level = LogLevel.ALL
+                        logger = Logger.SIMPLE
+                    }
+                }
+            }
+        })
+
+        val fs by bindFileSystem()
+        val tmdbProvider by bindForTest({
+            val imageStore = ImageStore(fs.getPath("/test"), HttpClient())
+            TmdbMetadataProvider(tmdb, queries, imageStore)
+        })
+
+        test("search for unsupported media") {
+            val kinds = MediaKind.entries - MediaKind.TV - MediaKind.MOVIE
+            kinds.forEach { kind ->
+                shouldThrowExactly<IllegalStateException> {
+                    tmdbProvider.search(
+                        QueryMetadata(
+                            providerId = null,
+                            mediaKind = kind,
+                            query = "Ninja Turtles",
+                            metadataId = null,
+                            year = null,
+                            extras = null,
+                        ),
+                    )
+                }.asClue { error ->
+                    error.message shouldBe "Unsupported MediaKind: $kind"
                 }
             }
         }
-    })
 
-    val fs by bindFileSystem()
-    val tmdbProvider by bindForTest({
-        val imageStore = ImageStore(fs.getPath("/test"), HttpClient())
-        TmdbMetadataProvider(tmdb, queries, imageStore)
-    })
-
-    test("search for unsupported media") {
-        val kinds = MediaKind.entries - MediaKind.TV - MediaKind.MOVIE
-        kinds.forEach { kind ->
-            shouldThrowExactly<IllegalStateException> {
-                tmdbProvider.search(
+        test("search for tv show") {
+            val result = tmdbProvider
+                .search(
                     QueryMetadata(
                         providerId = null,
-                        mediaKind = kind,
+                        mediaKind = MediaKind.TV,
                         query = "Ninja Turtles",
                         metadataId = null,
-                        year = null,
+                        year = 2012,
                         extras = null,
-                    )
-                )
-            }.asClue { error ->
-                error.message shouldBe "Unsupported MediaKind: $kind"
+                    ),
+                ).shouldBeInstanceOf<QueryMetadataResult.Success>()
+
+            result.results.shouldHaveAtLeastSize(1)
+
+            val match = result.results
+                .first()
+                .shouldBeInstanceOf<MetadataMatch.TvShowMatch>()
+
+            match.tvShow.asClue { tvShow ->
+                tvShow.name shouldBe "Teenage Mutant Ninja Turtles"
+                tvShow.firstAirDate shouldBe Instant.parse("2012-09-28T00:00:00Z")
             }
         }
-    }
 
-    test("search for tv show") {
-        val result = tmdbProvider.search(
-            QueryMetadata(
-                providerId = null,
-                mediaKind = MediaKind.TV,
-                query = "Ninja Turtles",
-                metadataId = null,
-                year = 2012,
-                extras = null,
-            )
-        ).shouldBeInstanceOf<QueryMetadataResult.Success>()
+        test("search for tv season") {
+            val result = tmdbProvider
+                .search(
+                    QueryMetadata(
+                        providerId = null,
+                        mediaKind = MediaKind.TV,
+                        query = "Ninja Turtles",
+                        metadataId = null,
+                        year = 2012,
+                        extras = QueryMetadata.Extras.TvShowExtras(
+                            seasonNumber = 1,
+                        ),
+                    ),
+                ).shouldBeInstanceOf<QueryMetadataResult.Success>()
 
-        result.results.shouldHaveAtLeastSize(1)
+            result.results.shouldHaveSize(1)
 
-        val match = result.results
-            .first()
-            .shouldBeInstanceOf<MetadataMatch.TvShowMatch>()
+            val match = result.results
+                .first()
+                .shouldBeInstanceOf<MetadataMatch.TvShowMatch>()
 
-        match.tvShow.asClue { tvShow ->
-            tvShow.name shouldBe "Teenage Mutant Ninja Turtles"
-            tvShow.firstAirDate shouldBe Instant.parse("2012-09-28T00:00:00Z")
+            match.seasons
+                .shouldHaveSize(1)
+                .first()
+                .asClue { season ->
+                    season.seasonNumber shouldBe 1
+                    season.name shouldBe "Season 1"
+                }
+
+            match.episodes.shouldHaveAtLeastSize(1)
         }
-    }
 
-    test("search for tv season") {
-        val result = tmdbProvider.search(
-            QueryMetadata(
-                providerId = null,
-                mediaKind = MediaKind.TV,
-                query = "Ninja Turtles",
-                metadataId = null,
-                year = 2012,
-                extras = QueryMetadata.Extras.TvShowExtras(
-                    seasonNumber = 1
-                ),
-            )
-        ).shouldBeInstanceOf<QueryMetadataResult.Success>()
+        test("search for tv episode") {
+            val result = tmdbProvider
+                .search(
+                    QueryMetadata(
+                        providerId = null,
+                        mediaKind = MediaKind.TV,
+                        query = "Ninja Turtles",
+                        metadataId = null,
+                        year = 2012,
+                        extras = QueryMetadata.Extras.TvShowExtras(
+                            seasonNumber = 1,
+                            episodeNumber = 1,
+                        ),
+                    ),
+                ).shouldBeInstanceOf<QueryMetadataResult.Success>()
 
-        result.results.shouldHaveSize(1)
+            result.results.shouldHaveAtLeastSize(1)
 
-        val match = result.results
-            .first()
-            .shouldBeInstanceOf<MetadataMatch.TvShowMatch>()
+            val match = result.results
+                .first()
+                .shouldBeInstanceOf<MetadataMatch.TvShowMatch>()
 
-        match.seasons
-            .shouldHaveSize(1)
-            .first()
-            .asClue { season ->
-                season.seasonNumber shouldBe 1
-                season.name shouldBe "Season 1"
-            }
+            match.episodes
+                .shouldHaveSize(1)
+                .first()
+                .asClue { episode ->
+                    episode.name shouldBe "Rise of the Turtles (1)"
+                    episode.number shouldBe 1
+                }
+        }
 
-        match.episodes.shouldHaveAtLeastSize(1)
-    }
+        test("search for movie") {
+            val result = tmdbProvider
+                .search(
+                    QueryMetadata(
+                        providerId = null,
+                        mediaKind = MediaKind.MOVIE,
+                        query = "Ninja Turtles",
+                        metadataId = null,
+                        year = 2023,
+                        extras = null,
+                    ),
+                ).shouldBeInstanceOf<QueryMetadataResult.Success>()
 
-    test("search for tv episode") {
-        val result = tmdbProvider.search(
-            QueryMetadata(
-                providerId = null,
-                mediaKind = MediaKind.TV,
-                query = "Ninja Turtles",
-                metadataId = null,
-                year = 2012,
-                extras = QueryMetadata.Extras.TvShowExtras(
-                    seasonNumber = 1,
-                    episodeNumber = 1
-                ),
-            )
-        ).shouldBeInstanceOf<QueryMetadataResult.Success>()
+            result.results.shouldHaveAtLeastSize(1)
 
-        result.results.shouldHaveAtLeastSize(1)
-
-        val match = result.results
-            .first()
-            .shouldBeInstanceOf<MetadataMatch.TvShowMatch>()
-
-        match.episodes
-            .shouldHaveSize(1)
-            .first()
-            .asClue { episode ->
-                episode.name shouldBe "Rise of the Turtles (1)"
-                episode.number shouldBe 1
-            }
-    }
-
-    test("search for movie") {
-        val result = tmdbProvider.search(
-            QueryMetadata(
-                providerId = null,
-                mediaKind = MediaKind.MOVIE,
-                query = "Ninja Turtles",
-                metadataId = null,
-                year = 2023,
-                extras = null,
-            )
-        ).shouldBeInstanceOf<QueryMetadataResult.Success>()
-
-        result.results.shouldHaveAtLeastSize(1)
-
-        result.results
-            .first()
-            .shouldBeInstanceOf<MetadataMatch.MovieMatch>()
-            .asClue { match ->
-                match.movie.title shouldBe "Teenage Mutant Ninja Turtles: Mutant Mayhem"
-                match.movie.releaseDate shouldBe Instant.parse("2023-07-31T00:00:00Z")
-            }
-    }
-})
+            result.results
+                .first()
+                .shouldBeInstanceOf<MetadataMatch.MovieMatch>()
+                .asClue { match ->
+                    match.movie.title shouldBe "Teenage Mutant Ninja Turtles: Mutant Mayhem"
+                    match.movie.releaseDate shouldBe Instant.parse("2023-07-31T00:00:00Z")
+                }
+        }
+    })

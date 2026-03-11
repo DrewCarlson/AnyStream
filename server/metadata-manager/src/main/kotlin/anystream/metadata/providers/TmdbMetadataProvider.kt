@@ -59,7 +59,6 @@ class TmdbMetadataProvider(
     private val queries: MetadataDbQueries,
     private val imageStore: ImageStore,
 ) : MetadataProvider {
-
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     override val id: String = "tmdb"
@@ -90,7 +89,10 @@ class TmdbMetadataProvider(
         }
     }
 
-    private suspend fun importMovie(tmdbId: Int, request: ImportMetadata): ImportMetadataResult {
+    private suspend fun importMovie(
+        tmdbId: Int,
+        request: ImportMetadata,
+    ): ImportMetadataResult {
         val lockData = Pair(tmdbId, request.mediaKind)
         awaitLockAndAcquire(lockData)
         logger.debug("Importing movie by id {}", tmdbId)
@@ -145,8 +147,7 @@ class TmdbMetadataProvider(
                         async {
                             imageStore.downloadInto(imagePath, "$IMAGE_URL/w276_and_h350_face$profileImagePath")
                         }
-                    }
-                    .awaitAll()
+                    }.awaitAll()
             }
             ImportMetadataResult.Success(
                 match = MetadataMatch.MovieMatch(
@@ -165,7 +166,11 @@ class TmdbMetadataProvider(
         }
     }
 
-    suspend fun TmdbMovieDetail.cacheImage(metadataId: String, imageType: String, size: String) {
+    suspend fun TmdbMovieDetail.cacheImage(
+        metadataId: String,
+        imageType: String,
+        size: String,
+    ) {
         val path = when (imageType) {
             "backdrop" -> backdropPath
             "poster" -> posterPath
@@ -176,7 +181,10 @@ class TmdbMetadataProvider(
         }
     }
 
-    private suspend fun importTvShow(tmdbId: Int, request: ImportMetadata): ImportMetadataResult {
+    private suspend fun importTvShow(
+        tmdbId: Int,
+        request: ImportMetadata,
+    ): ImportMetadataResult {
         val lockData = Pair(tmdbId, request.mediaKind)
         awaitLockAndAcquire(lockData)
 
@@ -210,7 +218,7 @@ class TmdbMetadataProvider(
         }
         val tmdbSeasons = try {
             tmdbSeries.seasons
-                //TODO: handle extras/special season types
+                // TODO: handle extras/special season types
                 .filter { it.seasonNumber > 0 }
                 .mapNotNull { season -> fetchSeason(tmdbSeries.id, season.seasonNumber) }
         } catch (e: Throwable) {
@@ -240,26 +248,28 @@ class TmdbMetadataProvider(
             }
             val allPeople = (people1 + people2).toSet().associate { it.tmdbId!! to it.id }
             supervisorScope {
-                posterPaths.flatMap { (metadataId, imageUrls) ->
-                    imageUrls.mapNotNull { (imageType, imageUrl) ->
-                        if (imageUrl == null) return@mapNotNull null
-                        val cacheFile = imageStore.getMetadataImagePath(imageType, metadataId, tvShow.id)
-                        val url = when (imageType) {
-                            "poster" -> "$IMAGE_URL/w300$imageUrl"
-                            "backdrop" -> "$IMAGE_URL/w1280$imageUrl"
-                            else -> return@mapNotNull null
+                posterPaths
+                    .flatMap { (metadataId, imageUrls) ->
+                        imageUrls.mapNotNull { (imageType, imageUrl) ->
+                            if (imageUrl == null) return@mapNotNull null
+                            val cacheFile = imageStore.getMetadataImagePath(imageType, metadataId, tvShow.id)
+                            val url = when (imageType) {
+                                "poster" -> "$IMAGE_URL/w300$imageUrl"
+                                "backdrop" -> "$IMAGE_URL/w1280$imageUrl"
+                                else -> return@mapNotNull null
+                            }
+                            async { imageStore.downloadInto(cacheFile, url) }
                         }
-                        async { imageStore.downloadInto(cacheFile, url) }
-                    }
-                }.awaitAll()
-                personPosterPaths.mapNotNull { (tmdbId, profileImagePath) ->
-                    val personId = allPeople.getValue(tmdbId)
-                    val imagePath = imageStore.getPersonImagePath(personId).takeUnless(Path::exists)
-                    if (profileImagePath == null || imagePath == null) return@mapNotNull null
-                    async {
-                        imageStore.downloadInto(imagePath, "$IMAGE_URL/w276_and_h350_face$profileImagePath")
-                    }
-                }.awaitAll()
+                    }.awaitAll()
+                personPosterPaths
+                    .mapNotNull { (tmdbId, profileImagePath) ->
+                        val personId = allPeople.getValue(tmdbId)
+                        val imagePath = imageStore.getPersonImagePath(personId).takeUnless(Path::exists)
+                        if (profileImagePath == null || imagePath == null) return@mapNotNull null
+                        async {
+                            imageStore.downloadInto(imagePath, "$IMAGE_URL/w276_and_h350_face$profileImagePath")
+                        }
+                    }.awaitAll()
             }
             ImportMetadataResult.Success(
                 match = MetadataMatch.TvShowMatch(
@@ -280,46 +290,52 @@ class TmdbMetadataProvider(
         }
     }
 
-    private suspend fun queryTvSeries(query: String, year: Int?): Flow<TmdbShowDetail> {
-        return tmdbApi.search.findShows(
-            query = query,
-            page = 1,
-            firstAirDateYear = year,
-            language = null,
-            region = null,
-            includeAdult = false
-        ).results
+    private suspend fun queryTvSeries(
+        query: String,
+        year: Int?,
+    ): Flow<TmdbShowDetail> {
+        return tmdbApi.search
+            .findShows(
+                query = query,
+                page = 1,
+                firstAirDateYear = year,
+                language = null,
+                region = null,
+                includeAdult = false,
+            ).results
             .sortedBy {
                 scoreTmdbResult(
                     query = query,
                     queryYear = year,
                     title = it.name,
                     releaseDate = it.firstAirDate,
-                    voteCount = it.voteCount
+                    voteCount = it.voteCount,
                 )
-            }
-            .asFlow()
+            }.asFlow()
             .mapNotNull { fetchTvSeries(it.id) }
     }
 
-    private suspend fun queryMovies(query: String, year: Int?): Flow<TmdbMovieDetail> {
-        return tmdbApi.search.findMovies(
-            query = query,
-            page = 1,
-            year = year,
-            language = null,
-            includeAdult = false,
-        ).results
+    private suspend fun queryMovies(
+        query: String,
+        year: Int?,
+    ): Flow<TmdbMovieDetail> {
+        return tmdbApi.search
+            .findMovies(
+                query = query,
+                page = 1,
+                year = year,
+                language = null,
+                includeAdult = false,
+            ).results
             .sortedBy {
                 scoreTmdbResult(
                     query = query,
                     queryYear = year,
                     title = it.title,
                     releaseDate = it.releaseDate,
-                    voteCount = it.voteCount
+                    voteCount = it.voteCount,
                 )
-            }
-            .asFlow()
+            }.asFlow()
             .mapNotNull { fetchMovie(it.id) }
     }
 
@@ -414,8 +430,13 @@ class TmdbMetadataProvider(
                         .toList()
                 }
 
-                request.metadataId != null -> listOfNotNull(fetchMovie(request.metadataId!!.toInt()))
-                else -> error("No content")
+                request.metadataId != null -> {
+                    listOfNotNull(fetchMovie(request.metadataId!!.toInt()))
+                }
+
+                else -> {
+                    error("No content")
+                }
             }.toList()
         } catch (e: Throwable) {
             return QueryMetadataResult.ErrorDataProviderException(e.stackTraceToString())
@@ -453,7 +474,7 @@ class TmdbMetadataProvider(
                         listOf(
                             "poster" to movie.posterPath,
                             "backdrop" to movie.backdropPath,
-                        )
+                        ),
                     )
                 }
         }
@@ -472,8 +493,13 @@ class TmdbMetadataProvider(
                         .toList()
                 }
 
-                request.metadataId != null -> listOfNotNull(fetchTvSeries(request.metadataId!!.toInt()))
-                else -> error("No content") // TODO: return QueryMetadataResult.NoResults
+                request.metadataId != null -> {
+                    listOfNotNull(fetchTvSeries(request.metadataId!!.toInt()))
+                }
+
+                else -> {
+                    error("No content")
+                } // TODO: return QueryMetadataResult.NoResults
             }
         } catch (e: Throwable) {
             return QueryMetadataResult.ErrorDataProviderException(e.stackTraceToString())
@@ -523,7 +549,7 @@ class TmdbMetadataProvider(
                     listOf(
                         "poster" to tvSeries.posterPath,
                         "backdrop" to tvSeries.backdropPath,
-                    )
+                    ),
                 )
             }
             val existingEpisodes = when {
@@ -538,7 +564,7 @@ class TmdbMetadataProvider(
                                 seasonResponse.toRemoteId(tvSeries.id),
                                 listOf(
                                     "poster" to seasonResponse.posterPath,
-                                )
+                                ),
                             )
                         }
                         seasonResponse.episodes
@@ -551,14 +577,13 @@ class TmdbMetadataProvider(
                                         episode.episodeNumber == episodeNumber
                                     }
                                 }
-                            }
-                            .map { tmdbEpisode ->
+                            }.map { tmdbEpisode ->
                                 if (request.cacheContent) {
                                     cacheImages(
                                         tmdbEpisode.toRemoteId(tvSeries.id),
                                         listOf(
                                             "poster" to tmdbEpisode.stillPath,
-                                        )
+                                        ),
                                     )
                                 }
                                 tmdbEpisode
@@ -566,8 +591,7 @@ class TmdbMetadataProvider(
                                         id = tmdbEpisode.toRemoteId(tvSeries.id),
                                         showId = tvSeries.toRemoteId(),
                                         seasonId = seasonResponse.toRemoteId(tvSeries.id),
-                                    )
-                                    .toTvEpisodeModel()
+                                    ).toTvEpisodeModel()
                             }
                     } catch (e: Throwable) {
                         return QueryMetadataResult.ErrorDataProviderException(e.stackTraceToString())
@@ -578,7 +602,9 @@ class TmdbMetadataProvider(
                     queries.findEpisodesByShow(existingShow.id)
                 }
 
-                else -> emptyList()
+                else -> {
+                    emptyList()
+                }
             }
 
             MetadataMatch.TvShowMatch(
@@ -594,12 +620,15 @@ class TmdbMetadataProvider(
         return QueryMetadataResult.Success(id, matches, request.extras)
     }
 
-    private suspend fun cacheImages(imageKey: String, imagePaths: List<Pair<String, String?>>) {
+    private suspend fun cacheImages(
+        imageKey: String,
+        imagePaths: List<Pair<String, String?>>,
+    ) {
         imagePaths.forEach { (type, path) ->
             val otherCachePath = imageStore.getMetadataImagePath(
                 type,
                 imageKey.encodeBase64(),
-                "remote-metadata-cache/${imageKey.substringBeforeLast('-').encodeBase64()}"
+                "remote-metadata-cache/${imageKey.substringBeforeLast('-').encodeBase64()}",
             )
             val url = when (type) {
                 "poster" -> "$IMAGE_URL/w300$path"
@@ -619,13 +648,14 @@ class TmdbMetadataProvider(
         importLocks.update { it - lockData }
     }
 
-    private fun List<TmdbCompany>.toCompanyDb() = map { company ->
-        ProductionCompany(
-            id = "",
-            name = company.name.orEmpty(),
-            tmdbId = company.id,
-        )
-    }
+    private fun List<TmdbCompany>.toCompanyDb() =
+        map { company ->
+            ProductionCompany(
+                id = "",
+                name = company.name.orEmpty(),
+                tmdbId = company.id,
+            )
+        }
 
     private fun List<TmdbGenre>.toGenreDb() =
         map { genre ->
@@ -638,7 +668,9 @@ class TmdbMetadataProvider(
 
     private fun TmdbCredits.toCreditsDb(): Map<Person, List<MetadataCredit>> {
         fun TmdbCast.toPerson() = Person(id = "", name = name, tmdbId = id)
+
         fun TmdbCrew.toPerson() = Person(id = "", name = name, tmdbId = id)
+
         fun createCredit(
             creditType: CreditType,
             job: CreditJob? = null,
@@ -677,7 +709,10 @@ class TmdbMetadataProvider(
     }
 }
 
-private fun scoreString(source: String, target: String): Int {
+private fun scoreString(
+    source: String,
+    target: String,
+): Int {
     val s1 = source.lowercase().filter { it.isLetterOrDigit() }
     val s2 = target.lowercase().filter { it.isLetterOrDigit() }
 
@@ -687,7 +722,9 @@ private fun scoreString(source: String, target: String): Int {
         for (j in 0..s2.length) {
             when {
                 i == 0 -> dp[i][j] = j
+
                 j == 0 -> dp[i][j] = i
+
                 else -> dp[i][j] = minOf(
                     dp[i - 1][j - 1] + costOfSubstitution(s1[i - 1], s2[j - 1]),
                     dp[i - 1][j] + 1,
@@ -700,6 +737,9 @@ private fun scoreString(source: String, target: String): Int {
     return dp[s1.length][s2.length]
 }
 
-private fun costOfSubstitution(a: Char, b: Char): Int {
+private fun costOfSubstitution(
+    a: Char,
+    b: Char,
+): Int {
     return if (a == b) 0 else 1
 }

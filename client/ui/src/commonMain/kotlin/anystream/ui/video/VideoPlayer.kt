@@ -38,7 +38,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import anystream.presentation.player.VideoPlayerModel
 import anystream.ui.LocalAppGraph
@@ -49,18 +48,6 @@ import anystream.ui.util.noRippleClickable
 import anystream.util.formatted
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.painterResource
-
-/**
- * Hold [PlayerHandle]s in a [ViewModel] to bind them to
- * the current route, managing cleanup and config changes.
- */
-private class PlayerViewModel(
-    val playerHandle: PlayerHandle,
-) : ViewModel() {
-    override fun onCleared() {
-        playerHandle.dispose()
-    }
-}
 
 @Composable
 internal fun VideoPlayer(
@@ -113,7 +100,9 @@ internal fun VideoPlayer(
                                 shouldShowControls = true
                             }
 
-                            else -> Unit
+                            else -> {
+                                Unit
+                            }
                         }
                     }
                 }
@@ -197,7 +186,7 @@ internal fun VideoPlayer(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Color(0xFF181A20).copy(alpha = 0.6f))
-                    .padding(bottom = 20.dp)
+                    .padding(bottom = 20.dp),
             ) {
                 var overrideProgressPercent by remember { mutableStateOf<Float?>(null) }
                 // Progress bar
@@ -210,7 +199,7 @@ internal fun VideoPlayer(
                     Spacer(
                         Modifier
                             .fillMaxSize()
-                            .background(Color.White)
+                            .background(Color.White),
                     )
 
                     val progressPercent by playerHandle.progressPercentFlow.collectAsState()
@@ -219,13 +208,13 @@ internal fun VideoPlayer(
                         Modifier
                             .fillMaxHeight()
                             .width(maxWidth * (overrideProgressPercent ?: bufferProgressPercent))
-                            .background(Color.Red.copy(alpha = 0.5f))
+                            .background(Color.Red.copy(alpha = 0.5f)),
                     )
                     Spacer(
                         Modifier
                             .fillMaxHeight()
                             .width(maxWidth * (overrideProgressPercent ?: progressPercent))
-                            .background(Color.Red)
+                            .background(Color.Red),
                     )
                     Spacer(
                         Modifier
@@ -240,12 +229,14 @@ internal fun VideoPlayer(
                                                 overrideProgressPercent = change.position.x / constraints.maxWidth
                                                 change.consume()
                                             }
+
                                             PointerEventType.Release -> {
                                                 val change = event.changes.first()
                                                 playerHandle.seekToPercent(change.position.x / constraints.maxWidth)
                                                 overrideProgressPercent = null
                                                 change.consume()
                                             }
+
                                             PointerEventType.Move -> {
                                                 val change = event.changes.first()
                                                 if (event.buttons.isPrimaryPressed || change.type == PointerType.Touch) {
@@ -256,7 +247,7 @@ internal fun VideoPlayer(
                                         }
                                     }
                                 }
-                            }
+                            },
                     )
                 }
 
@@ -324,7 +315,7 @@ internal fun VideoPlayer(
                                 Res.drawable.ic_pause
                             } else {
                                 Res.drawable.ic_play
-                            }
+                            },
                         ),
                         colorFilter = ColorFilter.tint(Color.White),
                         contentDescription = null,

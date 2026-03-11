@@ -23,7 +23,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 sealed class MediaScannerState {
-
     @Serializable
     data class Active(
         val directoryNames: Set<String> = emptySet(),
@@ -35,7 +34,6 @@ sealed class MediaScannerState {
 
 @Serializable
 sealed class MediaScannerMessage {
-
     @Poko
     @Serializable
     class ScanDirectoryStarted(

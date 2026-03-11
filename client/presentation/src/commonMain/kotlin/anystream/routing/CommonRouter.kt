@@ -18,7 +18,6 @@
 package anystream.routing
 
 interface CommonRouter {
-
     fun replaceTop(route: Routes)
 
     fun pushRoute(route: Routes)

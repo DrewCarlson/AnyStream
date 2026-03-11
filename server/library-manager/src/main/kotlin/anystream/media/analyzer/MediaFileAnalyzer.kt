@@ -55,8 +55,7 @@ class MediaFileAnalyzer(
                 // TODO: Support audio files
                 val extension = mediaLink.filePath?.substringAfterLast('.', "")?.lowercase()
                 !extension.isNullOrBlank() && VIDEO_EXTENSIONS.contains(extension)
-            }
-            .mapNotNull { mediaLink ->
+            }.mapNotNull { mediaLink ->
                 val mediaLinkId = checkNotNull(mediaLink.id)
                 val hasDetails = mediaLinkDao.countStreamDetails(mediaLinkId) > 0
                 if (!hasDetails || overwrite) {
@@ -74,8 +73,7 @@ class MediaFileAnalyzer(
                 } else {
                     null
                 }
-            }
-            .also { results -> logger.debug("Processed {} item(s)", results.size) }
+            }.also { results -> logger.debug("Processed {} item(s)", results.size) }
             .ifEmpty { listOf(MediaAnalyzerResult.ErrorNothingToImport) }
     }
 

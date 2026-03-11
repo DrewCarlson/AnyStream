@@ -40,7 +40,8 @@ fun DownloadsScreen() {
     val client = LocalAnyStreamClient.current
     val globalInfoState by client.torrents.globalInfoChanges().collectAsState(null)
     val torrents by remember {
-        client.torrents.torrentListChanges()
+        client.torrents
+            .torrentListChanges()
             .debounce(2000)
             .mapLatest { client.torrents.getTorrents() }
             .onStart { emit(client.torrents.getTorrents()) }
@@ -188,6 +189,7 @@ private fun TorrentContextMenu(
             Torrent.State.STOPPED_DL,
             Torrent.State.STOPPED_UP,
             -> true
+
             else -> false
         }
     }
@@ -251,7 +253,9 @@ private fun stateIcon(torrent: Torrent): String {
         Torrent.State.QUEUED_UP,
         Torrent.State.QUEUED_DL,
         -> "bi-pause-fill"
+
         Torrent.State.STALLED_DL -> "bi-binoculars-fill"
+
         Torrent.State.CHECKING_UP,
         Torrent.State.STALLED_UP,
         Torrent.State.FORCED_UP,
@@ -262,12 +266,16 @@ private fun stateIcon(torrent: Torrent): String {
         Torrent.State.CHECKING_RESUME_DATA,
         Torrent.State.DOWNLOADING,
         -> "bi-play-fill"
+
         Torrent.State.UPLOADING -> "bi-cloud-upload-fill"
+
         Torrent.State.MOVING -> "fi-file-earmark-arrow-up-fill"
+
         Torrent.State.MISSING_FILES,
         Torrent.State.ERROR,
         Torrent.State.UNKNOWN,
         -> "bi-exclamation-triangle-fill"
+
         Torrent.State.STOPPED_UP -> "bi-check-circle-fill"
     }
 }

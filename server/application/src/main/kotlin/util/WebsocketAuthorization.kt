@@ -24,7 +24,6 @@ import io.ktor.util.*
 import io.ktor.websocket.*
 
 class WebsocketAuthorization {
-
     private lateinit var extractUserSession: suspend (token: String) -> UserSession?
 
     suspend fun userSessionFor(token: String): UserSession? {

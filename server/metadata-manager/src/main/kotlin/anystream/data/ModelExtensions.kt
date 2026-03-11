@@ -20,14 +20,13 @@ package anystream.data
 import anystream.models.*
 import anystream.util.ObjectId
 import app.moviebase.tmdb.model.*
-import kotlin.time.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
 import java.util.*
 import kotlin.math.roundToInt
+import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
-
 
 fun TmdbMovieDetail.asMovie(
     id: String,
@@ -128,15 +127,16 @@ internal fun TmdbShowDetail.asTvShow(
         crew = this.credits?.crew.orEmpty(),
         imagePaths = personImagePaths,
     )
-    val seasons = tmdbSeasons.map { season ->
-        val existingSeason = existingSeasons[season.seasonNumber]
-        val seasonId = existingSeason?.id ?: ObjectId.next()
-        posterPaths[seasonId] = mapOf("poster" to season.posterPath)
-        season.asTvSeason(
-            id = seasonId,
-            showId = id,
-        )
-    }.associateBy(Metadata::index)
+    val seasons = tmdbSeasons
+        .map { season ->
+            val existingSeason = existingSeasons[season.seasonNumber]
+            val seasonId = existingSeason?.id ?: ObjectId.next()
+            posterPaths[seasonId] = mapOf("poster" to season.posterPath)
+            season.asTvSeason(
+                id = seasonId,
+                showId = id,
+            )
+        }.associateBy(Metadata::index)
     val episodes = tmdbSeasons.flatMap { season ->
         val existingSeason = seasons[season.seasonNumber]
             ?: run {
@@ -207,7 +207,10 @@ fun TmdbEpisode.asTvEpisode(
     )
 }
 
-fun TmdbSeason.asTvSeason(id: String, showId: String): Metadata {
+fun TmdbSeason.asTvSeason(
+    id: String,
+    showId: String,
+): Metadata {
     val now = Clock.System.now()
     return Metadata(
         id = id,
@@ -225,7 +228,10 @@ fun TmdbSeason.asTvSeason(id: String, showId: String): Metadata {
     )
 }
 
-fun TmdbSeasonDetail.asTvSeason(id: String, showId: String): Metadata {
+fun TmdbSeasonDetail.asTvSeason(
+    id: String,
+    showId: String,
+): Metadata {
     val now = Clock.System.now()
     return Metadata(
         id = id,
@@ -254,7 +260,7 @@ fun TmdbShowDetail.asTvShow(id: String): Metadata {
         createdAt = now,
         updatedAt = now,
         tmdbRating = (voteAverage * 10).roundToInt(),
-        //tagline = null,
+        // tagline = null,
         contentRating = contentRatings?.getContentRating(Locale.getDefault().country),
         mediaKind = MediaKind.TV,
         mediaType = MediaType.TV_SHOW,

@@ -49,84 +49,88 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.client.HttpClient
 import kotlin.io.path.absolutePathString
 
-class TvFileProcessorTest : FunSpec({
+class TvFileProcessorTest :
+    FunSpec({
 
-    val db by bindTestDatabase()
-    val mediaLinkDao by bindForTest({ MediaLinkDao(db) })
-    val metadataDao by bindForTest({ MetadataDao(db) })
-    val libraryDao by bindForTest({ LibraryDao(db) })
-    val queries by bindForTest({
-        val tagsDao = TagsDao(db)
-        val playbackStatesDao = PlaybackStatesDao(db)
-        val mediaLinkDao = MediaLinkDao(db)
+        val db by bindTestDatabase()
+        val mediaLinkDao by bindForTest({ MediaLinkDao(db) })
+        val metadataDao by bindForTest({ MetadataDao(db) })
+        val libraryDao by bindForTest({ LibraryDao(db) })
+        val queries by bindForTest({
+            val tagsDao = TagsDao(db)
+            val playbackStatesDao = PlaybackStatesDao(db)
+            val mediaLinkDao = MediaLinkDao(db)
 
-        MetadataDbQueries(db, metadataDao, tagsDao, mediaLinkDao, playbackStatesDao)
-    })
-    val tmdb by bindForTest({
-        Tmdb3 {
-            tmdbApiKey = "c1e9e8ade306dd9cbc5e17b05ed4badd"
+            MetadataDbQueries(db, metadataDao, tagsDao, mediaLinkDao, playbackStatesDao)
+        })
+        val tmdb by bindForTest({
+            Tmdb3 {
+                tmdbApiKey = "c1e9e8ade306dd9cbc5e17b05ed4badd"
+            }
+        })
+        val fs by bindFileSystem()
+        val metadataService by bindForTest({
+            val imageStore = ImageStore(fs.getPath("/test"), HttpClient())
+            val provider = TmdbMetadataProvider(tmdb, queries, imageStore)
+            MetadataService(listOf(provider), metadataDao, imageStore)
+        })
+        val mediaFileScanner by bindForTest({ MediaFileScanner(mediaLinkDao, libraryDao, fs) })
+        val processor by bindForTest({
+            TvFileProcessor(
+                metadataService = metadataService,
+                mediaLinkDao = mediaLinkDao,
+                libraryDao = libraryDao,
+                fs = fs,
+            )
+        })
+
+        test("match multiple shows from library root") {
+            libraryDao.insertDefaultLibraries().shouldBeTrue()
+
+            val library = libraryDao
+                .fetchLibraries()
+                .firstOrNull { it.mediaKind == MediaKind.TV }
+                .shouldNotBeNull()
+
+            val (mediaRootPath, showPaths) = fs.createTvDirectory()
+            val rootDirectory = libraryDao.insertDirectory(
+                parentId = null,
+                libraryId = library.id,
+                path = mediaRootPath.absolutePathString(),
+            )
+
+            mediaFileScanner.scan(mediaRootPath).shouldBeInstanceOf<MediaScanResult.Success>()
+
+            val childDirectories = libraryDao.fetchChildDirectories(rootDirectory.id)
+
+            childDirectories.forEach { directory ->
+                val result = processor
+                    .findMetadataMatches(directory, import = true)
+                    .shouldHaveSize(1)
+                    .first()
+                    .shouldBeInstanceOf<MediaLinkMatchResult.Success>()
+
+                val match = result.matches
+                    .shouldHaveSize(1)
+                    .first()
+                    .shouldBeInstanceOf<anystream.models.api.MetadataMatch.TvShowMatch>()
+
+                val episodeIds = match.episodes.map(Episode::id)
+                libraryDao
+                    .fetchChildDirectories(directory.id)
+                    .shouldNotBeEmpty()
+                    .flatMap { mediaLinkDao.findByDirectoryId(it.id) }
+                    // TODO: Support other files like subtitles and posters
+                    .filter { it.descriptor == Descriptor.VIDEO }
+                    .shouldForAll {
+                        it.rootMetadataId
+                            .shouldNotBeNull()
+                            .shouldBeEqual(match.tvShow.id)
+
+                        it.metadataId.shouldNotBeNull()
+
+                        episodeIds.shouldContain(it.metadataId)
+                    }
+            }
         }
     })
-    val fs by bindFileSystem()
-    val metadataService by bindForTest({
-        val imageStore = ImageStore(fs.getPath("/test"), HttpClient())
-        val provider = TmdbMetadataProvider(tmdb, queries, imageStore)
-        MetadataService(listOf(provider), metadataDao, imageStore)
-    })
-    val mediaFileScanner by bindForTest({ MediaFileScanner(mediaLinkDao, libraryDao, fs) })
-    val processor by bindForTest({
-        TvFileProcessor(
-            metadataService = metadataService,
-            mediaLinkDao = mediaLinkDao,
-            libraryDao = libraryDao,
-            fs = fs,
-        )
-    })
-
-    test("match multiple shows from library root") {
-        libraryDao.insertDefaultLibraries().shouldBeTrue()
-
-        val library = libraryDao.fetchLibraries()
-            .firstOrNull { it.mediaKind == MediaKind.TV }
-            .shouldNotBeNull()
-
-        val (mediaRootPath, showPaths) = fs.createTvDirectory()
-        val rootDirectory = libraryDao.insertDirectory(
-            parentId = null,
-            libraryId = library.id,
-            path = mediaRootPath.absolutePathString(),
-        )
-
-        mediaFileScanner.scan(mediaRootPath).shouldBeInstanceOf<MediaScanResult.Success>()
-
-        val childDirectories = libraryDao.fetchChildDirectories(rootDirectory.id)
-
-        childDirectories.forEach { directory ->
-            val result = processor.findMetadataMatches(directory, import = true)
-                .shouldHaveSize(1)
-                .first()
-                .shouldBeInstanceOf<MediaLinkMatchResult.Success>()
-
-            val match = result.matches
-                .shouldHaveSize(1)
-                .first()
-                .shouldBeInstanceOf<anystream.models.api.MetadataMatch.TvShowMatch>()
-
-            val episodeIds = match.episodes.map(Episode::id)
-            libraryDao.fetchChildDirectories(directory.id)
-                .shouldNotBeEmpty()
-                .flatMap { mediaLinkDao.findByDirectoryId(it.id) }
-                // TODO: Support other files like subtitles and posters
-                .filter { it.descriptor == Descriptor.VIDEO }
-                .shouldForAll {
-                    it.rootMetadataId
-                        .shouldNotBeNull()
-                        .shouldBeEqual(match.tvShow.id)
-
-                    it.metadataId.shouldNotBeNull()
-
-                    episodeIds.shouldContain(it.metadataId)
-                }
-        }
-    }
-})

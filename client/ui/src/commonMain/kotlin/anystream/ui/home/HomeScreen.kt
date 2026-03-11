@@ -51,30 +51,42 @@ fun HomeScreen(
     model: HomeScreenModel,
     onMetadataClick: (metadataId: String) -> Unit,
     onPlayClick: (mediaLinkId: String) -> Unit,
-    onViewMoviesClicked: (libraryId: String) -> Unit,
-    onViewTvShowsClicked: (libraryId: String) -> Unit,
+    onViewMoviesClick: (libraryId: String) -> Unit,
+    onViewTvShowsClick: (libraryId: String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     AnimatedContent(model) { currentModel ->
         when (currentModel) {
-            is HomeScreenModel.Loading -> LoadingScreen(modifier = modifier)
-            is HomeScreenModel.Loaded ->
+            is HomeScreenModel.Loading -> {
+                LoadingScreen(modifier = modifier)
+            }
+
+            is HomeScreenModel.Loaded -> {
                 HomeScreenContent(
                     modifier = modifier,
                     libraries = currentModel.libraries,
                     currentlyWatching = currentModel.currentlyWatching,
                     recentlyAdded = currentModel.recentlyAdded,
                     popular = currentModel.popular,
-                    populars = currentModel.popular.movies.toList().take(7),
+                    populars = currentModel.popular.movies
+                        .toList()
+                        .take(7),
                     onMetadataClick = onMetadataClick,
-                    onViewMoviesClicked = onViewMoviesClicked,
-                    onViewTvShowsClicked = onViewTvShowsClicked,
+                    onViewMoviesClick = onViewMoviesClick,
+                    onViewTvShowsClick = onViewTvShowsClick,
                     onContinueWatchingClick = onPlayClick,
                 )
+            }
 
-            is HomeScreenModel.LoadingFailed -> Unit // TODO: add error view
+            is HomeScreenModel.LoadingFailed -> {
+                Unit
+            }
 
-            HomeScreenModel.Empty -> Unit // TODO: add empty view
+            // TODO: add error view
+
+            HomeScreenModel.Empty -> {
+                Unit
+            } // TODO: add empty view
         }
     }
 }
@@ -87,8 +99,8 @@ private fun HomeScreenContent(
     popular: Popular,
     populars: List<Pair<Movie, MediaLink?>>,
     onMetadataClick: (metadataId: String) -> Unit,
-    onViewMoviesClicked: (String) -> Unit,
-    onViewTvShowsClicked: (String) -> Unit,
+    onViewMoviesClick: (String) -> Unit,
+    onViewTvShowsClick: (String) -> Unit,
     onContinueWatchingClick: (mediaLinkId: String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -103,7 +115,7 @@ private fun HomeScreenContent(
         Box(
             modifier = Modifier
                 .height(375.dp)
-                .fillMaxWidth()
+                .fillMaxWidth(),
         ) {
             MediaCarousel(pagerState = pagerState, media = populars)
             PagerIndicator(count = populars.count(), currentPage = pagerState.currentPage)
@@ -123,10 +135,10 @@ private fun HomeScreenContent(
             SectionHeader(
                 title = "Recently Added Movies",
                 ctaText = "All Movies",
-                onCtaClicked = {
+                onCtaClick = {
                     // todo: get id from home data response
-                    onViewMoviesClicked(libraries.first { it.mediaKind == MediaKind.MOVIE }.id)
-                }
+                    onViewMoviesClick(libraries.first { it.mediaKind == MediaKind.MOVIE }.id)
+                },
             )
             MovieRow(
                 movies = recentlyAdded.movies.toList(),
@@ -139,9 +151,9 @@ private fun HomeScreenContent(
             SectionHeader(
                 title = "Recently Added TV",
                 ctaText = "All Shows",
-                onCtaClicked = {
+                onCtaClick = {
                     // todo: get id from home data response
-                    onViewTvShowsClicked(libraries.first { it.mediaKind == MediaKind.TV }.id)
+                    onViewTvShowsClick(libraries.first { it.mediaKind == MediaKind.TV }.id)
                 },
             )
             TvRow(
@@ -200,7 +212,7 @@ private fun ContinueWatchingRow(
                     WatchingCard(mediaItem, playbackState, onPlayClick)*/
                     PosterCard(
                         title = show.name,
-                        mediaId = show.id,//TODO: episode id
+                        mediaId = show.id, // TODO: episode id
                         onClick = { onPlayClick(playbackState.mediaLinkId) },
                         onPlayClick = { onPlayClick(playbackState.mediaLinkId) },
                     )
@@ -237,12 +249,13 @@ private fun WatchingCard(
                 val state by painter.state.collectAsState()
 
                 when (state) {
-                    is AsyncImagePainter.State.Success ->
+                    is AsyncImagePainter.State.Success -> {
                         Image(
                             painter = painter,
                             contentDescription = "Backdrop for ${mediaItem.contentTitle}",
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier.fillMaxSize(),
                         )
+                    }
 
                     is AsyncImagePainter.State.Loading -> {
                         Box(
@@ -253,7 +266,8 @@ private fun WatchingCard(
                     }
 
                     AsyncImagePainter.State.Empty,
-                    is AsyncImagePainter.State.Error -> {
+                    is AsyncImagePainter.State.Error,
+                    -> {
                         Box(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier

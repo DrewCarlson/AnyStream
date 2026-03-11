@@ -23,7 +23,6 @@ import anystream.ui.video.PlayerHandle
 import dev.zacsweers.metro.Provider
 
 interface AppGraph {
-
     val client: AnyStreamClient
     val playerHandle: Provider<PlayerHandle>
     val appPresenter: AppPresenter

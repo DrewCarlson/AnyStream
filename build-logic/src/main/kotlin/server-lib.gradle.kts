@@ -10,6 +10,8 @@ plugins {
     id("dev.drewhamilton.poko")
 }
 
+enableSpotlessPlugin(enableComposeRules = false)
+
 kotlin {
     compilerOptions {
         optIn.add("kotlin.io.path.ExperimentalPathApi")
@@ -25,7 +27,7 @@ java {
     targetCompatibility = JAVA_TARGET
 }
 
-extensions.getByType<RedactedPluginExtension>().apply {
+redacted {
     replacementString.set("***")
 }
 
@@ -47,16 +49,4 @@ sourceSets {
 
 tasks.test {
     useJUnitPlatform()
-}
-
-afterEvaluate {
-    spotless {
-        kotlin {
-            target("**/**.kt")
-            licenseHeaderFile(rootDir.resolve("licenseHeader.txt"))
-            //val libsCommon = extensions.getByType<VersionCatalogsExtension>().named("libsCommon")
-            //ktlint(libsCommon.findVersion("ktlint").get().requiredVersion)
-            //    .setEditorConfigPath(rootDir.resolve(".editorconfig"))
-        }
-    }
 }

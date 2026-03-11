@@ -24,11 +24,9 @@ import org.jooq.Converter
 
 @Suppress("UNUSED")
 class PermissionConverter : Converter<String, Permission> {
-    override fun from(databaseObject: String?): Permission? =
-        databaseObject?.run(json::decodeFromString)
+    override fun from(databaseObject: String?): Permission? = databaseObject?.run(json::decodeFromString)
 
-    override fun to(userObject: Permission?): String? =
-        userObject?.run(json::encodeToString)
+    override fun to(userObject: Permission?): String? = userObject?.run(json::encodeToString)
 
     override fun fromType(): Class<String> = String::class.java
 
@@ -37,11 +35,9 @@ class PermissionConverter : Converter<String, Permission> {
 
 @Suppress("UNUSED")
 class PermissionSetConverter : Converter<String, Set<Permission>> {
-    override fun from(databaseObject: String?): Set<Permission>? =
-        databaseObject?.run(json::decodeFromString)
+    override fun from(databaseObject: String?): Set<Permission>? = databaseObject?.run(json::decodeFromString)
 
-    override fun to(userObject: Set<Permission>?): String? =
-        userObject?.run(json::encodeToString)
+    override fun to(userObject: Set<Permission>?): String? = userObject?.run(json::encodeToString)
 
     override fun fromType(): Class<String> = String::class.java
 

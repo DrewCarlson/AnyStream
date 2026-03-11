@@ -15,12 +15,13 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.db
+package anystream.ui.util
 
-import com.google.common.jimfs.Configuration
-import com.google.common.jimfs.Jimfs
-import io.kotest.core.spec.DslDrivenSpec
-import java.nio.file.FileSystem
+import kotlin.experimental.ExperimentalObjCName
+import kotlin.native.ObjCName
 
-fun DslDrivenSpec.bindFileSystem() =
-    bindForTest({ Jimfs.newFileSystem(Configuration.unix()) }, FileSystem::close)
+@OptIn(ExperimentalObjCName::class)
+@ObjCName("SystemBarController", "SystemBarController")
+interface SystemBarControllerExport {
+    fun setSystemBars(hidden: Boolean)
+}

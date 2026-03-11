@@ -23,7 +23,7 @@ import androidx.compose.ui.Modifier
 
 @Composable
 internal actual fun QrScannerNative(
-    onScanned: (String) -> Unit,
+    onScan: (String) -> Unit,
     onClose: () -> Unit,
     modifier: Modifier,
 ) {

@@ -25,10 +25,10 @@ import org.jooq.ConverterContext
 import org.jooq.impl.AbstractBinding
 import kotlin.time.Duration
 
-
 @Suppress("UNUSED")
 class DurationBinding : AbstractBinding<String, Duration>() {
     private val convert = JooqDurationConverter()
+
     override fun converter(): Converter<String, Duration> {
         return convert
     }
@@ -46,7 +46,6 @@ class DurationBinding : AbstractBinding<String, Duration>() {
 
 @Suppress("UNUSED")
 class JooqDurationConverter : Converter<String, Duration> {
-
     override fun fromType(): Class<String> = String::class.java
 
     override fun toType(): Class<Duration> = Duration::class.java
@@ -60,20 +59,21 @@ class JooqDurationConverter : Converter<String, Duration> {
     }
 }
 
-class DurationLongConverter : Converter<Duration, Long>, ContextConverter<Duration, Long> {
-    override fun from(databaseObject: Duration?): Long =
-        databaseObject?.inWholeNanoseconds?.shl(1) ?: 0
+class DurationLongConverter :
+    Converter<Duration, Long>,
+    ContextConverter<Duration, Long> {
+    override fun from(databaseObject: Duration?): Long = databaseObject?.inWholeNanoseconds?.shl(1) ?: 0
 
     override fun from(
         databaseObject: Duration?,
-        ctx: ConverterContext?
+        ctx: ConverterContext?,
     ): Long {
         return databaseObject?.inWholeNanoseconds?.shl(1) ?: 0
     }
 
     override fun to(
         userObject: Long?,
-        ctx: ConverterContext?
+        ctx: ConverterContext?,
     ): Duration = error("unsupported mapping")
 
     override fun to(userObject: Long?): Duration = error("unsupported mapping")

@@ -19,7 +19,6 @@ package anystream.screens.settings.library
 
 import androidx.compose.runtime.*
 import anystream.LocalAnyStreamClient
-import anystream.client.AnyStreamClient
 import anystream.components.LoadingIndicator
 import anystream.models.Library
 import anystream.models.api.AddLibraryFolderResponse
@@ -222,7 +221,6 @@ private fun MediaKindButton(
     icon: String,
     onClick: () -> Unit,
 ) {
-
     /*Div { Text("Select the kind of media to search for:") }
     Div({ classes("hstack", "gap-4") }) {
         MediaKindButton(

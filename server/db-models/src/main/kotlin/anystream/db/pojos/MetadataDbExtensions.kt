@@ -20,7 +20,6 @@ package anystream.db.pojos
 import anystream.models.*
 import kotlin.time.Clock
 
-
 fun Movie.toMetadataDb(): Metadata {
     val createTime = Clock.System.now()
     return Metadata(
@@ -75,7 +74,10 @@ fun TvSeason.fromTvSeason(tvShowRecord: Metadata): Metadata {
     )
 }
 
-fun Episode.fromTvEpisode(tvShowRecord: Metadata, tvSeasonRecord: Metadata): Metadata {
+fun Episode.fromTvEpisode(
+    tvShowRecord: Metadata,
+    tvSeasonRecord: Metadata,
+): Metadata {
     val createTime = Clock.System.now()
     return Metadata(
         id = id,

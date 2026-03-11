@@ -31,13 +31,14 @@ actual fun EnableFullscreen(isUserRequested: Boolean) {
     DisposableEffect("enable-fullscreen") {
         val originalOrientation = activity.requestedOrientation
         activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
-        val insetsController = WindowCompat.getInsetsController(
-            activity.window,
-            activity.window.decorView,
-        ).apply {
-            hide(WindowInsetsCompat.Type.systemBars())
-            systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        }
+        val insetsController = WindowCompat
+            .getInsetsController(
+                activity.window,
+                activity.window.decorView,
+            ).apply {
+                hide(WindowInsetsCompat.Type.systemBars())
+                systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            }
         onDispose {
             insetsController.apply {
                 show(WindowInsetsCompat.Type.systemBars())

@@ -47,39 +47,46 @@ internal actual fun QrCodeImageNative(
 ) {
     val matrix by produceState<ByteMatrix?>(null, content) {
         value = withContext(Dispatchers.Default) {
-            Encoder.encode(
-                content,
-                ErrorCorrectionLevel.L,
-                mapOf(
-                    EncodeHintType.CHARACTER_SET to "UTF-8",
-                    EncodeHintType.MARGIN to 16,
-                    EncodeHintType.ERROR_CORRECTION to ErrorCorrectionLevel.L,
-                )
-            ).matrix
+            Encoder
+                .encode(
+                    content,
+                    ErrorCorrectionLevel.L,
+                    mapOf(
+                        EncodeHintType.CHARACTER_SET to "UTF-8",
+                        EncodeHintType.MARGIN to 16,
+                        EncodeHintType.ERROR_CORRECTION to ErrorCorrectionLevel.L,
+                    ),
+                ).matrix
         }
     }
 
     BoxWithConstraints(
         modifier = modifier
-            .background(Color.White)
+            .background(Color.White),
     ) {
         val qrCodeSizeDp = remember(constraints) { min(maxWidth, maxHeight) }
 
         when (val currentMatrix = matrix) {
-            null -> loadingContent(qrCodeSizeDp)
+            null -> {
+                loadingContent(qrCodeSizeDp)
+            }
 
             else -> {
                 Canvas(
                     modifier = Modifier
                         .size(qrCodeSizeDp),
-                    contentDescription = "QR Code image to login using another device."
+                    contentDescription = "QR Code image to login using another device.",
                 ) {
-                    val cellSize = kotlin.math.min(
-                        size.width / currentMatrix.width,
-                        size.height / currentMatrix.height
-                    ).toInt()
+                    val cellSize = kotlin.math
+                        .min(
+                            size.width / currentMatrix.width,
+                            size.height / currentMatrix.height,
+                        ).toInt()
 
-                    fun offsetFor(start: Float, end: Int): Float {
+                    fun offsetFor(
+                        start: Float,
+                        end: Int,
+                    ): Float {
                         return ((start - end * cellSize) / 2f).roundToInt().toFloat()
                     }
                     val offsetX = offsetFor(size.width, currentMatrix.width)
@@ -94,7 +101,7 @@ internal actual fun QrCodeImageNative(
                                         offsetX + x * cellSize,
                                         offsetY + y * cellSize,
                                     ),
-                                    size = Size(cellSize.toFloat(), cellSize.toFloat())
+                                    size = Size(cellSize.toFloat(), cellSize.toFloat()),
                                 )
                             }
                         }

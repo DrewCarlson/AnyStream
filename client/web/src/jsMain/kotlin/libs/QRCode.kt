@@ -28,7 +28,6 @@ import org.w3c.dom.HTMLCanvasElement
 @JsModule("qrcode")
 @JsNonModule
 external object QRCode {
-
     fun toCanvas(
         element: HTMLCanvasElement,
         text: String,

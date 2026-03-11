@@ -35,7 +35,10 @@ inline fun <reified T : Any> SessionsConfig.headerOrQuery(
             key,
             T::class,
             object : SessionTransport {
-                override fun send(call: ApplicationCall, value: String) {
+                override fun send(
+                    call: ApplicationCall,
+                    value: String,
+                ) {
                     call.response.header(key, value)
                     if (call.attributes.getOrNull(SetSessionCookie) == true) {
                         call.response.cookies.append(
@@ -46,7 +49,9 @@ inline fun <reified T : Any> SessionsConfig.headerOrQuery(
                         )
                     }
                 }
+
                 override fun clear(call: ApplicationCall) = Unit
+
                 override fun receive(call: ApplicationCall): String? {
                     return call.request.queryParameters[key]
                         ?: call.request.headers[key]

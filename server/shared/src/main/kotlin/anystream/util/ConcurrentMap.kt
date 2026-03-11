@@ -27,7 +27,8 @@ fun <T, R> Flow<T>.concurrentMap(
     scope: CoroutineScope,
     concurrencyLevel: Int,
     transform: suspend (T) -> R,
-): Flow<R> = this
-    .map { scope.async { transform(it) } }
-    .buffer(concurrencyLevel)
-    .map { it.await() }
+): Flow<R> =
+    this
+        .map { scope.async { transform(it) } }
+        .buffer(concurrencyLevel)
+        .map { it.await() }

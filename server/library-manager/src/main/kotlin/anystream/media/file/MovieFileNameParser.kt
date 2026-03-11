@@ -23,7 +23,6 @@ import kotlin.io.path.name
 import kotlin.io.path.nameWithoutExtension
 
 class MovieFileNameParser : FileNameParser {
-
     private val yearRegex = "\\s\\((\\d{4})\\)\$".toRegex()
 
     override fun parseFileName(path: Path): ParsedFileNameResult {

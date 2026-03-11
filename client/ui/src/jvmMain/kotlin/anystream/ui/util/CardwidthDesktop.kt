@@ -32,9 +32,6 @@ actual val cardWidth: Dp
         return (screenWidth.dp / 5).coerceAtMost(250.dp)
     }
 
-actual fun Modifier.pointerMover(
-    onHover: (Boolean) -> Unit,
-): Modifier = composed {
+actual fun Modifier.pointerMover(onHover: (Boolean) -> Unit): Modifier =
     onPointerEvent(PointerEventType.Enter) { onHover(true) }
         .onPointerEvent(PointerEventType.Exit) { onHover(false) }
-}

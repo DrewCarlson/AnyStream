@@ -108,8 +108,7 @@ private fun createAppender(callback: (String) -> Unit): Appender<ILoggingEvent> 
                             append("[")
                             append(marker.name)
                             append("]")
-                        }
-                        ?.also { append(" : ") }
+                        }?.also { append(" : ") }
                     append(event.message)
                 },
             )

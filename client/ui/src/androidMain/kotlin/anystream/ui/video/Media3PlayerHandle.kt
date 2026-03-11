@@ -30,7 +30,6 @@ class Media3PlayerHandle(
     context: Context,
     private val client: AnyStreamClient,
 ) : BasePlayerHandle() {
-
     val player = ExoPlayer.Builder(context).build()
 
     private var updateStateJob: Job? = null
@@ -65,7 +64,10 @@ class Media3PlayerHandle(
             emitState(handleState)
         }
 
-        override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+        override fun onPlayWhenReadyChanged(
+            playWhenReady: Boolean,
+            reason: Int,
+        ) {
             emitPlayWhenReady(playWhenReady)
         }
     }
@@ -81,7 +83,7 @@ class Media3PlayerHandle(
     override fun skipTime(time: Duration) {
         player.seekTo(
             (player.currentPosition + time.inWholeMilliseconds)
-                .coerceIn(0L, player.duration)
+                .coerceIn(0L, player.duration),
         )
     }
 

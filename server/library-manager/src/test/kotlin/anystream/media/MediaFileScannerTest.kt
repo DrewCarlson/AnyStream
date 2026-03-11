@@ -32,191 +32,211 @@ import kotlin.io.path.createDirectory
 import kotlin.io.path.createFile
 import kotlin.io.path.deleteRecursively
 
-class MediaFileScannerTest : FunSpec({
+class MediaFileScannerTest :
+    FunSpec({
 
-    val db: DSLContext by bindTestDatabase()
-    val libraryDao by bindForTest({ LibraryDao(db) })
-    val mediaLinkDao by bindForTest({ MediaLinkDao(db) })
-    val fs by bindFileSystem()
-    val mediaFileScanner by bindForTest({ MediaFileScanner(mediaLinkDao, libraryDao, fs) })
+        val db: DSLContext by bindTestDatabase()
+        val libraryDao by bindForTest({ LibraryDao(db) })
+        val mediaLinkDao by bindForTest({ MediaLinkDao(db) })
+        val fs by bindFileSystem()
+        val mediaFileScanner by bindForTest({ MediaFileScanner(mediaLinkDao, libraryDao, fs) })
 
-    listOf(MediaKind.MOVIE, MediaKind.TV).forEach { mediaKind ->
-        suspend fun createLibrary() {
+        listOf(MediaKind.MOVIE, MediaKind.TV).forEach { mediaKind ->
+            suspend fun createLibrary() {
+                libraryDao.insertDefaultLibraries().shouldBeTrue()
+
+                val library = libraryDao
+                    .fetchLibraries()
+                    .firstOrNull { it.mediaKind == mediaKind }
+                    .shouldNotBeNull()
+
+                val (libraryRootPath, _) = when (mediaKind) {
+                    MediaKind.MOVIE -> fs.createMovieDirectory()
+                    MediaKind.TV -> fs.createTvDirectory()
+                    else -> error("No test filesystem mapped for media kind: $mediaKind")
+                }
+                libraryDao.insertDirectory(
+                    parentId = null,
+                    libraryId = library.id,
+                    path = libraryRootPath.absolutePathString(),
+                )
+            }
+
+            test("scan - $mediaKind directory outside of library roots") {
+                createLibrary()
+
+                val untrackedRootPath = fs.getPath("/untracked-root").createDirectory()
+                val untrackedMediaPath = untrackedRootPath.resolve("/untracked-media").createDirectory()
+
+                mediaFileScanner
+                    .scan(untrackedRootPath)
+                    .shouldBeInstanceOf<MediaScanResult.ErrorNotInLibrary>()
+
+                mediaFileScanner
+                    .scan(untrackedMediaPath)
+                    .shouldBeInstanceOf<MediaScanResult.ErrorNotInLibrary>()
+            }
+
+            test("scan - $mediaKind files outside of library roots") {
+                val untrackedRootPath = fs.getPath("/untracked-root").createDirectory()
+                val untrackedMediaPath = untrackedRootPath.resolve("/untracked-media").createDirectory()
+                val untrackedMediaFilePaths = when (mediaKind) {
+                    MediaKind.MOVIE,
+                    MediaKind.TV,
+                    -> listOf(
+                        VIDEO_EXTENSIONS.random(),
+                        SUBTITLE_EXTENSIONS.random(),
+                    )
+
+                    MediaKind.MUSIC -> listOf(AUDIO_EXTENSIONS.random())
+
+                    else -> error("No test file extensions mapped for media kind: $mediaKind")
+                }.map { fileExtension ->
+                    untrackedMediaPath
+                        .resolve("test-file.$fileExtension")
+                        .createFile()
+                }
+
+                mediaFileScanner
+                    .scan(untrackedRootPath)
+                    .shouldBeInstanceOf<MediaScanResult.ErrorNotInLibrary>()
+
+                untrackedMediaFilePaths.forEach { path ->
+                    mediaFileScanner
+                        .scan(path)
+                        .shouldBeInstanceOf<MediaScanResult.ErrorNotInLibrary>()
+                }
+            }
+        }
+
+        test("scan - MOVIE root directory") {
             libraryDao.insertDefaultLibraries().shouldBeTrue()
 
-            val library = libraryDao.fetchLibraries()
-                .firstOrNull { it.mediaKind == mediaKind }
+            val movieLibrary = libraryDao
+                .fetchLibraries()
+                .firstOrNull { it.mediaKind == MediaKind.MOVIE }
                 .shouldNotBeNull()
 
-            val (libraryRootPath, _) = when (mediaKind) {
-                MediaKind.MOVIE -> fs.createMovieDirectory()
-                MediaKind.TV -> fs.createTvDirectory()
-                else -> error("No test filesystem mapped for media kind: $mediaKind")
-            }
+            val (moviesRoot, movieFolders) = fs.createMovieDirectory()
+
+            val mediaDirectory = libraryDao.insertDirectory(
+                parentId = null,
+                libraryId = movieLibrary.id,
+                path = moviesRoot.absolutePathString(),
+            )
+
+            mediaFileScanner.scan(directory = mediaDirectory).shouldBeInstanceOf<MediaScanResult.Success>()
+
+            libraryDao
+                .fetchDirectoriesByLibrary(movieLibrary.id)
+                .shouldHaveSize(movieFolders.size + 1) // add 1 for root directory
+                .map { it.filePath }
+                .shouldContainExactly(
+                    (listOf(moviesRoot) + movieFolders.keys)
+                        .map { it.absolutePathString() },
+                )
+
+            val movieFiles = movieFolders
+                .flatMap { (_, files) -> files }
+                .shouldNotBeEmpty()
+
+            val mediaLinks = mediaLinkDao
+                .all()
+                .shouldHaveSize(movieFiles.size)
+
+            mediaLinks
+                .map { it.filePath }
+                .shouldContainExactlyInAnyOrder(
+                    movieFiles.map { it.absolutePathString() },
+                )
+        }
+
+        test("scan - TV root directory") {
+            libraryDao.insertDefaultLibraries().shouldBeTrue()
+
+            val library = libraryDao
+                .fetchLibraries()
+                .firstOrNull { it.mediaKind == MediaKind.TV }
+                .shouldNotBeNull()
+
+            val (mediaRootPath, showDirectories) = fs.createTvDirectory()
+            val allMediaPaths = showDirectories
+                .flatMap { (showPath, seasonDirectories) ->
+                    listOf(showPath) + seasonDirectories.keys
+                }
+
             libraryDao.insertDirectory(
                 parentId = null,
                 libraryId = library.id,
-                path = libraryRootPath.absolutePathString(),
+                path = mediaRootPath.absolutePathString(),
             )
-        }
 
-        test("scan - $mediaKind directory outside of library roots") {
-            createLibrary()
+            mediaFileScanner.scan(path = mediaRootPath).shouldBeInstanceOf<MediaScanResult.Success>()
 
-            val untrackedRootPath = fs.getPath("/untracked-root").createDirectory()
-            val untrackedMediaPath = untrackedRootPath.resolve("/untracked-media").createDirectory()
-
-            mediaFileScanner.scan(untrackedRootPath)
-                .shouldBeInstanceOf<MediaScanResult.ErrorNotInLibrary>()
-
-            mediaFileScanner.scan(untrackedMediaPath)
-                .shouldBeInstanceOf<MediaScanResult.ErrorNotInLibrary>()
-        }
-
-        test("scan - $mediaKind files outside of library roots") {
-            val untrackedRootPath = fs.getPath("/untracked-root").createDirectory()
-            val untrackedMediaPath = untrackedRootPath.resolve("/untracked-media").createDirectory()
-            val untrackedMediaFilePaths = when (mediaKind) {
-                MediaKind.MOVIE,
-                MediaKind.TV -> listOf(
-                    VIDEO_EXTENSIONS.random(),
-                    SUBTITLE_EXTENSIONS.random()
+            libraryDao
+                .fetchDirectoriesByLibrary(library.id)
+                .shouldHaveSize(allMediaPaths.size + 1) // add 1 for root directory
+                .map { it.filePath }
+                .shouldContainExactlyInAnyOrder(
+                    (listOf(mediaRootPath) + allMediaPaths)
+                        .map { it.absolutePathString() },
                 )
 
-                MediaKind.MUSIC -> listOf(AUDIO_EXTENSIONS.random())
-                else -> error("No test file extensions mapped for media kind: $mediaKind")
-            }.map { fileExtension ->
-                untrackedMediaPath
-                    .resolve("test-file.$fileExtension")
-                    .createFile()
-            }
+            val allFiles = showDirectories
+                .flatMap { (_, seasonDirectories) ->
+                    seasonDirectories.flatMap { (_, files) -> files }
+                }
 
-            mediaFileScanner.scan(untrackedRootPath)
-                .shouldBeInstanceOf<MediaScanResult.ErrorNotInLibrary>()
+            val mediaLinks = mediaLinkDao
+                .all()
+                .shouldHaveSize(allFiles.size)
 
-            untrackedMediaFilePaths.forEach { path ->
-                mediaFileScanner.scan(path)
-                    .shouldBeInstanceOf<MediaScanResult.ErrorNotInLibrary>()
-            }
+            mediaLinks
+                .map { it.filePath }
+                .shouldContainExactlyInAnyOrder(
+                    allFiles.map { it.absolutePathString() },
+                )
         }
-    }
 
-    test("scan - MOVIE root directory") {
-        libraryDao.insertDefaultLibraries().shouldBeTrue()
+        test("scan - MOVIE prune deleted files") {
+            libraryDao.insertDefaultLibraries().shouldBeTrue()
 
-        val movieLibrary = libraryDao.fetchLibraries()
-            .firstOrNull { it.mediaKind == MediaKind.MOVIE }
-            .shouldNotBeNull()
+            val movieLibrary = libraryDao
+                .fetchLibraries()
+                .firstOrNull { it.mediaKind == MediaKind.MOVIE }
+                .shouldNotBeNull()
 
-        val (moviesRoot, movieFolders) = fs.createMovieDirectory()
+            val (moviesRoot, movieDirectories) = fs.createMovieDirectory()
 
-        val mediaDirectory = libraryDao.insertDirectory(
-            parentId = null,
-            libraryId = movieLibrary.id,
-            path = moviesRoot.absolutePathString(),
-        )
-
-        mediaFileScanner.scan(directory = mediaDirectory).shouldBeInstanceOf<MediaScanResult.Success>()
-
-        libraryDao.fetchDirectoriesByLibrary(movieLibrary.id)
-            .shouldHaveSize(movieFolders.size + 1) // add 1 for root directory
-            .map { it.filePath }
-            .shouldContainExactly(
-                (listOf(moviesRoot) + movieFolders.keys)
-                    .map { it.absolutePathString() }
+            val mediaDirectory = libraryDao.insertDirectory(
+                parentId = null,
+                libraryId = movieLibrary.id,
+                path = moviesRoot.absolutePathString(),
             )
 
-        val movieFiles = movieFolders
-            .flatMap { (_, files) -> files }
-            .shouldNotBeEmpty()
+            mediaFileScanner.scan(directory = mediaDirectory).shouldBeInstanceOf<MediaScanResult.Success>()
 
-        val mediaLinks = mediaLinkDao.all()
-            .shouldHaveSize(movieFiles.size)
+            val deletedMovieDirectory = movieDirectories.entries.first()
+            val deletedMovieDirectoryPath = deletedMovieDirectory.key
+                .apply { deleteRecursively() }
+                .absolutePathString()
+            val deletedMovieDirectoryRecord = libraryDao
+                .fetchDirectoryByPath(deletedMovieDirectoryPath)
+                .shouldNotBeNull()
+            val deletedMovieVideoMediaLinks = mediaLinkDao
+                .findByBasePath(deletedMovieDirectoryPath)
+                .shouldNotBeEmpty()
 
-        mediaLinks.map { it.filePath }
-            .shouldContainExactlyInAnyOrder(
-                movieFiles.map { it.absolutePathString() }
-            )
-    }
+            val folderDeleteResult = mediaFileScanner
+                .scan(directory = deletedMovieDirectoryRecord)
+                .shouldBeInstanceOf<MediaScanResult.Success>()
 
-    test("scan - TV root directory") {
-        libraryDao.insertDefaultLibraries().shouldBeTrue()
+            folderDeleteResult.mediaLinks
+                .removedIds
+                .shouldContainExactlyInAnyOrder(deletedMovieVideoMediaLinks.map { it.id })
 
-        val library = libraryDao.fetchLibraries()
-            .firstOrNull { it.mediaKind == MediaKind.TV }
-            .shouldNotBeNull()
-
-        val (mediaRootPath, showDirectories) = fs.createTvDirectory()
-        val allMediaPaths = showDirectories
-            .flatMap { (showPath, seasonDirectories) ->
-                listOf(showPath) + seasonDirectories.keys
-            }
-
-        libraryDao.insertDirectory(
-            parentId = null,
-            libraryId = library.id,
-            path = mediaRootPath.absolutePathString(),
-        )
-
-        mediaFileScanner.scan(path = mediaRootPath).shouldBeInstanceOf<MediaScanResult.Success>()
-
-        libraryDao.fetchDirectoriesByLibrary(library.id)
-            .shouldHaveSize(allMediaPaths.size + 1) // add 1 for root directory
-            .map { it.filePath }
-            .shouldContainExactlyInAnyOrder(
-                (listOf(mediaRootPath) + allMediaPaths)
-                    .map { it.absolutePathString() }
-            )
-
-        val allFiles = showDirectories
-            .flatMap { (_, seasonDirectories) ->
-                seasonDirectories.flatMap { (_, files) -> files }
-            }
-
-        val mediaLinks = mediaLinkDao.all()
-            .shouldHaveSize(allFiles.size)
-
-        mediaLinks.map { it.filePath }
-            .shouldContainExactlyInAnyOrder(
-                allFiles.map { it.absolutePathString() }
-            )
-    }
-
-    test("scan - MOVIE prune deleted files") {
-        libraryDao.insertDefaultLibraries().shouldBeTrue()
-
-        val movieLibrary = libraryDao.fetchLibraries()
-            .firstOrNull { it.mediaKind == MediaKind.MOVIE }
-            .shouldNotBeNull()
-
-        val (moviesRoot, movieDirectories) = fs.createMovieDirectory()
-
-        val mediaDirectory = libraryDao.insertDirectory(
-            parentId = null,
-            libraryId = movieLibrary.id,
-            path = moviesRoot.absolutePathString(),
-        )
-
-        mediaFileScanner.scan(directory = mediaDirectory).shouldBeInstanceOf<MediaScanResult.Success>()
-
-        val deletedMovieDirectory = movieDirectories.entries.first()
-        val deletedMovieDirectoryPath = deletedMovieDirectory.key
-            .apply { deleteRecursively() }
-            .absolutePathString()
-        val deletedMovieDirectoryRecord = libraryDao.fetchDirectoryByPath(deletedMovieDirectoryPath)
-            .shouldNotBeNull()
-        val deletedMovieVideoMediaLinks = mediaLinkDao.findByBasePath(deletedMovieDirectoryPath)
-            .shouldNotBeEmpty()
-
-        val folderDeleteResult = mediaFileScanner.scan(directory = deletedMovieDirectoryRecord)
-            .shouldBeInstanceOf<MediaScanResult.Success>()
-
-        folderDeleteResult.mediaLinks
-            .removedIds
-            .shouldContainExactlyInAnyOrder(deletedMovieVideoMediaLinks.map { it.id })
-
-        folderDeleteResult.directories
-            .removedIds
-            .shouldContainExactly(deletedMovieDirectoryRecord.id)
-    }
-})
+            folderDeleteResult.directories
+                .removedIds
+                .shouldContainExactly(deletedMovieDirectoryRecord.id)
+        }
+    })

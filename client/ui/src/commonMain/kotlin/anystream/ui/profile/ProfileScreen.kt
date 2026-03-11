@@ -55,7 +55,7 @@ fun ProfileScreen(
                 modifier = Modifier
                     .size(28.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary)
+                    .background(MaterialTheme.colorScheme.primary),
             )
 
             Text(
@@ -100,10 +100,10 @@ fun ProfileScreen(
 private fun ProfileOption(
     label: String,
     icon: DrawableResource,
-    trailingLabel: String? = null,
-    trailingIcon: DrawableResource? = null,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    trailingLabel: String? = null,
+    trailingIcon: DrawableResource? = null,
 ) {
     Row(
         modifier = modifier
@@ -111,9 +111,8 @@ private fun ProfileOption(
             .padding(vertical = 10.dp, horizontal = 24.dp)
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(20.dp)
+        horizontalArrangement = Arrangement.spacedBy(20.dp),
     ) {
-
         Box(
             modifier = Modifier.size(28.dp),
             contentAlignment = Alignment.Center,

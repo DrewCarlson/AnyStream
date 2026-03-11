@@ -62,9 +62,17 @@ fun Route.addLibraryViewRoutes(
                         call.respond(response)
                     }
 
-                    MediaKind.TV -> call.respond(queries.findShows(includeLinks = includeLinks))
-                    MediaKind.MUSIC -> TODO()
-                    else -> call.respond(NotFound)
+                    MediaKind.TV -> {
+                        call.respond(queries.findShows(includeLinks = includeLinks))
+                    }
+
+                    MediaKind.MUSIC -> {
+                        TODO()
+                    }
+
+                    else -> {
+                        call.respond(NotFound)
+                    }
                 }
             }
 
@@ -80,14 +88,10 @@ fun Route.addLibraryViewRoutes(
     }
 }
 
-fun Route.addLibraryModifyRoutes(
-    libraryService: LibraryService = koinGet()
-) {
+fun Route.addLibraryModifyRoutes(libraryService: LibraryService = koinGet()) {
     route("/library") {
-
         route("/directory/{directoryId}") {
             get("/scan") {
-
                 val directoryId = call.parameters["directoryId"]
                     ?: return@get call.respond(UnprocessableEntity)
                 val directory = libraryService.getDirectory(directoryId)
@@ -102,7 +106,9 @@ fun Route.addLibraryModifyRoutes(
                             }
                         }
 
-                        else -> Unit // TODO: Handle errors
+                        else -> {
+                            Unit
+                        } // TODO: Handle errors
                     }
                 }
 

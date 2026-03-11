@@ -25,14 +25,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.delay
 
 @Composable
-internal fun CarouselAutoPlayHandler(pagerState: PagerState, carouselSize: Int) {
-    var pageKey by remember { mutableStateOf(0) }
+internal fun CarouselAutoPlayHandler(
+    pagerState: PagerState,
+    carouselSize: Int,
+) {
+    var pageKey by remember { mutableIntStateOf(0) }
 
     val effectFlow =
         pagerState.interactionSource.interactions.collectAsState(DragInteraction.Start())

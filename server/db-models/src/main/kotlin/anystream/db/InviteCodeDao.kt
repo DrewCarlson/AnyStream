@@ -33,21 +33,22 @@ class InviteCodeDao(
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     suspend fun fetchInviteCode(secret: String): InviteCode? {
-        return db.selectFrom(INVITE_CODE)
+        return db
+            .selectFrom(INVITE_CODE)
             .where(INVITE_CODE.SECRET.eq(secret))
             .awaitFirstOrNullInto()
     }
 
     suspend fun fetchInviteCodes(byUserId: String? = null): List<InviteCode> {
-        return db.selectFrom(INVITE_CODE)
+        return db
+            .selectFrom(INVITE_CODE)
             .run {
                 if (byUserId == null) {
                     this
                 } else {
                     where(INVITE_CODE.CREATED_BY_USER_ID.eq(byUserId))
                 }
-            }
-            .awaitInto()
+            }.awaitInto()
     }
 
     suspend fun createInviteCode(
@@ -56,15 +57,20 @@ class InviteCodeDao(
         userId: String,
     ): InviteCode? {
         val record = InviteCodeRecord(secret, permissions, userId)
-        val inserted = db.insertInto(INVITE_CODE)
+        val inserted = db
+            .insertInto(INVITE_CODE)
             .set(record)
             .awaitFirstOrNull() == 1
 
         return if (inserted) record.intoType() else null
     }
 
-    suspend fun deleteInviteCode(secret: String, byUserId: String?): Boolean {
-        return db.deleteFrom(INVITE_CODE)
+    suspend fun deleteInviteCode(
+        secret: String,
+        byUserId: String?,
+    ): Boolean {
+        return db
+            .deleteFrom(INVITE_CODE)
             .where(INVITE_CODE.SECRET.eq(secret))
             .run {
                 if (byUserId == null) {
@@ -72,7 +78,6 @@ class InviteCodeDao(
                 } else {
                     and(INVITE_CODE.CREATED_BY_USER_ID.eq(byUserId))
                 }
-            }
-            .awaitFirst() == 1
+            }.awaitFirst() == 1
     }
 }

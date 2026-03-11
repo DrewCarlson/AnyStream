@@ -20,11 +20,12 @@ package anystream.ui.video
 import kotlinx.coroutines.flow.StateFlow
 import kotlin.time.Duration
 
-
 interface PlayerHandle {
-
     enum class State {
-        IDLE, BUFFERING, READY, ENDED;
+        IDLE,
+        BUFFERING,
+        READY,
+        ENDED,
     }
 
     val progressFlow: StateFlow<Duration>
@@ -40,11 +41,17 @@ interface PlayerHandle {
     fun loadMediaLink(mediaLinkId: String)
 
     fun play()
+
     fun pause()
+
     fun seekTo(position: Duration)
+
     fun seekToPercent(percent: Float)
+
     fun skipTime(time: Duration)
+
     fun skipForward()
+
     fun skipBackward()
 
     fun togglePlaying() {

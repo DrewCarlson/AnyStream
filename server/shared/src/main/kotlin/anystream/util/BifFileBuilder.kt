@@ -27,7 +27,14 @@ import kotlin.io.path.fileSize
 
 private const val BIF_VERSION = 0
 private val BIF_SIGNATURE = byteArrayOf(
-    0x89.toByte(), 0x42, 0x49, 0x46, 0x0D, 0x0A, 0x1A, 0x0A
+    0x89.toByte(),
+    0x42,
+    0x49,
+    0x46,
+    0x0D,
+    0x0A,
+    0x1A,
+    0x0A,
 )
 
 private const val BIF_HEADER_WIDTH = 64
@@ -105,4 +112,3 @@ class BifFileBuilder(
         intBuffer.rewind()
     }
 }
-

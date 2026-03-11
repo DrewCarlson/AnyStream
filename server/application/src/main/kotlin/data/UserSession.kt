@@ -18,8 +18,8 @@
 package anystream.data
 
 import anystream.models.Permission
-import kotlin.time.Clock
 import kotlinx.serialization.Serializable
+import kotlin.time.Clock
 
 @Serializable
 data class UserSession(

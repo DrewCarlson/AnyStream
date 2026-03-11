@@ -31,7 +31,8 @@ import kotlin.test.assertEquals
 class ApplicationTest {
     private val testEnv = createTestEnvironment {
         config = HoconApplicationConfig(
-            ConfigFactory.load("application.conf")
+            ConfigFactory
+                .load("application.conf")
                 .withValue("app.webClientPath", ConfigValueFactory.fromAnyRef("$RESOURCES/static")),
         )
     }

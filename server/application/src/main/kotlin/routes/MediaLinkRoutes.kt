@@ -133,9 +133,7 @@ fun Route.addMediaLinkManageRoutes(
     }
 }
 
-fun Route.addMediaLinkViewRoutes(
-    queries: MetadataDbQueries = koinGet(),
-) {
+fun Route.addMediaLinkViewRoutes(queries: MetadataDbQueries = koinGet()) {
     route("/medialink") {
         route("/{mediaLinkId}") {
             get {
@@ -162,9 +160,7 @@ fun Route.addMediaLinkViewRoutes(
     }
 }
 
-private suspend fun RoutingContext.mediaLink(
-    mediaLinkDao: MediaLinkDao = koinGet(),
-): MediaLink? {
+private suspend fun RoutingContext.mediaLink(mediaLinkDao: MediaLinkDao = koinGet()): MediaLink? {
     val mediaLinkId = call.parameters["mediaLinkId"]
         ?.takeIf(String::isNotBlank)
         ?: return run {

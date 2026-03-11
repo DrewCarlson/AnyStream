@@ -18,7 +18,6 @@
 package anystream.media.file
 
 sealed class ParsedFileNameResult {
-
     sealed class Tv {
         data class ShowFolder(
             val name: String,

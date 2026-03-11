@@ -41,54 +41,68 @@ class TvFileProcessor(
     private val libraryDao: LibraryDao,
     private val fs: FileSystem,
 ) : MediaFileProcessor {
-
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     override val mediaKinds: List<MediaKind> = listOf(MediaKind.TV)
     override val fileNameParser: FileNameParser = TvFileNameParser()
 
-    override suspend fun findMetadataMatches(directory: Directory, import: Boolean): List<MediaLinkMatchResult> {
-        val libraryRootIds = libraryDao.fetchLibraryRootDirectories(directory.libraryId)
+    override suspend fun findMetadataMatches(
+        directory: Directory,
+        import: Boolean,
+    ): List<MediaLinkMatchResult> {
+        val libraryRootIds = libraryDao
+            .fetchLibraryRootDirectories(directory.libraryId)
             .map(Directory::id)
             .takeIf { it.isNotEmpty() }
-            ?: return emptyList()  // TODO: return no library error
+            ?: return emptyList() // TODO: return no library error
         val contentRootDirectories = when {
             // directory is a library root, scan all direct children
             libraryRootIds.contains(directory.id) -> libraryDao.fetchChildDirectories(directory.id)
+
             // directory is child of library root, scan it
             libraryRootIds.contains(directory.parentId) -> listOf(directory)
+
             else -> TODO("Handle scanning from season folder")
         }
 
         return coroutineScope {
-            contentRootDirectories.asFlow()
+            contentRootDirectories
+                .asFlow()
                 .concurrentMap(this, concurrencyLevel = 10) { dir ->
                     findMatchesForMediaDir(dir, import = import)
-                }
-                .toList()
+                }.toList()
         }
     }
 
-    override suspend fun findMetadataMatches(mediaLink: MediaLink, import: Boolean): MediaLinkMatchResult {
+    override suspend fun findMetadataMatches(
+        mediaLink: MediaLink,
+        import: Boolean,
+    ): MediaLinkMatchResult {
         return when (mediaLink.descriptor) {
             Descriptor.VIDEO,
-                -> findMatchesForFile(mediaLink, import)
+            -> findMatchesForFile(mediaLink, import)
 
             Descriptor.AUDIO,
             Descriptor.SUBTITLE,
             Descriptor.IMAGE,
-                -> MediaLinkMatchResult.NoSupportedFiles(mediaLink, null)
+            -> MediaLinkMatchResult.NoSupportedFiles(mediaLink, null)
         }
     }
 
-    private suspend fun findMatchesForMediaDir(directory: Directory, import: Boolean): MediaLinkMatchResult {
+    private suspend fun findMatchesForMediaDir(
+        directory: Directory,
+        import: Boolean,
+    ): MediaLinkMatchResult {
         val episodeLinks = mediaLinkDao.findByBasePathAndDescriptor(directory.filePath, Descriptor.VIDEO)
         if (episodeLinks.isEmpty()) {
             return MediaLinkMatchResult.NoSupportedFiles(null, directory)
         }
 
         val (tvShowName, year) = when (val result = fileNameParser.parseFileName(fs.getPath(directory.filePath))) {
-            is ParsedFileNameResult.Tv.ShowFolder -> result
+            is ParsedFileNameResult.Tv.ShowFolder -> {
+                result
+            }
+
             else -> {
                 logger.debug("Expected to find show folder but could not parse '{}' {}", directory.filePath, result)
                 return MediaLinkMatchResult.FileNameParseFailed(null, directory)
@@ -113,7 +127,7 @@ class TvFileProcessor(
         val matchResults = if (import) {
             // When importing, do not include unused metadata matches
             val importedMatch = importMetadataMatch(directory, matches.first())
-            // TODO: Return real error for import failure
+                // TODO: Return real error for import failure
                 ?: return MediaLinkMatchResult.NoMatchesFound(null, directory)
             listOf(importedMatch)
         } else {
@@ -135,31 +149,45 @@ class TvFileProcessor(
         TODO("Support matching metadata for individual episode files")
     }
 
-    override suspend fun findMetadata(mediaLink: MediaLink, remoteId: String): MetadataMatch? {
+    override suspend fun findMetadata(
+        mediaLink: MediaLink,
+        remoteId: String,
+    ): MetadataMatch? {
         return when (val result = metadataService.findByRemoteId(remoteId)) {
             is QueryMetadataResult.Success -> result.results.firstOrNull()
+
             is QueryMetadataResult.ErrorDataProviderException,
             is QueryMetadataResult.ErrorDatabaseException,
-            QueryMetadataResult.ErrorProviderNotFound -> null
+            QueryMetadataResult.ErrorProviderNotFound,
+            -> null
         }
     }
 
-    override suspend fun importMetadataMatch(mediaLink: MediaLink, metadataMatch: MetadataMatch): MetadataMatch? {
+    override suspend fun importMetadataMatch(
+        mediaLink: MediaLink,
+        metadataMatch: MetadataMatch,
+    ): MetadataMatch? {
         val match = (metadataMatch as? MetadataMatch.TvShowMatch)
             ?.let { getOrImportMetadata(it) }
             ?: return null
 
         when (mediaLink.descriptor) {
-            Descriptor.VIDEO ->
+            Descriptor.VIDEO -> {
                 TODO("Support importing metadata for individual episode files")
+            }
 
-            else -> error("Cannot import metadata for ${mediaLink.descriptor}")
+            else -> {
+                error("Cannot import metadata for ${mediaLink.descriptor}")
+            }
         }
         // TODO: Update supplementary files (SUBTITLE/IMAGE)
         return match
     }
 
-    private suspend fun importMetadataMatch(directory: Directory, metadataMatch: MetadataMatch): MetadataMatch? {
+    private suspend fun importMetadataMatch(
+        directory: Directory,
+        metadataMatch: MetadataMatch,
+    ): MetadataMatch? {
         val match = (metadataMatch as? MetadataMatch.TvShowMatch)
             ?.let { getOrImportMetadata(it) }
             ?: return null
@@ -218,7 +246,7 @@ class TvFileProcessor(
             is ParsedFileNameResult.Tv.EpisodeFile -> {
                 val episodeMatch = match.episodes.find {
                     it.seasonNumber == seasonMatch.seasonNumber &&
-                            it.number == videoParseResult.episodeNumber
+                        it.number == videoParseResult.episodeNumber
                 }
                 if (episodeMatch == null) {
                     logger.warn("No episode for show ({}-{}) found for '{}'", show.id, show.name, videoFileLink)
@@ -236,16 +264,14 @@ class TvFileProcessor(
                 logger.warn(
                     "Expected '{}' to be an episode file but parsed {}",
                     videoFile.absolutePathString(),
-                    videoParseResult
+                    videoParseResult,
                 )
                 null
             }
         }
     }
 
-    private suspend fun getOrImportMetadata(
-        metadataMatch: MetadataMatch.TvShowMatch,
-    ): MetadataMatch.TvShowMatch? {
+    private suspend fun getOrImportMetadata(metadataMatch: MetadataMatch.TvShowMatch): MetadataMatch.TvShowMatch? {
         return if (metadataMatch.exists) {
             metadataMatch.also {
                 logger.debug("Matched existing metadata for '{}'", it.tvShow.name)
@@ -253,13 +279,14 @@ class TvFileProcessor(
         } else {
             val show = metadataMatch.tvShow
             logger.debug("Importing new metadata for '{}'", show.name)
-            val importResults = metadataService.importMetadata(
-                ImportMetadata(
-                    metadataIds = listOfNotNull(metadataMatch.remoteMetadataId),
-                    providerId = metadataMatch.providerId,
-                    mediaKind = MediaKind.TV,
-                ),
-            ).filterIsInstance<ImportMetadataResult.Success>()
+            val importResults = metadataService
+                .importMetadata(
+                    ImportMetadata(
+                        metadataIds = listOfNotNull(metadataMatch.remoteMetadataId),
+                        providerId = metadataMatch.providerId,
+                        mediaKind = MediaKind.TV,
+                    ),
+                ).filterIsInstance<ImportMetadataResult.Success>()
 
             if (importResults.isEmpty()) {
                 logger.error("No import results for match {}", metadataMatch.tvShow)

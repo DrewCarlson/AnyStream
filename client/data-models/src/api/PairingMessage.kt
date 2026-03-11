@@ -22,13 +22,14 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 sealed class PairingMessage {
-
     @Serializable
     data object Idle : PairingMessage()
 
     @Poko
     @Serializable
-    class Started(val pairingCode: String) : PairingMessage()
+    class Started(
+        val pairingCode: String,
+    ) : PairingMessage()
 
     @Poko
     @Serializable

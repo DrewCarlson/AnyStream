@@ -27,9 +27,7 @@ import dev.zacsweers.metro.createGraphFactory
 import platform.UIKit.UIViewController
 
 @Suppress("FunctionName", "Unused") // called from Swift
-fun MainViewController(
-    statusBarController: SystemBarControllerExport,
-): UIViewController {
+fun MainViewController(statusBarController: SystemBarControllerExport): UIViewController {
     val appGraph = createGraphFactory<IosAppGraph.Factory>().create()
     val actualSystemBarController = object : SystemBarController {
         override fun setSystemBars(hidden: Boolean) {

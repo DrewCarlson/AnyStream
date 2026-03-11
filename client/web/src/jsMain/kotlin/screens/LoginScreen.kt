@@ -28,9 +28,7 @@ import org.jetbrains.compose.web.dom.*
 import web.window.window
 
 @Composable
-fun LoginScreen(
-    model: LoginScreenModel,
-) {
+fun LoginScreen(model: LoginScreenModel) {
     val router = Router.current
 
     Div({

@@ -4,8 +4,8 @@ plugins {
     kotlin("multiplatform")
     kotlin("plugin.compose")
     id("org.jetbrains.compose")
+    id("spotless")
     alias(libsCommon.plugins.jsPlainObjects)
-    alias(libsCommon.plugins.spotless)
     alias(libsCommon.plugins.serialization)
     alias(libsCommon.plugins.kotlinVite)
     alias(libsClient.plugins.metro)
@@ -59,17 +59,6 @@ kotlin {
                 implementation(devNpm("qrcode", "1.5.4"))
                 implementation(devNpm("sass", "1.79.6"))
             }
-        }
-    }
-}
-
-afterEvaluate {
-    spotless {
-        kotlin {
-            target("**/**.kt")
-            licenseHeaderFile(rootDir.resolve("licenseHeader.txt"))
-            //ktlint(libsCommon.versions.ktlint.get())
-            //    .setEditorConfigPath(rootDir.resolve(".editorconfig"))
         }
     }
 }

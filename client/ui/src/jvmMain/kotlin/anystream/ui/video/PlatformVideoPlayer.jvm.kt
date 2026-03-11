@@ -54,7 +54,7 @@ internal actual fun PlatformVideoPlayer(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
-            .onSizeChanged { outputRect = RECT_ZERO }
+            .onSizeChanged { outputRect = RECT_ZERO },
     ) {
         fun createOutputRect(currentFrame: Image): Rect {
             val frameWidth = currentFrame.width.toFloat()

@@ -36,18 +36,43 @@ import java.util.concurrent.TimeUnit
 import kotlin.io.path.*
 
 internal val VIDEO_EXTENSIONS = listOf(
-    "webm", "mpg", "mp2", "mpeg", "mov", "mkv",
-    "avi", "m4p", "mp4", "mts", "m2ts",
-    "ts", "wmv", "mpe", "mpv", "m4v"
+    "webm",
+    "mpg",
+    "mp2",
+    "mpeg",
+    "mov",
+    "mkv",
+    "avi",
+    "m4p",
+    "mp4",
+    "mts",
+    "m2ts",
+    "ts",
+    "wmv",
+    "mpe",
+    "mpv",
+    "m4v",
 )
 
 internal val AUDIO_EXTENSIONS = listOf(
-    "3gp", "aac", "flac", "ogg", "mp3", "opus",
-    "wav", "m4b", "oga", "tta",
+    "3gp",
+    "aac",
+    "flac",
+    "ogg",
+    "mp3",
+    "opus",
+    "wav",
+    "m4b",
+    "oga",
+    "tta",
 )
 
 internal val SUBTITLE_EXTENSIONS = listOf(
-    "sub", "srt", "vtt", "ass", "ssa",
+    "sub",
+    "srt",
+    "vtt",
+    "ass",
+    "ssa",
 )
 
 class LibraryService(
@@ -57,7 +82,6 @@ class LibraryService(
     private val libraryDao: LibraryDao,
     private val fs: FileSystem,
 ) {
-
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -66,9 +90,7 @@ class LibraryService(
     val mediaScannerState: StateFlow<MediaScannerState> = mediaFileScanner.state
     val mediaScannerMessages: Flow<MediaScannerMessage> = mediaFileScanner.messages
 
-    suspend fun initializeLibraries(
-        preconfiguredDirectories: Map<MediaKind, List<String>>
-    ) {
+    suspend fun initializeLibraries(preconfiguredDirectories: Map<MediaKind, List<String>>) {
         if (!libraryDao.insertDefaultLibraries()) {
             return
         }
@@ -124,7 +146,10 @@ class LibraryService(
         return libraryDao.deleteDirectory(directoryId)
     }
 
-    suspend fun addLibraryFolderAndScan(libraryId: String, path: String): AddLibraryFolderResponse {
+    suspend fun addLibraryFolderAndScan(
+        libraryId: String,
+        path: String,
+    ): AddLibraryFolderResponse {
         val result = addLibraryFolder(libraryId, path)
         if (result is AddLibraryFolderResponse.Success) {
             val directory = result.directory
@@ -142,15 +167,17 @@ class LibraryService(
                         } else {
                             refreshMetadata(child)
                         }
-                    }
-                    .launchIn(this)
+                    }.launchIn(this)
                 scan(directory)
             }
         }
         return result
     }
 
-    suspend fun addLibraryFolder(libraryId: String, path: String): AddLibraryFolderResponse {
+    suspend fun addLibraryFolder(
+        libraryId: String,
+        path: String,
+    ): AddLibraryFolderResponse {
         val libraryFile = Path(path)
         if (!libraryFile.exists() || !libraryFile.isDirectory()) {
             logger.debug("Invalid library folder path '{}'", path)
@@ -185,7 +212,7 @@ class LibraryService(
                 Descriptor.AUDIO,
                 Descriptor.SUBTITLE,
                 Descriptor.IMAGE,
-                    -> {
+                -> {
                     mediaLinkDao.deleteById(mediaLink.id)
                 }
             }
@@ -197,11 +224,15 @@ class LibraryService(
         }
     }
 
-    suspend fun listFiles(root: String?, showFiles: Boolean): ListFilesResponse {
+    suspend fun listFiles(
+        root: String?,
+        showFiles: Boolean,
+    ): ListFilesResponse {
         val folders: List<String>
         var files = emptyList<String>()
         if (root.isNullOrBlank()) {
-            val rootDirectories = libraryDao.fetchLibraryRootDirectories()
+            val rootDirectories = libraryDao
+                .fetchLibraryRootDirectories()
                 .map(Directory::filePath)
             val (foldersList, filesList) = fs.rootDirectories.partition { it.isDirectory() }
             folders = rootDirectories + foldersList.map(Path::absolutePathString).filterNot(rootDirectories::contains)
@@ -236,7 +267,7 @@ class LibraryService(
 
     suspend fun refreshMetadata(directoryId: String): List<MediaLinkMatchResult> {
         val directory = libraryDao.fetchDirectory(directoryId)
-            ?: return emptyList()// TODO: return no directory error
+            ?: return emptyList() // TODO: return no directory error
         return refreshMetadata(directory)
     }
 
@@ -252,7 +283,10 @@ class LibraryService(
         return processor.findMetadataMatches(directory, import = true)
     }
 
-    suspend fun refreshMetadata(mediaLink: MediaLink, import: Boolean): MediaLinkMatchResult {
+    suspend fun refreshMetadata(
+        mediaLink: MediaLink,
+        import: Boolean,
+    ): MediaLinkMatchResult {
         val processor = processors.firstOrNull { it.mediaKinds.contains(mediaLink.mediaKind) } ?: run {
             logger.error("No processor found for MediaKind '{}'", mediaLink.mediaKind)
             TODO("return no processor result")
@@ -261,7 +295,10 @@ class LibraryService(
         return processor.findMetadataMatches(mediaLink, import)
     }
 
-    suspend fun matchMediaLink(mediaLink: MediaLink, remoteId: String) {
+    suspend fun matchMediaLink(
+        mediaLink: MediaLink,
+        remoteId: String,
+    ) {
         val processor = processors.firstOrNull { it.mediaKinds.contains(mediaLink.mediaKind) } ?: run {
             logger.error("No processor found for MediaKind '{}'", mediaLink.mediaKind)
             return // TODO: return no processor result
@@ -273,14 +310,20 @@ class LibraryService(
         matchMediaLink(mediaLink, metadataMatch)
     }
 
-    suspend fun matchMediaLink(mediaLink: MediaLink, metadataMatch: MetadataMatch) {
+    suspend fun matchMediaLink(
+        mediaLink: MediaLink,
+        metadataMatch: MetadataMatch,
+    ) {
         val processor = processors.firstOrNull { it.mediaKinds.contains(mediaLink.mediaKind) } ?: run {
             logger.error("No processor found for MediaKind '{}'", mediaLink.mediaKind)
             return // TODO: return no processor result
         }
 
         when (mediaLink.descriptor) {
-            Descriptor.VIDEO -> listOf(mediaLink)
+            Descriptor.VIDEO -> {
+                listOf(mediaLink)
+            }
+
             else -> {
                 // TODO: return unhandled files result
                 return
@@ -300,7 +343,7 @@ class LibraryService(
         }.map { (library, directory) ->
             val filePath = directory?.filePath?.run(fs::getPath)
             // TODO: Use count query to get matched/unmatched numbers
-            //val (matched, unmatched) = links.partition { it.metadataId != null || it.rootMetadataId != null }
+            // val (matched, unmatched) = links.partition { it.metadataId != null || it.rootMetadataId != null }
             val matched = emptyList<String>()
             val unmatched = emptyList<String>()
             val fileStore = try {
@@ -315,8 +358,8 @@ class LibraryService(
                 null
             }
             val sizeOnDisk: String? = try {
-                // TODO: calculate this elsewhere or get the size estimate from OS apis
-                /*filePath
+                /* TODO: calculate this elsewhere or get the size estimate from OS apis
+                  filePath
                     .walk()
                     .filter(Path::isRegularFile)
                     .sumOf { it.fileSize() }
@@ -354,7 +397,8 @@ class LibraryService(
         }
 
         val mediaLinkPaths = mediaLinkDao.findAllFilePaths()
-        return contentFile.listDirectoryEntries()
+        return contentFile
+            .listDirectoryEntries()
             .map(Path::absolutePathString)
             .filter { filePath ->
                 mediaLinkPaths.none { ref ->
@@ -412,9 +456,10 @@ class LibraryService(
         val unregisterPath: (Path) -> Unit = { path: Path ->
             val pathString = path.absolutePathString()
             logger.trace("Stopped watching {}", pathString)
-            val key = watchKeys.entries.firstOrNull { (_, value) ->
-                value.absolutePathString() == pathString
-            }?.key
+            val key = watchKeys.entries
+                .firstOrNull { (_, value) ->
+                    value.absolutePathString() == pathString
+                }?.key
             watchKeys.remove(key)
             key?.cancel()
         }

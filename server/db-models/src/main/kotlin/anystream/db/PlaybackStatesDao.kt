@@ -29,9 +29,8 @@ import org.jooq.impl.DSL
 import org.jooq.impl.SQLDataType
 
 class PlaybackStatesDao(
-    private val db: DSLContext
+    private val db: DSLContext,
 ) {
-
     /**
      * SELECT ps.*
      * FROM playbackStates ps
@@ -50,73 +49,89 @@ class PlaybackStatesDao(
      * ORDER BY ps.updatedAt DESC
      * LIMIT ?
      */
-    suspend fun findWithUniqueRootByUserId(userId: String, limit: Int): List<PlaybackState> {
-        val subquery = DSL.select(
-            METADATA.ID.`as`("metadataId"),
-            DSL.`when`(METADATA.ROOT_ID.isNull(), METADATA.ID)
-                .otherwise(METADATA.ROOT_ID)
-                .`as`("rootOrSelfId"),
-            DSL.max(PLAYBACK_STATE.UPDATED_AT)
-                .`as`("maxUpdatedAt")
-        )
-            .from(PLAYBACK_STATE)
+    suspend fun findWithUniqueRootByUserId(
+        userId: String,
+        limit: Int,
+    ): List<PlaybackState> {
+        val subquery = DSL
+            .select(
+                METADATA.ID.`as`("metadataId"),
+                DSL
+                    .`when`(METADATA.ROOT_ID.isNull(), METADATA.ID)
+                    .otherwise(METADATA.ROOT_ID)
+                    .`as`("rootOrSelfId"),
+                DSL
+                    .max(PLAYBACK_STATE.UPDATED_AT)
+                    .`as`("maxUpdatedAt"),
+            ).from(PLAYBACK_STATE)
             .join(METADATA)
             .on(METADATA.ID.eq(PLAYBACK_STATE.METADATA_ID))
             .where(PLAYBACK_STATE.USER_ID.eq(userId))
             .groupBy(DSL.field("rootOrSelfId"))
             .asTable("x")
 
-        return db.select(PLAYBACK_STATE)
+        return db
+            .select(PLAYBACK_STATE)
             .from(PLAYBACK_STATE)
             .join(subquery)
             .on(
-                subquery.field("metadataId", SQLDataType.VARCHAR(24).notNull())!!
+                subquery
+                    .field("metadataId", SQLDataType.VARCHAR(24).notNull())!!
                     .eq(PLAYBACK_STATE.METADATA_ID)
                     .and(
-                        subquery.field("maxUpdatedAt", INSTANT_DATATYPE)!!
-                            .eq(PLAYBACK_STATE.UPDATED_AT)
-                    )
-            )
-            .orderBy(PLAYBACK_STATE.UPDATED_AT.desc())
+                        subquery
+                            .field("maxUpdatedAt", INSTANT_DATATYPE)!!
+                            .eq(PLAYBACK_STATE.UPDATED_AT),
+                    ),
+            ).orderBy(PLAYBACK_STATE.UPDATED_AT.desc())
             .limit(limit)
             .awaitInto()
     }
 
-    suspend fun findByUserIdAndMetadataId(userId: String, metadataId: String): PlaybackState? {
-        return db.selectFrom(PLAYBACK_STATE)
+    suspend fun findByUserIdAndMetadataId(
+        userId: String,
+        metadataId: String,
+    ): PlaybackState? {
+        return db
+            .selectFrom(PLAYBACK_STATE)
             .where(
                 PLAYBACK_STATE.USER_ID.eq(userId),
-                PLAYBACK_STATE.METADATA_ID.eq(metadataId)
-            )
-            .awaitFirstOrNullInto()
+                PLAYBACK_STATE.METADATA_ID.eq(metadataId),
+            ).awaitFirstOrNullInto()
     }
 
-    suspend fun findByUserIdAndMetadataIds(userId: String, metadataIds: List<String>): List<PlaybackState> {
-        return db.select(PLAYBACK_STATE)
+    suspend fun findByUserIdAndMetadataIds(
+        userId: String,
+        metadataIds: List<String>,
+    ): List<PlaybackState> {
+        return db
+            .select(PLAYBACK_STATE)
             .from(PLAYBACK_STATE)
             .where(
                 PLAYBACK_STATE.USER_ID.eq(userId),
-                PLAYBACK_STATE.METADATA_ID.`in`(metadataIds)
-            )
-            .awaitInto()
+                PLAYBACK_STATE.METADATA_ID.`in`(metadataIds),
+            ).awaitInto()
     }
 
     suspend fun fetchById(playbackStateId: String): PlaybackState? {
-        return db.select(PLAYBACK_STATE)
+        return db
+            .select(PLAYBACK_STATE)
             .from(PLAYBACK_STATE)
             .where(PLAYBACK_STATE.ID.eq(playbackStateId))
             .awaitFirstOrNullInto()
     }
 
     suspend fun fetchByIds(ids: List<String>): List<PlaybackState> {
-        return db.select(PLAYBACK_STATE)
+        return db
+            .select(PLAYBACK_STATE)
             .from(PLAYBACK_STATE)
             .where(PLAYBACK_STATE.ID.`in`(ids))
             .awaitInto()
     }
 
     suspend fun insert(playbackState: PlaybackState): Boolean {
-        return db.insertInto(PLAYBACK_STATE)
+        return db
+            .insertInto(PLAYBACK_STATE)
             .set(PlaybackStateRecord(playbackState))
             .awaitFirstOrNull() == 1
     }

@@ -29,11 +29,14 @@ class SearchService(
     private val mediaDao: MetadataDao,
     private val mediaLinkDao: MediaLinkDao,
 ) {
-
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    suspend fun search(inputQuery: String, limit: Int): SearchResponse {
-        val query = inputQuery.trim()
+    suspend fun search(
+        inputQuery: String,
+        limit: Int,
+    ): SearchResponse {
+        val query = inputQuery
+            .trim()
             .replace("\"", "")
             .split("\\s+".toRegex())
             .joinToString(" ", postfix = "*") { "\"$it\"" }
@@ -41,20 +44,24 @@ class SearchService(
             val movieIds = searchableContentDao.search(query, MediaType.MOVIE, limit)
             val tvShowIds = searchableContentDao.search(query, MediaType.TV_SHOW, limit)
             val episodeIds = searchableContentDao.search(query, MediaType.TV_EPISODE, limit)
-            val movies = mediaDao.findAllByIdsAndType(movieIds, MediaType.MOVIE)
+            val movies = mediaDao
+                .findAllByIdsAndType(movieIds, MediaType.MOVIE)
                 .map(Metadata::toMovieModel)
 
-            val tvShows = mediaDao.findAllByIdsAndType(tvShowIds, MediaType.TV_SHOW)
+            val tvShows = mediaDao
+                .findAllByIdsAndType(tvShowIds, MediaType.TV_SHOW)
                 .map { showRecord ->
                     SearchResponse.TvShowResult(
                         tvShow = showRecord.toTvShowModel(),
                         seasonCount = mediaDao.countSeasonsForTvShow(showRecord.id),
                     )
                 }
-            val episodesDb = mediaDao.findAllByIdsAndType(episodeIds, MediaType.TV_EPISODE)
+            val episodesDb = mediaDao
+                .findAllByIdsAndType(episodeIds, MediaType.TV_EPISODE)
                 .map(Metadata::toTvEpisodeModel)
             val episodeShowIds = episodesDb.map(Episode::showId).distinct()
-            val episodeShows = mediaDao.findAllByIdsAndType(episodeShowIds, MediaType.TV_SHOW)
+            val episodeShows = mediaDao
+                .findAllByIdsAndType(episodeShowIds, MediaType.TV_SHOW)
                 .map(Metadata::toTvShowModel)
                 .associateBy(TvShow::id)
             val episodes = episodesDb.map { episode ->
@@ -65,7 +72,8 @@ class SearchService(
             }
 
             val searchIds = movies.map(Movie::id) + episodes.map { it.episode.id }
-            val mediaLinks = mediaLinkDao.findByMetadataIds(searchIds)
+            val mediaLinks = mediaLinkDao
+                .findByMetadataIds(searchIds)
                 .filter { it.metadataId != null }
                 .associateBy { it.metadataId!! }
 

@@ -25,7 +25,11 @@ import io.ktor.server.response.*
 
 @Suppress("unused") // Referenced in application.conf
 fun Application.module() {
-    if (environment.config.property("ktor.development").getString().toBoolean()) {
+    if (environment.config
+            .property("ktor.development")
+            .getString()
+            .toBoolean()
+    ) {
         install(StatusPages) {
             exception<Throwable> { call, error ->
                 call.respondText(

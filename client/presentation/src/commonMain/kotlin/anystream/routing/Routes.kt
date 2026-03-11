@@ -44,7 +44,7 @@ sealed class Routes {
 
     @Poko
     class Library(
-        val libraryId: String
+        val libraryId: String,
     ) : Routes() {
         override val path: String = "library/$libraryId"
     }

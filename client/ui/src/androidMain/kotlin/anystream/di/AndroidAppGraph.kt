@@ -24,11 +24,12 @@ import dev.zacsweers.metro.Provides
 
 @DependencyGraph(AppScope::class)
 interface AndroidAppGraph : AppGraph {
-
     val context: Context
 
     @DependencyGraph.Factory
     fun interface Factory {
-        fun create(@Provides context: Context): AndroidAppGraph
+        fun create(
+            @Provides context: Context,
+        ): AndroidAppGraph
     }
 }

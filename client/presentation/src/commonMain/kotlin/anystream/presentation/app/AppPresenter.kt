@@ -59,7 +59,7 @@ class AppPresenter(
                 externalRouter = props.externalRouter,
                 authState = authState,
                 inviteCode = props.inviteCode,
-            )
+            ),
         )
         return AppModel(
             appUiModel = appUiModel,

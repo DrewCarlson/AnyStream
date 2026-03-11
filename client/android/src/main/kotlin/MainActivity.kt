@@ -29,8 +29,8 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import anystream.ui.App
 
 class LeanbackActivity : MainActivity()
-open class MainActivity : AppCompatActivity() {
 
+open class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         val app = application as anystream.android.App
         installSplashScreen()
@@ -39,7 +39,9 @@ open class MainActivity : AppCompatActivity() {
         )
         super.onCreate(savedInstanceState)
         onBackPressedDispatcher.addCallback(this) {
-            if (!app.appModels.value.appUiModel.goBack()) {
+            if (!app.appModels.value.appUiModel
+                    .goBack()
+            ) {
                 finish()
             }
         }

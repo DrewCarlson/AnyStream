@@ -20,7 +20,6 @@ package anystream.presentation.login
 import anystream.models.api.CreateSessionResponse
 import anystream.presentation.core.ScreenModel
 
-
 data class LoginScreenModel(
     val serverUrl: String = "",
     val username: String = "",
@@ -43,13 +42,18 @@ data class LoginScreenModel(
     val isServerUrlValid: Boolean = serverValidation == ServerValidation.VALID
 
     enum class State {
-        IDLE, AUTHENTICATING, AUTHENTICATED;
+        IDLE,
+        AUTHENTICATING,
+        AUTHENTICATED,
+        ;
 
         val isAuthenticating: Boolean
             get() = this == AUTHENTICATING
     }
 
     enum class ServerValidation {
-        VALID, INVALID, VALIDATING,
+        VALID,
+        INVALID,
+        VALIDATING,
     }
 }

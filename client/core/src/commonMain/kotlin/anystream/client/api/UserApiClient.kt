@@ -51,13 +51,11 @@ import kotlinx.coroutines.flow.map
 class UserApiClient(
     private val core: AnyStreamApiCore,
 ) {
-
     val authenticated: Flow<Boolean> = core.sessionManager.tokenFlow.map { it != null }
     val permissions: Flow<Set<Permission>?> = core.sessionManager.permissionsFlow
     val user: Flow<UserPublic?> = core.sessionManager.userFlow
     val token: String?
         get() = core.sessionManager.fetchToken()
-
 
     fun isAuthenticated(): Boolean {
         return core.sessionManager.fetchToken() != null
@@ -80,16 +78,19 @@ class UserApiClient(
         password: String,
         inviteCode: String?,
         rememberUser: Boolean = true,
-    ): CreateUserResponse = core.http.post("/api/users") {
-        contentType(ContentType.Application.Json)
-        parameter("createSession", rememberUser)
-        setBody(CreateUserBody(username, password, inviteCode))
-    }.bodyOrThrow<CreateUserResponse>().also { response ->
-        if (rememberUser && response is CreateUserResponse.Success) {
-            core.sessionManager.writeUser(response.user)
-            core.sessionManager.writePermissions(response.permissions)
-        }
-    }
+    ): CreateUserResponse =
+        core.http
+            .post("/api/users") {
+                contentType(ContentType.Application.Json)
+                parameter("createSession", rememberUser)
+                setBody(CreateUserBody(username, password, inviteCode))
+            }.bodyOrThrow<CreateUserResponse>()
+            .also { response ->
+                if (rememberUser && response is CreateUserResponse.Success) {
+                    core.sessionManager.writeUser(response.user)
+                    core.sessionManager.writePermissions(response.permissions)
+                }
+            }
 
     suspend fun getUser(id: String): UserPublic {
         return core.http.get("/api/users/$id").bodyOrThrow()
@@ -105,16 +106,17 @@ class UserApiClient(
         password: String?,
         currentPassword: String?,
     ) {
-        core.http.put("/api/users/$userId") {
-            contentType(ContentType.Application.Json)
-            setBody(
-                UpdateUserBody(
-                    displayName = displayName,
-                    password = password,
-                    currentPassword = currentPassword,
-                ),
-            )
-        }.orThrow()
+        core.http
+            .put("/api/users/$userId") {
+                contentType(ContentType.Application.Json)
+                setBody(
+                    UpdateUserBody(
+                        displayName = displayName,
+                        password = password,
+                        currentPassword = currentPassword,
+                    ),
+                )
+            }.orThrow()
     }
 
     suspend fun deleteUser(id: String) {
@@ -126,15 +128,17 @@ class UserApiClient(
         password: String,
         pairing: Boolean = false,
     ): CreateSessionResponse {
-        return core.http.post("/api/users/session") {
-            contentType(ContentType.Application.Json)
-            setBody(CreateSessionBody(username, password))
-        }.bodyOrThrow<CreateSessionResponse>().also { response ->
-            if (!pairing && response is CreateSessionResponse.Success) {
-                core.sessionManager.writeUser(response.user)
-                core.sessionManager.writePermissions(response.permissions)
+        return core.http
+            .post("/api/users/session") {
+                contentType(ContentType.Application.Json)
+                setBody(CreateSessionBody(username, password))
+            }.bodyOrThrow<CreateSessionResponse>()
+            .also { response ->
+                if (!pairing && response is CreateSessionResponse.Success) {
+                    core.sessionManager.writeUser(response.user)
+                    core.sessionManager.writePermissions(response.permissions)
+                }
             }
-        }
     }
 
     suspend fun completeOauth(token: String) {
@@ -152,16 +156,21 @@ class UserApiClient(
     suspend fun logout() {
         val token = core.sessionManager.fetchToken() ?: return
         core.sessionManager.clear()
-        core.http.delete("/api/users/session") {
-            header(AnyStreamApiCore.SESSION_KEY, token)
-        }.orThrow()
+        core.http
+            .delete("/api/users/session") {
+                header(AnyStreamApiCore.SESSION_KEY, token)
+            }.orThrow()
     }
 
-    suspend fun createPairedSession(pairingCode: String, secret: String): CreateSessionResponse {
-        val response = core.http.post("/api/users/session/paired") {
-            parameter("pairingCode", pairingCode)
-            parameter("secret", secret)
-        }.bodyOrThrow<CreateSessionResponse>()
+    suspend fun createPairedSession(
+        pairingCode: String,
+        secret: String,
+    ): CreateSessionResponse {
+        val response = core.http
+            .post("/api/users/session/paired") {
+                parameter("pairingCode", pairingCode)
+                parameter("secret", secret)
+            }.bodyOrThrow<CreateSessionResponse>()
 
         (response as? CreateSessionResponse.Success)?.run {
             core.sessionManager.writeUser(user)
@@ -172,34 +181,35 @@ class UserApiClient(
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    fun createPairingSession(): Flow<PairingMessage> = channelFlow {
-        core.http.wss(path = "/api/ws/users/pair") {
-            while (!incoming.isClosedForReceive) {
-                try {
-                    trySend(receiveDeserialized<PairingMessage>())
-                } catch (_: WebsocketDeserializeException) {
-                    // ignored
-                } catch (_: ClosedReceiveChannelException) {
-                    // ignored
+    fun createPairingSession(): Flow<PairingMessage> =
+        channelFlow {
+            core.http.wss(path = "/api/ws/users/pair") {
+                while (!incoming.isClosedForReceive) {
+                    try {
+                        trySend(receiveDeserialized<PairingMessage>())
+                    } catch (_: WebsocketDeserializeException) {
+                        // ignored
+                    } catch (_: ClosedReceiveChannelException) {
+                        // ignored
+                    }
                 }
             }
         }
-    }
 
     suspend fun fetchAuthTypes(): List<String> {
         return core.http.get("/api/users/auth-types").bodyOrThrow()
     }
-
 
     suspend fun getInvites(): List<InviteCode> {
         return core.http.get("/api/users/invite").bodyOrThrow()
     }
 
     suspend fun createInvite(permissions: Set<Permission>): InviteCode {
-        return core.http.post("/api/users/invite") {
-            contentType(ContentType.Application.Json)
-            setBody(permissions)
-        }.bodyOrThrow()
+        return core.http
+            .post("/api/users/invite") {
+                contentType(ContentType.Application.Json)
+                setBody(permissions)
+            }.bodyOrThrow()
     }
 
     suspend fun deleteInvite(id: String): Boolean {

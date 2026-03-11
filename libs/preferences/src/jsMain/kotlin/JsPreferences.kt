@@ -22,7 +22,6 @@ import org.w3c.dom.Storage
 class JsPreferences(
     private val storage: Storage,
 ) : Preferences {
-
     override val keys: Set<String>
         get() = List(storage.length, storage::key).filterNotNull().toSet()
 
@@ -41,11 +40,17 @@ class JsPreferences(
         storage.removeItem(key)
     }
 
-    override fun putInt(key: String, value: Int) {
+    override fun putInt(
+        key: String,
+        value: Int,
+    ) {
         storage.setItem(key, value.toString())
     }
 
-    override fun getInt(key: String, defaultValue: Int): Int {
+    override fun getInt(
+        key: String,
+        defaultValue: Int,
+    ): Int {
         return if (contains(key)) checkNotNull(storage.getItem(key)).toInt() else defaultValue
     }
 
@@ -53,11 +58,17 @@ class JsPreferences(
         return if (contains(key)) checkNotNull(storage.getItem(key)).toInt() else null
     }
 
-    override fun putLong(key: String, value: Long) {
+    override fun putLong(
+        key: String,
+        value: Long,
+    ) {
         storage.setItem(key, value.toString())
     }
 
-    override fun getLong(key: String, defaultValue: Long): Long {
+    override fun getLong(
+        key: String,
+        defaultValue: Long,
+    ): Long {
         return if (contains(key)) checkNotNull(storage.getItem(key)).toLong() else defaultValue
     }
 
@@ -65,11 +76,17 @@ class JsPreferences(
         return if (contains(key)) checkNotNull(storage.getItem(key)).toLong() else null
     }
 
-    override fun putString(key: String, value: String) {
+    override fun putString(
+        key: String,
+        value: String,
+    ) {
         storage.setItem(key, value)
     }
 
-    override fun getString(key: String, defaultValue: String): String {
+    override fun getString(
+        key: String,
+        defaultValue: String,
+    ): String {
         return if (contains(key)) checkNotNull(storage.getItem(key)) else defaultValue
     }
 
@@ -77,11 +94,17 @@ class JsPreferences(
         return if (contains(key)) checkNotNull(storage.getItem(key)) else null
     }
 
-    override fun putDouble(key: String, value: Double) {
+    override fun putDouble(
+        key: String,
+        value: Double,
+    ) {
         storage.setItem(key, value.toString())
     }
 
-    override fun getDouble(key: String, defaultValue: Double): Double {
+    override fun getDouble(
+        key: String,
+        defaultValue: Double,
+    ): Double {
         return if (contains(key)) checkNotNull(storage.getItem(key)).toDouble() else defaultValue
     }
 
@@ -89,11 +112,17 @@ class JsPreferences(
         return if (contains(key)) checkNotNull(storage.getItem(key)).toDouble() else null
     }
 
-    override fun putBoolean(key: String, value: Boolean) {
+    override fun putBoolean(
+        key: String,
+        value: Boolean,
+    ) {
         storage.setItem(key, value.toString())
     }
 
-    override fun getBoolean(key: String, defaultValue: Boolean): Boolean {
+    override fun getBoolean(
+        key: String,
+        defaultValue: Boolean,
+    ): Boolean {
         return if (contains(key)) checkNotNull(storage.getItem(key)).toBoolean() else defaultValue
     }
 
@@ -101,11 +130,17 @@ class JsPreferences(
         return if (contains(key)) checkNotNull(storage.getItem(key)).toBoolean() else null
     }
 
-    override fun putFloat(key: String, value: Float) {
+    override fun putFloat(
+        key: String,
+        value: Float,
+    ) {
         storage.setItem(key, value.toString())
     }
 
-    override fun getFloat(key: String, defaultValue: Float): Float {
+    override fun getFloat(
+        key: String,
+        defaultValue: Float,
+    ): Float {
         return if (contains(key)) checkNotNull(storage.getItem(key)).toFloat() else defaultValue
     }
 

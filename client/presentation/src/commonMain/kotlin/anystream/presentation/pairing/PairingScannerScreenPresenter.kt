@@ -25,7 +25,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import anystream.client.AnyStreamClient
 import anystream.presentation.core.Presenter
-import anystream.presentation.core.ScreenModel
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
@@ -50,7 +49,9 @@ class PairingScannerScreenPresenter(
         LaunchedEffect(scannedCode) {
             val currentCode = scannedCode
             if (currentCode != null) {
-                val user = client.user.user.filterNotNull().first()
+                val user = client.user.user
+                    .filterNotNull()
+                    .first()
                 try {
                     client.user.login(user.username, currentCode, pairing = true)
                     props.onPairingCompleted()

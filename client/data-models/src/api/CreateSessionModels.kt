@@ -31,7 +31,6 @@ class CreateSessionBody(
 
 @Serializable
 sealed class CreateSessionResponse {
-
     @Poko
     @Serializable
     class Success(
@@ -54,10 +53,12 @@ sealed class CreateSessionResponse {
     }
 
     enum class UsernameError {
-        INVALID, NOT_FOUND,
+        INVALID,
+        NOT_FOUND,
     }
 
     enum class PasswordError {
-        INVALID, INCORRECT,
+        INVALID,
+        INCORRECT,
     }
 }

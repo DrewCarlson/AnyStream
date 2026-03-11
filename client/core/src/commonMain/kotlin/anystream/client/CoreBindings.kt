@@ -31,7 +31,6 @@ internal const val INITIAL_SERVER_URL = "initial_server_url"
 @ContributesTo(AppScope::class)
 @BindingContainer
 expect object PlatformCoreBindings {
-
     fun provideHttpClientEngine(): HttpClientEngine
 }
 

@@ -27,7 +27,6 @@ import kotlin.time.Duration.Companion.seconds
 
 @Suppress("MemberVisibilityCanBePrivate")
 abstract class BasePlayerHandle : PlayerHandle {
-
     private val skipInterval = 10.seconds
 
     protected val scope = CoroutineScope(Default + SupervisorJob() + CoroutineName("PlayerHandle"))
@@ -35,13 +34,13 @@ abstract class BasePlayerHandle : PlayerHandle {
     private val _progressFlow = MutableStateFlow(0.seconds)
     private val _durationFlow = MutableStateFlow(0.seconds)
     private val _bufferProgressFlow = MutableStateFlow(0.seconds)
-    private val _playWhenReady = MutableStateFlow(true)
+    private val _playWhenReadyFlow = MutableStateFlow(true)
     private val _stateFlow = MutableStateFlow(PlayerHandle.State.IDLE)
 
     final override val progressFlow: StateFlow<Duration> = _progressFlow.asStateFlow()
     final override val durationFlow: StateFlow<Duration> = _durationFlow.asStateFlow()
     final override val bufferProgressFlow: StateFlow<Duration> = _bufferProgressFlow.asStateFlow()
-    final override val playWhenReadyFlow: StateFlow<Boolean> = _playWhenReady.asStateFlow()
+    final override val playWhenReadyFlow: StateFlow<Boolean> = _playWhenReadyFlow.asStateFlow()
     final override val stateFlow: StateFlow<PlayerHandle.State> = _stateFlow.asStateFlow()
 
     final override val progressPercentFlow: StateFlow<Float> =
@@ -108,7 +107,7 @@ abstract class BasePlayerHandle : PlayerHandle {
     }
 
     protected fun emitPlayWhenReady(playWhenReady: Boolean) {
-        _playWhenReady.update { playWhenReady }
+        _playWhenReadyFlow.update { playWhenReady }
     }
 
     override fun dispose() {

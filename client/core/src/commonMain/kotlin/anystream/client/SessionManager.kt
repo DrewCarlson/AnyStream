@@ -32,8 +32,13 @@ private const val USER_KEY = "USER_KEY"
 private const val SERVER_URL_KEY = "SERVER_URL_KEY"
 
 interface SessionDataStore {
-    fun write(key: String, value: String)
+    fun write(
+        key: String,
+        value: String,
+    )
+
     fun read(key: String): String?
+
     fun remove(key: String)
 
     companion object : SessionDataStore {
@@ -41,7 +46,10 @@ interface SessionDataStore {
 
         override fun read(key: String): String? = data[key]
 
-        override fun write(key: String, value: String) {
+        override fun write(
+            key: String,
+            value: String,
+        ) {
             data[key] = value
         }
 
@@ -51,7 +59,9 @@ interface SessionDataStore {
     }
 }
 
-class SessionManager(private val dataStore: SessionDataStore) {
+class SessionManager(
+    private val dataStore: SessionDataStore,
+) {
     private val user = MutableSharedFlow<UserPublic?>(1, 0, DROP_OLDEST)
     private val token = MutableSharedFlow<String?>(1, 0, DROP_OLDEST)
     private val permissions = MutableSharedFlow<Set<Permission>?>(1, 0, DROP_OLDEST)
@@ -92,7 +102,8 @@ class SessionManager(private val dataStore: SessionDataStore) {
     fun fetchUser(): UserPublic? {
         return user.replayCache.singleOrNull()
             ?: dataStore.read(USER_KEY)?.let { data ->
-                json.decodeFromString<UserPublic>(data)
+                json
+                    .decodeFromString<UserPublic>(data)
                     .also(user::tryEmit)
             }
     }
@@ -104,7 +115,8 @@ class SessionManager(private val dataStore: SessionDataStore) {
 
     fun fetchPermissions(): Set<Permission>? {
         return permissions.replayCache.singleOrNull()
-            ?: dataStore.read(PERMISSIONS_KEY)
+            ?: dataStore
+                .read(PERMISSIONS_KEY)
                 ?.let { json.decodeFromString<List<Permission>>(it) }
                 ?.toSet()
                 ?.also(permissions::tryEmit)

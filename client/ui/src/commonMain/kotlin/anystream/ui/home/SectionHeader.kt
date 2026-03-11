@@ -35,7 +35,7 @@ import androidx.compose.ui.unit.sp
 internal fun SectionHeader(
     title: String,
     ctaText: String? = null,
-    onCtaClicked: (() -> Unit)? = null,
+    onCtaClick: (() -> Unit)? = null,
 ) {
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -46,8 +46,8 @@ internal fun SectionHeader(
             .padding(top = 4.dp),
     ) {
         RowTitle(text = title)
-        if (onCtaClicked != null && ctaText != null) {
-            TextButton(onClick = onCtaClicked) {
+        if (onCtaClick != null && ctaText != null) {
+            TextButton(onClick = onCtaClick) {
                 Text(
                     text = ctaText,
                     style = MaterialTheme.typography.bodyLarge.copy(

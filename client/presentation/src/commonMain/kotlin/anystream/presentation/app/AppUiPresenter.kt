@@ -106,7 +106,7 @@ class AppUiPresenter(
                 .authenticated
                 .collect { authed ->
                     val isLoginRoute = currentRoute == Routes.Welcome ||
-                            currentRoute == Routes.Login
+                        currentRoute == Routes.Login
                     if (!authed && !isLoginRoute) {
                         router.replaceTop(Routes.Login)
                     }
@@ -116,7 +116,7 @@ class AppUiPresenter(
         val bottomNavRoots = remember { listOf(Routes.Home, Routes.Profile) }
         val showBottomNavigation = bottomNavRoots.contains(currentRoute)
 
-        val screenModel = ProduceScreenModel(props, currentRoute, router)
+        val screenModel = produceScreenModel(props, currentRoute, router)
 
         return AppUiModel(
             screen = screenModel,
@@ -129,67 +129,77 @@ class AppUiPresenter(
     }
 
     @Composable
-    private fun ProduceScreenModel(
+    private fun produceScreenModel(
         props: AppUiProps,
         route: Routes,
         router: CommonRouter,
     ): ScreenModel {
         return when (route) {
-            Routes.Home -> homeScreenPresenter.model(HomeScreenProps)
+            Routes.Home -> {
+                homeScreenPresenter.model(HomeScreenProps)
+            }
+
             Routes.Login -> {
                 loginScreenPresenter.model(
                     LoginScreenProps(
                         supportsPairing = false,
                         serverUrl = props.serverUrl,
-                        onLoginComplete = { router.replaceStack(listOf(Routes.Home)) }
-                    )
+                        onLoginComplete = { router.replaceStack(listOf(Routes.Home)) },
+                    ),
                 )
             }
+
             Routes.SignUp -> {
                 signupScreenPresenter.model(
                     SignupScreenProps(
                         inviteCode = props.inviteCode,
                         serverUrl = props.serverUrl,
                         onSignupComplete = { router.replaceStack(listOf(Routes.Home)) },
-                    )
+                    ),
                 )
             }
+
             is Routes.Details -> {
                 mediaScreenPresenter.model(
-                    MediaScreenProps(route.metadataId)
+                    MediaScreenProps(route.metadataId),
                 )
             }
+
             is Routes.Library -> {
                 libraryScreenPresenter.model(
-                    LibraryScreenProps(route.libraryId)
+                    LibraryScreenProps(route.libraryId),
                 )
             }
+
             Routes.PairingScanner -> {
                 pairingScannerScreenPresenter.model(
                     PairingScannerScreenProps(
                         onPairingCompleted = router::popCurrentRoute,
                         onPairingCancelled = router::popCurrentRoute,
-                    )
+                    ),
                 )
             }
+
             is Routes.Player -> {
                 VideoPlayerModel(
                     mediaLinkId = route.mediaLinkId,
                     onClose = router::popCurrentRoute,
                 )
             }
+
             Routes.Profile -> {
                 profileScreenPresenter.model(
                     ProfileScreenProps(
                         onPairDeviceClicked = { router.pushRoute(Routes.PairingScanner) },
-                    )
+                    ),
                 )
             }
+
             Routes.Welcome -> {
                 welcomeScreenPresenter.model(
                     WelcomeScreenProps(
                         onCtaClicked = { router.pushRoute(Routes.Login) },
-                    )
+                    ),
                 )
             }
         }

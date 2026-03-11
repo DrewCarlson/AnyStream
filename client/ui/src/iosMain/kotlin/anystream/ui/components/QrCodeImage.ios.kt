@@ -59,18 +59,21 @@ internal actual fun QrCodeImageNative(
                     content = content,
                     qrCodeSize = qrCodeSize,
                     color = Color.Black,
-                    backgroundColor = Color.White
+                    backgroundColor = Color.White,
                 )?.asImageBitmap()
             }
         }
 
         when (val currentQrCodeImage = qrCodeImage) {
-            null -> loadingContent(qrCodeSizeDp)
+            null -> {
+                loadingContent(qrCodeSizeDp)
+            }
+
             else -> {
                 Image(
                     bitmap = currentQrCodeImage,
                     contentDescription = null,
-                    modifier = Modifier.size(qrCodeSizeDp)
+                    modifier = Modifier.size(qrCodeSizeDp),
                 )
             }
         }
@@ -93,31 +96,33 @@ private fun createQRCodeUIImage(
     val dataAsNSData = dataAsByteArray.usePinned { pin ->
         NSData.create(
             bytes = pin.addressOf(0),
-            length = dataAsByteArray.size.toULong()
+            length = dataAsByteArray.size.toULong(),
         )
     }
 
-    val qrCodeFilter = CIFilter.QRCodeGenerator()
+    val qrCodeFilter = CIFilter
+        .QRCodeGenerator()
         .apply { setValue(value = dataAsNSData, forKey = "inputMessage") }
 
-    val colorFilter = CIFilter.falseColorFilter()
+    val colorFilter = CIFilter
+        .falseColorFilter()
         .apply {
             setValue(qrCodeFilter.outputImage, "inputImage")
             setValue(
                 CIColor(
                     red = color.red.toDouble(),
                     green = color.green.toDouble(),
-                    blue = color.blue.toDouble()
+                    blue = color.blue.toDouble(),
                 ),
-                "inputColor0"
+                "inputColor0",
             )
             setValue(
                 CIColor(
                     red = backgroundColor.red.toDouble(),
                     green = backgroundColor.green.toDouble(),
-                    blue = backgroundColor.blue.toDouble()
+                    blue = backgroundColor.blue.toDouble(),
                 ),
-                "inputColor1"
+                "inputColor1",
             )
         }
 
@@ -126,7 +131,7 @@ private fun createQRCodeUIImage(
     val (scaleX, scaleY) = qrCodeImage.extent.useContents {
         Pair(
             qrCodeSize.toDouble() / size.width,
-            qrCodeSize.toDouble() / size.height
+            qrCodeSize.toDouble() / size.height,
         )
     }
     val scaleTransform = CGAffineTransformMakeScale(scaleX, scaleY)

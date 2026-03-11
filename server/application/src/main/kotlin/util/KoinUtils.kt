@@ -24,5 +24,4 @@ import org.koin.ktor.ext.getKoin
 // TODO: Revert to Route get calls when Koin is updated
 inline fun <reified T : Any> Route.koinGet(): T = application.get()
 
-inline fun <reified T : Any> RoutingContext.koinGet(): T =
-    call.application.getKoin().get()
+inline fun <reified T : Any> RoutingContext.koinGet(): T = call.application.getKoin().get()

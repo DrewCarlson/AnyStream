@@ -39,7 +39,10 @@ data class TranscodeSession(
     val transcodeDecision: TranscodeDecision,
 ) {
     enum class State {
-        IDLE, RUNNING, PAUSED, COMPLETE
+        IDLE,
+        RUNNING,
+        PAUSED,
+        COMPLETE,
     }
 
     fun isSegmentComplete(segment: Int): Boolean {
@@ -63,7 +66,9 @@ enum class TranscodeDecision {
     AUDIO_ONLY,
 
     /** Transcode both video and audio */
-    FULL;
+    FULL,
+
+    ;
 
     val shouldTranscodeVideo: Boolean
         get() = this == VIDEO_ONLY || this == FULL

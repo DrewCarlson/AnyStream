@@ -19,7 +19,6 @@ package anystream.screens.settings
 
 import androidx.compose.runtime.*
 import anystream.LocalAnyStreamClient
-import anystream.client.AnyStreamClient
 import anystream.models.InviteCode
 import anystream.models.Permission
 import anystream.models.UserPublic

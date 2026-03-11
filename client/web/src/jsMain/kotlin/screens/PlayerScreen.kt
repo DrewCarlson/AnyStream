@@ -19,7 +19,6 @@ package anystream.screens
 
 import androidx.compose.runtime.*
 import anystream.LocalAnyStreamClient
-import anystream.client.AnyStreamClient
 import anystream.client.api.PlaybackSessionHandle
 import anystream.components.LinkedText
 import anystream.libs.*
@@ -103,7 +102,7 @@ fun PlayerScreen(mediaLinkId: String) {
         sessionHandle = client.stream.playbackSession(
             scope = this,
             mediaLinkId = mediaLinkId,
-            onClosed = { playerMediaLinkId.value = null }
+            onClosed = { playerMediaLinkId.value = null },
         ) { state ->
             println("[player] $state")
             if (initialState == null) {
@@ -182,7 +181,7 @@ fun PlayerScreen(mediaLinkId: String) {
                 style {
                     cursor(if (areControlsVisible) "pointer" else "none")
                 }
-                //attr("poster", posterPath)
+                // attr("poster", posterPath)
                 onClick {
                     if (player?.paused() == true) {
                         player?.play()
@@ -265,7 +264,7 @@ fun PlayerScreen(mediaLinkId: String) {
                 areControlsVisible = areControlsVisible,
                 isFullscreen = isFullscreen,
                 onToggleFullscreen = { setFullscreen?.invoke(!isFullscreen) },
-                onToggleMiniMode = { isInMiniMode = !isInMiniMode }
+                onToggleMiniMode = { isInMiniMode = !isInMiniMode },
             )
 
             if (!playerIsPlaying) {
@@ -319,7 +318,7 @@ fun PlayerScreen(mediaLinkId: String) {
 private fun MiniModeOverlay(
     width: CSSpxValue,
     height: CSSpxValue,
-    onExitMiniMode: () -> Unit
+    onExitMiniMode: () -> Unit,
 ) {
     var isVisible by remember { mutableStateOf(false) }
     Div({
@@ -462,7 +461,7 @@ private fun PlaybackControls(
                 mediaItem?.apply {
                     if (!subtitle1.isNullOrBlank() && !subtitle2.isNullOrBlank()) {
                         LinkedText(
-                            url = "/media/${parentMetadataId}",
+                            url = "/media/$parentMetadataId",
                             afterClick = onEnterMiniMode,
                             singleLine = true,
                         ) {
@@ -470,7 +469,7 @@ private fun PlaybackControls(
                         }
                         Text(" · ")
                         LinkedText(
-                            url = "/media/${mediaId}",
+                            url = "/media/$mediaId",
                             afterClick = onEnterMiniMode,
                             singleLine = true,
                         ) {
@@ -479,7 +478,7 @@ private fun PlaybackControls(
                     } else {
                         subtitle1?.also { subtitle ->
                             LinkedText(
-                                url = "/media/${mediaId}",
+                                url = "/media/$mediaId",
                                 afterClick = onEnterMiniMode,
                                 singleLine = true,
                             ) {
@@ -488,7 +487,7 @@ private fun PlaybackControls(
                         }
                         subtitle2?.also { subtitle ->
                             LinkedText(
-                                url = "/media/${parentMetadataId}",
+                                url = "/media/$parentMetadataId",
                                 afterClick = onEnterMiniMode,
                                 singleLine = true,
                             ) {
@@ -651,17 +650,19 @@ private fun PlaybackControls(
             var volume by remember { mutableStateOf(player.volume()) }
             val volumeScale by derivedStateOf { if (muted) 0f else volume }
             LaunchedEffect(Unit) {
-                localStorage.getItem("PLAYER_VOLUME")
+                localStorage
+                    .getItem("PLAYER_VOLUME")
                     ?.toFloatOrNull()
                     ?.run(player::volume)
-                localStorage.getItem("PLAYER_MUTED")
+                localStorage
+                    .getItem("PLAYER_MUTED")
                     ?.toBoolean()
                     ?.run(player::muted)
             }
-             LaunchedEffect(volume, muted) {
-                 localStorage.setItem("PLAYER_VOLUME", volume.toString())
-                 localStorage.setItem("PLAYER_MUTED", muted.toString())
-             }
+            LaunchedEffect(volume, muted) {
+                localStorage.setItem("PLAYER_VOLUME", volume.toString())
+                localStorage.setItem("PLAYER_MUTED", muted.toString())
+            }
             Div({
                 style {
                     cursor("pointer")
@@ -781,7 +782,8 @@ private fun SeekBar(
     }
     var bif by remember { mutableStateOf<BifFileReader?>(null) }
     LaunchedEffect(mediaLinkId) {
-        bif = client.images.getPreviewBif(mediaLinkId)
+        bif = client.images
+            .getPreviewBif(mediaLinkId)
             ?.run(BifFileReader::open)
     }
     DisposableEffect(mediaLinkId) {
@@ -798,7 +800,8 @@ private fun SeekBar(
             } else {
                 val index =
                     (mouseHoverProgress.inWholeSeconds / 5)
-                        .coerceIn(0, currentBif.header.imageCount.toLong()).toInt()
+                        .coerceIn(0, currentBif.header.imageCount.toLong())
+                        .toInt()
                 "data:image/webp;base64,${Base64.encode(currentBif.readFrame(index).bytes)}"
             }
         }
@@ -873,7 +876,7 @@ private fun SeekBar(
                     backgroundColor(Color("#C7081C"))
                     opacity(.5)
                     property("pointer-events", "none")
-                    property("transform", "scaleX(${bufferedPercent})")
+                    property("transform", "scaleX($bufferedPercent)")
                     property("transform-origin", "left")
                     property("transition", "transform .1s")
                 }
@@ -883,7 +886,7 @@ private fun SeekBar(
                 style {
                     backgroundColor(Color("#C7081C"))
                     property("pointer-events", "none")
-                    property("transform", "scaleX(${progressScale})")
+                    property("transform", "scaleX($progressScale)")
                     property("transform-origin", "left")
                     property("transition", "transform .1s")
                 }
@@ -892,6 +895,7 @@ private fun SeekBar(
         DisposableEffect(Unit) {
             popperVirtualElement = object : PopperVirtualElement {
                 override val contextElement: HTMLElement = scopeElement
+
                 override fun getBoundingClientRect(): PopperRect {
                     return unsafeJso {
                         right = mouseHoverX

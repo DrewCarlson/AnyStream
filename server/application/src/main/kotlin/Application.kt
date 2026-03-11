@@ -93,7 +93,6 @@ import kotlin.io.path.writeText
 import kotlin.random.Random
 import kotlin.time.Duration.Companion.seconds
 
-
 private val configFileSuffixes = listOf("conf", "yml", "yaml")
 
 suspend fun main(args: Array<String>) {
@@ -128,14 +127,18 @@ suspend fun main(args: Array<String>) {
     }
     val appConfig = HoconApplicationConfig(mergedConfig)
 
-    embeddedServer(Netty, environment = applicationEnvironment {
-        config = appConfig
-    }, {
-        // TODO: this prevents user config files from setting engine config, is this a problem?
-        val config = CommandLineConfig(args.filter { !it.startsWith("-config") }.toTypedArray())
-        takeFrom(config.engineConfig)
-        loadCommonConfiguration(appConfig.config("ktor.deployment"))
-    }).startSuspend(wait = true)
+    embeddedServer(
+        Netty,
+        environment = applicationEnvironment {
+            config = appConfig
+        },
+        {
+            // TODO: this prevents user config files from setting engine config, is this a problem?
+            val config = CommandLineConfig(args.filter { !it.startsWith("-config") }.toTypedArray())
+            takeFrom(config.engineConfig)
+            loadCommonConfiguration(appConfig.config("ktor.deployment"))
+        },
+    ).startSuspend(wait = true)
 }
 
 @Suppress("unused", "UNUSED_PARAMETER") // Referenced in application.conf
@@ -251,7 +254,7 @@ fun Application.module(testing: Boolean = false) {
     }
     val config = get<AnyStreamConfig>()
     monitor.subscribe(ApplicationStopped) {
-        //get<KJob>().shutdown()
+        // get<KJob>().shutdown()
     }
 
     check(runMigrations(get<AnyStreamConfig>().databaseUrl, log))
@@ -261,7 +264,7 @@ fun Application.module(testing: Boolean = false) {
                 put(MediaKind.TV, config.libraries.tv.directories)
                 put(MediaKind.MOVIE, config.libraries.movies.directories)
                 put(MediaKind.MUSIC, config.libraries.music.directories)
-            }
+            },
         )
     }
     registerJobs()
@@ -355,7 +358,7 @@ fun Application.module(testing: Boolean = false) {
     }
     install(WebsocketAuthorization) {
         try {
-        extractUserSession(sessionStorage::readSession)
+            extractUserSession(sessionStorage::readSession)
         } catch (_: NoSuchElementException) {
         }
     }

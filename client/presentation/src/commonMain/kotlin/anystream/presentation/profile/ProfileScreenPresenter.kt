@@ -22,14 +22,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import anystream.client.AnyStreamClient
-import anystream.models.UserPublic
 import anystream.presentation.core.Presenter
-import anystream.presentation.core.ScreenModel
 import anystream.presentation.core.rememberEventTrigger
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
-import kotlinx.coroutines.launch
 
 data class ProfileScreenProps(
     val onPairDeviceClicked: () -> Unit,

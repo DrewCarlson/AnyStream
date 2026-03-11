@@ -24,13 +24,20 @@ import anystream.client.AnyStreamClient
 val LocalImageProvider = staticCompositionLocalOf<ImageProvider> { StaticImageProvider }
 
 interface ImageProvider {
-
     @Stable
-    fun url(imageType: String, metadataId: String, width: Int = 0): String
+    fun url(
+        imageType: String,
+        metadataId: String,
+        width: Int = 0,
+    ): String
 }
 
 private object StaticImageProvider : ImageProvider {
-    override fun url(imageType: String, metadataId: String, width: Int): String {
+    override fun url(
+        imageType: String,
+        metadataId: String,
+        width: Int,
+    ): String {
         return when (imageType) {
             "poster" -> "https://image.tmdb.org/t/p/w300/xgAZRY9swQYRkj3waCZeBDBCkuj.jpg"
             "backdrop" -> "https://image.tmdb.org/t/p/w1280/pnIhvvYZytNDoDqwmxItWeSaDbp.jpg"
@@ -41,7 +48,11 @@ private object StaticImageProvider : ImageProvider {
 
 fun AnyStreamClient.asImageProvider(): ImageProvider {
     return object : ImageProvider {
-        override fun url(imageType: String, metadataId: String, width: Int): String {
+        override fun url(
+            imageType: String,
+            metadataId: String,
+            width: Int,
+        ): String {
             return images.buildImageUrl(imageType, metadataId, width)
         }
     }

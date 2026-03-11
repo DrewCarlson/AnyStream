@@ -29,7 +29,6 @@ internal class LangCode(
 )
 
 internal object IsoLanguageCodes {
-
     @Suppress("ktlint:standard:function-naming")
     fun by639_2(code: String): LangCode? {
         val lowercaseCode = code.lowercase()
@@ -96,7 +95,13 @@ internal object IsoLanguageCodes {
         LangCode("Bihari languages", "भोजपुरी", "bh", "bih", "bih"),
         LangCode("Hebrew (modern)", "עברית", "he", "heb", "heb"),
         LangCode("Sanskrit", "संस्कृतम्", "sa", "san", "san"),
-        LangCode("Church Slavic, Church Slavonic, Old Church Slavonic, Old Slavonic, Old Bulgarian", "ѩзыкъ словѣньскъ", "cu", "chu", "chu"),
+        LangCode(
+            "Church Slavic, Church Slavonic, Old Church Slavonic, Old Slavonic, Old Bulgarian",
+            "ѩзыкъ словѣньскъ",
+            "cu",
+            "chu",
+            "chu",
+        ),
         LangCode("Pali", "पाऴि", "pi", "pli", "pli"),
         LangCode("Avestan", "avesta", "ae", "ave", "ave"),
         LangCode("Latin", "latine, lingua latina", "la", "lat", "lat"),

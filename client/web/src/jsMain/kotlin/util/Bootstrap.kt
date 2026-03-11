@@ -17,6 +17,7 @@
  */
 @file:JsModule("bootstrap")
 @file:JsNonModule
+
 package anystream.util
 
 import org.w3c.dom.Element
@@ -31,14 +32,18 @@ external object Modal {
 
 external interface TooltipInstance {
     fun show()
+
     fun hide()
+
     fun dispose()
 }
 
 external interface ModalInstance {
     fun show()
+
     fun hide()
 
+    @Suppress("ktlint:standard:backing-property-naming")
     val _config: Config
 
     interface Config {

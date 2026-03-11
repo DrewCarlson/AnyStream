@@ -115,35 +115,36 @@ class TranscodeSessionManager(
 
         if (flags.startSegment > flags.finalSegmentIndex) {
             // Occurs when all required segments are completed, create the session without transcoding
-            return sessionMap.compute(token) { _, session ->
-                session?.copy(
-                    startSegment = 0,
-                    endSegment = flags.finalSegmentIndex,
-                    startTime = 0.0,
-                    endTime = runtime.toDouble(SECONDS),
-                    lastTranscodedSegment = flags.finalSegmentIndex,
-                    state = TranscodeSession.State.COMPLETE,
-                    ffmpegCommand = "",
-                    transcodeDecision = transcodeDecision,
-                ) ?: TranscodeSession(
-                    token = token,
-                    mediaLinkId = name,
-                    mediaPath = mediaFile.absolutePathString(),
-                    outputPath = outputDir.absolutePathString(),
-                    segmentCount = flags.segmentCount,
-                    ffmpegCommand = "",
-                    runtime = runtime.toDouble(SECONDS),
-                    segmentLength = segmentDuration.toInt(SECONDS),
-                    lastTranscodedSegment = flags.startSegment,
-                    state = TranscodeSession.State.COMPLETE,
-                    startTime = flags.startTime.toDouble(SECONDS),
-                    endTime = flags.endTime.toDouble(SECONDS),
-                    startSegment = flags.startSegment,
-                    endSegment = flags.endSegment,
-                    transcodedSegments = flags.completedSegments,
-                    transcodeDecision = transcodeDecision,
-                )
-            }.run(::checkNotNull)
+            return sessionMap
+                .compute(token) { _, session ->
+                    session?.copy(
+                        startSegment = 0,
+                        endSegment = flags.finalSegmentIndex,
+                        startTime = 0.0,
+                        endTime = runtime.toDouble(SECONDS),
+                        lastTranscodedSegment = flags.finalSegmentIndex,
+                        state = TranscodeSession.State.COMPLETE,
+                        ffmpegCommand = "",
+                        transcodeDecision = transcodeDecision,
+                    ) ?: TranscodeSession(
+                        token = token,
+                        mediaLinkId = name,
+                        mediaPath = mediaFile.absolutePathString(),
+                        outputPath = outputDir.absolutePathString(),
+                        segmentCount = flags.segmentCount,
+                        ffmpegCommand = "",
+                        runtime = runtime.toDouble(SECONDS),
+                        segmentLength = segmentDuration.toInt(SECONDS),
+                        lastTranscodedSegment = flags.startSegment,
+                        state = TranscodeSession.State.COMPLETE,
+                        startTime = flags.startTime.toDouble(SECONDS),
+                        endTime = flags.endTime.toDouble(SECONDS),
+                        startSegment = flags.startSegment,
+                        endSegment = flags.endSegment,
+                        transcodedSegments = flags.completedSegments,
+                        transcodeDecision = transcodeDecision,
+                    )
+                }.run(::checkNotNull)
         }
 
         val command = ffmpeg().apply {
@@ -151,10 +152,10 @@ class TranscodeSessionManager(
             val segmentSeconds = segmentDuration.toDouble(SECONDS).toString()
             addArguments("-f", "hls")
 
-            //addArguments("-movflags", "+faststart")
-            //addArguments("-preset", "veryfast")
+            // addArguments("-movflags", "+faststart")
+            // addArguments("-preset", "veryfast")
 
-            //addArguments("-force_key_frames", "expr:gte(t,$startSeconds+n_forced*$segmentSeconds)")
+            // addArguments("-force_key_frames", "expr:gte(t,$startSeconds+n_forced*$segmentSeconds)")
             addArguments("-start_number", flags.startSegment.toString())
             addArguments("-hls_flags", "temp_file+independent_segments")
             addArguments("-hls_time", segmentSeconds)
@@ -166,7 +167,7 @@ class TranscodeSessionManager(
             }
             addArguments(
                 "-hls_segment_filename",
-                outputDir.resolve("$name-%01d.${flags.segmentExtension}").absolutePathString()
+                outputDir.resolve("$name-%01d.${flags.segmentExtension}").absolutePathString(),
             )
             addArguments("-avoid_negative_ts", "0")
             addArguments("-vsync", "-1")
@@ -323,7 +324,10 @@ class TranscodeSessionManager(
         )
     }
 
-    private suspend fun setSegmentTarget(token: String, segment: Int) {
+    private suspend fun setSegmentTarget(
+        token: String,
+        segment: Int,
+    ) {
         val session = sessionMap[token] ?: return
         val transcodeJob = transcodeJobs[token] ?: return
         val segmentTime = (session.segmentLength * segment).seconds
@@ -339,7 +343,7 @@ class TranscodeSessionManager(
                 "Media info for {}: codec={}, isHlsInFmp4={}",
                 session.mediaLinkId,
                 mediaInfo?.videoCodec,
-                isHlsInFmp4
+                isHlsInFmp4,
             )
 
             startTranscode(
@@ -352,7 +356,7 @@ class TranscodeSessionManager(
                 startAt = segmentTime,
                 stopAt = stopAt,
                 transcodeDecision = session.transcodeDecision,
-                isHlsInFmp4 = isHlsInFmp4
+                isHlsInFmp4 = isHlsInFmp4,
             )
         }
 
@@ -371,7 +375,10 @@ class TranscodeSessionManager(
 
         when (session.state) {
             TranscodeSession.State.IDLE,
-            TranscodeSession.State.COMPLETE -> Unit
+            TranscodeSession.State.COMPLETE,
+            -> {
+                Unit
+            }
 
             TranscodeSession.State.RUNNING -> {
                 if (segment in session.startSegment..session.endSegment) {
@@ -384,23 +391,22 @@ class TranscodeSessionManager(
                                 logger.debug("Session became idle, restarting transcode.")
                                 restartTranscode()
                             }
-                        }
-                        .first { sessionUpdate ->
+                        }.first { sessionUpdate ->
                             sessionUpdate.token == token && sessionUpdate.isSegmentComplete(segment)
                         }
 
                     logger.debug("Segment {} ready for {}", segment, token)
                     return
                 }
-
             }
 
             TranscodeSession.State.PAUSED -> {
                 val updatedSession = sessionMap.compute(token) { _, currentSession ->
                     currentSession?.run {
-                        val endSegment = currentSession.run {
-                            lastTranscodedSegment + (endSegment - startSegment)
-                        }.coerceAtMost(currentSession.segmentCount)
+                        val endSegment = currentSession
+                            .run {
+                                lastTranscodedSegment + (endSegment - startSegment)
+                            }.coerceAtMost(currentSession.segmentCount)
                         val endTime = (endSegment * currentSession.segmentLength.toDouble())
                             .coerceAtMost(runtime.toDouble(SECONDS))
                         copy(
@@ -429,7 +435,8 @@ class TranscodeSessionManager(
         val commandSender = CommandSender()
         val nameRegex = "$name-(\\d+)\\.$extension\$".toRegex()
         val transcodeJob = scope.launch {
-            fs.observeNewSegmentFiles(outputDir, nameRegex)
+            fs
+                .observeNewSegmentFiles(outputDir, nameRegex)
                 .onEach { completedSegmentIndex ->
                     val currentSession = checkNotNull(sessionMap[token])
                     val endSegment = currentSession.endSegment
@@ -454,11 +461,9 @@ class TranscodeSessionManager(
                         )
                     }
                     sessionUpdates.tryEmit(checkNotNull(session))
-                }
-                .onCompletion {
+                }.onCompletion {
                     logger.debug("Progress tracking completed.")
-                }
-                .flowOn(Default)
+                }.flowOn(Default)
                 .launchIn(this)
             val handle = command.executeAsync(commandSender)
             val future = handle.toCompletableFuture()
@@ -482,15 +487,27 @@ class TranscodeSessionManager(
         return TranscodeJobHolder(transcodeJob, commandSender)
     }
 
-    private fun findExistingSegments(outputDir: Path, name: String, segmentExtension: String): List<Int> {
+    private fun findExistingSegments(
+        outputDir: Path,
+        name: String,
+        segmentExtension: String,
+    ): List<Int> {
         val nameRegex = "$name-(\\d+)\\.$segmentExtension$".toRegex()
         return outputDir
             .listDirectoryEntries()
-            .mapNotNull { nameRegex.find(it.name)?.groupValues?.lastOrNull()?.toInt() }
-            .sorted()
+            .mapNotNull {
+                nameRegex
+                    .find(it.name)
+                    ?.groupValues
+                    ?.lastOrNull()
+                    ?.toInt()
+            }.sorted()
     }
 
-    suspend fun stopSession(token: String, deleteOutput: Boolean) {
+    suspend fun stopSession(
+        token: String,
+        deleteOutput: Boolean,
+    ) {
         logger.debug("Stopping session: token={}, deleteOutput=$deleteOutput", token)
         newPlaybackStates.remove(token)
         val session = sessionMap.remove(token) ?: return
@@ -506,14 +523,18 @@ class TranscodeSessionManager(
         if (deleteOutput) {
             val sessionDir = fs.getPath(session.outputPath)
             if (sessionDir.exists() && sessionDir.isDirectory()) {
-                sessionDir.listDirectoryEntries()
+                sessionDir
+                    .listDirectoryEntries()
                     .forEach { it.deleteRecursively() }
                 sessionDir.deleteRecursively()
             }
         }
     }
 
-    suspend fun getFilePathForSegment(token: String, segmentFile: String): Path? {
+    suspend fun getFilePathForSegment(
+        token: String,
+        segmentFile: String,
+    ): Path? {
         val session = sessionMap[token] ?: return null
 
         val segmentIndex = segmentFile
@@ -524,7 +545,8 @@ class TranscodeSessionManager(
         if (segmentIndex != null) {
             setSegmentTarget(token, segmentIndex)
         }
-        return fs.getPath(session.outputPath)
+        return fs
+            .getPath(session.outputPath)
             .resolve(segmentFile)
             .takeIf(Path::exists)
     }
@@ -536,7 +558,10 @@ class TranscodeSessionManager(
         }
     }
 
-    fun updateState(id: String, position: Duration) {
+    fun updateState(
+        id: String,
+        position: Duration,
+    ) {
         newPlaybackStates.computeIfPresent(id) { _, existing ->
             existing.copy(position = position)
         }

@@ -17,6 +17,5 @@
  */
 package anystream.models
 
-
 val PlaybackState.completedPercent: Float
     get() = (position / runtime).coerceIn(0.0, 1.0).toFloat()

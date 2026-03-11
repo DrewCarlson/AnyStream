@@ -19,7 +19,6 @@ package anystream.models
 
 import kotlinx.serialization.Serializable
 
-
 @Serializable
 sealed class Permission {
     @Serializable
@@ -40,7 +39,10 @@ sealed class Permission {
     companion object {
         val all: Set<Permission> = setOf(Global, ViewCollection, ManageCollection, ManageTorrents, ConfigureSystem)
 
-        fun check(permission: Permission, permissions: Set<Permission>): Boolean {
+        fun check(
+            permission: Permission,
+            permissions: Set<Permission>,
+        ): Boolean {
             return permissions.contains(permission) || permissions.contains(Global)
         }
     }

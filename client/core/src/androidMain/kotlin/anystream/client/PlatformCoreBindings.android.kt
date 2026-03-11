@@ -30,16 +30,14 @@ import io.ktor.client.engine.cio.*
 @ContributesTo(AppScope::class)
 @BindingContainer
 actual object PlatformCoreBindings {
-
     @SingleIn(AppScope::class)
     @Provides
-    actual fun provideHttpClientEngine(): HttpClientEngine =
-        CIO.create {  }
+    actual fun provideHttpClientEngine(): HttpClientEngine = CIO.create { }
 
     @SingleIn(AppScope::class)
     @Provides
     fun provideDataStore(context: Context): SessionDataStore =
         AndroidSessionDataStore(
-            prefs = context.getSharedPreferences("session", Context.MODE_PRIVATE)
+            prefs = context.getSharedPreferences("session", Context.MODE_PRIVATE),
         )
 }

@@ -25,10 +25,9 @@ import org.jooq.impl.UpdatableRecordImpl
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import org.reactivestreams.Publisher
 
-
 suspend inline fun <reified R : UpdatableRecordImpl<R>, reified T> DSLContext.newRecordAsync(
     table: Table<R>,
-    source: R
+    source: R,
 ): T {
     insertInto(table)
         .set(source)
@@ -36,7 +35,10 @@ suspend inline fun <reified R : UpdatableRecordImpl<R>, reified T> DSLContext.ne
     return source.intoType()
 }
 
-suspend fun <R : Record> DSLContext.fetchCountAsync(table: Table<R>, vararg condition: Condition): Int {
+suspend fun <R : Record> DSLContext.fetchCountAsync(
+    table: Table<R>,
+    vararg condition: Condition,
+): Int {
     return transactionCoroutine { fetchCount(table, *condition) }
 }
 
@@ -55,4 +57,3 @@ suspend inline fun <reified T> Publisher<out Record>.awaitFirstOrNullInto(): T? 
 inline fun <reified T> Record.intoType(): T {
     return into(T::class.java) as T
 }
-

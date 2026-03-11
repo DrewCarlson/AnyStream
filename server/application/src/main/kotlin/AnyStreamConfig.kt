@@ -31,7 +31,6 @@ class AnyStreamConfig(
     config: ApplicationConfig,
     private val fs: FileSystem,
 ) {
-
     val baseUrl: String = config.property("app.baseUrl").getString()
     val disableWebClient: Boolean = config.property("app.disableWebClient").getString().toBoolean()
     val webClientPath: String? = config.propertyOrNull("app.webClientPath")?.getString()
@@ -44,12 +43,16 @@ class AnyStreamConfig(
     }
 
     val databaseUrl: String = run {
-        val databaseUrl = config.property("app.databaseUrl").getString()
+        val databaseUrl = config
+            .property("app.databaseUrl")
+            .getString()
             .ifBlank { dataPath.resolve("anystream.db").absolutePathString() }
         "jdbc:sqlite:$databaseUrl"
     }
 
-    val transcodePath: Path = config.property("app.transcodePath").getString()
+    val transcodePath: Path = config
+        .property("app.transcodePath")
+        .getString()
         .run(fs::getPath)
         .createDirectories()
 

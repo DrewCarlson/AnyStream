@@ -24,12 +24,12 @@ actual fun createPlatformClientCapabilities(): ClientCapabilities {
         "h264",
         "vp8",
         "vp9",
-        //"h265", // TODO: add only for supported browsers/hosts
+        // "h265", // TODO: add only for supported browsers/hosts
     )
 
     val supportedAudioCodecs = listOf(
         "aac",
-        //"ac3", // can be supported with hls.js instead of video.js
+        // "ac3", // can be supported with hls.js instead of video.js
         "mp3",
         "opus",
         "vorbis",

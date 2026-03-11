@@ -15,9 +15,14 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+@file:Suppress("ktlint:standard:filename")
+
 package anystream.android
 
+import com.github.anrwatchdog.ANRWatchDog
 
 class InitVariantFeaturesImpl : InitVariantFeatures {
-    fun init() = Unit
+    override fun init() {
+        ANRWatchDog().apply { start() }
+    }
 }

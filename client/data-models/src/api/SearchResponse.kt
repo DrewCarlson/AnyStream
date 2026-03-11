@@ -32,8 +32,9 @@ class SearchResponse(
     val episodes: List<EpisodeResult> = emptyList(),
     val mediaLink: Map<String, MediaLink> = emptyMap(),
 ) {
-    fun hasResult(): Boolean =
-        movies.isNotEmpty() || tvShows.isNotEmpty() || episodes.isNotEmpty()
+    fun hasResult(): Boolean {
+        return movies.isNotEmpty() || tvShows.isNotEmpty() || episodes.isNotEmpty()
+    }
 
     @Poko
     @Serializable

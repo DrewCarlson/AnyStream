@@ -23,10 +23,10 @@ import anystream.models.api.MediaLookupResponse
 import anystream.models.api.MovieResponse
 import anystream.models.api.PlaybackSessions
 import anystream.util.ObjectId
-import kotlin.time.Clock
 import org.slf4j.LoggerFactory
 import java.nio.file.FileSystem
 import java.nio.file.Path
+import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.ZERO
 import kotlin.time.Duration.Companion.seconds
@@ -74,7 +74,7 @@ class StreamService(
         mediaLinkId: String,
         userId: String,
         create: Boolean,
-        clientCapabilities: ClientCapabilities? = null
+        clientCapabilities: ClientCapabilities? = null,
     ): PlaybackState? {
         val state = queries.fetchPlaybackState(mediaLinkId, userId)
         val mediaLink = checkNotNull(queries.fetchMediaLink(mediaLinkId))
@@ -126,7 +126,10 @@ class StreamService(
         return queries.deletePlaybackState(playbackStateId)
     }
 
-    suspend fun updateStatePosition(state: PlaybackState, position: Duration): Boolean {
+    suspend fun updateStatePosition(
+        state: PlaybackState,
+        position: Duration,
+    ): Boolean {
         if (!position.isPastThreshold()) {
             transcodeSessionManager.updateState(state.id, position)
             return false
@@ -147,7 +150,7 @@ class StreamService(
     suspend fun getPlaylist(
         mediaLinkId: String,
         token: String,
-        clientCapabilities: ClientCapabilities
+        clientCapabilities: ClientCapabilities,
     ): String? {
         val mediaLink = queries.fetchMediaLink(mediaLinkId) ?: return null
         val file = mediaLink.filePath?.run(fs::getPath) ?: return null
@@ -182,11 +185,14 @@ class StreamService(
             token = token,
             runtime = runtime,
             segmentDuration = segmentDuration,
-            isHlsInFmp4 = isHlsInFmp4
+            isHlsInFmp4 = isHlsInFmp4,
         )
     }
 
-    suspend fun getFilePathForSegment(token: String, segmentFile: String): Path? {
+    suspend fun getFilePathForSegment(
+        token: String,
+        segmentFile: String,
+    ): Path? {
         return transcodeSessionManager.getFilePathForSegment(token, segmentFile)
     }
 
@@ -194,13 +200,16 @@ class StreamService(
         return transcodeSessionManager.allSessionIds().contains(token)
     }
 
-    suspend fun stopSession(token: String, deleteOutput: Boolean) {
+    suspend fun stopSession(
+        token: String,
+        deleteOutput: Boolean,
+    ) {
         return transcodeSessionManager.stopSession(token, deleteOutput)
     }
 
     private suspend fun determineTranscodeDecision(
         file: Path,
-        clientCapabilities: ClientCapabilities?
+        clientCapabilities: ClientCapabilities?,
     ): TranscodeDecision {
         if (clientCapabilities == null) {
             return TranscodeDecision.FULL
@@ -211,7 +220,7 @@ class StreamService(
             mediaInfo,
             clientCapabilities.supportedVideoCodecs,
             clientCapabilities.supportedAudioCodecs,
-            clientCapabilities.supportedContainers
+            clientCapabilities.supportedContainers,
         )
     }
 }

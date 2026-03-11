@@ -29,10 +29,10 @@ fun DevicePairingScannerScreen(
     modifier: Modifier = Modifier,
 ) {
     Box(
-        modifier = modifier.fillMaxSize()
+        modifier = modifier.fillMaxSize(),
     ) {
         QrScanner(
-            onScanned = model.onScanned,
+            onScan = model.onScanned,
             onClose = model.onCancelled,
         )
     }

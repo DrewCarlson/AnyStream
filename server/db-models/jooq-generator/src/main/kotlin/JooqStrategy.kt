@@ -23,11 +23,10 @@ import org.jooq.meta.Definition
 import org.jooq.meta.TableDefinition
 
 class Generator : KotlinGenerator() {
-
     override fun printClassAnnotations(
         out: JavaWriter,
         definition: Definition?,
-        mode: GeneratorStrategy.Mode
+        mode: GeneratorStrategy.Mode,
     ) {
         super.printClassAnnotations(out, definition, mode)
         if (mode == GeneratorStrategy.Mode.POJO) {
@@ -40,14 +39,20 @@ class Generator : KotlinGenerator() {
 // Customize the database to code translation performed by Jooq during code generation.
 @Suppress("UNUSED")
 class JooqStrategy : DefaultGeneratorStrategy() {
-
-    override fun getJavaPackageName(definition: Definition?, mode: GeneratorStrategy.Mode?): String {
-        return super.getJavaPackageName(definition, mode)
+    override fun getJavaPackageName(
+        definition: Definition?,
+        mode: GeneratorStrategy.Mode?,
+    ): String {
+        return super
+            .getJavaPackageName(definition, mode)
             // Simplify pojos package to fit in the shared data models structure
             .replace("db.tables.pojos", "models")
     }
 
-    override fun getJavaClassName(definition: Definition?, mode: GeneratorStrategy.Mode?): String {
+    override fun getJavaClassName(
+        definition: Definition?,
+        mode: GeneratorStrategy.Mode?,
+    ): String {
         return if (definition is TableDefinition && mode == GeneratorStrategy.Mode.DEFAULT) {
             // Make generated table class names distinct with a 'Table' suffix
             "${super.getJavaClassName(definition, mode)}Table"

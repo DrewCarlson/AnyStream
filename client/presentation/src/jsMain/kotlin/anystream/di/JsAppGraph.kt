@@ -20,7 +20,6 @@ package anystream.di
 import anystream.client.AnyStreamClient
 import anystream.client.CoreBindings
 import anystream.presentation.app.AppPresenter
-import anystream.presentation.app.AppUiPresenter
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.DependencyGraph
 
@@ -29,7 +28,6 @@ import dev.zacsweers.metro.DependencyGraph
     bindingContainers = [CoreBindings::class],
 )
 interface JsAppGraph {
-
     val client: AnyStreamClient
     val appPresenter: AppPresenter
 

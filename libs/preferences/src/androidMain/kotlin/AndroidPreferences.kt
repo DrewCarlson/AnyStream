@@ -23,7 +23,6 @@ import android.content.SharedPreferences
 class AndroidPreferences(
     private val prefs: SharedPreferences,
 ) : Preferences {
-
     override val keys: Set<String>
         get() = prefs.all.keys.toSet()
 
@@ -42,11 +41,17 @@ class AndroidPreferences(
         prefs.edit { remove(key) }
     }
 
-    override fun putInt(key: String, value: Int) {
+    override fun putInt(
+        key: String,
+        value: Int,
+    ) {
         prefs.edit { putInt(key, value) }
     }
 
-    override fun getInt(key: String, defaultValue: Int): Int {
+    override fun getInt(
+        key: String,
+        defaultValue: Int,
+    ): Int {
         return prefs.getInt(key, defaultValue)
     }
 
@@ -54,11 +59,17 @@ class AndroidPreferences(
         return if (contains(key)) prefs.getInt(key, 0) else null
     }
 
-    override fun putLong(key: String, value: Long) {
+    override fun putLong(
+        key: String,
+        value: Long,
+    ) {
         prefs.edit { putLong(key, value) }
     }
 
-    override fun getLong(key: String, defaultValue: Long): Long {
+    override fun getLong(
+        key: String,
+        defaultValue: Long,
+    ): Long {
         return prefs.getLong(key, defaultValue)
     }
 
@@ -66,11 +77,17 @@ class AndroidPreferences(
         return if (contains(key)) prefs.getLong(key, 0L) else null
     }
 
-    override fun putString(key: String, value: String) {
+    override fun putString(
+        key: String,
+        value: String,
+    ) {
         prefs.edit { putString(key, value) }
     }
 
-    override fun getString(key: String, defaultValue: String): String {
+    override fun getString(
+        key: String,
+        defaultValue: String,
+    ): String {
         return prefs.getString(key, defaultValue) ?: defaultValue
     }
 
@@ -78,11 +95,17 @@ class AndroidPreferences(
         return if (contains(key)) prefs.getString(key, "") else null
     }
 
-    override fun putDouble(key: String, value: Double) {
+    override fun putDouble(
+        key: String,
+        value: Double,
+    ) {
         putLong(key, value.toRawBits())
     }
 
-    override fun getDouble(key: String, defaultValue: Double): Double {
+    override fun getDouble(
+        key: String,
+        defaultValue: Double,
+    ): Double {
         return Double.fromBits(prefs.getLong(key, defaultValue.toRawBits()))
     }
 
@@ -90,11 +113,17 @@ class AndroidPreferences(
         return if (contains(key)) getDouble(key, 0.0) else null
     }
 
-    override fun putBoolean(key: String, value: Boolean) {
+    override fun putBoolean(
+        key: String,
+        value: Boolean,
+    ) {
         prefs.edit { putBoolean(key, value) }
     }
 
-    override fun getBoolean(key: String, defaultValue: Boolean): Boolean {
+    override fun getBoolean(
+        key: String,
+        defaultValue: Boolean,
+    ): Boolean {
         return prefs.getBoolean(key, defaultValue)
     }
 
@@ -102,11 +131,17 @@ class AndroidPreferences(
         return if (contains(key)) prefs.getBoolean(key, false) else null
     }
 
-    override fun getFloat(key: String, defaultValue: Float): Float {
+    override fun getFloat(
+        key: String,
+        defaultValue: Float,
+    ): Float {
         return prefs.getFloat(key, defaultValue)
     }
 
-    override fun putFloat(key: String, value: Float) {
+    override fun putFloat(
+        key: String,
+        value: Float,
+    ) {
         prefs.edit { putFloat(key, value) }
     }
 

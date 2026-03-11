@@ -31,12 +31,10 @@ import kotlin.io.path.createParentDirectories
 import kotlin.io.path.outputStream
 import kotlin.time.Duration.Companion.seconds
 
-
 class ImageStore(
     private val dataPath: Path,
     private val httpClient: HttpClient,
 ) {
-
     suspend fun cacheImage(
         metadataId: String,
         imageType: String,
@@ -67,7 +65,11 @@ class ImageStore(
             .createParentDirectories()
     }
 
-    suspend fun downloadInto(path: Path, url: String, retry: Boolean = true): Boolean {
+    suspend fun downloadInto(
+        path: Path,
+        url: String,
+        retry: Boolean = true,
+    ): Boolean {
         val response = try {
             withContext(IO) { httpClient.get(url) }
         } catch (_: Throwable) {
@@ -76,7 +78,8 @@ class ImageStore(
         if (response?.status?.isSuccess() == true) {
             val body = response.bodyAsChannel()
             withContext(IO) {
-                path.outputStream()
+                path
+                    .outputStream()
                     .use { out -> body.copyTo(out) }
             }
             return true

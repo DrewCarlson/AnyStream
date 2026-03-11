@@ -73,7 +73,7 @@ fun BifViewer() {
                                 style {
                                     height(100.dppx)
                                 }
-                            }
+                            },
                         )
                     }
                 }

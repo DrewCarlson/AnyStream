@@ -29,38 +29,46 @@ import org.jooq.impl.DSL
 import org.jooq.impl.DSL.condition
 
 class SearchableContentDao(
-    private val db: DSLContext
+    private val db: DSLContext,
 ) {
     @Suppress("PrivatePropertyName")
     private val RANK = DSL.field("rank")
 
     suspend fun search(query: String): List<String> {
-        return db.select(SEARCHABLE_CONTENT.ID)
+        return db
+            .select(SEARCHABLE_CONTENT.ID)
             .from(SEARCHABLE_CONTENT)
             .where(SEARCHABLE_CONTENT.CONTENT.match(query))
             .orderBy(RANK)
             .awaitInto()
     }
 
-    suspend fun search(query: String, type: MediaType): List<String> {
-        return db.select(SEARCHABLE_CONTENT.ID)
+    suspend fun search(
+        query: String,
+        type: MediaType,
+    ): List<String> {
+        return db
+            .select(SEARCHABLE_CONTENT.ID)
             .from(SEARCHABLE_CONTENT)
             .where(
                 SEARCHABLE_CONTENT.CONTENT.match(query),
-                SEARCHABLE_CONTENT.MEDIA_TYPE.eq(type)
-            )
-            .orderBy(RANK)
+                SEARCHABLE_CONTENT.MEDIA_TYPE.eq(type),
+            ).orderBy(RANK)
             .awaitInto()
     }
 
-    suspend fun search(query: String, type: MediaType, limit: Int): List<String> {
-        return db.select(SEARCHABLE_CONTENT.ID)
+    suspend fun search(
+        query: String,
+        type: MediaType,
+        limit: Int,
+    ): List<String> {
+        return db
+            .select(SEARCHABLE_CONTENT.ID)
             .from(SEARCHABLE_CONTENT)
             .where(
                 SEARCHABLE_CONTENT.CONTENT.match(query),
-                SEARCHABLE_CONTENT.MEDIA_TYPE.eq(type)
-            )
-            .orderBy(RANK)
+                SEARCHABLE_CONTENT.MEDIA_TYPE.eq(type),
+            ).orderBy(RANK)
             .limit(limit)
             .awaitInto()
     }

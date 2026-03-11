@@ -183,7 +183,7 @@ fun Route.addUserRoutes(
                         CreateSessionResponse.Success(
                             user = userService.getUser(userSession.userId)!!.toPublic(),
                             permissions = userSession.permissions,
-                        )
+                        ),
                     )
                 }
             }
@@ -193,7 +193,8 @@ fun Route.addUserRoutes(
                     ?: return@get call.respond(Unauthorized)
                 val redirectLocation = call.request.queryParameters["redirect"]
 
-                val sessionData: UserSession = sessionsDao.find(sessionToken)
+                val sessionData: UserSession = sessionsDao
+                    .find(sessionToken)
                     ?.run(json::decodeFromString)
                     ?: return@get call.respond(NotFound)
 

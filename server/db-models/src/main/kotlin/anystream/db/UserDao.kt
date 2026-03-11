@@ -24,16 +24,14 @@ import anystream.db.util.*
 import anystream.models.*
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.reactive.awaitFirstOrNull
-import kotlin.time.Clock
 import org.jooq.DSLContext
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import org.slf4j.LoggerFactory
-
+import kotlin.time.Clock
 
 class UserDao(
     private val db: DSLContext,
 ) {
-
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     suspend fun countUsers(): Int {
@@ -41,19 +39,22 @@ class UserDao(
     }
 
     suspend fun fetchUser(userId: String): User? {
-        return db.selectFrom(USER)
+        return db
+            .selectFrom(USER)
             .where(USER.ID.eq(userId))
             .awaitFirstOrNullInto()
     }
 
     suspend fun fetchUserByUsername(username: String): User? {
-        return db.selectFrom(USER)
+        return db
+            .selectFrom(USER)
             .where(USER.USERNAME.eq(username.lowercase()))
             .awaitFirstOrNullInto()
     }
 
     suspend fun fetchPermissions(userId: String): Set<Permission> {
-        return db.selectFrom(USER_PERMISSION)
+        return db
+            .selectFrom(USER_PERMISSION)
             .where(USER_PERMISSION.USER_ID.eq(userId))
             .awaitInto<UserPermission>()
             .map { it.value }
@@ -65,7 +66,8 @@ class UserDao(
     }
 
     suspend fun fetchUsers(ids: List<String>): List<User> {
-        return db.selectFrom(USER)
+        return db
+            .selectFrom(USER)
             .where(USER.ID.`in`(ids))
             .awaitInto()
     }
@@ -79,7 +81,8 @@ class UserDao(
             val inserts = permissions.map { permission ->
                 UserPermissionRecord(newUser.id, permission)
             }
-            db.batchInsert(inserts)
+            db
+                .batchInsert(inserts)
                 .executeAsync()
                 .await()
             newUser
@@ -87,13 +90,15 @@ class UserDao(
     }
 
     suspend fun updateUser(user: User): Boolean {
-        return db.update(USER)
+        return db
+            .update(USER)
             .set(UserRecord(user.copy(updatedAt = Clock.System.now())))
             .awaitFirstOrNull() == 1
     }
 
     suspend fun deleteUser(userId: String): Boolean {
-        return db.deleteFrom(USER)
+        return db
+            .deleteFrom(USER)
             .where(USER.ID.eq(userId))
             .awaitFirstOrNull() == 1
     }

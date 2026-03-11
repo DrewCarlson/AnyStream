@@ -108,7 +108,7 @@ class SubtitleStreamEncoding(
 
 fun StreamEncoding.typed(): StreamEncodingTyped {
     return when (type) {
-        StreamEncodingType.AUDIO ->
+        StreamEncodingType.AUDIO -> {
             AudioStreamEncoding(
                 id = id,
                 streamId = streamId,
@@ -127,7 +127,9 @@ fun StreamEncoding.typed(): StreamEncodingTyped {
                 sampleFmt = sampleFmt,
                 sampleRate = sampleRate,
             )
-        StreamEncodingType.VIDEO ->
+        }
+
+        StreamEncodingType.VIDEO -> {
             VideoStreamEncoding(
                 id = id,
                 streamId = streamId,
@@ -151,7 +153,9 @@ fun StreamEncoding.typed(): StreamEncodingTyped {
                 pixFmt = pixFmt,
                 fieldOrder = fieldOrder,
             )
-        StreamEncodingType.SUBTITLE ->
+        }
+
+        StreamEncodingType.SUBTITLE -> {
             SubtitleStreamEncoding(
                 id = id,
                 streamId = streamId,
@@ -162,7 +166,8 @@ fun StreamEncoding.typed(): StreamEncodingTyped {
                 duration = duration,
                 title = title,
                 mediaLinkId = mediaLinkId,
-                default = default
+                default = default,
             )
+        }
     }
 }

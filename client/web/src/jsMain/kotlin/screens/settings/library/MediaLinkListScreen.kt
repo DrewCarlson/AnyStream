@@ -15,11 +15,12 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+@file:Suppress("ktlint:standard:no-consecutive-comments")
+
 package anystream.screens.settings.library
 
 import androidx.compose.runtime.*
 import anystream.LocalAnyStreamClient
-import anystream.client.AnyStreamClient
 import anystream.components.*
 import anystream.models.LocalMediaLink
 import anystream.models.MediaLink
@@ -89,7 +90,7 @@ fun MediaLinkListScreen(libraryId: String) {
                 style { height(70.vh) }
             },
             bodyAttrs = { classes("overflow-hidden") },
-            onHidden = { matchMediaLinkId = null }
+            onHidden = { matchMediaLinkId = null },
         ) { modalRef ->
             MetadataMatchScreen(
                 mediaLinkId = matchMediaLinkId,
@@ -101,7 +102,7 @@ fun MediaLinkListScreen(libraryId: String) {
                     matchMediaLinkId = null
                     updateIndex += 1
                     modalRef.hide()
-                }
+                },
             )
         }
     }
@@ -116,7 +117,6 @@ private fun MediaLinkHeaderRow() {
         Th({ scope(Scope.Col) }) { Text("Path") }
     }
 }
-
 
 @Composable
 private fun MediaLinkRow(
@@ -148,7 +148,7 @@ private fun MediaLinkRow(
             }
         }
         Div({ classes("w-100") }) {
-            //Text(mediaLink.filename)
+            // Text(mediaLink.filename)
             /*if (mediaLink.metadataId == null) {
                 Text(mediaLink.filename)
             } else {

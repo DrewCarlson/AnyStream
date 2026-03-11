@@ -1,7 +1,7 @@
 plugins {
     id("com.android.application")
     kotlin("plugin.compose")
-    alias(libsCommon.plugins.spotless)
+    id("spotless")
     alias(libsClient.plugins.metro)
 }
 
@@ -79,16 +79,5 @@ dependencies {
     androidTestImplementation(libsCommon.coroutines.test) {
         // conflicts with mockito due to direct inclusion of byte buddy
         exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-coroutines-debug")
-    }
-}
-
-afterEvaluate {
-    spotless {
-        kotlin {
-            target("**/**.kt")
-            licenseHeaderFile(rootDir.resolve("licenseHeader.txt"))
-            //ktlint(libsCommon.versions.ktlint.get())
-            //    .setEditorConfigPath(rootDir.resolve(".editorconfig"))
-        }
     }
 }

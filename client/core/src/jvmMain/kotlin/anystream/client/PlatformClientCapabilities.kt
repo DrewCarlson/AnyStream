@@ -43,7 +43,7 @@ actual fun createPlatformClientCapabilities(): ClientCapabilities {
         "avi",
         "mov",
     )
-    
+
     return ClientCapabilities(
         supportedVideoCodecs = supportedVideoCodecs,
         supportedAudioCodecs = supportedAudioCodecs,

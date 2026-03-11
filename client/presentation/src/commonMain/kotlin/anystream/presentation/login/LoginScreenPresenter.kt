@@ -42,7 +42,6 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.mapNotNull
 import kotlin.time.Duration.Companion.seconds
 
-
 data class LoginScreenProps(
     val supportsPairing: Boolean,
     val serverUrl: String? = null,
@@ -124,7 +123,10 @@ class LoginScreenPresenter(
                 .catch { state = State.IDLE }
                 .mapNotNull { message ->
                     when (message) {
-                        PairingMessage.Idle -> null // waiting for remote pairing
+                        PairingMessage.Idle -> {
+                            null // waiting for remote pairing
+                        }
+
                         is PairingMessage.Started -> {
                             pairingCode = message.pairingCode
                         }
@@ -134,7 +136,7 @@ class LoginScreenPresenter(
                             val result = client.user
                                 .createPairedSession(
                                     pairingCode = message.pairingCode,
-                                    secret = message.secret
+                                    secret = message.secret,
                                 )
 
                             when (result) {
@@ -154,8 +156,7 @@ class LoginScreenPresenter(
                             pairingCode = null
                         }
                     }
-                }
-                .collect()
+                }.collect()
         }
 
         return LoginScreenModel(

@@ -25,16 +25,15 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.time.Duration
 
-fun <T> Flow<T>.throttleLatest(
-    timeout: Duration,
-): Flow<T> = channelFlow {
-    val nextValue = Channel<T>(Channel.CONFLATED)
-    val sender = launch {
-        while (isActive) {
-            send(nextValue.receive())
-            delay(timeout)
+fun <T> Flow<T>.throttleLatest(timeout: Duration): Flow<T> =
+    channelFlow {
+        val nextValue = Channel<T>(Channel.CONFLATED)
+        val sender = launch {
+            while (isActive) {
+                send(nextValue.receive())
+                delay(timeout)
+            }
         }
+        collect(nextValue::trySend)
+        sender.cancel()
     }
-    collect(nextValue::trySend)
-    sender.cancel()
-}

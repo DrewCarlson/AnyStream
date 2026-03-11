@@ -24,8 +24,10 @@ import anystream.client.SessionDataStore
 internal class AndroidSessionDataStore(
     private val prefs: SharedPreferences,
 ) : SessionDataStore {
-
-    override fun write(key: String, value: String) {
+    override fun write(
+        key: String,
+        value: String,
+    ) {
         prefs.edit { putString(key, value) }
     }
 

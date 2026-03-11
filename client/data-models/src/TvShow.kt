@@ -18,13 +18,13 @@
 package anystream.models
 
 import dev.drewhamilton.poko.Poko
-import kotlin.time.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.Serializable
+import kotlin.time.Instant
 
 @Poko
 @Serializable
@@ -49,7 +49,6 @@ class TvShow(
             ?.toString()
 }
 
-
 fun Metadata.toTvShowModel(): TvShow {
     check(mediaType == MediaType.TV_SHOW) {
         "MetadataDb item '$id' is of type '$mediaType', cannot convert to TvShow model."
@@ -61,7 +60,7 @@ fun Metadata.toTvShowModel(): TvShow {
         overview = overview.orEmpty(),
         firstAirDate = firstAvailableAt,
         createdAt = createdAt,
-        tagline = null,//tagline,
+        tagline = null, // tagline,
         tmdbRating = tmdbRating,
         contentRating = contentRating,
     )

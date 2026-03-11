@@ -20,6 +20,5 @@ package anystream.media.file
 import java.nio.file.Path
 
 interface FileNameParser {
-
     fun parseFileName(path: Path): ParsedFileNameResult
 }

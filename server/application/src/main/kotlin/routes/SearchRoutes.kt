@@ -30,9 +30,7 @@ private const val QUERY = "query"
 private const val LIMIT = "limit"
 private const val MEDIA_KIND = "mediaKind"
 
-fun Route.addSearchRoutes(
-    searchService: SearchService = koinGet(),
-) {
+fun Route.addSearchRoutes(searchService: SearchService = koinGet()) {
     route("/search") {
         get {
             val query = call.parameters[QUERY] ?: return@get call.respond(SearchResponse())

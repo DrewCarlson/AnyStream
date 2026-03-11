@@ -67,28 +67,37 @@ fun Route.addMediaViewRoutes(
                             return@get call.respond(NotFound)
                         }
                         val response = when (val match = queryResult.results.first()) {
-                            is MetadataMatch.MovieMatch -> MovieResponse(match.movie)
+                            is MetadataMatch.MovieMatch -> {
+                                MovieResponse(match.movie)
+                            }
+
                             is MetadataMatch.TvShowMatch -> {
                                 val tvExtras = queryResult.extras?.asTvShowExtras()
                                 when {
-                                    tvExtras?.episodeNumber != null ->
+                                    tvExtras?.episodeNumber != null -> {
                                         EpisodeResponse(match.episodes.first(), match.tvShow)
+                                    }
 
-                                    tvExtras?.seasonNumber != null ->
+                                    tvExtras?.seasonNumber != null -> {
                                         SeasonResponse(
                                             match.tvShow,
                                             match.seasons.first(),
                                             match.episodes,
                                         )
+                                    }
 
-                                    else -> TvShowResponse(match.tvShow, match.seasons)
+                                    else -> {
+                                        TvShowResponse(match.tvShow, match.seasons)
+                                    }
                                 }
                             }
                         }
                         call.respond(response)
                     }
 
-                    else -> call.respond(NotFound)
+                    else -> {
+                        call.respond(NotFound)
+                    }
                 }
             }
         }

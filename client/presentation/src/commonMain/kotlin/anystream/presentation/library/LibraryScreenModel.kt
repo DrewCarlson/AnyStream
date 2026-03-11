@@ -20,10 +20,14 @@ package anystream.presentation.library
 import anystream.models.MediaItem
 import anystream.presentation.core.ScreenModel
 
-
 sealed interface LibraryScreenModel : ScreenModel {
     data object Loading : LibraryScreenModel
-    data class Loaded(val mediaItems: List<MediaItem>) : LibraryScreenModel
+
+    data class Loaded(
+        val mediaItems: List<MediaItem>,
+    ) : LibraryScreenModel
+
     data object NotFound : LibraryScreenModel
+
     data object LoadingFailed : LibraryScreenModel
 }

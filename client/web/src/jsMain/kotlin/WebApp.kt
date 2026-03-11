@@ -24,8 +24,6 @@ import anystream.components.Navbar
 import anystream.components.SideMenu
 import anystream.di.JsAppGraph
 import anystream.presentation.app.AppProps
-import anystream.presentation.app.AppUiProps
-import anystream.presentation.core.ScreenModel
 import anystream.presentation.login.LoginScreenModel
 import anystream.presentation.signup.SignupScreenModel
 import anystream.routing.Routes
@@ -48,62 +46,59 @@ val playerMediaLinkId = MutableStateFlow<String?>(null)
 val LocalAnyStreamClient =
     compositionLocalOf<AnyStreamClient> { error("AnyStream client not provided") }
 
-fun webApp(
-    appGraph: JsAppGraph
-) = renderComposable(rootElementId = "root") {
-    // Consume session token from cookie after oauth flow
-    val client = remember { appGraph.client }
-    LaunchedEffect(Unit) {
-        if (client.user.isAuthenticated()) return@LaunchedEffect
-        val cookies = document.cookie.split(';').toMutableSet()
-        cookies.forEach { cookie ->
-            if (cookie.startsWith("as_user_session")) {
-                cookies.remove(cookie)
-                document.cookie = cookies.joinToString(";")
-                client.user.completeOauth(cookie.substringAfter('='))
-                return@forEach
-            }
-        }
-    }
-    Div(
-        attrs = {
-            id("main-panel")
-            classes("d-flex", "flex-column", "h-100", "w-100")
-        },
-    ) {
-        val backgroundUrl by backdropImageUrl.collectAsState(null)
-        var visible by remember { mutableStateOf(false) }
-        val actualBackgroundUrl by produceState(backgroundUrl, backgroundUrl) {
-            visible = backgroundUrl != null
-            value = backgroundUrl ?: value
-        }
-
-        Div({
-            classes("position-absolute", "h-100", "w-100", "fade-in")
-            style {
-                opacity(if (visible) 0.1 else 0)
-                if (actualBackgroundUrl != null) {
-                    backgroundImage("url('$actualBackgroundUrl')")
+fun webApp(appGraph: JsAppGraph) =
+    renderComposable(rootElementId = "root") {
+        // Consume session token from cookie after oauth flow
+        val client = remember { appGraph.client }
+        LaunchedEffect(Unit) {
+            if (client.user.isAuthenticated()) return@LaunchedEffect
+            val cookies = document.cookie.split(';').toMutableSet()
+            cookies.forEach { cookie ->
+                if (cookie.startsWith("as_user_session")) {
+                    cookies.remove(cookie)
+                    document.cookie = cookies.joinToString(";")
+                    client.user.completeOauth(cookie.substringAfter('='))
+                    return@forEach
                 }
-                backgroundPosition("center center")
-                backgroundSize("cover")
-                backgroundRepeat("no-repeat")
-                property("pointer-events", "none")
             }
-        })
-
-        CompositionLocalProvider(
-            LocalAnyStreamClient provides appGraph.client
+        }
+        Div(
+            attrs = {
+                id("main-panel")
+                classes("d-flex", "flex-column", "h-100", "w-100")
+            },
         ) {
-            ContentContainer(appGraph = appGraph)
+            val backgroundUrl by backdropImageUrl.collectAsState(null)
+            var visible by remember { mutableStateOf(false) }
+            val actualBackgroundUrl by produceState(backgroundUrl, backgroundUrl) {
+                visible = backgroundUrl != null
+                value = backgroundUrl ?: value
+            }
+
+            Div({
+                classes("position-absolute", "h-100", "w-100", "fade-in")
+                style {
+                    opacity(if (visible) 0.1 else 0)
+                    if (actualBackgroundUrl != null) {
+                        backgroundImage("url('$actualBackgroundUrl')")
+                    }
+                    backgroundPosition("center center")
+                    backgroundSize("cover")
+                    backgroundRepeat("no-repeat")
+                    property("pointer-events", "none")
+                }
+            })
+
+            CompositionLocalProvider(
+                LocalAnyStreamClient provides appGraph.client,
+            ) {
+                ContentContainer(appGraph = appGraph)
+            }
         }
     }
-}
 
 @Composable
-private fun ContentContainer(
-    appGraph: JsAppGraph,
-) {
+private fun ContentContainer(appGraph: JsAppGraph) {
     val client = appGraph.client
     var currentRoute by remember { mutableStateOf<Routes>(Routes.Home) }
     BrowserRouter("/") {
@@ -154,7 +149,7 @@ private fun ContentContainer(
                 inviteCode = launchInviteCode,
                 externalRouter = webRouter,
                 externalRoute = currentRoute,
-            )
+            ),
         )
 
         when (val screenModel = appModel.appUiModel.screen) {
@@ -163,12 +158,16 @@ private fun ContentContainer(
                     LoginScreen(screenModel)
                 }
             }
+
             is SignupScreenModel -> {
                 ScreenContainer(client, {}) {
                     SignupScreen(screenModel)
                 }
             }
-            else -> Unit
+
+            else -> {
+                Unit
+            }
         }
         val metadataId by playerMediaLinkId.collectAsState()
         metadataId?.let { PlayerScreen(it) }

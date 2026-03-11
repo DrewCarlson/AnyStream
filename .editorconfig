@@ -11,3 +11,5 @@ ktlint_standard_trailing-comma-on-declaration-site = enabled
 ktlint_standard_trailing-comma-on-call-site = enabled
 ktlint_standard_function-expression-body = disabled
 ktlint_standard_multiline-expression-wrapping = disabled
+ktlint_standard_if-else-bracing = disabled
+compose_allowed_composition_locals = LocalAppGraph,LocalImageProvider,LocalSystemBarController,LocalAppWindow,LocalAnyStreamClient,LocalInVirtualScrollCache

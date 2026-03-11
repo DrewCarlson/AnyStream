@@ -1,6 +1,6 @@
 /*
  * AnyStream
- * Copyright (C) 2024 AnyStream Maintainers
+ * Copyright (C) 2026 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,9 +21,10 @@ import anystream.db.converter.JooqConverterProvider
 import anystream.models.AuthType
 import anystream.models.User
 import anystream.util.ObjectId
+import com.google.common.jimfs.Configuration
+import com.google.common.jimfs.Jimfs
 import io.kotest.core.spec.DslDrivenSpec
 import io.kotest.matchers.booleans.shouldBeTrue
-import kotlin.time.Clock
 import org.jooq.DSLContext
 import org.jooq.SQLDialect
 import org.jooq.impl.DSL
@@ -31,9 +32,45 @@ import org.jooq.impl.DefaultConfiguration
 import org.jooq.tools.jdbc.SingleConnectionDataSource
 import org.sqlite.SQLiteConfig
 import org.sqlite.javax.SQLiteConnectionPoolDataSource
+import java.nio.file.FileSystem
 import java.sql.Connection
 import kotlin.properties.ReadOnlyProperty
+import kotlin.time.Clock
 
+fun DslDrivenSpec.bindFileSystem() = bindForTest({ Jimfs.newFileSystem(Configuration.unix()) }, FileSystem::close)
+
+/**
+ * Bind the creation of a resource to the `beforeTest` and cleanup in `afterTest`.
+ *
+ * ```kotlin
+ * class MyTest : FunSpec({
+ *
+ *   val myResource by bindForTest({ MyResource() }, { it.dispose() })
+ *
+ *   test("my test") {
+ *      resource.doSomething()
+ *   }
+ * })
+ * ```
+ *
+ * @param create The factory method to create the resource.
+ * @param cleanup An optional cleanup method when discarding the resource.
+ */
+fun <T : Any> DslDrivenSpec.bindForTest(
+    create: () -> T,
+    cleanup: (T) -> Unit = {},
+): ReadOnlyProperty<Nothing?, T> {
+    var value: T? = null
+    beforeTest { value = create() }
+    afterTest {
+        value?.run(cleanup)
+        value = null
+    }
+
+    return ReadOnlyProperty { _, _ ->
+        checkNotNull(value) { "Value used outside of test case" }
+    }
+}
 
 fun DslDrivenSpec.bindTestDatabase(): ReadOnlyProperty<Nothing?, DSLContext> {
     lateinit var connection: Connection
@@ -43,7 +80,7 @@ fun DslDrivenSpec.bindTestDatabase(): ReadOnlyProperty<Nothing?, DSLContext> {
             connection = con
             db
         },
-        cleanup = { connection.close() }
+        cleanup = { connection.close() },
     )
 }
 
@@ -51,12 +88,13 @@ fun DslDrivenSpec.bindTestDatabase(): ReadOnlyProperty<Nothing?, DSLContext> {
  * Create an in-memory database and run app migrations.
  */
 fun createTestDatabase(): Pair<Connection, DSLContext> {
-    val connection = SQLiteConnectionPoolDataSource().apply {
-        url = "jdbc:sqlite::memory:"
-        config = SQLiteConfig().apply {
-            enforceForeignKeys(true)
-        }
-    }.connection
+    val connection = SQLiteConnectionPoolDataSource()
+        .apply {
+            url = "jdbc:sqlite::memory:"
+            config = SQLiteConfig().apply {
+                enforceForeignKeys(true)
+            }
+        }.connection
     val dataSource = SingleConnectionDataSource(connection)
     runMigrations(dataSource).shouldBeTrue()
     val config = DefaultConfiguration().apply {

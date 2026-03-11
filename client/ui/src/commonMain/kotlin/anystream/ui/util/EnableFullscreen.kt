@@ -20,6 +20,4 @@ package anystream.ui.util
 import androidx.compose.runtime.Composable
 
 @Composable
-expect fun EnableFullscreen(
-    isUserRequested: Boolean,
-)
+expect fun EnableFullscreen(isUserRequested: Boolean)

@@ -27,9 +27,9 @@ import anystream.db.util.awaitFirstOrNullInto
 import anystream.models.*
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.reactive.awaitFirstOrNull
-import kotlin.time.Clock
 import org.jooq.DSLContext
 import org.slf4j.LoggerFactory
+import kotlin.time.Clock
 import kotlin.time.Duration
 
 class StreamServiceQueriesJooq(
@@ -39,7 +39,6 @@ class StreamServiceQueriesJooq(
     private val metadataDao: MetadataDao,
     private val mediaLinkDao: MediaLinkDao,
 ) : StreamServiceQueries {
-
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     override suspend fun fetchUsersByIds(ids: List<String>): List<User> {
@@ -60,16 +59,16 @@ class StreamServiceQueriesJooq(
         return try {
             val episodeAlias = METADATA.`as`("episode")
             val showAlias = METADATA.`as`("show")
-            val records = db.select()
+            val records = db
+                .select()
                 .from(episodeAlias)
                 .join(showAlias)
                 .on(episodeAlias.ROOT_ID.eq(showAlias.ID))
                 .where(
                     episodeAlias.ID.eq(id),
                     episodeAlias.MEDIA_TYPE.eq(MediaType.TV_EPISODE),
-                    showAlias.MEDIA_TYPE.eq(MediaType.TV_SHOW)
-                )
-                .fetchAsync()
+                    showAlias.MEDIA_TYPE.eq(MediaType.TV_SHOW),
+                ).fetchAsync()
                 .await()
 
             val episode = records.into(episodeAlias).into(Metadata::class.java).first()
@@ -77,7 +76,7 @@ class StreamServiceQueriesJooq(
 
             Pair(
                 episode.toTvEpisodeModel(),
-                show.toTvShowModel()
+                show.toTvShowModel(),
             )
         } catch (e: Throwable) {
             logger.error("Failed to load Movie id='$id'", e)
@@ -93,14 +92,17 @@ class StreamServiceQueriesJooq(
         return playbackStatesDao.fetchById(id)
     }
 
-    override suspend fun fetchPlaybackState(mediaLinkId: String, userId: String): PlaybackState? {
+    override suspend fun fetchPlaybackState(
+        mediaLinkId: String,
+        userId: String,
+    ): PlaybackState? {
         return try {
-            db.selectFrom(PLAYBACK_STATE)
+            db
+                .selectFrom(PLAYBACK_STATE)
                 .where(
                     PLAYBACK_STATE.USER_ID.eq(userId),
-                    PLAYBACK_STATE.MEDIA_LINK_ID.eq(mediaLinkId)
-                )
-                .awaitFirstOrNullInto()
+                    PLAYBACK_STATE.MEDIA_LINK_ID.eq(mediaLinkId),
+                ).awaitFirstOrNullInto()
         } catch (e: Throwable) {
             logger.error("Failed to load PlaybackState, mediaLinkId='$mediaLinkId' userId='$userId'", e)
             null
@@ -111,9 +113,13 @@ class StreamServiceQueriesJooq(
         return playbackStatesDao.insert(playbackState)
     }
 
-    override suspend fun updatePlaybackState(stateId: String, position: Duration): Boolean {
+    override suspend fun updatePlaybackState(
+        stateId: String,
+        position: Duration,
+    ): Boolean {
         return try {
-            db.update(PLAYBACK_STATE)
+            db
+                .update(PLAYBACK_STATE)
                 .set(PLAYBACK_STATE.POSITION, position)
                 .set(PLAYBACK_STATE.UPDATED_AT, Clock.System.now())
                 .where(PLAYBACK_STATE.ID.eq(stateId))
@@ -126,7 +132,8 @@ class StreamServiceQueriesJooq(
 
     override suspend fun deletePlaybackState(playbackStateId: String): Boolean {
         return try {
-            db.deleteFrom(PLAYBACK_STATE)
+            db
+                .deleteFrom(PLAYBACK_STATE)
                 .where(PLAYBACK_STATE.ID.eq(playbackStateId))
                 .awaitFirstOrNull()
             true

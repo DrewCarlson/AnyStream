@@ -71,13 +71,12 @@ internal fun AppTopBar(
                 IconButton(onClick = onBackClick) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back"
+                        contentDescription = "Back",
                     )
                 }
             }
         },
         actions = {
-
             if (authed) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -96,6 +95,6 @@ internal fun AppTopBar(
                     }
                 }
             }
-        }
+        },
     )
 }

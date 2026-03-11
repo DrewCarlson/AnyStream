@@ -61,8 +61,7 @@ internal actual fun PlatformVideoPlayer(
             .background(Color.Black),
         properties = UIKitInteropProperties(
             isInteractive = false,
-            isNativeAccessibilityEnabled = false
-        )
+            isNativeAccessibilityEnabled = false,
+        ),
     )
 }
-

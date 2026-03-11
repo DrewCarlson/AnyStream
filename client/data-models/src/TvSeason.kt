@@ -18,8 +18,8 @@
 package anystream.models
 
 import dev.drewhamilton.poko.Poko
-import kotlin.time.Instant
 import kotlinx.serialization.Serializable
+import kotlin.time.Instant
 
 @Poko
 @Serializable
@@ -31,7 +31,6 @@ class TvSeason(
     val airDate: Instant?,
     val tmdbId: Int?,
 )
-
 
 fun Metadata.toTvSeasonModel(): TvSeason {
     check(mediaType == MediaType.TV_SEASON) {

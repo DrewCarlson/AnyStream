@@ -20,5 +20,5 @@ package anystream.models
 enum class StreamEncodingType {
     AUDIO,
     VIDEO,
-    SUBTITLE
+    SUBTITLE,
 }

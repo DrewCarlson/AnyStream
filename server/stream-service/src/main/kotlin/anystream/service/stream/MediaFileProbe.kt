@@ -32,7 +32,9 @@ import kotlin.time.Duration.Companion.seconds
 /**
  * Analyzes media files to determine their codecs and container format.
  */
-class MediaFileProbe(private val ffprobe: () -> FFprobe) {
+class MediaFileProbe(
+    private val ffprobe: () -> FFprobe,
+) {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     /**
@@ -121,7 +123,7 @@ class MediaFileProbe(private val ffprobe: () -> FFprobe) {
         mediaInfo: MediaInfo,
         supportedVideoCodecs: List<String>,
         supportedAudioCodecs: List<String>,
-        supportedContainers: List<String>
+        supportedContainers: List<String>,
     ): TranscodeDecision {
         val normalizedVideoCodec = normalizeCodecName(mediaInfo.videoCodec)
         val normalizedAudioCodec = normalizeCodecName(mediaInfo.audioCodec)
@@ -134,7 +136,7 @@ class MediaFileProbe(private val ffprobe: () -> FFprobe) {
             "Media info: video={}, audio={}, container={}",
             mediaInfo.videoCodec,
             mediaInfo.audioCodec,
-            mediaInfo.container
+            mediaInfo.container,
         )
         logger.debug("Normalized: video={}, audio={}", normalizedVideoCodec, normalizedAudioCodec)
         logger.debug("Supported: video={}, audio={}, container={}", videoSupported, audioSupported, containerSupported)

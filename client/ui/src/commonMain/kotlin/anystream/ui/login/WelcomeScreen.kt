@@ -35,18 +35,16 @@ import anystream.presentation.welcome.WelcomeScreenModel
 import anystream.ui.components.PrimaryButton
 
 @Composable
-internal fun WelcomeScreen(
-    model: WelcomeScreenModel
-) {
+internal fun WelcomeScreen(model: WelcomeScreenModel) {
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
-            .windowInsetsPadding(WindowInsets.systemBars)
+            .windowInsetsPadding(WindowInsets.systemBars),
     ) { padding ->
         Box(
             modifier = Modifier
                 .padding(padding)
-                .consumeWindowInsets(padding)
+                .consumeWindowInsets(padding),
         ) {
             /*Image(
                 painter = painterResource(Res.drawable.welcome_bg),

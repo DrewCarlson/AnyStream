@@ -21,7 +21,10 @@ import anystream.client.SessionDataStore
 import kotlinx.browser.localStorage
 
 internal class JsSessionDataStore : SessionDataStore {
-    override fun write(key: String, value: String) {
+    override fun write(
+        key: String,
+        value: String,
+    ) {
         localStorage.setItem(key, value)
     }
 

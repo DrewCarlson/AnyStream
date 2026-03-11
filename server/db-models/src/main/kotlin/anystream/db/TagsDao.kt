@@ -41,38 +41,52 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.jooq.DSLContext
 
 class TagsDao(
-    private val db: DSLContext
+    private val db: DSLContext,
 ) {
-
-    suspend fun insertTag(name: String, type: TagType, tmdbId: Int?): String {
+    suspend fun insertTag(
+        name: String,
+        type: TagType,
+        tmdbId: Int?,
+    ): String {
         val id = ObjectId.next()
         val record = TagRecord(id, name, tmdbId, type)
         val newTag: Tag = db.newRecordAsync(TAG, record)
         return newTag.id
     }
 
-    suspend fun insertMetadataGenreLink(mediaId: String, genreId: String) {
-        db.insertInto(METADATA_GENRE)
+    suspend fun insertMetadataGenreLink(
+        mediaId: String,
+        genreId: String,
+    ) {
+        db
+            .insertInto(METADATA_GENRE)
             .set(MetadataGenreRecord(mediaId, genreId))
             .awaitFirstOrNull()
     }
 
-    suspend fun insertMetadataCompanyLink(mediaId: String, companyId: String) {
-        db.insertInto(METADATA_COMPANY)
+    suspend fun insertMetadataCompanyLink(
+        mediaId: String,
+        companyId: String,
+    ) {
+        db
+            .insertInto(METADATA_COMPANY)
             .set(MetadataCompanyRecord(mediaId, companyId))
             .awaitFirstOrNull()
     }
 
     suspend fun insertCredits(credits: List<MetadataCredit>) {
-        db.insertInto(METADATA_CREDIT)
+        db
+            .insertInto(METADATA_CREDIT)
             .set(credits.map(::MetadataCreditRecord))
             .awaitFirstOrNull()
     }
 
     suspend fun findGenresForMetadata(metadataId: String): List<Genre> {
-        return db.select(TAG)
+        return db
+            .select(TAG)
             .from(TAG)
-            .join(METADATA_GENRE).on(METADATA_GENRE.GENRE_ID.eq(TAG.ID))
+            .join(METADATA_GENRE)
+            .on(METADATA_GENRE.GENRE_ID.eq(TAG.ID))
             .where(METADATA_GENRE.METADATA_ID.eq(metadataId))
             .and(TAG.TYPE.eq(TagType.GENRE))
             .awaitInto<Tag>()
@@ -86,9 +100,11 @@ class TagsDao(
     }
 
     suspend fun findCompaniesForMetadata(metadataId: String): List<ProductionCompany> {
-        return db.select(TAG)
+        return db
+            .select(TAG)
             .from(TAG)
-            .join(METADATA_COMPANY).on(METADATA_COMPANY.COMPANY_ID.eq(TAG.ID))
+            .join(METADATA_COMPANY)
+            .on(METADATA_COMPANY.COMPANY_ID.eq(TAG.ID))
             .where(METADATA_COMPANY.METADATA_ID.eq(metadataId))
             .and(TAG.TYPE.eq(TagType.COMPANY))
             .awaitInto<Tag>()
@@ -101,32 +117,28 @@ class TagsDao(
             }
     }
 
-    suspend fun findCastAndCrewForMetadata(
-        metadataId: String
-    ): Pair<List<CastCredit>, List<CrewCredit>> {
+    suspend fun findCastAndCrewForMetadata(metadataId: String): Pair<List<CastCredit>, List<CrewCredit>> {
         return findCastAndCrewForMetadata(listOf(metadataId))
     }
 
-    suspend fun findCastAndCrewForMetadata(
-        metadataIds: List<String>
-    ): Pair<List<CastCredit>, List<CrewCredit>> {
+    suspend fun findCastAndCrewForMetadata(metadataIds: List<String>): Pair<List<CastCredit>, List<CrewCredit>> {
         val cast = mutableListOf<CastCredit>()
         val crew = mutableListOf<CrewCredit>()
-        db.select(METADATA_CREDIT, TAG)
+        db
+            .select(METADATA_CREDIT, TAG)
             .from(METADATA_CREDIT)
             .join(TAG)
             .on(
-                METADATA_CREDIT.PERSON_ID.eq(TAG.ID)
-                    .and(TAG.TYPE.eq(TagType.PERSON))
-            )
-            .run {
+                METADATA_CREDIT.PERSON_ID
+                    .eq(TAG.ID)
+                    .and(TAG.TYPE.eq(TagType.PERSON)),
+            ).run {
                 if (metadataIds.size == 1) {
                     where(METADATA_CREDIT.METADATA_ID.eq(metadataIds.first()))
                 } else {
                     where(METADATA_CREDIT.METADATA_ID.`in`(metadataIds))
                 }
-            }
-            .orderBy(METADATA_CREDIT.ORDER.asc())
+            }.orderBy(METADATA_CREDIT.ORDER.asc())
             .fetchAsync()
             .thenApplyAsync { records ->
                 records.forEach { (credit, tag) ->
@@ -148,23 +160,23 @@ class TagsDao(
                         ).run(crew::add)
                     }
                 }
-            }
-            .await()
+            }.await()
 
         return Pair(cast, crew)
     }
 
-    suspend fun findPersonByTmdbId(tmdbId: Int): Person? =
-        findByTmdbId(tmdbId, TagType.PERSON)
+    suspend fun findPersonByTmdbId(tmdbId: Int): Person? = findByTmdbId(tmdbId, TagType.PERSON)
 
-    suspend fun findGenreByTmdbId(tmdbId: Int): Genre? =
-        findByTmdbId(tmdbId, TagType.GENRE)
+    suspend fun findGenreByTmdbId(tmdbId: Int): Genre? = findByTmdbId(tmdbId, TagType.GENRE)
 
-    suspend fun findCompanyByTmdbId(tmdbId: Int): ProductionCompany? =
-        findByTmdbId(tmdbId, TagType.COMPANY)
+    suspend fun findCompanyByTmdbId(tmdbId: Int): ProductionCompany? = findByTmdbId(tmdbId, TagType.COMPANY)
 
-    private suspend inline fun <reified T> findByTmdbId(tmdbId: Int, type: TagType): T? {
-        return db.selectFrom(TAG)
+    private suspend inline fun <reified T> findByTmdbId(
+        tmdbId: Int,
+        type: TagType,
+    ): T? {
+        return db
+            .selectFrom(TAG)
             .where(TAG.TMDB_ID.eq(tmdbId))
             .and(TAG.TYPE.eq(type))
             .awaitFirstOrNullInto()

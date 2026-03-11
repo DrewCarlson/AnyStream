@@ -28,7 +28,6 @@ import androidx.media3.ui.compose.PlayerSurface
 import androidx.media3.ui.compose.modifiers.resizeWithContentScale
 import androidx.media3.ui.compose.state.rememberPresentationState
 
-
 @OptIn(UnstableApi::class)
 @Composable
 internal actual fun PlatformVideoPlayer(
@@ -44,6 +43,6 @@ internal actual fun PlatformVideoPlayer(
         player = media3Handle.player,
         modifier = modifier
             .then(scaledModifier)
-            .fillMaxSize()
+            .fillMaxSize(),
     )
 }

@@ -25,18 +25,29 @@ import anystream.models.api.MediaLinkMatchResult
 import anystream.models.api.MetadataMatch
 
 interface MediaFileProcessor {
-
     val mediaKinds: List<MediaKind>
 
     val fileNameParser: FileNameParser
 
-    suspend fun findMetadataMatches(directory: Directory, import: Boolean): List<MediaLinkMatchResult>
+    suspend fun findMetadataMatches(
+        directory: Directory,
+        import: Boolean,
+    ): List<MediaLinkMatchResult>
 
-    suspend fun findMetadataMatches(mediaLink: MediaLink, import: Boolean): MediaLinkMatchResult
+    suspend fun findMetadataMatches(
+        mediaLink: MediaLink,
+        import: Boolean,
+    ): MediaLinkMatchResult
 
-    suspend fun importMetadataMatch(mediaLink: MediaLink, metadataMatch: MetadataMatch): MetadataMatch?
+    suspend fun importMetadataMatch(
+        mediaLink: MediaLink,
+        metadataMatch: MetadataMatch,
+    ): MetadataMatch?
 
-    suspend fun findMetadata(mediaLink: MediaLink, remoteId: String): MetadataMatch?
+    suspend fun findMetadata(
+        mediaLink: MediaLink,
+        remoteId: String,
+    ): MetadataMatch?
 
     /**
      * Calculates the [Levenshtein distance](https://en.wikipedia.org/wiki/Levenshtein_distance)
@@ -48,7 +59,10 @@ interface MediaFileProcessor {
      * @param target The second string.
      * @return The Levenshtein distance between the two strings.
      */
-    fun scoreString(source: String, target: String): Int {
+    fun scoreString(
+        source: String,
+        target: String,
+    ): Int {
         val s1 = source.lowercase().filter { it.isLetterOrDigit() }
         val s2 = target.lowercase().filter { it.isLetterOrDigit() }
 
@@ -58,7 +72,9 @@ interface MediaFileProcessor {
             for (j in 0..s2.length) {
                 when {
                     i == 0 -> dp[i][j] = j
+
                     j == 0 -> dp[i][j] = i
+
                     else -> dp[i][j] = minOf(
                         dp[i - 1][j - 1] + costOfSubstitution(s1[i - 1], s2[j - 1]),
                         dp[i - 1][j] + 1,
@@ -72,6 +88,9 @@ interface MediaFileProcessor {
     }
 }
 
-private fun costOfSubstitution(a: Char, b: Char): Int {
+private fun costOfSubstitution(
+    a: Char,
+    b: Char,
+): Int {
     return if (a == b) 0 else 1
 }

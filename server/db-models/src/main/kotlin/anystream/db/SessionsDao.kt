@@ -23,18 +23,23 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.jooq.DSLContext
 
 class SessionsDao(
-    private val db: DSLContext
+    private val db: DSLContext,
 ) {
-
     suspend fun find(id: String): String? {
-        return db.select(SESSION.DATA)
+        return db
+            .select(SESSION.DATA)
             .from(SESSION)
             .where(SESSION.ID.eq(id))
             .awaitFirstOrNullInto()
     }
 
-    suspend fun insertOrUpdate(id: String, userId: String, data: String) {
-        db.insertInto(SESSION, SESSION.ID, SESSION.USER_ID, SESSION.DATA)
+    suspend fun insertOrUpdate(
+        id: String,
+        userId: String,
+        data: String,
+    ) {
+        db
+            .insertInto(SESSION, SESSION.ID, SESSION.USER_ID, SESSION.DATA)
             .values(id, userId, data)
             .onDuplicateKeyUpdate()
             .set(SESSION.DATA, data)
@@ -43,7 +48,8 @@ class SessionsDao(
     }
 
     suspend fun delete(id: String) {
-        db.deleteFrom(SESSION)
+        db
+            .deleteFrom(SESSION)
             .where(SESSION.ID.eq(id))
             .awaitFirstOrNull()
     }

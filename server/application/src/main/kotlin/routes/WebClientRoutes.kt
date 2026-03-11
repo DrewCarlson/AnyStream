@@ -30,8 +30,10 @@ fun Application.installWebClientRoutes(config: AnyStreamConfig = get()) {
         log.debug("Web client disabled, this instance will serve the API only.")
     } else if (
         config.webClientPath.isNullOrBlank() ||
-        !Path(config.webClientPath).exists() &&
-        checkNotNull(javaClass.classLoader).getResource("anystream-client-web") != null
+        (
+            !Path(config.webClientPath).exists() &&
+                javaClass.classLoader.getResource("anystream-client-web") != null
+        )
     ) {
         log.debug("This instance will serve the web client from jar resources.")
         routing {

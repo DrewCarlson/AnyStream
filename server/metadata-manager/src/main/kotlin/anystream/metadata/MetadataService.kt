@@ -39,7 +39,7 @@ class MetadataService(
 
     suspend fun findByRemoteId(
         remoteId: String,
-        cacheContent: Boolean = false
+        cacheContent: Boolean = false,
     ): QueryMetadataResult {
         val (providerId, mediaKindString, rawId) = remoteId.split(':')
         val mediaKind = MediaKind.valueOf(mediaKindString.uppercase())
@@ -58,7 +58,9 @@ class MetadataService(
                 }
             }
 
-            else -> null
+            else -> {
+                null
+            }
         }
 
         return search(mediaKind = mediaKind) {
@@ -71,7 +73,7 @@ class MetadataService(
 
     suspend fun search(
         mediaKind: MediaKind,
-        block: QueryMetadataBuilder.() -> Unit
+        block: QueryMetadataBuilder.() -> Unit,
     ): List<QueryMetadataResult> {
         val request = QueryMetadataBuilder(mediaKind).apply(block).build()
         logger.debug("Performing metadata search for {}", request)
@@ -80,7 +82,8 @@ class MetadataService(
                 .filter { it.mediaKinds.contains(request.mediaKind) }
                 .map { provider -> provider.search(request) }
         } else {
-            providers.find { it.id == request.providerId }
+            providers
+                .find { it.id == request.providerId }
                 ?.search(request)
                 .run(::listOfNotNull)
         }.also { selectedProviders ->
@@ -100,7 +103,10 @@ class MetadataService(
         return provider.importMetadata(request)
     }
 
-    suspend fun getImagePath(metadataId: String, imageType: String): Path? {
+    suspend fun getImagePath(
+        metadataId: String,
+        imageType: String,
+    ): Path? {
         return if (metadataId.isRemoteId) {
             getImagePathForRemoteId(metadataId, imageType)
         } else {
@@ -112,11 +118,14 @@ class MetadataService(
         return imageStore.getPersonImagePath(personId).takeIf { it.exists() }
     }
 
-    private suspend fun getImagePathForRemoteId(imageKey: String, imageType: String): Path? {
+    private suspend fun getImagePathForRemoteId(
+        imageKey: String,
+        imageType: String,
+    ): Path? {
         val cachePath = imageStore.getMetadataImagePath(
             imageType,
             imageKey.encodeBase64(),
-            "remote-metadata-cache/${imageKey.substringBeforeLast('-').encodeBase64()}"
+            "remote-metadata-cache/${imageKey.substringBeforeLast('-').encodeBase64()}",
         )
         if (cachePath.exists()) {
             return cachePath
@@ -126,7 +135,10 @@ class MetadataService(
         return cachePath.takeIf { metadataResult != null && it.exists() }
     }
 
-    private suspend fun getImagePathMetadataId(imageKey: String, imageType: String): Path? {
+    private suspend fun getImagePathMetadataId(
+        imageKey: String,
+        imageType: String,
+    ): Path? {
         val rootId = metadataDao.findRootIdOrSelf(imageKey) ?: return null
         val cacheFile = imageStore.getMetadataImagePath(imageType, imageKey, rootId)
         return cacheFile.takeIf { it.exists() }

@@ -26,17 +26,19 @@ import anystream.ui.theme.AppTheme
 
 @Preview
 @Composable
-private fun PosterCardPreview() = AppTheme {
-    PosterCard(
-        title = "Gremlins",
-        mediaId = "",
-        onClick = {},
-        onPlayClick = {},
-    )
-}
+private fun PosterCardPreview() =
+    AppTheme {
+        PosterCard(
+            title = "Gremlins",
+            mediaId = "",
+            onClick = {},
+            onPlayClick = {},
+        )
+    }
 
 @Preview
 @Composable
-private fun MediaCarousel_Preview() = AppTheme {
-    MediaCarousel(rememberPagerState(0) { 5 }, media = listOf())
-}
+private fun MediaCarousel_Preview() =
+    AppTheme {
+        MediaCarousel(rememberPagerState(0) { 5 }, media = listOf())
+    }

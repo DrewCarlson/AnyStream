@@ -30,9 +30,7 @@ import org.jetbrains.compose.web.dom.Img
 import org.jetbrains.compose.web.dom.Text
 
 @Composable
-fun SearchResultsList(
-    searchResponse: SearchResponse,
-) {
+fun SearchResultsList(searchResponse: SearchResponse) {
     Div({
         classes("d-flex", "flex-column", "rounded", "shadow", "py-3", "animate-popup")
         style {

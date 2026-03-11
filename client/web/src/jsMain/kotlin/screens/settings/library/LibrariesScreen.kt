@@ -19,7 +19,6 @@ package anystream.screens.settings.library
 
 import androidx.compose.runtime.*
 import anystream.LocalAnyStreamClient
-import anystream.client.AnyStreamClient
 import anystream.models.Library
 import anystream.util.bootstrapIcon
 import anystream.util.tooltip
@@ -63,7 +62,7 @@ fun LibrariesScreen() {
                     }
                 }
             }) {
-                //I({ classes("bi", "bi-folder-plus", "pe-1") })
+                // I({ classes("bi", "bi-folder-plus", "pe-1") })
                 Text("Scan Library Files")
             }
         }
@@ -94,7 +93,7 @@ fun LibrariesScreen() {
     editLibrary?.let {
         EditLibraryModal(
             library = it,
-            onClosed = { editLibrary = null }
+            onClosed = { editLibrary = null },
         )
     }
 }

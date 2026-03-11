@@ -19,12 +19,11 @@ package anystream.screens.settings
 
 import androidx.compose.runtime.*
 import anystream.LocalAnyStreamClient
-import anystream.client.AnyStreamClient
 import anystream.components.NavLink
 import anystream.models.*
 import anystream.models.api.EpisodeResponse
-import anystream.models.api.MovieResponse
 import anystream.models.api.MediaLookupResponse
+import anystream.models.api.MovieResponse
 import anystream.models.api.PlaybackSessions
 import anystream.screens.settings.library.LibrariesScreen
 import anystream.screens.settings.library.MediaLinkListScreen
@@ -38,14 +37,22 @@ import org.jetbrains.compose.web.dom.*
 fun RouteBuilder.SettingsScreen(subscreen: String) {
     Div({ classes("d-flex", "p-2", "h-100") }) {
         when (subscreen) {
-            "activity" -> ActiveStreamsList()
-            "users" -> UserManagerScreen()
+            "activity" -> {
+                ActiveStreamsList()
+            }
+
+            "users" -> {
+                UserManagerScreen()
+            }
+
             "libraries" -> {
                 string { id -> MediaLinkListScreen(libraryId = id) }
                 noMatch { LibrariesScreen() }
             }
 
-            else -> Text("Not found")
+            else -> {
+                Text("Not found")
+            }
         }
     }
 }
@@ -65,8 +72,15 @@ fun SettingsSideMenu() {
         Ul(
             {
                 classes(
-                    "nav", "nav-pills", "bg-dark-translucent", "flex-column",
-                    "h-100", "py-2", "mb-auto", "rounded", "shadow",
+                    "nav",
+                    "nav-pills",
+                    "bg-dark-translucent",
+                    "flex-column",
+                    "h-100",
+                    "py-2",
+                    "mb-auto",
+                    "rounded",
+                    "shadow",
                 )
                 style {
                     overflow("hidden")
@@ -115,7 +129,7 @@ private fun ActiveStreamsList() {
                         scope.launch {
                             client.stream.stopStreamSession(playbackState.id)
                         }
-                    }
+                    },
                 )
             }
         }
@@ -133,7 +147,7 @@ private fun PlaybackSessionCard(
     val mediaItem = remember {
         checkNotNull(
             (mediaLookup as? MovieResponse)?.toMediaItem()
-                ?: (mediaLookup as? EpisodeResponse)?.toMediaItem(concise = true)
+                ?: (mediaLookup as? EpisodeResponse)?.toMediaItem(concise = true),
         )
     }
     Div(

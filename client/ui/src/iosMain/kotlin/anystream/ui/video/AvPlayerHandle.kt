@@ -39,7 +39,6 @@ import kotlin.time.DurationUnit.SECONDS
 class AvPlayerHandle(
     private val client: AnyStreamClient,
 ) : BasePlayerHandle() {
-
     val player = AVPlayer()
 
     private var currentMediaId: String? = null
@@ -146,8 +145,7 @@ class AvPlayerHandle(
                     val durationSeconds = CMTimeGetSeconds(this.duration.readValue())
                     startSeconds..(startSeconds + durationSeconds)
                 }
-            }
-            .firstOrNull { progress in it }
+            }.firstOrNull { progress in it }
             ?.endInclusive
             ?.seconds
     }
@@ -155,7 +153,8 @@ class AvPlayerHandle(
 
 private class StatusObserver(
     private val handler: (status: AVPlayerStatus, error: NSError?) -> Unit,
-) : NSObject(), ObserverProtocol {
+) : NSObject(),
+    ObserverProtocol {
     override fun observeValueForKeyPath(
         keyPath: String?,
         ofObject: Any?,
@@ -165,9 +164,18 @@ private class StatusObserver(
         val value = ofObject as? AVPlayerItem ?: return
         handler(value.status, value.error)
         val status = when (value.status) {
-            AVPlayerStatusFailed -> "AVPlayerStatusFailed"
-            AVPlayerStatusReadyToPlay -> "AVPlayerStatusReadyToPlay"
-            AVPlayerStatusUnknown -> "AVPlayerStatusUnknown"
+            AVPlayerStatusFailed -> {
+                "AVPlayerStatusFailed"
+            }
+
+            AVPlayerStatusReadyToPlay -> {
+                "AVPlayerStatusReadyToPlay"
+            }
+
+            AVPlayerStatusUnknown -> {
+                "AVPlayerStatusUnknown"
+            }
+
             else -> {
                 println("Unknown player status: ${value.status}")
                 null

@@ -17,7 +17,6 @@
  */
 package anystream.android
 
-
 interface InitVariantFeatures {
     fun init()
 }

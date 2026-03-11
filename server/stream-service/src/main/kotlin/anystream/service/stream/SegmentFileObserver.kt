@@ -33,7 +33,7 @@ import kotlin.io.path.name
 
 internal fun FileSystem.observeNewSegmentFiles(
     directory: Path,
-    fileMatchRegex: Regex
+    fileMatchRegex: Regex,
 ): Flow<Int> {
     return callbackFlow {
         val watchService = newWatchService()
@@ -55,7 +55,7 @@ internal fun FileSystem.observeNewSegmentFiles(
             try {
                 watchService.close()
             } catch (_: IOException) {
-                //logger.error("Failed to close File Watch Service", e)
+                // logger.error("Failed to close File Watch Service", e)
             }
         }
     }.distinctUntilChanged().flowOn(IO)

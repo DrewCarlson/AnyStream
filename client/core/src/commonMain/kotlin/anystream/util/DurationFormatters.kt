@@ -37,7 +37,10 @@ fun Duration.formatted(): String {
     }
 }
 
-fun formatProgressAndRuntime(progress: Duration, runtime: Duration): String {
+fun formatProgressAndRuntime(
+    progress: Duration,
+    runtime: Duration,
+): String {
     return buildString {
         append(progress.formatted())
         append(" / ")

@@ -18,11 +18,11 @@
 package anystream.models
 
 import dev.drewhamilton.poko.Poko
-import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.Serializable
 import kotlin.time.Duration
+import kotlin.time.Instant
 
 @Poko
 @Serializable
@@ -69,7 +69,7 @@ fun Metadata.toMovieModel(): Movie {
         runtime = checkNotNull(runtime),
         releaseDate = firstAvailableAt,
         createdAt = createdAt,
-        tagline = null,//tagline,
+        tagline = null, // tagline,
         tmdbRating = tmdbRating,
         contentRating = contentRating,
     )

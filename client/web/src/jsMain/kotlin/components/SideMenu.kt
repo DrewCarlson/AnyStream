@@ -19,7 +19,6 @@ package anystream.components
 
 import androidx.compose.runtime.*
 import anystream.LocalAnyStreamClient
-import anystream.client.AnyStreamClient
 import anystream.models.Permission
 import anystream.util.bootstrapIcon
 import anystream.util.tooltip
@@ -92,7 +91,7 @@ fun SideMenu() {
                             text = library.name,
                             icon = library.mediaKind.bootstrapIcon,
                             path = "/library/${library.id}",
-                            expanded = expanded
+                            expanded = expanded,
                         )
                     }
                 }

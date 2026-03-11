@@ -24,11 +24,11 @@ import anystream.db.UserDao
 import anystream.models.*
 import anystream.models.api.*
 import anystream.util.ObjectId
-import kotlin.time.Clock
 import org.bouncycastle.crypto.generators.OpenBSDBCrypt
 import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.random.Random
+import kotlin.time.Clock
 
 private const val SALT_BYTES = 16
 private const val BCRYPT_COST = 10
@@ -58,7 +58,10 @@ class UserService(
         return queries.deleteUser(userId)
     }
 
-    suspend fun createInviteCode(userId: String, permissions: Set<Permission>): InviteCode? {
+    suspend fun createInviteCode(
+        userId: String,
+        permissions: Set<Permission>,
+    ): InviteCode? {
         return inviteCodeDao.createInviteCode(
             secret = Random.nextBytes(INVITE_CODE_SIZE).toHexString(),
             permissions = permissions,
@@ -70,7 +73,10 @@ class UserService(
         return inviteCodeDao.fetchInviteCodes(byUserId)
     }
 
-    suspend fun deleteInvite(inviteCode: String, byUserId: String?): Boolean {
+    suspend fun deleteInvite(
+        inviteCode: String,
+        byUserId: String?,
+    ): Boolean {
         return inviteCodeDao.deleteInviteCode(inviteCode, byUserId)
     }
 
@@ -98,11 +104,11 @@ class UserService(
 
         // Use permissions from provided invite code if it exists
         val permissions = inviteCode?.permissions
-        // If no users exist, create user 1 with GLOBAL permission
+            // If no users exist, create user 1 with GLOBAL permission
             ?: setOf(Permission.Global).takeIf { queries.countUsers() == 0 }
             // otherwise ignore creation request
             ?: return CreateUserResponse.Error(
-                reason = CreateUserResponse.ErrorReason.SignupDisabled
+                reason = CreateUserResponse.ErrorReason.SignupDisabled,
             )
 
         val now = Clock.System.now()
@@ -145,22 +151,28 @@ class UserService(
         if (queries.countUsers() == 0 && !groups.contains(config.oidc.provider.adminGroup)) {
             return CreateUserResponse.Error(
                 reason = CreateUserResponse.ErrorReason.MissingOidcGroup(
-                    groups = listOf(config.oidc.provider.adminGroup)
-                )
+                    groups = listOf(config.oidc.provider.adminGroup),
+                ),
             )
         }
 
         val permissions = when {
-            groups.contains(config.oidc.provider.adminGroup) -> setOf(Permission.Global)
-            groups.contains(config.oidc.provider.viewerGroup) -> setOf(Permission.ViewCollection)
+            groups.contains(config.oidc.provider.adminGroup) -> {
+                setOf(Permission.Global)
+            }
+
+            groups.contains(config.oidc.provider.viewerGroup) -> {
+                setOf(Permission.ViewCollection)
+            }
+
             else -> {
                 return CreateUserResponse.Error(
                     reason = CreateUserResponse.ErrorReason.MissingOidcGroup(
                         groups = listOf(
                             config.oidc.provider.adminGroup,
                             config.oidc.provider.viewerGroup,
-                        )
-                    )
+                        ),
+                    ),
                 )
             }
         }
@@ -182,9 +194,7 @@ class UserService(
         return CreateUserResponse.Success(newUser.toPublic(), permissions)
     }
 
-    suspend fun createOidcSession(
-        username: String,
-    ): CreateSessionResponse {
+    suspend fun createOidcSession(username: String): CreateSessionResponse {
         val user = queries.fetchUserByUsername(username)
             ?: return CreateSessionResponse.Error(
                 usernameError = CreateSessionResponse.UsernameError.NOT_FOUND,
@@ -200,7 +210,10 @@ class UserService(
         )
     }
 
-    suspend fun updateUser(userId: String, body: UpdateUserBody): Boolean {
+    suspend fun updateUser(
+        userId: String,
+        body: UpdateUserBody,
+    ): Boolean {
         val user = queries.fetchUser(userId) ?: return false
 
         // Attempt password verification and update first, if this fails
@@ -225,7 +238,10 @@ class UserService(
         return queries.updateUser(updatedUser)
     }
 
-    fun getPairingMessage(pairingCode: String, registerCode: Boolean): PairingMessage? {
+    fun getPairingMessage(
+        pairingCode: String,
+        registerCode: Boolean,
+    ): PairingMessage? {
         return if (registerCode) {
             pairingCodes.getOrPut(pairingCode) { PairingMessage.Idle }
         } else {
@@ -295,7 +311,7 @@ class UserService(
 
         if (user.authType == AuthType.OIDC) {
             return CreateSessionResponse.Error(
-                reason = CreateSessionResponse.ErrorReason.OidcRequired
+                reason = CreateSessionResponse.ErrorReason.OidcRequired,
             )
         }
 
@@ -316,7 +332,10 @@ class UserService(
         return OpenBSDBCrypt.generate(password.encodeToByteArray(), salt, BCRYPT_COST)
     }
 
-    fun verifyPassword(checkPassword: String, hashString: String): Boolean {
+    fun verifyPassword(
+        checkPassword: String,
+        hashString: String,
+    ): Boolean {
         return OpenBSDBCrypt.checkPassword(hashString, checkPassword.toCharArray())
     }
 }

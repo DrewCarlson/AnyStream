@@ -27,7 +27,6 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 
-
 @Composable
 fun MetadataMatchScreen(
     mediaLinkId: String?,
@@ -75,7 +74,7 @@ fun MetadataMatchScreen(
                                 onLoadingStatChanged(false)
                                 closeScreen()
                             }
-                        }
+                        },
                     )
                 }
             }
@@ -87,7 +86,7 @@ fun MetadataMatchScreen(
 private fun MatchResultContainer(
     result: MediaLinkMatchResult,
     currentMetadataId: String?,
-    onMatchSelected: (MetadataMatch) -> Unit
+    onMatchSelected: (MetadataMatch) -> Unit,
 ) {
     when (result) {
         is MediaLinkMatchResult.Success -> {
@@ -96,14 +95,15 @@ private fun MatchResultContainer(
                     match,
                     onMatchSelected.takeUnless {
                         match.exists && match.metadataId == currentMetadataId
-                    }
+                    },
                 )
             }
         }
 
         is MediaLinkMatchResult.FileNameParseFailed,
         is MediaLinkMatchResult.NoMatchesFound,
-        is MediaLinkMatchResult.NoSupportedFiles -> {
+        is MediaLinkMatchResult.NoSupportedFiles,
+        -> {
             Div { Text("Response: $result") }
         }
     }
@@ -128,7 +128,7 @@ private fun MatchListTable(
 @Composable
 private fun MatchListRow(
     match: MetadataMatch,
-    onMatchSelected: ((MetadataMatch) -> Unit)? = null
+    onMatchSelected: ((MetadataMatch) -> Unit)? = null,
 ) {
     Tr({
         style {
@@ -154,7 +154,7 @@ private fun MatchListRow(
 @Composable
 private fun MovieMatchResult(
     match: MetadataMatch.MovieMatch,
-    onClick: ((match: MetadataMatch) -> Unit)? = null
+    onClick: ((match: MetadataMatch) -> Unit)? = null,
 ) {
     val client = LocalAnyStreamClient.current
     MatchResultContainer(
@@ -166,14 +166,14 @@ private fun MovieMatchResult(
             null
         } else {
             { onClick(match) }
-        }
+        },
     )
 }
 
 @Composable
 private fun TvShowMatchResult(
     match: MetadataMatch.TvShowMatch,
-    onClick: ((match: MetadataMatch) -> Unit)? = null
+    onClick: ((match: MetadataMatch) -> Unit)? = null,
 ) {
     val client = LocalAnyStreamClient.current
     MatchResultContainer(
@@ -185,7 +185,7 @@ private fun TvShowMatchResult(
             null
         } else {
             { onClick(match) }
-        }
+        },
     )
 }
 

@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.Dp
 @Composable
 fun QrCodeImage(
     content: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     QrCodeImageNative(
         content = content,
@@ -36,13 +36,13 @@ fun QrCodeImage(
         loadingContent = { size ->
             Box(
                 modifier = Modifier.size(size),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 CircularProgressIndicator(
-                    modifier = Modifier.size(size / 4)
+                    modifier = Modifier.size(size / 4),
                 )
             }
-        }
+        },
     )
 }
 
