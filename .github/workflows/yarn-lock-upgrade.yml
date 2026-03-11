@@ -37,7 +37,7 @@ jobs:
       - name: Yarn Lock Upgrade
         run: ./gradlew kotlinUpgradeYarnLock
 
-      - uses: EndBug/add-and-commit@db8fba131f71cedfd60e319abf8ea449bb246873
+      - uses: EndBug/add-and-commit@1539a6ad10f4790cad9ee6401eedc0cc0b70f44f
         with:
           author_name: renovate[bot]
           author_email: 29139614+renovate[bot]@users.noreply.github.com
