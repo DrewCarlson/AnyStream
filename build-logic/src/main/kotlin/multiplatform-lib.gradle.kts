@@ -18,9 +18,14 @@ afterEvaluate {
         kotlin {
             target("**/**.kt")
             licenseHeaderFile(rootDir.resolve("licenseHeader.txt"))
-            //val libsCommon = extensions.getByType<VersionCatalogsExtension>().named("libsCommon")
-            //ktlint(libsCommon.findVersion("ktlint").get().requiredVersion)
-            //    .setEditorConfigPath(rootDir.resolve(".editorconfig"))
+            val libsCommon = extensions.getByType<VersionCatalogsExtension>().named("libsCommon")
+            ktlint(libsCommon.findVersion("ktlint").get().requiredVersion)
+                .setEditorConfigPath(rootDir.resolve(".editorconfig"))
+                .customRuleSets(
+                    listOf(
+                        libsCommon.findLibrary("ktlint-composeRules").get().get().toString()
+                    )
+                )
         }
     }
     extensions.getByType<RedactedPluginExtension>().apply {
