@@ -22,29 +22,34 @@ private var sdkFound: Boolean? = null
 
 val Project.hasAndroidSdk: Boolean
     get() {
-        if (sdkFound == null) {
-            val localProps = File(rootDir, "local.properties")
-            if (localProps.exists() && localProps.readText().contains("sdk.dir")) {
-                sdkFound = true
-            } else {
-                val trySdkDir = sequenceOf(
-                    System.getProperty("user.home") + "/Library",
-                    System.getenv("LOCALAPPDATA")
-                ).mapNotNull { File("$it/Android/sdk") }
-                    .filter { it.exists() }
-                    .firstOrNull()
-                sdkFound = if (trySdkDir?.exists() == true) {
-                    if (!localProps.exists()) {
-                        val pathString = trySdkDir.absolutePath
-                            .replace("\\", "\\\\")
-                            .replace(":", "\\:")
-                        localProps.writeText("sdk.dir=$pathString")
-                    }
-                    true
-                } else {
-                    false
-                }
+        if (sdkFound != null) {
+            return sdkFound!!
+        }
+        val localProps = File(rootDir, "local.properties")
+        if (localProps.exists() && localProps.readText().contains("sdk.dir")) {
+            sdkFound = true
+            return true
+        }
+        val trySdkDir = sequenceOf(
+            System.getProperty("user.home") + "/Library",
+            System.getenv("LOCALAPPDATA")
+        ).firstNotNullOfOrNull {
+            File("$it/Android/sdk")
+                .takeIf(File::exists)
+        } ?: System.getenv("ANDROID_HOME")?.let { androidHome ->
+            File(androidHome)
+                .takeIf(File::exists)
+        }
+        sdkFound = if (trySdkDir?.exists() == true) {
+            if (!localProps.exists()) {
+                val pathString = trySdkDir.absolutePath
+                    .replace("\\", "\\\\")
+                    .replace(":", "\\:")
+                localProps.appendText("\nsdk.dir=$pathString")
             }
+            true
+        } else {
+            false
         }
         return sdkFound!!
     }
