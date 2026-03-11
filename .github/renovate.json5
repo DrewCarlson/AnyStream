@@ -5,5 +5,11 @@
     'helpers:pinGitHubActionDigestsToSemver'
   ],
   prConcurrentLimit: 0,
-  prHourlyLimit: 0
+  prHourlyLimit: 0,
+  packageRules: [
+    {
+      matchManagers: ['gradle', 'gradle-wrapper'],
+      allowedVersions: '!/SNAPSHOT|snapshot|dev|nightly/',
+    },
+  ],
 }
