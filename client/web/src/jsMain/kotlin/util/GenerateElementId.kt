@@ -1,4 +1,4 @@
-/**
+/*
  * AnyStream
  * Copyright (C) 2022 AnyStream Maintainers
  *

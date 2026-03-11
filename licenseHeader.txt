@@ -1,4 +1,4 @@
-/**
+/*
  * AnyStream
  * Copyright (C) $YEAR AnyStream Maintainers
  *
