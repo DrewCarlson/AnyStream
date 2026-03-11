@@ -18,13 +18,13 @@
 package anystream.screens
 
 import androidx.compose.runtime.*
+import anystream.LocalAnyStreamClient
 import anystream.client.AnyStreamClient
 import anystream.components.*
 import anystream.models.MediaItem
 import anystream.models.MediaKind
 import anystream.models.toMediaItems
 import anystream.playerMediaLinkId
-import anystream.util.get
 import app.softwork.routingcompose.Router
 import kotlinx.coroutines.flow.mapNotNull
 import org.jetbrains.compose.web.dom.Div
@@ -35,7 +35,7 @@ fun LibraryScreen(
     libraryId: String,
 ) {
     val router = Router.current
-    val client = get<AnyStreamClient>()
+    val client = LocalAnyStreamClient.current
     val library by remember(libraryId) {
         client.library.libraries
             .mapNotNull { libraries ->

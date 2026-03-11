@@ -21,36 +21,39 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
-import anystream.client.configure
-import anystream.ui.UiModule
+import anystream.di.DesktopAppGraph
+import anystream.presentation.app.AppProps
 import anystream.ui.generated.resources.Res
 import anystream.ui.generated.resources.as_icon
 import anystream.ui.video.LocalAppWindow
-import anystream.ui.video.PlayerHandle
-import anystream.ui.video.VlcjPlayerHandle
 import anystream.ui.video.prepareLibvlc
+import dev.zacsweers.metro.createGraphFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
-import org.koin.dsl.module
 
-fun main() = application {
-    configure {
-        modules(UiModule)
-    }
+fun main() {
+    val appGraph = createGraphFactory<DesktopAppGraph.Factory>().create()
 
-    LaunchedEffect(Unit) {
-        launch(Dispatchers.IO) { prepareLibvlc() }
-    }
+    application {
+        val appModel = appGraph.appPresenter.model(AppProps())
 
-    Window(
-        onCloseRequest = ::exitApplication,
-        title = "AnyStream",
-        state = rememberWindowState(width = 1600.dp, height = 1200.dp),
-        icon = painterResource(Res.drawable.as_icon),
-    ) {
-        CompositionLocalProvider(LocalAppWindow provides window) {
-            MainView()
+        LaunchedEffect(Unit) {
+            launch(Dispatchers.IO) { prepareLibvlc() }
+        }
+
+        Window(
+            onCloseRequest = ::exitApplication,
+            title = "AnyStream",
+            state = rememberWindowState(width = 1600.dp, height = 1200.dp),
+            icon = painterResource(Res.drawable.as_icon),
+        ) {
+            CompositionLocalProvider(LocalAppWindow provides window) {
+                MainView(
+                    appGraph = appGraph,
+                    appModel = appModel,
+                )
+            }
         }
     }
 }

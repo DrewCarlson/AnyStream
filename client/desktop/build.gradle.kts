@@ -4,8 +4,9 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.compose")
-    id("org.jetbrains.compose")
-    id("de.undercouch.download")
+    alias(libsCommon.plugins.downloadPlugin)
+    alias(libsClient.plugins.composejb)
+    alias(libsClient.plugins.metro)
 }
 
 kotlin {

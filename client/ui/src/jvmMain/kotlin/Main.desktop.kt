@@ -15,20 +15,16 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.runtime.Composable
+import anystream.di.AppGraph
+import anystream.presentation.app.AppModel
 import anystream.ui.App
-import anystream.ui.login.FormBody
-import anystream.presentation.login.LoginScreenModel
 
 @Composable
-fun MainView() = App()
-
-@Preview
-@Composable
-fun AppPreview() {
-    FormBody(
-        LoginScreenModel(""),
-        {},
-    )
-}
+fun MainView(
+    appGraph: AppGraph,
+    appModel: AppModel,
+) = App(
+    appGraph = appGraph,
+    appModel = appModel,
+)

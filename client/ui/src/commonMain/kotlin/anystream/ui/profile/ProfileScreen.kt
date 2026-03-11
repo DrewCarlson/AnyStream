@@ -26,29 +26,22 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import anystream.ui.LocalAnyStreamClient
+import anystream.presentation.profile.ProfileScreenModel
 import anystream.ui.generated.resources.*
-import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun ProfileScreen(
+    model: ProfileScreenModel,
     modifier: Modifier = Modifier,
-    onPairDeviceClicked: () -> Unit,
 ) {
-    val client = LocalAnyStreamClient.current
-    val scope = rememberCoroutineScope()
-    val user by client.user.user.collectAsState(client.user.authedUser())
     Column(modifier = modifier) {
         Row(
             modifier = Modifier
@@ -66,7 +59,7 @@ fun ProfileScreen(
             )
 
             Text(
-                text = user?.displayName.orEmpty(),
+                text = model.user?.displayName.orEmpty(),
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.SemiBold,
             )
@@ -93,12 +86,12 @@ fun ProfileScreen(
         ProfileOption(
             label = "Pair Device",
             icon = Res.drawable.ic_curved_scan,
-            onClick = onPairDeviceClicked,
+            onClick = model.onPairDeviceClicked,
         )
         ProfileOption(
             label = "Logout",
             icon = Res.drawable.ic_curved_logout,
-            onClick = { scope.launch { client.user.logout() } },
+            onClick = model.onLogoutClicked,
         )
     }
 }

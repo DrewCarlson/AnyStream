@@ -18,31 +18,32 @@
 package anystream.android
 
 import android.app.Application
-import android.content.Context
-import anystream.client.coreModule
-import anystream.ui.UiModule
-import org.koin.android.ext.koin.androidContext
-import org.koin.android.ext.koin.androidLogger
-import org.koin.core.context.startKoin
-import org.koin.dsl.module
-
-private const val PREFS_NAME = "prefs"
+import anystream.di.AndroidAppGraph
+import anystream.presentation.app.AppModel
+import anystream.presentation.app.AppProps
+import app.cash.molecule.RecompositionMode
+import app.cash.molecule.launchMolecule
+import dev.zacsweers.metro.createGraphFactory
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.StateFlow
 
 class App : Application() {
 
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    val appGraph by lazy {
+        createGraphFactory<AndroidAppGraph.Factory>().create(this)
+    }
+
+    val appModels: StateFlow<AppModel> by lazy {
+        scope.launchMolecule(RecompositionMode.Immediate) {
+            appGraph.appPresenter.model(AppProps())
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
-        startKoin {
-            androidLogger()
-            androidContext(this@App)
-            modules(
-                UiModule,
-                coreModule(),
-                appModule(),
-                module {
-                    single { get<Context>().getSharedPreferences(PREFS_NAME, MODE_PRIVATE) }
-                },
-            )
-        }
+        InitVariantFeaturesImpl().init()
     }
 }

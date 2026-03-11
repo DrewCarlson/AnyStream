@@ -18,6 +18,7 @@
 package anystream.screens
 
 import androidx.compose.runtime.*
+import anystream.LocalAnyStreamClient
 import anystream.client.AnyStreamClient
 import anystream.client.api.PlaybackSessionHandle
 import anystream.components.LinkedText
@@ -31,7 +32,6 @@ import anystream.playerMediaLinkId
 import anystream.util.BifFileReader
 import anystream.util.formatProgressAndRuntime
 import anystream.util.formatted
-import anystream.util.get
 import io.ktor.client.fetch.*
 import js.objects.unsafeJso
 import kotlinx.browser.document
@@ -58,7 +58,7 @@ private const val CONTROL_HIDE_DELAY = 2_750L
 
 @Composable
 fun PlayerScreen(mediaLinkId: String) {
-    val client = get<AnyStreamClient>()
+    val client = LocalAnyStreamClient.current
     var player: VjsPlayer? by remember { mutableStateOf(null) }
     var playerIsPlaying by remember { mutableStateOf(false) }
     var isInMiniMode by remember { mutableStateOf(false) }
@@ -771,7 +771,7 @@ private fun SeekBar(
     progressScale: Double,
     bufferedPercent: Double,
 ) {
-    val client = get<AnyStreamClient>()
+    val client = LocalAnyStreamClient.current
     var isThumbVisible by remember { mutableStateOf(false) }
     var isMouseDown by remember { mutableStateOf(false) }
     var mouseHoverX by remember { mutableStateOf(0) }

@@ -54,9 +54,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import anystream.client.AnyStreamClient
-import anystream.presentation.login.*
-import anystream.router.SharedRouter
+import anystream.presentation.login.LoginScreenModel
 import anystream.ui.components.PrimaryButton
 import anystream.ui.components.QrCodeImage
 import anystream.ui.generated.resources.*
@@ -64,32 +62,17 @@ import anystream.ui.generated.resources.Res
 import anystream.ui.generated.resources.ic_discovery
 import anystream.ui.generated.resources.ic_message
 import anystream.ui.generated.resources.logo_login
-import kt.mobius.SimpleLogger
-import kt.mobius.compose.rememberMobiusLoop
-import kt.mobius.flow.FlowMobius
-import kt.mobius.functions.Consumer
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
 internal fun LoginScreen(
-    client: AnyStreamClient,
-    router: SharedRouter,
+    model: LoginScreenModel,
     modifier: Modifier = Modifier,
 ) {
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val isLargeScreen = remember(constraints) {
             maxWidth >= 840.dp && maxHeight >= 600.dp
-        }
-
-        val (modelState, eventConsumer) = rememberMobiusLoop(
-            LoginScreenModel.create(client.core.serverUrl, supportsPairing = isLargeScreen),
-            LoginScreenInit
-        ) {
-            FlowMobius.loop(
-                LoginScreenUpdate,
-                LoginScreenHandler(client, router),
-            ).logger(SimpleLogger("Login"))
         }
 
         val focusManager = LocalFocusManager.current
@@ -112,7 +95,7 @@ internal fun LoginScreen(
                         .fillMaxHeight(),
                     contentAlignment = Alignment.Center,
                 ) {
-                    QrCodePairingPanel(pairingCode = modelState.value.pairingCode)
+                    QrCodePairingPanel(pairingCode = model.pairingCode)
                 }
                 // Right: Login form
                 Column(
@@ -135,7 +118,7 @@ internal fun LoginScreen(
                         modifier = Modifier.padding(vertical = 16.dp),
                         textAlign = TextAlign.Center,
                     )
-                    FormBody(modelState.value, eventConsumer)
+                    FormBody(model)
                 }
             }
         } else {
@@ -163,7 +146,7 @@ internal fun LoginScreen(
                     modifier = Modifier.padding(vertical = 16.dp),
                     textAlign = TextAlign.Center,
                 )
-                FormBody(modelState.value, eventConsumer)
+                FormBody(model)
                 Spacer(Modifier.weight(1f))
             }
         }
@@ -210,7 +193,6 @@ private fun QrCodePairingPanel(pairingCode: String?) {
 @Composable
 internal fun FormBody(
     model: LoginScreenModel,
-    eventConsumer: Consumer<LoginScreenEvent>,
 ) {
     var serverUrlValue by remember { mutableStateOf(TextFieldValue(model.serverUrl)) }
     var usernameValue by remember { mutableStateOf(TextFieldValue(model.username)) }
@@ -225,7 +207,7 @@ internal fun FormBody(
             textFieldValue = serverUrlValue,
             onValueChange = {
                 serverUrlValue = it
-                eventConsumer.accept(LoginScreenEvent.OnServerUrlChanged(it.text))
+                model.onServerUrlChanged(it.text)
             },
             leadingIcon = Res.drawable.ic_discovery,
             placeHolder = "Server URL",
@@ -233,8 +215,9 @@ internal fun FormBody(
                 keyboardType = KeyboardType.Uri,
                 imeAction = ImeAction.Next,
             ),
-            isError = model.serverValidation == LoginScreenModel.ServerValidation.INVALID,
-            readOnly = model.isInputLocked(),
+            showSuccess = model.isServerUrlValid,
+            isError = !model.isServerUrlValid,
+            readOnly = model.isInputLocked,
         )
 
         Spacer(Modifier.height(24.dp))
@@ -242,7 +225,7 @@ internal fun FormBody(
             textFieldValue = usernameValue,
             onValueChange = {
                 usernameValue = it
-                eventConsumer.accept(LoginScreenEvent.OnUsernameChanged(it.text))
+                model.onUsernameChanged(it.text)
             },
             leadingIcon = Res.drawable.ic_message,
             placeHolder = "Username",
@@ -251,7 +234,7 @@ internal fun FormBody(
                 imeAction = ImeAction.Next,
             ),
             isError = model.loginError?.usernameError != null,
-            readOnly = model.isInputLocked(),
+            readOnly = model.isInputLocked,
             modifier = Modifier
                 .semantics {
                     contentType = ContentType.Username
@@ -260,7 +243,7 @@ internal fun FormBody(
                         val value = it.textValue?.toString().orEmpty()
                         focusManager.clearFocus(force = true)
                         usernameValue = TextFieldValue(value)
-                        eventConsumer.accept(LoginScreenEvent.OnUsernameChanged(value))
+                        model.onUsernameChanged(value)
                         true
                     }
                 },
@@ -277,7 +260,7 @@ internal fun FormBody(
             textFieldValue = passwordValue,
             onValueChange = {
                 passwordValue = it
-                eventConsumer.accept(LoginScreenEvent.OnPasswordChanged(it.text))
+                model.onPasswordChanged(it.text)
             },
             leadingIcon = Res.drawable.ic_lock,
             placeHolder = "Password",
@@ -288,12 +271,12 @@ internal fun FormBody(
             keyboardActions = KeyboardActions(
                 onDone = {
                     focusManager.clearFocus(force = true)
-                    eventConsumer.accept(LoginScreenEvent.OnLoginSubmit)
+                    model.onSubmitLogin()
                 }
             ),
             visualTransformation = PasswordVisualTransformation(),
             isError = model.loginError?.passwordError != null,
-            readOnly = model.isInputLocked(),
+            readOnly = model.isInputLocked,
             modifier = Modifier
                 .semantics {
                     contentType = ContentType.Password
@@ -302,7 +285,7 @@ internal fun FormBody(
                         val value = it.textValue?.toString().orEmpty()
                         focusManager.clearFocus(force = true)
                         passwordValue = TextFieldValue(value)
-                        eventConsumer.accept(LoginScreenEvent.OnPasswordChanged(value))
+                        model.onPasswordChanged(value)
                         true
                     }
                 },
@@ -318,7 +301,7 @@ internal fun FormBody(
             text = "Sign In",
             modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
             isLoading = model.state.isAuthenticating,
-            onClick = { eventConsumer.accept(LoginScreenEvent.OnLoginSubmit) },
+            onClick = model.onSubmitLogin,
         )
     }
 }
@@ -353,6 +336,7 @@ private fun OutlineTextField(
     visualTransformation: VisualTransformation = VisualTransformation.None,
     isError: Boolean,
     readOnly: Boolean,
+    showSuccess: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     OutlinedTextField(
@@ -386,8 +370,16 @@ private fun OutlineTextField(
         singleLine = true,
         isError = isError,
         colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = MaterialTheme.colorScheme.onBackground,
-            unfocusedBorderColor = Color.Transparent,
+            focusedBorderColor = if (showSuccess) {
+                Color.Green
+            } else {
+                MaterialTheme.colorScheme.onBackground
+            },
+            unfocusedBorderColor = if (showSuccess) {
+                Color.Green
+            } else {
+                Color.Transparent
+            },
             errorContainerColor = Color(0x14E21221),
             unfocusedContainerColor = Color(0xFF1F222A),
             focusedLabelColor = Color(0xFF1F222A),

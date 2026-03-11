@@ -18,41 +18,37 @@
 package anystream.ui.media
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
 import anystream.client.AnyStreamClient
 import anystream.models.*
+import anystream.presentation.library.LibraryScreenModel
 import anystream.ui.components.LoadingScreen
 
 @Composable
 fun LibraryScreen(
-    client: AnyStreamClient,
-    library: Library,
+    model: LibraryScreenModel,
     onMediaClick: (metadataId: String) -> Unit,
     onPlayMediaClick: (mediaLinkId: String) -> Unit,
     modifier: Modifier
 ) {
-    val response by produceState<List<MediaItem>?>(null, library) {
-        value = when (library.mediaKind) {
-            MediaKind.MOVIE -> client.library.getMovies(library.id).toMediaItems()
-            MediaKind.TV -> client.library.getTvShows(library.id).toMediaItems()
-            else -> null
-        }
-    }
 
-    AnimatedContent(targetState = response) { targetState ->
+    AnimatedContent(targetState = model) { targetState ->
         when (targetState) {
-            null -> LoadingScreen()
-            else -> {
+            is LibraryScreenModel.Loaded -> {
                 MediaItemGrid(
                     modifier = modifier,
-                    mediaItems = targetState,
+                    mediaItems = targetState.mediaItems,
                     onMediaClick = onMediaClick,
                     onPlayMediaClick = onPlayMediaClick,
                 )
             }
+            LibraryScreenModel.Loading -> LoadingScreen()
+            LibraryScreenModel.LoadingFailed -> Text("Failed to load...")
+            LibraryScreenModel.NotFound -> Text("Library not found...")
         }
     }
 }

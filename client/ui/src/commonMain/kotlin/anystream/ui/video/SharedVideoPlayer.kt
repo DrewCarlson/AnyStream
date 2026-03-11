@@ -40,8 +40,8 @@ import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
-import anystream.router.BackStack
-import anystream.routing.Routes
+import anystream.presentation.player.VideoPlayerModel
+import anystream.ui.LocalAppGraph
 import anystream.ui.generated.resources.*
 import anystream.ui.util.EnableFullscreen
 import anystream.ui.util.PLAYER_CONTROLS_VISIBILITY
@@ -49,7 +49,6 @@ import anystream.ui.util.noRippleClickable
 import anystream.util.formatted
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.painterResource
-import org.koin.compose.getKoin
 
 /**
  * Hold [PlayerHandle]s in a [ViewModel] to bind them to
@@ -65,12 +64,11 @@ private class PlayerViewModel(
 
 @Composable
 internal fun VideoPlayer(
-    route: Routes.Player,
-    stack: BackStack<Routes>,
+    model: VideoPlayerModel,
     modifier: Modifier = Modifier,
 ) {
-    val koin = getKoin()
-    val playerViewModel = viewModel { PlayerViewModel(playerHandle = koin.get()) }
+    val appGraph = LocalAppGraph.current
+    val playerViewModel = viewModel { PlayerViewModel(playerHandle = appGraph.playerHandle()) }
     val playerHandle = playerViewModel.playerHandle
     var shouldShowControls by remember { mutableStateOf(true) }
     val isPlaying by playerHandle.playWhenReadyFlow.collectAsState()
@@ -84,8 +82,8 @@ internal fun VideoPlayer(
         }
     }
 
-    LaunchedEffect(route) {
-        playerHandle.loadMediaLink(route.mediaLinkId)
+    LaunchedEffect(model.mediaLinkId) {
+        playerHandle.loadMediaLink(model.mediaLinkId)
     }
 
     Box(
@@ -150,7 +148,7 @@ internal fun VideoPlayer(
                     contentDescription = "Pause and minimize player",
                     modifier = Modifier
                         .size(38.dp)
-                        .noRippleClickable { stack.pop() },
+                        .noRippleClickable(onClick = model.onClose),
                 )
 
                 /*Text(
@@ -179,7 +177,7 @@ internal fun VideoPlayer(
                     modifier = Modifier
                         .size(38.dp)
                         .rotate(180f)
-                        .noRippleClickable { stack.pop() },
+                        .noRippleClickable(onClick = model.onClose),
                 )
             }
         }

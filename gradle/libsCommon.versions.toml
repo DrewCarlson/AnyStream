@@ -7,7 +7,6 @@ ksp = "2.3.6"
 kover = "0.9.7"
 datetime = "0.7.1"
 spotless = "8.2.1"
-koin = "4.1.1"
 agp = "9.0.1"
 kotest = "6.1.4"
 redacted = "1.15.1"
@@ -72,7 +71,6 @@ ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktorio"
 ktor-server-authJwt = { module = "io.ktor:ktor-server-auth-jwt", version.ref = "ktorio" }
 ktor-server-websockets = { module = "io.ktor:ktor-server-websockets", version.ref = "ktorio" }
 ksp = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }
-koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
 kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
 kotest-framework-engine = { module = "io.kotest:kotest-framework-engine", version.ref = "kotest" }
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }

@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2022 AnyStream Maintainers
+ * Copyright (C) 2026 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -18,53 +18,33 @@
 package anystream.presentation.signup
 
 import anystream.models.api.CreateUserResponse
-import dev.zacsweers.redacted.annotations.Redacted
+import anystream.presentation.core.ScreenModel
+
 
 data class SignupScreenModel(
     val serverUrl: String = "",
     val username: String = "",
-    @Redacted
     val password: String = "",
-    @Redacted
     val inviteCode: String = "",
     val state: State = State.IDLE,
     val serverValidation: ServerValidation = ServerValidation.VALIDATING,
     val signupError: CreateUserResponse.Error? = null,
     val isInviteCodeLocked: Boolean = false,
-) {
+    // events
+    val onServerUrlChanged: (String) -> Unit = {},
+    val onUsernameChanged: (String) -> Unit = {},
+    val onPasswordChanged: (String) -> Unit = {},
+    val onInviteCodeChanged: (String) -> Unit = {},
+    val onSubmitSignup: () -> Unit = {},
+) : ScreenModel {
+    val isInputLocked: Boolean = state != State.IDLE
+    val isServerUrlValid: Boolean = serverValidation == ServerValidation.VALID
+
     enum class State {
         IDLE, AUTHENTICATING, AUTHENTICATED,
     }
 
     enum class ServerValidation {
         VALID, INVALID, VALIDATING,
-    }
-
-    fun credentialsAreSet(): Boolean {
-        return username.isNotBlank() && password.isNotBlank()
-    }
-
-    fun isServerUrlValid(): Boolean {
-        return serverValidation == ServerValidation.VALID
-    }
-
-    fun isInputLocked(): Boolean {
-        return state != State.IDLE
-    }
-
-    companion object {
-
-        fun create(): SignupScreenModel {
-            return SignupScreenModel()
-        }
-
-        fun create(serverUrl: String, inviteCode: String): SignupScreenModel {
-            return SignupScreenModel(
-                serverUrl = serverUrl,
-                serverValidation = ServerValidation.VALID,
-                inviteCode = inviteCode,
-                isInviteCodeLocked = inviteCode.isNotBlank(),
-            )
-        }
     }
 }

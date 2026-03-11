@@ -39,8 +39,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import anystream.client.AnyStreamClient
-import anystream.router.BackStack
-import anystream.routing.Routes
 import anystream.ui.generated.resources.Res
 import anystream.ui.generated.resources.as_logo
 import kotlinx.coroutines.launch
@@ -50,8 +48,9 @@ import org.jetbrains.compose.resources.painterResource
 @Composable
 internal fun AppTopBar(
     client: AnyStreamClient,
-    backStack: BackStack<Routes>? = null,
     showBackButton: Boolean = false,
+    onBackClick: () -> Unit = {},
+    onPairDeviceClick: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val scope = rememberCoroutineScope()
@@ -69,7 +68,7 @@ internal fun AppTopBar(
         },
         navigationIcon = {
             if (showBackButton) {
-                IconButton(onClick = { backStack?.pop() }) {
+                IconButton(onClick = onBackClick) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back"
@@ -85,13 +84,9 @@ internal fun AppTopBar(
                     horizontalArrangement = Arrangement.End,
                     modifier = Modifier.fillMaxSize(),
                 ) {
-//                    val packageManager = LocalContext.current.packageManager
-//                    val hasCamera = remember {
-//                        packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)
-//                    }
                     // TODO Re-enable camera detection
                     if (false) {
-                        IconButton(onClick = { backStack?.push(Routes.PairingScanner) }) {
+                        IconButton(onClick = onPairDeviceClick) {
                             Icon(Icons.Filled.QrCodeScanner, contentDescription = "Pair a device.")
                         }
                     }

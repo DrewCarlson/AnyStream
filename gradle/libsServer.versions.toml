@@ -30,6 +30,7 @@ jaffree = { module = "org.drewcarlson:jaffree", version.ref = "jaffree" }
 bouncyCastle = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncy_castle" }
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 tmdbapi = "org.drewcarlson:tmdb-api-jvm:1.2.2"
+koin-core = { module = "io.insert-koin:koin-core", version.ref = "koinKtor" }
 koin-ktor = { module = "io.insert-koin:koin-ktor", version.ref = "koinKtor" }
 koin-slf4j = { module = "io.insert-koin:koin-logger-slf4j", version.ref = "koinKtor" }
 ktor-server-permissions = "org.drewcarlson:ktor-permissions:0.3.0"

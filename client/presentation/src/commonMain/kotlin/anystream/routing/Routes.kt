@@ -30,6 +30,10 @@ sealed class Routes {
         override val path: String = "login"
     }
 
+    data object SignUp : Routes() {
+        override val path: String = "signup"
+    }
+
     data object Home : Routes() {
         override val path: String = "home"
     }

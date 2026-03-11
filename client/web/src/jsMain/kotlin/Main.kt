@@ -17,6 +17,10 @@
  */
 package anystream
 
+import anystream.di.JsAppGraph
+import dev.zacsweers.metro.createGraphFactory
+
 fun main() {
-    webApp()
+    val appGraph = createGraphFactory<JsAppGraph.Factory>().create()
+    webApp(appGraph = appGraph)
 }

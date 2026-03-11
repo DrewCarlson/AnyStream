@@ -1,6 +1,6 @@
 /**
  * AnyStream
- * Copyright (C) 2023 AnyStream Maintainers
+ * Copyright (C) 2026 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,20 +21,17 @@ import anystream.models.Library
 import anystream.models.api.CurrentlyWatching
 import anystream.models.api.Popular
 import anystream.models.api.RecentlyAdded
+import anystream.presentation.core.ScreenModel
 
-sealed class HomeScreenModel {
 
-    data object Loading : HomeScreenModel()
-
+sealed interface HomeScreenModel : ScreenModel {
+    data object Loading : HomeScreenModel
     data class Loaded(
         val libraries: List<Library>,
         val currentlyWatching: CurrentlyWatching,
         val recentlyAdded: RecentlyAdded,
         val popular: Popular,
-    ) : HomeScreenModel()
-
-    data object Empty : HomeScreenModel()
-
-    data object LoadingFailed : HomeScreenModel()
-
+    ) : HomeScreenModel
+    data object Empty : HomeScreenModel
+    data object LoadingFailed : HomeScreenModel
 }

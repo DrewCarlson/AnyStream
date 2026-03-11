@@ -111,7 +111,7 @@ dependencies {
 
     implementation(libsServer.imageio.webp)
 
-    implementation(libsCommon.koin.core)
+    implementation(libsServer.koin.core)
     implementation(libsServer.koin.ktor)
     implementation(libsServer.koin.slf4j)
 

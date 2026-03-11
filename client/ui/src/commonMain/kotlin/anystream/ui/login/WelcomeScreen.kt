@@ -31,10 +31,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import anystream.presentation.welcome.WelcomeScreenModel
 import anystream.ui.components.PrimaryButton
 
 @Composable
-internal fun WelcomeScreen(onCtaClicked: () -> Unit) {
+internal fun WelcomeScreen(
+    model: WelcomeScreenModel
+) {
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
@@ -89,7 +92,7 @@ internal fun WelcomeScreen(onCtaClicked: () -> Unit) {
                 PrimaryButton(
                     text = "Get Started",
                     modifier = Modifier.fillMaxWidth(),
-                    onClick = onCtaClicked,
+                    onClick = model.onCtaClicked,
                 )
             }
         }

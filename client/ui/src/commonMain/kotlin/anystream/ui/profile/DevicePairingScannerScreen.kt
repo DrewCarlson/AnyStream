@@ -20,44 +20,20 @@ package anystream.ui.profile
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import anystream.ui.LocalAnyStreamClient
+import anystream.presentation.pairing.PairingScannerScreenModel
 import anystream.ui.components.QrScanner
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
 
 @Composable
 fun DevicePairingScannerScreen(
-    onPairingCompleted: () -> Unit,
-    onPairingCancelled: () -> Unit,
+    model: PairingScannerScreenModel,
     modifier: Modifier = Modifier,
 ) {
-    val client = LocalAnyStreamClient.current
-    var scannedCode by remember { mutableStateOf<String?>(null) }
-
-    LaunchedEffect(scannedCode) {
-        val currentCode = scannedCode
-        if (currentCode != null) {
-            val user = client.user.user.filterNotNull().first()
-            try {
-                client.user.login(user.username, currentCode, pairing = true)
-                onPairingCompleted()
-            } catch (e: Throwable) {
-                if (e is CancellationException) throw e
-                e.printStackTrace()
-            }
-        }
-    }
     Box(
         modifier = modifier.fillMaxSize()
     ) {
         QrScanner(
-            onScanned = { data ->
-                if (scannedCode == null) {
-                    scannedCode = data
-                }
-            },
-            onClose = onPairingCancelled
+            onScanned = model.onScanned,
+            onClose = model.onCancelled,
         )
     }
 }
