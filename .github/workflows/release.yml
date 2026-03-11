@@ -22,13 +22,13 @@ jobs:
       any: ${{ steps.check.outputs.any_changed }}
       docs: ${{ steps.docs.outputs.any_changed }}
     steps:
-      - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+      - uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
         with:
           submodules: 'recursive'
           fetch-depth: 0
       - name: Get changed files
         id: check
-        uses: tj-actions/changed-files@7d5bbf4e8d5c63a42c94e1c1bff2394247117e96
+        uses: tj-actions/changed-files@4f892cd56345d721bac7139000c4b4a22c8f138f
         with:
           files: |
             .github/workflows/release.yml
@@ -44,7 +44,7 @@ jobs:
             Dockerfile-local
       - name: Get changed files
         id: docs
-        uses: tj-actions/changed-files@7d5bbf4e8d5c63a42c94e1c1bff2394247117e96
+        uses: tj-actions/changed-files@4f892cd56345d721bac7139000c4b4a22c8f138f
         with:
           files: |
             .github/workflows/release.yml
@@ -58,7 +58,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+      - uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
         with:
           fetch-depth: 0
       - name: Configure Git user
@@ -66,7 +66,7 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
       - name: Set up Python
-        uses: actions/setup-python@bfe8cc55a7890e3d6672eda6460ef37bfcc70755
+        uses: actions/setup-python@28f2168f4d98ee0445e3c6321f6e6616c83dd5ec
         with:
           python-version: '3.14'
           architecture: x64
@@ -92,20 +92,20 @@ jobs:
     if: needs.file-changes.outputs.any == 'true' || startsWith(github.ref, 'refs/tags/v')
     steps:
       - name: Checkout repository
-        uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+        uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
         with:
           submodules: 'recursive'
 
-      - uses: actions/setup-java@d81c4e45f3ac973cc936d79104023e20054ba578
+      - uses: actions/setup-java@1d018f9b8b9b505bb578a83b230fabcce01af93b
         with:
           distribution: 'zulu'
           java-version: 21
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@576fcbecfed70890e466eeffd7c78d93b30b0472
+        uses: gradle/actions/setup-gradle@a3dd0763dc7a406ed0ec944010d38f923956dbc3
 
       - name: Cache Build files
-        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7
+        uses: actions/cache@565629816435f6c0b50676926c9b05c254113c0c
         with:
           path: |
             ~/.konan
@@ -120,7 +120,7 @@ jobs:
           :server:application:shadowDistTar
 
       - name: Container registry Log in
-        uses: docker/login-action@0567fa5ae8c9a197cb207537dc5cbb43ca3d803f
+        uses: docker/login-action@9fe7774c8f8ebfade96f0a62aa10f3882309d517
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -128,7 +128,7 @@ jobs:
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@ed95091677497158a9ff38b314264cd965388d5e
+        uses: docker/metadata-action@b13d25e5fcf2e04305d8aedc9a6c28ebe258e934
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
@@ -137,10 +137,10 @@ jobs:
             type=semver,pattern={{version}},enable=${{ startsWith(github.ref, 'refs/tags/v') }}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
+        uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@64c9b141502b80dbbd71e008a0130ad330f480f8
+        uses: docker/build-push-action@dbac3ca1e5410ec04d2cce48cfbcfa3175fb8f4f
         with:
           context: .
           file: Dockerfile-local
@@ -150,7 +150,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Upload build to Github Release
-        uses: softprops/action-gh-release@78237c54eb15310cb292a15480c4be010be47aeb
+        uses: softprops/action-gh-release@e798e6a1ede8d07b74ac4cdac6bdfa4cc1653907
         if: startsWith(github.ref, 'refs/tags/v')
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
