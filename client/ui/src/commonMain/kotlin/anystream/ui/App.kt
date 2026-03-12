@@ -28,14 +28,14 @@ import androidx.compose.ui.graphics.Color
 import anystream.di.AppGraph
 import anystream.presentation.app.AppModel
 import anystream.presentation.app.AppUiModel
+import anystream.presentation.auth.login.LoginScreenModel
+import anystream.presentation.auth.signup.SignupScreenModel
 import anystream.presentation.home.HomeScreenModel
 import anystream.presentation.library.LibraryScreenModel
-import anystream.presentation.login.LoginScreenModel
 import anystream.presentation.media.MediaScreenModel
 import anystream.presentation.pairing.PairingScannerScreenModel
 import anystream.presentation.player.VideoPlayerModel
 import anystream.presentation.profile.ProfileScreenModel
-import anystream.presentation.signup.SignupScreenModel
 import anystream.presentation.welcome.WelcomeScreenModel
 import anystream.routing.Routes
 import anystream.ui.components.BottomNavigation

@@ -20,8 +20,8 @@ package anystream.screens
 import androidx.compose.runtime.*
 import anystream.models.*
 import anystream.models.api.CreateUserResponse
-import anystream.presentation.signup.SignupScreenModel
-import anystream.presentation.signup.SignupScreenModel.State
+import anystream.presentation.auth.signup.SignupScreenModel
+import anystream.presentation.auth.signup.SignupScreenModel.State
 import app.softwork.routingcompose.Router
 import org.jetbrains.compose.web.attributes.*
 import org.jetbrains.compose.web.css.*

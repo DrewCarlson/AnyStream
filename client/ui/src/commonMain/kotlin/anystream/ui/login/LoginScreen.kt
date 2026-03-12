@@ -54,7 +54,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import anystream.presentation.login.LoginScreenModel
+import anystream.presentation.auth.login.LoginScreenModel
 import anystream.ui.components.PrimaryButton
 import anystream.ui.components.QrCodeImage
 import anystream.ui.generated.resources.*

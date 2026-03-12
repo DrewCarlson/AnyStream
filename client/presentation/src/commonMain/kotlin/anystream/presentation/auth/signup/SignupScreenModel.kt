@@ -15,29 +15,28 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.presentation.login
+package anystream.presentation.auth.signup
 
-import anystream.models.api.CreateSessionResponse
-import anystream.presentation.core.ScreenModel
+import anystream.models.api.CreateUserResponse
+import anystream.presentation.auth.AuthScreenModel
+import anystream.presentation.auth.ServerValidation
 
-data class LoginScreenModel(
+data class SignupScreenModel(
     val serverUrl: String = "",
     val username: String = "",
     val password: String = "",
-    val supportsPairing: Boolean = false,
-    val pairingCode: String? = null,
+    val inviteCode: String = "",
     val state: State = State.IDLE,
-    val authTypes: List<String>? = null,
     val serverValidation: ServerValidation = ServerValidation.VALIDATING,
-    val loginError: CreateSessionResponse.Error? = null,
-    val supportsPasswordAuth: Boolean = true,
-    val oidcProviderName: String? = null,
+    val signupError: CreateUserResponse.Error? = null,
+    val isInviteCodeLocked: Boolean = false,
     // events
     val onServerUrlChanged: (String) -> Unit = {},
     val onUsernameChanged: (String) -> Unit = {},
     val onPasswordChanged: (String) -> Unit = {},
-    val onSubmitLogin: () -> Unit = {},
-) : ScreenModel {
+    val onInviteCodeChanged: (String) -> Unit = {},
+    val onSubmitSignup: () -> Unit = {},
+) : AuthScreenModel {
     val isInputLocked: Boolean = state != State.IDLE
     val isServerUrlValid: Boolean = serverValidation == ServerValidation.VALID
 
@@ -45,15 +44,5 @@ data class LoginScreenModel(
         IDLE,
         AUTHENTICATING,
         AUTHENTICATED,
-        ;
-
-        val isAuthenticating: Boolean
-            get() = this == AUTHENTICATING
-    }
-
-    enum class ServerValidation {
-        VALID,
-        INVALID,
-        VALIDATING,
     }
 }

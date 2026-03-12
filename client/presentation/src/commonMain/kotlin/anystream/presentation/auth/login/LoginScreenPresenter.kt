@@ -15,37 +15,37 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.presentation.login
+package anystream.presentation.auth.login
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import anystream.client.AnyStreamClient
 import anystream.models.api.CreateSessionResponse
 import anystream.models.api.PairingMessage
+import anystream.presentation.auth.ServerValidation
+import anystream.presentation.auth.login.LoginScreenModel.State
 import anystream.presentation.core.Presenter
 import anystream.presentation.core.rememberEventTrigger
-import anystream.presentation.login.LoginScreenModel.ServerValidation
-import anystream.presentation.login.LoginScreenModel.State
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.mapNotNull
-import kotlin.time.Duration.Companion.seconds
 
 data class LoginScreenProps(
     val supportsPairing: Boolean,
-    val serverUrl: String? = null,
+    val serverUrl: String,
+    val onServerUrlChange: (String) -> Unit,
     val onLoginComplete: () -> Unit,
+    val authTypes: List<String>?,
+    val serverValidation: ServerValidation,
+    val oidcProviderName: String?,
 )
 
 @SingleIn(AppScope::class)
@@ -56,45 +56,14 @@ class LoginScreenPresenter(
     @Composable
     override fun model(props: LoginScreenProps): LoginScreenModel {
         val scope = rememberCoroutineScope()
-        var serverUrl by remember { mutableStateOf(props.serverUrl) }
         var username by remember { mutableStateOf("") }
         var password by remember { mutableStateOf("") }
-        var oidcProviderName by remember { mutableStateOf<String?>(null) }
         var pairingCode by remember { mutableStateOf<String?>(null) }
         var loginError by remember { mutableStateOf<CreateSessionResponse.Error?>(null) }
         var state by remember { mutableStateOf(State.IDLE) }
 
-        val authTypes by produceState<List<String>?>(null) {
-            while (value == null) {
-                value = try {
-                    client.user.fetchAuthTypes()
-                } catch (e: Throwable) {
-                    if (e is CancellationException) throw e
-                    null
-                }
-                if (value == null) {
-                    delay(5.seconds)
-                }
-            }
-            if ((value?.size ?: 0) > 1) {
-                oidcProviderName = value?.last()
-            }
-        }
-
-        val serverValidation by produceState(ServerValidation.VALIDATING, serverUrl) {
-            value = try {
-                if (client.core.verifyAndSetServerUrl(serverUrl.orEmpty())) {
-                    ServerValidation.VALID
-                } else {
-                    ServerValidation.INVALID
-                }
-            } catch (_: Throwable) {
-                ServerValidation.INVALID
-            }
-        }
-
-        val loginTrigger = scope.rememberEventTrigger {
-            if (state == State.IDLE && serverValidation != ServerValidation.VALID) {
+        val loginTrigger = scope.rememberEventTrigger(props) {
+            if (state == State.IDLE && props.serverValidation != ServerValidation.VALID) {
                 return@rememberEventTrigger
             }
             state = State.AUTHENTICATING
@@ -116,8 +85,12 @@ class LoginScreenPresenter(
             }
         }
 
-        LaunchedEffect(props.supportsPairing, serverUrl) {
-            if (serverValidation != ServerValidation.VALID) return@LaunchedEffect
+        LaunchedEffect(
+            props.supportsPairing,
+            props.serverUrl,
+            props.serverValidation,
+        ) {
+            if (props.serverValidation != ServerValidation.VALID) return@LaunchedEffect
             client.user
                 .createPairingSession()
                 .catch { state = State.IDLE }
@@ -160,20 +133,20 @@ class LoginScreenPresenter(
         }
 
         return LoginScreenModel(
-            serverUrl = serverUrl.orEmpty(),
+            serverUrl = props.serverUrl,
             username = username,
             password = password,
             pairingCode = pairingCode,
             loginError = loginError,
             state = state,
-            authTypes = authTypes,
-            serverValidation = serverValidation,
-            oidcProviderName = oidcProviderName,
+            authTypes = props.authTypes,
+            serverValidation = props.serverValidation,
+            oidcProviderName = props.oidcProviderName,
             supportsPasswordAuth = true,
             supportsPairing = props.supportsPairing,
             onUsernameChanged = { username = it },
             onPasswordChanged = { password = it },
-            onServerUrlChanged = { serverUrl = it },
+            onServerUrlChanged = props.onServerUrlChange,
             onSubmitLogin = loginTrigger::trigger,
         )
     }

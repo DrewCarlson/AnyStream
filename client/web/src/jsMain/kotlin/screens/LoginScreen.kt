@@ -19,8 +19,8 @@ package anystream.screens
 
 import androidx.compose.runtime.*
 import anystream.libs.QRCodeImage
-import anystream.presentation.login.LoginScreenModel
-import anystream.presentation.login.LoginScreenModel.State
+import anystream.presentation.auth.login.LoginScreenModel
+import anystream.presentation.auth.login.LoginScreenModel.State
 import app.softwork.routingcompose.Router
 import org.jetbrains.compose.web.attributes.*
 import org.jetbrains.compose.web.css.*

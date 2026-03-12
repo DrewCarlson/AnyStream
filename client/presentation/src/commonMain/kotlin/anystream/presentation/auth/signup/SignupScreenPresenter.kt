@@ -15,29 +15,32 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.presentation.signup
+package anystream.presentation.auth.signup
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import anystream.client.AnyStreamClient
 import anystream.models.api.CreateUserResponse
+import anystream.presentation.auth.ServerValidation
+import anystream.presentation.auth.signup.SignupScreenModel.State
 import anystream.presentation.core.Presenter
 import anystream.presentation.core.rememberEventTrigger
-import anystream.presentation.signup.SignupScreenModel.ServerValidation
-import anystream.presentation.signup.SignupScreenModel.State
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 
 data class SignupScreenProps(
     val inviteCode: String?,
-    val serverUrl: String? = null,
+    val serverUrl: String,
+    val onServerUrlChange: (String) -> Unit,
     val onSignupComplete: () -> Unit,
+    val authTypes: List<String>?,
+    val serverValidation: ServerValidation,
+    val oidcProviderName: String?,
 )
 
 @SingleIn(AppScope::class)
@@ -55,20 +58,8 @@ class SignupScreenPresenter(
         var signupError by remember { mutableStateOf<CreateUserResponse.Error?>(null) }
         var state by remember { mutableStateOf(State.IDLE) }
 
-        val serverValidation by produceState(ServerValidation.VALIDATING, serverUrl) {
-            value = try {
-                if (client.core.verifyAndSetServerUrl(serverUrl.orEmpty())) {
-                    ServerValidation.VALID
-                } else {
-                    ServerValidation.INVALID
-                }
-            } catch (_: Throwable) {
-                ServerValidation.INVALID
-            }
-        }
-
-        val signupTrigger = scope.rememberEventTrigger {
-            if (state != State.IDLE || serverValidation != ServerValidation.VALID) {
+        val signupTrigger = scope.rememberEventTrigger(props) {
+            if (state != State.IDLE || props.serverValidation != ServerValidation.VALID) {
                 return@rememberEventTrigger
             }
             if (username.isBlank() || password.isBlank()) {
@@ -79,6 +70,7 @@ class SignupScreenPresenter(
                 when (val result = client.user.createUser(username, password, inviteCode)) {
                     is CreateUserResponse.Success -> {
                         state = State.AUTHENTICATED
+                        props.onSignupComplete()
                     }
 
                     is CreateUserResponse.Error -> {
@@ -93,15 +85,15 @@ class SignupScreenPresenter(
         }
 
         return SignupScreenModel(
-            serverUrl = serverUrl.orEmpty(),
+            serverUrl = serverUrl,
             username = username,
             password = password,
             inviteCode = inviteCode.orEmpty(),
             state = state,
-            serverValidation = serverValidation,
+            serverValidation = props.serverValidation,
             signupError = signupError,
             isInviteCodeLocked = inviteCode?.isNotBlank() == true,
-            onServerUrlChanged = { serverUrl = it },
+            onServerUrlChanged = props.onServerUrlChange,
             onUsernameChanged = { username = it },
             onPasswordChanged = { password = it },
             onInviteCodeChanged = { inviteCode = it },

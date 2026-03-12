@@ -62,15 +62,15 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.update
-import kotlin.concurrent.atomics.ExperimentalAtomicApi
+import kotlinx.coroutines.launch
 
 private val KEY_INTERNAL_ERROR = AttributeKey<Throwable>("INTERNAL_ERROR")
 
 private const val PAGE = "page"
 private const val QUERY = "query"
 
-@OptIn(ExperimentalAtomicApi::class)
 class AnyStreamApiCore(
     serverUrl: String?,
     httpClient: HttpClient,
@@ -81,7 +81,7 @@ class AnyStreamApiCore(
     }
 
     internal val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
-    private val serverUrlInternal = MutableStateFlow(serverUrl ?: sessionManager.fetchServerUrl())
+    private val serverUrlInternal = MutableStateFlow(serverUrl)
 
     val serverUrlFlow: StateFlow<String?> = serverUrlInternal.asStateFlow()
     var serverUrl: String?
@@ -153,6 +153,14 @@ class AnyStreamApiCore(
                 if (context.response.status == Unauthorized && sentToken != null) {
                     sessionManager.clear()
                 }
+            }
+        }
+    }
+
+    init {
+        scope.launch {
+            serverUrlInternal.getAndUpdate { currentServerUrl ->
+                currentServerUrl ?: sessionManager.fetchServerUrl()
             }
         }
     }

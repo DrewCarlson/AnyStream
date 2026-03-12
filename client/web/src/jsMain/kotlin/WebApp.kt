@@ -24,8 +24,8 @@ import anystream.components.Navbar
 import anystream.components.SideMenu
 import anystream.di.JsAppGraph
 import anystream.presentation.app.AppProps
-import anystream.presentation.login.LoginScreenModel
-import anystream.presentation.signup.SignupScreenModel
+import anystream.presentation.auth.login.LoginScreenModel
+import anystream.presentation.auth.signup.SignupScreenModel
 import anystream.routing.Routes
 import anystream.routing.WebRouter
 import anystream.screens.*
@@ -75,19 +75,21 @@ fun webApp(appGraph: JsAppGraph) =
                 value = backgroundUrl ?: value
             }
 
-            Div({
-                classes("position-absolute", "h-100", "w-100", "fade-in")
-                style {
-                    opacity(if (visible) 0.1 else 0)
-                    if (actualBackgroundUrl != null) {
-                        backgroundImage("url('$actualBackgroundUrl')")
+            Div(
+                {
+                    classes("position-absolute", "h-100", "w-100", "fade-in")
+                    style {
+                        opacity(if (visible) 0.1 else 0)
+                        if (actualBackgroundUrl != null) {
+                            backgroundImage("url('$actualBackgroundUrl')")
+                        }
+                        backgroundPosition("center center")
+                        backgroundSize("cover")
+                        backgroundRepeat("no-repeat")
+                        property("pointer-events", "none")
                     }
-                    backgroundPosition("center center")
-                    backgroundSize("cover")
-                    backgroundRepeat("no-repeat")
-                    property("pointer-events", "none")
-                }
-            })
+                },
+            )
 
             CompositionLocalProvider(
                 LocalAnyStreamClient provides appGraph.client,
@@ -165,9 +167,7 @@ private fun ContentContainer(appGraph: JsAppGraph) {
                 }
             }
 
-            else -> {
-                Unit
-            }
+            else -> {}
         }
         val metadataId by playerMediaLinkId.collectAsState()
         metadataId?.let { PlayerScreen(it) }
@@ -186,26 +186,31 @@ private fun ScreenContainer(
     val currentPath by router.getPath("/")
 
     Div { Navbar() }
-    Div({
-        classes(
-            "container-fluid",
-            "d-flex",
-            "flex-row",
-            "flex-grow-1",
-            "flex-shrink-1",
-            "px-0",
-            "overflow-hidden",
-        )
-        style {
-            flexBasis("auto")
-        }
-    }) {
+    Div(
+        {
+            classes(
+                "container-fluid",
+                "d-flex",
+                "flex-row",
+                "flex-grow-1",
+                "flex-shrink-1",
+                "px-0",
+                "overflow-hidden",
+            )
+            style {
+                flexBasis("auto")
+            }
+        },
+    ) {
         menu()
 
-        Div({
-            classes("vstack", "w-100")
-            style { overflowX("hidden") }
-        }, content)
+        Div(
+            {
+                classes("vstack", "w-100")
+                style { overflowX("hidden") }
+            },
+            content,
+        )
     }
 
     remember(isAuthenticated, currentPath) {

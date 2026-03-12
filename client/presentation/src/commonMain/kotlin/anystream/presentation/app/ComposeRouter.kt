@@ -1,6 +1,6 @@
 /*
  * AnyStream
- * Copyright (C) 2022 AnyStream Maintainers
+ * Copyright (C) 2026 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -15,31 +15,36 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.routing
+package anystream.presentation.app
 
-import app.softwork.routingcompose.Router
-import kotlinx.browser.window
+import androidx.compose.runtime.mutableStateListOf
+import anystream.routing.CommonRouter
+import anystream.routing.Routes
 
-// TODO: BrowserRouter is not customizable and can only push routes,
-//  a custom Router utilizing window.history.state data can emulate
-//  a full BackStack.
-class WebRouter(
-    private val router: Router,
+internal class ComposeRouter(
+    initialRoute: Routes,
 ) : CommonRouter {
+    val stack = mutableStateListOf(initialRoute)
+
     override fun replaceTop(route: Routes) {
-        router.navigate("/${route.path}")
+        stack[stack.lastIndex] = route
     }
 
     override fun pushRoute(route: Routes) {
-        router.navigate("/${route.path}")
+        stack.add(route)
     }
 
     override fun replaceStack(routes: List<Routes>) {
-        router.navigate("/${routes.last().path}")
+        stack.clear()
+        stack.addAll(routes)
     }
 
     override fun popCurrentRoute(): Boolean {
-        window.history.back()
-        return true
+        return if (stack.size > 1) {
+            stack.removeAt(stack.lastIndex)
+            true
+        } else {
+            false
+        }
     }
 }

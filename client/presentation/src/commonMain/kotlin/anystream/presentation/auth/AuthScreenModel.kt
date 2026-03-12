@@ -15,31 +15,31 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.presentation.core
+package anystream.presentation.auth
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
+import anystream.presentation.core.ScreenModel
+import anystream.routing.Routes
 
-class EventTrigger(
-    private val scope: CoroutineScope,
-    private val handler: suspend () -> Unit,
-) {
-    fun trigger() {
-        scope.launch { handler() }
+interface AuthScreenModel : ScreenModel
+
+enum class ServerValidation {
+    VALID,
+    INVALID,
+    VALIDATING,
+}
+
+enum class AuthScreenType {
+    LOGIN,
+    SIGNUP,
+    ;
+
+    companion object {
+        fun fromRoute(route: Routes): AuthScreenType {
+            return when (route) {
+                Routes.Login -> LOGIN
+                Routes.SignUp -> SIGNUP
+                else -> error("$route is not and auth route")
+            }
+        }
     }
-}
-
-@Composable
-fun CoroutineScope.rememberEventTrigger(handler: suspend () -> Unit): EventTrigger {
-    return remember { EventTrigger(this, handler) }
-}
-
-@Composable
-fun CoroutineScope.rememberEventTrigger(
-    key1: Any?,
-    handler: suspend () -> Unit,
-): EventTrigger {
-    return remember(key1) { EventTrigger(this, handler) }
 }

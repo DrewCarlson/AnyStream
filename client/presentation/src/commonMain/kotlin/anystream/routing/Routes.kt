@@ -64,4 +64,25 @@ sealed class Routes {
     data object Profile : Routes() {
         override val path: String = "profile"
     }
+
+    companion object {
+        val LOGIN_STACK = listOf(Welcome, Login)
+
+        fun isOnboardingRoute(route: Routes): Boolean {
+            return when (route) {
+                Login,
+                SignUp,
+                Welcome,
+                -> true
+
+                is Details,
+                Home,
+                is Library,
+                PairingScanner,
+                is Player,
+                Profile,
+                -> false
+            }
+        }
+    }
 }
