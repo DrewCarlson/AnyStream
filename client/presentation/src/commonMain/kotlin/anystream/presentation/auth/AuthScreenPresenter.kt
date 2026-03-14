@@ -18,12 +18,16 @@
 package anystream.presentation.auth
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import anystream.client.AnyStreamClient
+import anystream.models.ServerValidation
+import anystream.models.api.AuthProviderType
 import anystream.presentation.auth.login.LoginScreenPresenter
 import anystream.presentation.auth.login.LoginScreenProps
 import anystream.presentation.auth.signup.SignupScreenPresenter
@@ -34,6 +38,10 @@ import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.onEach
+import kotlin.collections.filterIsInstance
 import kotlin.time.Duration.Companion.seconds
 
 data class AuthScreenProps(
@@ -43,18 +51,38 @@ data class AuthScreenProps(
     val onAuthComplete: (isNewUser: Boolean) -> Unit,
 )
 
+data class AuthSubProps(
+    val hasInternalAuth: Boolean,
+    val oidcProvider: AuthProviderType.Oidc?,
+    val onStartOidcAuth: (() -> Unit)?,
+)
+
 @SingleIn(AppScope::class)
 @Inject
 class AuthScreenPresenter(
     private val client: AnyStreamClient,
     private val signupPresenter: SignupScreenPresenter,
     private val loginPresenter: LoginScreenPresenter,
+    private val oidcLauncher: OidcLauncher,
 ) : Presenter<AuthScreenProps, AuthScreenModel> {
     @Composable
     override fun model(props: AuthScreenProps): AuthScreenModel {
+        // Initial check to redirect away from auth screens if session exists
+        LaunchedEffect(Unit) {
+            if (client.user.isAuthenticated()) {
+                props.onAuthComplete(false)
+            }
+        }
+
         var serverUrl by remember(props.serverUrl) { mutableStateOf(props.serverUrl) }
-        var oidcProviderName by remember { mutableStateOf<String?>(null) }
-        val authTypes by produceState<List<String>?>(null) {
+        val serverValidation by produceState(ServerValidation.VALIDATING, serverUrl) {
+            value = client.core.verifyAndSetServerUrl(serverUrl)
+        }
+        val authProviders by produceState<List<AuthProviderType>?>(null, serverValidation) {
+            if (serverValidation != ServerValidation.VALID) {
+                value = null
+                return@produceState
+            }
             while (value == null) {
                 value = try {
                     client.user.fetchAuthTypes()
@@ -66,21 +94,33 @@ class AuthScreenPresenter(
                     delay(5.seconds)
                 }
             }
-            if ((value?.size ?: 0) > 1) {
-                oidcProviderName = value?.last()
+        }
+        val hasInternalAuth by remember {
+            derivedStateOf {
+                authProviders
+                    ?.filterIsInstance<AuthProviderType.Internal>()
+                    ?.firstOrNull() != null
             }
         }
-
-        val serverValidation by produceState(ServerValidation.VALIDATING, serverUrl) {
-            value = try {
-                if (client.core.verifyAndSetServerUrl(serverUrl)) {
-                    ServerValidation.VALID
-                } else {
-                    ServerValidation.INVALID
-                }
-            } catch (_: Throwable) {
-                ServerValidation.INVALID
+        val oidcProvider by remember {
+            derivedStateOf {
+                authProviders
+                    ?.filterIsInstance<AuthProviderType.Oidc>()
+                    ?.firstOrNull()
             }
+        }
+        val onStartOidcAuth by produceState<(() -> Unit)?>(null, authProviders) {
+            if (oidcProvider == null) return@produceState
+            value = { oidcLauncher.launchOidcLogin() }
+        }
+        LaunchedEffect(Unit) {
+            oidcLauncher
+                .observeOidcResult()
+                .filterIsInstance<OidcLaunchResult.LoginComplete>() // TODO: Handle oidc error type
+                .onEach { result ->
+                    client.user.completeOauth(result.token)
+                    props.onAuthComplete(result.isNewUser)
+                }.collect()
         }
 
         return when (props.authType) {
@@ -91,9 +131,12 @@ class AuthScreenPresenter(
                         serverUrl = serverUrl,
                         onServerUrlChange = { serverUrl = it },
                         onLoginComplete = { props.onAuthComplete(false) },
-                        authTypes = authTypes,
                         serverValidation = serverValidation,
-                        oidcProviderName = oidcProviderName,
+                        authSubProps = AuthSubProps(
+                            hasInternalAuth = hasInternalAuth,
+                            oidcProvider = oidcProvider,
+                            onStartOidcAuth = onStartOidcAuth,
+                        ),
                     ),
                 )
             }
@@ -105,9 +148,12 @@ class AuthScreenPresenter(
                         serverUrl = serverUrl,
                         onServerUrlChange = { serverUrl = it },
                         onSignupComplete = { props.onAuthComplete(true) },
-                        authTypes = authTypes,
                         serverValidation = serverValidation,
-                        oidcProviderName = oidcProviderName,
+                        authSubProps = AuthSubProps(
+                            hasInternalAuth = hasInternalAuth,
+                            oidcProvider = oidcProvider,
+                            onStartOidcAuth = onStartOidcAuth,
+                        ),
                     ),
                 )
             }

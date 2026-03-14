@@ -17,7 +17,7 @@ kotlin {
         listOf(
             iosArm64(),
             iosSimulatorArm64(),
-        )
+        ),
     ) {
         val main by compilations.getting
         main.cinterops.create("observer")
@@ -77,6 +77,7 @@ kotlin {
                     implementation(libsClient.bundles.media3)
                     implementation(libsAndroid.androidx.activity.ktx)
                     implementation(libsAndroid.androidx.activity.compose)
+                    implementation(libsAndroid.androidx.browser)
                 }
             }
         }
@@ -84,6 +85,8 @@ kotlin {
         named("jvmMain") {
             dependsOn(jvmCommonMain)
             dependencies {
+                implementation(libsCommon.ktor.server.core)
+                implementation(libsCommon.ktor.server.cio)
                 implementation(libsClient.compose.desktop)
                 implementation(libsClient.vlcj)
             }

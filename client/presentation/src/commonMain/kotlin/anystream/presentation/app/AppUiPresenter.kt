@@ -75,10 +75,14 @@ class AppUiPresenter(
         }
 
         val router = props.externalRouter ?: internalRouter
-        val currentRoute = props.externalRoute ?: internalRouter.stack.last()
+        val currentRoute by remember(props.externalRoute) {
+            derivedStateOf {
+                props.externalRoute ?: internalRouter.stack[internalRouter.stack.lastIndex]
+            }
+        }
 
         // Track authentication state — redirect to Login if session lost
-        LaunchedEffect(Unit) {
+        LaunchedEffect(currentRoute) {
             client.user
                 .authenticated
                 .filter { authed ->

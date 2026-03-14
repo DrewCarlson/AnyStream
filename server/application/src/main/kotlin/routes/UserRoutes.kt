@@ -23,8 +23,10 @@ import anystream.db.SessionsDao
 import anystream.json
 import anystream.models.*
 import anystream.models.api.*
+import anystream.oauthRedirectUrls
 import anystream.service.user.UserService
 import anystream.util.SetSessionCookie
+import anystream.util.SqlSessionStorage
 import anystream.util.koinGet
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -37,6 +39,7 @@ import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.http.HttpStatusCode.Companion.UnprocessableEntity
+import io.ktor.http.takeFrom
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -59,6 +62,8 @@ fun Route.addUserRoutes(
     userService: UserService = koinGet(),
     sessionsDao: SessionsDao = koinGet(),
     config: AnyStreamConfig = koinGet(),
+    sessionStorage: SqlSessionStorage = koinGet(),
+    http: HttpClient = koinGet(),
 ) {
     route("/users") {
         post {
@@ -125,9 +130,13 @@ fun Route.addUserRoutes(
         }
 
         get("/auth-types") {
-            val options = mutableListOf("internal")
+            val options = mutableListOf<AuthProviderType>(AuthProviderType.Internal)
             if (config.oidc.enable) {
-                options.add(config.oidc.provider.name)
+                options.add(
+                    AuthProviderType.Oidc(
+                        providerName = config.oidc.provider.name,
+                    ),
+                )
             }
             call.respond(options)
         }
@@ -140,7 +149,6 @@ fun Route.addUserRoutes(
                     }
 
                     get("/callback") {
-                        val http = koinGet<HttpClient>()
                         val principal = call.principal<OAuthAccessTokenResponse.OAuth2>()!!
                         val response = http.get(config.oidc.provider.userInfoUrl) {
                             header("Authorization", "Bearer ${principal.accessToken}")
@@ -155,21 +163,40 @@ fun Route.addUserRoutes(
                             ?.mapNotNull { it.jsonPrimitive.contentOrNull }
                             .orEmpty()
 
-                        val existingUser = userService.getUserByName(username)
-                        if (existingUser == null) {
-                            val result = userService.createOidcUser(username, groups)
-                            if (result is CreateUserResponse.Success) {
-                                call.sessions.set(UserSession(checkNotNull(result.user.id), result.permissions))
+                        var isNewUser = false
+                        val session = run {
+                            val existingUser = userService.getUserByName(username)
+                            if (existingUser == null) {
+                                val result = userService.createOidcUser(username, groups)
+                                isNewUser = true
+                                (result as? CreateUserResponse.Success)?.let {
+                                    UserSession(checkNotNull(it.user.id), it.permissions)
+                                }
+                            } else {
+                                val result = userService.createOidcSession(username)
+                                (result as? CreateSessionResponse.Success)?.let {
+                                    UserSession(checkNotNull(it.user.id), it.permissions)
+                                }
                             }
+                        } ?: run {
+                            // TODO: Forward oidc session/user create error
+                            return@get call.respond(InternalServerError)
+                        }
+
+                        val customRedirect = oauthRedirectUrls.remove(principal.state)
+                        if (customRedirect == null) {
+                            call.sessions.set(session)
+                            call.attributes.put(SetSessionCookie, true)
+                            call.respondRedirect("/")
                         } else {
-                            val result = userService.createOidcSession(username)
-                            if (result is CreateSessionResponse.Success) {
-                                call.sessions.set(UserSession(checkNotNull(result.user.id), result.permissions))
+                            val sessionId = sessionStorage.write(session)
+                            call.respondRedirect {
+                                parameters.clear() // clear oidc callback params
+                                takeFrom(customRedirect)
+                                parameters["token"] = sessionId
+                                parameters["isNewUser"] = isNewUser.toString()
                             }
                         }
-                        call.attributes.put(SetSessionCookie, true)
-
-                        call.respondRedirect("/")
                     }
                 }
             }
@@ -210,7 +237,12 @@ fun Route.addUserRoutes(
 
                     val result = userService.createSession(body, call.principal())
                     if (result is CreateSessionResponse.Success) {
-                        call.sessions.set(UserSession(checkNotNull(result.user.id), result.permissions))
+                        call.sessions.set(
+                            UserSession(
+                                checkNotNull(result.user.id),
+                                result.permissions,
+                            ),
+                        )
                     }
                     if (result == null) {
                         call.respond(Forbidden)

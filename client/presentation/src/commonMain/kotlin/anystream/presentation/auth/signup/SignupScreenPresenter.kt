@@ -24,8 +24,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import anystream.client.AnyStreamClient
+import anystream.models.ServerValidation
 import anystream.models.api.CreateUserResponse
-import anystream.presentation.auth.ServerValidation
+import anystream.presentation.auth.AuthSubProps
 import anystream.presentation.auth.signup.SignupScreenModel.State
 import anystream.presentation.core.Presenter
 import anystream.presentation.core.rememberEventTrigger
@@ -38,9 +39,8 @@ data class SignupScreenProps(
     val serverUrl: String,
     val onServerUrlChange: (String) -> Unit,
     val onSignupComplete: () -> Unit,
-    val authTypes: List<String>?,
     val serverValidation: ServerValidation,
-    val oidcProviderName: String?,
+    val authSubProps: AuthSubProps,
 )
 
 @SingleIn(AppScope::class)

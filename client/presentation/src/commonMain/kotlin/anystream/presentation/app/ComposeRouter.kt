@@ -35,8 +35,20 @@ internal class ComposeRouter(
     }
 
     override fun replaceStack(routes: List<Routes>) {
-        stack.clear()
-        stack.addAll(routes)
+        routes.forEachIndexed { index, route ->
+            if (index > stack.lastIndex) {
+                stack.add(route)
+            } else {
+                stack[index] = route
+            }
+        }
+        // when old stack is larger than new, pop leftover entries
+        if (stack.lastIndex > routes.lastIndex) {
+            var removeIndex = stack.lastIndex
+            repeat(stack.size - routes.size) {
+                stack.removeAt(removeIndex--)
+            }
+        }
     }
 
     override fun popCurrentRoute(): Boolean {

@@ -25,9 +25,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import anystream.client.AnyStreamClient
+import anystream.models.ServerValidation
 import anystream.models.api.CreateSessionResponse
 import anystream.models.api.PairingMessage
-import anystream.presentation.auth.ServerValidation
+import anystream.presentation.auth.AuthSubProps
 import anystream.presentation.auth.login.LoginScreenModel.State
 import anystream.presentation.core.Presenter
 import anystream.presentation.core.rememberEventTrigger
@@ -43,9 +44,8 @@ data class LoginScreenProps(
     val serverUrl: String,
     val onServerUrlChange: (String) -> Unit,
     val onLoginComplete: () -> Unit,
-    val authTypes: List<String>?,
     val serverValidation: ServerValidation,
-    val oidcProviderName: String?,
+    val authSubProps: AuthSubProps,
 )
 
 @SingleIn(AppScope::class)
@@ -87,7 +87,6 @@ class LoginScreenPresenter(
 
         LaunchedEffect(
             props.supportsPairing,
-            props.serverUrl,
             props.serverValidation,
         ) {
             if (props.serverValidation != ServerValidation.VALID) return@LaunchedEffect
@@ -139,15 +138,15 @@ class LoginScreenPresenter(
             pairingCode = pairingCode,
             loginError = loginError,
             state = state,
-            authTypes = props.authTypes,
             serverValidation = props.serverValidation,
-            oidcProviderName = props.oidcProviderName,
-            supportsPasswordAuth = true,
+            hasInternalAuth = props.authSubProps.hasInternalAuth,
+            oidcProviderName = props.authSubProps.oidcProvider?.providerName,
             supportsPairing = props.supportsPairing,
             onUsernameChanged = { username = it },
             onPasswordChanged = { password = it },
             onServerUrlChanged = props.onServerUrlChange,
             onSubmitLogin = loginTrigger::trigger,
+            onOidcLogin = props.authSubProps.onStartOidcAuth,
         )
     }
 }

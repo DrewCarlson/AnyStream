@@ -45,9 +45,6 @@ import kotlinx.datetime.LocalDate
 import org.slf4j.LoggerFactory
 import java.net.SocketException
 import java.nio.file.Path
-import kotlin.collections.forEach
-import kotlin.collections.map
-import kotlin.collections.orEmpty
 import kotlin.io.encoding.Base64
 import kotlin.io.path.exists
 import kotlin.time.Duration.Companion.seconds
@@ -307,7 +304,7 @@ class TmdbMetadataProvider(
                 scoreTmdbResult(
                     query = query,
                     queryYear = year,
-                    title = it.name,
+                    title = it.name ?: "<unknown>",
                     releaseDate = it.firstAirDate,
                     voteCount = it.voteCount,
                 )
@@ -331,7 +328,7 @@ class TmdbMetadataProvider(
                 scoreTmdbResult(
                     query = query,
                     queryYear = year,
-                    title = it.title,
+                    title = it.title ?: "<unknown>",
                     releaseDate = it.releaseDate,
                     voteCount = it.voteCount,
                 )
@@ -671,9 +668,9 @@ class TmdbMetadataProvider(
         }
 
     private fun TmdbCredits.toCreditsDb(): Map<Person, List<MetadataCredit>> {
-        fun TmdbCast.toPerson() = Person(id = "", name = name, tmdbId = id)
+        fun TmdbCast.toPerson() = Person(id = "", name = name ?: "<unknown>", tmdbId = id)
 
-        fun TmdbCrew.toPerson() = Person(id = "", name = name, tmdbId = id)
+        fun TmdbCrew.toPerson() = Person(id = "", name = name ?: "<unknown>", tmdbId = id)
 
         fun createCredit(
             creditType: CreditType,
@@ -698,7 +695,7 @@ class TmdbMetadataProvider(
             }
             crew.forEach { crew ->
                 val job = try {
-                    CreditJob.valueOf(crew.job.uppercase())
+                    CreditJob.valueOf(crew.job.orEmpty().uppercase())
                 } catch (_: IllegalArgumentException) {
                     // ignore undefined jobs
                     return@forEach

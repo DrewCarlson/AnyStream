@@ -17,9 +17,9 @@
  */
 package anystream.presentation.auth.signup
 
+import anystream.models.ServerValidation
 import anystream.models.api.CreateUserResponse
 import anystream.presentation.auth.AuthScreenModel
-import anystream.presentation.auth.ServerValidation
 
 data class SignupScreenModel(
     val serverUrl: String = "",

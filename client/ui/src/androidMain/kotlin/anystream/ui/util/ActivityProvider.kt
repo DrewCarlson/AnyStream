@@ -15,17 +15,27 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.di
+package anystream.ui.util
 
-import anystream.client.AnyStreamClient
-import anystream.presentation.app.AppPresenter
-import anystream.presentation.auth.OidcLauncher
-import anystream.ui.video.PlayerHandle
-import dev.zacsweers.metro.Provider
+import android.app.Activity
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
+import java.lang.ref.WeakReference
 
-interface AppGraph {
-    val client: AnyStreamClient
-    val playerHandle: Provider<PlayerHandle>
-    val appPresenter: AppPresenter
-    val oidcLauncher: OidcLauncher
+@SingleIn(AppScope::class)
+@Inject
+class ActivityProvider {
+    private var activityRef: WeakReference<Activity>? = null
+
+    val activity: Activity?
+        get() = activityRef?.get()
+
+    fun set(activity: Activity) {
+        activityRef = WeakReference(activity)
+    }
+
+    fun clear() {
+        activityRef = null
+    }
 }

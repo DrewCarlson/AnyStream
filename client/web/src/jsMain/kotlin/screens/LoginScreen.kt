@@ -25,7 +25,6 @@ import app.softwork.routingcompose.Router
 import org.jetbrains.compose.web.attributes.*
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
-import web.window.window
 
 @Composable
 fun LoginScreen(model: LoginScreenModel) {
@@ -38,7 +37,7 @@ fun LoginScreen(model: LoginScreenModel) {
         }
     }) {
         Div { H3 { Text("Login") } }
-        if (model.supportsPasswordAuth) {
+        if (model.hasInternalAuth) {
             Div {
                 Input(InputType.Text) {
                     onInput { model.onUsernameChanged(it.value) }
@@ -77,7 +76,9 @@ fun LoginScreen(model: LoginScreenModel) {
                 }
             }
         }
-        if (model.oidcProviderName != null) {
+        val oidcProviderName = model.oidcProviderName
+        val onOidcLogin = model.onOidcLogin
+        if (oidcProviderName != null && onOidcLogin != null) {
             Div {
                 A(
                     attrs = {
@@ -86,7 +87,7 @@ fun LoginScreen(model: LoginScreenModel) {
                         }
                         onClick {
                             if (model.state == State.IDLE) {
-                                window.location.pathname = "/api/users/oidc/login"
+                                onOidcLogin()
                             }
                         }
                     },

@@ -34,7 +34,6 @@ import anystream.screens.settings.SettingsSideMenu
 import app.softwork.routingcompose.BrowserRouter
 import app.softwork.routingcompose.Router
 import io.ktor.http.Url
-import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.flow.*
 import org.jetbrains.compose.web.css.*
@@ -48,20 +47,6 @@ val LocalAnyStreamClient =
 
 fun webApp(appGraph: JsAppGraph) =
     renderComposable(rootElementId = "root") {
-        // Consume session token from cookie after oauth flow
-        val client = remember { appGraph.client }
-        LaunchedEffect(Unit) {
-            if (client.user.isAuthenticated()) return@LaunchedEffect
-            val cookies = document.cookie.split(';').toMutableSet()
-            cookies.forEach { cookie ->
-                if (cookie.startsWith("as_user_session")) {
-                    cookies.remove(cookie)
-                    document.cookie = cookies.joinToString(";")
-                    client.user.completeOauth(cookie.substringAfter('='))
-                    return@forEach
-                }
-            }
-        }
         Div(
             attrs = {
                 id("main-panel")

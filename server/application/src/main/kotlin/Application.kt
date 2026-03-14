@@ -69,6 +69,7 @@ import io.ktor.server.plugins.partialcontent.*
 import io.ktor.server.response.*
 import io.ktor.server.sessions.*
 import io.ktor.server.websocket.*
+import io.ktor.util.collections.ConcurrentMap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.drewcarlson.ktor.permissions.PermissionAuthorization
@@ -90,10 +91,12 @@ import kotlin.io.path.absolutePathString
 import kotlin.io.path.exists
 import kotlin.io.path.extension
 import kotlin.io.path.writeText
-import kotlin.random.Random
 import kotlin.time.Duration.Companion.seconds
 
 private val configFileSuffixes = listOf("conf", "yml", "yaml")
+
+// TODO: add state expiration for incomplete auth flows
+val oauthRedirectUrls = ConcurrentMap<String, String>()
 
 suspend fun main(args: Array<String>) {
     val defaultConfig = ConfigFactory.load()
@@ -345,6 +348,12 @@ fun Application.module(testing: Boolean = false) {
                         clientId = config.oidc.provider.clientId,
                         clientSecret = config.oidc.provider.clientSecret,
                         defaultScopes = config.oidc.provider.scopes,
+                        onStateCreated = { call, state ->
+                            val redirectUrl = call.request.queryParameters["redirect_url"]
+                            if (redirectUrl != null) {
+                                oauthRedirectUrls[state] = redirectUrl.decodeURLQueryComponent()
+                            }
+                        },
                     )
                 }
             }
@@ -353,7 +362,7 @@ fun Application.module(testing: Boolean = false) {
     val sessionStorage = get<SqlSessionStorage>()
     install(Sessions) {
         headerOrQuery(UserSession.KEY, sessionStorage, SqlSessionStorage.Serializer) {
-            Random.nextBytes(48).toHexString()
+            sessionStorage.newId()
         }
     }
     install(WebsocketAuthorization) {

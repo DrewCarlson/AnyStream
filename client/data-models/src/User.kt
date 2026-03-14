@@ -33,7 +33,7 @@ class UserPublic(
     val displayName: String,
 )
 
-enum class AuthType {
+enum class AuthSource {
     INTERNAL,
     OIDC,
     BOTH,

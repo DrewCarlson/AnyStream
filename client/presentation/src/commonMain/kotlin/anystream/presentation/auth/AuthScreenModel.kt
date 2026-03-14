@@ -22,12 +22,6 @@ import anystream.routing.Routes
 
 interface AuthScreenModel : ScreenModel
 
-enum class ServerValidation {
-    VALID,
-    INVALID,
-    VALIDATING,
-}
-
 enum class AuthScreenType {
     LOGIN,
     SIGNUP,
