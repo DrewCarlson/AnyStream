@@ -12,7 +12,7 @@ imageio = "3.13.1"
 icu4j = "78.2"
 
 [plugins]
-shadowjar = "com.gradleup.shadow:9.3.2"
+shadowjar = "com.gradleup.shadow:9.4.0"
 jooq = { id = "nu.studer.jooq", version.ref = "jooqGradle" }
 flyway = "org.flywaydb.flyway:12.1.0"
 
