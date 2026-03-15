@@ -169,16 +169,15 @@ class AnyStreamApiCore(
 
     suspend fun verifyAndSetServerUrl(serverUrl: String): ServerValidation {
         if (serverUrl.isBlank()) return ServerValidation.INVALID
-        if (this.serverUrl.equals(serverUrl, ignoreCase = true)) {
-            return ServerValidation.VALID
-        }
         return try {
             val request = http.get(serverUrl) {
                 attributes[ServerUrlAttribute] = serverUrl
             }
             check(request.status == OK)
-            this.serverUrl = serverUrl
-            sessionManager.writeServerUrl(this.serverUrl.orEmpty())
+            if (!this.serverUrl.equals(serverUrl, ignoreCase = true)) {
+                this.serverUrl = serverUrl
+                sessionManager.writeServerUrl(this.serverUrl.orEmpty())
+            }
             ServerValidation.VALID
         } catch (_: Throwable) {
             ServerValidation.INVALID
