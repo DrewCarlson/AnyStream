@@ -149,7 +149,7 @@ class UserApiClient(
             }
     }
 
-    suspend fun completeOauth(token: String): Boolean {
+    suspend fun completeOidcAuth(token: String): Boolean {
         val response = core.http.get("/api/users/session") {
             header(AnyStreamApiCore.SESSION_KEY, token)
         }

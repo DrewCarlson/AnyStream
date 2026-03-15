@@ -118,7 +118,7 @@ class AuthScreenPresenter(
                 .observeOidcResult()
                 .filterIsInstance<OidcLaunchResult.LoginComplete>() // TODO: Handle oidc error type
                 .onEach { result ->
-                    client.user.completeOauth(result.token)
+                    client.user.completeOidcAuth(result.token)
                     props.onAuthComplete(result.isNewUser)
                 }.collect()
         }
