@@ -17,15 +17,18 @@ distributions.configureEach {
 val web = evaluationDependsOn(":client:web")
 
 tasks.withType<ShadowJar> {
-    dependsOn(web.tasks.getByName("jsBrowserProductionDist"))
+    val includeWebClient = properties["buildWebClient"]?.toString()?.toBoolean() ?: true
+    if (includeWebClient) {
+        dependsOn(web.tasks.getByName("jsBrowserProductionDist"))
+        from(web.layout.buildDirectory.file("vite/js/productionExecutable")) {
+            into("anystream-client-web")
+        }
+    }
     archiveFileName.set("anystream.jar")
     archiveBaseName.set("anystream")
     archiveClassifier.set("anystream")
     manifest {
         attributes(mapOf("Main-Class" to application.mainClass.get()))
-    }
-    from(web.layout.buildDirectory.file("vite/js/productionExecutable")) {
-        into("anystream-client-web")
     }
 }
 
@@ -46,10 +49,12 @@ kotlin {
                 if (!configFile.exists()) {
                     val resources = file("src/test/resources").absolutePath
                     configFile.createNewFile()
-                    configFile.writeText(buildString {
-                        appendLine("package anystream.test")
-                        appendLine("const val RESOURCES = \"${resources.replace('\\', '/')}\"")
-                    })
+                    configFile.writeText(
+                        buildString {
+                            appendLine("package anystream.test")
+                            appendLine("const val RESOURCES = \"${resources.replace('\\', '/')}\"")
+                        },
+                    )
                 }
             }
         }
@@ -103,7 +108,7 @@ dependencies {
     implementation(libsServer.bundles.jooq)
     implementation(libsServer.jdbc.sqlite)
 
-    //implementation(libsServer.kjob.core)
+    // implementation(libsServer.kjob.core)
 
     implementation(libsServer.jaffree)
 
@@ -123,15 +128,23 @@ dependencies {
 }
 
 tasks.getByName<JavaExec>("run") {
-    dependsOn(web.tasks.getByName("jsBrowserDevelopmentDist"))
-    environment(
-        "WEB_CLIENT_PATH",
-        properties["webClientPath"] ?: environment["WEB_CLIENT_PATH"]
-        ?: web.layout.buildDirectory.dir("vite/js/developmentExecutable").get().asFile.absolutePath
-    )
+    val includeWebClient = properties["buildWebClient"]?.toString()?.toBoolean() ?: true
+    if (includeWebClient) {
+        val webClientPath = properties["webClientPath"]
+            ?: environment["WEB_CLIENT_PATH"]
+            ?: run {
+                dependsOn(web.tasks.getByName("jsBrowserDevelopmentDist"))
+                web.layout.buildDirectory
+                    .dir("vite/js/developmentExecutable")
+                    .get()
+                    .asFile.absolutePath
+            }
+        environment("WEB_CLIENT_PATH", webClientPath)
+    }
     environment(
         "DATABASE_URL",
-        properties["databaseUrl"] ?: environment["DATABASE_URL"]
-        ?: rootDir.resolve("anystream.db")
+        properties["databaseUrl"]
+            ?: environment["DATABASE_URL"]
+            ?: rootDir.resolve("anystream.db"),
     )
 }
