@@ -17,11 +17,18 @@
  */
 package anystream.routes
 
+import anystream.di.ServerScope
+import anystream.models.Permission
 import anystream.models.api.SearchResponse
-import anystream.serverGraph
 import anystream.service.search.SearchService
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
+import dev.zacsweers.metro.binding
+import io.ktor.server.auth.authenticate
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import org.drewcarlson.ktor.permissions.withAnyPermission
 
 private const val DEFAULT_SEARCH_RESULT_LIMIT = 3
 private const val MAX_SEARCH_RESULT_LIMIT = 3
@@ -29,15 +36,31 @@ private const val QUERY = "query"
 private const val LIMIT = "limit"
 private const val MEDIA_KIND = "mediaKind"
 
-fun Route.addSearchRoutes(searchService: SearchService = application.attributes.serverGraph.searchService) {
-    route("/search") {
-        get {
-            val query = call.parameters[QUERY] ?: return@get call.respond(SearchResponse())
-            val limit = (call.parameters[LIMIT]?.toIntOrNull() ?: DEFAULT_SEARCH_RESULT_LIMIT)
-                .coerceIn(1, MAX_SEARCH_RESULT_LIMIT)
-            // val mediaKind = call.parameters[MEDIA_KIND]?.uppercase()?.run(MediaKind::valueOf)
-
-            call.respond(searchService.search(query, limit))
+@SingleIn(ServerScope::class)
+@ContributesIntoSet(
+    scope = ServerScope::class,
+    binding = binding<RoutingController>(),
+)
+@Inject
+class SearchRoutes(
+    private val searchService: SearchService,
+) : RoutingController {
+    override fun init(parent: Route) {
+        parent.authenticate {
+            withAnyPermission(Permission.ViewCollection) {
+                get("/search") {
+                    getSearchResults()
+                }
+            }
         }
+    }
+
+    suspend fun RoutingContext.getSearchResults() {
+        val query = call.parameters[QUERY] ?: return call.respond(SearchResponse())
+        val limit = (call.parameters[LIMIT]?.toIntOrNull() ?: DEFAULT_SEARCH_RESULT_LIMIT)
+            .coerceIn(1, MAX_SEARCH_RESULT_LIMIT)
+        // val mediaKind = call.parameters[MEDIA_KIND]?.uppercase()?.run(MediaKind::valueOf)
+
+        call.respond(searchService.search(query, limit))
     }
 }

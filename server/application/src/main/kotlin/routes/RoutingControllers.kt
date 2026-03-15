@@ -15,9 +15,30 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.di
+package anystream.routes
 
-abstract class ServerScope private constructor()
+import anystream.di.ServerScope
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
+import io.ktor.server.application.Application
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.route
+import io.ktor.server.routing.routing
 
-const val DATA_PATH = "dataPath"
-const val TRANSCODE_PATH = "transcodePath"
+@SingleIn(ServerScope::class)
+@Inject
+class RoutingControllers(
+    private val controllers: Set<RoutingController>,
+) {
+    fun init(application: Application) {
+        application.routing {
+            route("/api") {
+                controllers.forEach { it.init(this) }
+            }
+        }
+    }
+}
+
+interface RoutingController {
+    fun init(parent: Route)
+}

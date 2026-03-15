@@ -22,7 +22,7 @@ import anystream.db.*
 import anystream.jobs.registerJobs
 import anystream.models.MediaKind
 import anystream.models.Permission
-import anystream.routes.installRouting
+import anystream.routes.installWebClientRoutes
 import anystream.util.SqlSessionStorage
 import anystream.util.WebsocketAuthorization
 import anystream.util.headerOrQuery
@@ -51,8 +51,6 @@ import io.ktor.server.plugins.partialcontent.*
 import io.ktor.server.response.*
 import io.ktor.server.sessions.*
 import io.ktor.server.websocket.*
-import io.ktor.util.AttributeKey
-import io.ktor.util.Attributes
 import io.ktor.util.collections.ConcurrentMap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -69,10 +67,6 @@ private val configFileSuffixes = listOf("conf", "yml", "yaml")
 
 // TODO: add state expiration for incomplete auth flows
 val oauthRedirectUrls = ConcurrentMap<String, String>()
-
-val ServerGraphKey = AttributeKey<ServerGraph>("ServerGraph")
-val Attributes.serverGraph: ServerGraph
-    get() = get(ServerGraphKey)
 
 suspend fun main(args: Array<String>) {
     val defaultConfig = ConfigFactory.load()
@@ -126,7 +120,6 @@ fun Application.module(testing: Boolean = false) {
     val fs = FileSystems.getDefault()
     val config = AnyStreamConfig(environment.config, fs)
     val serverGraph = createGraphFactory<ServerGraph.Factory>().create(config, this)
-    attributes[ServerGraphKey] = serverGraph
 
     val applicationScope = this as CoroutineScope
     monitor.subscribe(ApplicationStopped) {
@@ -247,5 +240,8 @@ fun Application.module(testing: Boolean = false) {
         global(Permission.Global)
         extract { (it as UserSession).permissions }
     }
-    installRouting(serverGraph)
+
+    installWebClientRoutes(serverGraph.config)
+
+    serverGraph.routingControllers.init(this)
 }

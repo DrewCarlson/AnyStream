@@ -20,14 +20,18 @@ package anystream.routes
 import anystream.AnyStreamConfig
 import anystream.data.UserSession
 import anystream.db.SessionsDao
+import anystream.di.ServerScope
 import anystream.json
 import anystream.models.*
 import anystream.models.api.*
 import anystream.oauthRedirectUrls
-import anystream.serverGraph
 import anystream.service.user.UserService
 import anystream.util.SetSessionCookie
 import anystream.util.SqlSessionStorage
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
+import dev.zacsweers.metro.binding
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -53,277 +57,321 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
 import org.drewcarlson.ktor.permissions.withAnyPermission
-import java.util.*
+import java.util.UUID
 import kotlin.time.Duration.Companion.seconds
 
 private const val PAIRING_SESSION_SECONDS = 60
 
-fun Route.addUserRoutes(
-    userService: UserService = application.attributes.serverGraph.userService,
-    sessionsDao: SessionsDao = application.attributes.serverGraph.sessionsDao,
-    config: AnyStreamConfig = application.attributes.serverGraph.config,
-    sessionStorage: SqlSessionStorage = application.attributes.serverGraph.sessionStorage,
-    http: HttpClient = application.attributes.serverGraph.http,
-) {
-    route("/users") {
-        post {
-            val body = runCatching { call.receiveNullable<CreateUserBody>() }
-                .getOrNull() ?: return@post call.respond(UnprocessableEntity)
-            val createSession = call.parameters["createSession"]?.toBoolean() ?: true
+@SingleIn(ServerScope::class)
+@ContributesIntoSet(
+    scope = ServerScope::class,
+    binding = binding<RoutingController>(),
+)
+@Inject
+class UserRoutes(
+    private val userService: UserService,
+    private val sessionsDao: SessionsDao,
+    private val config: AnyStreamConfig,
+    private val sessionStorage: SqlSessionStorage,
+    private val http: HttpClient,
+) : RoutingController {
+    override fun init(parent: Route) {
+        parent.apply {
+            route("/users") {
+                post { createUser() }
+                get("/auth-types") { getAuthProviderTypes() }
 
-            val result = userService.createUser(body)
-            if (createSession && result is CreateUserResponse.Success) {
-                call.sessions.getOrSet {
-                    UserSession(
-                        userId = checkNotNull(result.user.id),
-                        permissions = result.permissions,
-                    )
-                }
-            }
-            call.respond(result)
-        }
-
-        authenticate {
-            withAnyPermission(Permission.Global) {
-                route("/invite") {
-                    get {
-                        val session = call.sessions.get<UserSession>()!!
-                        call.respond(
-                            userService.getInvites(
-                                session.userId.takeIf {
-                                    session.permissions.contains(Permission.Global)
-                                },
-                            ),
-                        )
-                    }
-
-                    post {
-                        val session = call.sessions.get<UserSession>()!!
-                        val permissions = runCatching { call.receiveNullable<Set<Permission>>() }
-                            .getOrNull() ?: setOf(Permission.ViewCollection)
-
-                        val inviteCode = userService.createInviteCode(session.userId, permissions)
-                        if (inviteCode == null) {
-                            call.respond(InternalServerError)
-                        } else {
-                            call.respond(inviteCode)
+                authenticate {
+                    withAnyPermission(Permission.Global) {
+                        route("/invite") {
+                            get { getInviteCodes() }
+                            post { createInviteCode() }
+                            delete("/{inviteCode}") { deleteInviteCode() }
                         }
                     }
-
-                    delete("/{inviteCode}") {
-                        val session = call.sessions.get<UserSession>()!!
-                        val inviteCode = call.parameters["inviteCode"]
-                            ?: return@delete call.respond(BadRequest)
-
-                        // Only allow user's without global permission to delete
-                        // their own InviteCodes.
-                        val result = userService.deleteInvite(
-                            inviteCode = inviteCode,
-                            byUserId = session.userId.takeIf {
-                                session.permissions.contains(Permission.Global)
-                            },
-                        )
-                        call.respond(if (result) OK else NotFound)
-                    }
                 }
-            }
-        }
 
-        get("/auth-types") {
-            val options = mutableListOf<AuthProviderType>(AuthProviderType.Internal)
-            if (config.oidc.enable) {
-                options.add(
-                    AuthProviderType.Oidc(
-                        providerName = config.oidc.provider.name,
-                    ),
-                )
-            }
-            call.respond(options)
-        }
-
-        if (config.oidc.enable) {
-            authenticate(config.oidc.provider.name) {
-                route("/oidc") {
-                    get("/login") {
-                        // automatically redirect to auth provider
-                    }
-
-                    get("/callback") {
-                        val principal = call.principal<OAuthAccessTokenResponse.OAuth2>()!!
-                        val response = http.get(config.oidc.provider.userInfoUrl) {
-                            header("Authorization", "Bearer ${principal.accessToken}")
-                        }
-                        val body = response.body<JsonObject>()
-
-                        val username = config.oidc.provider.usernameFields
-                            .firstNotNullOf { body[it]?.jsonPrimitive?.contentOrNull }
-                            .lowercase()
-                        val groups = body[config.oidc.provider.groupsField]
-                            ?.jsonArray
-                            ?.mapNotNull { it.jsonPrimitive.contentOrNull }
-                            .orEmpty()
-
-                        var isNewUser = false
-                        val session = run {
-                            val existingUser = userService.getUserByName(username)
-                            if (existingUser == null) {
-                                val result = userService.createOidcUser(username, groups)
-                                isNewUser = true
-                                (result as? CreateUserResponse.Success)?.let {
-                                    UserSession(checkNotNull(it.user.id), it.permissions)
-                                }
-                            } else {
-                                val result = userService.createOidcSession(username)
-                                (result as? CreateSessionResponse.Success)?.let {
-                                    UserSession(checkNotNull(it.user.id), it.permissions)
-                                }
+                if (config.oidc.enable) {
+                    authenticate(config.oidc.provider.name) {
+                        route("/oidc") {
+                            get("/login") {
+                                // automatically redirect to auth provider
                             }
-                        } ?: run {
-                            // TODO: Forward oidc session/user create error
-                            return@get call.respond(InternalServerError)
-                        }
 
-                        val customRedirect = oauthRedirectUrls.remove(principal.state)
-                        if (customRedirect == null) {
-                            call.sessions.set(session)
-                            call.attributes.put(SetSessionCookie, true)
-                            call.respondRedirect("/")
-                        } else {
-                            val sessionId = sessionStorage.write(session)
-                            call.respondRedirect {
-                                parameters.clear() // clear oidc callback params
-                                takeFrom(customRedirect)
-                                parameters["token"] = sessionId
-                                parameters["isNewUser"] = isNewUser.toString()
-                            }
+                            get("/callback") { getOidcCallback() }
                         }
                     }
                 }
-            }
-        }
 
-        route("/session") {
-            authenticate {
-                get {
-                    val userSession = call.sessions.get<UserSession>()!!
-                    call.respond(
-                        CreateSessionResponse.Success(
-                            user = userService.getUser(userSession.userId)!!.toPublic(),
-                            permissions = userSession.permissions,
-                        ),
-                    )
-                }
-            }
-
-            get("/adopt") {
-                val sessionToken = call.request.queryParameters["as_user_session"]
-                    ?: return@get call.respond(Unauthorized)
-                val redirectLocation = call.request.queryParameters["redirect"]
-
-                val sessionData: UserSession = sessionsDao
-                    .find(sessionToken)
-                    ?.run(json::decodeFromString)
-                    ?: return@get call.respond(NotFound)
-
-                call.sessions.set(sessionData)
-                call.attributes.put(SetSessionCookie, true)
-                call.respondRedirect(redirectLocation ?: "/")
-            }
-
-            authenticate(optional = true) {
-                post {
-                    val body = runCatching { call.receiveNullable<CreateSessionBody>() }
-                        .getOrNull() ?: return@post call.respond(UnprocessableEntity)
-
-                    val result = userService.createSession(body, call.principal())
-                    if (result is CreateSessionResponse.Success) {
-                        call.sessions.set(
-                            UserSession(
-                                checkNotNull(result.user.id),
-                                result.permissions,
-                            ),
-                        )
+                route("/session") {
+                    authenticate {
+                        get { getSession() }
                     }
-                    if (result == null) {
-                        call.respond(Forbidden)
-                    } else {
-                        call.respond(result)
+
+                    get("/adopt") { getAdoptSession() }
+
+                    authenticate(optional = true) {
+                        post { createSession() }
+                    }
+
+                    post("/paired") { createPairedSession() }
+
+                    authenticate {
+                        delete { deleteSession() }
+                    }
+                }
+
+                authenticate {
+                    withAnyPermission(Permission.Global) {
+                        get { listUsers() }
+                    }
+
+                    route("/{user_id}") {
+                        withAnyPermission(Permission.Global) {
+                            get { getUser() }
+                        }
+
+                        put { updateUser() }
+
+                        withAnyPermission(Permission.Global) {
+                            delete { deleteUser() }
+                        }
                     }
                 }
             }
 
-            post("/paired") {
-                val pairingCode = call.parameters["pairingCode"]!!
-                val secret = call.parameters["secret"]!!
-
-                val result = userService.verifyPairingSecret(pairingCode, secret)
-                if (result is CreateSessionResponse.Success) {
-                    call.sessions.set(
-                        UserSession(
-                            userId = checkNotNull(result.user.id),
-                            permissions = result.permissions,
-                        ),
-                    )
-                }
-
-                if (result == null) {
-                    call.respond(Forbidden)
-                } else {
-                    call.respond(result)
-                }
-            }
-
-            authenticate {
-                delete {
-                    call.sessions.clear<UserSession>()
-                    call.respond(OK)
-                }
-            }
-        }
-
-        authenticate {
-            withAnyPermission(Permission.Global) {
-                get {
-                    call.respond(userService.getUsers().map(User::toPublic))
-                }
-            }
-
-            route("/{user_id}") {
-                withAnyPermission(Permission.Global) {
-                    get {
-                        val userId = call.parameters["user_id"]!!
-                        call.respond(userService.getUser(userId)?.toPublic() ?: NotFound)
-                    }
-                }
-
-                put {
-                    val session = call.sessions.get<UserSession>()!!
-                    val userId = call.parameters["user_id"]!!
-                    val body = runCatching { call.receiveNullable<UpdateUserBody>() }
-                        .getOrNull() ?: return@put call.respond(UnprocessableEntity)
-
-                    if (userId == session.userId) {
-                        val success = userService.updateUser(userId, body)
-                        call.respond(if (success) OK else InternalServerError)
-                    } else {
-                        call.respond(Forbidden)
-                    }
-                }
-
-                withAnyPermission(Permission.Global) {
-                    delete {
-                        val userId = call.parameters["user_id"]!!
-                        val result = userService.deleteUser(userId)
-                        call.respond(if (result) OK else NotFound)
-                    }
-                }
+            webSocket("/ws/users/pair") {
+                wsCreatePairSession()
             }
         }
     }
-}
 
-fun Route.addUserWsRoutes(userService: UserService = application.attributes.serverGraph.userService) {
-    webSocket("/ws/users/pair") {
+    suspend fun RoutingContext.createUser() {
+        val body = runCatching { call.receiveNullable<CreateUserBody>() }
+            .getOrNull() ?: return call.respond(UnprocessableEntity)
+        val createSession = call.parameters["createSession"]?.toBoolean() ?: true
+
+        val result = userService.createUser(body)
+        if (createSession && result is CreateUserResponse.Success) {
+            call.sessions.getOrSet {
+                UserSession(
+                    userId = checkNotNull(result.user.id),
+                    permissions = result.permissions,
+                )
+            }
+        }
+        call.respond(result)
+    }
+
+    suspend fun RoutingContext.getInviteCodes() {
+        val session = call.sessions.get<UserSession>()!!
+        call.respond(
+            userService.getInvites(
+                session.userId.takeIf {
+                    session.permissions.contains(Permission.Global)
+                },
+            ),
+        )
+    }
+
+    suspend fun RoutingContext.createInviteCode() {
+        val session = call.sessions.get<UserSession>()!!
+        val permissions = runCatching { call.receiveNullable<Set<Permission>>() }
+            .getOrNull() ?: setOf(Permission.ViewCollection)
+
+        val inviteCode = userService.createInviteCode(session.userId, permissions)
+        if (inviteCode == null) {
+            call.respond(InternalServerError)
+        } else {
+            call.respond(inviteCode)
+        }
+    }
+
+    suspend fun RoutingContext.deleteInviteCode() {
+        val session = call.sessions.get<UserSession>()!!
+        val inviteCode = call.parameters["inviteCode"]
+            ?: return call.respond(BadRequest)
+
+        // Only allow user's without global permission to delete
+        // their own InviteCodes.
+        val result = userService.deleteInvite(
+            inviteCode = inviteCode,
+            byUserId = session.userId.takeIf {
+                session.permissions.contains(Permission.Global)
+            },
+        )
+        call.respond(if (result) OK else NotFound)
+    }
+
+    suspend fun RoutingContext.getAuthProviderTypes() {
+        val options = mutableListOf<AuthProviderType>(AuthProviderType.Internal)
+        if (config.oidc.enable) {
+            options.add(
+                AuthProviderType.Oidc(
+                    providerName = config.oidc.provider.name,
+                ),
+            )
+        }
+        call.respond(options)
+    }
+
+    suspend fun RoutingContext.getOidcCallback() {
+        val principal = call.principal<OAuthAccessTokenResponse.OAuth2>()!!
+        val response = http.get(config.oidc.provider.userInfoUrl) {
+            header("Authorization", "Bearer ${principal.accessToken}")
+        }
+        val body = response.body<JsonObject>()
+
+        val username = config.oidc.provider.usernameFields
+            .firstNotNullOf { body[it]?.jsonPrimitive?.contentOrNull }
+            .lowercase()
+        val groups = body[config.oidc.provider.groupsField]
+            ?.jsonArray
+            ?.mapNotNull { it.jsonPrimitive.contentOrNull }
+            .orEmpty()
+
+        var isNewUser = false
+        val session = run {
+            val existingUser = userService.getUserByName(username)
+            if (existingUser == null) {
+                val result = userService.createOidcUser(username, groups)
+                isNewUser = true
+                (result as? CreateUserResponse.Success)?.let {
+                    UserSession(checkNotNull(it.user.id), it.permissions)
+                }
+            } else {
+                val result = userService.createOidcSession(username)
+                (result as? CreateSessionResponse.Success)?.let {
+                    UserSession(checkNotNull(it.user.id), it.permissions)
+                }
+            }
+        } ?: run {
+            // TODO: Forward oidc session/user create error
+            return call.respond(InternalServerError)
+        }
+
+        val customRedirect = oauthRedirectUrls.remove(principal.state)
+        if (customRedirect == null) {
+            call.sessions.set(session)
+            call.attributes.put(SetSessionCookie, true)
+            call.respondRedirect("/")
+        } else {
+            val sessionId = sessionStorage.write(session)
+            call.respondRedirect {
+                parameters.clear() // clear oidc callback params
+                takeFrom(customRedirect)
+                parameters["token"] = sessionId
+                parameters["isNewUser"] = isNewUser.toString()
+            }
+        }
+    }
+
+    suspend fun RoutingContext.getSession() {
+        val userSession = call.sessions.get<UserSession>()!!
+        call.respond(
+            CreateSessionResponse.Success(
+                user = userService.getUser(userSession.userId)!!.toPublic(),
+                permissions = userSession.permissions,
+            ),
+        )
+    }
+
+    suspend fun RoutingContext.getAdoptSession() {
+        val sessionToken = call.request.queryParameters["as_user_session"]
+            ?: return call.respond(Unauthorized)
+        val redirectLocation = call.request.queryParameters["redirect"]
+
+        val sessionData: UserSession = sessionsDao
+            .find(sessionToken)
+            ?.run(json::decodeFromString)
+            ?: return call.respond(NotFound)
+
+        call.sessions.set(sessionData)
+        call.attributes.put(SetSessionCookie, true)
+        call.respondRedirect(redirectLocation ?: "/")
+    }
+
+    suspend fun RoutingContext.createSession() {
+        val body = runCatching { call.receiveNullable<CreateSessionBody>() }
+            .getOrNull() ?: return call.respond(UnprocessableEntity)
+
+        val result = userService.createSession(body, call.principal())
+        if (result is CreateSessionResponse.Success) {
+            call.sessions.set(
+                UserSession(
+                    checkNotNull(result.user.id),
+                    result.permissions,
+                ),
+            )
+        }
+        if (result == null) {
+            call.respond(Forbidden)
+        } else {
+            call.respond(result)
+        }
+    }
+
+    suspend fun RoutingContext.createPairedSession() {
+        val pairingCode = call.parameters["pairingCode"]!!
+        val secret = call.parameters["secret"]!!
+
+        val result = userService.verifyPairingSecret(pairingCode, secret)
+        if (result is CreateSessionResponse.Success) {
+            call.sessions.set(
+                UserSession(
+                    userId = checkNotNull(result.user.id),
+                    permissions = result.permissions,
+                ),
+            )
+        }
+
+        if (result == null) {
+            call.respond(Forbidden)
+        } else {
+            call.respond(result)
+        }
+    }
+
+    suspend fun RoutingContext.deleteSession() {
+        call.sessions.clear<UserSession>()
+        call.respond(OK)
+    }
+
+    suspend fun RoutingContext.getUser() {
+        val userId = call.parameters["user_id"]!!
+        val user = userService.getUser(userId)?.toPublic()
+        if (user == null) {
+            call.respond(NotFound)
+        } else {
+            call.respond(user)
+        }
+    }
+
+    suspend fun RoutingContext.updateUser() {
+        val session = call.sessions.get<UserSession>()!!
+        val userId = call.parameters["user_id"]!!
+        val body = runCatching { call.receiveNullable<UpdateUserBody>() }
+            .getOrNull() ?: return call.respond(UnprocessableEntity)
+
+        if (userId == session.userId) {
+            val success = userService.updateUser(userId, body)
+            call.respond(if (success) OK else InternalServerError)
+        } else {
+            call.respond(Forbidden)
+        }
+    }
+
+    suspend fun RoutingContext.deleteUser() {
+        val userId = call.parameters["user_id"]!!
+        val result = userService.deleteUser(userId)
+        call.respond(if (result) OK else NotFound)
+    }
+
+    suspend fun RoutingContext.listUsers() {
+        call.respond(userService.getUsers().map(User::toPublic))
+    }
+
+    suspend fun DefaultWebSocketServerSession.wsCreatePairSession() {
         val pairingCode = UUID.randomUUID().toString().lowercase()
         val startingJson = json.encodeToString<PairingMessage>(PairingMessage.Started(pairingCode))
         send(Frame.Text(startingJson))
@@ -336,7 +384,7 @@ fun Route.addUserWsRoutes(userService: UserService = application.attributes.serv
             finalMessage = userService.getPairingMessage(pairingCode, false) ?: finalMessage
             if (tick >= PAIRING_SESSION_SECONDS) {
                 send(Frame.Text(json.encodeToString<PairingMessage>(PairingMessage.Failed)))
-                return@webSocket close()
+                return close()
             }
         }
 

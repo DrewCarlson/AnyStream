@@ -19,11 +19,15 @@ package anystream.routes
 
 import anystream.data.UserSession
 import anystream.db.MediaLinkDao
+import anystream.di.ServerScope
 import anystream.json
 import anystream.models.Permission
-import anystream.serverGraph
 import anystream.torrent.search.TorrentDescription2
 import anystream.util.extractUserSession
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
+import dev.zacsweers.metro.binding
 import io.ktor.client.plugins.*
 import io.ktor.client.utils.*
 import io.ktor.http.HttpStatusCode.Companion.Conflict
@@ -38,152 +42,182 @@ import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.flow.*
+import org.drewcarlson.ktor.permissions.withAnyPermission
 import qbittorrent.QBittorrentClient
 import qbittorrent.QBittorrentException
 import qbittorrent.models.TorrentFile
 
-fun Route.addTorrentRoutes(
-    qbClient: QBittorrentClient = application.attributes.serverGraph.qbittorrentClient,
-    mediaLinkDao: MediaLinkDao = application.attributes.serverGraph.mediaLinkDao,
-) {
-    route("/torrents") {
-        get {
-            val response = try {
-                qbClient.getTorrents()
-            } catch (_: Exception) {
-                emptyList()
-            }
-            call.respond(response)
-        }
+@SingleIn(ServerScope::class)
+@ContributesIntoSet(
+    scope = ServerScope::class,
+    binding = binding<RoutingController>(),
+)
+@Inject
+class TorrentRoutes(
+    private val qbtClient: QBittorrentClient,
+    private val mediaLinkDao: MediaLinkDao,
+) : RoutingController {
+    override fun init(parent: Route) {
+        parent.apply {
+            authenticate {
+                withAnyPermission(Permission.ManageTorrents) {
+                    route("/torrents") {
+                        get { getTorrents() }
 
-        post {
-            val session = checkNotNull(call.principal<UserSession>())
-            val description = runCatching { call.receiveNullable<TorrentDescription2>() }
-                .getOrNull() ?: return@post call.respond(UnprocessableEntity)
-            try {
-                qbClient.getTorrentProperties(description.hash)
-            } catch (e: ResponseException) {
-                if (e.response.status == NotFound) {
-                    return@post call.respond(Conflict)
-                } else {
-                    throw e
+                        post { addTorrent() }
+
+                        route("/global") {
+                            get { getGlobal() }
+                        }
+
+                        route("/{hash}") {
+                            get("/files") { getTorrentFiles() }
+
+                            get("/pause") { getPauseTorrent() }
+
+                            get("/resume") { getResumeTorrent() }
+
+                            delete { deleteTorrent() }
+                        }
+
+                        /*route("/quickstart") {
+                            get("/tmdb/{tmdb_id}") {
+                                val tmdbId = call.parameters["tmdb_id"]!!.toInt()
+                                val movie = tmdb.movies.getMovie(tmdbId, null)
+                                val results = torrentSearch.search(movie.title, Category.MOVIES)
+                                // TODO: Better quickstart behavior, consider file size and transcoding reqs
+                                val selection = results.maxByOrNull { it.seeds }!!
+
+                                if (qbClient.getTorrents().any { it.hash == selection.hash }) {
+                                    call.respond(selection.hash)
+                                } else {
+                                    qbClient.addTorrent {
+                                        urls.add(selection.magnetUrl)
+                                        savePath = "/downloads"
+                                        category = "movies"
+                                        rootFolder = true
+                                        sequentialDownload = true
+                                        firstLastPiecePriority = true
+                                    }
+                                    call.respond(selection.hash)
+                                }
+                            }
+                        }*/
+                    }
                 }
             }
-            qbClient.addTorrent {
-                urls.add(description.magnetUrl)
-                savepath = "/downloads"
-                sequentialDownload = true
-                firstLastPiecePriority = true
-            }
-            call.respond(OK)
 
-            /*val movieId = call.parameters["movieId"] ?: return@post
-            val downloadId = ObjectId.get().toString()
-            mediaLinkDao.insertLink(
-                MediaReferenceDb.fromRefModel(
-                    DownloadMediaReference(
-                        id = downloadId,
-                        metadataId = movieId,
-                        hash = description.hash,
-                        added = Instant.now().toEpochMilli(),
-                        fileIndex = null,
-                        filePath = null,
-                        mediaKind = MediaKind.MOVIE,
-                    )
+            webSocket("/ws/torrents/observe") { observeTorrents() }
+            webSocket("/ws/torrents/global") { observeGlobal() }
+        }
+    }
+
+    private suspend fun RoutingContext.getTorrents() {
+        val response = try {
+            qbtClient.getTorrents()
+        } catch (_: Exception) {
+            emptyList()
+        }
+        call.respond(response)
+    }
+
+    private suspend fun RoutingContext.addTorrent() {
+        val session = checkNotNull(call.principal<UserSession>())
+        val description = runCatching { call.receiveNullable<TorrentDescription2>() }
+            .getOrNull() ?: return call.respond(UnprocessableEntity)
+        try {
+            qbtClient.getTorrentProperties(description.hash)
+        } catch (e: ResponseException) {
+            if (e.response.status == NotFound) {
+                return call.respond(Conflict)
+            } else {
+                throw e
+            }
+        }
+        qbtClient.addTorrent {
+            urls.add(description.magnetUrl)
+            savepath = "/downloads"
+            sequentialDownload = true
+            firstLastPiecePriority = true
+        }
+        call.respond(OK)
+
+        /*val movieId = call.parameters["movieId"] ?: return@post
+        val downloadId = ObjectId.get().toString()
+        mediaLinkDao.insertLink(
+            MediaReferenceDb.fromRefModel(
+                DownloadMediaReference(
+                    id = downloadId,
+                    metadataId = movieId,
+                    hash = description.hash,
+                    added = Instant.now().toEpochMilli(),
+                    fileIndex = null,
+                    filePath = null,
+                    mediaKind = MediaKind.MOVIE,
                 )
             )
-            qbClient.torrentFlow(description.hash)
-                .dropWhile { it.state == Torrent.State.META_DL }
-                .mapNotNull { torrent ->
-                    qbClient.getTorrentFiles(torrent.hash)
-                        .filter(videoFile)
-                        .maxByOrNull(TorrentFile::size)
-                        ?.run { this to torrent }
-                }
-                .take(1)
-                .onEach { // (file, torrent) ->
-                    // TODO: Update download reference details
-                    /*val download = mediaLinks.findOneById(downloadId) as DownloadMediaReference
-                    mediaLinks.updateOneById(
-                        downloadId,
-                        download.copy(
-                            fileIndex = file.id,
-                            filePath = "${torrent.savePath}/${file.name}"
-                        )
-                    )*/
-                }
-                .launchIn(application)*/
-        }
-
-        route("/global") {
-            get {
-                try {
-                    call.respond(qbClient.getGlobalTransferInfo())
-                } catch (e: QBittorrentException) {
-                    call.respond(EmptyContent)
-                }
+        )
+        qbClient.torrentFlow(description.hash)
+            .dropWhile { it.state == Torrent.State.META_DL }
+            .mapNotNull { torrent ->
+                qbClient.getTorrentFiles(torrent.hash)
+                    .filter(videoFile)
+                    .maxByOrNull(TorrentFile::size)
+                    ?.run { this to torrent }
             }
-        }
-
-        route("/{hash}") {
-            get("/files") {
-                val hash = call.parameters["hash"]!!
-                call.respond(qbClient.getTorrentFiles(hash))
+            .take(1)
+            .onEach { // (file, torrent) ->
+                // TODO: Update download reference details
+                /*val download = mediaLinks.findOneById(downloadId) as DownloadMediaReference
+                mediaLinks.updateOneById(
+                    downloadId,
+                    download.copy(
+                        fileIndex = file.id,
+                        filePath = "${torrent.savePath}/${file.name}"
+                    )
+                )*/
             }
-
-            get("/pause") {
-                val hash = call.parameters["hash"]!!
-                qbClient.pauseTorrents(listOf(hash))
-                call.respond(OK)
-            }
-
-            get("/resume") {
-                val hash = call.parameters["hash"]!!
-                qbClient.resumeTorrents(listOf(hash))
-                call.respond(OK)
-            }
-
-            delete {
-                val hash = call.parameters["hash"]!!
-                val deleteFiles = call.request.queryParameters["deleteFiles"]!!.toBoolean()
-                qbClient.deleteTorrents(listOf(hash), deleteFiles = deleteFiles)
-                mediaLinkDao.deleteDownloadByHash(hash)
-                call.respond(OK)
-            }
-        }
-
-        /*route("/quickstart") {
-            get("/tmdb/{tmdb_id}") {
-                val tmdbId = call.parameters["tmdb_id"]!!.toInt()
-                val movie = tmdb.movies.getMovie(tmdbId, null)
-                val results = torrentSearch.search(movie.title, Category.MOVIES)
-                // TODO: Better quickstart behavior, consider file size and transcoding reqs
-                val selection = results.maxByOrNull { it.seeds }!!
-
-                if (qbClient.getTorrents().any { it.hash == selection.hash }) {
-                    call.respond(selection.hash)
-                } else {
-                    qbClient.addTorrent {
-                        urls.add(selection.magnetUrl)
-                        savePath = "/downloads"
-                        category = "movies"
-                        rootFolder = true
-                        sequentialDownload = true
-                        firstLastPiecePriority = true
-                    }
-                    call.respond(selection.hash)
-                }
-            }
-        }*/
+            .launchIn(application)*/
     }
-}
 
-@OptIn(DelicateCoroutinesApi::class)
-fun Route.addTorrentWsRoutes(qbClient: QBittorrentClient = application.attributes.serverGraph.qbittorrentClient) {
-    webSocket("/ws/torrents/observe") {
+    private suspend fun RoutingContext.getGlobal() {
+        try {
+            call.respond(qbtClient.getGlobalTransferInfo())
+        } catch (e: QBittorrentException) {
+            call.respond(EmptyContent)
+        }
+    }
+
+    private suspend fun RoutingContext.getTorrentFiles() {
+        val hash = call.parameters["hash"]!!
+        call.respond(qbtClient.getTorrentFiles(hash))
+    }
+
+    private suspend fun RoutingContext.getPauseTorrent() {
+        val hash = call.parameters["hash"]!!
+        qbtClient.pauseTorrents(listOf(hash))
+        call.respond(OK)
+    }
+
+    private suspend fun RoutingContext.getResumeTorrent() {
+        val hash = call.parameters["hash"]!!
+        qbtClient.resumeTorrents(listOf(hash))
+        call.respond(OK)
+    }
+
+    private suspend fun RoutingContext.deleteTorrent() {
+        val hash = call.parameters["hash"]!!
+        val deleteFiles = call.request.queryParameters["deleteFiles"]!!.toBoolean()
+        qbtClient.deleteTorrents(listOf(hash), deleteFiles = deleteFiles)
+        mediaLinkDao.deleteDownloadByHash(hash)
+        call.respond(OK)
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    private suspend fun DefaultWebSocketServerSession.observeTorrents() {
         val session = checkNotNull(extractUserSession())
         check(Permission.check(Permission.ManageTorrents, session.permissions))
-        qbClient
+        qbtClient
             .observeMainData()
             .takeWhile { !outgoing.isClosedForSend }
             .collect { data ->
@@ -197,10 +231,12 @@ fun Route.addTorrentWsRoutes(qbClient: QBittorrentClient = application.attribute
                 }
             }
     }
-    webSocket("/ws/torrents/global") {
+
+    @OptIn(DelicateCoroutinesApi::class)
+    private suspend fun DefaultWebSocketServerSession.observeGlobal() {
         val session = checkNotNull(extractUserSession())
         check(Permission.check(Permission.ManageTorrents, session.permissions))
-        qbClient
+        qbtClient
             .observeMainData()
             .takeWhile { !outgoing.isClosedForSend }
             .collect { data ->

@@ -20,153 +20,193 @@ package anystream.routes
 import anystream.data.MetadataDbQueries
 import anystream.data.UserSession
 import anystream.db.MediaLinkDao
+import anystream.di.ServerScope
+import anystream.jobs.GenerateVideoPreviewJob
 import anystream.media.LibraryService
 import anystream.models.Descriptor
 import anystream.models.MediaLink
+import anystream.models.Permission
 import anystream.models.api.*
 import anystream.models.filename
-import anystream.serverGraph
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
+import dev.zacsweers.metro.binding
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.UnprocessableEntity
+import io.ktor.server.auth.authenticate
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonPrimitive
+import org.drewcarlson.ktor.permissions.withAnyPermission
 
-fun Route.addMediaLinkManageRoutes(
-    libraryService: LibraryService = application.attributes.serverGraph.libraryService,
-    mediaLinkDao: MediaLinkDao = application.attributes.serverGraph.mediaLinkDao,
-) {
-    route("/medialink") {
-        get {
-            val parent = call.parameters["parent"]
-            val result = when {
-                !parent.isNullOrBlank() -> mediaLinkDao.findByDirectoryId(parent)
-                else -> mediaLinkDao.all()
-            }
-                // TODO: Sort in query
-                .sortedBy { it.filename }
-            call.respond(result)
-        }
-
-        route("/libraries") {
-            get {
-                call.respond(LibraryFolderList(libraryService.getLibraryFolders()))
-            }
-
-            post("/unmapped") {
-                val import = runCatching { call.receiveNullable<MediaScanRequest>() }
-                    .getOrNull() ?: return@post call.respond(UnprocessableEntity)
-                call.respond(libraryService.findUnmappedFiles(import))
-            }
-
-            get("/list-files") {
-                val root = call.parameters["root"]
-                val showFiles = call.parameters["showFiles"]?.toBoolean() == true
-
-                call.respond(libraryService.listFiles(root, showFiles))
-            }
-        }
-
-        route("/{mediaLinkId}") {
-            get("/generate-preview") {
-                val mediaLink = mediaLink() ?: return@get call.respond(NotFound)
-                val generator = application.attributes.serverGraph.generateVideoPreviewJob
-                application.launch { generator.execute(mediaLink.id) }
-                call.respond(OK)
-            }
-
-            route("/matches") {
-                get {
-                    val mediaLink = mediaLink() ?: return@get call.respond(NotFound)
-                    val matches = libraryService.refreshMetadata(mediaLink, import = false)
-                    call.respond(matches)
-                }
-
-                put {
-                    val mediaLink = mediaLink() ?: return@put call.respond(NotFound)
-                    val body = call.receive<JsonObject>()
-                    val remoteId = body["remoteId"]
-                        ?.jsonPrimitive
-                        ?.contentOrNull
-                        ?: return@put call.respond(UnprocessableEntity)
-                    libraryService.matchMediaLink(mediaLink, remoteId)
-                    call.respond(OK)
-                }
-            }
-
-            delete {
-                val mediaLink = mediaLink() ?: return@delete call.respond(NotFound)
-                if (libraryService.removeMediaLink(mediaLink)) {
-                    call.respond(OK)
-                } else {
-                    call.respond(NotFound)
-                }
-            }
-
-            get("/analyze") {
-                val waitForResult = call.parameters["waitForResult"]?.toBoolean() == true
-                val mediaLink = mediaLink() ?: return@get call.respond(UnprocessableEntity)
-
-                val descriptors = listOf(Descriptor.VIDEO, Descriptor.AUDIO)
-                val mediaLinkIds = mediaLinkDao
-                    .findIdsByMediaLinkIdAndDescriptors(mediaLink.id, descriptors)
-                    .takeIf { it.isNotEmpty() }
-                    ?: return@get call.respond(NotFound)
-
-                if (waitForResult) {
-                    call.respond(libraryService.analyzeMediaFiles(mediaLinkIds, overwrite = true))
-                } else {
-                    application.launch {
-                        libraryService.analyzeMediaFiles(mediaLinkIds, overwrite = true)
+@SingleIn(ServerScope::class)
+@ContributesIntoSet(
+    scope = ServerScope::class,
+    binding = binding<RoutingController>(),
+)
+@Inject
+class MediaLinkRoutes(
+    private val libraryService: LibraryService,
+    private val mediaLinkDao: MediaLinkDao,
+    private val queries: MetadataDbQueries,
+    private val generateVideoPreviewJob: GenerateVideoPreviewJob,
+    private val scope: CoroutineScope,
+) : RoutingController {
+    override fun init(parent: Route) {
+        parent.route("/medialink") {
+            authenticate {
+                withAnyPermission(Permission.ViewCollection) {
+                    route("/medialink") {
+                        route("/{mediaLinkId}") {
+                            get { getMediaLink() }
+                        }
                     }
-                    call.respond(OK)
+                }
+                withAnyPermission(Permission.ManageCollection) {
+                    get { getMediaLinks() }
+
+                    route("/libraries") {
+                        get { getLibraryFolders() }
+
+                        post("/unmapped") { getUnmappedFiles() }
+
+                        get("/list-files") { getListFiles() }
+                    }
+
+                    route("/{mediaLinkId}") {
+                        get("/generate-preview") { getGeneratePreview() }
+
+                        route("/matches") {
+                            get { getMatches() }
+
+                            put { putMediaLinkMatch() }
+                        }
+
+                        delete { deleteMediaLink() }
+
+                        get("/analyze") { getAnalyzeMediaLink() }
+                    }
                 }
             }
         }
     }
-}
 
-fun Route.addMediaLinkViewRoutes(queries: MetadataDbQueries = application.attributes.serverGraph.queries) {
-    route("/medialink") {
-        route("/{mediaLinkId}") {
-            get {
-                val includeMetadata = call.parameters["includeMetadata"]?.toBoolean() == true
-                val mediaLink = mediaLink() ?: return@get
-                val session = call.sessions.get<UserSession>()!!
-                val metadataId = mediaLink.metadataId
-                val metadata = if (includeMetadata && metadataId != null) {
-                    queries.findMediaById(
-                        metadataId = metadataId,
-                        includeLinks = false,
-                        includePlaybackStateForUser = session.userId,
-                    )
-                } else {
-                    null
-                }
-                val response = MediaLinkResponse(
-                    mediaLink = mediaLink,
-                    metadata = metadata,
-                )
-                call.respond(response)
-            }
+    suspend fun RoutingContext.getMediaLinks() {
+        val parent = call.parameters["parent"]
+        val result = when {
+            !parent.isNullOrBlank() -> mediaLinkDao.findByDirectoryId(parent)
+            else -> mediaLinkDao.all()
+        }
+            // TODO: Sort in query
+            .sortedBy { it.filename }
+        call.respond(result)
+    }
+
+    suspend fun RoutingContext.getLibraryFolders() {
+        call.respond(LibraryFolderList(libraryService.getLibraryFolders()))
+    }
+
+    suspend fun RoutingContext.getUnmappedFiles() {
+        val import = runCatching { call.receiveNullable<MediaScanRequest>() }
+            .getOrNull() ?: return call.respond(UnprocessableEntity)
+        call.respond(libraryService.findUnmappedFiles(import))
+    }
+
+    suspend fun RoutingContext.getListFiles() {
+        val root = call.parameters["root"]
+        val showFiles = call.parameters["showFiles"]?.toBoolean() == true
+
+        call.respond(libraryService.listFiles(root, showFiles))
+    }
+
+    suspend fun RoutingContext.getGeneratePreview() {
+        val mediaLink = mediaLink() ?: return call.respond(NotFound)
+        scope.launch { generateVideoPreviewJob.execute(mediaLink.id) }
+        call.respond(OK)
+    }
+
+    suspend fun RoutingContext.getMatches() {
+        val mediaLink = mediaLink() ?: return call.respond(NotFound)
+        val matches = libraryService.refreshMetadata(mediaLink, import = false)
+        call.respond(matches)
+    }
+
+    suspend fun RoutingContext.putMediaLinkMatch() {
+        val mediaLink = mediaLink() ?: return call.respond(NotFound)
+        val body = call.receive<JsonObject>()
+        val remoteId = body["remoteId"]
+            ?.jsonPrimitive
+            ?.contentOrNull
+            ?: return call.respond(UnprocessableEntity)
+        libraryService.matchMediaLink(mediaLink, remoteId)
+        call.respond(OK)
+    }
+
+    suspend fun RoutingContext.deleteMediaLink() {
+        val mediaLink = mediaLink() ?: return call.respond(NotFound)
+        if (libraryService.removeMediaLink(mediaLink)) {
+            call.respond(OK)
+        } else {
+            call.respond(NotFound)
         }
     }
-}
 
-private suspend fun RoutingContext.mediaLink(
-    mediaLinkDao: MediaLinkDao = call.application.attributes.serverGraph.mediaLinkDao,
-): MediaLink? {
-    val mediaLinkId = call.parameters["mediaLinkId"]
-        ?.takeIf(String::isNotBlank)
-        ?: return run {
-            call.respond(UnprocessableEntity)
+    suspend fun RoutingContext.getAnalyzeMediaLink() {
+        val waitForResult = call.parameters["waitForResult"]?.toBoolean() == true
+        val mediaLink = mediaLink() ?: return call.respond(UnprocessableEntity)
+
+        val descriptors = listOf(Descriptor.VIDEO, Descriptor.AUDIO)
+        val mediaLinkIds = mediaLinkDao
+            .findIdsByMediaLinkIdAndDescriptors(mediaLink.id, descriptors)
+            .takeIf { it.isNotEmpty() }
+            ?: return call.respond(NotFound)
+
+        if (waitForResult) {
+            call.respond(libraryService.analyzeMediaFiles(mediaLinkIds, overwrite = true))
+        } else {
+            scope.launch {
+                libraryService.analyzeMediaFiles(mediaLinkIds, overwrite = true)
+            }
+            call.respond(OK)
+        }
+    }
+
+    suspend fun RoutingContext.getMediaLink() {
+        val includeMetadata = call.parameters["includeMetadata"]?.toBoolean() == true
+        val mediaLink = mediaLink() ?: return call.respond(NotFound)
+        val session = call.sessions.get<UserSession>()!!
+        val metadataId = mediaLink.metadataId
+        val metadata = if (includeMetadata && metadataId != null) {
+            queries.findMediaById(
+                metadataId = metadataId,
+                includeLinks = false,
+                includePlaybackStateForUser = session.userId,
+            )
+        } else {
             null
         }
-    return mediaLinkDao.findById(mediaLinkId)
+        val response = MediaLinkResponse(
+            mediaLink = mediaLink,
+            metadata = metadata,
+        )
+        call.respond(response)
+    }
+
+    private suspend fun RoutingContext.mediaLink(): MediaLink? {
+        val mediaLinkId = call.parameters["mediaLinkId"]
+            ?.takeIf(String::isNotBlank)
+            ?: return run {
+                call.respond(UnprocessableEntity)
+                null
+            }
+        return mediaLinkDao.findById(mediaLinkId)
+    }
 }

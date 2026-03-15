@@ -18,11 +18,15 @@
 package anystream.routes
 
 import anystream.data.UserSession
+import anystream.di.ServerScope
 import anystream.json
 import anystream.models.*
-import anystream.serverGraph
 import anystream.service.stream.StreamService
 import anystream.util.extractUserSession
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
+import dev.zacsweers.metro.binding
 import io.ktor.http.*
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
@@ -43,99 +47,121 @@ import kotlin.time.Duration.Companion.seconds
 
 private const val PLAYBACK_COMPLETE_PERCENT = 90
 
-fun Route.addStreamRoutes(streamService: StreamService = application.attributes.serverGraph.streamService) {
-    route("/stream") {
-        authenticate {
-            withPermission(Permission.ConfigureSystem) {
-                get {
-                    call.respond(streamService.getPlaybackSessions())
+@SingleIn(ServerScope::class)
+@ContributesIntoSet(
+    scope = ServerScope::class,
+    binding = binding<RoutingController>(),
+)
+@Inject
+class StreamRoutes(
+    private val streamService: StreamService,
+) : RoutingController {
+    override fun init(parent: Route) {
+        parent.apply {
+            route("/stream") {
+                authenticate {
+                    withPermission(Permission.ConfigureSystem) {
+                        get { getPlaybackSessions() }
+                    }
                 }
-            }
-        }
 
-        route("/{mediaLinkId}") {
-            authenticate {
-                route("/state") {
-                    get {
-                        val session = checkNotNull(call.principal<UserSession>())
-                        val mediaLinkId = call.parameters["mediaLinkId"]!!
-                        val playbackState =
-                            streamService.getPlaybackState(mediaLinkId, session.userId, false)
-                        if (playbackState == null) {
-                            call.respond(NotFound)
-                        } else {
-                            call.respond(playbackState)
+                route("/{mediaLinkId}") {
+                    authenticate {
+                        route("/state") {
+                            get { getPlaybackState() }
+                            put { updatePlaybackState() }
                         }
                     }
-                    put {
-                        val session = checkNotNull(call.principal<UserSession>())
-                        val mediaLinkId = call.parameters["mediaLinkId"]!!
-                        val state = runCatching { call.receiveNullable<PlaybackState>() }
-                            .getOrNull() ?: return@put call.respond(UnprocessableEntity)
 
-                        val actualState =
-                            streamService.getPlaybackState(mediaLinkId, session.userId, false)
-
-                        if (actualState == null) {
-                            call.respond(NotFound)
-                        } else {
-                            val success =
-                                streamService.updateStatePosition(actualState, state.position)
-                            call.respond(if (success) OK else InternalServerError)
-                        }
+                    route("/hls") {
+                        get("/playlist.m3u8") { getHlsPlaylist() }
+                        get("/{segmentFile}") { getHlsSegment() }
                     }
                 }
+
+                delete("/stop/{token}") { stopSession() }
             }
-
-            route("/hls") {
-                get("/playlist.m3u8") {
-                    val mediaLinkId = call.parameters["mediaLinkId"]!!
-                    val token = call.parameters["token"]
-                        ?: return@get call.respond(Unauthorized)
-
-                    val clientCapabilities = call.request.queryParameters["capabilities"]!!.let {
-                        json.decodeFromString<ClientCapabilities>(it)
-                    }
-
-                    val playlist = streamService.getPlaylist(mediaLinkId, token, clientCapabilities)
-                    if (playlist == null) {
-                        call.respond(NotFound)
-                    } else {
-                        call.respondText(playlist, ContentType("application", "vnd.apple.mpegURL"))
-                    }
-                }
-
-                get("/{segmentFile}") {
-                    val segmentFilePath = call.parameters["segmentFile"]
-                        ?: return@get call.respond(NotFound)
-                    val (token, segmentFile) = segmentFilePath.split('-', limit = 2)
-
-                    val filePath = streamService.getFilePathForSegment(token, segmentFile)
-                    if (filePath == null) {
-                        call.respond(NotFound)
-                    } else {
-                        val contentType = if (segmentFile.endsWith(".mp4")) {
-                            ContentType.Video.MP4
-                        } else {
-                            ContentType.Video.MPEG
-                        }
-                        call.respond(LocalPathContent(filePath, contentType))
-                    }
-                }
-            }
-        }
-
-        delete("/stop/{token}") {
-            val token = call.parameters["token"]!!
-            val delete = call.parameters["delete"]?.toBoolean() ?: true
-            streamService.stopSession(token, delete)
-            call.respond(OK)
+            webSocket("/ws/stream/{mediaLinkId}/state") { wsPlaybackState() }
         }
     }
-}
 
-fun Route.addStreamWsRoutes(streamService: StreamService = application.attributes.serverGraph.streamService) {
-    webSocket("/ws/stream/{mediaLinkId}/state") {
+    suspend fun RoutingContext.getPlaybackSessions() {
+        call.respond(streamService.getPlaybackSessions())
+    }
+
+    suspend fun RoutingContext.getPlaybackState() {
+        val session = checkNotNull(call.principal<UserSession>())
+        val mediaLinkId = call.parameters["mediaLinkId"]!!
+        val playbackState =
+            streamService.getPlaybackState(mediaLinkId, session.userId, false)
+        if (playbackState == null) {
+            call.respond(NotFound)
+        } else {
+            call.respond(playbackState)
+        }
+    }
+
+    suspend fun RoutingContext.updatePlaybackState() {
+        val session = checkNotNull(call.principal<UserSession>())
+        val mediaLinkId = call.parameters["mediaLinkId"]!!
+        val state = runCatching { call.receiveNullable<PlaybackState>() }
+            .getOrNull() ?: return call.respond(UnprocessableEntity)
+
+        val actualState =
+            streamService.getPlaybackState(mediaLinkId, session.userId, false)
+
+        if (actualState == null) {
+            call.respond(NotFound)
+        } else {
+            val success =
+                streamService.updateStatePosition(actualState, state.position)
+            call.respond(if (success) OK else InternalServerError)
+        }
+    }
+
+    suspend fun RoutingContext.getHlsPlaylist() {
+        val mediaLinkId = call.parameters["mediaLinkId"]!!
+        val token = call.parameters["token"]
+            ?: return call.respond(Unauthorized)
+
+        val clientCapabilities = call.request.queryParameters["capabilities"]!!.let {
+            json.decodeFromString<ClientCapabilities>(it)
+        }
+
+        val playlist = streamService.getPlaylist(mediaLinkId, token, clientCapabilities)
+        if (playlist == null) {
+            call.respond(NotFound)
+        } else {
+            call.respondText(playlist, ContentType("application", "vnd.apple.mpegURL"))
+        }
+    }
+
+    suspend fun RoutingContext.getHlsSegment() {
+        val segmentFilePath = call.parameters["segmentFile"]
+            ?: return call.respond(NotFound)
+        val (token, segmentFile) = segmentFilePath.split('-', limit = 2)
+
+        val filePath = streamService.getFilePathForSegment(token, segmentFile)
+        if (filePath == null) {
+            call.respond(NotFound)
+        } else {
+            val contentType = if (segmentFile.endsWith(".mp4")) {
+                ContentType.Video.MP4
+            } else {
+                ContentType.Video.MPEG
+            }
+            call.respond(LocalPathContent(filePath, contentType))
+        }
+    }
+
+    suspend fun RoutingContext.stopSession() {
+        val token = call.parameters["token"]!!
+        val delete = call.parameters["delete"]?.toBoolean() ?: true
+        streamService.stopSession(token, delete)
+        call.respond(OK)
+    }
+
+    suspend fun DefaultWebSocketServerSession.wsPlaybackState() {
         val session = checkNotNull(extractUserSession())
         check(Permission.check(Permission.ViewCollection, session.permissions))
         val userId = session.userId
@@ -148,7 +174,7 @@ fun Route.addStreamWsRoutes(streamService: StreamService = application.attribute
             userId = userId,
             create = true,
             clientCapabilities = clientCapabilities,
-        ) ?: return@webSocket close()
+        ) ?: return close()
 
         send(Frame.Text(json.encodeToString(state)))
 

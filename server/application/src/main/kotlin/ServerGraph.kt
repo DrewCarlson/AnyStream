@@ -1,25 +1,34 @@
+/*
+ * AnyStream
+ * Copyright (C) 2026 AnyStream Maintainers
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package anystream
 
-import anystream.data.MetadataDbQueries
-import anystream.db.MediaLinkDao
-import anystream.db.SessionsDao
 import anystream.db.converter.JooqConverterProvider
 import anystream.di.DATA_PATH
 import anystream.di.ServerScope
 import anystream.di.TRANSCODE_PATH
-import anystream.jobs.GenerateVideoPreviewJob
 import anystream.media.LibraryService
-import anystream.metadata.MetadataService
-import anystream.service.search.SearchService
-import anystream.service.stream.StreamService
-import anystream.service.user.UserService
+import anystream.routes.RoutingControllers
 import anystream.util.SqlSessionStorage
 import app.moviebase.tmdb.Tmdb3
 import com.github.kokorin.jaffree.ffmpeg.FFmpeg
 import com.github.kokorin.jaffree.ffprobe.FFprobe
 import dev.zacsweers.metro.DependencyGraph
 import dev.zacsweers.metro.Named
-import dev.zacsweers.metro.Provider
 import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn
 import io.ktor.client.HttpClient
@@ -27,7 +36,6 @@ import io.ktor.client.plugins.cache.HttpCache
 import io.ktor.client.plugins.cache.storage.CacheStorage
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
-import io.ktor.server.sessions.SessionStorage
 import kotlinx.coroutines.CoroutineScope
 import org.jooq.DSLContext
 import org.jooq.SQLDialect
@@ -45,29 +53,13 @@ import javax.sql.DataSource
 interface ServerGraph {
     val config: AnyStreamConfig
     val scope: CoroutineScope
-    val fs: FileSystem
-    val ffprobe: Provider<FFprobe>
-    val ffmpeg: Provider<FFmpeg>
-    val db: DSLContext
     val http: HttpClient
-    val tmdb3: Tmdb3
-    val qbittorrentClient: QBittorrentClient
     val libraryService: LibraryService
-    val streamService: StreamService
-    val queries: MetadataDbQueries
-    val metadataService: MetadataService
-    val searchService: SearchService
-    val mediaLinkDao: MediaLinkDao
-    val sessionsDao: SessionsDao
-    val userService: UserService
-    val generateVideoPreviewJob: GenerateVideoPreviewJob
     val sessionStorage: SqlSessionStorage
+    val routingControllers: RoutingControllers
 
     @Named(DATA_PATH)
     val dataPath: Path
-
-    @Named(TRANSCODE_PATH)
-    val transcodePath: Path
 
     @Provides
     fun provideFileSystem(): FileSystem {

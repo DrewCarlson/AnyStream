@@ -17,9 +17,14 @@
  */
 package anystream.routes
 
-import anystream.AnyStreamConfig
+import anystream.di.DATA_PATH
+import anystream.di.ServerScope
 import anystream.metadata.MetadataService
-import anystream.serverGraph
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.Named
+import dev.zacsweers.metro.SingleIn
+import dev.zacsweers.metro.binding
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode.Companion.NotFound
@@ -27,49 +32,66 @@ import io.ktor.http.HttpStatusCode.Companion.UnprocessableEntity
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.utils.io.ClosedByteChannelException
+import java.nio.file.Path
 import kotlin.io.path.exists
 
-fun Route.addImageRoutes(
-    config: AnyStreamConfig = application.attributes.serverGraph.config,
-    metadataService: MetadataService = application.attributes.serverGraph.metadataService,
-) {
-    val dataPath = config.dataPath
-    route("/image") {
-        get("/previews/{mediaLinkId}") {
-            val mediaLinkId = call.parameters["mediaLinkId"] ?: return@get call.respond(NotFound)
-            val imagePath = dataPath
-                .resolve("previews")
-                .resolve(mediaLinkId)
-                .resolve("index-sd.bif")
-            if (imagePath.exists()) {
-                call.respondFile(imagePath.toFile())
-            } else {
-                call.respond(NotFound)
+@SingleIn(ServerScope::class)
+@ContributesIntoSet(
+    scope = ServerScope::class,
+    binding = binding<RoutingController>(),
+)
+@Inject
+class ImageRoutes(
+    @param:Named(DATA_PATH)
+    val dataPath: Path,
+    val metadataService: MetadataService,
+) : RoutingController {
+    override fun init(parent: Route) {
+        parent.route("/image") {
+            get("/previews/{mediaLinkId}") {
+                getPreviewBif()
+            }
+            get("/{imageKey}/{imageType}.jpg") {
+                getImage()
             }
         }
-        get("/{imageKey}/{imageType}.jpg") {
-            val imageKey = call.parameters["imageKey"] ?: return@get call.respond(NotFound)
-            val imageType = call.parameters["imageType"]
-                ?: return@get call.respond(UnprocessableEntity, "url param 'imageType' is required")
-            val width = call.parameters["width"]?.toIntOrNull() ?: 0
+    }
 
-            val imagePath = when (imageType) {
-                "people" -> metadataService.getImagePathForPerson(imageKey)
-                else -> metadataService.getImagePath(imageKey, imageType)
+    suspend fun RoutingContext.getPreviewBif() {
+        val mediaLinkId = call.parameters["mediaLinkId"] ?: return call.respond(NotFound)
+        val imagePath = dataPath
+            .resolve("previews")
+            .resolve(mediaLinkId)
+            .resolve("index-sd.bif")
+        if (imagePath.exists()) {
+            call.respondFile(imagePath.toFile())
+        } else {
+            call.respond(NotFound)
+        }
+    }
+
+    suspend fun RoutingContext.getImage() {
+        val imageKey = call.parameters["imageKey"] ?: return call.respond(NotFound)
+        val imageType = call.parameters["imageType"]
+            ?: return call.respond(UnprocessableEntity, "url param 'imageType' is required")
+        val width = call.parameters["width"]?.toIntOrNull() ?: 0
+
+        val imagePath = when (imageType) {
+            "people" -> metadataService.getImagePathForPerson(imageKey)
+            else -> metadataService.getImagePath(imageKey, imageType)
+        }
+        if (imagePath?.exists() == true) {
+            try {
+                call.response.header(
+                    name = HttpHeaders.ContentType,
+                    value = ContentType.Image.JPEG.toString(),
+                )
+                call.respondPath(imagePath)
+            } catch (_: ClosedByteChannelException) {
+                // request was cancelled while reading file
             }
-            if (imagePath?.exists() == true) {
-                try {
-                    call.response.header(
-                        name = HttpHeaders.ContentType,
-                        value = ContentType.Image.JPEG.toString(),
-                    )
-                    call.respondPath(imagePath)
-                } catch (_: ClosedByteChannelException) {
-                    // request was cancelled while reading file
-                }
-            } else {
-                call.respond(NotFound)
-            }
+        } else {
+            call.respond(NotFound)
         }
     }
 }

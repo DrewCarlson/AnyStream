@@ -43,7 +43,7 @@ class LibraryServiceTest :
             val mediaLinkDao = MediaLinkDao(db)
             LibraryService(
                 mediaFileAnalyzer = MediaFileAnalyzer({ error("not implemented!") }, mediaLinkDao),
-                processors = emptyList(),
+                processors = emptySet(),
                 mediaLinkDao = mediaLinkDao,
                 libraryDao = libraryDao,
                 fs = fs,

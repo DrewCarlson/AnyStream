@@ -55,7 +55,7 @@ class MetadataServiceTests :
         val manager by bindForTest({
             val imageStore = ImageStore(fs.getPath("/test"), HttpClient())
             val provider = TmdbMetadataProvider(tmdb, queries, imageStore)
-            MetadataService(listOf(provider), metadataDao, imageStore)
+            MetadataService(setOf(provider), metadataDao, imageStore)
         })
 
         test("import tmdb movie") {

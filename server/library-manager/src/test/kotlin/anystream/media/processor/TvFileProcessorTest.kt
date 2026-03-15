@@ -72,7 +72,7 @@ class TvFileProcessorTest :
         val metadataService by bindForTest({
             val imageStore = ImageStore(fs.getPath("/test"), HttpClient())
             val provider = TmdbMetadataProvider(tmdb, queries, imageStore)
-            MetadataService(listOf(provider), metadataDao, imageStore)
+            MetadataService(setOf(provider), metadataDao, imageStore)
         })
         val mediaFileScanner by bindForTest({ MediaFileScanner(mediaLinkDao, libraryDao, fs) })
         val processor by bindForTest({

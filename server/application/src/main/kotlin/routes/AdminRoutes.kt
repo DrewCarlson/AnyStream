@@ -17,11 +17,11 @@
  */
 package anystream.routes
 
+import anystream.di.ServerScope
 import anystream.media.LibraryService
 import anystream.models.Permission
 import anystream.models.api.LibraryActivity
 import anystream.models.api.PlaybackSessions
-import anystream.serverGraph
 import anystream.service.stream.StreamService
 import anystream.util.extractUserSession
 import ch.qos.logback.classic.Logger
@@ -29,41 +29,73 @@ import ch.qos.logback.classic.LoggerContext
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.Appender
 import ch.qos.logback.core.AppenderBase
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
+import dev.zacsweers.metro.binding
+import io.ktor.server.auth.authenticate
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.isActive
+import org.drewcarlson.ktor.permissions.withPermission
 import org.slf4j.LoggerFactory
 import kotlin.time.Duration.Companion.seconds
 
-fun Route.addAdminRoutes() {
-    route("/admin") {
-    }
-}
+@SingleIn(ServerScope::class)
+@ContributesIntoSet(
+    scope = ServerScope::class,
+    binding = binding<RoutingController>(),
+)
+@Inject
+class AdminRoutes(
+    private val libraryService: LibraryService,
+    private val streamService: StreamService,
+    scope: CoroutineScope,
+) : RoutingController {
+    override fun init(parent: Route) {
+        parent.apply {
+            authenticate {
+                withPermission(Permission.ConfigureSystem) {
+                    route("/admin") {
+                    }
+                }
+            }
 
-@OptIn(FlowPreview::class)
-fun Route.addAdminWsRoutes(
-    libraryService: LibraryService = application.attributes.serverGraph.libraryService,
-    streamService: StreamService = application.attributes.serverGraph.streamService,
-) {
-    val sessionsFlow = callbackFlow<PlaybackSessions> {
+            webSocket("/ws/admin/sessions") {
+                wsSessions()
+            }
+
+            webSocket("/ws/admin/activity") {
+                wsActivity()
+            }
+
+            webSocket("/ws/admin/logs") {
+                wsLogs()
+            }
+        }
+    }
+
+    private val sessionsFlow = callbackFlow<PlaybackSessions> {
         while (true) {
             trySend(streamService.getPlaybackSessions())
             delay(2.seconds)
         }
     }.distinctUntilChanged()
-        .shareIn(application, SharingStarted.WhileSubscribed(), 1)
+        .shareIn(scope, SharingStarted.WhileSubscribed(), 1)
 
-    webSocket("/ws/admin/sessions") {
+    private suspend fun DefaultWebSocketServerSession.wsSessions() {
         val session = checkNotNull(extractUserSession())
         check(Permission.check(Permission.ConfigureSystem, session.permissions))
         sessionsFlow.collect { response -> sendSerialized(response) }
     }
 
-    webSocket("/ws/admin/activity") {
+    @OptIn(FlowPreview::class)
+    private suspend fun DefaultWebSocketServerSession.wsActivity() {
         val session = checkNotNull(extractUserSession())
         check(Permission.check(Permission.ConfigureSystem, session.permissions))
         combine(
@@ -75,7 +107,7 @@ fun Route.addAdminWsRoutes(
         }.collect { sendSerialized(it) }
     }
 
-    webSocket("/ws/admin/logs") {
+    private suspend fun DefaultWebSocketServerSession.wsLogs() {
         val session = checkNotNull(extractUserSession())
         check(Permission.check(Permission.ConfigureSystem, session.permissions))
         val context = LoggerFactory.getILoggerFactory() as LoggerContext

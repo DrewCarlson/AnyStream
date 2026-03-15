@@ -18,140 +18,171 @@
 package anystream.routes
 
 import anystream.data.MetadataDbQueries
+import anystream.di.ServerScope
 import anystream.media.LibraryService
 import anystream.models.MediaKind
 import anystream.models.Permission
 import anystream.models.api.AddLibraryFolderRequest
 import anystream.models.api.AddLibraryFolderResponse
 import anystream.models.api.MediaScanResult
-import anystream.serverGraph
 import anystream.util.logger
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
+import dev.zacsweers.metro.binding
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.UnprocessableEntity
+import io.ktor.server.auth.authenticate
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.drewcarlson.ktor.permissions.withAnyPermission
 import org.drewcarlson.ktor.permissions.withPermission
 
-fun Route.addLibraryViewRoutes(
-    libraryService: LibraryService = application.attributes.serverGraph.libraryService,
-    queries: MetadataDbQueries = application.attributes.serverGraph.queries,
-) {
-    route("/library") {
-        get {
-            call.respond(libraryService.getLibraries())
-        }
+@SingleIn(ServerScope::class)
+@ContributesIntoSet(
+    scope = ServerScope::class,
+    binding = binding<RoutingController>(),
+)
+@Inject
+class LibraryRoutes(
+    private val libraryService: LibraryService,
+    private val queries: MetadataDbQueries,
+    private val scope: CoroutineScope,
+) : RoutingController {
+    override fun init(parent: Route) {
+        parent.route("/library") {
+            authenticate {
+                withAnyPermission(Permission.ViewCollection) {
+                    get { getLibraries() }
 
-        route("/{libraryId}") {
-            get {
-                val libraryId = call.parameters["libraryId"] ?: return@get call.respond(NotFound)
-                val includeLinks = call.parameters["includeLinks"]?.toBoolean() ?: false
-                val library =
-                    libraryService.getLibrary(libraryId) ?: return@get call.respond(NotFound)
+                    route("/{libraryId}") {
+                        get { getLibrary() }
 
-                when (library.mediaKind) {
-                    MediaKind.MOVIE -> {
-                        val offset = call.parameters["offset"]?.toIntOrNull() ?: 0
-                        val limit = call.parameters["limit"]?.toIntOrNull() ?: 0
-                        val response = queries.findMovies(
-                            includeLinks = includeLinks,
-                            offset = offset,
-                            limit = limit,
-                        )
-                        call.respond(response)
-                    }
-
-                    MediaKind.TV -> {
-                        call.respond(queries.findShows(includeLinks = includeLinks))
-                    }
-
-                    MediaKind.MUSIC -> {
-                        TODO()
-                    }
-
-                    else -> {
-                        call.respond(NotFound)
+                        withPermission(Permission.ManageCollection) {
+                            route("/directories") {
+                                get { getDirectories() }
+                            }
+                        }
                     }
                 }
-            }
+                withAnyPermission(Permission.ManageCollection) {
+                    route("/directory/{directoryId}") {
+                        get("/scan") { getScanLibraryDirectory() }
+                        delete { deleteLibraryDirectory() }
+                    }
 
-            withPermission(Permission.ManageCollection) {
-                route("/directories") {
-                    get {
-                        val libraryId =
-                            call.parameters["libraryId"] ?: return@get call.respond(NotFound)
-                        call.respond(libraryService.getLibraryRootDirectories(libraryId))
+                    route("/{libraryId}") {
+                        put { addLibraryFolder() }
+
+                        get("/scan") { getScanLibrary() }
                     }
                 }
             }
         }
     }
-}
 
-fun Route.addLibraryModifyRoutes(libraryService: LibraryService = application.attributes.serverGraph.libraryService) {
-    route("/library") {
-        route("/directory/{directoryId}") {
-            get("/scan") {
-                val directoryId = call.parameters["directoryId"]
-                    ?: return@get call.respond(UnprocessableEntity)
-                val directory = libraryService.getDirectory(directoryId)
-                    ?: return@get call.respond(NotFound)
+    suspend fun RoutingContext.getLibraries() {
+        call.respond(libraryService.getLibraries())
+    }
 
-                application.launch {
-                    when (val result = libraryService.scan(directory)) {
-                        is MediaScanResult.Success -> {
-                            // todo: New media links under existing directories will not get a metadata refresh
-                            result.directories.addedIds.forEach { id ->
-                                libraryService.refreshMetadata(id)
-                            }
-                        }
+    suspend fun RoutingContext.getLibrary() {
+        val libraryId = call.parameters["libraryId"] ?: return call.respond(NotFound)
+        val includeLinks = call.parameters["includeLinks"]?.toBoolean() ?: false
+        val library =
+            libraryService.getLibrary(libraryId) ?: return call.respond(NotFound)
 
-                        else -> {
-                            // TODO: Handle errors
-                        }
+        when (library.mediaKind) {
+            MediaKind.MOVIE -> {
+                val offset = call.parameters["offset"]?.toIntOrNull() ?: 0
+                val limit = call.parameters["limit"]?.toIntOrNull() ?: 0
+                val response = queries.findMovies(
+                    includeLinks = includeLinks,
+                    offset = offset,
+                    limit = limit,
+                )
+                call.respond(response)
+            }
+
+            MediaKind.TV -> {
+                call.respond(queries.findShows(includeLinks = includeLinks))
+            }
+
+            MediaKind.MUSIC -> {
+                TODO()
+            }
+
+            else -> {
+                call.respond(NotFound)
+            }
+        }
+    }
+
+    suspend fun RoutingContext.getDirectories() {
+        val libraryId =
+            call.parameters["libraryId"] ?: return call.respond(NotFound)
+        call.respond(libraryService.getLibraryRootDirectories(libraryId))
+    }
+
+    suspend fun RoutingContext.getScanLibraryDirectory() {
+        val directoryId = call.parameters["directoryId"]
+            ?: return call.respond(UnprocessableEntity)
+        val directory = libraryService.getDirectory(directoryId)
+            ?: return call.respond(NotFound)
+
+        scope.launch {
+            when (val result = libraryService.scan(directory)) {
+                is MediaScanResult.Success -> {
+                    // todo: New media links under existing directories will not get a metadata refresh
+                    result.directories.addedIds.forEach { id ->
+                        libraryService.refreshMetadata(id)
                     }
                 }
 
-                call.respond(OK)
-            }
-            delete {
-                val directoryId = call.parameters["directoryId"]
-                    ?: return@delete call.respond(UnprocessableEntity)
-
-                val result = if (libraryService.removeDirectory(directoryId)) OK else NotFound
-                call.respond(result)
+                else -> {
+                    // TODO: Handle errors
+                }
             }
         }
 
-        route("/{libraryId}") {
-            put {
-                val libraryId = call.parameters["libraryId"]
-                    ?: return@put call.respond(UnprocessableEntity)
-                val request = try {
-                    call.receive<AddLibraryFolderRequest>()
-                } catch (e: ContentTransformationException) {
-                    logger.error("Failed to parse request body", e)
-                    return@put call.respond(AddLibraryFolderResponse.RequestError(e.stackTraceToString()))
-                }
+        call.respond(OK)
+    }
 
-                call.respond(libraryService.addLibraryFolderAndScan(libraryId, request.path))
-            }
+    suspend fun RoutingContext.deleteLibraryDirectory() {
+        val directoryId = call.parameters["directoryId"]
+            ?: return call.respond(UnprocessableEntity)
 
-            get("/scan") {
-                val libraryId = call.parameters["libraryId"]
-                    ?: return@get call.respond(UnprocessableEntity)
-                val directories = libraryService.getLibraryDirectories(libraryId)
+        val result = if (libraryService.removeDirectory(directoryId)) OK else NotFound
+        call.respond(result)
+    }
 
-                application.launch {
-                    directories.forEach { directory ->
-                        libraryService.scan(directory)
-                    }
-                }
+    suspend fun RoutingContext.addLibraryFolder() {
+        val libraryId = call.parameters["libraryId"]
+            ?: return call.respond(UnprocessableEntity)
+        val request = try {
+            call.receive<AddLibraryFolderRequest>()
+        } catch (e: ContentTransformationException) {
+            logger.error("Failed to parse request body", e)
+            return call.respond(AddLibraryFolderResponse.RequestError(e.stackTraceToString()))
+        }
 
-                call.respond(OK)
+        call.respond(libraryService.addLibraryFolderAndScan(libraryId, request.path))
+    }
+
+    suspend fun RoutingContext.getScanLibrary() {
+        val libraryId = call.parameters["libraryId"]
+            ?: return call.respond(UnprocessableEntity)
+        val directories = libraryService.getLibraryDirectories(libraryId)
+
+        scope.launch {
+            directories.forEach { directory ->
+                libraryService.scan(directory)
             }
         }
+
+        call.respond(OK)
     }
 }
