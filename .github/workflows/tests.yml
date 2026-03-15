@@ -244,7 +244,7 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - uses: DrewCarlson/android-emulator-runner@400f29c9684faec377be4e12c97daddf5c779c75
+      - uses: DrewCarlson/android-emulator-runner@1f99973df809da6e1fd52a8306502994d9b3761d
         name: Test Android Targets
         with:
           api-level: 36
