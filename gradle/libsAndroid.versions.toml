@@ -12,7 +12,7 @@ okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 
 anrWatchdog = { module = "com.github.anrwatchdog:anrwatchdog", version.ref = "anr_watchdog" }
 
-androidx-core-ktx = { module = "androidx.core:core-ktx", version = "1.17.0" }
+androidx-core-ktx = { module = "androidx.core:core-ktx", version = "1.18.0" }
 androidx-appcompat-core = { module = "androidx.appcompat:appcompat", version = "1.7.1" }
 androidx-leanback-core = { module = "androidx.leanback:leanback", version = "1.2.0" }
 androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version = "1.12.4" }
