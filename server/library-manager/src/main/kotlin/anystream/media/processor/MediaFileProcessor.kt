@@ -25,6 +25,9 @@ import anystream.models.api.MediaLinkMatchResult
 import anystream.models.api.MetadataMatch
 
 interface MediaFileProcessor {
+    val scanConcurrencyLevel: Int
+        get() = 2
+
     val mediaKinds: List<MediaKind>
 
     val fileNameParser: FileNameParser

@@ -68,7 +68,7 @@ class MovieFileProcessor(
         return coroutineScope {
             contentRootDirectories
                 .asFlow()
-                .concurrentMap(this, concurrencyLevel = 10) { dir ->
+                .concurrentMap(this, scanConcurrencyLevel) { dir ->
                     findMatchesForMediaDir(dir, import = import)
                 }.toList()
         }
