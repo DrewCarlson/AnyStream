@@ -17,7 +17,7 @@
  */
 package anystream.routes
 
-import anystream.AnyStreamConfig
+import anystream.config.AnyStreamConfig
 import io.ktor.server.application.*
 import io.ktor.server.http.content.*
 import io.ktor.server.routing.*

@@ -17,7 +17,7 @@
  */
 package anystream.routes
 
-import anystream.AnyStreamConfig
+import anystream.config.AnyStreamConfig
 import anystream.data.UserSession
 import anystream.db.SessionsDao
 import anystream.di.ServerScope
@@ -25,17 +25,14 @@ import anystream.json
 import anystream.models.*
 import anystream.models.api.*
 import anystream.oauthRedirectUrls
+import anystream.service.user.OidcProviderService
 import anystream.service.user.UserService
-import anystream.util.SetSessionCookie
-import anystream.util.SqlSessionStorage
+import anystream.util.OidcRedirectUrl
 import dev.zacsweers.metro.ContributesIntoSet
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import dev.zacsweers.metro.binding
-import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.request.get
-import io.ktor.client.request.header
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
@@ -43,7 +40,7 @@ import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.http.HttpStatusCode.Companion.UnprocessableEntity
-import io.ktor.http.takeFrom
+import io.ktor.http.URLBuilder
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -52,7 +49,6 @@ import io.ktor.server.sessions.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.delay
-import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
@@ -72,8 +68,7 @@ class UserRoutes(
     private val userService: UserService,
     private val sessionsDao: SessionsDao,
     private val config: AnyStreamConfig,
-    private val sessionStorage: SqlSessionStorage,
-    private val http: HttpClient,
+    private val oidcProviderService: OidcProviderService,
 ) : RoutingController {
     override fun init(parent: Route) {
         parent.apply {
@@ -91,7 +86,7 @@ class UserRoutes(
                     }
                 }
 
-                if (config.oidc.enable) {
+                if (config.oidc.enable && config.oidc.provider != null) {
                     authenticate(config.oidc.provider.name) {
                         route("/oidc") {
                             get("/login") {
@@ -205,7 +200,7 @@ class UserRoutes(
 
     suspend fun RoutingContext.getAuthProviderTypes() {
         val options = mutableListOf<AuthProviderType>(AuthProviderType.Internal)
-        if (config.oidc.enable) {
+        if (config.oidc.enable && config.oidc.provider != null) {
             options.add(
                 AuthProviderType.Oidc(
                     providerName = config.oidc.provider.name,
@@ -216,11 +211,9 @@ class UserRoutes(
     }
 
     suspend fun RoutingContext.getOidcCallback() {
+        if (config.oidc.provider == null) return
         val principal = call.principal<OAuthAccessTokenResponse.OAuth2>()!!
-        val response = http.get(config.oidc.provider.userInfoUrl) {
-            header("Authorization", "Bearer ${principal.accessToken}")
-        }
-        val body = response.body<JsonObject>()
+        val body = oidcProviderService.getUserInfo(principal.accessToken)
 
         val username = config.oidc.provider.usernameFields
             .firstNotNullOf { body[it]?.jsonPrimitive?.contentOrNull }
@@ -250,19 +243,15 @@ class UserRoutes(
             return call.respond(InternalServerError)
         }
 
+        call.sessions.set(session)
         val customRedirect = oauthRedirectUrls.remove(principal.state)
         if (customRedirect == null) {
-            call.sessions.set(session)
-            call.attributes.put(SetSessionCookie, true)
             call.respondRedirect("/")
         } else {
-            val sessionId = sessionStorage.write(session)
-            call.respondRedirect {
-                parameters.clear() // clear oidc callback params
-                takeFrom(customRedirect)
-                parameters["token"] = sessionId
-                parameters["isNewUser"] = isNewUser.toString()
-            }
+            val redirectUrl = URLBuilder(customRedirect)
+                .apply { parameters["isNewUser"] = isNewUser.toString() }
+            call.attributes.put(OidcRedirectUrl, redirectUrl)
+            call.respond(HttpStatusCode.TemporaryRedirect)
         }
     }
 
@@ -287,7 +276,7 @@ class UserRoutes(
             ?: return call.respond(NotFound)
 
         call.sessions.set(sessionData)
-        call.attributes.put(SetSessionCookie, true)
+        // TODO: do same thing as oidc
         call.respondRedirect(redirectLocation ?: "/")
     }
 

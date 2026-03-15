@@ -17,7 +17,7 @@
  */
 package anystream.jobs
 
-import anystream.AnyStreamConfig
+import anystream.config.AnyStreamConfig
 import anystream.db.MediaLinkDao
 import anystream.di.ServerScope
 import anystream.models.MediaLink

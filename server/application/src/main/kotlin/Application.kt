@@ -17,6 +17,7 @@
  */
 package anystream
 
+import anystream.config.AnyStreamConfig
 import anystream.data.UserSession
 import anystream.db.*
 import anystream.jobs.registerJobs
@@ -37,7 +38,6 @@ import io.ktor.server.auth.*
 import io.ktor.server.config.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import io.ktor.server.plugins.*
 import io.ktor.server.plugins.autohead.*
 import io.ktor.server.plugins.cachingheaders.*
 import io.ktor.server.plugins.calllogging.*
@@ -117,8 +117,7 @@ suspend fun main(args: Array<String>) {
 @Suppress("unused", "UNUSED_PARAMETER") // Referenced in application.conf
 @JvmOverloads
 fun Application.module(testing: Boolean = false) {
-    val fs = FileSystems.getDefault()
-    val config = AnyStreamConfig(environment.config, fs)
+    val config = environment.config.property("app").getAs<AnyStreamConfig>()
     val serverGraph = createGraphFactory<ServerGraph.Factory>().create(config, this)
 
     val applicationScope = this as CoroutineScope
@@ -145,8 +144,10 @@ fun Application.module(testing: Boolean = false) {
     install(AutoHeadResponse)
     install(ConditionalHeaders)
     install(PartialContent)
-    install(ForwardedHeaders) // WARNING: for security, do not include this if not behind a reverse proxy
-    install(XForwardedHeaders) // WARNING: for security, do not include this if not behind a reverse proxy
+    if (config.baseUrl == null) {
+        install(ForwardedHeaders)
+        install(XForwardedHeaders)
+    }
     install(Compression) {
         gzip {
             priority = 1.0
@@ -193,34 +194,11 @@ fun Application.module(testing: Boolean = false) {
             challenge { call.respond(Unauthorized) }
             validate { it }
         }
-        if (config.oidc.enable) {
+        if (config.oidc.enable && config.oidc.provider != null) {
             oauth(config.oidc.provider.name) {
                 client = serverGraph.http
-                urlProvider = {
-                    buildString {
-                        append(request.origin.scheme)
-                        append("://")
-                        append(config.baseUrl.trimEnd('/'))
-                        append("/api/users/oidc/callback")
-                    }
-                }
-                providerLookup = {
-                    OAuthServerSettings.OAuth2ServerSettings(
-                        name = config.oidc.provider.name,
-                        authorizeUrl = config.oidc.provider.authorizeUrl,
-                        accessTokenUrl = config.oidc.provider.accessTokenUrl,
-                        requestMethod = HttpMethod.Post,
-                        clientId = config.oidc.provider.clientId,
-                        clientSecret = config.oidc.provider.clientSecret,
-                        defaultScopes = config.oidc.provider.scopes,
-                        onStateCreated = { call, state ->
-                            val redirectUrl = call.request.queryParameters["redirect_url"]
-                            if (redirectUrl != null) {
-                                oauthRedirectUrls[state] = redirectUrl.decodeURLQueryComponent()
-                            }
-                        },
-                    )
-                }
+                urlProvider = { serverGraph.oidcProviderService.urlProvider(this) }
+                providerLookup = { serverGraph.oidcProviderService.providerLookup() }
             }
         }
     }

@@ -17,7 +17,7 @@
  */
 package anystream.service.user
 
-import anystream.AnyStreamConfig
+import anystream.config.AnyStreamConfig
 import anystream.data.UserSession
 import anystream.db.InviteCodeDao
 import anystream.db.UserDao
@@ -140,6 +140,7 @@ class UserService(
         username: String,
         groups: List<String>,
     ): CreateUserResponse {
+        checkNotNull(config.oidc.provider)
         // todo: If preferred username is unusable, try email name before erroring
         val usernameError = when {
             username.isBlank() -> CreateUserResponse.UsernameError.BLANK

@@ -17,12 +17,14 @@
  */
 package anystream.util
 
+import io.ktor.http.HttpHeaders
+import io.ktor.http.URLBuilder
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.sessions.*
 import io.ktor.util.AttributeKey
 
-val SetSessionCookie = AttributeKey<Boolean>("SetSessionCookie")
+val OidcRedirectUrl = AttributeKey<URLBuilder>("OidcRedirectUrl")
 
 inline fun <reified T : Any> SessionsConfig.headerOrQuery(
     key: String,
@@ -40,13 +42,13 @@ inline fun <reified T : Any> SessionsConfig.headerOrQuery(
                     value: String,
                 ) {
                     call.response.header(key, value)
-                    if (call.attributes.getOrNull(SetSessionCookie) == true) {
-                        call.response.cookies.append(
-                            name = key,
-                            value = value,
-                            domain = null,
-                            path = "/",
-                        )
+
+                    val redirectUrl = call.attributes.getOrNull(OidcRedirectUrl)
+                    if (redirectUrl != null) {
+                        val redirectUrlString = redirectUrl
+                            .apply { parameters["token"] = value }
+                            .buildString()
+                        call.response.header(HttpHeaders.Location, redirectUrlString)
                     }
                 }
 
@@ -55,7 +57,6 @@ inline fun <reified T : Any> SessionsConfig.headerOrQuery(
                 override fun receive(call: ApplicationCall): String? {
                     return call.request.queryParameters[key]
                         ?: call.request.headers[key]
-                        ?: call.request.cookies[key]
                 }
             },
             SessionTrackerById(T::class, serializer, storage, sessionIdProvider),

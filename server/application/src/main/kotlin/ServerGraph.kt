@@ -17,12 +17,14 @@
  */
 package anystream
 
+import anystream.config.AnyStreamConfig
 import anystream.db.converter.JooqConverterProvider
 import anystream.di.DATA_PATH
 import anystream.di.ServerScope
 import anystream.di.TRANSCODE_PATH
 import anystream.media.LibraryService
 import anystream.routes.RoutingControllers
+import anystream.service.user.OidcProviderService
 import anystream.util.SqlSessionStorage
 import app.moviebase.tmdb.Tmdb3
 import com.github.kokorin.jaffree.ffmpeg.FFmpeg
@@ -57,6 +59,7 @@ interface ServerGraph {
     val libraryService: LibraryService
     val sessionStorage: SqlSessionStorage
     val routingControllers: RoutingControllers
+    val oidcProviderService: OidcProviderService
 
     @Named(DATA_PATH)
     val dataPath: Path
@@ -132,7 +135,10 @@ interface ServerGraph {
     }
 
     @Provides
-    fun provideQBittorrentClient(config: AnyStreamConfig): QBittorrentClient {
+    fun provideQBittorrentClient(config: AnyStreamConfig): QBittorrentClient? {
+        if (config.qbittorrent == null) {
+            return null
+        }
         return QBittorrentClient(
             baseUrl = config.qbittorrent.url,
             username = config.qbittorrent.user,

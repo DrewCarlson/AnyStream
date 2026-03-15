@@ -17,17 +17,14 @@
  */
 package anystream.service.user
 
-import anystream.AnyStreamConfig
+import anystream.config.AnyStreamConfig
 import anystream.db.*
 import anystream.models.*
 import anystream.models.api.*
 import anystream.util.ObjectId
-import com.typesafe.config.ConfigFactory
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.nulls.shouldNotBeNull
-import io.ktor.server.config.HoconApplicationConfig
 import org.jooq.DSLContext
-import java.nio.file.FileSystems
 import kotlin.test.*
 import kotlin.time.Clock
 
@@ -44,10 +41,7 @@ class UserServiceTest :
             userService = UserService(
                 queries = dao,
                 inviteCodeDao = inviteDao,
-                config = AnyStreamConfig(
-                    config = HoconApplicationConfig(ConfigFactory.load()),
-                    fs = FileSystems.getDefault(),
-                ),
+                config = AnyStreamConfig(),
             )
         }
 

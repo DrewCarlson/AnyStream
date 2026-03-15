@@ -54,10 +54,16 @@ import qbittorrent.models.TorrentFile
 )
 @Inject
 class TorrentRoutes(
-    private val qbtClient: QBittorrentClient,
+    private val maybeQbtClient: QBittorrentClient?,
     private val mediaLinkDao: MediaLinkDao,
 ) : RoutingController {
+    private val qbtClient: QBittorrentClient
+        get() = maybeQbtClient!!
+
     override fun init(parent: Route) {
+        if (maybeQbtClient == null) {
+            return
+        }
         parent.apply {
             authenticate {
                 withAnyPermission(Permission.ManageTorrents) {
@@ -183,7 +189,7 @@ class TorrentRoutes(
     private suspend fun RoutingContext.getGlobal() {
         try {
             call.respond(qbtClient.getGlobalTransferInfo())
-        } catch (e: QBittorrentException) {
+        } catch (_: QBittorrentException) {
             call.respond(EmptyContent)
         }
     }
@@ -243,11 +249,11 @@ class TorrentRoutes(
                 outgoing.send(Frame.Text(json.encodeToString(data.serverState)))
             }
     }
-}
 
-private val videoExtensions = listOf(".mp4", ".avi", ".mkv")
-private val videoFile = { torrentFile: TorrentFile ->
-    torrentFile.name.run {
-        videoExtensions.any { endsWith(it) } && !contains("sample", true)
+    private val videoExtensions = listOf(".mp4", ".avi", ".mkv")
+    private val videoFile = { torrentFile: TorrentFile ->
+        torrentFile.name.run {
+            videoExtensions.any { endsWith(it) } && !contains("sample", true)
+        }
     }
 }

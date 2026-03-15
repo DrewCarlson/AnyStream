@@ -52,12 +52,6 @@ class SqlSessionStorage(
         }
     }
 
-    suspend fun write(userSession: UserSession): String {
-        val id = newId()
-        write(id, Serializer.serialize(userSession))
-        return id
-    }
-
     override suspend fun write(
         id: String,
         value: String,
