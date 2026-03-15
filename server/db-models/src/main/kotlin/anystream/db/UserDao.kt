@@ -21,7 +21,10 @@ import anystream.db.tables.records.UserPermissionRecord
 import anystream.db.tables.records.UserRecord
 import anystream.db.tables.references.*
 import anystream.db.util.*
+import anystream.di.ServerScope
 import anystream.models.*
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.jooq.DSLContext
@@ -29,6 +32,8 @@ import org.jooq.kotlin.coroutines.transactionCoroutine
 import org.slf4j.LoggerFactory
 import kotlin.time.Clock
 
+@SingleIn(ServerScope::class)
+@Inject
 class UserDao(
     private val db: DSLContext,
 ) {

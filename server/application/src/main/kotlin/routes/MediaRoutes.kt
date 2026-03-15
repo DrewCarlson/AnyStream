@@ -20,8 +20,8 @@ package anystream.routes
 import anystream.data.*
 import anystream.metadata.MetadataService
 import anystream.models.api.*
+import anystream.serverGraph
 import anystream.util.isRemoteId
-import anystream.util.koinGet
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
@@ -35,8 +35,8 @@ fun Route.addMediaManageRoutes() {
 }
 
 fun Route.addMediaViewRoutes(
-    metadataService: MetadataService = koinGet(),
-    queries: MetadataDbQueries = koinGet(),
+    metadataService: MetadataService = application.attributes.serverGraph.metadataService,
+    queries: MetadataDbQueries = application.attributes.serverGraph.queries,
 ) {
     route("/media") {
         route("/{metadataId}") {

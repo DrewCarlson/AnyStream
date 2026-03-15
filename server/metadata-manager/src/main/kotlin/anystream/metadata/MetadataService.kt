@@ -18,16 +18,21 @@
 package anystream.metadata
 
 import anystream.db.MetadataDao
+import anystream.di.ServerScope
 import anystream.models.MediaKind
 import anystream.models.api.*
 import anystream.util.isRemoteId
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import kotlin.io.encoding.Base64
 import kotlin.io.path.exists
 
+@SingleIn(ServerScope::class)
+@Inject
 class MetadataService(
-    private val providers: List<MetadataProvider>,
+    private val providers: Set<MetadataProvider>,
     private val metadataDao: MetadataDao,
     private val imageStore: ImageStore,
 ) {

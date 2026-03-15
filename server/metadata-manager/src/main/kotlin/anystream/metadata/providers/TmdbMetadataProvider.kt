@@ -18,6 +18,7 @@
 package anystream.metadata.providers
 
 import anystream.data.*
+import anystream.di.ServerScope
 import anystream.metadata.ImageStore
 import anystream.metadata.MetadataProvider
 import anystream.models.*
@@ -26,6 +27,11 @@ import anystream.util.ObjectId
 import anystream.util.toRemoteId
 import app.moviebase.tmdb.Tmdb3
 import app.moviebase.tmdb.model.*
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.IntoSet
+import dev.zacsweers.metro.SingleIn
+import dev.zacsweers.metro.binding
 import io.ktor.client.plugins.*
 import io.ktor.http.*
 import kotlinx.coroutines.async
@@ -51,6 +57,13 @@ import kotlin.time.Duration.Companion.seconds
 
 private const val IMAGE_URL = "https://image.tmdb.org/t/p"
 
+@IntoSet
+@SingleIn(ServerScope::class)
+@ContributesIntoSet(
+    scope = ServerScope::class,
+    binding = binding<MetadataProvider>(),
+)
+@Inject
 class TmdbMetadataProvider(
     private val tmdbApi: Tmdb3,
     private val queries: MetadataDbQueries,

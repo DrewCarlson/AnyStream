@@ -18,6 +18,7 @@
 package anystream.media
 
 import anystream.db.*
+import anystream.di.ServerScope
 import anystream.media.analyzer.MediaFileAnalyzer
 import anystream.media.processor.MediaFileProcessor
 import anystream.media.scanner.MediaFileScanner
@@ -26,6 +27,8 @@ import anystream.models.api.*
 import anystream.models.backend.MediaScannerMessage
 import anystream.models.backend.MediaScannerState
 import anystream.util.toHumanReadableSize
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
@@ -33,6 +36,7 @@ import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.nio.file.*
 import java.util.concurrent.TimeUnit
+import kotlin.collections.map
 import kotlin.io.path.*
 
 internal val VIDEO_EXTENSIONS = listOf(
@@ -75,9 +79,11 @@ internal val SUBTITLE_EXTENSIONS = listOf(
     "ssa",
 )
 
+@SingleIn(ServerScope::class)
+@Inject
 class LibraryService(
     private val mediaFileAnalyzer: MediaFileAnalyzer,
-    private val processors: List<MediaFileProcessor>,
+    private val processors: Set<MediaFileProcessor>,
     private val mediaLinkDao: MediaLinkDao,
     private val libraryDao: LibraryDao,
     private val fs: FileSystem,

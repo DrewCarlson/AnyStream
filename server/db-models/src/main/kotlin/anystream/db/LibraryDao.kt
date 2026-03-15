@@ -22,10 +22,13 @@ import anystream.db.tables.records.LibraryRecord
 import anystream.db.tables.references.DIRECTORY
 import anystream.db.tables.references.LIBRARY
 import anystream.db.util.*
+import anystream.di.ServerScope
 import anystream.models.Directory
 import anystream.models.Library
 import anystream.models.MediaKind
 import anystream.util.ObjectId
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -35,6 +38,8 @@ import org.jooq.impl.DSL.select
 /** The default MediaKind's to create Libraries for in a new AnyStream instance */
 private val DEFAULT_LIBRARIES = listOf(MediaKind.MOVIE, MediaKind.TV, MediaKind.MUSIC)
 
+@SingleIn(ServerScope::class)
+@Inject
 class LibraryDao(
     private val db: DSLContext,
 ) {

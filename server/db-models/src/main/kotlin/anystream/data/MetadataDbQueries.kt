@@ -22,12 +22,17 @@ import anystream.db.pojos.*
 import anystream.db.tables.references.MEDIA_LINK
 import anystream.db.tables.references.METADATA
 import anystream.db.util.*
+import anystream.di.ServerScope
 import anystream.models.*
 import anystream.models.PlaybackState
 import anystream.models.api.*
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.future.await
 import org.jooq.DSLContext
 
+@SingleIn(ServerScope::class)
+@Inject
 class MetadataDbQueries(
     private val db: DSLContext,
     val metadataDao: MetadataDao,

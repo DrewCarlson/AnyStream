@@ -20,13 +20,18 @@ package anystream.db
 import anystream.db.tables.records.InviteCodeRecord
 import anystream.db.tables.references.INVITE_CODE
 import anystream.db.util.*
+import anystream.di.ServerScope
 import anystream.models.InviteCode
 import anystream.models.Permission
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.jooq.DSLContext
 import org.slf4j.LoggerFactory
 
+@SingleIn(ServerScope::class)
+@Inject
 class InviteCodeDao(
     private val db: DSLContext,
 ) {

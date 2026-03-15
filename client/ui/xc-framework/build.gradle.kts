@@ -2,7 +2,7 @@ plugins {
     kotlin("multiplatform")
     kotlin("plugin.compose")
     alias(libsClient.plugins.composejb)
-    alias(libsClient.plugins.metro)
+    alias(libsCommon.plugins.metro)
 }
 
 kotlin {
@@ -10,15 +10,24 @@ kotlin {
         listOf(
             iosArm64(),
             iosSimulatorArm64(),
-        )
+        ),
     ) {
         binaries {
             framework {
                 baseName = "AnyStreamCore"
                 freeCompilerArgs += listOf(
-                    "-linker-option", "-framework", "-linker-option", "Metal",
-                    "-linker-option", "-framework", "-linker-option", "CoreText",
-                    "-linker-option", "-framework", "-linker-option", "CoreGraphics",
+                    "-linker-option",
+                    "-framework",
+                    "-linker-option",
+                    "Metal",
+                    "-linker-option",
+                    "-framework",
+                    "-linker-option",
+                    "CoreText",
+                    "-linker-option",
+                    "-framework",
+                    "-linker-option",
+                    "CoreGraphics",
                 )
             }
         }

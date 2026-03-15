@@ -19,7 +19,7 @@ package anystream.routes
 
 import anystream.AnyStreamConfig
 import anystream.metadata.MetadataService
-import anystream.util.koinGet
+import anystream.serverGraph
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode.Companion.NotFound
@@ -30,8 +30,8 @@ import io.ktor.utils.io.ClosedByteChannelException
 import kotlin.io.path.exists
 
 fun Route.addImageRoutes(
-    config: AnyStreamConfig = koinGet(),
-    metadataService: MetadataService = koinGet(),
+    config: AnyStreamConfig = application.attributes.serverGraph.config,
+    metadataService: MetadataService = application.attributes.serverGraph.metadataService,
 ) {
     val dataPath = config.dataPath
     route("/image") {

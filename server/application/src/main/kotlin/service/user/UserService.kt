@@ -21,9 +21,12 @@ import anystream.AnyStreamConfig
 import anystream.data.UserSession
 import anystream.db.InviteCodeDao
 import anystream.db.UserDao
+import anystream.di.ServerScope
 import anystream.models.*
 import anystream.models.api.*
 import anystream.util.ObjectId
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import org.bouncycastle.crypto.generators.OpenBSDBCrypt
 import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentHashMap
@@ -34,6 +37,8 @@ private const val SALT_BYTES = 16
 private const val BCRYPT_COST = 10
 private const val INVITE_CODE_SIZE = 32
 
+@SingleIn(ServerScope::class)
+@Inject
 class UserService(
     private val queries: UserDao,
     private val inviteCodeDao: InviteCodeDao,

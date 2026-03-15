@@ -21,9 +21,9 @@ import anystream.media.LibraryService
 import anystream.models.Permission
 import anystream.models.api.LibraryActivity
 import anystream.models.api.PlaybackSessions
+import anystream.serverGraph
 import anystream.service.stream.StreamService
 import anystream.util.extractUserSession
-import anystream.util.koinGet
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.LoggerContext
 import ch.qos.logback.classic.spi.ILoggingEvent
@@ -46,8 +46,8 @@ fun Route.addAdminRoutes() {
 
 @OptIn(FlowPreview::class)
 fun Route.addAdminWsRoutes(
-    libraryService: LibraryService = koinGet(),
-    streamService: StreamService = koinGet(),
+    libraryService: LibraryService = application.attributes.serverGraph.libraryService,
+    streamService: StreamService = application.attributes.serverGraph.streamService,
 ) {
     val sessionsFlow = callbackFlow<PlaybackSessions> {
         while (true) {

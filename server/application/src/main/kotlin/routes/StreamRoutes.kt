@@ -20,9 +20,9 @@ package anystream.routes
 import anystream.data.UserSession
 import anystream.json
 import anystream.models.*
+import anystream.serverGraph
 import anystream.service.stream.StreamService
 import anystream.util.extractUserSession
-import anystream.util.koinGet
 import io.ktor.http.*
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
@@ -43,7 +43,7 @@ import kotlin.time.Duration.Companion.seconds
 
 private const val PLAYBACK_COMPLETE_PERCENT = 90
 
-fun Route.addStreamRoutes(streamService: StreamService = koinGet()) {
+fun Route.addStreamRoutes(streamService: StreamService = application.attributes.serverGraph.streamService) {
     route("/stream") {
         authenticate {
             withPermission(Permission.ConfigureSystem) {
@@ -134,7 +134,7 @@ fun Route.addStreamRoutes(streamService: StreamService = koinGet()) {
     }
 }
 
-fun Route.addStreamWsRoutes(streamService: StreamService = koinGet()) {
+fun Route.addStreamWsRoutes(streamService: StreamService = application.attributes.serverGraph.streamService) {
     webSocket("/ws/stream/{mediaLinkId}/state") {
         val session = checkNotNull(extractUserSession())
         check(Permission.check(Permission.ViewCollection, session.permissions))

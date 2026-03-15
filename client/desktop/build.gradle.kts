@@ -6,7 +6,7 @@ plugins {
     kotlin("plugin.compose")
     alias(libsCommon.plugins.downloadPlugin)
     alias(libsClient.plugins.composejb)
-    alias(libsClient.plugins.metro)
+    alias(libsCommon.plugins.metro)
 }
 
 kotlin {
@@ -33,9 +33,18 @@ fun getOSAndArch(): Pair<String, String> {
 fun getLibvlcForHost(): String? {
     val (osName, osArch) = getOSAndArch()
     return when {
-        osName.contains("win") && osArch.contains("64") -> "win64"
-        osName.contains("mac") && osArch.contains("x86_64") -> "macos-intel64"
-        osName.contains("mac") && osArch.contains("aarch64") -> "macos-arm64"
+        osName.contains("win") && osArch.contains("64") -> {
+            "win64"
+        }
+
+        osName.contains("mac") && osArch.contains("x86_64") -> {
+            "macos-intel64"
+        }
+
+        osName.contains("mac") && osArch.contains("aarch64") -> {
+            "macos-arm64"
+        }
+
         else -> {
             System.err.println("Unsupported OS/architecture: $osName/$osArch")
             return null
@@ -53,7 +62,7 @@ tasks {
                 append('/')
                 append(getLibvlcForHost().orEmpty())
                 append(".zip")
-            }
+            },
         )
         dest(outFile)
         enabled = !getLibvlcForHost().isNullOrBlank() && !outFile.get().asFile.exists()
@@ -66,7 +75,11 @@ tasks {
         enabled = !getLibvlcForHost().isNullOrBlank()
     }
 
-    kotlin.jvm().compilations["main"].compileTaskProvider.dependsOn(unpackLibvlc)
+    kotlin
+        .jvm()
+        .compilations["main"]
+        .compileTaskProvider
+        .dependsOn(unpackLibvlc)
 }
 
 compose {

@@ -22,12 +22,17 @@ import anystream.db.tables.records.PlaybackStateRecord
 import anystream.db.tables.references.METADATA
 import anystream.db.tables.references.PLAYBACK_STATE
 import anystream.db.util.*
+import anystream.di.ServerScope
 import anystream.models.PlaybackState
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.jooq.impl.SQLDataType
 
+@SingleIn(ServerScope::class)
+@Inject
 class PlaybackStatesDao(
     private val db: DSLContext,
 ) {

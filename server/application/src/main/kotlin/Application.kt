@@ -17,35 +17,17 @@
  */
 package anystream
 
-import anystream.data.MetadataDbQueries
 import anystream.data.UserSession
 import anystream.db.*
-import anystream.db.converter.JooqConverterProvider
-import anystream.jobs.GenerateVideoPreviewJob
 import anystream.jobs.registerJobs
-import anystream.media.LibraryService
-import anystream.media.analyzer.MediaFileAnalyzer
-import anystream.media.processor.MovieFileProcessor
-import anystream.media.processor.TvFileProcessor
-import anystream.metadata.ImageStore
-import anystream.metadata.MetadataService
-import anystream.metadata.providers.TmdbMetadataProvider
 import anystream.models.MediaKind
 import anystream.models.Permission
 import anystream.routes.installRouting
-import anystream.service.search.SearchService
-import anystream.service.stream.*
-import anystream.service.user.UserService
 import anystream.util.SqlSessionStorage
 import anystream.util.WebsocketAuthorization
 import anystream.util.headerOrQuery
-import app.moviebase.tmdb.Tmdb3
-import com.github.kokorin.jaffree.ffmpeg.FFmpeg
-import com.github.kokorin.jaffree.ffprobe.FFprobe
 import com.typesafe.config.ConfigFactory
-import io.ktor.client.*
-import io.ktor.client.plugins.cache.*
-import io.ktor.client.plugins.cache.storage.CacheStorage
+import dev.zacsweers.metro.createGraphFactory
 import io.ktor.http.*
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.serialization.kotlinx.*
@@ -69,24 +51,14 @@ import io.ktor.server.plugins.partialcontent.*
 import io.ktor.server.response.*
 import io.ktor.server.sessions.*
 import io.ktor.server.websocket.*
+import io.ktor.util.AttributeKey
+import io.ktor.util.Attributes
 import io.ktor.util.collections.ConcurrentMap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.drewcarlson.ktor.permissions.PermissionAuthorization
-import org.jooq.SQLDialect
-import org.jooq.impl.DSL
-import org.jooq.impl.DefaultConfiguration
-import org.koin.ktor.ext.get
-import org.koin.ktor.ext.getKoin
-import org.koin.ktor.plugin.Koin
-import org.koin.ktor.plugin.koinModule
-import org.koin.logger.slf4jLogger
 import org.slf4j.event.Level
-import org.sqlite.SQLiteConfig
-import org.sqlite.javax.SQLiteConnectionPoolDataSource
-import qbittorrent.QBittorrentClient
 import java.nio.file.FileSystems
-import javax.sql.DataSource
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.exists
 import kotlin.io.path.extension
@@ -97,6 +69,10 @@ private val configFileSuffixes = listOf("conf", "yml", "yaml")
 
 // TODO: add state expiration for incomplete auth flows
 val oauthRedirectUrls = ConcurrentMap<String, String>()
+
+val ServerGraphKey = AttributeKey<ServerGraph>("ServerGraph")
+val Attributes.serverGraph: ServerGraph
+    get() = get(ServerGraphKey)
 
 suspend fun main(args: Array<String>) {
     val defaultConfig = ConfigFactory.load()
@@ -147,122 +123,19 @@ suspend fun main(args: Array<String>) {
 @Suppress("unused", "UNUSED_PARAMETER") // Referenced in application.conf
 @JvmOverloads
 fun Application.module(testing: Boolean = false) {
-    install(Koin) {
-        slf4jLogger()
-    }
+    val fs = FileSystems.getDefault()
+    val config = AnyStreamConfig(environment.config, fs)
+    val serverGraph = createGraphFactory<ServerGraph.Factory>().create(config, this)
+    attributes[ServerGraphKey] = serverGraph
 
     val applicationScope = this as CoroutineScope
-    koinModule {
-        val fs = FileSystems.getDefault()
-        val config = AnyStreamConfig(environment.config, fs)
-        single { config }
-        single { applicationScope }
-        single { fs }
-
-        factory { FFmpeg.atPath(config.ffmpegPath) }
-        factory { FFprobe.atPath(config.ffmpegPath) }
-
-        single<DataSource> {
-            SQLiteConnectionPoolDataSource().apply {
-                url = config.databaseUrl
-                this.config = SQLiteConfig().apply {
-                    enforceForeignKeys(true)
-                    setJournalMode(SQLiteConfig.JournalMode.WAL)
-                    setSynchronous(SQLiteConfig.SynchronousMode.NORMAL)
-                }
-            }
-        }
-
-        single { SqlSessionStorage(get(), get()) }
-
-        single { Tmdb3(config.tmdbApiKey) }
-
-        single {
-            QBittorrentClient(
-                baseUrl = config.qbittorrent.url,
-                username = config.qbittorrent.user,
-                password = config.qbittorrent.password,
-            )
-        }
-
-        /*single {
-            kjob(JdbiKJob) {
-                this.jdbi = get()
-                defaultJobExecutor = JobExecutionType.NON_BLOCKING
-            }.apply { start() }
-        }*/
-
-        single { SessionsDao(get()) }
-        single { MetadataDao(get()) }
-        single { UserDao(get()) }
-        single { LibraryDao(get()) }
-        single { InviteCodeDao(get()) }
-        single { TagsDao(get()) }
-        single { PlaybackStatesDao(get()) }
-        single { MediaLinkDao(get()) }
-        single { SearchableContentDao(get()) }
-        single { MetadataDbQueries(get(), get(), get(), get(), get()) }
-
-        single {
-            HttpClient {
-                install(HttpCache) {
-                    // TODO: Add disk catching
-                    publicStorage(CacheStorage.Unlimited())
-                }
-                install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
-                    json()
-                }
-            }
-        }
-
-        single {
-            ImageStore(
-                dataPath = get<AnyStreamConfig>().dataPath,
-                httpClient = get<HttpClient>(),
-            )
-        }
-        single { MetadataService(listOf(TmdbMetadataProvider(get(), get(), get())), get(), get()) }
-        single { MediaFileAnalyzer({ get() }, get()) }
-        single<LibraryService> {
-            val processors = listOf(
-                MovieFileProcessor(get(), get(), get(), get()),
-                TvFileProcessor(get(), get(), get(), get()),
-            )
-            LibraryService(get(), processors, get(), get(), get())
-        }
-        single {
-            val dbConfig = DefaultConfiguration().apply {
-                setDataSource(get())
-                setSQLDialect(SQLDialect.SQLITE)
-                set(JooqConverterProvider())
-            }
-            DSL.using(dbConfig)
-        }
-        single { UserService(get(), get(), get()) }
-
-        single<StreamServiceQueries> { StreamServiceQueriesJooq(get(), get(), get(), get(), get()) }
-        single { MediaFileProbe({ get() }) }
-        single { TranscodeSessionManager({ get() }, get(), get(), get()) }
-        single {
-            StreamService(
-                queries = get(),
-                mediaFileProbe = get(),
-                transcodeSessionManager = get(),
-                transcodePath = get<AnyStreamConfig>().transcodePath,
-                fs = get(),
-            )
-        }
-        single { SearchService(get(), get(), get()) }
-        single { GenerateVideoPreviewJob({ get() }, get(), get()) }
-    }
-    val config = get<AnyStreamConfig>()
     monitor.subscribe(ApplicationStopped) {
         // get<KJob>().shutdown()
     }
 
-    check(runMigrations(get<AnyStreamConfig>().databaseUrl, log))
+    check(runMigrations(config.databaseUrl, log))
     applicationScope.launch {
-        get<LibraryService>().initializeLibraries(
+        serverGraph.libraryService.initializeLibraries(
             buildMap {
                 put(MediaKind.TV, config.libraries.tv.directories)
                 put(MediaKind.MOVIE, config.libraries.movies.directories)
@@ -322,7 +195,6 @@ fun Application.module(testing: Boolean = false) {
         contentConverter = KotlinxWebsocketSerializationConverter(json)
     }
 
-    val httpClient = getKoin().get<HttpClient>()
     install(Authentication) {
         session<UserSession> {
             challenge { call.respond(Unauthorized) }
@@ -330,7 +202,7 @@ fun Application.module(testing: Boolean = false) {
         }
         if (config.oidc.enable) {
             oauth(config.oidc.provider.name) {
-                client = httpClient
+                client = serverGraph.http
                 urlProvider = {
                     buildString {
                         append(request.origin.scheme)
@@ -359,7 +231,7 @@ fun Application.module(testing: Boolean = false) {
             }
         }
     }
-    val sessionStorage = get<SqlSessionStorage>()
+    val sessionStorage = serverGraph.sessionStorage
     install(Sessions) {
         headerOrQuery(UserSession.KEY, sessionStorage, SqlSessionStorage.Serializer) {
             sessionStorage.newId()
@@ -375,5 +247,5 @@ fun Application.module(testing: Boolean = false) {
         global(Permission.Global)
         extract { (it as UserSession).permissions }
     }
-    installRouting()
+    installRouting(serverGraph)
 }

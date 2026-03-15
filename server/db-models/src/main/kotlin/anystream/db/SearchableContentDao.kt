@@ -18,9 +18,11 @@
 package anystream.db
 
 import anystream.db.tables.references.SEARCHABLE_CONTENT
-import anystream.db.util.awaitFirstOrNullInto
 import anystream.db.util.awaitInto
+import anystream.di.ServerScope
 import anystream.models.MediaType
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.Record
@@ -28,6 +30,8 @@ import org.jooq.TableField
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.condition
 
+@SingleIn(ServerScope::class)
+@Inject
 class SearchableContentDao(
     private val db: DSLContext,
 ) {

@@ -21,16 +21,15 @@ import anystream.data.UserSession
 import anystream.db.MediaLinkDao
 import anystream.json
 import anystream.models.Permission
+import anystream.serverGraph
 import anystream.torrent.search.TorrentDescription2
 import anystream.util.extractUserSession
-import anystream.util.koinGet
 import io.ktor.client.plugins.*
 import io.ktor.client.utils.*
 import io.ktor.http.HttpStatusCode.Companion.Conflict
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.UnprocessableEntity
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -39,21 +38,19 @@ import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.flow.*
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.buildJsonObject
 import qbittorrent.QBittorrentClient
 import qbittorrent.QBittorrentException
 import qbittorrent.models.TorrentFile
 
 fun Route.addTorrentRoutes(
-    qbClient: QBittorrentClient = koinGet(),
-    mediaLinkDao: MediaLinkDao = koinGet(),
+    qbClient: QBittorrentClient = application.attributes.serverGraph.qbittorrentClient,
+    mediaLinkDao: MediaLinkDao = application.attributes.serverGraph.mediaLinkDao,
 ) {
     route("/torrents") {
         get {
             val response = try {
                 qbClient.getTorrents()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 emptyList()
             }
             call.respond(response)
@@ -182,7 +179,7 @@ fun Route.addTorrentRoutes(
 }
 
 @OptIn(DelicateCoroutinesApi::class)
-fun Route.addTorrentWsRoutes(qbClient: QBittorrentClient = koinGet()) {
+fun Route.addTorrentWsRoutes(qbClient: QBittorrentClient = application.attributes.serverGraph.qbittorrentClient) {
     webSocket("/ws/torrents/observe") {
         val session = checkNotNull(extractUserSession())
         check(Permission.check(Permission.ManageTorrents, session.permissions))

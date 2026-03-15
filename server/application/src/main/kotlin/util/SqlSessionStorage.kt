@@ -20,7 +20,10 @@ package anystream.util
 import anystream.data.UserSession
 import anystream.db.SessionsDao
 import anystream.db.tables.references.SESSION
+import anystream.di.ServerScope
 import anystream.json
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import io.ktor.server.sessions.*
 import kotlinx.coroutines.future.await
 import org.jooq.DSLContext
@@ -29,6 +32,8 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.NoSuchElementException
 import kotlin.random.Random
 
+@SingleIn(ServerScope::class)
+@Inject
 class SqlSessionStorage(
     private val db: DSLContext,
     private val sessionsDao: SessionsDao,

@@ -19,6 +19,7 @@ package anystream.jobs
 
 import anystream.AnyStreamConfig
 import anystream.db.MediaLinkDao
+import anystream.di.ServerScope
 import anystream.models.MediaLink
 import anystream.models.MediaLinkType
 import anystream.util.BifFileBuilder
@@ -26,6 +27,9 @@ import com.github.kokorin.jaffree.JaffreeException
 import com.github.kokorin.jaffree.ffmpeg.FFmpeg
 import com.github.kokorin.jaffree.ffmpeg.UrlInput
 import com.github.kokorin.jaffree.ffmpeg.UrlOutput
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.Provider
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
@@ -41,8 +45,10 @@ private const val PREVIEW_IMAGE_INTERVAL = "5" // Seconds between each image
 private const val PREVIEW_IMAGE_FILE_NAME = "preview%d.webp"
 private const val FFMPEG_FILTER = "fps=fps=1/$PREVIEW_IMAGE_INTERVAL,scale=$PREVIEW_IMAGE_WIDTH:-1"
 
+@SingleIn(ServerScope::class)
+@Inject
 class GenerateVideoPreviewJob(
-    private val ffmpeg: () -> FFmpeg,
+    private val ffmpeg: Provider<FFmpeg>,
     config: AnyStreamConfig,
     private val mediaLinkDao: MediaLinkDao,
 ) {

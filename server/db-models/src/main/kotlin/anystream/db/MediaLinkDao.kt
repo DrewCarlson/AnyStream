@@ -22,9 +22,12 @@ import anystream.db.tables.records.StreamEncodingRecord
 import anystream.db.tables.references.MEDIA_LINK
 import anystream.db.tables.references.STREAM_ENCODING
 import anystream.db.util.*
+import anystream.di.ServerScope
 import anystream.models.Descriptor
 import anystream.models.MediaLink
 import anystream.models.StreamEncoding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -40,6 +43,8 @@ data class MediaLinkMetadataUpdate(
     val rootMetadataId: String? = null,
 )
 
+@SingleIn(ServerScope::class)
+@Inject
 class MediaLinkDao(
     private val db: DSLContext,
 ) {

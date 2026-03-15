@@ -19,9 +19,14 @@ package anystream.db
 
 import anystream.db.tables.references.SESSION
 import anystream.db.util.awaitFirstOrNullInto
+import anystream.di.ServerScope
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.jooq.DSLContext
 
+@SingleIn(ServerScope::class)
+@Inject
 class SessionsDao(
     private val db: DSLContext,
 ) {

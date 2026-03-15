@@ -24,7 +24,12 @@ import anystream.db.UserDao
 import anystream.db.tables.references.METADATA
 import anystream.db.tables.references.PLAYBACK_STATE
 import anystream.db.util.awaitFirstOrNullInto
+import anystream.di.ServerScope
 import anystream.models.*
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
+import dev.zacsweers.metro.binding
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.jooq.DSLContext
@@ -32,6 +37,12 @@ import org.slf4j.LoggerFactory
 import kotlin.time.Clock
 import kotlin.time.Duration
 
+@SingleIn(ServerScope::class)
+@ContributesBinding(
+    scope = ServerScope::class,
+    binding = binding<StreamServiceQueries>(),
+)
+@Inject
 class StreamServiceQueriesJooq(
     private val db: DSLContext,
     private val userDao: UserDao,

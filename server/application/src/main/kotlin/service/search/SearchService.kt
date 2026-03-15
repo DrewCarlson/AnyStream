@@ -20,10 +20,15 @@ package anystream.service.search
 import anystream.db.MediaLinkDao
 import anystream.db.MetadataDao
 import anystream.db.SearchableContentDao
+import anystream.di.ServerScope
 import anystream.models.*
 import anystream.models.api.SearchResponse
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import org.slf4j.LoggerFactory
 
+@SingleIn(ServerScope::class)
+@Inject
 class SearchService(
     private val searchableContentDao: SearchableContentDao,
     private val mediaDao: MetadataDao,

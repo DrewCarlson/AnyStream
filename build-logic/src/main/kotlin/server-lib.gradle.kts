@@ -1,4 +1,3 @@
-import dev.zacsweers.redacted.gradle.RedactedPluginExtension
 import org.gradle.kotlin.dsl.kotlin
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -7,6 +6,7 @@ plugins {
     id("com.diffplug.spotless")
     kotlin("plugin.serialization")
     id("dev.zacsweers.redacted")
+    id("dev.zacsweers.metro")
     id("dev.drewhamilton.poko")
 }
 

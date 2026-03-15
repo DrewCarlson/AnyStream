@@ -17,11 +17,15 @@
  */
 package anystream.service.stream
 
+import anystream.di.ServerScope
 import anystream.models.TranscodeDecision
 import com.github.kokorin.jaffree.LogLevel
 import com.github.kokorin.jaffree.StreamType
 import com.github.kokorin.jaffree.ffprobe.FFprobe
 import com.github.kokorin.jaffree.ffprobe.FFprobeResult
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.Provider
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
@@ -32,8 +36,10 @@ import kotlin.time.Duration.Companion.seconds
 /**
  * Analyzes media files to determine their codecs and container format.
  */
+@SingleIn(ServerScope::class)
+@Inject
 class MediaFileProbe(
-    private val ffprobe: () -> FFprobe,
+    private val ffprobe: Provider<FFprobe>,
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
 

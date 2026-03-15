@@ -18,6 +18,7 @@
 package anystream.media.analyzer
 
 import anystream.db.MediaLinkDao
+import anystream.di.ServerScope
 import anystream.media.VIDEO_EXTENSIONS
 import anystream.media.util.toStreamEncoding
 import anystream.models.MediaLink
@@ -26,13 +27,18 @@ import anystream.models.api.MediaAnalyzerResult
 import com.github.kokorin.jaffree.JaffreeException
 import com.github.kokorin.jaffree.StreamType
 import com.github.kokorin.jaffree.ffprobe.FFprobe
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.Provider
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
 import kotlin.io.path.Path
 import kotlin.io.path.exists
 
+@SingleIn(ServerScope::class)
+@Inject
 class MediaFileAnalyzer(
-    private val ffprobe: () -> FFprobe,
+    private val ffprobe: Provider<FFprobe>,
     private val mediaLinkDao: MediaLinkDao,
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)

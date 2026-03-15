@@ -2,7 +2,7 @@ plugins {
     id("com.android.application")
     kotlin("plugin.compose")
     id("spotless")
-    alias(libsClient.plugins.metro)
+    alias(libsCommon.plugins.metro)
 }
 
 android {

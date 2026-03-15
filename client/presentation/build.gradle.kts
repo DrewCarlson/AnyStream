@@ -1,7 +1,7 @@
 plugins {
     id("multiplatform-lib")
     kotlin("plugin.compose")
-    alias(libsClient.plugins.metro)
+    alias(libsCommon.plugins.metro)
     alias(libsClient.plugins.composejb)
 }
 
@@ -23,7 +23,7 @@ kotlin {
             dependencies {
                 api(projects.client.core)
                 api(projects.client.dataModels)
-                //api(libsClient.compose.resources)
+                // api(libsClient.compose.resources)
                 api(libsClient.compose.runtime)
                 api(libsClient.molecule)
             }

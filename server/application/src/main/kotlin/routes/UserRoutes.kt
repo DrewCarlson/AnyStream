@@ -24,10 +24,10 @@ import anystream.json
 import anystream.models.*
 import anystream.models.api.*
 import anystream.oauthRedirectUrls
+import anystream.serverGraph
 import anystream.service.user.UserService
 import anystream.util.SetSessionCookie
 import anystream.util.SqlSessionStorage
-import anystream.util.koinGet
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -59,11 +59,11 @@ import kotlin.time.Duration.Companion.seconds
 private const val PAIRING_SESSION_SECONDS = 60
 
 fun Route.addUserRoutes(
-    userService: UserService = koinGet(),
-    sessionsDao: SessionsDao = koinGet(),
-    config: AnyStreamConfig = koinGet(),
-    sessionStorage: SqlSessionStorage = koinGet(),
-    http: HttpClient = koinGet(),
+    userService: UserService = application.attributes.serverGraph.userService,
+    sessionsDao: SessionsDao = application.attributes.serverGraph.sessionsDao,
+    config: AnyStreamConfig = application.attributes.serverGraph.config,
+    sessionStorage: SqlSessionStorage = application.attributes.serverGraph.sessionStorage,
+    http: HttpClient = application.attributes.serverGraph.http,
 ) {
     route("/users") {
         post {
@@ -322,7 +322,7 @@ fun Route.addUserRoutes(
     }
 }
 
-fun Route.addUserWsRoutes(userService: UserService = koinGet()) {
+fun Route.addUserWsRoutes(userService: UserService = application.attributes.serverGraph.userService) {
     webSocket("/ws/users/pair") {
         val pairingCode = UUID.randomUUID().toString().lowercase()
         val startingJson = json.encodeToString<PairingMessage>(PairingMessage.Started(pairingCode))

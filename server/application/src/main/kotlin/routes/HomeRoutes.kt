@@ -28,7 +28,7 @@ import anystream.models.api.Popular
 import anystream.models.api.RecentlyAdded
 import anystream.models.toTvSeasonModel
 import anystream.models.toTvShowModel
-import anystream.util.koinGet
+import anystream.serverGraph
 import anystream.util.toRemoteId
 import app.moviebase.tmdb.Tmdb3
 import app.moviebase.tmdb.model.*
@@ -46,8 +46,8 @@ private const val CURRENTLY_WATCHING_ITEM_LIMIT = 10
 private val POPULAR_MOVIES_REFRESH = 24.hours
 
 fun Route.addHomeRoutes(
-    tmdb: Tmdb3 = koinGet(),
-    queries: MetadataDbQueries = koinGet(),
+    tmdb: Tmdb3 = application.attributes.serverGraph.tmdb3,
+    queries: MetadataDbQueries = application.attributes.serverGraph.queries,
 ) {
     val locale = ULocale.getDefault()
     val language = locale.language

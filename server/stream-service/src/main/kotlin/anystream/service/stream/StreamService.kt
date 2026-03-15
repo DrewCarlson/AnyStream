@@ -17,12 +17,17 @@
  */
 package anystream.service.stream
 
+import anystream.di.ServerScope
+import anystream.di.TRANSCODE_PATH
 import anystream.models.*
 import anystream.models.api.EpisodeResponse
 import anystream.models.api.MediaLookupResponse
 import anystream.models.api.MovieResponse
 import anystream.models.api.PlaybackSessions
 import anystream.util.ObjectId
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.Named
+import dev.zacsweers.metro.SingleIn
 import org.slf4j.LoggerFactory
 import java.nio.file.FileSystem
 import java.nio.file.Path
@@ -38,10 +43,13 @@ private val DEFAULT_SEGMENT_DURATION = 6.seconds
 private val REMEMBER_STATE_THRESHOLD = 60.seconds
 
 // HLS Spec https://datatracker.ietf.org/doc/html/rfc8216
+@SingleIn(ServerScope::class)
+@Inject
 class StreamService(
     private val queries: StreamServiceQueries,
     private val mediaFileProbe: MediaFileProbe,
     private val transcodeSessionManager: TranscodeSessionManager,
+    @param:Named(TRANSCODE_PATH)
     private val transcodePath: Path,
     private val fs: FileSystem,
 ) {

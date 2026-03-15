@@ -24,7 +24,7 @@ import anystream.models.Permission
 import anystream.models.api.AddLibraryFolderRequest
 import anystream.models.api.AddLibraryFolderResponse
 import anystream.models.api.MediaScanResult
-import anystream.util.koinGet
+import anystream.serverGraph
 import anystream.util.logger
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
@@ -36,8 +36,8 @@ import kotlinx.coroutines.launch
 import org.drewcarlson.ktor.permissions.withPermission
 
 fun Route.addLibraryViewRoutes(
-    libraryService: LibraryService = koinGet(),
-    queries: MetadataDbQueries = koinGet(),
+    libraryService: LibraryService = application.attributes.serverGraph.libraryService,
+    queries: MetadataDbQueries = application.attributes.serverGraph.queries,
 ) {
     route("/library") {
         get {
@@ -48,7 +48,8 @@ fun Route.addLibraryViewRoutes(
             get {
                 val libraryId = call.parameters["libraryId"] ?: return@get call.respond(NotFound)
                 val includeLinks = call.parameters["includeLinks"]?.toBoolean() ?: false
-                val library = libraryService.getLibrary(libraryId) ?: return@get call.respond(NotFound)
+                val library =
+                    libraryService.getLibrary(libraryId) ?: return@get call.respond(NotFound)
 
                 when (library.mediaKind) {
                     MediaKind.MOVIE -> {
@@ -79,7 +80,8 @@ fun Route.addLibraryViewRoutes(
             withPermission(Permission.ManageCollection) {
                 route("/directories") {
                     get {
-                        val libraryId = call.parameters["libraryId"] ?: return@get call.respond(NotFound)
+                        val libraryId =
+                            call.parameters["libraryId"] ?: return@get call.respond(NotFound)
                         call.respond(libraryService.getLibraryRootDirectories(libraryId))
                     }
                 }
@@ -88,7 +90,7 @@ fun Route.addLibraryViewRoutes(
     }
 }
 
-fun Route.addLibraryModifyRoutes(libraryService: LibraryService = koinGet()) {
+fun Route.addLibraryModifyRoutes(libraryService: LibraryService = application.attributes.serverGraph.libraryService) {
     route("/library") {
         route("/directory/{directoryId}") {
             get("/scan") {
@@ -107,15 +109,16 @@ fun Route.addLibraryModifyRoutes(libraryService: LibraryService = koinGet()) {
                         }
 
                         else -> {
-                            Unit
-                        } // TODO: Handle errors
+                            // TODO: Handle errors
+                        }
                     }
                 }
 
                 call.respond(OK)
             }
             delete {
-                val directoryId = call.parameters["directoryId"] ?: return@delete call.respond(UnprocessableEntity)
+                val directoryId = call.parameters["directoryId"]
+                    ?: return@delete call.respond(UnprocessableEntity)
 
                 val result = if (libraryService.removeDirectory(directoryId)) OK else NotFound
                 call.respond(result)

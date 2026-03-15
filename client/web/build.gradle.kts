@@ -8,7 +8,7 @@ plugins {
     alias(libsCommon.plugins.jsPlainObjects)
     alias(libsCommon.plugins.serialization)
     alias(libsCommon.plugins.kotlinVite)
-    alias(libsClient.plugins.metro)
+    alias(libsCommon.plugins.metro)
 }
 
 val localProperties = gradleLocalProperties(rootDir, providers)

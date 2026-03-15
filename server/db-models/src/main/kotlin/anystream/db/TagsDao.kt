@@ -26,6 +26,7 @@ import anystream.db.tables.references.METADATA_CREDIT
 import anystream.db.tables.references.METADATA_GENRE
 import anystream.db.tables.references.TAG
 import anystream.db.util.*
+import anystream.di.ServerScope
 import anystream.models.CastCredit
 import anystream.models.CreditType
 import anystream.models.CrewCredit
@@ -36,10 +37,14 @@ import anystream.models.ProductionCompany
 import anystream.models.Tag
 import anystream.models.TagType
 import anystream.util.ObjectId
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.jooq.DSLContext
 
+@SingleIn(ServerScope::class)
+@Inject
 class TagsDao(
     private val db: DSLContext,
 ) {

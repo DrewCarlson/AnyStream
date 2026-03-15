@@ -5,6 +5,7 @@ plugins {
 dependencies {
     implementation(libsCommon.agp)
     implementation(libsCommon.redacted)
+    implementation(libsCommon.metro)
     implementation(libsCommon.poko)
     implementation(libsCommon.kotlin.gradle.plugin)
     implementation(libsCommon.serialization.plugin)

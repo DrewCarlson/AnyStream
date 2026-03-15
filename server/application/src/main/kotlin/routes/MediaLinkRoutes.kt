@@ -20,13 +20,12 @@ package anystream.routes
 import anystream.data.MetadataDbQueries
 import anystream.data.UserSession
 import anystream.db.MediaLinkDao
-import anystream.jobs.GenerateVideoPreviewJob
 import anystream.media.LibraryService
 import anystream.models.Descriptor
 import anystream.models.MediaLink
 import anystream.models.api.*
 import anystream.models.filename
-import anystream.util.koinGet
+import anystream.serverGraph
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.UnprocessableEntity
@@ -40,8 +39,8 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonPrimitive
 
 fun Route.addMediaLinkManageRoutes(
-    libraryService: LibraryService = koinGet(),
-    mediaLinkDao: MediaLinkDao = koinGet(),
+    libraryService: LibraryService = application.attributes.serverGraph.libraryService,
+    mediaLinkDao: MediaLinkDao = application.attributes.serverGraph.mediaLinkDao,
 ) {
     route("/medialink") {
         get {
@@ -77,7 +76,7 @@ fun Route.addMediaLinkManageRoutes(
         route("/{mediaLinkId}") {
             get("/generate-preview") {
                 val mediaLink = mediaLink() ?: return@get call.respond(NotFound)
-                val generator = koinGet<GenerateVideoPreviewJob>()
+                val generator = application.attributes.serverGraph.generateVideoPreviewJob
                 application.launch { generator.execute(mediaLink.id) }
                 call.respond(OK)
             }
@@ -133,7 +132,7 @@ fun Route.addMediaLinkManageRoutes(
     }
 }
 
-fun Route.addMediaLinkViewRoutes(queries: MetadataDbQueries = koinGet()) {
+fun Route.addMediaLinkViewRoutes(queries: MetadataDbQueries = application.attributes.serverGraph.queries) {
     route("/medialink") {
         route("/{mediaLinkId}") {
             get {
@@ -160,7 +159,9 @@ fun Route.addMediaLinkViewRoutes(queries: MetadataDbQueries = koinGet()) {
     }
 }
 
-private suspend fun RoutingContext.mediaLink(mediaLinkDao: MediaLinkDao = koinGet()): MediaLink? {
+private suspend fun RoutingContext.mediaLink(
+    mediaLinkDao: MediaLinkDao = call.application.attributes.serverGraph.mediaLinkDao,
+): MediaLink? {
     val mediaLinkId = call.parameters["mediaLinkId"]
         ?.takeIf(String::isNotBlank)
         ?: return run {

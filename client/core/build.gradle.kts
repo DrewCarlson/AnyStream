@@ -1,6 +1,6 @@
 plugins {
     id("multiplatform-lib")
-    alias(libsClient.plugins.metro)
+    alias(libsCommon.plugins.metro)
 }
 
 kotlin {

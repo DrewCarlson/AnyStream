@@ -6,7 +6,6 @@ kjob = "0.6.0"
 bouncy_castle = "1.83"
 jaffree = "0.0.1"
 logback = "1.5.32"
-koinKtor = "4.1.1"
 mockk = "1.14.9"
 jooqGradle = "10.2"
 imageio = "3.13.1"
@@ -30,9 +29,6 @@ jaffree = { module = "org.drewcarlson:jaffree", version.ref = "jaffree" }
 bouncyCastle = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncy_castle" }
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 tmdbapi = "app.moviebase:tmdb-api-jvm:1.7.10"
-koin-core = { module = "io.insert-koin:koin-core", version.ref = "koinKtor" }
-koin-ktor = { module = "io.insert-koin:koin-ktor", version.ref = "koinKtor" }
-koin-slf4j = { module = "io.insert-koin:koin-logger-slf4j", version.ref = "koinKtor" }
 ktor-server-permissions = "org.drewcarlson:ktor-permissions:0.3.0"
 icu4j = { module = "com.ibm.icu:icu4j", version.ref = "icu4j" }
 icu4j-charset = { module = "com.ibm.icu:icu4j-charset", version.ref = "icu4j" }

@@ -17,6 +17,7 @@
  */
 package anystream.service.stream
 
+import anystream.di.ServerScope
 import anystream.models.PlaybackState
 import anystream.models.TranscodeDecision
 import anystream.models.TranscodeSession
@@ -26,6 +27,9 @@ import com.github.kokorin.jaffree.ffmpeg.UrlInput
 import com.github.kokorin.jaffree.ffmpeg.UrlOutput
 import com.github.kokorin.jaffree.process.CommandSender
 import dev.drewhamilton.poko.Poko
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.Provider
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.channels.BufferOverflow
@@ -45,8 +49,10 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit.SECONDS
 import kotlin.time.times
 
+@SingleIn(ServerScope::class)
+@Inject
 class TranscodeSessionManager(
-    private val ffmpeg: () -> FFmpeg,
+    private val ffmpeg: Provider<FFmpeg>,
     private val mediaFileProbe: MediaFileProbe,
     private val queries: StreamServiceQueries,
     private val fs: FileSystem,

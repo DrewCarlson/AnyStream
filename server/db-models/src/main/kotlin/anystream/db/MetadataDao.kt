@@ -21,14 +21,19 @@ import anystream.db.tables.records.MetadataRecord
 import anystream.db.tables.references.METADATA
 import anystream.db.util.*
 import anystream.db.util.awaitFirstOrNullInto
+import anystream.di.ServerScope
 import anystream.models.MediaType
 import anystream.models.Metadata
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.coalesce
 
+@SingleIn(ServerScope::class)
+@Inject
 class MetadataDao(
     private val db: DSLContext,
 ) {

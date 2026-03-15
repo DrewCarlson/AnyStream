@@ -17,6 +17,11 @@
  */
 package anystream.metadata
 
+import anystream.di.DATA_PATH
+import anystream.di.ServerScope
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.Named
+import dev.zacsweers.metro.SingleIn
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsChannel
@@ -31,7 +36,10 @@ import kotlin.io.path.createParentDirectories
 import kotlin.io.path.outputStream
 import kotlin.time.Duration.Companion.seconds
 
+@SingleIn(ServerScope::class)
+@Inject
 class ImageStore(
+    @param:Named(DATA_PATH)
     private val dataPath: Path,
     private val httpClient: HttpClient,
 ) {

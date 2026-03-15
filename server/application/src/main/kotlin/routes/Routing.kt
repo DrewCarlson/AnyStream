@@ -17,6 +17,7 @@
  */
 package anystream.routes
 
+import anystream.ServerGraph
 import anystream.models.Permission
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -24,8 +25,8 @@ import io.ktor.server.routing.*
 import org.drewcarlson.ktor.permissions.withAnyPermission
 import org.drewcarlson.ktor.permissions.withPermission
 
-fun Application.installRouting() {
-    installWebClientRoutes()
+fun Application.installRouting(serverGraph: ServerGraph) {
+    installWebClientRoutes(serverGraph.config)
 
     routing {
         route("/api") {
