@@ -22,54 +22,54 @@ jobs:
       web: ${{ steps.web.outputs.any_changed }}
       server: ${{ steps.server.outputs.any_changed }}
     steps:
-      - uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           submodules: 'recursive'
           fetch-depth: 0
       - name: Get changed files
         id: android
-        uses: tj-actions/changed-files@4f892cd56345d721bac7139000c4b4a22c8f138f
+        uses: tj-actions/changed-files@22103cc46bda19c2b464ffe86db46df6922fd323 # v47.0.5
         with:
           files: |
             **/client/android/**/*.kt
             **/client/android/**/*.kts
       - name: Get changed files
         id: client-core
-        uses: tj-actions/changed-files@4f892cd56345d721bac7139000c4b4a22c8f138f
+        uses: tj-actions/changed-files@22103cc46bda19c2b464ffe86db46df6922fd323 # v47.0.5
         with:
           files: |
             **/client/core/**/*.kt
             **/client/core/**/*.kts
       - name: Get changed files
         id: data-models
-        uses: tj-actions/changed-files@4f892cd56345d721bac7139000c4b4a22c8f138f
+        uses: tj-actions/changed-files@22103cc46bda19c2b464ffe86db46df6922fd323 # v47.0.5
         with:
           files: |
             **/client/data-models/**/*.kt
             **/client/data-models/**/*.kts
       - name: Get changed files
         id: client-ui
-        uses: tj-actions/changed-files@4f892cd56345d721bac7139000c4b4a22c8f138f
+        uses: tj-actions/changed-files@22103cc46bda19c2b464ffe86db46df6922fd323 # v47.0.5
         with:
           files: |
             **/client/ui/**/*.kt
             **/client/ui/**/*.kts
       - name: Get changed files
         id: server
-        uses: tj-actions/changed-files@4f892cd56345d721bac7139000c4b4a22c8f138f
+        uses: tj-actions/changed-files@22103cc46bda19c2b464ffe86db46df6922fd323 # v47.0.5
         with:
           files: |
             **/server/**/*.kt
             **/server/**/*.kts
       - name: Get changed files
         id: ios
-        uses: tj-actions/changed-files@4f892cd56345d721bac7139000c4b4a22c8f138f
+        uses: tj-actions/changed-files@22103cc46bda19c2b464ffe86db46df6922fd323 # v47.0.5
         with:
           files: |
             **/client/ios/**
       - name: Get changed files
         id: web
-        uses: tj-actions/changed-files@4f892cd56345d721bac7139000c4b4a22c8f138f
+        uses: tj-actions/changed-files@22103cc46bda19c2b464ffe86db46df6922fd323 # v47.0.5
         with:
           files: |
             **/client/web/**/*.kt
@@ -80,20 +80,20 @@ jobs:
     needs: [ file-changes ]
     if: needs.file-changes.outputs.client-ui == 'true' || github.ref_name == 'main'
     steps:
-      - uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           submodules: 'recursive'
 
-      - uses: actions/setup-java@1d018f9b8b9b505bb578a83b230fabcce01af93b
+      - uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
         with:
           distribution: 'zulu'
           java-version: 21
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@a3dd0763dc7a406ed0ec944010d38f923956dbc3
+        uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
 
       - name: Cache Build files
-        uses: actions/cache@565629816435f6c0b50676926c9b05c254113c0c
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: |
             ~/.konan
@@ -108,20 +108,20 @@ jobs:
     needs: [ file-changes ]
     if: needs.file-changes.outputs.android == 'true' || github.ref_name == 'main'
     steps:
-      - uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           submodules: 'recursive'
 
-      - uses: actions/setup-java@1d018f9b8b9b505bb578a83b230fabcce01af93b
+      - uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
         with:
           distribution: 'zulu'
           java-version: 21
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@a3dd0763dc7a406ed0ec944010d38f923956dbc3
+        uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
 
       - name: Cache Build files
-        uses: actions/cache@565629816435f6c0b50676926c9b05c254113c0c
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: |
             ~/.konan
@@ -136,20 +136,20 @@ jobs:
     needs: [ file-changes ]
     if: needs.file-changes.outputs.client-core == 'true' || github.ref_name == 'main'
     steps:
-      - uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           submodules: 'recursive'
 
-      - uses: actions/setup-java@1d018f9b8b9b505bb578a83b230fabcce01af93b
+      - uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
         with:
           distribution: 'zulu'
           java-version: 21
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@a3dd0763dc7a406ed0ec944010d38f923956dbc3
+        uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
 
       - name: Cache Build files
-        uses: actions/cache@565629816435f6c0b50676926c9b05c254113c0c
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: |
             ~/.konan
@@ -164,20 +164,20 @@ jobs:
     needs: [ file-changes ]
     if: needs.file-changes.outputs.web == 'true' || github.ref_name == 'main'
     steps:
-      - uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           submodules: 'recursive'
 
-      - uses: actions/setup-java@1d018f9b8b9b505bb578a83b230fabcce01af93b
+      - uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
         with:
           distribution: 'zulu'
           java-version: 21
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@a3dd0763dc7a406ed0ec944010d38f923956dbc3
+        uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
 
       - name: Cache Build files
-        uses: actions/cache@565629816435f6c0b50676926c9b05c254113c0c
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: |
             ~/.konan
@@ -192,20 +192,20 @@ jobs:
     needs: [ file-changes ]
     if: needs.file-changes.outputs.data-models == 'true' || github.ref_name == 'main'
     steps:
-      - uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           submodules: 'recursive'
 
-      - uses: actions/setup-java@1d018f9b8b9b505bb578a83b230fabcce01af93b
+      - uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
         with:
           distribution: 'zulu'
           java-version: 21
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@a3dd0763dc7a406ed0ec944010d38f923956dbc3
+        uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
 
       - name: Cache Build files
-        uses: actions/cache@565629816435f6c0b50676926c9b05c254113c0c
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: |
             ~/.konan
@@ -220,20 +220,20 @@ jobs:
     needs: [ file-changes ]
     if: needs.file-changes.outputs.server == 'true' || github.ref_name == 'main'
     steps:
-      - uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           submodules: 'recursive'
 
-      - uses: actions/setup-java@1d018f9b8b9b505bb578a83b230fabcce01af93b
+      - uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
         with:
           distribution: 'zulu'
           java-version: 21
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@a3dd0763dc7a406ed0ec944010d38f923956dbc3
+        uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
 
       - name: Cache Build files
-        uses: actions/cache@565629816435f6c0b50676926c9b05c254113c0c
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: |
             ~/.konan
