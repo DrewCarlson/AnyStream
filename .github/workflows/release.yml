@@ -102,7 +102,7 @@ jobs:
           java-version: 21
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@a3dd0763dc7a406ed0ec944010d38f923956dbc3
+        uses: gradle/actions/setup-gradle@39bfbcf1a94523e6d06f556c316ea9e8e69ecb82
 
       - name: Cache Build files
         uses: actions/cache@565629816435f6c0b50676926c9b05c254113c0c
