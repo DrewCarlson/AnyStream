@@ -19,14 +19,15 @@ package anystream.presentation.app
 
 import androidx.compose.runtime.*
 import anystream.client.AnyStreamClient
+import anystream.presentation.auth.AuthScreenPresenter
+import anystream.presentation.auth.AuthScreenProps
+import anystream.presentation.auth.AuthScreenType
 import anystream.presentation.core.Presenter
 import anystream.presentation.core.ScreenModel
 import anystream.presentation.home.HomeScreenPresenter
 import anystream.presentation.home.HomeScreenProps
 import anystream.presentation.library.LibraryScreenPresenter
 import anystream.presentation.library.LibraryScreenProps
-import anystream.presentation.login.LoginScreenPresenter
-import anystream.presentation.login.LoginScreenProps
 import anystream.presentation.media.MediaScreenPresenter
 import anystream.presentation.media.MediaScreenProps
 import anystream.presentation.pairing.PairingScannerScreenPresenter
@@ -34,8 +35,6 @@ import anystream.presentation.pairing.PairingScannerScreenProps
 import anystream.presentation.player.VideoPlayerModel
 import anystream.presentation.profile.ProfileScreenPresenter
 import anystream.presentation.profile.ProfileScreenProps
-import anystream.presentation.signup.SignupScreenPresenter
-import anystream.presentation.signup.SignupScreenProps
 import anystream.presentation.welcome.WelcomeScreenPresenter
 import anystream.presentation.welcome.WelcomeScreenProps
 import anystream.routing.CommonRouter
@@ -43,6 +42,7 @@ import anystream.routing.Routes
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
+import kotlinx.coroutines.flow.filter
 
 data class AppUiProps(
     val externalRouter: CommonRouter? = null,
@@ -58,58 +58,37 @@ class AppUiPresenter(
     private val client: AnyStreamClient,
     private val homeScreenPresenter: HomeScreenPresenter,
     private val libraryScreenPresenter: LibraryScreenPresenter,
-    private val loginScreenPresenter: LoginScreenPresenter,
+    private val authScreenPresenter: AuthScreenPresenter,
     private val mediaScreenPresenter: MediaScreenPresenter,
     private val pairingScannerScreenPresenter: PairingScannerScreenPresenter,
     private val profileScreenPresenter: ProfileScreenPresenter,
-    private val signupScreenPresenter: SignupScreenPresenter,
     private val welcomeScreenPresenter: WelcomeScreenPresenter,
 ) : Presenter<AppUiProps, AppUiModel> {
     @Composable
     override fun model(props: AppUiProps): AppUiModel {
-        val initialRoute = remember {
-            if (client.user.isAuthenticated()) Routes.Home else Routes.Welcome
-        }
-        var routeStack by remember { mutableStateOf(listOf(initialRoute)) }
-
         val internalRouter = remember {
-            object : CommonRouter {
-                override fun replaceTop(route: Routes) {
-                    routeStack = routeStack.dropLast(1) + route
-                }
-
-                override fun pushRoute(route: Routes) {
-                    routeStack = routeStack + route
-                }
-
-                override fun replaceStack(routes: List<Routes>) {
-                    routeStack = routes
-                }
-
-                override fun popCurrentRoute(): Boolean {
-                    return if (routeStack.size > 1) {
-                        routeStack = routeStack.dropLast(1)
-                        true
-                    } else {
-                        false
-                    }
-                }
+            val initialRoute = when {
+                client.user.isAuthenticated() -> Routes.Home
+                else -> Routes.Welcome
             }
+            ComposeRouter(initialRoute)
         }
 
         val router = props.externalRouter ?: internalRouter
-        val currentRoute = props.externalRoute ?: routeStack.last()
+        val currentRoute by remember(props.externalRoute) {
+            derivedStateOf {
+                props.externalRoute ?: internalRouter.stack[internalRouter.stack.lastIndex]
+            }
+        }
 
         // Track authentication state — redirect to Login if session lost
-        LaunchedEffect(Unit) {
+        LaunchedEffect(currentRoute) {
             client.user
                 .authenticated
-                .collect { authed ->
-                    val isLoginRoute = currentRoute == Routes.Welcome ||
-                        currentRoute == Routes.Login
-                    if (!authed && !isLoginRoute) {
-                        router.replaceTop(Routes.Login)
-                    }
+                .filter { authed ->
+                    !authed && !Routes.isOnboardingRoute(currentRoute)
+                }.collect {
+                    router.replaceStack(Routes.LOGIN_STACK)
                 }
         }
 
@@ -139,22 +118,18 @@ class AppUiPresenter(
                 homeScreenPresenter.model(HomeScreenProps)
             }
 
-            Routes.Login -> {
-                loginScreenPresenter.model(
-                    LoginScreenProps(
-                        supportsPairing = false,
-                        serverUrl = props.serverUrl,
-                        onLoginComplete = { router.replaceStack(listOf(Routes.Home)) },
-                    ),
-                )
-            }
-
-            Routes.SignUp -> {
-                signupScreenPresenter.model(
-                    SignupScreenProps(
+            Routes.Login,
+            Routes.SignUp,
+            -> {
+                val authType = remember(route) { AuthScreenType.fromRoute(route) }
+                authScreenPresenter.model(
+                    AuthScreenProps(
+                        authType = authType,
                         inviteCode = props.inviteCode,
-                        serverUrl = props.serverUrl,
-                        onSignupComplete = { router.replaceStack(listOf(Routes.Home)) },
+                        serverUrl = props.serverUrl.orEmpty(),
+                        onAuthComplete = {
+                            router.replaceStack(listOf(Routes.Home))
+                        },
                     ),
                 )
             }

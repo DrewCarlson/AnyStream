@@ -26,6 +26,8 @@ import anystream.models.api.CurrentlyWatching
 import anystream.models.api.HomeResponse
 import anystream.models.api.Popular
 import anystream.models.api.RecentlyAdded
+import anystream.models.toTvSeasonModel
+import anystream.models.toTvShowModel
 import anystream.util.koinGet
 import anystream.util.toRemoteId
 import app.moviebase.tmdb.Tmdb3
@@ -71,7 +73,8 @@ fun Route.addHomeRoutes(
             trySend(result)
             delay(POPULAR_MOVIES_REFRESH)
         }
-    }.stateIn(application, SharingStarted.Eagerly, null)
+    }.catch { it.printStackTrace() }
+        .stateIn(application, SharingStarted.Eagerly, null)
     val popularTvShowsFlow = callbackFlow<List<TmdbShowDetail>> {
         while (true) {
             val result = tmdb.trending
@@ -93,7 +96,8 @@ fun Route.addHomeRoutes(
             trySend(result)
             delay(POPULAR_MOVIES_REFRESH)
         }
-    }.stateIn(application, SharingStarted.Eagerly, null)
+    }.catch { it.printStackTrace() }
+        .stateIn(application, SharingStarted.Eagerly, null)
     route("/home") {
         get {
             val session = checkNotNull(call.principal<UserSession>())

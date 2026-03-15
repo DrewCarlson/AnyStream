@@ -17,3 +17,4 @@ xcuserdata/
 client/ios/AnyStream.xcodeproj
 anystream.db*
 application.conf
+anystream.conf

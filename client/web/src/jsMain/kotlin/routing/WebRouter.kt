@@ -35,7 +35,7 @@ class WebRouter(
     }
 
     override fun replaceStack(routes: List<Routes>) {
-        routes.forEach(::pushRoute)
+        router.navigate("/${routes.last().path}")
     }
 
     override fun popCurrentRoute(): Boolean {

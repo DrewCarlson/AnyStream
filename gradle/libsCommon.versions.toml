@@ -52,6 +52,7 @@ ktor-client-contentNegotiation = { module = "io.ktor:ktor-client-content-negotia
 ktor-client-websockets = { module = "io.ktor:ktor-client-websockets", version.ref = "ktorio" }
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktorio" }
 ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktorio" }
+ktor-server-cio = { module = "io.ktor:ktor-server-cio", version.ref = "ktorio" }
 ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktorio" }
 ktor-server-sessions = { module = "io.ktor:ktor-server-sessions", version.ref = "ktorio" }
 ktor-server-tests = { module = "io.ktor:ktor-server-test-host", version.ref = "ktorio" }

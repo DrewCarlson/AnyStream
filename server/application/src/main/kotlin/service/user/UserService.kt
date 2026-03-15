@@ -120,7 +120,7 @@ class UserService(
                 createdAt = now,
                 updatedAt = now,
                 passwordHash = hashPassword(body.password),
-                authType = AuthType.INTERNAL,
+                authSource = AuthSource.INTERNAL,
             ),
             permissions = permissions,
         )
@@ -186,7 +186,7 @@ class UserService(
                 createdAt = now,
                 updatedAt = now,
                 passwordHash = null,
-                authType = AuthType.OIDC,
+                authSource = AuthSource.OIDC,
             ),
             permissions = permissions,
         )
@@ -199,9 +199,9 @@ class UserService(
             ?: return CreateSessionResponse.Error(
                 usernameError = CreateSessionResponse.UsernameError.NOT_FOUND,
             )
-        if (user.authType == AuthType.INTERNAL) {
+        if (user.authSource == AuthSource.INTERNAL) {
             logger.info("Upgrading user ${user.id} with `OIDC` login support.")
-            queries.updateUser(user.copy(authType = AuthType.BOTH))
+            queries.updateUser(user.copy(authSource = AuthSource.BOTH))
         }
         val permissions = queries.fetchPermissions(checkNotNull(user.id)).toSet()
         return CreateSessionResponse.Success(
@@ -221,7 +221,7 @@ class UserService(
         val newPassword = body.password
         val currentPassword = body.currentPassword
         val newPasswordHash =
-            if (user.authType != AuthType.OIDC && !newPassword.isNullOrBlank() && !currentPassword.isNullOrBlank()) {
+            if (user.authSource != AuthSource.OIDC && !newPassword.isNullOrBlank() && !currentPassword.isNullOrBlank()) {
                 if (verifyPassword(currentPassword, checkNotNull(user.passwordHash))) {
                     hashPassword(newPassword)
                 } else {
@@ -309,7 +309,7 @@ class UserService(
             )
         val permissions = queries.fetchPermissions(checkNotNull(user.id)).toSet()
 
-        if (user.authType == AuthType.OIDC) {
+        if (user.authSource == AuthSource.OIDC) {
             return CreateSessionResponse.Error(
                 reason = CreateSessionResponse.ErrorReason.OidcRequired,
             )

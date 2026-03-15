@@ -7,7 +7,7 @@ CREATE TABLE user
     password_hash TEXT,
     created_at    TEXT                    NOT NULL,
     updated_at    TEXT                    NOT NULL,
-    auth_type     TEXT                    NOT NULL,
+    auth_source   TEXT                    NOT NULL,
     UNIQUE (username) ON CONFLICT FAIL
 );
 

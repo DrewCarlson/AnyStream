@@ -24,6 +24,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -54,7 +55,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import anystream.presentation.login.LoginScreenModel
+import anystream.presentation.auth.login.LoginScreenModel
 import anystream.ui.components.PrimaryButton
 import anystream.ui.components.QrCodeImage
 import anystream.ui.generated.resources.*
@@ -190,20 +191,17 @@ private fun QrCodePairingPanel(pairingCode: String?) {
 
 @Composable
 internal fun FormBody(model: LoginScreenModel) {
-    var serverUrlValue by remember { mutableStateOf(TextFieldValue(model.serverUrl)) }
-    var usernameValue by remember { mutableStateOf(TextFieldValue(model.username)) }
-    var passwordValue by remember { mutableStateOf(TextFieldValue(model.password)) }
-    val focusManager = LocalFocusManager.current
-
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxSize(),
     ) {
+        var serverUrlValue by remember { mutableStateOf(TextFieldValue(model.serverUrl)) }
+
         OutlineTextField(
             textFieldValue = serverUrlValue,
             onValueChange = {
                 serverUrlValue = it
-                model.onServerUrlChanged(it.text)
+                model.onServerUrlChanged(serverUrlValue.text)
             },
             leadingIcon = Res.drawable.ic_discovery,
             placeHolder = "Server URL",
@@ -217,95 +215,141 @@ internal fun FormBody(model: LoginScreenModel) {
         )
 
         Spacer(Modifier.height(24.dp))
-        OutlineTextField(
-            textFieldValue = usernameValue,
-            onValueChange = {
-                usernameValue = it
-                model.onUsernameChanged(it.text)
-            },
-            leadingIcon = Res.drawable.ic_message,
-            placeHolder = "Username",
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Text,
-                imeAction = ImeAction.Next,
-            ),
-            isError = model.loginError?.usernameError != null,
-            readOnly = model.isInputLocked,
-            modifier = Modifier
-                .semantics {
-                    contentType = ContentType.Username
-                    contentDataType = ContentDataType.Text
-                    onFillData {
-                        val value = it.textValue?.toString().orEmpty()
-                        focusManager.clearFocus(force = true)
-                        usernameValue = TextFieldValue(value)
-                        model.onUsernameChanged(value)
-                        true
-                    }
-                },
-        )
 
-        ErrorText(
-            isError = model.loginError?.usernameError != null,
-            errorText = model.loginError
-                ?.usernameError
-                ?.name
-                .orEmpty(),
-            label = "Username is",
-        )
-        Spacer(Modifier.height(24.dp))
+        if (model.hasInternalAuth) {
+            InternalAuthForm(model)
+        }
 
-        OutlineTextField(
-            textFieldValue = passwordValue,
-            onValueChange = {
-                passwordValue = it
-                model.onPasswordChanged(it.text)
-            },
-            leadingIcon = Res.drawable.ic_lock,
-            placeHolder = "Password",
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Password,
-                imeAction = ImeAction.Done,
-            ),
-            keyboardActions = KeyboardActions(
-                onDone = {
-                    focusManager.clearFocus(force = true)
-                    model.onSubmitLogin()
-                },
-            ),
-            visualTransformation = PasswordVisualTransformation(),
-            isError = model.loginError?.passwordError != null,
-            readOnly = model.isInputLocked,
-            modifier = Modifier
-                .semantics {
-                    contentType = ContentType.Password
-                    contentDataType = ContentDataType.Text
-                    onFillData {
-                        val value = it.textValue?.toString().orEmpty()
-                        focusManager.clearFocus(force = true)
-                        passwordValue = TextFieldValue(value)
-                        model.onPasswordChanged(value)
-                        true
-                    }
-                },
-        )
-        ErrorText(
-            isError = model.loginError?.passwordError != null,
-            errorText = model.loginError
-                ?.passwordError
-                ?.name
-                .orEmpty(),
-            label = "Password is",
-        )
+        val oidcProviderName = model.oidcProviderName
+        val onOidcLogin = model.onOidcLogin
+        if (oidcProviderName != null && onOidcLogin != null) {
+            OidcAuthForm(
+                oidcProviderName = oidcProviderName,
+                onOidcLogin = onOidcLogin,
+            )
+        }
+    }
+}
 
-        Spacer(Modifier.height(24.dp))
-        PrimaryButton(
-            text = "Sign In",
-            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-            isLoading = model.state.isAuthenticating,
-            onClick = model.onSubmitLogin,
+@Composable
+private fun ColumnScope.OidcAuthForm(
+    oidcProviderName: String,
+    onOidcLogin: () -> Unit,
+) {
+    Spacer(Modifier.height(16.dp))
+    HorizontalDivider(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        color = MaterialTheme.colorScheme.outlineVariant,
+    )
+    Spacer(Modifier.height(8.dp))
+    OutlinedButton(
+        onClick = onOidcLogin,
+        shape = CircleShape,
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 18.dp),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Text(
+            text = "Login with $oidcProviderName",
+            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+            letterSpacing = 0.2.sp,
+            textAlign = TextAlign.Center,
         )
     }
+}
+
+@Composable
+private fun ColumnScope.InternalAuthForm(model: LoginScreenModel) {
+    var usernameValue by remember { mutableStateOf(TextFieldValue(model.username)) }
+    var passwordValue by remember { mutableStateOf(TextFieldValue(model.password)) }
+    val focusManager = LocalFocusManager.current
+    OutlineTextField(
+        textFieldValue = usernameValue,
+        onValueChange = {
+            usernameValue = it
+            model.onUsernameChanged(usernameValue.text)
+        },
+        leadingIcon = Res.drawable.ic_message,
+        placeHolder = "Username",
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Text,
+            imeAction = ImeAction.Next,
+        ),
+        isError = model.loginError?.usernameError != null,
+        readOnly = model.isInputLocked,
+        modifier = Modifier
+            .semantics {
+                contentType = ContentType.Username
+                contentDataType = ContentDataType.Text
+                onFillData {
+                    val value = it.textValue?.toString().orEmpty()
+                    focusManager.clearFocus(force = true)
+                    usernameValue = TextFieldValue(value)
+                    model.onUsernameChanged(value)
+                    true
+                }
+            },
+    )
+
+    ErrorText(
+        isError = model.loginError?.usernameError != null,
+        errorText = model.loginError
+            ?.usernameError
+            ?.name
+            .orEmpty(),
+        label = "Username is",
+    )
+    Spacer(Modifier.height(24.dp))
+
+    OutlineTextField(
+        textFieldValue = passwordValue,
+        onValueChange = {
+            passwordValue = it
+            model.onPasswordChanged(passwordValue.text)
+        },
+        leadingIcon = Res.drawable.ic_lock,
+        placeHolder = "Password",
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Password,
+            imeAction = ImeAction.Done,
+        ),
+        keyboardActions = KeyboardActions(
+            onDone = {
+                focusManager.clearFocus(force = true)
+                model.onSubmitLogin()
+            },
+        ),
+        visualTransformation = PasswordVisualTransformation(),
+        isError = model.loginError?.passwordError != null,
+        readOnly = model.isInputLocked,
+        modifier = Modifier
+            .semantics {
+                contentType = ContentType.Password
+                contentDataType = ContentDataType.Text
+                onFillData {
+                    val value = it.textValue?.toString().orEmpty()
+                    focusManager.clearFocus(force = true)
+                    passwordValue = TextFieldValue(value)
+                    model.onPasswordChanged(value)
+                    true
+                }
+            },
+    )
+    ErrorText(
+        isError = model.loginError?.passwordError != null,
+        errorText = model.loginError
+            ?.passwordError
+            ?.name
+            .orEmpty(),
+        label = "Password is",
+    )
+
+    Spacer(Modifier.height(24.dp))
+    PrimaryButton(
+        text = "Sign In",
+        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+        isLoading = model.state.isAuthenticating,
+        onClick = model.onSubmitLogin,
+    )
 }
 
 @Composable

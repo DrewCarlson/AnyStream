@@ -26,7 +26,6 @@ import com.typesafe.config.ConfigFactory
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.ktor.server.config.HoconApplicationConfig
-import io.ktor.server.config.HoconConfigLoader
 import org.jooq.DSLContext
 import java.nio.file.FileSystems
 import kotlin.test.*
@@ -105,7 +104,7 @@ class UserServiceTest :
                 passwordHash = "123456",
                 createdAt = Clock.System.now(),
                 updatedAt = Clock.System.now(),
-                authType = AuthType.INTERNAL,
+                authSource = AuthSource.INTERNAL,
             )
             dao.insertUser(existingUser, emptySet())
 
@@ -142,7 +141,7 @@ class UserServiceTest :
                 passwordHash = "123456",
                 createdAt = Clock.System.now(),
                 updatedAt = Clock.System.now(),
-                authType = AuthType.INTERNAL,
+                authSource = AuthSource.INTERNAL,
             )
             dao.insertUser(existingUser, emptySet())
 
@@ -166,7 +165,7 @@ class UserServiceTest :
                 passwordHash = "",
                 createdAt = Clock.System.now(),
                 updatedAt = Clock.System.now(),
-                authType = AuthType.INTERNAL,
+                authSource = AuthSource.INTERNAL,
             )
             val userId = dao.insertUser(existingUser, emptySet()).shouldNotBeNull().id
 
@@ -213,7 +212,7 @@ class UserServiceTest :
                 passwordHash = "123456",
                 createdAt = Clock.System.now(),
                 updatedAt = Clock.System.now(),
-                authType = AuthType.INTERNAL,
+                authSource = AuthSource.INTERNAL,
             )
             dao.insertUser(existingUser, emptySet())
             val body = CreateSessionBody(
@@ -235,7 +234,7 @@ class UserServiceTest :
                 passwordHash = userService.hashPassword("123456"),
                 createdAt = Clock.System.now(),
                 updatedAt = Clock.System.now(),
-                authType = AuthType.INTERNAL,
+                authSource = AuthSource.INTERNAL,
             )
             dao.insertUser(existingUser, emptySet())
             val body = CreateSessionBody(

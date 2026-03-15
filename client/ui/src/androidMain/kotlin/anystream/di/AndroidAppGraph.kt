@@ -18,13 +18,19 @@
 package anystream.di
 
 import android.content.Context
+import anystream.client.CoreBindings
+import anystream.ui.util.ActivityProvider
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.DependencyGraph
 import dev.zacsweers.metro.Provides
 
-@DependencyGraph(AppScope::class)
+@DependencyGraph(
+    scope = AppScope::class,
+    bindingContainers = [CoreBindings::class],
+)
 interface AndroidAppGraph : AppGraph {
     val context: Context
+    val activityProvider: ActivityProvider
 
     @DependencyGraph.Factory
     fun interface Factory {

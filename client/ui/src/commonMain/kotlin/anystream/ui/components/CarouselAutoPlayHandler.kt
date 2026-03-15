@@ -44,7 +44,8 @@ internal fun CarouselAutoPlayHandler(
         if (effectFlow.value is DragInteraction.Stop) pageKey++
     }
 
-    LaunchedEffect(pageKey) {
+    LaunchedEffect(pageKey, carouselSize) {
+        if (carouselSize == 0) return@LaunchedEffect
         delay(5000)
         val newPage = (pagerState.currentPage + 1) % carouselSize
         pagerState.animateScrollToPage(

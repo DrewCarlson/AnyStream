@@ -22,6 +22,7 @@ import anystream.models.InviteCode
 import anystream.models.Permission
 import anystream.models.UpdateUserBody
 import anystream.models.UserPublic
+import anystream.models.api.AuthProviderType
 import anystream.models.api.CreateSessionBody
 import anystream.models.api.CreateSessionResponse
 import anystream.models.api.CreateUserBody
@@ -40,18 +41,25 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
+import io.ktor.http.buildUrl
 import io.ktor.http.contentType
+import io.ktor.http.path
+import io.ktor.http.takeFrom
 import io.ktor.serialization.WebsocketDeserializeException
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
 class UserApiClient(
     private val core: AnyStreamApiCore,
 ) {
-    val authenticated: Flow<Boolean> = core.sessionManager.tokenFlow.map { it != null }
+    val authenticated: Flow<Boolean> =
+        core.sessionManager.tokenFlow
+            .map { it != null }
+            .distinctUntilChanged()
     val permissions: Flow<Set<Permission>?> = core.sessionManager.permissionsFlow
     val user: Flow<UserPublic?> = core.sessionManager.userFlow
     val token: String?
@@ -141,25 +149,31 @@ class UserApiClient(
             }
     }
 
-    suspend fun completeOauth(token: String) {
+    suspend fun completeOidcAuth(token: String): Boolean {
         val response = core.http.get("/api/users/session") {
             header(AnyStreamApiCore.SESSION_KEY, token)
         }
-        if (response.status == OK) {
+        return if (response.status == OK) {
             val body = response.body<CreateSessionResponse.Success>()
             core.sessionManager.writeToken(token)
             core.sessionManager.writeUser(body.user)
             core.sessionManager.writePermissions(body.permissions)
+            true
+        } else {
+            false
         }
     }
 
     suspend fun logout() {
         val token = core.sessionManager.fetchToken() ?: return
         core.sessionManager.clear()
-        core.http
-            .delete("/api/users/session") {
+        try {
+            core.http.delete("/api/users/session") {
                 header(AnyStreamApiCore.SESSION_KEY, token)
-            }.orThrow()
+            }
+        } catch (_: Throwable) {
+            // TODO: log failed to terminate session
+        }
     }
 
     suspend fun createPairedSession(
@@ -196,7 +210,7 @@ class UserApiClient(
             }
         }
 
-    suspend fun fetchAuthTypes(): List<String> {
+    suspend fun fetchAuthTypes(): List<AuthProviderType> {
         return core.http.get("/api/users/auth-types").bodyOrThrow()
     }
 
@@ -219,5 +233,15 @@ class UserApiClient(
         } catch (e: AnyStreamClientException) {
             if (e.response?.status == NotFound) false else throw e
         }
+    }
+
+    fun getOidcLoginUrl(redirectUrl: String? = null): String {
+        return buildUrl {
+            takeFrom(core.serverUrl.orEmpty())
+            path("/api/users/oidc/login")
+            if (redirectUrl != null) {
+                parameters["redirect_url"] = redirectUrl
+            }
+        }.toString()
     }
 }

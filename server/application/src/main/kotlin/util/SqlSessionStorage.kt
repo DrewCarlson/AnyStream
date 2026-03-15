@@ -20,17 +20,14 @@ package anystream.util
 import anystream.data.UserSession
 import anystream.db.SessionsDao
 import anystream.db.tables.references.SESSION
-import anystream.db.util.awaitFirstOrNullInto
-import anystream.db.util.awaitInto
 import anystream.json
 import io.ktor.server.sessions.*
 import kotlinx.coroutines.future.await
-import kotlinx.coroutines.reactive.awaitFirstOrNull
-import kotlinx.serialization.encodeToString
 import org.jooq.DSLContext
 import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.NoSuchElementException
+import kotlin.random.Random
 
 class SqlSessionStorage(
     private val db: DSLContext,
@@ -48,6 +45,12 @@ class SqlSessionStorage(
         override fun deserialize(text: String): UserSession {
             return json.decodeFromString(text)
         }
+    }
+
+    suspend fun write(userSession: UserSession): String {
+        val id = newId()
+        write(id, Serializer.serialize(userSession))
+        return id
     }
 
     override suspend fun write(
@@ -86,5 +89,9 @@ class SqlSessionStorage(
 
     suspend fun readSession(id: String): UserSession {
         return read(id).run(Serializer::deserialize)
+    }
+
+    fun newId(): String {
+        return Random.nextBytes(28).toHexString()
     }
 }

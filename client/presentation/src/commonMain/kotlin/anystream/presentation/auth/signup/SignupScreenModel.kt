@@ -15,10 +15,11 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.presentation.signup
+package anystream.presentation.auth.signup
 
+import anystream.models.ServerValidation
 import anystream.models.api.CreateUserResponse
-import anystream.presentation.core.ScreenModel
+import anystream.presentation.auth.AuthScreenModel
 
 data class SignupScreenModel(
     val serverUrl: String = "",
@@ -35,7 +36,7 @@ data class SignupScreenModel(
     val onPasswordChanged: (String) -> Unit = {},
     val onInviteCodeChanged: (String) -> Unit = {},
     val onSubmitSignup: () -> Unit = {},
-) : ScreenModel {
+) : AuthScreenModel {
     val isInputLocked: Boolean = state != State.IDLE
     val isServerUrlValid: Boolean = serverValidation == ServerValidation.VALID
 
@@ -43,11 +44,5 @@ data class SignupScreenModel(
         IDLE,
         AUTHENTICATING,
         AUTHENTICATED,
-    }
-
-    enum class ServerValidation {
-        VALID,
-        INVALID,
-        VALIDATING,
     }
 }

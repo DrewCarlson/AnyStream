@@ -22,7 +22,7 @@ import anystream.util.ObjectId
 import app.moviebase.tmdb.model.*
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
-import java.util.*
+import java.util.Locale
 import kotlin.math.roundToInt
 import kotlin.time.Clock
 import kotlin.time.Duration
@@ -34,8 +34,8 @@ fun TmdbMovieDetail.asMovie(
 ) = Movie(
     id = id,
     tmdbId = this.id,
-    title = title,
-    overview = overview,
+    title = title ?: "<unknown>",
+    overview = overview.orEmpty(),
     releaseDate = releaseDate?.atStartOfDayIn(TimeZone.UTC),
     imdbId = imdbId,
     runtime = runtime?.minutes ?: Duration.ZERO,
@@ -59,7 +59,7 @@ fun processCredits(
             }
             Person(
                 id = "",
-                name = cast.name,
+                name = cast.name ?: "<unknown>",
                 tmdbId = cast.id,
             )
         }
@@ -77,7 +77,7 @@ fun processCredits(
     }
     crew.forEach { cast ->
         val job = try {
-            CreditJob.valueOf(cast.job.uppercase())
+            CreditJob.valueOf(cast.job.orEmpty().uppercase())
         } catch (_: IllegalArgumentException) {
             // ignore undefined job
             return@forEach
@@ -88,7 +88,7 @@ fun processCredits(
             }
             Person(
                 id = "",
-                name = cast.name,
+                name = cast.name ?: "<unknown>",
                 tmdbId = cast.id,
             )
         }
@@ -259,7 +259,7 @@ fun TmdbShowDetail.asTvShow(id: String): Metadata {
         firstAvailableAt = firstAirDate?.atStartOfDayIn(TimeZone.UTC),
         createdAt = now,
         updatedAt = now,
-        tmdbRating = (voteAverage * 10).roundToInt(),
+        tmdbRating = ((voteAverage ?: 0f) * 10).roundToInt(),
         // tagline = null,
         contentRating = contentRatings?.getContentRating(Locale.getDefault().country),
         mediaKind = MediaKind.TV,

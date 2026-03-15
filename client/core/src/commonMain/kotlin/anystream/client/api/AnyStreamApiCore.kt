@@ -22,6 +22,7 @@ import anystream.client.AnyStreamClientException
 import anystream.client.ServerUrlAttribute
 import anystream.client.SessionManager
 import anystream.client.json
+import anystream.models.ServerValidation
 import io.ktor.client.HttpClient
 import io.ktor.client.call.HttpClientCall
 import io.ktor.client.call.body
@@ -62,15 +63,15 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.update
-import kotlin.concurrent.atomics.ExperimentalAtomicApi
+import kotlinx.coroutines.launch
 
 private val KEY_INTERNAL_ERROR = AttributeKey<Throwable>("INTERNAL_ERROR")
 
 private const val PAGE = "page"
 private const val QUERY = "query"
 
-@OptIn(ExperimentalAtomicApi::class)
 class AnyStreamApiCore(
     serverUrl: String?,
     httpClient: HttpClient,
@@ -81,7 +82,7 @@ class AnyStreamApiCore(
     }
 
     internal val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
-    private val serverUrlInternal = MutableStateFlow(serverUrl ?: sessionManager.fetchServerUrl())
+    private val serverUrlInternal = MutableStateFlow(serverUrl)
 
     val serverUrlFlow: StateFlow<String?> = serverUrlInternal.asStateFlow()
     var serverUrl: String?
@@ -111,6 +112,7 @@ class AnyStreamApiCore(
         install(AdaptiveProtocolPlugin)
         defaultRequest {
             this@AnyStreamApiCore.serverUrl?.let { currentServerUrl ->
+                if (attributes.contains(ServerUrlAttribute)) return@let
                 attributes.put(ServerUrlAttribute, currentServerUrl)
                 url {
                     takeFrom(currentServerUrl)
@@ -157,16 +159,29 @@ class AnyStreamApiCore(
         }
     }
 
-    suspend fun verifyAndSetServerUrl(serverUrl: String): Boolean {
-        if (serverUrl.isBlank()) return false
-        if (this.serverUrl.equals(serverUrl, ignoreCase = true)) return true
+    init {
+        scope.launch {
+            serverUrlInternal.getAndUpdate { currentServerUrl ->
+                currentServerUrl ?: sessionManager.fetchServerUrl()
+            }
+        }
+    }
+
+    suspend fun verifyAndSetServerUrl(serverUrl: String): ServerValidation {
+        if (serverUrl.isBlank()) return ServerValidation.INVALID
+        if (this.serverUrl.equals(serverUrl, ignoreCase = true)) {
+            return ServerValidation.VALID
+        }
         return try {
-            check(http.get(serverUrl).status == OK)
+            val request = http.get(serverUrl) {
+                attributes[ServerUrlAttribute] = serverUrl
+            }
+            check(request.status == OK)
             this.serverUrl = serverUrl
             sessionManager.writeServerUrl(this.serverUrl.orEmpty())
-            true
+            ServerValidation.VALID
         } catch (_: Throwable) {
-            false
+            ServerValidation.INVALID
         }
     }
 }

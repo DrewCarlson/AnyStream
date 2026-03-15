@@ -15,10 +15,11 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.presentation.login
+package anystream.presentation.auth.login
 
+import anystream.models.ServerValidation
 import anystream.models.api.CreateSessionResponse
-import anystream.presentation.core.ScreenModel
+import anystream.presentation.auth.AuthScreenModel
 
 data class LoginScreenModel(
     val serverUrl: String = "",
@@ -27,17 +28,17 @@ data class LoginScreenModel(
     val supportsPairing: Boolean = false,
     val pairingCode: String? = null,
     val state: State = State.IDLE,
-    val authTypes: List<String>? = null,
     val serverValidation: ServerValidation = ServerValidation.VALIDATING,
     val loginError: CreateSessionResponse.Error? = null,
-    val supportsPasswordAuth: Boolean = true,
+    val hasInternalAuth: Boolean = false,
     val oidcProviderName: String? = null,
     // events
     val onServerUrlChanged: (String) -> Unit = {},
     val onUsernameChanged: (String) -> Unit = {},
     val onPasswordChanged: (String) -> Unit = {},
     val onSubmitLogin: () -> Unit = {},
-) : ScreenModel {
+    val onOidcLogin: (() -> Unit)? = null,
+) : AuthScreenModel {
     val isInputLocked: Boolean = state != State.IDLE
     val isServerUrlValid: Boolean = serverValidation == ServerValidation.VALID
 
@@ -49,11 +50,5 @@ data class LoginScreenModel(
 
         val isAuthenticating: Boolean
             get() = this == AUTHENTICATING
-    }
-
-    enum class ServerValidation {
-        VALID,
-        INVALID,
-        VALIDATING,
     }
 }

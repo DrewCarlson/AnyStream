@@ -15,17 +15,10 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.di
+package anystream.models
 
-import anystream.client.AnyStreamClient
-import anystream.presentation.app.AppPresenter
-import anystream.presentation.auth.OidcLauncher
-import anystream.ui.video.PlayerHandle
-import dev.zacsweers.metro.Provider
-
-interface AppGraph {
-    val client: AnyStreamClient
-    val playerHandle: Provider<PlayerHandle>
-    val appPresenter: AppPresenter
-    val oidcLauncher: OidcLauncher
+enum class ServerValidation {
+    VALID,
+    INVALID,
+    VALIDATING,
 }

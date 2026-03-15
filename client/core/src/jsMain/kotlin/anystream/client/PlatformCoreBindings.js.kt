@@ -31,10 +31,11 @@ import kotlinx.browser.window
 @ContributesTo(AppScope::class)
 @BindingContainer
 actual object PlatformCoreBindings {
+    @Suppress("RedundantNullableReturnType")
     @Named(INITIAL_SERVER_URL)
     @SingleIn(AppScope::class)
     @Provides
-    fun provideInitialServerUrl(): String {
+    fun provideInitialServerUrl(): String? {
         return window.location.run { "$protocol//$host" }
     }
 

@@ -35,3 +35,11 @@ class EventTrigger(
 fun CoroutineScope.rememberEventTrigger(handler: suspend () -> Unit): EventTrigger {
     return remember { EventTrigger(this, handler) }
 }
+
+@Composable
+fun CoroutineScope.rememberEventTrigger(
+    key1: Any?,
+    handler: suspend () -> Unit,
+): EventTrigger {
+    return remember(key1) { EventTrigger(this, handler) }
+}

@@ -15,17 +15,25 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.di
+package anystream.presentation.auth
 
-import anystream.client.AnyStreamClient
-import anystream.presentation.app.AppPresenter
-import anystream.presentation.auth.OidcLauncher
-import anystream.ui.video.PlayerHandle
-import dev.zacsweers.metro.Provider
+import anystream.presentation.core.ScreenModel
+import anystream.routing.Routes
 
-interface AppGraph {
-    val client: AnyStreamClient
-    val playerHandle: Provider<PlayerHandle>
-    val appPresenter: AppPresenter
-    val oidcLauncher: OidcLauncher
+interface AuthScreenModel : ScreenModel
+
+enum class AuthScreenType {
+    LOGIN,
+    SIGNUP,
+    ;
+
+    companion object {
+        fun fromRoute(route: Routes): AuthScreenType {
+            return when (route) {
+                Routes.Login -> LOGIN
+                Routes.SignUp -> SIGNUP
+                else -> error("$route is not and auth route")
+            }
+        }
+    }
 }

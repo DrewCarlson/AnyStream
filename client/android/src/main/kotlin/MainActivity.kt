@@ -17,6 +17,7 @@
  */
 package anystream.android
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.SystemBarStyle
 import androidx.activity.addCallback
@@ -31,8 +32,11 @@ import anystream.ui.App
 class LeanbackActivity : MainActivity()
 
 open class MainActivity : AppCompatActivity() {
+    private val appGraph by lazy { (application as App).appGraph }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         val app = application as anystream.android.App
+        appGraph.activityProvider.set(this)
         installSplashScreen()
         enableEdgeToEdge(
             navigationBarStyle = SystemBarStyle.light(0, 0),
@@ -48,9 +52,23 @@ open class MainActivity : AppCompatActivity() {
         setContent {
             val appModel by app.appModels.collectAsState()
             App(
-                appGraph = app.appGraph,
+                appGraph = appGraph,
                 appModel = appModel,
             )
+        }
+    }
+
+    override fun onDestroy() {
+        appGraph.activityProvider.clear()
+        super.onDestroy()
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        intent.data?.let { uri ->
+            if (uri.scheme == "anystream") {
+                appGraph.oidcLauncher.onAuthResult(uri.toString())
+            }
         }
     }
 }

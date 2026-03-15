@@ -76,7 +76,7 @@ class PlaybackStatesDaoTest :
                 createdAt = Clock.System.now(),
                 updatedAt = Clock.System.now(),
                 username = "user",
-                authType = AuthType.INTERNAL,
+                authSource = AuthSource.INTERNAL,
             )
 
             metadataDao
