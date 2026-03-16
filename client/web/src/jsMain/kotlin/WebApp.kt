@@ -26,6 +26,9 @@ import anystream.di.JsAppGraph
 import anystream.presentation.app.AppProps
 import anystream.presentation.auth.login.LoginScreenModel
 import anystream.presentation.auth.signup.SignupScreenModel
+import anystream.presentation.home.HomeScreenModel
+import anystream.presentation.library.LibraryScreenModel
+import anystream.presentation.media.MediaScreenModel
 import anystream.routing.Routes
 import anystream.routing.WebRouter
 import anystream.screens.*
@@ -88,12 +91,10 @@ fun webApp(appGraph: JsAppGraph) =
 private fun ContentContainer(appGraph: JsAppGraph) {
     val client = appGraph.client
     var currentRoute by remember { mutableStateOf<Routes>(Routes.Home) }
+    var isWebExclusiveRoute by remember { mutableStateOf(false) }
     BrowserRouter("/") {
         route("home") {
-            noMatch {
-                currentRoute = Routes.Home
-                ScreenContainer(client) { HomeScreen() }
-            }
+            noMatch { currentRoute = Routes.Home }
         }
         route("login") {
             noMatch { currentRoute = Routes.Login }
@@ -102,29 +103,31 @@ private fun ContentContainer(appGraph: JsAppGraph) {
             noMatch { currentRoute = Routes.SignUp }
         }
         route("library") {
-            string { id ->
-                currentRoute = Routes.Library(id)
-                ScreenContainer(client) {
-                    LibraryScreen(libraryId = id)
-                }
-            }
+            string { id -> currentRoute = Routes.Library(id) }
             noMatch { redirect("/home") }
         }
         route("downloads") {
-            noMatch { ScreenContainer(client) { DownloadsScreen() } }
+            noMatch {
+                DisposableEffect(Unit) {
+                    isWebExclusiveRoute = true
+                    onDispose { isWebExclusiveRoute = false }
+                }
+                ScreenContainer(client) { DownloadsScreen() }
+            }
         }
         route("settings") {
             string { subScreen ->
+                DisposableEffect(Unit) {
+                    isWebExclusiveRoute = true
+                    onDispose { isWebExclusiveRoute = false }
+                }
                 ScreenContainer(client, { SettingsSideMenu() }) {
                     SettingsScreen(subScreen)
                 }
             }
         }
         route("media") {
-            string { id ->
-                currentRoute = Routes.Home
-                ScreenContainer(client) { MediaScreen(id) }
-            }
+            string { id -> currentRoute = Routes.Details(id) }
             noMatch { redirect("/home") }
         }
         noMatch { redirect(if (client.user.isAuthenticated()) "/home" else "/login") }
@@ -139,20 +142,34 @@ private fun ContentContainer(appGraph: JsAppGraph) {
             ),
         )
 
-        when (val screenModel = appModel.appUiModel.screen) {
-            is LoginScreenModel -> {
-                ScreenContainer(client, {}) {
-                    LoginScreen(screenModel)
+        if (!isWebExclusiveRoute) {
+            when (val screenModel = appModel.appUiModel.screen) {
+                is LoginScreenModel -> {
+                    ScreenContainer(client, {}) {
+                        LoginScreen(screenModel)
+                    }
                 }
-            }
 
-            is SignupScreenModel -> {
-                ScreenContainer(client, {}) {
-                    SignupScreen(screenModel)
+                is SignupScreenModel -> {
+                    ScreenContainer(client, {}) {
+                        SignupScreen(screenModel)
+                    }
                 }
-            }
 
-            else -> {}
+                is HomeScreenModel -> {
+                    ScreenContainer(client) { HomeScreen(screenModel) }
+                }
+
+                is MediaScreenModel -> {
+                    ScreenContainer(client) { MediaScreen(screenModel) }
+                }
+
+                is LibraryScreenModel -> {
+                    ScreenContainer(client) { LibraryScreen(screenModel) }
+                }
+
+                else -> {}
+            }
         }
         val metadataId by playerMediaLinkId.collectAsState()
         metadataId?.let { PlayerScreen(it) }

@@ -18,61 +18,24 @@
 package anystream.screens
 
 import androidx.compose.runtime.*
-import anystream.LocalAnyStreamClient
 import anystream.components.*
-import anystream.models.MediaItem
-import anystream.models.MediaKind
-import anystream.models.toMediaItems
 import anystream.playerMediaLinkId
+import anystream.presentation.library.LibraryScreenModel
 import app.softwork.routingcompose.Router
-import kotlinx.coroutines.flow.mapNotNull
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.Text
 
 @Composable
-fun LibraryScreen(libraryId: String) {
-    val router = Router.current
-    val client = LocalAnyStreamClient.current
-    val library by remember(libraryId) {
-        client.library.libraries
-            .mapNotNull { libraries ->
-                libraries.firstOrNull { it.id == libraryId }
-            }
-    }.collectAsState(
-        client.library.libraries.value
-            .firstOrNull { it.id == libraryId },
-    )
-    val mediaItems by produceState<List<MediaItem>?>(null, libraryId) {
-        value = null
-        value = when (library?.mediaKind) {
-            MediaKind.MOVIE -> {
-                client.library.getMovies(libraryId).toMediaItems()
-            }
-
-            MediaKind.TV -> {
-                client.library.getTvShows(libraryId).toMediaItems()
-            }
-
-            else -> {
-                router.navigate("/")
-                null
-            }
-        }
-    }
-
-    when (val items = mediaItems) {
-        null -> {
-            FullSizeCenteredLoader()
-        }
-
-        else -> {
-            if (items.isEmpty()) {
+fun LibraryScreen(screenModel: LibraryScreenModel) {
+    when (screenModel) {
+        is LibraryScreenModel.Loaded -> {
+            if (screenModel.mediaItems.isEmpty()) {
                 Div({ classes("d-flex", "justify-content-center", "align-items-center", "h-100") }) {
-                    Text("${library?.mediaKind?.libraryName} will appear here.")
+                    Text("${screenModel.library.mediaKind.libraryName} will appear here.")
                 }
             } else {
                 val router = Router.current
-                VerticalGridScroller(items) { mediaItem ->
+                VerticalGridScroller(screenModel.mediaItems) { mediaItem ->
                     PosterCard(
                         title = {
                             LinkedText("/media/${mediaItem.mediaId}") {
@@ -90,6 +53,18 @@ fun LibraryScreen(libraryId: String) {
                     )
                 }
             }
+        }
+
+        LibraryScreenModel.Loading -> {
+            FullSizeCenteredLoader()
+        }
+
+        LibraryScreenModel.LoadingFailed -> {
+            Text("Failed to load library")
+        }
+
+        LibraryScreenModel.NotFound -> {
+            Text("Library not found")
         }
     }
 }

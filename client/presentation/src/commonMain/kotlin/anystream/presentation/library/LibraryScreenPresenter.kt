@@ -53,7 +53,7 @@ class LibraryScreenPresenter(
                     else -> null
                 }
                 if (items != null) {
-                    LibraryScreenModel.Loaded(items)
+                    LibraryScreenModel.Loaded(library, items)
                 } else {
                     LibraryScreenModel.LoadingFailed
                 }

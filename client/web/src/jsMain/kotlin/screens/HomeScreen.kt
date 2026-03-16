@@ -18,20 +18,18 @@
 package anystream.screens
 
 import androidx.compose.runtime.*
-import anystream.LocalAnyStreamClient
 import anystream.components.FullSizeCenteredLoader
 import anystream.components.HorizontalScroller
 import anystream.components.LinkedText
 import anystream.components.PosterCard
 import anystream.models.api.CurrentlyWatching
-import anystream.models.api.HomeResponse
 import anystream.models.api.Popular
 import anystream.models.api.RecentlyAdded
 import anystream.models.completedPercent
 import anystream.playerMediaLinkId
+import anystream.presentation.home.HomeScreenModel
 import app.softwork.routingcompose.Router
 import kotlinx.browser.localStorage
-import kotlinx.coroutines.delay
 import org.jetbrains.compose.web.attributes.InputType
 import org.jetbrains.compose.web.attributes.max
 import org.jetbrains.compose.web.attributes.min
@@ -40,67 +38,62 @@ import org.jetbrains.compose.web.css.overflow
 import org.jetbrains.compose.web.css.px
 import org.jetbrains.compose.web.css.width
 import org.jetbrains.compose.web.dom.*
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.times
 
 private const val KEY_POSTER_SIZE_MULTIPLIER = "key_poster_size_multiplier"
 
 @Composable
-fun HomeScreen() {
-    val client = LocalAnyStreamClient.current
-    val homeResponse by produceState<HomeResponse?>(null) {
-        var i = 0
-        while (value == null) {
-            i = (i + 1).coerceAtMost(3)
-            value = try {
-                client.library.getHomeData()
-            } catch (e: Throwable) {
-                null
-            }
-            delay(i * 5.seconds)
-        }
-    }
+fun HomeScreen(screenModel: HomeScreenModel) {
     var sizeMultiplier by remember {
         mutableStateOf(localStorage.getItem(KEY_POSTER_SIZE_MULTIPLIER)?.toFloatOrNull() ?: 1f)
     }
 
-    if (homeResponse == null) {
-        FullSizeCenteredLoader()
-    }
-
-    homeResponse?.run {
-        Div({ classes("d-flex", "justify-content-between", "align-items-center", "p-3") }) {
-            Div { H4 { Text("Home") } }
-            PosterSizeSelector(sizeMultiplier) {
-                sizeMultiplier = it
-                localStorage.setItem(KEY_POSTER_SIZE_MULTIPLIER, it.toString())
-            }
+    when (screenModel) {
+        HomeScreenModel.Loading -> {
+            FullSizeCenteredLoader()
         }
 
-        Div({
-            classes("vh-100")
-            style {
-                overflow("hidden auto")
-            }
-        }) {
-            if (currentlyWatching.playbackStates.isNotEmpty()) {
-                currentlyWatching.ContinueWatchingRow(sizeMultiplier)
+        HomeScreenModel.Empty -> {
+            TODO()
+        }
+
+        HomeScreenModel.LoadingFailed -> {
+            TODO()
+        }
+
+        is HomeScreenModel.Loaded -> {
+            Div({ classes("d-flex", "justify-content-between", "align-items-center", "p-3") }) {
+                Div { H4 { Text("Home") } }
+                PosterSizeSelector(sizeMultiplier) {
+                    sizeMultiplier = it
+                    localStorage.setItem(KEY_POSTER_SIZE_MULTIPLIER, it.toString())
+                }
             }
 
-            if (recentlyAdded.movies.isNotEmpty()) {
-                recentlyAdded.RecentlyAddedMovies(sizeMultiplier)
-            }
+            Div({
+                classes("vh-100")
+                style {
+                    overflow("hidden auto")
+                }
+            }) {
+                if (screenModel.currentlyWatching.playbackStates.isNotEmpty()) {
+                    screenModel.currentlyWatching.ContinueWatchingRow(sizeMultiplier)
+                }
 
-            if (recentlyAdded.tvShows.isNotEmpty()) {
-                recentlyAdded.RecentlyAddedTv(sizeMultiplier)
-            }
+                if (screenModel.recentlyAdded.movies.isNotEmpty()) {
+                    screenModel.recentlyAdded.RecentlyAddedMovies(sizeMultiplier)
+                }
 
-            if (popular.movies.isNotEmpty()) {
-                popular.PopularMovies(sizeMultiplier)
-            }
+                if (screenModel.recentlyAdded.tvShows.isNotEmpty()) {
+                    screenModel.recentlyAdded.RecentlyAddedTv(sizeMultiplier)
+                }
 
-            if (popular.tvShows.isNotEmpty()) {
-                popular.PopularTvShows(sizeMultiplier)
+                if (screenModel.popular.movies.isNotEmpty()) {
+                    screenModel.popular.PopularMovies(sizeMultiplier)
+                }
+
+                if (screenModel.popular.tvShows.isNotEmpty()) {
+                    screenModel.popular.PopularTvShows(sizeMultiplier)
+                }
             }
         }
     }

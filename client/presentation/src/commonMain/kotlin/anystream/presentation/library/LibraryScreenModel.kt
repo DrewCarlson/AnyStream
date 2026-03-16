@@ -17,6 +17,7 @@
  */
 package anystream.presentation.library
 
+import anystream.models.Library
 import anystream.models.MediaItem
 import anystream.presentation.core.ScreenModel
 
@@ -24,6 +25,7 @@ sealed interface LibraryScreenModel : ScreenModel {
     data object Loading : LibraryScreenModel
 
     data class Loaded(
+        val library: Library,
         val mediaItems: List<MediaItem>,
     ) : LibraryScreenModel
 

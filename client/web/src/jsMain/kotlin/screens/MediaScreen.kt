@@ -27,14 +27,11 @@ import anystream.models.MediaItem
 import anystream.models.api.*
 import anystream.models.toMediaItem
 import anystream.playerMediaLinkId
+import anystream.presentation.media.MediaScreenModel
 import anystream.util.ExternalClickMask
 import anystream.util.tooltip
 import app.softwork.routingcompose.Router
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 import org.w3c.dom.HTMLDivElement
@@ -43,142 +40,133 @@ import org.w3c.dom.HTMLElement
 val backdropImageUrl = MutableStateFlow<String?>(null)
 
 @Composable
-fun MediaScreen(mediaId: String) {
-    val client = LocalAnyStreamClient.current
-    val scope = rememberCoroutineScope()
-    val permissions by client.user.permissions.collectAsState(client.user.userPermissions())
-    val lookupIdFlow = remember(mediaId) { MutableStateFlow<Int?>(null) }
-    val analyzeFiles: (() -> Unit)? = remember(lookupIdFlow, permissions) {
-        if (client.user.hasPermission(Permission.ManageCollection)) {
-            { lookupIdFlow.update { (it ?: 0) + 1 } }
-        } else {
-            null
-        }
-    }
-    val mediaResponse by produceState<MediaLookupResponse?>(null, mediaId) {
-        value = runCatching { client.library.lookupMedia(mediaId) }.getOrNull()
-
-        val updateLock = Mutex()
-        lookupIdFlow.filterNotNull().filter { !updateLock.isLocked }.collect {
-            updateLock.withLock {
-                try {
-                    value
-                        ?.mediaLinks
-                        ?.filter { it.descriptor.isMediaFileLink() }
-                        ?.forEach { mediaLink ->
-                            client.library.analyzeMediaLink(mediaLink.id)
-                        }
-                    value = client.library.lookupMedia(mediaId)
-                } catch (e: Throwable) {
-                    e.printStackTrace()
-                }
-                delay(1000)
-            }
-        }
-    }
-    val onFixMatch: (() -> Unit)? = remember(mediaResponse) { null }
-    val onGeneratePreview: ((String?) -> Unit)? = remember(mediaResponse, permissions) {
-        if (client.user.hasPermission(Permission.ManageCollection)) {
-            { id: String? ->
-                if (!id.isNullOrBlank()) {
-                    scope.launch {
-                        client.library.generatePreview(id)
-                    }
-                }
-            }
-        } else {
-            null
-        }
-    }
-    DisposableEffect(mediaId) {
-        onDispose { backdropImageUrl.value = null }
-    }
-
+fun MediaScreen(screenModel: MediaScreenModel) {
     Div({
         classes("d-flex", "flex-column")
     }) {
-        when (val response = mediaResponse) {
-            null -> {
+        when (screenModel) {
+            MediaScreenModel.Loading -> {
                 FullSizeCenteredLoader()
             }
 
-            is MovieResponse -> {
-                val mediaItem = remember(response) {
-                    response.toMediaItem().also {
-                        backdropImageUrl.value = "/api/image/${it.mediaId}/backdrop.jpg?width=1280"
-                    }
-                }
-                BaseDetailsView(
-                    mediaItem = mediaItem,
-                    rootMetadataId = mediaItem.mediaId,
-                    analyzeFiles = analyzeFiles.takeIf { mediaItem.playableMediaLink != null },
-                    onFixMatch = onFixMatch,
-                    onGeneratePreview = onGeneratePreview,
-                )
-
-                CastAndCrewView(mediaItem.cast)
+            MediaScreenModel.LoadingFailed -> {
+                Text("Failed to load media")
             }
 
-            is TvShowResponse -> {
-                val mediaItem = remember(response) {
-                    response.toMediaItem().also {
-                        backdropImageUrl.value = "/api/image/${it.mediaId}/backdrop.jpg?width=1280"
-                    }
-                }
-                BaseDetailsView(
-                    mediaItem = mediaItem,
-                    analyzeFiles = analyzeFiles.takeIf { mediaItem.playableMediaLink != null },
-                    rootMetadataId = mediaItem.mediaId,
-                    onFixMatch = onFixMatch,
-                    onGeneratePreview = null,
+            is MediaScreenModel.Loaded -> {
+                MediaScreenBody(
+                    mediaResponse = screenModel.response,
                 )
-
-                if (response.seasons.isNotEmpty()) {
-                    SeasonRow(response.seasons)
-                }
-
-                CastAndCrewView(mediaItem.cast)
             }
+        }
+    }
+}
 
-            is SeasonResponse -> {
-                val mediaItem = remember(response) {
-                    response.toMediaItem().also {
-                        backdropImageUrl.value = "/api/image/${response.show.id}/backdrop.jpg?width=1280"
-                    }
-                }
-                BaseDetailsView(
-                    mediaItem = mediaItem,
-                    analyzeFiles = analyzeFiles.takeIf { mediaItem.playableMediaLink != null },
-                    rootMetadataId = response.show.id,
-                    onFixMatch = onFixMatch,
-                    onGeneratePreview = null,
-                )
-
-                if (response.episodes.isNotEmpty()) {
-                    EpisodeGrid(
-                        response.episodes,
-                        response.mediaLinkMap,
-                    )
+@Composable
+private fun MediaScreenBody(mediaResponse: MediaLookupResponse) {
+    val client = LocalAnyStreamClient.current
+    val permissions by client.user.permissions.collectAsState(client.user.userPermissions())
+    val analyzeFiles: (() -> Unit)? = remember(permissions) {
+        if (client.user.hasPermission(Permission.ManageCollection)) {
+            { }
+        } else {
+            null
+        }
+    }
+    val onFixMatch: (() -> Unit)? = remember { null }
+    val onGeneratePreview: ((String?) -> Unit)? = remember(permissions) {
+        if (client.user.hasPermission(Permission.ManageCollection)) {
+            { id: String? ->
+                if (!id.isNullOrBlank()) {
+                    /*scope.launch {
+                        client.library.generatePreview(id)
+                    }*/
                 }
             }
-
-            is EpisodeResponse -> {
-                val mediaItem = remember(response) {
-                    response.toMediaItem().also {
-                        backdropImageUrl.value = "/api/image/${response.show.id}/backdrop.jpg?width=1280"
-                    }
+        } else {
+            null
+        }
+    }
+    DisposableEffect(mediaResponse) {
+        onDispose { backdropImageUrl.value = null }
+    }
+    when (mediaResponse) {
+        is MovieResponse -> {
+            val mediaItem = remember(mediaResponse) {
+                mediaResponse.toMediaItem().also {
+                    backdropImageUrl.value = "/api/image/${it.mediaId}/backdrop.jpg?width=1280"
                 }
-                BaseDetailsView(
-                    mediaItem = mediaItem,
-                    rootMetadataId = response.show.id,
-                    parentMetadatId = response.episode.seasonId,
-                    analyzeFiles = analyzeFiles.takeIf { mediaItem.playableMediaLink != null },
-                    onFixMatch = onFixMatch,
-                    onGeneratePreview = onGeneratePreview,
-                )
-
-                CastAndCrewView(mediaItem.cast)
             }
+            BaseDetailsView(
+                mediaItem = mediaItem,
+                rootMetadataId = mediaItem.mediaId,
+                analyzeFiles = analyzeFiles.takeIf { mediaItem.playableMediaLink != null },
+                onFixMatch = onFixMatch,
+                onGeneratePreview = onGeneratePreview,
+            )
+
+            CastAndCrewView(mediaItem.cast)
+        }
+
+        is TvShowResponse -> {
+            val mediaItem = remember(mediaResponse) {
+                mediaResponse.toMediaItem().also {
+                    backdropImageUrl.value = "/api/image/${it.mediaId}/backdrop.jpg?width=1280"
+                }
+            }
+            BaseDetailsView(
+                mediaItem = mediaItem,
+                analyzeFiles = analyzeFiles.takeIf { mediaItem.playableMediaLink != null },
+                rootMetadataId = mediaItem.mediaId,
+                onFixMatch = onFixMatch,
+                onGeneratePreview = null,
+            )
+
+            if (mediaResponse.seasons.isNotEmpty()) {
+                SeasonRow(mediaResponse.seasons)
+            }
+
+            CastAndCrewView(mediaItem.cast)
+        }
+
+        is SeasonResponse -> {
+            val mediaItem = remember(mediaResponse) {
+                mediaResponse.toMediaItem().also {
+                    backdropImageUrl.value = "/api/image/${mediaResponse.show.id}/backdrop.jpg?width=1280"
+                }
+            }
+            BaseDetailsView(
+                mediaItem = mediaItem,
+                analyzeFiles = analyzeFiles.takeIf { mediaItem.playableMediaLink != null },
+                rootMetadataId = mediaResponse.show.id,
+                onFixMatch = onFixMatch,
+                onGeneratePreview = null,
+            )
+
+            if (mediaResponse.episodes.isNotEmpty()) {
+                EpisodeGrid(
+                    mediaResponse.episodes,
+                    mediaResponse.mediaLinkMap,
+                )
+            }
+        }
+
+        is EpisodeResponse -> {
+            val mediaItem = remember(mediaResponse) {
+                mediaResponse.toMediaItem().also {
+                    backdropImageUrl.value = "/api/image/${mediaResponse.show.id}/backdrop.jpg?width=1280"
+                }
+            }
+            BaseDetailsView(
+                mediaItem = mediaItem,
+                rootMetadataId = mediaResponse.show.id,
+                parentMetadatId = mediaResponse.episode.seasonId,
+                analyzeFiles = analyzeFiles.takeIf { mediaItem.playableMediaLink != null },
+                onFixMatch = onFixMatch,
+                onGeneratePreview = onGeneratePreview,
+            )
+
+            CastAndCrewView(mediaItem.cast)
         }
     }
 }
