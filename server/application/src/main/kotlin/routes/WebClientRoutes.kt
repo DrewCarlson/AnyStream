@@ -21,18 +21,15 @@ import anystream.config.AnyStreamConfig
 import io.ktor.server.application.*
 import io.ktor.server.http.content.*
 import io.ktor.server.routing.*
-import kotlin.io.path.Path
+import kotlin.io.path.absolutePathString
 import kotlin.io.path.exists
 
 fun Application.installWebClientRoutes(config: AnyStreamConfig) {
     if (config.disableWebClient) {
         log.debug("Web client disabled, this instance will serve the API only.")
     } else if (
-        config.webClientPath.isNullOrBlank() ||
-        (
-            !Path(config.webClientPath).exists() &&
-                javaClass.classLoader.getResource("anystream-client-web") != null
-        )
+        config.webClientPath?.exists() == false &&
+        javaClass.classLoader.getResource("anystream-client-web") != null
     ) {
         log.debug("This instance will serve the web client from jar resources.")
         routing {
@@ -41,11 +38,11 @@ fun Application.installWebClientRoutes(config: AnyStreamConfig) {
                 useResources = true
             }
         }
-    } else if (Path(config.webClientPath).exists()) {
-        log.debug("This instance will serve the web client from '${config.webClientPath}'.")
+    } else if (config.webClientPath?.exists() == true) {
+        log.debug("This instance will serve the web client from '{}'.", config.webClientPath)
         routing {
             singlePageApplication {
-                filesPath = config.webClientPath
+                filesPath = config.webClientPath.absolutePathString()
             }
         }
     } else {

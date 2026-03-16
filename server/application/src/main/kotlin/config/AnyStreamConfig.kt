@@ -26,7 +26,8 @@ import kotlin.io.path.Path
 class AnyStreamConfig(
     val baseUrl: String? = null,
     val disableWebClient: Boolean = false,
-    val webClientPath: String? = null,
+    @Serializable(PathSerializer::class)
+    val webClientPath: Path? = null,
     @Serializable(DataPathSerializer::class)
     val dataPath: Path = Path("./anystream"),
     @Serializable(PathSerializer::class)
