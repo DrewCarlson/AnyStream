@@ -64,10 +64,8 @@ class MediaLinkRoutes(
         parent.route("/medialink") {
             authenticate {
                 withAnyPermission(Permission.ViewCollection) {
-                    route("/medialink") {
-                        route("/{mediaLinkId}") {
-                            get { getMediaLink() }
-                        }
+                    route("/{mediaLinkId}") {
+                        get { getMediaLink() }
                     }
                 }
                 withAnyPermission(Permission.ManageCollection) {
