@@ -38,7 +38,7 @@ import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.HttpRequestPipeline
 import io.ktor.client.request.HttpResponseData
-import io.ktor.client.request.get
+import io.ktor.client.request.head
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.client.statement.HttpResponse
@@ -170,7 +170,7 @@ class AnyStreamApiCore(
     suspend fun verifyAndSetServerUrl(serverUrl: String): ServerValidation {
         if (serverUrl.isBlank()) return ServerValidation.INVALID
         return try {
-            val request = http.get(serverUrl) {
+            val request = http.head("/api/users/auth-types") {
                 attributes[ServerUrlAttribute] = serverUrl
             }
             check(request.status == OK)

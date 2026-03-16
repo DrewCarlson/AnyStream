@@ -7,7 +7,7 @@ export default {
         hmr: true,
         host: true,
         watch: true,
-        allowedHosts: ["dev1.drews.website"],
+        allowedHosts: [],
         proxy: {
             '/api': {
                 target: process.env.ANYSTREAM_SERVER_URL,
