@@ -17,9 +17,8 @@
  */
 package anystream.client.api
 
+import anystream.models.IdBase
 import anystream.models.MediaLinkId
-import anystream.models.MetadataId
-import anystream.models.TagId
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsBytes
 import io.ktor.http.isSuccess
@@ -30,26 +29,10 @@ class ImagesApiClient(
 ) {
     fun buildImageUrl(
         imageType: String,
-        metadataId: MetadataId,
+        id: IdBase,
         width: Int = 0,
     ): String {
-        return buildImageUrl(imageType, metadataId.value, width)
-    }
-
-    fun buildImageUrl(
-        imageType: String,
-        tagId: TagId,
-        width: Int = 0,
-    ): String {
-        return buildImageUrl(imageType, tagId.value, width)
-    }
-
-    private fun buildImageUrl(
-        imageType: String,
-        rawId: String,
-        width: Int = 0,
-    ): String {
-        return "${core.serverUrl}/api/image/$rawId/$imageType.jpg?width=$width"
+        return "${core.serverUrl}/api/image/${id.value}/$imageType.jpg?width=$width"
     }
 
     suspend fun getPreviewBif(mediaLinkId: MediaLinkId): Buffer? {
