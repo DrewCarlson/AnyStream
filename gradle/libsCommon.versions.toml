@@ -11,7 +11,7 @@ kotest = "6.1.6"
 redacted = "1.15.1"
 poko = "0.21.3"
 ktlint = "1.8.0"
-metro = "0.11.2"
+metro = "0.11.4"
 
 [plugins]
 multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
