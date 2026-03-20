@@ -101,7 +101,7 @@ class HomeRoutes(
             delay(POPULAR_MOVIES_REFRESH)
         }
     }.catch { it.printStackTrace() }
-        .stateIn(scope, SharingStarted.Eagerly, null)
+        .stateIn(scope, SharingStarted.Lazily, null)
     private val popularTvShowsFlow = callbackFlow<List<TmdbShowDetail>> {
         while (true) {
             val result = tmdb.trending
@@ -128,7 +128,7 @@ class HomeRoutes(
             delay(POPULAR_MOVIES_REFRESH)
         }
     }.catch { it.printStackTrace() }
-        .stateIn(scope, SharingStarted.Eagerly, null)
+        .stateIn(scope, SharingStarted.Lazily, null)
 
     suspend fun RoutingContext.getHome() {
         val session = checkNotNull(call.principal<UserSession>())
@@ -144,12 +144,12 @@ class HomeRoutes(
         val recentlyAddedMovies = queries.findRecentlyAddedMovies(20)
         val recentlyAddedTvShows = queries.findRecentlyAddedTv(20)
 
-        // Popular movies
+        /*// Popular movies
         val (popularMoviesMap, popularTvShows) = loadPopularMovies(
             queries,
             popularMoviesFlow,
             popularTvShowsFlow,
-        )
+        )*/
 
         call.respond(
             HomeResponse(
@@ -164,8 +164,8 @@ class HomeRoutes(
                     tvShows = recentlyAddedTvShows,
                 ),
                 popular = Popular(
-                    movies = popularMoviesMap,
-                    tvShows = popularTvShows,
+                    movies = emptyMap(), // popularMoviesMap,
+                    tvShows = emptyList(), // popularTvShows,
                 ),
             ),
         )
