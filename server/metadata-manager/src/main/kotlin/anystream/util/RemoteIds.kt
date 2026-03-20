@@ -17,20 +17,21 @@
  */
 package anystream.util
 
+import anystream.models.MetadataId
 import app.moviebase.tmdb.model.*
 
-val String.isRemoteId: Boolean get() = split(':').run { size == 3 || size == 4 }
+val MetadataId.isRemoteId: Boolean get() = value.split(':').run { size == 3 || size == 4 }
 
-fun TmdbMovie.toRemoteId(): String = "tmdb:movie:$id"
+fun TmdbMovie.toRemoteId(): MetadataId = MetadataId("tmdb:movie:$id")
 
-fun TmdbShow.toRemoteId(): String = "tmdb:tv:$id"
+fun TmdbShow.toRemoteId(): MetadataId = MetadataId("tmdb:tv:$id")
 
-fun TmdbSeason.toRemoteId(showId: Int): String = "tmdb:tv:$showId-$seasonNumber"
+fun TmdbSeason.toRemoteId(showId: Int): MetadataId = MetadataId("tmdb:tv:$showId-$seasonNumber")
 
-fun TmdbEpisode.toRemoteId(showId: Int): String = "tmdb:tv:$showId-$seasonNumber-$episodeNumber"
+fun TmdbEpisode.toRemoteId(showId: Int): MetadataId = MetadataId("tmdb:tv:$showId-$seasonNumber-$episodeNumber")
 
-fun TmdbMovieDetail.toRemoteId(): String = "tmdb:movie:$id"
+fun TmdbMovieDetail.toRemoteId(): MetadataId = MetadataId("tmdb:movie:$id")
 
-fun TmdbShowDetail.toRemoteId(): String = "tmdb:tv:$id"
+fun TmdbShowDetail.toRemoteId(): MetadataId = MetadataId("tmdb:tv:$id")
 
-fun TmdbSeasonDetail.toRemoteId(showId: Int): String = "tmdb:tv:$showId-$seasonNumber"
+fun TmdbSeasonDetail.toRemoteId(showId: Int): MetadataId = MetadataId("tmdb:tv:$showId-$seasonNumber")

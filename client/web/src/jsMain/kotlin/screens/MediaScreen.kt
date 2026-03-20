@@ -76,7 +76,7 @@ private fun MediaScreenBody(
         is MovieResponse -> {
             val mediaItem = remember(mediaResponse) {
                 mediaResponse.toMediaItem().also {
-                    backdropImageUrl.value = "/api/image/${it.mediaId}/backdrop.jpg?width=1280"
+                    backdropImageUrl.value = "/api/image/${it.mediaId.value}/backdrop.jpg?width=1280"
                 }
             }
             BaseDetailsView(
@@ -91,7 +91,7 @@ private fun MediaScreenBody(
         is TvShowResponse -> {
             val mediaItem = remember(mediaResponse) {
                 mediaResponse.toMediaItem().also {
-                    backdropImageUrl.value = "/api/image/${it.mediaId}/backdrop.jpg?width=1280"
+                    backdropImageUrl.value = "/api/image/${it.mediaId.value}/backdrop.jpg?width=1280"
                 }
             }
             BaseDetailsView(
@@ -110,7 +110,7 @@ private fun MediaScreenBody(
         is SeasonResponse -> {
             val mediaItem = remember(mediaResponse) {
                 mediaResponse.toMediaItem().also {
-                    backdropImageUrl.value = "/api/image/${mediaResponse.show.id}/backdrop.jpg?width=1280"
+                    backdropImageUrl.value = "/api/image/${mediaResponse.show.id.value}/backdrop.jpg?width=1280"
                 }
             }
             BaseDetailsView(
@@ -130,7 +130,7 @@ private fun MediaScreenBody(
         is EpisodeResponse -> {
             val mediaItem = remember(mediaResponse) {
                 mediaResponse.toMediaItem().also {
-                    backdropImageUrl.value = "/api/image/${mediaResponse.show.id}/backdrop.jpg?width=1280"
+                    backdropImageUrl.value = "/api/image/${mediaResponse.show.id.value}/backdrop.jpg?width=1280"
                 }
             }
             BaseDetailsView(
@@ -170,8 +170,8 @@ private fun CastAndCrewView(credits: List<CastCredit>) {
 @Composable
 private fun BaseDetailsView(
     mediaItem: MediaItem,
-    rootMetadataId: String,
-    parentMetadatId: String? = null,
+    rootMetadataId: MetadataId,
+    parentMetadatId: MetadataId? = null,
     menuOptions: List<MenuOptionModel>,
 ) {
     Div({ classes("d-flex") }) {
@@ -605,7 +605,7 @@ private fun SeasonRow(seasons: List<TvSeason>) {
 @Composable
 private fun EpisodeGrid(
     episodes: List<Episode>,
-    mediaLinks: Map<String, MediaLink>,
+    mediaLinks: Map<MetadataId, MediaLink>,
 ) {
     val router = Router.current
     BaseRow(

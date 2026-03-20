@@ -21,8 +21,12 @@ import anystream.client.AnyStreamClientException
 import anystream.client.SessionDataStore
 import anystream.client.json
 import anystream.models.Directory
+import anystream.models.DirectoryId
 import anystream.models.Library
+import anystream.models.LibraryId
 import anystream.models.MediaLink
+import anystream.models.MediaLinkId
+import anystream.models.MetadataId
 import anystream.models.api.AddLibraryFolderRequest
 import anystream.models.api.AddLibraryFolderResponse
 import anystream.models.api.CurrentlyWatching
@@ -94,12 +98,12 @@ class LibraryApiClient(
     suspend fun getHomePopular(): Popular = core.http.get("/api/home/popular").bodyOrThrow()
 
     suspend fun getMovies(
-        libraryId: String,
+        libraryId: LibraryId,
         offset: Int = -1,
         limit: Int = -1,
     ): MoviesResponse =
         core.http
-            .get("/api/library/$libraryId") {
+            .get("/api/library/${libraryId.value}") {
                 if (offset != -1) {
                     parameter("offset", offset)
                 }
@@ -110,12 +114,12 @@ class LibraryApiClient(
             }.bodyOrThrow()
 
     suspend fun getTvShows(
-        libraryId: String,
+        libraryId: LibraryId,
         offset: Int = -1,
         limit: Int = -1,
     ): TvShowsResponse =
         core.http
-            .get("/api/library/$libraryId") {
+            .get("/api/library/${libraryId.value}") {
                 if (offset != -1) {
                     parameter("offset", offset)
                 }
@@ -130,12 +134,12 @@ class LibraryApiClient(
     }
 
     suspend fun addLibraryFolder(
-        libraryId: String,
+        libraryId: LibraryId,
         path: String,
     ): AddLibraryFolderResponse {
         return try {
             core.http
-                .put("/api/library/$libraryId") {
+                .put("/api/library/${libraryId.value}") {
                     contentType(ContentType.Application.Json)
                     setBody(AddLibraryFolderRequest(path))
                 }.bodyOrThrow()
@@ -145,27 +149,27 @@ class LibraryApiClient(
         }
     }
 
-    suspend fun removeMediaLink(mediaLinkId: String): Boolean {
+    suspend fun removeMediaLink(mediaLinkId: MediaLinkId): Boolean {
         return try {
-            core.http.delete("/api/medialink/$mediaLinkId").orThrow()
+            core.http.delete("/api/medialink/${mediaLinkId.value}").orThrow()
             true
         } catch (e: AnyStreamClientException) {
             if (e.response?.status == NotFound) false else throw e
         }
     }
 
-    suspend fun getDirectories(libraryId: String): List<Directory> {
+    suspend fun getDirectories(libraryId: LibraryId): List<Directory> {
         return try {
-            core.http.get("/api/library/$libraryId/directories").bodyOrThrow()
+            core.http.get("/api/library/${libraryId.value}/directories").bodyOrThrow()
         } catch (e: Exception) {
             e.printStackTrace()
             emptyList()
         }
     }
 
-    suspend fun removeDirectory(directoryId: String): Boolean {
+    suspend fun removeDirectory(directoryId: DirectoryId): Boolean {
         return try {
-            core.http.delete("/api/library/directory/$directoryId").bodyOrThrow()
+            core.http.delete("/api/library/directory/${directoryId.value}").bodyOrThrow()
         } catch (e: Exception) {
             e.printStackTrace()
             false
@@ -173,12 +177,12 @@ class LibraryApiClient(
     }
 
     suspend fun scanDirectory(
-        directoryId: String,
+        directoryId: DirectoryId,
         refreshMetadata: Boolean = false,
     ) {
         try {
             core.http
-                .get("/api/library/directory/$directoryId/scan") {
+                .get("/api/library/directory/${directoryId.value}/scan") {
                     parameter("refreshMetadata", refreshMetadata)
                 }.bodyOrThrow()
         } catch (e: Exception) {
@@ -186,9 +190,9 @@ class LibraryApiClient(
         }
     }
 
-    suspend fun scanLibrary(libraryId: String) {
+    suspend fun scanLibrary(libraryId: LibraryId) {
         try {
-            core.http.get("/api/library/$libraryId/scan").orThrow()
+            core.http.get("/api/library/${libraryId.value}/scan").orThrow()
         } catch (e: Throwable) {
             e.printStackTrace()
         }
@@ -211,21 +215,23 @@ class LibraryApiClient(
             }.bodyOrThrow()
     }
 
-    suspend fun analyzeMediaLink(mediaLinkId: String): List<MediaAnalyzerResult> {
+    suspend fun analyzeMediaLink(mediaLinkId: MediaLinkId): List<MediaAnalyzerResult> {
         return core.http
-            .get("/api/medialink/$mediaLinkId/analyze") {
+            .get("/api/medialink/${mediaLinkId.value}/analyze") {
                 parameter("waitForResult", true)
             }.bodyOrThrow()
     }
 
-    suspend fun analyzeMediaLinksAsync(mediaLinkId: String) {
+    suspend fun analyzeMediaLinksAsync(mediaLinkId: MediaLinkId) {
         core.http
-            .get("/api/medialink/$mediaLinkId/analyze") {
+            .get("/api/medialink/${mediaLinkId.value}/analyze") {
                 parameter("waitForResult", false)
             }.bodyOrThrow<String>()
     }
 
-    suspend fun lookupMedia(mediaId: String): MediaLookupResponse = core.http.get("/api/media/$mediaId").bodyOrThrow()
+    suspend fun lookupMedia(mediaId: MetadataId): MediaLookupResponse {
+        return core.http.get("/api/media/${mediaId.value}").bodyOrThrow()
+    }
 
     suspend fun search(
         query: String,
@@ -254,41 +260,41 @@ class LibraryApiClient(
         return response.bodyOrThrow()
     }
 
-    suspend fun matchesFor(mediaLinkId: String): List<MediaLinkMatchResult> {
-        return core.http.get("/api/medialink/$mediaLinkId/matches").bodyOrThrow()
+    suspend fun matchesFor(mediaLinkId: MediaLinkId): List<MediaLinkMatchResult> {
+        return core.http.get("/api/medialink/${mediaLinkId.value}/matches").bodyOrThrow()
     }
 
     suspend fun matchFor(
-        mediaLinkId: String,
+        mediaLinkId: MediaLinkId,
         remoteId: String,
     ) {
         val body = buildJsonObject {
             put("remoteId", remoteId)
         }
-        core.http.put("/api/medialink/$mediaLinkId/matches") {
+        core.http.put("/api/medialink/${mediaLinkId.value}/matches") {
             contentType(ContentType.Application.Json)
             setBody(body)
         }
     }
 
-    suspend fun getMediaLinks(parentId: String? = null): List<MediaLink> {
+    suspend fun getMediaLinks(parentId: LibraryId? = null): List<MediaLink> {
         return core.http
             .get("/api/medialink") {
-                parameter("parent", parentId)
+                parameter("parent", parentId?.value)
             }.bodyOrThrow()
     }
 
     suspend fun findMediaLink(
-        mediaLinkId: String,
+        mediaLinkId: MediaLinkId,
         includeMetadata: Boolean = true,
     ): MediaLinkResponse {
-        val response = core.http.get("/api/medialink/$mediaLinkId") {
+        val response = core.http.get("/api/medialink/${mediaLinkId.value}") {
             parameter("includeMetadata", includeMetadata)
         }
         return response.bodyOrThrow()
     }
 
-    suspend fun generatePreview(mediaLinkId: String): Boolean {
-        return core.http.get("/api/medialink/$mediaLinkId/generate-preview").status == OK
+    suspend fun generatePreview(mediaLinkId: MediaLinkId): Boolean {
+        return core.http.get("/api/medialink/${mediaLinkId.value}/generate-preview").status == OK
     }
 }

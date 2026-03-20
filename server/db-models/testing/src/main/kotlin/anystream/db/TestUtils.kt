@@ -20,6 +20,7 @@ package anystream.db
 import anystream.db.converter.JooqConverterProvider
 import anystream.models.AuthSource
 import anystream.models.User
+import anystream.models.UserId
 import anystream.util.ObjectId
 import com.google.common.jimfs.Configuration
 import com.google.common.jimfs.Jimfs
@@ -107,7 +108,7 @@ fun createTestDatabase(): Pair<Connection, DSLContext> {
 
 fun createUserObject(index: Int = 0): User {
     return User(
-        id = ObjectId.get().toString(),
+        id = UserId(ObjectId.get().toString()),
         username = "test$index",
         displayName = "Test$index",
         passwordHash = "test-pw-hash",

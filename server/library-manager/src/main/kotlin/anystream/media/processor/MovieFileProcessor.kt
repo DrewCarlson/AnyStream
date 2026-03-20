@@ -112,7 +112,7 @@ class MovieFileProcessor(
 
         mediaLinkDao.updateMetadataIds(
             MediaLinkMetadataUpdate(
-                mediaLinkId = checkNotNull(mediaLink.id),
+                mediaLinkId = mediaLink.id,
                 metadataId = match.movie.id,
                 rootMetadataId = match.movie.id,
             ),
@@ -140,7 +140,7 @@ class MovieFileProcessor(
         mediaLink: MediaLink,
         import: Boolean,
     ): MediaLinkMatchResult {
-        val childLinks = mediaLinkDao.findByDirectoryId(requireNotNull(mediaLink.id))
+        val childLinks = mediaLinkDao.findByDirectoryId(mediaLink.directoryId)
         val subResults = childLinks.mapNotNull { childLink ->
             when (childLink.descriptor) {
                 Descriptor.VIDEO -> {

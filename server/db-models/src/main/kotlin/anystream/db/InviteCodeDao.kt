@@ -23,6 +23,7 @@ import anystream.db.util.*
 import anystream.di.ServerScope
 import anystream.models.InviteCode
 import anystream.models.Permission
+import anystream.models.UserId
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.reactive.awaitFirst
@@ -44,7 +45,7 @@ class InviteCodeDao(
             .awaitFirstOrNullInto()
     }
 
-    suspend fun fetchInviteCodes(byUserId: String? = null): List<InviteCode> {
+    suspend fun fetchInviteCodes(byUserId: UserId? = null): List<InviteCode> {
         return db
             .selectFrom(INVITE_CODE)
             .run {
@@ -59,7 +60,7 @@ class InviteCodeDao(
     suspend fun createInviteCode(
         secret: String,
         permissions: Set<Permission>,
-        userId: String,
+        userId: UserId,
     ): InviteCode? {
         val record = InviteCodeRecord(secret, permissions, userId)
         val inserted = db
@@ -72,7 +73,7 @@ class InviteCodeDao(
 
     suspend fun deleteInviteCode(
         secret: String,
-        byUserId: String?,
+        byUserId: UserId?,
     ): Boolean {
         return db
             .deleteFrom(INVITE_CODE)

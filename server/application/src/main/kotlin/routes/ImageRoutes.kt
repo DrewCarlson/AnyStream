@@ -20,6 +20,7 @@ package anystream.routes
 import anystream.di.DATA_PATH
 import anystream.di.ServerScope
 import anystream.metadata.MetadataService
+import anystream.models.MetadataId
 import dev.zacsweers.metro.ContributesIntoSet
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.Named
@@ -78,7 +79,7 @@ class ImageRoutes(
 
         val imagePath = when (imageType) {
             "people" -> metadataService.getImagePathForPerson(imageKey)
-            else -> metadataService.getImagePath(imageKey, imageType)
+            else -> metadataService.getImagePath(MetadataId(imageKey), imageType)
         }
         if (imagePath?.exists() == true) {
             try {

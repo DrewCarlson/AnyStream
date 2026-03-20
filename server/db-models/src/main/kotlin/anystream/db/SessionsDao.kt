@@ -20,6 +20,8 @@ package anystream.db
 import anystream.db.tables.references.SESSION
 import anystream.db.util.awaitFirstOrNullInto
 import anystream.di.ServerScope
+import anystream.models.SessionId
+import anystream.models.UserId
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -30,7 +32,7 @@ import org.jooq.DSLContext
 class SessionsDao(
     private val db: DSLContext,
 ) {
-    suspend fun find(id: String): String? {
+    suspend fun find(id: SessionId): String? {
         return db
             .select(SESSION.DATA)
             .from(SESSION)
@@ -39,8 +41,8 @@ class SessionsDao(
     }
 
     suspend fun insertOrUpdate(
-        id: String,
-        userId: String,
+        id: SessionId,
+        userId: UserId,
         data: String,
     ) {
         db
@@ -52,7 +54,7 @@ class SessionsDao(
             .awaitFirstOrNull()
     }
 
-    suspend fun delete(id: String) {
+    suspend fun delete(id: SessionId) {
         db
             .deleteFrom(SESSION)
             .where(SESSION.ID.eq(id))

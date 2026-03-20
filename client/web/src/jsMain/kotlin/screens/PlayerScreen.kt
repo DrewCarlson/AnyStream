@@ -23,6 +23,7 @@ import anystream.client.api.PlaybackSessionHandle
 import anystream.components.LinkedText
 import anystream.libs.*
 import anystream.models.MediaItem
+import anystream.models.MediaLinkId
 import anystream.models.PlaybackState
 import anystream.models.api.EpisodeResponse
 import anystream.models.api.MovieResponse
@@ -56,7 +57,7 @@ private val playerControlsColor = rgba(35, 36, 38, .45)
 private const val CONTROL_HIDE_DELAY = 2_750L
 
 @Composable
-fun PlayerScreen(mediaLinkId: String) {
+fun PlayerScreen(mediaLinkId: MediaLinkId) {
     val client = LocalAnyStreamClient.current
     var player: VjsPlayer? by remember { mutableStateOf(null) }
     var playerIsPlaying by remember { mutableStateOf(false) }
@@ -413,7 +414,7 @@ private fun MaxPlayerTopBar(
 private fun PlaybackControls(
     areControlsVisible: Boolean,
     player: VjsPlayer,
-    mediaLinkId: String,
+    mediaLinkId: MediaLinkId,
     mediaItem: MediaItem?,
     progressScale: Double,
     bufferedPercent: Double,
@@ -768,7 +769,7 @@ private fun PlaybackControls(
 @Composable
 private fun SeekBar(
     player: VjsPlayer,
-    mediaLinkId: String,
+    mediaLinkId: MediaLinkId,
     progressScale: Double,
     bufferedPercent: Double,
 ) {

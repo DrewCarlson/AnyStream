@@ -21,6 +21,7 @@ import anystream.models.CastCredit
 import anystream.models.CrewCredit
 import anystream.models.Genre
 import anystream.models.MediaLink
+import anystream.models.MediaLinkId
 import anystream.models.ProductionCompany
 import anystream.models.StreamEncoding
 import kotlinx.serialization.Serializable
@@ -29,7 +30,7 @@ import kotlinx.serialization.Serializable
 sealed interface MediaLookupResponse {
     val title: String?
     val mediaLinks: List<MediaLink>
-    val streamEncodings: Map<String, List<StreamEncoding>>
+    val streamEncodings: Map<MediaLinkId, List<StreamEncoding>>
     val genres: List<Genre>
     val companies: List<ProductionCompany>
     val cast: List<CastCredit>

@@ -23,6 +23,9 @@ import anystream.client.AnyStreamClient
 import anystream.components.Navbar
 import anystream.components.SideMenu
 import anystream.di.JsAppGraph
+import anystream.models.LibraryId
+import anystream.models.MediaLinkId
+import anystream.models.MetadataId
 import anystream.presentation.app.AppProps
 import anystream.presentation.auth.login.LoginScreenModel
 import anystream.presentation.auth.signup.SignupScreenModel
@@ -44,7 +47,7 @@ import org.jetbrains.compose.web.dom.*
 import org.jetbrains.compose.web.renderComposable
 import org.w3c.dom.HTMLDivElement
 
-val playerMediaLinkId = MutableStateFlow<String?>(null)
+val playerMediaLinkId = MutableStateFlow<MediaLinkId?>(null)
 val LocalAnyStreamClient =
     compositionLocalOf<AnyStreamClient> { error("AnyStream client not provided") }
 
@@ -103,7 +106,7 @@ private fun ContentContainer(appGraph: JsAppGraph) {
             noMatch { currentRoute = Routes.SignUp }
         }
         route("library") {
-            string { id -> currentRoute = Routes.Library(id) }
+            string { id -> currentRoute = Routes.Library(LibraryId(id)) }
             noMatch { redirect("/home") }
         }
         route("downloads") {
@@ -127,7 +130,7 @@ private fun ContentContainer(appGraph: JsAppGraph) {
             }
         }
         route("media") {
-            string { id -> currentRoute = Routes.Details(id) }
+            string { id -> currentRoute = Routes.Details(MetadataId(id)) }
             noMatch { redirect("/home") }
         }
         noMatch { redirect(if (client.user.isAuthenticated()) "/home" else "/login") }

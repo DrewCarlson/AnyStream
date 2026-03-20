@@ -24,7 +24,9 @@ import anystream.db.tables.references.LIBRARY
 import anystream.db.util.*
 import anystream.di.ServerScope
 import anystream.models.Directory
+import anystream.models.DirectoryId
 import anystream.models.Library
+import anystream.models.LibraryId
 import anystream.models.MediaKind
 import anystream.util.ObjectId
 import dev.zacsweers.metro.Inject
@@ -51,7 +53,7 @@ class LibraryDao(
         name: String = kind.libraryName,
     ): Library {
         val record = LibraryRecord(
-            id = ObjectId.next(),
+            id = LibraryId(ObjectId.next()),
             mediaKind = kind,
             name = name,
         )
@@ -62,12 +64,12 @@ class LibraryDao(
      * Insert a new Directory for the [path] in the Library by [libraryId].
      */
     suspend fun insertDirectory(
-        parentId: String?,
-        libraryId: String,
+        parentId: DirectoryId?,
+        libraryId: LibraryId,
         path: String,
     ): Directory {
         val record = DirectoryRecord(
-            id = ObjectId.next(),
+            id = DirectoryId(ObjectId.next()),
             parentId = parentId,
             libraryId = libraryId,
             filePath = path,
@@ -88,7 +90,7 @@ class LibraryDao(
         }
         val inserts = DEFAULT_LIBRARIES.map { mediaKind ->
             LibraryRecord(
-                id = ObjectId.next(),
+                id = LibraryId(ObjectId.next()),
                 mediaKind = mediaKind,
                 name = mediaKind.libraryName,
             )
@@ -110,14 +112,14 @@ class LibraryDao(
     /**
      * Fetch the [Library] by [libraryId] or null if not found.
      */
-    suspend fun fetchLibrary(libraryId: String): Library? {
+    suspend fun fetchLibrary(libraryId: LibraryId): Library? {
         return db
             .selectFrom(LIBRARY)
             .where(LIBRARY.ID.eq(libraryId))
             .awaitFirstOrNullInto()
     }
 
-    suspend fun fetchLibraryForDirectory(directoryId: String): Library? {
+    suspend fun fetchLibraryForDirectory(directoryId: DirectoryId): Library? {
         return db
             .select()
             .from(LIBRARY)
@@ -127,7 +129,7 @@ class LibraryDao(
             .awaitFirstOrNullInto()
     }
 
-    suspend fun fetchChildDirectories(directoryId: String): List<Directory> {
+    suspend fun fetchChildDirectories(directoryId: DirectoryId): List<Directory> {
         return db
             .select(DIRECTORY)
             .from(DIRECTORY)
@@ -148,29 +150,29 @@ class LibraryDao(
     /**
      * Fetch all [Directory]s by the [libraryId].
      */
-    suspend fun fetchDirectoriesByLibrary(libraryId: String): List<Directory> {
+    suspend fun fetchDirectoriesByLibrary(libraryId: LibraryId): List<Directory> {
         return db
             .selectFrom(DIRECTORY)
             .where(DIRECTORY.LIBRARY_ID.eq(libraryId))
             .awaitInto()
     }
 
-    suspend fun fetchDirectory(directoryId: String): Directory? {
+    suspend fun fetchDirectory(directoryId: DirectoryId): Directory? {
         return db
             .selectFrom(DIRECTORY)
             .where(DIRECTORY.ID.eq(directoryId))
             .awaitFirstOrNullInto()
     }
 
-    suspend fun deleteDirectory(directoryId: String): Boolean {
+    suspend fun deleteDirectory(directoryId: DirectoryId): Boolean {
         return db
             .deleteFrom(DIRECTORY)
             .where(DIRECTORY.ID.eq(directoryId))
             .awaitFirstOrNull() == 1
     }
 
-    suspend fun deleteDirectoriesByParent(directoryId: String): List<String> {
-        val ids: List<String> = db
+    suspend fun deleteDirectoriesByParent(directoryId: DirectoryId): List<DirectoryId> {
+        val ids: List<DirectoryId> = db
             .select(DIRECTORY.ID)
             .from(DIRECTORY)
             .where(DIRECTORY.PARENT_ID.eq(directoryId))
@@ -213,7 +215,7 @@ class LibraryDao(
             ).awaitFirstOrNullInto()
     }
 
-    suspend fun fetchLibraryRootDirectories(libraryId: String? = null): List<Directory> {
+    suspend fun fetchLibraryRootDirectories(libraryId: LibraryId? = null): List<Directory> {
         return db
             .selectFrom(DIRECTORY)
             .where(DIRECTORY.PARENT_ID.isNull)

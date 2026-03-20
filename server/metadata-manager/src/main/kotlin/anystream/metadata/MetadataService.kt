@@ -20,6 +20,7 @@ package anystream.metadata
 import anystream.db.MetadataDao
 import anystream.di.ServerScope
 import anystream.models.MediaKind
+import anystream.models.MetadataId
 import anystream.models.api.*
 import anystream.util.isRemoteId
 import dev.zacsweers.metro.Inject
@@ -109,11 +110,11 @@ class MetadataService(
     }
 
     suspend fun getImagePath(
-        metadataId: String,
+        metadataId: MetadataId,
         imageType: String,
     ): Path? {
         return if (metadataId.isRemoteId) {
-            getImagePathForRemoteId(metadataId, imageType)
+            getImagePathForRemoteId(metadataId.value, imageType)
         } else {
             getImagePathMetadataId(metadataId, imageType)
         }
@@ -145,11 +146,11 @@ class MetadataService(
     }
 
     private suspend fun getImagePathMetadataId(
-        imageKey: String,
+        imageKey: MetadataId,
         imageType: String,
     ): Path? {
         val rootId = metadataDao.findRootIdOrSelf(imageKey) ?: return null
-        val cacheFile = imageStore.getMetadataImagePath(imageType, imageKey, rootId)
+        val cacheFile = imageStore.getMetadataImagePath(imageType, imageKey.value, rootId.value)
         return cacheFile.takeIf { it.exists() }
     }
 }

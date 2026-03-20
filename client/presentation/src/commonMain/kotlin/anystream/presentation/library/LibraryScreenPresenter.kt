@@ -22,6 +22,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import anystream.client.AnyStreamClient
+import anystream.models.LibraryId
 import anystream.models.MediaKind
 import anystream.models.toMediaItems
 import anystream.presentation.core.Presenter
@@ -31,7 +32,7 @@ import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.CancellationException
 
 data class LibraryScreenProps(
-    val libraryId: String,
+    val libraryId: LibraryId,
 )
 
 @SingleIn(AppScope::class)

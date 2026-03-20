@@ -22,6 +22,7 @@ import anystream.di.ServerScope
 import anystream.media.VIDEO_EXTENSIONS
 import anystream.media.util.toStreamEncoding
 import anystream.models.MediaLink
+import anystream.models.MediaLinkId
 import anystream.models.StreamEncoding
 import anystream.models.api.MediaAnalyzerResult
 import com.github.kokorin.jaffree.JaffreeException
@@ -45,7 +46,7 @@ class MediaFileAnalyzer(
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     suspend fun analyzeMediaFiles(
-        mediaLinkIds: List<String>,
+        mediaLinkIds: List<MediaLinkId>,
         overwrite: Boolean = false,
     ): List<MediaAnalyzerResult> {
         val mediaLinks = mediaLinkDao.findByIds(mediaLinkIds)
@@ -62,8 +63,7 @@ class MediaFileAnalyzer(
                 val extension = mediaLink.filePath?.substringAfterLast('.', "")?.lowercase()
                 !extension.isNullOrBlank() && VIDEO_EXTENSIONS.contains(extension)
             }.mapNotNull { mediaLink ->
-                val mediaLinkId = checkNotNull(mediaLink.id)
-                val hasDetails = mediaLinkDao.countStreamDetails(mediaLinkId) > 0
+                val hasDetails = mediaLinkDao.countStreamDetails(mediaLink.id) > 0
                 if (!hasDetails || overwrite) {
                     val result = processMediaFileStreams(mediaLink)
                     val streamDetails = (result as? MediaAnalyzerResult.Success)?.streams.orEmpty()
@@ -71,7 +71,7 @@ class MediaFileAnalyzer(
                         if (streamDetails.isNotEmpty()) {
                             mediaLinkDao.insertStreamDetails(streamDetails)
                         }
-                        MediaAnalyzerResult.Success(mediaLink.id, streamDetails)
+                        MediaAnalyzerResult.Success(mediaLink.id.value, streamDetails)
                     } catch (e: Throwable) {
                         logger.error("Failed to update stream data", e)
                         MediaAnalyzerResult.ErrorDatabaseException(e.stackTraceToString())
@@ -96,7 +96,7 @@ class MediaFileAnalyzer(
                 ffprobe().processStreamsAsync(mediaLink, StreamType.AUDIO),
                 ffprobe().processStreamsAsync(mediaLink, StreamType.SUBTITLE),
             ).flatten()
-            MediaAnalyzerResult.Success(mediaLink.id, streams)
+            MediaAnalyzerResult.Success(mediaLink.id.value, streams)
         } catch (e: JaffreeException) {
             logger.error("FFProbe error, failed to extract stream details", e)
             MediaAnalyzerResult.ProcessError(e.stackTraceToString())
@@ -114,7 +114,7 @@ class MediaFileAnalyzer(
             setShowEntries("stream=index:stream_tags=language,LANGUAGE,title")
             setInput(mediaLink.filePath.orEmpty())
             execute().streams.mapNotNull { stream ->
-                stream.toStreamEncoding(requireNotNull(mediaLink.id))
+                stream.toStreamEncoding(mediaLink.id)
             }
         }
     }

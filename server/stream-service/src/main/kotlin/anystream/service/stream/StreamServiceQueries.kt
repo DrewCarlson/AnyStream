@@ -21,29 +21,29 @@ import anystream.models.*
 import kotlin.time.Duration
 
 interface StreamServiceQueries {
-    suspend fun fetchUsersByIds(ids: List<String>): List<User>
+    suspend fun fetchUsersByIds(ids: List<UserId>): List<User>
 
-    suspend fun fetchPlaybackStatesByIds(ids: List<String>): List<PlaybackState>
+    suspend fun fetchPlaybackStatesByIds(ids: List<PlaybackStateId>): List<PlaybackState>
 
-    suspend fun fetchMovieById(id: String): Movie?
+    suspend fun fetchMovieById(id: MetadataId): Movie?
 
-    suspend fun fetchEpisodeById(id: String): Pair<Episode, TvShow>?
+    suspend fun fetchEpisodeById(id: MetadataId): Pair<Episode, TvShow>?
 
-    suspend fun fetchMediaLink(mediaLinkId: String): MediaLink?
+    suspend fun fetchMediaLink(mediaLinkId: MediaLinkId): MediaLink?
 
     suspend fun fetchPlaybackState(
-        mediaLinkId: String,
-        userId: String,
+        mediaLinkId: MediaLinkId,
+        userId: UserId,
     ): PlaybackState?
 
-    suspend fun fetchPlaybackStateById(id: String): PlaybackState?
+    suspend fun fetchPlaybackStateById(id: PlaybackStateId): PlaybackState?
 
     suspend fun insertPlaybackState(playbackState: PlaybackState): Boolean
 
     suspend fun updatePlaybackState(
-        stateId: String,
+        stateId: PlaybackStateId,
         position: Duration,
     ): Boolean
 
-    suspend fun deletePlaybackState(playbackStateId: String): Boolean
+    suspend fun deletePlaybackState(playbackStateId: PlaybackStateId): Boolean
 }

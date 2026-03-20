@@ -18,6 +18,7 @@
 package anystream.models.api
 
 import anystream.models.MediaLink
+import anystream.models.MetadataId
 import anystream.models.Movie
 import dev.drewhamilton.poko.Poko
 import kotlinx.serialization.Serializable
@@ -26,7 +27,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 class MoviesResponse(
     val movies: List<Movie>,
-    val mediaLinks: Map<String, MediaLink>,
+    val mediaLinks: Map<MetadataId, MediaLink>,
     val total: Int,
     val offset: Int,
     val limit: Int,

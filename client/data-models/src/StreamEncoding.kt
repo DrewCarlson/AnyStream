@@ -23,7 +23,7 @@ import kotlin.time.Duration
 
 @Serializable
 sealed class StreamEncodingTyped {
-    abstract val id: String
+    abstract val id: StreamEncodingId
     abstract val streamId: String?
     abstract val codecName: String
     abstract val codecLongName: String?
@@ -31,7 +31,7 @@ sealed class StreamEncodingTyped {
     abstract val language: String?
     abstract val duration: Duration?
     abstract val title: String?
-    abstract val mediaLinkId: String
+    abstract val mediaLinkId: MediaLinkId
     abstract val default: Boolean
 
     val languageName: String
@@ -47,7 +47,7 @@ sealed class StreamEncodingTyped {
 @Poko
 @Serializable
 class AudioStreamEncoding(
-    override val id: String,
+    override val id: StreamEncodingId,
     override val streamId: String?,
     override val index: Int?,
     override val codecName: String,
@@ -55,7 +55,7 @@ class AudioStreamEncoding(
     override val language: String?,
     override val duration: Duration?,
     override val title: String?,
-    override val mediaLinkId: String,
+    override val mediaLinkId: MediaLinkId,
     override val default: Boolean,
     val profile: String?,
     val bitRate: Int?,
@@ -68,7 +68,7 @@ class AudioStreamEncoding(
 @Poko
 @Serializable
 class VideoStreamEncoding(
-    override val id: String,
+    override val id: StreamEncodingId,
     override val streamId: String?,
     override val index: Int?,
     override val codecName: String,
@@ -76,7 +76,7 @@ class VideoStreamEncoding(
     override val language: String?,
     override val duration: Duration?,
     override val title: String?,
-    override val mediaLinkId: String,
+    override val mediaLinkId: MediaLinkId,
     override val default: Boolean,
     val profile: String?,
     val bitRate: Int?,
@@ -94,7 +94,7 @@ class VideoStreamEncoding(
 @Poko
 @Serializable
 class SubtitleStreamEncoding(
-    override val id: String,
+    override val id: StreamEncodingId,
     override val streamId: String?,
     override val index: Int?,
     override val codecName: String,
@@ -102,7 +102,7 @@ class SubtitleStreamEncoding(
     override val language: String?,
     override val duration: Duration?,
     override val title: String?,
-    override val mediaLinkId: String,
+    override val mediaLinkId: MediaLinkId,
     override val default: Boolean,
 ) : StreamEncodingTyped()
 

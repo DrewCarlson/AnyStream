@@ -43,7 +43,7 @@ class UserDao(
         return db.fetchCountAsync(USER)
     }
 
-    suspend fun fetchUser(userId: String): User? {
+    suspend fun fetchUser(userId: UserId): User? {
         return db
             .selectFrom(USER)
             .where(USER.ID.eq(userId))
@@ -57,7 +57,7 @@ class UserDao(
             .awaitFirstOrNullInto()
     }
 
-    suspend fun fetchPermissions(userId: String): Set<Permission> {
+    suspend fun fetchPermissions(userId: UserId): Set<Permission> {
         return db
             .selectFrom(USER_PERMISSION)
             .where(USER_PERMISSION.USER_ID.eq(userId))
@@ -70,7 +70,7 @@ class UserDao(
         return db.selectFrom(USER).awaitInto()
     }
 
-    suspend fun fetchUsers(ids: List<String>): List<User> {
+    suspend fun fetchUsers(ids: List<UserId>): List<User> {
         return db
             .selectFrom(USER)
             .where(USER.ID.`in`(ids))
@@ -101,7 +101,7 @@ class UserDao(
             .awaitFirstOrNull() == 1
     }
 
-    suspend fun deleteUser(userId: String): Boolean {
+    suspend fun deleteUser(userId: UserId): Boolean {
         return db
             .deleteFrom(USER)
             .where(USER.ID.eq(userId))

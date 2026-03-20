@@ -32,8 +32,8 @@ class HomeResponse(
 @Serializable
 data class CurrentlyWatching(
     val playbackStates: List<PlaybackState>,
-    val movies: Map<String, Movie>,
-    val tvShows: Map<String, Pair<Episode, TvShow>>,
+    val movies: Map<PlaybackStateId, Movie>,
+    val tvShows: Map<PlaybackStateId, Pair<Episode, TvShow>>,
     val tvSeasons: List<TvSeason>,
 )
 

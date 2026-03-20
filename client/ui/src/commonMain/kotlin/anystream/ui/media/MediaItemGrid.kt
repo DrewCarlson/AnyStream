@@ -33,14 +33,16 @@ import androidx.compose.ui.unit.dp
 import anystream.models.Descriptor
 import anystream.models.MediaItem
 import anystream.models.MediaLink
+import anystream.models.MediaLinkId
+import anystream.models.MetadataId
 import anystream.ui.components.PosterCard
 import anystream.ui.components.PosterCardWidth
 
 @Composable
 internal fun MediaItemGrid(
     mediaItems: List<MediaItem>,
-    onMediaClick: (metadataId: String) -> Unit,
-    onPlayMediaClick: (mediaLinkId: String) -> Unit,
+    onMediaClick: (metadataId: MetadataId) -> Unit,
+    onPlayMediaClick: (mediaLinkId: MediaLinkId) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyVerticalGrid(

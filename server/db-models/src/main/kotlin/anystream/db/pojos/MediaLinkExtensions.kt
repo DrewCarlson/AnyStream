@@ -18,8 +18,10 @@
 package anystream.db.pojos
 
 import anystream.models.Descriptor
+import anystream.models.DirectoryId
 import anystream.models.MediaKind
 import anystream.models.MediaLink
+import anystream.models.MediaLinkId
 import anystream.models.MediaLinkType
 import anystream.util.ObjectId
 import java.nio.file.Path
@@ -29,11 +31,11 @@ import kotlin.time.Clock
 fun Path.toMediaLink(
     mediaKind: MediaKind,
     descriptor: Descriptor,
-    directoryId: String,
+    directoryId: DirectoryId,
 ): MediaLink {
     val now = Clock.System.now()
     return MediaLink(
-        id = ObjectId.get().toString(),
+        id = MediaLinkId(ObjectId.get().toString()),
         fileIndex = null,
         hash = null,
         filePath = absolutePathString(),

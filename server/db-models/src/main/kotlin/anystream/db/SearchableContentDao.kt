@@ -21,6 +21,7 @@ import anystream.db.tables.references.SEARCHABLE_CONTENT
 import anystream.db.util.awaitInto
 import anystream.di.ServerScope
 import anystream.models.MediaType
+import anystream.models.MetadataId
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import org.jooq.Condition
@@ -38,19 +39,20 @@ class SearchableContentDao(
     @Suppress("PrivatePropertyName")
     private val RANK = DSL.field("rank")
 
-    suspend fun search(query: String): List<String> {
+    suspend fun search(query: String): List<MetadataId> {
         return db
             .select(SEARCHABLE_CONTENT.ID)
             .from(SEARCHABLE_CONTENT)
             .where(SEARCHABLE_CONTENT.CONTENT.match(query))
             .orderBy(RANK)
-            .awaitInto()
+            .awaitInto<String>()
+            .map(::MetadataId)
     }
 
     suspend fun search(
         query: String,
         type: MediaType,
-    ): List<String> {
+    ): List<MetadataId> {
         return db
             .select(SEARCHABLE_CONTENT.ID)
             .from(SEARCHABLE_CONTENT)
@@ -58,14 +60,15 @@ class SearchableContentDao(
                 SEARCHABLE_CONTENT.CONTENT.match(query),
                 SEARCHABLE_CONTENT.MEDIA_TYPE.eq(type),
             ).orderBy(RANK)
-            .awaitInto()
+            .awaitInto<String>()
+            .map(::MetadataId)
     }
 
     suspend fun search(
         query: String,
         type: MediaType,
         limit: Int,
-    ): List<String> {
+    ): List<MetadataId> {
         return db
             .select(SEARCHABLE_CONTENT.ID)
             .from(SEARCHABLE_CONTENT)

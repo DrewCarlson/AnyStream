@@ -32,9 +32,11 @@ import anystream.models.CreditType
 import anystream.models.CrewCredit
 import anystream.models.Genre
 import anystream.models.MetadataCredit
+import anystream.models.MetadataId
 import anystream.models.Person
 import anystream.models.ProductionCompany
 import anystream.models.Tag
+import anystream.models.TagId
 import anystream.models.TagType
 import anystream.util.ObjectId
 import dev.zacsweers.metro.Inject
@@ -52,16 +54,16 @@ class TagsDao(
         name: String,
         type: TagType,
         tmdbId: Int?,
-    ): String {
-        val id = ObjectId.next()
+    ): TagId {
+        val id = TagId(ObjectId.next())
         val record = TagRecord(id, name, tmdbId, type)
         val newTag: Tag = db.newRecordAsync(TAG, record)
         return newTag.id
     }
 
     suspend fun insertMetadataGenreLink(
-        mediaId: String,
-        genreId: String,
+        mediaId: MetadataId,
+        genreId: TagId,
     ) {
         db
             .insertInto(METADATA_GENRE)
@@ -70,8 +72,8 @@ class TagsDao(
     }
 
     suspend fun insertMetadataCompanyLink(
-        mediaId: String,
-        companyId: String,
+        mediaId: MetadataId,
+        companyId: TagId,
     ) {
         db
             .insertInto(METADATA_COMPANY)
@@ -86,7 +88,7 @@ class TagsDao(
             .awaitFirstOrNull()
     }
 
-    suspend fun findGenresForMetadata(metadataId: String): List<Genre> {
+    suspend fun findGenresForMetadata(metadataId: MetadataId): List<Genre> {
         return db
             .select(TAG)
             .from(TAG)
@@ -104,7 +106,7 @@ class TagsDao(
             }
     }
 
-    suspend fun findCompaniesForMetadata(metadataId: String): List<ProductionCompany> {
+    suspend fun findCompaniesForMetadata(metadataId: MetadataId): List<ProductionCompany> {
         return db
             .select(TAG)
             .from(TAG)
@@ -122,11 +124,11 @@ class TagsDao(
             }
     }
 
-    suspend fun findCastAndCrewForMetadata(metadataId: String): Pair<List<CastCredit>, List<CrewCredit>> {
+    suspend fun findCastAndCrewForMetadata(metadataId: MetadataId): Pair<List<CastCredit>, List<CrewCredit>> {
         return findCastAndCrewForMetadata(listOf(metadataId))
     }
 
-    suspend fun findCastAndCrewForMetadata(metadataIds: List<String>): Pair<List<CastCredit>, List<CrewCredit>> {
+    suspend fun findCastAndCrewForMetadata(metadataIds: List<MetadataId>): Pair<List<CastCredit>, List<CrewCredit>> {
         val cast = mutableListOf<CastCredit>()
         val crew = mutableListOf<CrewCredit>()
         db

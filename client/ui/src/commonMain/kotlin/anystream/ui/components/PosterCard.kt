@@ -43,6 +43,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import anystream.models.MetadataId
 import anystream.ui.theme.AppTheme
 import anystream.ui.util.LocalImageProvider
 import anystream.ui.util.pointerMover
@@ -54,7 +55,7 @@ internal val PosterCardWidth = 120.dp
 @Composable
 internal fun PosterCard(
     title: String?,
-    mediaId: String,
+    mediaId: MetadataId,
     onClick: (() -> Unit)?,
     onPlayClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
@@ -156,7 +157,7 @@ private fun PosterCardPreview() =
     AppTheme {
         PosterCard(
             title = "Gremlins",
-            mediaId = "",
+            mediaId = MetadataId(""),
             onClick = {},
             onPlayClick = {},
         )

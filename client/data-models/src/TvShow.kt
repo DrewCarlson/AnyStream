@@ -29,7 +29,7 @@ import kotlin.time.Instant
 @Poko
 @Serializable
 class TvShow(
-    val id: String,
+    val id: MetadataId,
     val name: String,
     val tmdbId: Int,
     val overview: String,
@@ -40,7 +40,7 @@ class TvShow(
     val contentRating: String? = null,
 ) {
     val isAdded: Boolean
-        get() = !id.contains(':')
+        get() = !id.value.contains(':')
 
     val releaseYear: String?
         get() = firstAirDate

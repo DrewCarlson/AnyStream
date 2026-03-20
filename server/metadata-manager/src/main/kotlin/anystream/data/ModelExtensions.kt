@@ -29,7 +29,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
 fun TmdbMovieDetail.asMovie(
-    id: String,
+    id: MetadataId,
     clock: Clock = Clock.System, // TODO: remove default
 ) = Movie(
     id = id,
@@ -58,18 +58,18 @@ fun processCredits(
                 imagePaths[cast.id] = path
             }
             Person(
-                id = "",
+                id = TagId(""),
                 name = cast.name ?: "<unknown>",
                 tmdbId = cast.id,
             )
         }
         val credit = MetadataCredit(
-            personId = "",
+            personId = TagId(""),
             type = CreditType.CAST,
             character = cast.character,
             order = cast.order,
             job = null,
-            metadataId = "",
+            metadataId = MetadataId(""),
         )
         credits.compute(person) { _, list ->
             list?.plus(credit) ?: listOf(credit)
@@ -87,17 +87,17 @@ fun processCredits(
                 imagePaths[cast.id] = path
             }
             Person(
-                id = "",
+                id = TagId(""),
                 name = cast.name ?: "<unknown>",
                 tmdbId = cast.id,
             )
         }
         val credit = MetadataCredit(
-            personId = "",
+            personId = TagId(""),
             type = CreditType.CREW,
             character = null,
             job = job,
-            metadataId = "",
+            metadataId = MetadataId(""),
         )
         credits.compute(person) { _, list ->
             list?.plus(credit) ?: listOf(credit)
@@ -106,16 +106,16 @@ fun processCredits(
 }
 
 internal fun TmdbShowDetail.asTvShow(
-    id: String,
+    id: MetadataId,
     tmdbSeasons: List<TmdbSeasonDetail>,
     existingEpisodes: Map<Int, Metadata>,
     existingSeasons: Map<Int, Metadata>,
 ): ProcessedTmdbShow {
-    val posterPaths = mutableMapOf<String, Map<String, String?>>()
+    val posterPaths = mutableMapOf<MetadataId, Map<String, String?>>()
     val personImagePaths = mutableMapOf<Int, String>()
     val people = mutableMapOf<Int, Person>()
     val showCredits = mutableMapOf<Person, List<MetadataCredit>>()
-    val episodeCredits = mutableMapOf<String, MutableMap<Person, List<MetadataCredit>>>()
+    val episodeCredits = mutableMapOf<MetadataId, MutableMap<Person, List<MetadataCredit>>>()
     posterPaths[id] = buildMap(2) {
         put("poster", posterPath)
         put("backdrop", backdropPath)
@@ -130,7 +130,7 @@ internal fun TmdbShowDetail.asTvShow(
     val seasons = tmdbSeasons
         .map { season ->
             val existingSeason = existingSeasons[season.seasonNumber]
-            val seasonId = existingSeason?.id ?: ObjectId.next()
+            val seasonId = existingSeason?.id ?: MetadataId(ObjectId.next())
             posterPaths[seasonId] = mapOf("poster" to season.posterPath)
             season.asTvSeason(
                 id = seasonId,
@@ -145,7 +145,7 @@ internal fun TmdbShowDetail.asTvShow(
             }
         season.episodes.orEmpty().map { episode ->
             val existingEpisode = existingEpisodes[episode.episodeNumber]
-            val episodeId = existingEpisode?.id ?: ObjectId.next()
+            val episodeId = existingEpisode?.id ?: MetadataId(ObjectId.next())
             val currentEpisodeCredits = episodeCredits.getOrPut(episodeId) { mutableMapOf() }
             processCredits(
                 people = people,
@@ -178,15 +178,15 @@ internal data class ProcessedTmdbShow(
     val seasons: List<Metadata>,
     val episodes: List<Metadata>,
     val showCredits: Map<Person, List<MetadataCredit>>,
-    val episodeCredits: Map<String, Map<Person, List<MetadataCredit>>>,
-    val posterPaths: Map<String, Map<String, String?>>,
+    val episodeCredits: Map<MetadataId, Map<Person, List<MetadataCredit>>>,
+    val posterPaths: Map<MetadataId, Map<String, String?>>,
     val personImagePaths: Map<Int, String?>,
 )
 
 fun TmdbEpisode.asTvEpisode(
-    id: String,
-    showId: String,
-    seasonId: String,
+    id: MetadataId,
+    showId: MetadataId,
+    seasonId: MetadataId,
 ): Metadata {
     val now = Clock.System.now()
     return Metadata(
@@ -208,8 +208,8 @@ fun TmdbEpisode.asTvEpisode(
 }
 
 fun TmdbSeason.asTvSeason(
-    id: String,
-    showId: String,
+    id: MetadataId,
+    showId: MetadataId,
 ): Metadata {
     val now = Clock.System.now()
     return Metadata(
@@ -229,8 +229,8 @@ fun TmdbSeason.asTvSeason(
 }
 
 fun TmdbSeasonDetail.asTvSeason(
-    id: String,
-    showId: String,
+    id: MetadataId,
+    showId: MetadataId,
 ): Metadata {
     val now = Clock.System.now()
     return Metadata(
@@ -249,7 +249,7 @@ fun TmdbSeasonDetail.asTvSeason(
     )
 }
 
-fun TmdbShowDetail.asTvShow(id: String): Metadata {
+fun TmdbShowDetail.asTvShow(id: MetadataId): Metadata {
     val now = Clock.System.now()
     return Metadata(
         id = id,

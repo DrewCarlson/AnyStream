@@ -74,13 +74,13 @@ class StreamService(
             playbackStates = playbackStates,
             transcodeSessions = transcodeSessionManager.getSessionMap(),
             users = users.map(User::toPublic).associateBy(UserPublic::id),
-            mediaLookups = mediaLookups.filterValues { it != null } as Map<String, MediaLookupResponse>,
+            mediaLookups = mediaLookups.filterValues { it != null } as Map<MetadataId, MediaLookupResponse>,
         )
     }
 
     suspend fun getPlaybackState(
-        mediaLinkId: String,
-        userId: String,
+        mediaLinkId: MediaLinkId,
+        userId: UserId,
         create: Boolean,
         clientCapabilities: ClientCapabilities? = null,
     ): PlaybackState? {
@@ -93,7 +93,7 @@ class StreamService(
             val (file, metadataId) = fileAndMetadataId ?: return null
             val runtime = mediaFileProbe.getFileDuration(file)
             PlaybackState(
-                id = ObjectId.next(),
+                id = PlaybackStateId(ObjectId.next()),
                 mediaLinkId = mediaLinkId,
                 position = ZERO,
                 userId = userId,
@@ -107,7 +107,7 @@ class StreamService(
         }
         if (create && !transcodeSessionManager.allSessionIds().contains(newState.id)) {
             val (file, _) = fileAndMetadataId ?: return null
-            val output = transcodePath.resolve(newState.id).resolve(mediaLinkId)
+            val output = transcodePath.resolve(newState.id.value).resolve(mediaLinkId.value)
 
             val transcodeDecision = determineTranscodeDecision(file, clientCapabilities)
 
@@ -115,7 +115,7 @@ class StreamService(
             val isHevcVideo = mediaInfo?.isHlsInFmp4 ?: false
             transcodeSessionManager.startTranscode(
                 token = newState.id,
-                name = mediaLinkId,
+                name = mediaLinkId.value,
                 mediaFile = file,
                 outputDir = output,
                 runtime = newState.runtime,
@@ -130,7 +130,7 @@ class StreamService(
         return newState
     }
 
-    suspend fun deletePlaybackState(playbackStateId: String): Boolean {
+    suspend fun deletePlaybackState(playbackStateId: PlaybackStateId): Boolean {
         return queries.deletePlaybackState(playbackStateId)
     }
 
@@ -156,8 +156,8 @@ class StreamService(
     }
 
     suspend fun getPlaylist(
-        mediaLinkId: String,
-        token: String,
+        mediaLinkId: MediaLinkId,
+        token: PlaybackStateId,
         clientCapabilities: ClientCapabilities,
     ): String? {
         val mediaLink = queries.fetchMediaLink(mediaLinkId) ?: return null
@@ -174,10 +174,10 @@ class StreamService(
         logger.debug("Media info for {}: codec={}, isHlsInFmp4={}", mediaLinkId, mediaInfo?.videoCodec, isHlsInFmp4)
 
         if (!transcodeSessionManager.allSessionIds().contains(token)) {
-            val output = transcodePath.resolve(token).resolve(mediaLinkId)
+            val output = transcodePath.resolve(token.value).resolve(mediaLinkId.value)
             transcodeSessionManager.startTranscode(
                 token = token,
-                name = mediaLinkId,
+                name = mediaLinkId.value,
                 mediaFile = file,
                 outputDir = output,
                 runtime = runtime,
@@ -188,7 +188,7 @@ class StreamService(
         }
 
         return hlsPlaylistFactory.createVariantPlaylist(
-            name = mediaLinkId,
+            name = mediaLinkId.value,
             mediaFile = file,
             token = token,
             runtime = runtime,
@@ -198,18 +198,18 @@ class StreamService(
     }
 
     suspend fun getFilePathForSegment(
-        token: String,
+        token: PlaybackStateId,
         segmentFile: String,
     ): Path? {
         return transcodeSessionManager.getFilePathForSegment(token, segmentFile)
     }
 
-    fun isSessionActive(token: String): Boolean {
+    fun isSessionActive(token: PlaybackStateId): Boolean {
         return transcodeSessionManager.allSessionIds().contains(token)
     }
 
     suspend fun stopSession(
-        token: String,
+        token: PlaybackStateId,
         deleteOutput: Boolean,
     ) {
         return transcodeSessionManager.stopSession(token, deleteOutput)
