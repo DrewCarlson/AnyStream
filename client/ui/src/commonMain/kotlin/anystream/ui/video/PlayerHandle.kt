@@ -17,6 +17,7 @@
  */
 package anystream.ui.video
 
+import anystream.models.MediaLinkId
 import kotlinx.coroutines.flow.StateFlow
 import kotlin.time.Duration
 
@@ -38,7 +39,7 @@ interface PlayerHandle {
     val canSkipForward: StateFlow<Boolean>
     val canSkipBackward: StateFlow<Boolean>
 
-    fun loadMediaLink(mediaLinkId: String)
+    fun loadMediaLink(mediaLinkId: MediaLinkId)
 
     fun play()
 

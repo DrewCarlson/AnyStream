@@ -20,6 +20,8 @@ package anystream.routes
 import anystream.data.MetadataDbQueries
 import anystream.di.ServerScope
 import anystream.media.LibraryService
+import anystream.models.DirectoryId
+import anystream.models.LibraryId
 import anystream.models.MediaKind
 import anystream.models.Permission
 import anystream.models.api.AddLibraryFolderRequest
@@ -90,7 +92,7 @@ class LibraryRoutes(
     }
 
     suspend fun RoutingContext.getLibrary() {
-        val libraryId = call.parameters["libraryId"] ?: return call.respond(NotFound)
+        val libraryId = LibraryId(call.parameters["libraryId"] ?: return call.respond(NotFound))
         val includeLinks = call.parameters["includeLinks"]?.toBoolean() ?: false
         val library =
             libraryService.getLibrary(libraryId) ?: return call.respond(NotFound)
@@ -123,13 +125,18 @@ class LibraryRoutes(
 
     suspend fun RoutingContext.getDirectories() {
         val libraryId =
-            call.parameters["libraryId"] ?: return call.respond(NotFound)
+            call.parameters["libraryId"]
+                ?.let(::LibraryId)
+                ?: return call.respond(NotFound)
         call.respond(libraryService.getLibraryRootDirectories(libraryId))
     }
 
     suspend fun RoutingContext.getScanLibraryDirectory() {
-        val directoryId = call.parameters["directoryId"]
-            ?: return call.respond(UnprocessableEntity)
+        val directoryId =
+            call.parameters["directoryId"]
+                ?.let(::DirectoryId)
+                ?: return call.respond(UnprocessableEntity)
+
         val directory = libraryService.getDirectory(directoryId)
             ?: return call.respond(NotFound)
 
@@ -138,7 +145,7 @@ class LibraryRoutes(
                 is MediaScanResult.Success -> {
                     // todo: New media links under existing directories will not get a metadata refresh
                     result.directories.addedIds.forEach { id ->
-                        libraryService.refreshMetadata(id)
+                        libraryService.refreshMetadata(DirectoryId(id))
                     }
                 }
 
@@ -152,16 +159,21 @@ class LibraryRoutes(
     }
 
     suspend fun RoutingContext.deleteLibraryDirectory() {
-        val directoryId = call.parameters["directoryId"]
-            ?: return call.respond(UnprocessableEntity)
+        val directoryId =
+            call.parameters["directoryId"]
+                ?.let(::DirectoryId)
+                ?: return call.respond(UnprocessableEntity)
 
         val result = if (libraryService.removeDirectory(directoryId)) OK else NotFound
         call.respond(result)
     }
 
     suspend fun RoutingContext.addLibraryFolder() {
-        val libraryId = call.parameters["libraryId"]
-            ?: return call.respond(UnprocessableEntity)
+        val libraryId =
+            call.parameters["libraryId"]
+                ?.let(::LibraryId)
+                ?: return call.respond(UnprocessableEntity)
+
         val request = try {
             call.receive<AddLibraryFolderRequest>()
         } catch (e: ContentTransformationException) {
@@ -173,8 +185,10 @@ class LibraryRoutes(
     }
 
     suspend fun RoutingContext.getScanLibrary() {
-        val libraryId = call.parameters["libraryId"]
-            ?: return call.respond(UnprocessableEntity)
+        val libraryId =
+            call.parameters["libraryId"]
+                ?.let(::LibraryId)
+                ?: return call.respond(UnprocessableEntity)
         val directories = libraryService.getLibraryDirectories(libraryId)
 
         scope.launch {

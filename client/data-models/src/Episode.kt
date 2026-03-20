@@ -24,9 +24,9 @@ import kotlin.time.Instant
 @Poko
 @Serializable
 class Episode(
-    val id: String,
-    val showId: String,
-    val seasonId: String,
+    val id: MetadataId,
+    val showId: MetadataId,
+    val seasonId: MetadataId,
     val name: String,
     val tmdbId: Int,
     val overview: String,

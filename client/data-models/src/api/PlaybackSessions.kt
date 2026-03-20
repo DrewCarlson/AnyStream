@@ -17,8 +17,11 @@
  */
 package anystream.models.api
 
+import anystream.models.MetadataId
 import anystream.models.PlaybackState
+import anystream.models.PlaybackStateId
 import anystream.models.TranscodeSession
+import anystream.models.UserId
 import anystream.models.UserPublic
 import dev.drewhamilton.poko.Poko
 import kotlinx.serialization.Serializable
@@ -27,7 +30,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 class PlaybackSessions(
     val playbackStates: List<PlaybackState> = emptyList(),
-    val transcodeSessions: Map<String, TranscodeSession> = emptyMap(),
-    val users: Map<String, UserPublic> = emptyMap(),
-    val mediaLookups: Map<String, MediaLookupResponse> = emptyMap(),
+    val transcodeSessions: Map<PlaybackStateId, TranscodeSession> = emptyMap(),
+    val users: Map<UserId, UserPublic> = emptyMap(),
+    val mediaLookups: Map<MetadataId, MediaLookupResponse> = emptyMap(),
 )

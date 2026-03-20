@@ -64,7 +64,7 @@ sealed class MetadataMatch {
     abstract val remoteMetadataId: String?
     abstract val remoteId: String
     abstract val exists: Boolean
-    abstract val metadataId: String?
+    abstract val metadataId: MetadataId?
 
     @Poko
     @Serializable
@@ -75,7 +75,7 @@ sealed class MetadataMatch {
         override val exists: Boolean,
         override val providerId: String,
     ) : MetadataMatch() {
-        override val metadataId: String? = if (exists) movie.id else null
+        override val metadataId: MetadataId? = if (exists) movie.id else null
     }
 
     @Poko
@@ -89,7 +89,7 @@ sealed class MetadataMatch {
         override val exists: Boolean,
         override val providerId: String,
     ) : MetadataMatch() {
-        override val metadataId: String? = if (exists) tvShow.id else null
+        override val metadataId: MetadataId? = if (exists) tvShow.id else null
     }
 }
 
@@ -138,7 +138,7 @@ sealed class ImportMetadataResult {
     @Poko
     @Serializable
     class ErrorMetadataAlreadyExists(
-        val existingMediaId: String,
+        val existingMediaId: MetadataId,
         val match: MetadataMatch,
     ) : ImportMetadataResult()
 

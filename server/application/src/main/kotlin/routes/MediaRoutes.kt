@@ -20,6 +20,7 @@ package anystream.routes
 import anystream.data.*
 import anystream.di.ServerScope
 import anystream.metadata.MetadataService
+import anystream.models.MetadataId
 import anystream.models.Permission
 import anystream.models.api.*
 import anystream.util.isRemoteId
@@ -63,6 +64,7 @@ class MediaRoutes(
     suspend fun RoutingContext.getMedia() {
         val session = checkNotNull(call.principal<UserSession>())
         val metadataId = call.parameters["metadataId"]
+            ?.let(::MetadataId)
             ?: return call.respond(NotFound)
         val includeLinks = call.parameters["includeLinks"]?.toBoolean() ?: true
         val includePlaybackState =
@@ -81,7 +83,7 @@ class MediaRoutes(
                 call.respond(response)
             }
         }
-        when (val queryResult = metadataService.findByRemoteId(metadataId)) {
+        when (val queryResult = metadataService.findByRemoteId(metadataId.value)) {
             is QueryMetadataResult.Success -> {
                 if (queryResult.results.isEmpty()) {
                     return call.respond(NotFound)

@@ -22,6 +22,7 @@ import anystream.db.SessionsDao
 import anystream.db.tables.references.SESSION
 import anystream.di.ServerScope
 import anystream.json
+import anystream.models.SessionId
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import io.ktor.server.sessions.*
@@ -59,7 +60,7 @@ class SqlSessionStorage(
         logger.trace("Writing session {}, {}", id, value)
         sessionsCache[id] = value
         try {
-            sessionsDao.insertOrUpdate(id, Serializer.deserialize(value).userId, value)
+            sessionsDao.insertOrUpdate(SessionId(id), Serializer.deserialize(value).userId, value)
         } catch (e: Throwable) {
             logger.trace("Failed to write session data", e)
         }
@@ -67,7 +68,7 @@ class SqlSessionStorage(
 
     override suspend fun read(id: String): String {
         logger.trace("Looking for session {}", id)
-        return (sessionsCache[id] ?: sessionsDao.find(id))
+        return (sessionsCache[id] ?: sessionsDao.find(SessionId(id)))
             .also { logger.trace("Found session {}", id) }
             ?: throw NoSuchElementException()
     }
@@ -78,7 +79,7 @@ class SqlSessionStorage(
         try {
             db
                 .deleteFrom(SESSION)
-                .where(SESSION.ID.eq(id))
+                .where(SESSION.ID.eq(SessionId(id)))
                 .executeAsync()
                 .await()
         } catch (e: Throwable) {

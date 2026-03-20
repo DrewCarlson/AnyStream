@@ -267,6 +267,7 @@ class UserRoutes(
 
     suspend fun RoutingContext.getAdoptSession() {
         val sessionToken = call.request.queryParameters["as_user_session"]
+            ?.let(::SessionId)
             ?: return call.respond(Unauthorized)
         val redirectLocation = call.request.queryParameters["redirect"]
 
@@ -327,7 +328,7 @@ class UserRoutes(
     }
 
     suspend fun RoutingContext.getUser() {
-        val userId = call.parameters["user_id"]!!
+        val userId = UserId(call.parameters["user_id"]!!)
         val user = userService.getUser(userId)?.toPublic()
         if (user == null) {
             call.respond(NotFound)
@@ -338,7 +339,7 @@ class UserRoutes(
 
     suspend fun RoutingContext.updateUser() {
         val session = call.sessions.get<UserSession>()!!
-        val userId = call.parameters["user_id"]!!
+        val userId = UserId(call.parameters["user_id"]!!)
         val body = runCatching { call.receiveNullable<UpdateUserBody>() }
             .getOrNull() ?: return call.respond(UnprocessableEntity)
 
@@ -351,7 +352,7 @@ class UserRoutes(
     }
 
     suspend fun RoutingContext.deleteUser() {
-        val userId = call.parameters["user_id"]!!
+        val userId = UserId(call.parameters["user_id"]!!)
         val result = userService.deleteUser(userId)
         call.respond(if (result) OK else NotFound)
     }

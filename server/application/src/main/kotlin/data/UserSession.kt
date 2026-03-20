@@ -18,12 +18,13 @@
 package anystream.data
 
 import anystream.models.Permission
+import anystream.models.UserId
 import kotlinx.serialization.Serializable
 import kotlin.time.Clock
 
 @Serializable
 data class UserSession(
-    val userId: String,
+    val userId: UserId,
     val permissions: Set<Permission>,
     val sessionStarted: Long = Clock.System.now().epochSeconds,
 ) {

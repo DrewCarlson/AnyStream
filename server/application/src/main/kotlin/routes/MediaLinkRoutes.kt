@@ -24,7 +24,9 @@ import anystream.di.ServerScope
 import anystream.jobs.GenerateVideoPreviewJob
 import anystream.media.LibraryService
 import anystream.models.Descriptor
+import anystream.models.DirectoryId
 import anystream.models.MediaLink
+import anystream.models.MediaLinkId
 import anystream.models.Permission
 import anystream.models.api.*
 import anystream.models.filename
@@ -100,7 +102,7 @@ class MediaLinkRoutes(
     suspend fun RoutingContext.getMediaLinks() {
         val parent = call.parameters["parent"]
         val result = when {
-            !parent.isNullOrBlank() -> mediaLinkDao.findByDirectoryId(parent)
+            !parent.isNullOrBlank() -> mediaLinkDao.findByDirectoryId(DirectoryId(parent))
             else -> mediaLinkDao.all()
         }
             // TODO: Sort in query
@@ -201,6 +203,7 @@ class MediaLinkRoutes(
     private suspend fun RoutingContext.mediaLink(): MediaLink? {
         val mediaLinkId = call.parameters["mediaLinkId"]
             ?.takeIf(String::isNotBlank)
+            ?.let(::MediaLinkId)
             ?: return run {
                 call.respond(UnprocessableEntity)
                 null

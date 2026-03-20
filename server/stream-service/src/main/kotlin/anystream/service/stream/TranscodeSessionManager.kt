@@ -18,7 +18,9 @@
 package anystream.service.stream
 
 import anystream.di.ServerScope
+import anystream.models.MediaLinkId
 import anystream.models.PlaybackState
+import anystream.models.PlaybackStateId
 import anystream.models.TranscodeDecision
 import anystream.models.TranscodeSession
 import com.github.kokorin.jaffree.StreamType
@@ -59,24 +61,24 @@ class TranscodeSessionManager(
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Default)
     private val logger = LoggerFactory.getLogger(this::class.java)
-    private val transcodeJobs = ConcurrentHashMap<String, TranscodeJobHolder>()
+    private val transcodeJobs = ConcurrentHashMap<PlaybackStateId, TranscodeJobHolder>()
     private val hlsPlaylistFactory = HlsPlaylistFactory()
-    private val sessionMap = ConcurrentHashMap<String, TranscodeSession>()
-    private val newPlaybackStates = ConcurrentHashMap<String, PlaybackState>()
+    private val sessionMap = ConcurrentHashMap<PlaybackStateId, TranscodeSession>()
+    private val newPlaybackStates = ConcurrentHashMap<PlaybackStateId, PlaybackState>()
 
     private val sessionUpdates = MutableSharedFlow<TranscodeSession>(
         extraBufferCapacity = 50,
         onBufferOverflow = BufferOverflow.DROP_OLDEST,
     )
 
-    fun allSessionIds(): List<String> = sessionMap.keys.toList()
+    fun allSessionIds(): List<PlaybackStateId> = sessionMap.keys.toList()
 
     fun temporaryPlaybackStates(): List<PlaybackState> = newPlaybackStates.values.toList()
 
     fun getSessionMap() = sessionMap.toMap()
 
     suspend fun startTranscode(
-        token: String,
+        token: PlaybackStateId,
         name: String,
         mediaFile: Path,
         outputDir: Path,
@@ -134,7 +136,7 @@ class TranscodeSessionManager(
                         transcodeDecision = transcodeDecision,
                     ) ?: TranscodeSession(
                         token = token,
-                        mediaLinkId = name,
+                        mediaLinkId = MediaLinkId(name),
                         mediaPath = mediaFile.absolutePathString(),
                         outputPath = outputDir.absolutePathString(),
                         segmentCount = flags.segmentCount,
@@ -220,7 +222,7 @@ class TranscodeSessionManager(
                 state = TranscodeSession.State.RUNNING,
             ) ?: TranscodeSession(
                 token = token,
-                mediaLinkId = name,
+                mediaLinkId = MediaLinkId(name),
                 mediaPath = mediaFile.absolutePathString(),
                 outputPath = outputDir.absolutePathString(),
                 segmentCount = flags.segmentCount,
@@ -331,7 +333,7 @@ class TranscodeSessionManager(
     }
 
     private suspend fun setSegmentTarget(
-        token: String,
+        token: PlaybackStateId,
         segment: Int,
     ) {
         val session = sessionMap[token] ?: return
@@ -354,7 +356,7 @@ class TranscodeSessionManager(
 
             startTranscode(
                 token = session.token,
-                name = session.mediaLinkId,
+                name = session.mediaLinkId.value,
                 mediaFile = mediaFile,
                 outputDir = fs.getPath(session.outputPath),
                 runtime = runtime,
@@ -434,7 +436,7 @@ class TranscodeSessionManager(
     private fun createTranscodeJob(
         name: String,
         outputDir: Path,
-        token: String,
+        token: PlaybackStateId,
         command: FFmpeg,
         extension: String,
     ): TranscodeJobHolder {
@@ -511,7 +513,7 @@ class TranscodeSessionManager(
     }
 
     suspend fun stopSession(
-        token: String,
+        token: PlaybackStateId,
         deleteOutput: Boolean,
     ) {
         logger.debug("Stopping session: token={}, deleteOutput=$deleteOutput", token)
@@ -538,13 +540,13 @@ class TranscodeSessionManager(
     }
 
     suspend fun getFilePathForSegment(
-        token: String,
+        token: PlaybackStateId,
         segmentFile: String,
     ): Path? {
         val session = sessionMap[token] ?: return null
 
         val segmentIndex = segmentFile
-            .substringAfter("${session.mediaLinkId}-")
+            .substringAfter("${session.mediaLinkId.value}-")
             .substringBeforeLast(".")
             .toIntOrNull()
 
@@ -557,7 +559,7 @@ class TranscodeSessionManager(
             .takeIf(Path::exists)
     }
 
-    private suspend fun stopTranscoding(token: String) {
+    private suspend fun stopTranscoding(token: PlaybackStateId) {
         transcodeJobs.remove(token)?.cancel()
         sessionMap.computeIfPresent(token) { _, session ->
             session.copy(state = TranscodeSession.State.IDLE)
@@ -565,7 +567,7 @@ class TranscodeSessionManager(
     }
 
     fun updateState(
-        id: String,
+        id: PlaybackStateId,
         position: Duration,
     ) {
         newPlaybackStates.computeIfPresent(id) { _, existing ->
@@ -573,7 +575,7 @@ class TranscodeSessionManager(
         }
     }
 
-    fun removeTemporaryState(id: String) {
+    fun removeTemporaryState(id: PlaybackStateId) {
         newPlaybackStates.remove(id)
     }
 }

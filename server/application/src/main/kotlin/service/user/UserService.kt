@@ -47,7 +47,7 @@ class UserService(
     private val logger = LoggerFactory.getLogger(this::class.java)
     private val pairingCodes = ConcurrentHashMap<String, PairingMessage>()
 
-    suspend fun getUser(userId: String): User? {
+    suspend fun getUser(userId: UserId): User? {
         return queries.fetchUser(userId)
     }
 
@@ -59,12 +59,12 @@ class UserService(
         return queries.fetchUsers().toMutableList()
     }
 
-    suspend fun deleteUser(userId: String): Boolean {
+    suspend fun deleteUser(userId: UserId): Boolean {
         return queries.deleteUser(userId)
     }
 
     suspend fun createInviteCode(
-        userId: String,
+        userId: UserId,
         permissions: Set<Permission>,
     ): InviteCode? {
         return inviteCodeDao.createInviteCode(
@@ -74,13 +74,13 @@ class UserService(
         )
     }
 
-    suspend fun getInvites(byUserId: String?): List<InviteCode> {
+    suspend fun getInvites(byUserId: UserId?): List<InviteCode> {
         return inviteCodeDao.fetchInviteCodes(byUserId)
     }
 
     suspend fun deleteInvite(
         inviteCode: String,
-        byUserId: String?,
+        byUserId: UserId?,
     ): Boolean {
         return inviteCodeDao.deleteInviteCode(inviteCode, byUserId)
     }
@@ -119,7 +119,7 @@ class UserService(
         val now = Clock.System.now()
         val newUser = queries.insertUser(
             User(
-                id = ObjectId.next(),
+                id = UserId(ObjectId.next()),
                 username = username,
                 displayName = body.username,
                 createdAt = now,
@@ -186,7 +186,7 @@ class UserService(
         val now = Clock.System.now()
         val newUser = queries.insertUser(
             User(
-                id = ObjectId.next(),
+                id = UserId(ObjectId.next()),
                 username = username,
                 displayName = username,
                 createdAt = now,
@@ -217,7 +217,7 @@ class UserService(
     }
 
     suspend fun updateUser(
-        userId: String,
+        userId: UserId,
         body: UpdateUserBody,
     ): Boolean {
         val user = queries.fetchUser(userId) ?: return false
@@ -262,7 +262,7 @@ class UserService(
         val pairingMessage = pairingCodes.remove(pairingCode)
         val pairingSecret = (pairingMessage as? PairingMessage.Authorized)?.secret
         return if (pairingSecret == secret) {
-            val user = queries.fetchUser(pairingMessage.userId) ?: return null
+            val user = queries.fetchUser(UserId(pairingMessage.userId)) ?: return null
             val permissions = queries.fetchPermissions(checkNotNull(user.id))
             CreateSessionResponse.Success(user.toPublic(), permissions)
         } else {
@@ -292,7 +292,7 @@ class UserService(
                 pairingCodes[body.password] = PairingMessage.Authorized(
                     pairingCode = body.password,
                     secret = Random.nextBytes(28).toHexString(),
-                    userId = session.userId,
+                    userId = session.userId.value,
                 )
                 CreateSessionResponse.Success(user.toPublic(), session.permissions)
             } else {

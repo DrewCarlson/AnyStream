@@ -17,9 +17,10 @@
  */
 package anystream.presentation.player
 
+import anystream.models.MediaLinkId
 import anystream.presentation.core.ScreenModel
 
 data class VideoPlayerModel(
-    val mediaLinkId: String,
+    val mediaLinkId: MediaLinkId,
     val onClose: () -> Unit,
 ) : ScreenModel

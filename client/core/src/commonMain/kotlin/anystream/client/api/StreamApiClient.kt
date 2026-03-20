@@ -20,7 +20,9 @@ package anystream.client.api
 import anystream.client.createPlatformClientCapabilities
 import anystream.client.json
 import anystream.models.ClientCapabilities
+import anystream.models.MediaLinkId
 import anystream.models.PlaybackState
+import anystream.models.PlaybackStateId
 import anystream.models.api.PlaybackSessions
 import io.ktor.client.plugins.websocket.receiveDeserialized
 import io.ktor.client.plugins.websocket.sendSerialized
@@ -56,7 +58,7 @@ class StreamApiClient(
 
     fun playbackSession(
         scope: CoroutineScope,
-        mediaLinkId: String,
+        mediaLinkId: MediaLinkId,
         onClosed: () -> Unit = {},
         init: (state: PlaybackState) -> Unit,
     ): PlaybackSessionHandle {
@@ -65,7 +67,7 @@ class StreamApiClient(
         val clientCapabilities = createPlatformClientCapabilities()
         val job = scope.launch {
             try {
-                core.http.wss(path = "/api/ws/stream/$mediaLinkId/state") {
+                core.http.wss(path = "/api/ws/stream/${mediaLinkId.value}/state") {
                     send(core.sessionManager.fetchToken()!!)
 
                     sendSerialized(clientCapabilities)
@@ -106,14 +108,14 @@ class StreamApiClient(
     }
 
     fun createHlsStreamUrl(
-        mediaLinkId: String,
-        token: String,
+        mediaLinkId: MediaLinkId,
+        token: PlaybackStateId,
         clientCapabilities: ClientCapabilities? = createPlatformClientCapabilities(),
     ): String {
         return URLBuilder(core.serverUrl.orEmpty())
             .apply {
-                path("api", "stream", mediaLinkId, "hls", "playlist.m3u8")
-                parameters["token"] = token
+                path("api", "stream", mediaLinkId.value, "hls", "playlist.m3u8")
+                parameters["token"] = token.toString()
 
                 if (clientCapabilities != null) {
                     parameters["capabilities"] = json.encodeToString(clientCapabilities)
@@ -121,8 +123,8 @@ class StreamApiClient(
             }.buildString()
     }
 
-    suspend fun stopStreamSession(id: String): Boolean {
-        val result = core.http.delete("/api/stream/stop/$id")
+    suspend fun stopStreamSession(id: PlaybackStateId): Boolean {
+        val result = core.http.delete("/api/stream/stop/${id.value}")
         return result.status == OK
     }
 }

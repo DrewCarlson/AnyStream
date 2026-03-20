@@ -49,7 +49,7 @@ class LibraryDaoTest :
             test("insert library for MediaKind.$libraryKind") {
                 val library = dao.insertLibrary(libraryKind)
 
-                assertTrue(ObjectId.isValid(library.id))
+                assertTrue(ObjectId.isValid(library.id.value))
                 assertEquals(libraryKind, library.mediaKind)
             }
         }
@@ -58,7 +58,7 @@ class LibraryDaoTest :
             MediaKind.entries.forEach { libraryKind ->
                 val library = dao.insertLibrary(libraryKind)
 
-                assertTrue(ObjectId.isValid(library.id))
+                assertTrue(ObjectId.isValid(library.id.value))
                 assertEquals(libraryKind, library.mediaKind)
             }
         }
@@ -69,15 +69,15 @@ class LibraryDaoTest :
             val libraries = dao.all()
             libraries.size shouldBeEqual 3
 
-            libraries[0].id should ObjectId::isValid
+            libraries[0].id.value should ObjectId::isValid
             libraries[0].name shouldBeEqual "Movies"
             libraries[0].mediaKind shouldBeEqual MediaKind.MOVIE
 
-            libraries[1].id should ObjectId::isValid
+            libraries[1].id.value should ObjectId::isValid
             libraries[1].name shouldBeEqual "TV"
             libraries[1].mediaKind shouldBeEqual MediaKind.TV
 
-            libraries[2].id should ObjectId::isValid
+            libraries[2].id.value should ObjectId::isValid
             libraries[2].name shouldBeEqual "Music"
             libraries[2].mediaKind shouldBeEqual MediaKind.MUSIC
         }
@@ -87,15 +87,15 @@ class LibraryDaoTest :
             val library2 = dao.insertLibrary(MediaKind.MOVIE)
             val library3 = dao.insertLibrary(MediaKind.MOVIE, "movies-3")
 
-            library1.id should ObjectId::isValid
+            library1.id.value should ObjectId::isValid
             library1.name shouldBeEqual "Movies"
             library1.mediaKind shouldBeEqual MediaKind.MOVIE
 
-            library2.id should ObjectId::isValid
+            library2.id.value should ObjectId::isValid
             library2.name shouldBeEqual "Movies"
             library2.mediaKind shouldBeEqual MediaKind.MOVIE
 
-            library3.id should ObjectId::isValid
+            library3.id.value should ObjectId::isValid
             library3.name shouldBeEqual "movies-3"
             library3.mediaKind shouldBeEqual MediaKind.MOVIE
         }
@@ -105,7 +105,7 @@ class LibraryDaoTest :
 
             val directory = dao.insertDirectory(parentId = null, libraryId = library.id, "directory")
 
-            directory.id should ObjectId::isValid
+            directory.id.value should ObjectId::isValid
             directory.libraryId.shouldNotBeNull() shouldBeEqual library.id
             directory.parentId.shouldBeNull()
             directory.filePath shouldBeEqual "directory"

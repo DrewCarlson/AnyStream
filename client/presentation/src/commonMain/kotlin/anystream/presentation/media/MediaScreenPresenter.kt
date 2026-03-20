@@ -25,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import anystream.client.AnyStreamClient
 import anystream.models.Descriptor
+import anystream.models.MetadataId
 import anystream.models.Permission
 import anystream.models.api.MediaLookupResponse
 import anystream.presentation.core.Presenter
@@ -37,7 +38,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 
 data class MediaScreenProps(
-    val mediaId: String,
+    val mediaId: MetadataId,
 )
 
 @SingleIn(AppScope::class)

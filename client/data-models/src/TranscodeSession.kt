@@ -21,8 +21,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class TranscodeSession(
-    val token: String,
-    val mediaLinkId: String,
+    val token: PlaybackStateId,
+    val mediaLinkId: MediaLinkId,
     val mediaPath: String,
     val outputPath: String,
     val ffmpegCommand: String,

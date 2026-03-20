@@ -17,6 +17,9 @@
  */
 package anystream.routing
 
+import anystream.models.LibraryId
+import anystream.models.MediaLinkId
+import anystream.models.MetadataId
 import dev.drewhamilton.poko.Poko
 
 sealed class Routes {
@@ -44,21 +47,21 @@ sealed class Routes {
 
     @Poko
     class Library(
-        val libraryId: String,
+        val libraryId: LibraryId,
     ) : Routes() {
-        override val path: String = "library/$libraryId"
+        override val path: String = "library/${libraryId.value}"
     }
 
     data class Details(
-        val metadataId: String,
+        val metadataId: MetadataId,
     ) : Routes() {
-        override val path: String = "details/$metadataId"
+        override val path: String = "details/${metadataId.value}"
     }
 
     data class Player(
-        val mediaLinkId: String,
+        val mediaLinkId: MediaLinkId,
     ) : Routes() {
-        override val path: String = "player/$mediaLinkId"
+        override val path: String = "player/${mediaLinkId.value}"
     }
 
     data object Profile : Routes() {

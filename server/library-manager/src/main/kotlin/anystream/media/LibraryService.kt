@@ -108,7 +108,7 @@ class LibraryService(
         }
     }
 
-    suspend fun getLibrary(libraryId: String): Library? {
+    suspend fun getLibrary(libraryId: LibraryId): Library? {
         return try {
             libraryDao.fetchLibrary(libraryId)
         } catch (_: Throwable) {
@@ -125,22 +125,22 @@ class LibraryService(
         }
     }
 
-    suspend fun getLibraryDirectories(libraryId: String): List<Directory> {
+    suspend fun getLibraryDirectories(libraryId: LibraryId): List<Directory> {
         return libraryDao.fetchDirectoriesByLibrary(libraryId)
     }
 
-    suspend fun getLibraryRootDirectories(libraryId: String): List<Directory> {
+    suspend fun getLibraryRootDirectories(libraryId: LibraryId): List<Directory> {
         return libraryDao.fetchLibraryRootDirectories(libraryId)
     }
 
-    suspend fun getDirectory(directoryId: String): Directory? {
+    suspend fun getDirectory(directoryId: DirectoryId): Directory? {
         return libraryDao.fetchDirectory(directoryId)
     }
 
     /**
      * Remove the directory with [directoryId] and all [MediaLink]s contained within.
      */
-    suspend fun removeDirectory(directoryId: String): Boolean {
+    suspend fun removeDirectory(directoryId: DirectoryId): Boolean {
         val directory = libraryDao.fetchDirectory(directoryId) ?: return false
 
         // TODO: cleanup abandoned media links and directories since they
@@ -153,7 +153,7 @@ class LibraryService(
     }
 
     suspend fun addLibraryFolderAndScan(
-        libraryId: String,
+        libraryId: LibraryId,
         path: String,
     ): AddLibraryFolderResponse {
         val result = addLibraryFolder(libraryId, path)
@@ -181,7 +181,7 @@ class LibraryService(
     }
 
     suspend fun addLibraryFolder(
-        libraryId: String,
+        libraryId: LibraryId,
         path: String,
     ): AddLibraryFolderResponse {
         val libraryFile = Path(path)
@@ -271,7 +271,7 @@ class LibraryService(
         return mediaFileScanner.scan(directory)
     }
 
-    suspend fun refreshMetadata(directoryId: String): List<MediaLinkMatchResult> {
+    suspend fun refreshMetadata(directoryId: DirectoryId): List<MediaLinkMatchResult> {
         val directory = libraryDao.fetchDirectory(directoryId)
             ?: return emptyList() // TODO: return no directory error
         return refreshMetadata(directory)
@@ -377,7 +377,7 @@ class LibraryService(
             }
 
             LibraryFolderList.RootFolder(
-                libraryId = library.id,
+                libraryId = library.id.value,
                 path = filePath?.absolutePathString() ?: "",
                 mediaKind = library.mediaKind,
                 mediaMatchCount = matched.size,
@@ -389,7 +389,7 @@ class LibraryService(
     }
 
     suspend fun analyzeMediaFiles(
-        mediaLinkIds: List<String>,
+        mediaLinkIds: List<MediaLinkId>,
         overwrite: Boolean = false,
     ): List<MediaAnalyzerResult> {
         return mediaFileAnalyzer.analyzeMediaFiles(mediaLinkIds, overwrite)

@@ -17,6 +17,7 @@
  */
 package anystream.service.stream
 
+import anystream.models.PlaybackStateId
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import java.text.DecimalFormat
@@ -36,7 +37,7 @@ internal class HlsPlaylistFactory {
     fun createVariantPlaylist(
         name: String,
         mediaFile: Path,
-        token: String,
+        token: PlaybackStateId,
         runtime: Duration,
         segmentDuration: Duration,
         isHlsInFmp4: Boolean,

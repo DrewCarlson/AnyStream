@@ -97,10 +97,10 @@ fun MediaLink.typed(): MediaLinkTyped {
 }
 
 sealed class MediaLinkTyped {
-    abstract val id: String
-    abstract val metadataId: String?
-    abstract val rootMetadataId: String?
-    abstract val directoryId: String
+    abstract val id: MediaLinkId
+    abstract val metadataId: MetadataId?
+    abstract val rootMetadataId: MetadataId?
+    abstract val directoryId: DirectoryId
     abstract val createdAt: Instant
     abstract val mediaKind: MediaKind
     abstract val type: MediaLinkType
@@ -115,10 +115,10 @@ sealed class MediaLinkTyped {
 @Poko
 @Serializable
 class LocalMediaLink(
-    override val id: String,
-    override val metadataId: String?,
-    override val rootMetadataId: String? = null,
-    override val directoryId: String,
+    override val id: MediaLinkId,
+    override val metadataId: MetadataId?,
+    override val rootMetadataId: MetadataId? = null,
+    override val directoryId: DirectoryId,
     override val type: MediaLinkType,
     override val createdAt: Instant,
     override val updatedAt: Instant,
@@ -135,10 +135,10 @@ class LocalMediaLink(
 @Poko
 @Serializable
 class DownloadMediaLink(
-    override val id: String,
-    override val metadataId: String?,
-    override val rootMetadataId: String? = null,
-    override val directoryId: String,
+    override val id: MediaLinkId,
+    override val metadataId: MetadataId?,
+    override val rootMetadataId: MetadataId? = null,
+    override val directoryId: DirectoryId,
     override val type: MediaLinkType,
     override val createdAt: Instant,
     override val updatedAt: Instant,

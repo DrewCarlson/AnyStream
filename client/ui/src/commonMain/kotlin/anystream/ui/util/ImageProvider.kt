@@ -20,6 +20,8 @@ package anystream.ui.util
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.staticCompositionLocalOf
 import anystream.client.AnyStreamClient
+import anystream.models.MetadataId
+import anystream.models.TagId
 
 val LocalImageProvider = staticCompositionLocalOf<ImageProvider> { StaticImageProvider }
 
@@ -27,7 +29,14 @@ interface ImageProvider {
     @Stable
     fun url(
         imageType: String,
-        metadataId: String,
+        metadataId: MetadataId,
+        width: Int = 0,
+    ): String
+
+    @Stable
+    fun url(
+        imageType: String,
+        tagId: TagId,
         width: Int = 0,
     ): String
 }
@@ -35,7 +44,19 @@ interface ImageProvider {
 private object StaticImageProvider : ImageProvider {
     override fun url(
         imageType: String,
-        metadataId: String,
+        metadataId: MetadataId,
+        width: Int,
+    ): String {
+        return when (imageType) {
+            "poster" -> "https://image.tmdb.org/t/p/w300/xgAZRY9swQYRkj3waCZeBDBCkuj.jpg"
+            "backdrop" -> "https://image.tmdb.org/t/p/w1280/pnIhvvYZytNDoDqwmxItWeSaDbp.jpg"
+            else -> "https://image.tmdb.org/t/p/w300/xgAZRY9swQYRkj3waCZeBDBCkuj.jpg"
+        }
+    }
+
+    override fun url(
+        imageType: String,
+        tagId: TagId,
         width: Int,
     ): String {
         return when (imageType) {
@@ -50,10 +71,18 @@ fun AnyStreamClient.asImageProvider(): ImageProvider {
     return object : ImageProvider {
         override fun url(
             imageType: String,
-            metadataId: String,
+            metadataId: MetadataId,
             width: Int,
         ): String {
             return images.buildImageUrl(imageType, metadataId, width)
+        }
+
+        override fun url(
+            imageType: String,
+            tagId: TagId,
+            width: Int,
+        ): String {
+            return images.buildImageUrl(imageType, tagId, width)
         }
     }
 }

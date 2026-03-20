@@ -153,7 +153,7 @@ class MediaFileScanner(
                     path = pathString,
                 )
                 resultIdContainer = resultIdContainer.copy(
-                    addedIds = listOf(newDirectory.id),
+                    addedIds = listOf(newDirectory.id.value),
                 )
                 newDirectory
             }
@@ -199,8 +199,8 @@ class MediaFileScanner(
             }.orEmpty()
 
         return MediaScanResult.Success(
-            directories = ContentIdContainer(removedIds = deletedIds),
-            mediaLinks = ContentIdContainer(removedIds = deletedMediaLinks),
+            directories = ContentIdContainer(removedIds = deletedIds.map { it.value }),
+            mediaLinks = ContentIdContainer(removedIds = deletedMediaLinks.map { it.value }),
         )
     }
 
@@ -217,7 +217,7 @@ class MediaFileScanner(
             return MediaScanResult.Success(
                 directories = ContentIdContainer.EMPTY,
                 mediaLinks = ContentIdContainer(
-                    existingIds = listOf(existingMediaLink.id),
+                    existingIds = listOf(existingMediaLink.id.value),
                 ),
             )
         }
@@ -252,7 +252,7 @@ class MediaFileScanner(
         return MediaScanResult.Success(
             directories = ContentIdContainer.EMPTY,
             mediaLinks = ContentIdContainer(
-                addedIds = listOf(mediaLink.id),
+                addedIds = listOf(mediaLink.id.value),
             ),
         )
     }

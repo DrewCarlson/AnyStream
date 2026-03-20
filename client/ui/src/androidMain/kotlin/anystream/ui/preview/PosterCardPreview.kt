@@ -20,6 +20,7 @@ package anystream.ui.preview
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
+import anystream.models.MetadataId
 import anystream.ui.components.PosterCard
 import anystream.ui.home.MediaCarousel
 import anystream.ui.theme.AppTheme
@@ -30,7 +31,7 @@ private fun PosterCardPreview() =
     AppTheme {
         PosterCard(
             title = "Gremlins",
-            mediaId = "",
+            mediaId = MetadataId(""),
             onClick = {},
             onPlayClick = {},
         )

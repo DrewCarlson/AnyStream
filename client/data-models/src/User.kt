@@ -28,7 +28,7 @@ const val PASSWORD_LENGTH_MAX = 64
 @Poko
 @Serializable
 class UserPublic(
-    val id: String,
+    val id: UserId,
     val username: String,
     val displayName: String,
 )

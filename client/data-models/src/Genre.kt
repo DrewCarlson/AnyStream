@@ -21,7 +21,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Genre(
-    val id: String,
+    val id: TagId,
     val name: String,
     val tmdbId: Int?,
 )

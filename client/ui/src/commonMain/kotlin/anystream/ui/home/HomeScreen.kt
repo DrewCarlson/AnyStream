@@ -49,10 +49,10 @@ private val CARD_SPACING = 8.dp
 @Composable
 fun HomeScreen(
     model: HomeScreenModel,
-    onMetadataClick: (metadataId: String) -> Unit,
-    onPlayClick: (mediaLinkId: String) -> Unit,
-    onViewMoviesClick: (libraryId: String) -> Unit,
-    onViewTvShowsClick: (libraryId: String) -> Unit,
+    onMetadataClick: (metadataId: MetadataId) -> Unit,
+    onPlayClick: (mediaLinkId: MediaLinkId) -> Unit,
+    onViewMoviesClick: (libraryId: LibraryId) -> Unit,
+    onViewTvShowsClick: (libraryId: LibraryId) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     AnimatedContent(model) { currentModel ->
@@ -79,14 +79,12 @@ fun HomeScreen(
             }
 
             is HomeScreenModel.LoadingFailed -> {
-                Unit
+                Unit // TODO: add error view
             }
 
-            // TODO: add error view
-
             HomeScreenModel.Empty -> {
-                Unit
-            } // TODO: add empty view
+                Unit // TODO: add empty view
+            }
         }
     }
 }
@@ -98,10 +96,10 @@ private fun HomeScreenContent(
     recentlyAdded: RecentlyAdded,
     popular: Popular,
     populars: List<Pair<Movie, MediaLink?>>,
-    onMetadataClick: (metadataId: String) -> Unit,
-    onViewMoviesClick: (String) -> Unit,
-    onViewTvShowsClick: (String) -> Unit,
-    onContinueWatchingClick: (mediaLinkId: String) -> Unit,
+    onMetadataClick: (metadataId: MetadataId) -> Unit,
+    onViewMoviesClick: (LibraryId) -> Unit,
+    onViewTvShowsClick: (LibraryId) -> Unit,
+    onContinueWatchingClick: (mediaLinkId: MediaLinkId) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -179,7 +177,7 @@ private fun HomeScreenContent(
 @Composable
 private fun ContinueWatchingRow(
     currentlyWatching: CurrentlyWatching,
-    onPlayClick: (mediaLinkId: String) -> Unit,
+    onPlayClick: (mediaLinkId: MediaLinkId) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val (playbackStates, currentlyWatchingMovies, currentlyWatchingTv, _) = currentlyWatching
@@ -228,7 +226,7 @@ private fun ContinueWatchingRow(
 private fun WatchingCard(
     mediaItem: MediaItem,
     playbackState: PlaybackState,
-    onPlayClick: (mediaLinkId: String) -> Unit,
+    onPlayClick: (mediaLinkId: MediaLinkId) -> Unit,
 ) {
     Card(
         shape = RoundedCornerShape(2.dp),
@@ -313,8 +311,8 @@ private fun WatchingCard(
 @Composable
 private fun MovieRow(
     movies: List<Pair<Movie, MediaLink?>>,
-    onMetadataClick: (metadataId: String) -> Unit,
-    onPlayClick: (mediaLinkId: String) -> Unit,
+    onMetadataClick: (metadataId: MetadataId) -> Unit,
+    onPlayClick: (mediaLinkId: MediaLinkId) -> Unit,
 ) {
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(CARD_SPACING),
@@ -338,8 +336,8 @@ private fun MovieRow(
 @Composable
 private fun TvRow(
     shows: List<TvShow>,
-    onMetadataClick: (metadataId: String) -> Unit,
-    onPlayClick: (mediaLinkId: String) -> Unit,
+    onMetadataClick: (metadataId: MetadataId) -> Unit,
+    onPlayClick: (mediaLinkId: MediaLinkId) -> Unit,
 ) {
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(CARD_SPACING),
@@ -351,7 +349,7 @@ private fun TvRow(
                     title = show.name,
                     mediaId = show.id,
                     onClick = { onMetadataClick(show.id) },
-                    onPlayClick = { onPlayClick(show.id) },
+                    onPlayClick = null,
                 )
             }
 

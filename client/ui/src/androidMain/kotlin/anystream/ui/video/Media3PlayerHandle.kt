@@ -22,6 +22,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import anystream.client.AnyStreamClient
+import anystream.models.MediaLinkId
 import kotlinx.coroutines.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -33,7 +34,7 @@ class Media3PlayerHandle(
     val player = ExoPlayer.Builder(context).build()
 
     private var updateStateJob: Job? = null
-    private var currentMediaLinkId: String? = null
+    private var currentMediaLinkId: MediaLinkId? = null
 
     init {
         player.addListener(PlayerListener())
@@ -96,7 +97,7 @@ class Media3PlayerHandle(
         super.dispose()
     }
 
-    override fun loadMediaLink(mediaLinkId: String) {
+    override fun loadMediaLink(mediaLinkId: MediaLinkId) {
         if (mediaLinkId == currentMediaLinkId) {
             return
         }

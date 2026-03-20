@@ -24,7 +24,7 @@ import kotlin.time.Instant
 @Poko
 @Serializable
 class TvSeason(
-    val id: String,
+    val id: MetadataId,
     val name: String,
     val overview: String,
     val seasonNumber: Int,

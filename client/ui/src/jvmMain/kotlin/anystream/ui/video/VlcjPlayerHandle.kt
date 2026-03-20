@@ -18,6 +18,7 @@
 package anystream.ui.video
 
 import anystream.client.AnyStreamClient
+import anystream.models.MediaLinkId
 import kotlinx.coroutines.launch
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory
 import uk.co.caprica.vlcj.media.MediaRef
@@ -45,7 +46,7 @@ class VlcjPlayerHandle(
         .mediaPlayers()
         .newEmbeddedMediaPlayer()
 
-    private var currentMediaLinkId: String? = null
+    private var currentMediaLinkId: MediaLinkId? = null
 
     init {
         mediaPlayer.events().addMediaPlayerEventListener(VlcjEventHandler())
@@ -71,7 +72,7 @@ class VlcjPlayerHandle(
         emitProgress(mediaPlayer.status().time().milliseconds)
     }
 
-    override fun loadMediaLink(mediaLinkId: String) {
+    override fun loadMediaLink(mediaLinkId: MediaLinkId) {
         if (mediaLinkId == currentMediaLinkId) {
             return
         }

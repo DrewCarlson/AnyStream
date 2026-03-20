@@ -91,7 +91,7 @@ class StreamRoutes(
 
     suspend fun RoutingContext.getPlaybackState() {
         val session = checkNotNull(call.principal<UserSession>())
-        val mediaLinkId = call.parameters["mediaLinkId"]!!
+        val mediaLinkId = MediaLinkId(call.parameters["mediaLinkId"]!!)
         val playbackState =
             streamService.getPlaybackState(mediaLinkId, session.userId, false)
         if (playbackState == null) {
@@ -103,7 +103,7 @@ class StreamRoutes(
 
     suspend fun RoutingContext.updatePlaybackState() {
         val session = checkNotNull(call.principal<UserSession>())
-        val mediaLinkId = call.parameters["mediaLinkId"]!!
+        val mediaLinkId = MediaLinkId(call.parameters["mediaLinkId"]!!)
         val state = runCatching { call.receiveNullable<PlaybackState>() }
             .getOrNull() ?: return call.respond(UnprocessableEntity)
 
@@ -120,8 +120,9 @@ class StreamRoutes(
     }
 
     suspend fun RoutingContext.getHlsPlaylist() {
-        val mediaLinkId = call.parameters["mediaLinkId"]!!
+        val mediaLinkId = MediaLinkId(call.parameters["mediaLinkId"]!!)
         val token = call.parameters["token"]
+            ?.let(::PlaybackStateId)
             ?: return call.respond(Unauthorized)
 
         val clientCapabilities = call.request.queryParameters["capabilities"]!!.let {
@@ -141,7 +142,7 @@ class StreamRoutes(
             ?: return call.respond(NotFound)
         val (token, segmentFile) = segmentFilePath.split('-', limit = 2)
 
-        val filePath = streamService.getFilePathForSegment(token, segmentFile)
+        val filePath = streamService.getFilePathForSegment(PlaybackStateId(token), segmentFile)
         if (filePath == null) {
             call.respond(NotFound)
         } else {
@@ -155,7 +156,7 @@ class StreamRoutes(
     }
 
     suspend fun RoutingContext.stopSession() {
-        val token = call.parameters["token"]!!
+        val token = PlaybackStateId(call.parameters["token"]!!)
         val delete = call.parameters["delete"]?.toBoolean() ?: true
         streamService.stopSession(token, delete)
         call.respond(OK)
@@ -165,7 +166,7 @@ class StreamRoutes(
         val session = checkNotNull(extractUserSession())
         check(Permission.check(Permission.ViewCollection, session.permissions))
         val userId = session.userId
-        val mediaLinkId = call.parameters["mediaLinkId"]!!
+        val mediaLinkId = MediaLinkId(call.parameters["mediaLinkId"]!!)
 
         val clientCapabilities = receiveDeserialized<ClientCapabilities>()
 

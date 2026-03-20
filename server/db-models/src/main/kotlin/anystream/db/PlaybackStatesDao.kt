@@ -23,13 +23,15 @@ import anystream.db.tables.references.METADATA
 import anystream.db.tables.references.PLAYBACK_STATE
 import anystream.db.util.*
 import anystream.di.ServerScope
+import anystream.models.MetadataId
 import anystream.models.PlaybackState
+import anystream.models.PlaybackStateId
+import anystream.models.UserId
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
-import org.jooq.impl.SQLDataType
 
 @SingleIn(ServerScope::class)
 @Inject
@@ -55,7 +57,7 @@ class PlaybackStatesDao(
      * LIMIT ?
      */
     suspend fun findWithUniqueRootByUserId(
-        userId: String,
+        userId: UserId,
         limit: Int,
     ): List<PlaybackState> {
         val subquery = DSL
@@ -81,7 +83,7 @@ class PlaybackStatesDao(
             .join(subquery)
             .on(
                 subquery
-                    .field("metadataId", SQLDataType.VARCHAR(24).notNull())!!
+                    .field("metadataId", METADATA.ID.dataType)!!
                     .eq(PLAYBACK_STATE.METADATA_ID)
                     .and(
                         subquery
@@ -94,8 +96,8 @@ class PlaybackStatesDao(
     }
 
     suspend fun findByUserIdAndMetadataId(
-        userId: String,
-        metadataId: String,
+        userId: UserId,
+        metadataId: MetadataId,
     ): PlaybackState? {
         return db
             .selectFrom(PLAYBACK_STATE)
@@ -106,8 +108,8 @@ class PlaybackStatesDao(
     }
 
     suspend fun findByUserIdAndMetadataIds(
-        userId: String,
-        metadataIds: List<String>,
+        userId: UserId,
+        metadataIds: List<MetadataId>,
     ): List<PlaybackState> {
         return db
             .select(PLAYBACK_STATE)
@@ -118,7 +120,7 @@ class PlaybackStatesDao(
             ).awaitInto()
     }
 
-    suspend fun fetchById(playbackStateId: String): PlaybackState? {
+    suspend fun fetchById(playbackStateId: PlaybackStateId): PlaybackState? {
         return db
             .select(PLAYBACK_STATE)
             .from(PLAYBACK_STATE)
@@ -126,7 +128,7 @@ class PlaybackStatesDao(
             .awaitFirstOrNullInto()
     }
 
-    suspend fun fetchByIds(ids: List<String>): List<PlaybackState> {
+    suspend fun fetchByIds(ids: List<PlaybackStateId>): List<PlaybackState> {
         return db
             .select(PLAYBACK_STATE)
             .from(PLAYBACK_STATE)

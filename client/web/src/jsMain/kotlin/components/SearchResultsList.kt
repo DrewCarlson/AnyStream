@@ -19,6 +19,7 @@ package anystream.components
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import anystream.models.MetadataId
 import anystream.models.api.SearchResponse
 import app.softwork.routingcompose.Router
 import kotlinx.datetime.TimeZone
@@ -111,7 +112,7 @@ private fun SectionTitle(title: String) {
 
 @Composable
 private fun SearchResultItem(
-    mediaId: String,
+    mediaId: MetadataId,
     title: String,
     subtitle: String,
     wide: Boolean = false,
@@ -139,7 +140,7 @@ private fun SearchResultItem(
             }
         }) {
             Img(
-                src = "/api/image/$mediaId/poster.jpg?w=300",
+                src = "/api/image/${mediaId.value}/poster.jpg?w=300",
                 attrs = {
                     classes("h-100", "w-100")
                     attr("loading", "lazy")

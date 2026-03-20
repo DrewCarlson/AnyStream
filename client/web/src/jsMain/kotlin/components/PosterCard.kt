@@ -18,6 +18,7 @@
 package anystream.components
 
 import androidx.compose.runtime.*
+import anystream.models.MetadataId
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.css.keywords.auto
 import org.jetbrains.compose.web.dom.Div
@@ -25,12 +26,12 @@ import org.jetbrains.compose.web.dom.I
 import org.jetbrains.compose.web.dom.Img
 import web.animations.awaitAnimationFrame
 
-private val EMPTY_IMG = "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=="
+private const val EMPTY_IMG = "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=="
 
 @Composable
 fun PosterCard(
     title: (@Composable () -> Unit)?,
-    metadataId: String?,
+    metadataId: MetadataId?,
     wide: Boolean = false,
     heightAndWidth: Pair<CSSpxValue, CSSpxValue>? = null,
     sizeMultiplier: Float = 1f,
@@ -127,7 +128,7 @@ fun PosterCard(
                     value = EMPTY_IMG
                 } else {
                     awaitAnimationFrame()
-                    value = "/api/image/$metadataId/poster.jpg?width=300"
+                    value = "/api/image/${metadataId?.value}/poster.jpg?width=300"
                 }
             }
             Div({ classes("bg-dark-translucent", "h-100", "w-100") }) {

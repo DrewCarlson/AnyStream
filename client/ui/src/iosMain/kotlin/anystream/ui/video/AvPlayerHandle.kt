@@ -18,6 +18,7 @@
 package anystream.ui.video
 
 import anystream.client.AnyStreamClient
+import anystream.models.MediaLinkId
 import kotlinx.cinterop.COpaquePointer
 import kotlinx.cinterop.readValue
 import kotlinx.cinterop.useContents
@@ -41,7 +42,7 @@ class AvPlayerHandle(
 ) : BasePlayerHandle() {
     val player = AVPlayer()
 
-    private var currentMediaId: String? = null
+    private var currentMediaId: MediaLinkId? = null
     private var updateStateJob: Job? = null
 
     override fun play() {
@@ -64,7 +65,7 @@ class AvPlayerHandle(
         player.seekToTime(newPos)
     }
 
-    override fun loadMediaLink(mediaLinkId: String) {
+    override fun loadMediaLink(mediaLinkId: MediaLinkId) {
         if (mediaLinkId == currentMediaId) {
             return
         }

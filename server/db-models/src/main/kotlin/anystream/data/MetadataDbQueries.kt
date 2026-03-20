@@ -75,9 +75,9 @@ class MetadataDbQueries(
     }
 
     suspend fun findMediaById(
-        metadataId: String,
+        metadataId: MetadataId,
         includeLinks: Boolean = false,
-        includePlaybackStateForUser: String? = null,
+        includePlaybackStateForUser: UserId? = null,
     ): MediaLookupResponse? {
         return when (val type = metadataDao.findType(metadataId)) {
             MediaType.MOVIE -> findMovieById(metadataId, includeLinks, includePlaybackStateForUser)
@@ -89,9 +89,9 @@ class MetadataDbQueries(
     }
 
     suspend fun findMovieById(
-        movieId: String,
+        movieId: MetadataId,
         includeLinks: Boolean = false,
-        includePlaybackStateForUser: String? = null,
+        includePlaybackStateForUser: UserId? = null,
     ): MovieResponse? {
         val mediaRecord = metadataDao.findByIdAndType(movieId, MediaType.MOVIE) ?: return null
         val mediaLinks = if (includeLinks) {
@@ -137,9 +137,9 @@ class MetadataDbQueries(
     }
 
     suspend fun findShowById(
-        showId: String,
+        showId: MetadataId,
         includeLinks: Boolean = false,
-        includePlaybackStateForUser: String? = null,
+        includePlaybackStateForUser: UserId? = null,
     ): TvShowResponse? {
         val show = metadataDao.findByIdAndType(showId, MediaType.TV_SHOW) ?: return null
         val seasons = metadataDao.findAllByParentIdAndType(showId, MediaType.TV_SEASON)
@@ -171,9 +171,9 @@ class MetadataDbQueries(
     }
 
     suspend fun findSeasonById(
-        seasonId: String,
+        seasonId: MetadataId,
         includeLinks: Boolean = false,
-        includePlaybackStateForUser: String? = null,
+        includePlaybackStateForUser: UserId? = null,
     ): SeasonResponse? {
         val seasonRecord = metadataDao.findByIdAndType(seasonId, MediaType.TV_SEASON) ?: return null
         val tvShowId = checkNotNull(seasonRecord.parentId)
@@ -207,9 +207,9 @@ class MetadataDbQueries(
     }
 
     suspend fun findEpisodeById(
-        episodeId: String,
+        episodeId: MetadataId,
         includeLinks: Boolean = false,
-        includePlaybackStateForUser: String? = null,
+        includePlaybackStateForUser: UserId? = null,
     ): EpisodeResponse? {
         val episodeRecord = metadataDao.findByIdAndType(episodeId, MediaType.TV_EPISODE) ?: return null
         val showRecord = metadataDao.find(checkNotNull(episodeRecord.rootId)) ?: return null
@@ -235,7 +235,7 @@ class MetadataDbQueries(
     }
 
     suspend fun findCurrentlyWatching(
-        userId: String,
+        userId: UserId,
         limit: Int,
     ): CurrentlyWatchingQueryResults {
         val playbackStates = playbackStatesDao
@@ -307,11 +307,11 @@ class MetadataDbQueries(
         return mediaLinkDao.findByFilePath(path)
     }
 
-    suspend fun findMediaLinksByMetadataId(metadataId: String): List<MediaLink> {
+    suspend fun findMediaLinksByMetadataId(metadataId: MetadataId): List<MediaLink> {
         return mediaLinkDao.findByMetadataId(metadataId)
     }
 
-    suspend fun findMediaLinksByMetadataIds(metadataIds: List<String>): List<MediaLink> {
+    suspend fun findMediaLinksByMetadataIds(metadataIds: List<MetadataId>): List<MediaLink> {
         return mediaLinkDao.findByMetadataIds(metadataIds)
     }
 
@@ -327,7 +327,7 @@ class MetadataDbQueries(
         return metadataDao.findByTmdbIdAndType(tmdbId, MediaType.TV_SHOW)?.toTvShowModel()
     }
 
-    suspend fun findTvSeasonsByTvShowId(tvShowId: String): List<Metadata> {
+    suspend fun findTvSeasonsByTvShowId(tvShowId: MetadataId): List<Metadata> {
         return metadataDao.findAllByParentIdAndType(tvShowId, MediaType.TV_SEASON)
     }
 
@@ -337,7 +337,7 @@ class MetadataDbQueries(
     }
 
     suspend fun findEpisodesByShow(
-        showId: String,
+        showId: MetadataId,
         seasonNumber: Int? = null,
     ): List<Episode> {
         return if (seasonNumber == null) {
@@ -347,7 +347,7 @@ class MetadataDbQueries(
         }.map(Metadata::toTvEpisodeModel)
     }
 
-    suspend fun findMediaById(metadataId: String): FindMediaResult {
+    suspend fun findMediaById(metadataId: MetadataId): FindMediaResult {
         val mediaRecord = metadataDao.find(metadataId) ?: return FindMediaResult()
         return when (mediaRecord.mediaType) {
             MediaType.MOVIE -> FindMediaResult(movie = mediaRecord.toMovieModel())
@@ -370,11 +370,11 @@ class MetadataDbQueries(
     }
 
     suspend fun insertGenres(
-        metadataId: String,
+        metadataId: MetadataId,
         genres: List<Genre>,
     ) {
         genres.onEach { genre ->
-            val dbGenre = if (genre.id.isBlank()) {
+            val dbGenre = if (genre.id.value.isBlank()) {
                 genre.tmdbId?.let { tagsDao.findGenreByTmdbId(it) }
                     ?: genre.copy(id = tagsDao.insertTag(genre.name, TagType.GENRE, genre.tmdbId))
             } else {
@@ -385,11 +385,11 @@ class MetadataDbQueries(
     }
 
     suspend fun insertCompanies(
-        metadataId: String,
+        metadataId: MetadataId,
         companies: List<ProductionCompany>,
     ) {
         companies.onEach { company ->
-            val dbCompany = if (company.id.isBlank()) {
+            val dbCompany = if (company.id.value.isBlank()) {
                 company.tmdbId?.let { tagsDao.findCompanyByTmdbId(it) }
                     ?: company.copy(id = tagsDao.insertTag(company.name, TagType.COMPANY, company.tmdbId))
             } else {
@@ -400,7 +400,7 @@ class MetadataDbQueries(
     }
 
     suspend fun insertCredits(
-        metadataId: String,
+        metadataId: MetadataId,
         credits: Map<Person, List<MetadataCredit>>,
     ): Map<Person, List<MetadataCredit>> {
         if (credits.isEmpty()) {
@@ -408,7 +408,7 @@ class MetadataDbQueries(
         }
         val dbCredits = credits
             .map { (person, credits) ->
-                val dbPerson = if (person.id.isBlank()) {
+                val dbPerson = if (person.id.value.isBlank()) {
                     person.tmdbId?.let { tagsDao.findPersonByTmdbId(it) }
                         ?: person.copy(id = tagsDao.insertTag(person.name, TagType.PERSON, person.tmdbId))
                 } else {
@@ -433,27 +433,27 @@ class MetadataDbQueries(
         metadataDao.insertMetadata(listOf(tvShow) + tvSeasons + episodes)
     }
 
-    suspend fun deleteMovie(metadataId: String): Boolean {
+    suspend fun deleteMovie(metadataId: MetadataId): Boolean {
         metadataDao.deleteById(metadataId)
         return true
     }
 
-    suspend fun deleteTvShow(metadataId: String): Boolean {
+    suspend fun deleteTvShow(metadataId: MetadataId): Boolean {
         mediaLinkDao.deleteByRootMetadataId(metadataId)
         metadataDao.deleteByRootId(metadataId)
         metadataDao.deleteById(metadataId)
         return true
     }
 
-    suspend fun deleteLinksByContentId(metadataId: String) {
+    suspend fun deleteLinksByContentId(metadataId: MetadataId) {
         mediaLinkDao.deleteByMetadataId(metadataId)
     }
 
-    suspend fun deleteLinksByRootContentId(metadataId: String) {
+    suspend fun deleteLinksByRootContentId(metadataId: MetadataId) {
         mediaLinkDao.deleteByRootMetadataId(metadataId)
     }
 
-    suspend fun findTvSeasonsByIds(tvSeasonIds: List<String>): List<Metadata> {
+    suspend fun findTvSeasonsByIds(tvSeasonIds: List<MetadataId>): List<Metadata> {
         if (tvSeasonIds.isEmpty()) return emptyList()
         return metadataDao.findAllByIdsAndType(tvSeasonIds, MediaType.TV_SEASON)
     }
@@ -464,8 +464,8 @@ class MetadataDbQueries(
      */
     data class CurrentlyWatchingQueryResults(
         val playbackStates: List<PlaybackState>,
-        val currentlyWatchingMovies: Map<String, Movie>,
-        val currentlyWatchingTv: Map<String, Pair<Episode, TvShow>>,
+        val currentlyWatchingMovies: Map<PlaybackStateId, Movie>,
+        val currentlyWatchingTv: Map<PlaybackStateId, Pair<Episode, TvShow>>,
     )
 
     data class FindMediaResult(

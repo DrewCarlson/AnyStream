@@ -17,21 +17,23 @@
  */
 package anystream.media.util
 
+import anystream.models.MediaLinkId
 import anystream.models.StreamEncoding
+import anystream.models.StreamEncodingId
 import anystream.models.StreamEncodingType
 import anystream.util.ObjectId
 import com.github.kokorin.jaffree.StreamType
 import com.github.kokorin.jaffree.ffprobe.Stream
 import kotlin.time.Duration.Companion.seconds
 
-internal fun Stream.toStreamEncoding(mediaLinkId: String): StreamEncoding? {
+internal fun Stream.toStreamEncoding(mediaLinkId: MediaLinkId): StreamEncoding? {
     if (codecType == StreamType.DATA || codecType == StreamType.ATTACHMENT) {
         return null
     }
     val title = getTag("title")
     val language = getTag("language") ?: getTag("LANGUAGE")
     return StreamEncoding(
-        id = ObjectId.next(),
+        id = StreamEncodingId(ObjectId.next()),
         streamId = id,
         index = index,
         codecName = codecName.orEmpty(),

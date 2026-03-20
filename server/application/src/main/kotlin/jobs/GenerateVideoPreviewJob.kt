@@ -21,6 +21,7 @@ import anystream.config.AnyStreamConfig
 import anystream.db.MediaLinkDao
 import anystream.di.ServerScope
 import anystream.models.MediaLink
+import anystream.models.MediaLinkId
 import anystream.models.MediaLinkType
 import anystream.util.BifFileBuilder
 import com.github.kokorin.jaffree.JaffreeException
@@ -59,7 +60,7 @@ class GenerateVideoPreviewJob(
             .resolve("previews")
             .createDirectories()
 
-    suspend fun execute(mediaLinkId: String) {
+    suspend fun execute(mediaLinkId: MediaLinkId) {
         val mediaLink = mediaLinkDao.findById(mediaLinkId)
         when (mediaLink?.type) {
             null -> logger.error("No mediaLink found for id: $mediaLinkId")
@@ -70,7 +71,7 @@ class GenerateVideoPreviewJob(
 
     private suspend fun generatePreview(mediaLink: MediaLink) {
         val outputPath = previewsPath
-            .resolve(mediaLink.id)
+            .resolve(mediaLink.id.value)
             .createDirectories()
             .resolve(PREVIEW_IMAGE_FILE_NAME)
         logger.debug("Starting video preview generation in: {}", outputPath)
@@ -90,7 +91,7 @@ class GenerateVideoPreviewJob(
             return
         }
 
-        val contentDir = previewsPath.resolve(mediaLink.id)
+        val contentDir = previewsPath.resolve(mediaLink.id.value)
         val bifPath = contentDir.resolve("index-sd.bif")
         val frames = contentDir
             .listDirectoryEntries("preview*")

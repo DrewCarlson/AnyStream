@@ -46,7 +46,7 @@ fun RouteBuilder.SettingsScreen(subscreen: String) {
             }
 
             "libraries" -> {
-                string { id -> MediaLinkListScreen(libraryId = id) }
+                string { id -> MediaLinkListScreen(libraryId = LibraryId(id)) }
                 noMatch { LibrariesScreen() }
             }
 

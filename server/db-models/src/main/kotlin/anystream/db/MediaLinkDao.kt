@@ -24,7 +24,10 @@ import anystream.db.tables.references.STREAM_ENCODING
 import anystream.db.util.*
 import anystream.di.ServerScope
 import anystream.models.Descriptor
+import anystream.models.DirectoryId
 import anystream.models.MediaLink
+import anystream.models.MediaLinkId
+import anystream.models.MetadataId
 import anystream.models.StreamEncoding
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
@@ -38,9 +41,9 @@ import kotlin.time.Clock
 
 // @Poko
 data class MediaLinkMetadataUpdate(
-    val mediaLinkId: String,
-    val metadataId: String? = null,
-    val rootMetadataId: String? = null,
+    val mediaLinkId: MediaLinkId,
+    val metadataId: MetadataId? = null,
+    val rootMetadataId: MetadataId? = null,
 )
 
 @SingleIn(ServerScope::class)
@@ -64,18 +67,18 @@ class MediaLinkDao(
         db.batchInsert(records).executeAsync().await()
     }
 
-    suspend fun countStreamDetails(mediaLinkId: String): Int {
+    suspend fun countStreamDetails(mediaLinkId: MediaLinkId): Int {
         return db.fetchCountAsync(STREAM_ENCODING, STREAM_ENCODING.MEDIA_LINK_ID.eq(mediaLinkId))
     }
 
-    suspend fun findStreamEncodings(mediaLinkId: String): List<StreamEncoding> {
+    suspend fun findStreamEncodings(mediaLinkId: MediaLinkId): List<StreamEncoding> {
         return db
             .selectFrom(STREAM_ENCODING)
             .where(STREAM_ENCODING.MEDIA_LINK_ID.eq(mediaLinkId))
             .awaitInto()
     }
 
-    suspend fun findStreamEncodings(mediaLinkIds: List<String>): Map<String, List<StreamEncoding>> {
+    suspend fun findStreamEncodings(mediaLinkIds: List<MediaLinkId>): Map<MediaLinkId, List<StreamEncoding>> {
         return db
             .selectFrom(STREAM_ENCODING)
             .where(STREAM_ENCODING.MEDIA_LINK_ID.`in`(mediaLinkIds))
@@ -106,7 +109,7 @@ class MediaLinkDao(
             .awaitFirstOrNull()
     }
 
-    suspend fun descriptorForId(mediaLinkId: String): Descriptor? {
+    suspend fun descriptorForId(mediaLinkId: MediaLinkId): Descriptor? {
         return db
             .select(MEDIA_LINK.DESCRIPTOR)
             .from(MEDIA_LINK)
@@ -114,7 +117,7 @@ class MediaLinkDao(
             .awaitFirstOrNullInto()
     }
 
-    suspend fun findById(mediaLinkId: String): MediaLink? {
+    suspend fun findById(mediaLinkId: MediaLinkId): MediaLink? {
         return db
             .select(MEDIA_LINK)
             .from(MEDIA_LINK)
@@ -122,7 +125,7 @@ class MediaLinkDao(
             .awaitFirstOrNullInto()
     }
 
-    suspend fun findByIds(mediaLinkIds: List<String>): List<MediaLink> {
+    suspend fun findByIds(mediaLinkIds: List<MediaLinkId>): List<MediaLink> {
         return db
             .select(MEDIA_LINK)
             .from(MEDIA_LINK)
@@ -130,7 +133,7 @@ class MediaLinkDao(
             .awaitInto()
     }
 
-    suspend fun findByMetadataId(metadataId: String): List<MediaLink> {
+    suspend fun findByMetadataId(metadataId: MetadataId): List<MediaLink> {
         return db
             .select(MEDIA_LINK)
             .from(MEDIA_LINK)
@@ -138,7 +141,7 @@ class MediaLinkDao(
             .awaitInto()
     }
 
-    suspend fun findByMetadataIds(ids: List<String>): List<MediaLink> {
+    suspend fun findByMetadataIds(ids: List<MetadataId>): List<MediaLink> {
         if (ids.isEmpty()) return emptyList()
         return db
             .selectFrom(MEDIA_LINK)
@@ -146,7 +149,7 @@ class MediaLinkDao(
             .awaitInto()
     }
 
-    suspend fun findByRootMetadataIds(ids: List<String>): List<MediaLink> {
+    suspend fun findByRootMetadataIds(ids: List<MetadataId>): List<MediaLink> {
         return db
             .selectFrom(MEDIA_LINK)
             .where(MEDIA_LINK.ROOT_METADATA_ID.`in`(ids))
@@ -175,7 +178,7 @@ class MediaLinkDao(
             .awaitInto()
     }
 
-    suspend fun findByDirectoryId(directoryId: String): List<MediaLink> {
+    suspend fun findByDirectoryId(directoryId: DirectoryId): List<MediaLink> {
         return db
             .selectFrom(MEDIA_LINK)
             .where(MEDIA_LINK.DIRECTORY_ID.eq(directoryId))
@@ -183,7 +186,7 @@ class MediaLinkDao(
     }
 
     suspend fun findByDirectoryIdAndDescriptor(
-        directoryId: String,
+        directoryId: DirectoryId,
         descriptor: Descriptor,
     ): List<MediaLink> {
         return db
@@ -201,9 +204,9 @@ class MediaLinkDao(
     }
 
     suspend fun findIdsByMediaLinkIdAndDescriptors(
-        mediaLinkId: String,
+        mediaLinkId: MediaLinkId,
         descriptors: List<Descriptor>,
-    ): List<String> {
+    ): List<MediaLinkId> {
         return db
             .select(MEDIA_LINK.ID)
             .from(MEDIA_LINK)
@@ -231,23 +234,23 @@ class MediaLinkDao(
             .awaitInto()
     }
 
-    suspend fun deleteByMetadataId(metadataId: String) {
+    suspend fun deleteByMetadataId(metadataId: MetadataId) {
         db
             .deleteFrom(MEDIA_LINK)
             .where(MEDIA_LINK.METADATA_ID.eq(metadataId))
             .awaitFirstOrNull()
     }
 
-    suspend fun deleteByRootMetadataId(rootMetadataId: String) {
+    suspend fun deleteByRootMetadataId(rootMetadataId: MetadataId) {
         db
             .deleteFrom(MEDIA_LINK)
             .where(MEDIA_LINK.ROOT_METADATA_ID.eq(rootMetadataId))
             .awaitFirstOrNull()
     }
 
-    suspend fun deleteByBasePath(filePath: String): List<String> {
+    suspend fun deleteByBasePath(filePath: String): List<MediaLinkId> {
         val filterCondition = MEDIA_LINK.FILE_PATH.like("$filePath%")
-        val ids: List<String> = db
+        val ids: List<MediaLinkId> = db
             .select(MEDIA_LINK.ID)
             .from(MEDIA_LINK)
             .where(filterCondition)
@@ -268,14 +271,14 @@ class MediaLinkDao(
             .awaitFirstOrNull() == 1
     }
 
-    suspend fun deleteById(id: String): Boolean {
+    suspend fun deleteById(id: MediaLinkId): Boolean {
         return db
             .deleteFrom(MEDIA_LINK)
             .where(MEDIA_LINK.ID.eq(id))
             .awaitFirstOrNull() == 1
     }
 
-    suspend fun findLinksToAnalyze(limit: Int = -1): List<String> {
+    suspend fun findLinksToAnalyze(limit: Int = -1): List<MediaLinkId> {
         // todo: add flag to media link when it cannot be probed, then filter here
         return db
             .select(MEDIA_LINK.ID)

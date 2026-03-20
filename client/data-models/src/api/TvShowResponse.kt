@@ -21,6 +21,7 @@ import anystream.models.CastCredit
 import anystream.models.CrewCredit
 import anystream.models.Genre
 import anystream.models.MediaLink
+import anystream.models.MediaLinkId
 import anystream.models.PlaybackState
 import anystream.models.ProductionCompany
 import anystream.models.StreamEncoding
@@ -35,7 +36,7 @@ class TvShowResponse(
     val tvShow: TvShow,
     val seasons: List<TvSeason>,
     override val mediaLinks: List<MediaLink> = emptyList(),
-    override val streamEncodings: Map<String, List<StreamEncoding>> = emptyMap(),
+    override val streamEncodings: Map<MediaLinkId, List<StreamEncoding>> = emptyMap(),
     override val genres: List<Genre> = emptyList(),
     override val companies: List<ProductionCompany> = emptyList(),
     override val cast: List<CastCredit> = emptyList(),

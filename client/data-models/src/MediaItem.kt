@@ -26,7 +26,7 @@ import kotlin.time.Instant
 
 @Poko
 class MediaItem(
-    val mediaId: String,
+    val mediaId: MetadataId,
     val contentTitle: String,
     val subtitle1: String? = null,
     val subtitle2: String? = null,
@@ -42,10 +42,10 @@ class MediaItem(
     val tmdbRating: Int? = null,
     val contentRating: String? = null,
     val runtime: Duration? = null,
-    val parentMetadataId: String? = null,
-    val rootMetadataId: String? = null,
+    val parentMetadataId: MetadataId? = null,
+    val rootMetadataId: MetadataId? = null,
     val mediaType: MediaType,
-    val streamEncodings: Map<String, List<StreamEncoding>> = emptyMap(),
+    val streamEncodings: Map<MediaLinkId, List<StreamEncoding>> = emptyMap(),
 ) {
     val playableMediaLink: MediaLink? =
         mediaLinks.firstOrNull {

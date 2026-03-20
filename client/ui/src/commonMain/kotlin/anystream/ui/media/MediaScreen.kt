@@ -64,8 +64,8 @@ import org.jetbrains.compose.resources.painterResource
 @Composable
 fun MediaScreen(
     model: MediaScreenModel,
-    onPlayClick: (mediaLinkId: String) -> Unit,
-    onMetadataClick: (metadataId: String) -> Unit,
+    onPlayClick: (mediaLinkId: MediaLinkId) -> Unit,
+    onMetadataClick: (metadataId: MetadataId) -> Unit,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -97,8 +97,8 @@ fun MediaScreen(
 @Composable
 fun MediaScreen(
     response: MediaLookupResponse?,
-    onPlayClick: (mediaRefId: String) -> Unit,
-    onMetadataClick: (metadataId: String) -> Unit,
+    onPlayClick: (mediaRefId: MediaLinkId) -> Unit,
+    onMetadataClick: (metadataId: MetadataId) -> Unit,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -178,7 +178,7 @@ fun MediaScreen(
 private fun BaseDetailsView(
     mediaItem: MediaItem,
     onBackClick: () -> Unit,
-    onPlayClick: (mediaLinkId: String) -> Unit,
+    onPlayClick: (mediaLinkId: MediaLinkId) -> Unit,
     subcontainer: @Composable () -> Unit = {},
 ) {
     val imageUrlBuilder = LocalImageProvider.current
@@ -510,7 +510,7 @@ private fun MediaMetadata(mediaItem: MediaItem) {
 @Composable
 private fun SeasonRow(
     seasons: List<TvSeason>,
-    onMetadataClick: (metadataId: String) -> Unit,
+    onMetadataClick: (metadataId: MetadataId) -> Unit,
 ) {
     BaseRow(
         title = "${seasons.size} Seasons",
@@ -528,7 +528,7 @@ private fun SeasonRow(
 @Composable
 private fun EpisodeList(
     episodes: List<Episode>,
-    mediaLinks: Map<String, MediaLink>,
+    mediaLinks: Map<MetadataId, MediaLink>,
     onEpisodeClick: (episode: Episode) -> Unit,
 ) {
     Column(

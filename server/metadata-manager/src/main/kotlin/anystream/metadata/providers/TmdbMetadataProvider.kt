@@ -126,7 +126,7 @@ class TmdbMetadataProvider(
         } else {
             logger.debug("Refreshing metadata record for {}", existingMovie.id)
         }
-        val movieId = existingMovie?.id ?: ObjectId.next()
+        val movieId = existingMovie?.id ?: MetadataId(ObjectId.next())
         val tmdbMovie = try {
             checkNotNull(fetchMovie(tmdbId))
         } catch (e: Throwable) {
@@ -143,8 +143,8 @@ class TmdbMetadataProvider(
             val metadata = queries.insertMovie(movie, genres, companies)
             val dbCredits = queries.insertCredits(metadata.id, credits)
             supervisorScope {
-                launch { tmdbMovie.cacheImage(movieId, "poster", "w300") }
-                launch { tmdbMovie.cacheImage(movieId, "backdrop", "w1280") }
+                launch { tmdbMovie.cacheImage(movieId.value, "poster", "w300") }
+                launch { tmdbMovie.cacheImage(movieId.value, "backdrop", "w1280") }
 
                 val crew = tmdbMovie.credits?.crew.orEmpty()
                 val cast = tmdbMovie.credits?.cast.orEmpty()
@@ -152,7 +152,7 @@ class TmdbMetadataProvider(
                 dbCredits
                     .mapNotNull { (person, _) ->
                         val profileImagePath = allPeople[person.tmdbId]
-                        val imagePath = imageStore.getPersonImagePath(person.id).takeUnless(Path::exists)
+                        val imagePath = imageStore.getPersonImagePath(person.id.value).takeUnless(Path::exists)
                         if (profileImagePath == null || imagePath == null) return@mapNotNull null
                         async {
                             imageStore.downloadInto(imagePath, "$IMAGE_URL/w276_and_h350_face$profileImagePath")
@@ -162,7 +162,7 @@ class TmdbMetadataProvider(
             ImportMetadataResult.Success(
                 match = MetadataMatch.MovieMatch(
                     remoteMetadataId = movie.tmdbId.toString(),
-                    remoteId = tmdbMovie.toRemoteId(),
+                    remoteId = tmdbMovie.toRemoteId().value,
                     exists = true,
                     movie = movie,
                     providerId = this@TmdbMetadataProvider.id,
@@ -218,7 +218,7 @@ class TmdbMetadataProvider(
             )
         }
 
-        val tvShowId = existingTvShow?.id ?: ObjectId.next()
+        val tvShowId = existingTvShow?.id ?: MetadataId(ObjectId.next())
         val tmdbSeries = try {
             checkNotNull(fetchTvSeries(tmdbId))
         } catch (e: Throwable) {
@@ -256,13 +256,13 @@ class TmdbMetadataProvider(
             val people2 = episodeCredits.flatMap { (episodeId, credits) ->
                 queries.insertCredits(episodeId, credits).keys
             }
-            val allPeople = (people1 + people2).toSet().associate { it.tmdbId!! to it.id }
+            val allPeople = (people1 + people2).toSet().associate { it.tmdbId!! to it.id.value }
             supervisorScope {
                 posterPaths
                     .flatMap { (metadataId, imageUrls) ->
                         imageUrls.mapNotNull { (imageType, imageUrl) ->
                             if (imageUrl == null) return@mapNotNull null
-                            val cacheFile = imageStore.getMetadataImagePath(imageType, metadataId, tvShow.id)
+                            val cacheFile = imageStore.getMetadataImagePath(imageType, metadataId.value, tvShow.id.value)
                             val url = when (imageType) {
                                 "poster" -> "$IMAGE_URL/w300$imageUrl"
                                 "backdrop" -> "$IMAGE_URL/w1280$imageUrl"
@@ -466,7 +466,7 @@ class TmdbMetadataProvider(
             val remoteId = movieDb.toRemoteId()
             MetadataMatch.MovieMatch(
                 remoteMetadataId = movieDb.id.toString(),
-                remoteId = remoteId,
+                remoteId = remoteId.value,
                 exists = existingMovie != null,
                 movie = movieDb.asMovie(
                     id = existingMovie?.id ?: remoteId,
@@ -480,7 +480,7 @@ class TmdbMetadataProvider(
                 .filter { tmdbMovie -> existingMovies.none { it.tmdbId == tmdbMovie.id } }
                 .forEach { movie ->
                     cacheImages(
-                        movie.toRemoteId(),
+                        movie.toRemoteId().value,
                         listOf(
                             "poster" to movie.posterPath,
                             "backdrop" to movie.backdropPath,
@@ -516,9 +516,10 @@ class TmdbMetadataProvider(
         }
 
         if (tmdbSeries.isEmpty() && !metadataId.isNullOrBlank()) {
-            val tvResponse = queries.findShowById(metadataId)
+            val showId = MetadataId(metadataId)
+            val tvResponse = queries.findShowById(showId)
                 ?: return QueryMetadataResult.ErrorDatabaseException("Could not find show with id '$metadataId'.")
-            val episodes = queries.findEpisodesByShow(metadataId)
+            val episodes = queries.findEpisodesByShow(showId)
             val matchList = listOf(
                 MetadataMatch.TvShowMatch(
                     remoteMetadataId = tvResponse.tvShow.tmdbId.toString(),
@@ -547,15 +548,15 @@ class TmdbMetadataProvider(
             val remoteId = tvSeries.toRemoteId()
             val existingSeasons = if (tvShowExtras?.seasonNumber == null) {
                 existingShow?.run { queries.findTvSeasonsByTvShowId(id) }
-                    ?: tvSeries.seasons.map { it.asTvSeason(it.toRemoteId(tvSeries.id), tvSeries.toRemoteId()) }
+                    ?: tvSeries.seasons.map { it.asTvSeason(it.toRemoteId(tvSeries.id), remoteId) }
             } else {
                 tvSeries.seasons
                     .filter { it.seasonNumber == tvShowExtras.seasonNumber }
-                    .map { it.asTvSeason(it.toRemoteId(tvSeries.id), tvSeries.toRemoteId()) }
+                    .map { it.asTvSeason(it.toRemoteId(tvSeries.id), remoteId) }
             }
             if (request.cacheContent) {
                 cacheImages(
-                    tvSeries.toRemoteId(),
+                    remoteId.value,
                     listOf(
                         "poster" to tvSeries.posterPath,
                         "backdrop" to tvSeries.backdropPath,
@@ -571,7 +572,7 @@ class TmdbMetadataProvider(
                             .getDetails(tvSeries.id, seasonNumber, null)
                         if (request.cacheContent) {
                             cacheImages(
-                                seasonResponse.toRemoteId(tvSeries.id),
+                                seasonResponse.toRemoteId(tvSeries.id).value,
                                 listOf(
                                     "poster" to seasonResponse.posterPath,
                                 ),
@@ -590,7 +591,7 @@ class TmdbMetadataProvider(
                             }.map { tmdbEpisode ->
                                 if (request.cacheContent) {
                                     cacheImages(
-                                        tmdbEpisode.toRemoteId(tvSeries.id),
+                                        tmdbEpisode.toRemoteId(tvSeries.id).value,
                                         listOf(
                                             "poster" to tmdbEpisode.stillPath,
                                         ),
@@ -619,7 +620,7 @@ class TmdbMetadataProvider(
 
             MetadataMatch.TvShowMatch(
                 remoteMetadataId = tvSeries.id.toString(),
-                remoteId = remoteId,
+                remoteId = remoteId.value,
                 exists = existingShow != null,
                 tvShow = existingShow ?: tvSeries.asTvShow(remoteId).toTvShowModel(),
                 seasons = existingSeasons.map { it.toTvSeasonModel() },
@@ -665,7 +666,7 @@ class TmdbMetadataProvider(
     private fun List<TmdbCompany>.toCompanyDb() =
         map { company ->
             ProductionCompany(
-                id = "",
+                id = TagId(""),
                 name = company.name.orEmpty(),
                 tmdbId = company.id,
             )
@@ -674,16 +675,16 @@ class TmdbMetadataProvider(
     private fun List<TmdbGenre>.toGenreDb() =
         map { genre ->
             Genre(
-                id = "",
+                id = TagId(""),
                 name = genre.name,
                 tmdbId = genre.id,
             )
         }
 
     private fun TmdbCredits.toCreditsDb(): Map<Person, List<MetadataCredit>> {
-        fun TmdbCast.toPerson() = Person(id = "", name = name ?: "<unknown>", tmdbId = id)
+        fun TmdbCast.toPerson() = Person(id = TagId(""), name = name ?: "<unknown>", tmdbId = id)
 
-        fun TmdbCrew.toPerson() = Person(id = "", name = name ?: "<unknown>", tmdbId = id)
+        fun TmdbCrew.toPerson() = Person(id = TagId(""), name = name ?: "<unknown>", tmdbId = id)
 
         fun createCredit(
             creditType: CreditType,
@@ -691,8 +692,8 @@ class TmdbMetadataProvider(
             character: String? = null,
             order: Int? = null,
         ) = MetadataCredit(
-            personId = "",
-            metadataId = "",
+            personId = TagId(""),
+            metadataId = MetadataId(""),
             character = character,
             order = order,
             job = job,

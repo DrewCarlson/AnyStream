@@ -52,21 +52,21 @@ class StreamServiceQueriesJooq(
 ) : StreamServiceQueries {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    override suspend fun fetchUsersByIds(ids: List<String>): List<User> {
+    override suspend fun fetchUsersByIds(ids: List<UserId>): List<User> {
         if (ids.isEmpty()) return emptyList()
         return userDao.fetchUsers(ids)
     }
 
-    override suspend fun fetchPlaybackStatesByIds(ids: List<String>): List<PlaybackState> {
+    override suspend fun fetchPlaybackStatesByIds(ids: List<PlaybackStateId>): List<PlaybackState> {
         if (ids.isEmpty()) return emptyList()
         return playbackStatesDao.fetchByIds(ids)
     }
 
-    override suspend fun fetchMovieById(id: String): Movie? {
+    override suspend fun fetchMovieById(id: MetadataId): Movie? {
         return metadataDao.findByIdAndType(id, MediaType.MOVIE)?.toMovieModel()
     }
 
-    override suspend fun fetchEpisodeById(id: String): Pair<Episode, TvShow>? {
+    override suspend fun fetchEpisodeById(id: MetadataId): Pair<Episode, TvShow>? {
         return try {
             val episodeAlias = METADATA.`as`("episode")
             val showAlias = METADATA.`as`("show")
@@ -95,17 +95,17 @@ class StreamServiceQueriesJooq(
         }
     }
 
-    override suspend fun fetchMediaLink(mediaLinkId: String): MediaLink? {
+    override suspend fun fetchMediaLink(mediaLinkId: MediaLinkId): MediaLink? {
         return mediaLinkDao.findById(mediaLinkId)
     }
 
-    override suspend fun fetchPlaybackStateById(id: String): PlaybackState? {
+    override suspend fun fetchPlaybackStateById(id: PlaybackStateId): PlaybackState? {
         return playbackStatesDao.fetchById(id)
     }
 
     override suspend fun fetchPlaybackState(
-        mediaLinkId: String,
-        userId: String,
+        mediaLinkId: MediaLinkId,
+        userId: UserId,
     ): PlaybackState? {
         return try {
             db
@@ -125,7 +125,7 @@ class StreamServiceQueriesJooq(
     }
 
     override suspend fun updatePlaybackState(
-        stateId: String,
+        stateId: PlaybackStateId,
         position: Duration,
     ): Boolean {
         return try {
@@ -141,7 +141,7 @@ class StreamServiceQueriesJooq(
         }
     }
 
-    override suspend fun deletePlaybackState(playbackStateId: String): Boolean {
+    override suspend fun deletePlaybackState(playbackStateId: PlaybackStateId): Boolean {
         return try {
             db
                 .deleteFrom(PLAYBACK_STATE)

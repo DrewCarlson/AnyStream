@@ -27,7 +27,7 @@ import kotlin.time.Instant
 @Poko
 @Serializable
 class Movie(
-    val id: String,
+    val id: MetadataId,
     val title: String,
     val overview: String,
     val tagline: String? = null,
@@ -40,7 +40,7 @@ class Movie(
     val contentRating: String?,
 ) {
     val isAdded: Boolean
-        get() = !id.contains(':')
+        get() = !id.value.contains(':')
 
     val releaseYear: String?
         get() = releaseDate

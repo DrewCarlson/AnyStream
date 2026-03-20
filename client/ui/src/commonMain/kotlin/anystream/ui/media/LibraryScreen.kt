@@ -21,14 +21,16 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import anystream.models.MediaLinkId
+import anystream.models.MetadataId
 import anystream.presentation.library.LibraryScreenModel
 import anystream.ui.components.LoadingScreen
 
 @Composable
 fun LibraryScreen(
     model: LibraryScreenModel,
-    onMediaClick: (metadataId: String) -> Unit,
-    onPlayMediaClick: (mediaLinkId: String) -> Unit,
+    onMediaClick: (metadataId: MetadataId) -> Unit,
+    onPlayMediaClick: (mediaLinkId: MediaLinkId) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     AnimatedContent(targetState = model) { targetState ->

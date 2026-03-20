@@ -19,6 +19,7 @@ package anystream.models.api
 
 import anystream.models.Episode
 import anystream.models.MediaLink
+import anystream.models.MetadataId
 import anystream.models.Movie
 import anystream.models.TvShow
 import dev.drewhamilton.poko.Poko
@@ -30,7 +31,7 @@ class SearchResponse(
     val movies: List<Movie> = emptyList(),
     val tvShows: List<TvShowResult> = emptyList(),
     val episodes: List<EpisodeResult> = emptyList(),
-    val mediaLink: Map<String, MediaLink> = emptyMap(),
+    val mediaLink: Map<MetadataId, MediaLink> = emptyMap(),
 ) {
     fun hasResult(): Boolean {
         return movies.isNotEmpty() || tvShows.isNotEmpty() || episodes.isNotEmpty()

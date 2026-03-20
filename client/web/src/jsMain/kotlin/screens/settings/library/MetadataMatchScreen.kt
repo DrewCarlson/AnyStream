@@ -20,6 +20,8 @@ package anystream.screens.settings.library
 import androidx.compose.runtime.*
 import anystream.LocalAnyStreamClient
 import anystream.components.LoadingIndicator
+import anystream.models.MediaLinkId
+import anystream.models.MetadataId
 import anystream.models.api.MediaLinkMatchResult
 import anystream.models.api.MediaLinkResponse
 import anystream.models.api.MetadataMatch
@@ -29,7 +31,7 @@ import org.jetbrains.compose.web.dom.*
 
 @Composable
 fun MetadataMatchScreen(
-    mediaLinkId: String?,
+    mediaLinkId: MediaLinkId?,
     onLoadingStatChanged: (isLoading: Boolean) -> Unit,
     closeScreen: () -> Unit,
 ) {
@@ -85,7 +87,7 @@ fun MetadataMatchScreen(
 @Composable
 private fun MatchResultContainer(
     result: MediaLinkMatchResult,
-    currentMetadataId: String?,
+    currentMetadataId: MetadataId?,
     onMatchSelected: (MetadataMatch) -> Unit,
 ) {
     when (result) {

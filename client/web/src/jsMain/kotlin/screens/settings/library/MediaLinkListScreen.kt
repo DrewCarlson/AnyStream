@@ -22,8 +22,10 @@ package anystream.screens.settings.library
 import androidx.compose.runtime.*
 import anystream.LocalAnyStreamClient
 import anystream.components.*
+import anystream.models.LibraryId
 import anystream.models.LocalMediaLink
 import anystream.models.MediaLink
+import anystream.models.MediaLinkId
 import anystream.models.typed
 import anystream.util.tooltip
 import org.jetbrains.compose.web.attributes.Scope
@@ -34,14 +36,14 @@ import org.jetbrains.compose.web.css.vh
 import org.jetbrains.compose.web.dom.*
 
 @Composable
-fun MediaLinkListScreen(libraryId: String) {
+fun MediaLinkListScreen(libraryId: LibraryId) {
     val client = LocalAnyStreamClient.current
     var updateIndex by remember { mutableStateOf(0) }
     val mediaLinks by produceState(emptyList<MediaLink>(), updateIndex) {
         value = client.library.getMediaLinks(libraryId)
     }
-    var matchMediaLinkId by remember { mutableStateOf<String?>(null) }
-    val selectedMediaLinks = remember { mutableStateListOf<String>() }
+    var matchMediaLinkId by remember { mutableStateOf<MediaLinkId?>(null) }
+    val selectedMediaLinks = remember { mutableStateListOf<MediaLinkId>() }
 
     Div({ classes("vstack", "h-100", "w-100", "gap-1", "p-2") }) {
         Div {
