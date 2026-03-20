@@ -9,7 +9,7 @@ logback = "1.5.32"
 mockk = "1.14.9"
 jooqGradle = "10.2"
 imageio = "3.13.1"
-icu4j = "78.2"
+icu4j = "78.3"
 
 [plugins]
 shadowjar = "com.gradleup.shadow:9.3.2"
