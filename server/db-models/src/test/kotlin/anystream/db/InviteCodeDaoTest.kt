@@ -18,6 +18,7 @@
 package anystream.db
 
 import anystream.models.Permission
+import anystream.models.UserId
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
@@ -113,7 +114,7 @@ class InviteCodeDaoTest :
                 .shouldNotBeNull()
 
             dao
-                .deleteInviteCode("secret", "00000000000000")
+                .deleteInviteCode("secret", UserId("00000000000000"))
                 .shouldBeFalse()
 
             dao

@@ -53,14 +53,14 @@ class PlaybackStatesDaoTest :
                 path = "/dir",
             )
             val metadata = Metadata(
-                id = "metadata",
+                id = MetadataId("metadata"),
                 mediaType = MediaType.MOVIE,
                 mediaKind = MediaKind.MOVIE,
                 createdAt = Clock.System.now(),
                 updatedAt = Clock.System.now(),
             )
             val mediaLink = MediaLink(
-                id = "media-link",
+                id = MediaLinkId("media-link"),
                 updatedAt = Clock.System.now(),
                 createdAt = Clock.System.now(),
                 type = MediaLinkType.LOCAL,
@@ -70,7 +70,7 @@ class PlaybackStatesDaoTest :
                 metadataId = metadata.id,
             )
             val user = User(
-                id = "user",
+                id = UserId("user"),
                 displayName = "User",
                 passwordHash = "passwordHash",
                 createdAt = Clock.System.now(),
@@ -91,14 +91,14 @@ class PlaybackStatesDaoTest :
                 .shouldBeEqual(user)
 
             val playbackState = PlaybackState(
-                id = "playback-state",
-                mediaLinkId = "media-link",
-                metadataId = "metadata",
+                id = PlaybackStateId("playback-state"),
+                mediaLinkId = MediaLinkId("media-link"),
+                metadataId = MetadataId("metadata"),
                 position = Duration.ZERO,
                 runtime = 100.seconds,
                 createdAt = Clock.System.now(),
                 updatedAt = Clock.System.now(),
-                userId = "user",
+                userId = UserId("user"),
             )
 
             playbackStatesDao.insert(playbackState).shouldBeTrue()
@@ -114,7 +114,7 @@ class PlaybackStatesDaoTest :
         }
 
         test("fetch when empty") {
-            playbackStatesDao.fetchById("").shouldBeNull()
-            playbackStatesDao.fetchByIds(listOf("")).shouldBeEmpty()
+            playbackStatesDao.fetchById(PlaybackStateId("")).shouldBeNull()
+            playbackStatesDao.fetchByIds(listOf(PlaybackStateId(""))).shouldBeEmpty()
         }
     })

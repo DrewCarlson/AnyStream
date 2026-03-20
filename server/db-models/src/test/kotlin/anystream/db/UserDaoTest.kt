@@ -18,21 +18,19 @@
 package anystream.db
 
 import anystream.models.Permission
+import anystream.models.UserId
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.comparables.shouldBeGreaterThan
-import io.kotest.matchers.comparables.shouldBeLessThan
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.shouldBeSameInstanceAs
 import kotlinx.coroutines.delay
 import org.jooq.DSLContext
-import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 
 class UserDaoTest :
@@ -76,7 +74,7 @@ class UserDaoTest :
         }
 
         test("fetch user permissions - invalid user id") {
-            dao.fetchPermissions("not-a-real-user-id").shouldBeEmpty()
+            dao.fetchPermissions(UserId("not-a-real-user-id")).shouldBeEmpty()
         }
 
         test("fetch user by id") {
