@@ -1,5 +1,5 @@
 mkdocs==1.6.1
-mkdocs-material==9.7.5
+mkdocs-material==9.7.6
 mkdocs-markdownextradata-plugin==0.2.6
 mike==2.1.4
 jinja2==3.1.6
