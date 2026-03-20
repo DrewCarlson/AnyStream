@@ -15,19 +15,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.presentation.media
+package anystream.presentation.model
 
-import anystream.models.api.MediaLookupResponse
-import anystream.presentation.core.ScreenModel
-import anystream.presentation.model.MenuOptionModel
-
-sealed interface MediaScreenModel : ScreenModel {
-    data object Loading : MediaScreenModel
-
-    data class Loaded(
-        val response: MediaLookupResponse,
-        val menuOptions: List<MenuOptionModel>,
-    ) : MediaScreenModel
-
-    data object LoadingFailed : MediaScreenModel
-}
+data class MenuOptionModel(
+    val label: String,
+    val onClick: () -> Unit,
+)
