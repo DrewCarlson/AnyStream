@@ -178,7 +178,7 @@ class MetadataServiceTests :
             assertIs<MetadataMatch.TvShowMatch>(result)
 
             assertEquals(remoteId, result.remoteId)
-            assertEquals(remoteId, result.tvShow.id)
+            assertEquals(remoteId, result.tvShow.id.value)
             assertEquals("456", result.remoteMetadataId)
 
             assertEquals("The Simpsons", result.tvShow.name)
@@ -197,7 +197,7 @@ class MetadataServiceTests :
             assertIs<MetadataMatch.MovieMatch>(result)
 
             assertEquals(remoteId, result.remoteId)
-            assertEquals(remoteId, result.movie.id)
+            assertEquals(remoteId, result.movie.id.value)
             assertEquals("77", result.remoteMetadataId)
 
             assertEquals("Memento", result.movie.title)

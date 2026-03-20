@@ -233,10 +233,10 @@ class MediaFileScannerTest :
 
             folderDeleteResult.mediaLinks
                 .removedIds
-                .shouldContainExactlyInAnyOrder(deletedMovieVideoMediaLinks.map { it.id })
+                .shouldContainExactlyInAnyOrder(deletedMovieVideoMediaLinks.map { it.id.value })
 
             folderDeleteResult.directories
                 .removedIds
-                .shouldContainExactly(deletedMovieDirectoryRecord.id)
+                .shouldContainExactly(deletedMovieDirectoryRecord.id.value)
         }
     })

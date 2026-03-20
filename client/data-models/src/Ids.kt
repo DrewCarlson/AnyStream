@@ -27,44 +27,62 @@ interface IdBase {
 @JvmInline @Serializable
 value class UserId(
     override val value: String,
-) : IdBase
+) : IdBase {
+    override fun toString(): String = value
+}
 
 @JvmInline @Serializable
 value class SessionId(
     override val value: String,
-) : IdBase
+) : IdBase {
+    override fun toString(): String = value
+}
 
 @JvmInline @Serializable
 value class MetadataId(
     override val value: String,
-) : IdBase
+) : IdBase {
+    override fun toString(): String = value
+}
 
 @JvmInline @Serializable
 value class MediaLinkId(
     override val value: String,
-) : IdBase
+) : IdBase {
+    override fun toString(): String = value
+}
 
 @JvmInline @Serializable
 value class LibraryId(
     override val value: String,
-) : IdBase
+) : IdBase {
+    override fun toString(): String = value
+}
 
 @JvmInline @Serializable
 value class DirectoryId(
     override val value: String,
-) : IdBase
+) : IdBase {
+    override fun toString(): String = value
+}
 
 @JvmInline @Serializable
 value class TagId(
     override val value: String,
-) : IdBase
+) : IdBase {
+    override fun toString(): String = value
+}
 
 @JvmInline @Serializable
 value class PlaybackStateId(
     override val value: String,
-) : IdBase
+) : IdBase {
+    override fun toString(): String = value
+}
 
 @JvmInline @Serializable
 value class StreamEncodingId(
     override val value: String,
-) : IdBase
+) : IdBase {
+    override fun toString(): String = value
+}
