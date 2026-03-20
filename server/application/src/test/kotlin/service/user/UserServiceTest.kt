@@ -92,7 +92,7 @@ class UserServiceTest :
 
         test("create user duplicate username validations") {
             val existingUser = User(
-                id = ObjectId.get().toString(),
+                id = UserId(ObjectId.next()),
                 username = "test",
                 displayName = "test",
                 passwordHash = "123456",
@@ -129,7 +129,7 @@ class UserServiceTest :
 
         test("create second user without invite code fails") {
             val existingUser = User(
-                id = ObjectId.get().toString(),
+                id = UserId(ObjectId.next()),
                 username = "test",
                 displayName = "test",
                 passwordHash = "123456",
@@ -153,7 +153,7 @@ class UserServiceTest :
 
         test("create second user with invite code succeeds") {
             val existingUser = User(
-                id = ObjectId.get().toString(),
+                id = UserId(ObjectId.next()),
                 username = "test",
                 displayName = "test",
                 passwordHash = "",
@@ -200,7 +200,7 @@ class UserServiceTest :
 
         test("create session username not found") {
             val existingUser = User(
-                id = ObjectId.get().toString(),
+                id = UserId(ObjectId.next()),
                 username = "test",
                 displayName = "test",
                 passwordHash = "123456",
@@ -222,7 +222,7 @@ class UserServiceTest :
 
         test("create session password incorrect") {
             val existingUser = User(
-                id = ObjectId.get().toString(),
+                id = UserId(ObjectId.next()),
                 username = "test",
                 displayName = "test",
                 passwordHash = userService.hashPassword("123456"),
