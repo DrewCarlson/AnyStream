@@ -273,7 +273,7 @@ class MovieFileProcessor(
             val importResults = metadataService
                 .importMetadata(
                     ImportMetadata(
-                        metadataIds = listOfNotNull(metadataMatch.remoteMetadataId),
+                        metadataIds = listOf(metadataMatch.remoteMetadataId),
                         providerId = metadataMatch.providerId,
                         mediaKind = MediaKind.MOVIE,
                     ),
@@ -281,7 +281,7 @@ class MovieFileProcessor(
 
             if (importResults.isEmpty()) {
                 logger.error("No import results for match {}", metadataMatch.movie)
-                return null // MediaScanResult.ErrorNothingToScan
+                null // MediaScanResult.ErrorNothingToScan
             } else {
                 (importResults.first().match as MetadataMatch.MovieMatch)
             }

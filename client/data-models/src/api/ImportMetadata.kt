@@ -61,7 +61,7 @@ class QueryMetadata(
 @Serializable
 sealed class MetadataMatch {
     abstract val providerId: String
-    abstract val remoteMetadataId: String?
+    abstract val remoteMetadataId: String
     abstract val remoteId: String
     abstract val exists: Boolean
     abstract val metadataId: MetadataId?
@@ -70,7 +70,7 @@ sealed class MetadataMatch {
     @Serializable
     class MovieMatch(
         val movie: Movie,
-        override val remoteMetadataId: String?,
+        override val remoteMetadataId: String,
         override val remoteId: String,
         override val exists: Boolean,
         override val providerId: String,
@@ -84,7 +84,7 @@ sealed class MetadataMatch {
         val tvShow: TvShow,
         val seasons: List<TvSeason>,
         val episodes: List<Episode>,
-        override val remoteMetadataId: String?,
+        override val remoteMetadataId: String,
         override val remoteId: String,
         override val exists: Boolean,
         override val providerId: String,
