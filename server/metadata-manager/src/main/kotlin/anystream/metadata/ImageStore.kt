@@ -27,6 +27,7 @@ import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.isSuccess
+import io.ktor.utils.io.cancel
 import io.ktor.utils.io.jvm.javaio.copyTo
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.delay
@@ -77,30 +78,33 @@ class ImageStore(
         path: Path,
         url: String,
         retry: Boolean = true,
-    ): Boolean {
-        val response = try {
-            withContext(IO) { httpClient.get(url) }
-        } catch (_: Throwable) {
-            null
-        }
-        if (response?.status?.isSuccess() == true) {
-            val body = response.bodyAsChannel()
-            withContext(IO) {
-                path
-                    .outputStream()
-                    .use { out -> body.copyTo(out) }
+    ): Boolean =
+        withContext(IO) {
+            val response = try {
+                httpClient.get(url)
+            } catch (_: Throwable) {
+                null
             }
-            return true
-        } else if (retry && response?.status != NotFound) {
-            var attempt = 0
-            do {
-                attempt += 1
-                if (attempt == 4) {
-                    return false
+            if (response?.status?.isSuccess() == true) {
+                val body = response.bodyAsChannel()
+                try {
+                    path
+                        .outputStream()
+                        .use { out -> body.copyTo(out) }
+                } finally {
+                    body.cancel()
                 }
-                delay(1.seconds * attempt)
-            } while (!downloadInto(path, url, retry = false))
+                return@withContext true
+            } else if (retry && response?.status != NotFound) {
+                var attempt = 0
+                do {
+                    attempt += 1
+                    if (attempt == 4) {
+                        return@withContext false
+                    }
+                    delay(1.seconds * attempt)
+                } while (!downloadInto(path, url, retry = false))
+            }
+            return@withContext true
         }
-        return true
-    }
 }
