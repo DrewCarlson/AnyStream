@@ -47,13 +47,10 @@ allprojects {
 }
 
 kover {
-    dependencies {
-        val moduleGroupFolders = listOf("libs", "anystream-server")
+    merge {
         subprojects {
-            if (moduleGroupFolders.contains(name)) {
-                return@subprojects
-            }
-            kover(rootProject.project(project.path))
+            it.path.startsWith(":server:") ||
+                it.path.startsWith(":client:")
         }
     }
 }
