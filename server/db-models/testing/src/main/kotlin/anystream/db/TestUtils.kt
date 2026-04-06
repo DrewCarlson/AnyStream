@@ -26,7 +26,10 @@ import com.google.common.jimfs.Configuration
 import com.google.common.jimfs.Jimfs
 import io.kotest.core.spec.DslDrivenSpec
 import io.kotest.matchers.booleans.shouldBeTrue
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.asExecutor
 import org.jooq.DSLContext
+import org.jooq.ExecutorProvider
 import org.jooq.SQLDialect
 import org.jooq.impl.DSL
 import org.jooq.impl.DefaultConfiguration
@@ -102,6 +105,7 @@ fun createTestDatabase(): Pair<Connection, DSLContext> {
         setDataSource(dataSource)
         setSQLDialect(SQLDialect.SQLITE)
         set(JooqConverterProvider())
+        set(ExecutorProvider { Dispatchers.IO.asExecutor() })
     }
     return connection to DSL.using(config)
 }

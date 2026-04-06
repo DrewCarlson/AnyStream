@@ -39,7 +39,10 @@ import io.ktor.client.plugins.cache.storage.CacheStorage
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.asExecutor
 import org.jooq.DSLContext
+import org.jooq.ExecutorProvider
 import org.jooq.SQLDialect
 import org.jooq.impl.DSL
 import org.jooq.impl.DefaultConfiguration
@@ -111,6 +114,7 @@ interface ServerGraph {
             setDataSource(dataSource)
             setSQLDialect(SQLDialect.SQLITE)
             set(JooqConverterProvider())
+            set(ExecutorProvider { Dispatchers.IO.asExecutor() })
         }
         return DSL.using(dbConfig)
     }
