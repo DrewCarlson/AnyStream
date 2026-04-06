@@ -16,7 +16,7 @@
         <link rel="prev" href="../installation/configure-server/">
       
       
-        <link rel="next" href="../3-clients-and-mobile/">
+        <link rel="next" href="../6-streaming/">
       
       
         
@@ -498,6 +498,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#music" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Music
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#subtitle-files" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -517,6 +528,33 @@
   
 </nav>
       
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../6-streaming/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Streaming and Transcoding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -581,6 +619,33 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../5-oidc-authentication/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OIDC Authentication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
     
     
     
@@ -590,10 +655,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
         
           
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
             
   
   
@@ -611,8 +676,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -757,6 +822,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#music" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Music
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#subtitle-files" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -798,11 +874,11 @@
 
 
 <h1 id="library-management">Library Management</h1>
-<p>AnyStream libraries represents a single kind of media (Movies, TV, etc.) and contain a list of content directories
-with are regularly scanned to downloading metadata (title, posters, ratings, etc.) and analyze media file contents
+<p>AnyStream libraries represent a single kind of media (Movies, TV, etc.) and contain a list of content directories
+which are regularly scanned to download metadata (title, posters, ratings, etc.) and analyze media file contents
 (audio/video codecs, bitrate, etc.).</p>
 <h2 id="file-and-directory-naming">File and Directory Naming</h2>
-<p>To understand the file and directory structure of your media files, they must follow a specific naming conventions
+<p>To understand the file and directory structure of your media files, they must follow specific naming conventions
 and folder structures.</p>
 <p>Without following these requirements, your library may still be understood by AnyStream but alternative
 naming/structures are not officially supported yet and may result in subtle issues viewing your library.</p>
@@ -831,7 +907,7 @@ naming/structures are not officially supported yet and may result in subtle issu
 </ol>
 <h3 id="movies">Movies</h3>
 <p>Movie files must be contained within a folder that shares the file's name.</p>
-<p>For example, AnyStream expects to find movies structure like:</p>
+<p>For example, AnyStream expects to find movies structured like:</p>
 <div class="highlight"><pre><span></span><code>  /../Movies/The Cabinet of Dr. Caligari (1920)
   /../Movies/The Cabinet of Dr. Caligari (1920)/The Cabinet of Dr. Caligari (1920).mp4
 </code></pre></div>
@@ -846,12 +922,25 @@ video files.</p>
   /../TV/Mister Rogers Neighborhood (1968)/Season 01/S01E02 - King Friday Challenges Change.mp4
 </code></pre></div>
 <p>Note each season has a folder with the <code>Season &lt;number&gt;</code> format where the number optionally contains a leading zero.</p>
-<p>Each episode is contained within it's respective season folder using the
-<code>S&lt;season number&gt;E&lt;episode number&gt; - &lt;episode name&gt;</code> format where the season and episode numbers contains optional
+<p>Each episode is contained within its respective season folder using the
+<code>S&lt;season number&gt;E&lt;episode number&gt; - &lt;episode name&gt;</code> format where the season and episode numbers contain optional
 leading zeros.</p>
 <p>Episode files may optionally use the <code>&lt;show name&gt; - S00E00 - &lt;episode title&gt;</code> format but the directory structure must
 still contain a parent show and season folder.</p>
+<h3 id="music">Music</h3>
+<p>Music support is under active development. Organize your music library with an artist directory containing
+album subdirectories:</p>
+<div class="highlight"><pre><span></span><code>  /../Music/Artist Name
+  /../Music/Artist Name/Album Title (2020)
+  /../Music/Artist Name/Album Title (2020)/01 - Track Title.flac
+</code></pre></div>
 <h3 id="subtitle-files">Subtitle Files</h3>
+<p>Subtitle files should be placed alongside their corresponding video file using the same base filename.
+Use language codes to indicate the subtitle language:</p>
+<div class="highlight"><pre><span></span><code>  /../Movies/Primer (2004)/Primer (2004).mp4
+  /../Movies/Primer (2004)/Primer (2004).en.srt
+  /../Movies/Primer (2004)/Primer (2004).es.srt
+</code></pre></div>
 
 
 
@@ -881,7 +970,7 @@ still contain a parent show and season folder.</p>
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      Copyright &copy; 2025 AnyStream Maintainers
+      Copyright &copy; 2026 AnyStream Maintainers
     </div>
   
   

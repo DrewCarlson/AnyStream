@@ -10,24 +10,28 @@
       
       
       
-        <link rel="canonical" href="https://docs.anystream.dev/v1.0.0-SNAPSHOT/development/architecture/">
+        <link rel="canonical" href="https://docs.anystream.dev/v1.0.0-SNAPSHOT/5-oidc-authentication/">
       
       
+        <link rel="prev" href="../4-connecting-qbittorrent/">
+      
+      
+        <link rel="next" href="../development/documentation/">
       
       
         
       
       
-      <link rel="icon" href="../../img/favicon.ico">
+      <link rel="icon" href="../img/favicon.ico">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>Index - Docs</title>
+        <title>OIDC Authentication - Docs</title>
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
       
       
 
@@ -46,9 +50,9 @@
       
     
     
-      <link rel="stylesheet" href="../../stylesheets/extra.css">
+      <link rel="stylesheet" href="../stylesheets/extra.css">
     
-    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -64,6 +68,11 @@
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
+      
+        
+        <a href="#oidc-authentication" class="md-skip">
+          Skip to content
+        </a>
       
     </div>
     <div data-md-component="announce">
@@ -81,9 +90,9 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="Docs" class="md-header__button md-logo" aria-label="Docs" data-md-component="logo">
+    <a href=".." title="Docs" class="md-header__button md-logo" aria-label="Docs" data-md-component="logo">
       
-  <img src="../../img/as-emblem.svg" alt="logo">
+  <img src="../img/as-emblem.svg" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -100,7 +109,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Index
+              OIDC Authentication
             
           </span>
         </div>
@@ -190,9 +199,9 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="Docs" class="md-nav__button md-logo" aria-label="Docs" data-md-component="logo">
+    <a href=".." title="Docs" class="md-nav__button md-logo" aria-label="Docs" data-md-component="logo">
       
-  <img src="../../img/as-emblem.svg" alt="logo">
+  <img src="../img/as-emblem.svg" alt="logo">
 
     </a>
     Docs
@@ -219,7 +228,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../.." class="md-nav__link">
+      <a href=".." class="md-nav__link">
         
   
   
@@ -293,7 +302,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../installation/getting-started/" class="md-nav__link">
+      <a href="../installation/getting-started/" class="md-nav__link">
         
   
   
@@ -321,7 +330,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../installation/docker/" class="md-nav__link">
+      <a href="../installation/docker/" class="md-nav__link">
         
   
   
@@ -349,7 +358,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../installation/configure-server/" class="md-nav__link">
+      <a href="../installation/configure-server/" class="md-nav__link">
         
   
   
@@ -384,7 +393,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../2-library-management/" class="md-nav__link">
+      <a href="../2-library-management/" class="md-nav__link">
         
   
   
@@ -411,7 +420,34 @@
   
   
     <li class="md-nav__item">
-      <a href="../../3-clients-and-mobile/" class="md-nav__link">
+      <a href="../6-streaming/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Streaming and Transcoding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../3-clients-and-mobile/" class="md-nav__link">
         
   
   
@@ -438,7 +474,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../4-connecting-qbittorrent/" class="md-nav__link">
+      <a href="../4-connecting-qbittorrent/" class="md-nav__link">
         
   
   
@@ -462,6 +498,158 @@
       
   
   
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OIDC Authentication
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OIDC Authentication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#provider-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Provider Settings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setting-up-your-provider" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Setting Up Your Provider
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Setting Up Your Provider">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#general-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        General Steps
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#base-url-requirement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Base URL Requirement
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How It Works
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
   
   
     
@@ -473,10 +661,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
         
           
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
             
   
   
@@ -494,8 +682,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -512,7 +700,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../documentation/" class="md-nav__link">
+      <a href="../development/documentation/" class="md-nav__link">
         
   
   
@@ -540,7 +728,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../database/" class="md-nav__link">
+      <a href="../development/database/" class="md-nav__link">
         
   
   
@@ -585,6 +773,94 @@
   
   
   
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#provider-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Provider Settings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setting-up-your-provider" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Setting Up Your Provider
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Setting Up Your Provider">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#general-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        General Steps
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#base-url-requirement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Base URL Requirement
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How It Works
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -601,7 +877,7 @@
 
 
   
-    <a href="https://github.com/drewcarlson/anystream/edit/main/docs/development/architecture/index.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/drewcarlson/anystream/edit/main/docs/5-oidc-authentication.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -609,9 +885,109 @@
   
 
 
-  <h1>Index</h1>
-
-
+<h1 id="oidc-authentication">OIDC Authentication</h1>
+<p>AnyStream supports <a href="https://openid.net/developers/how-connect-works/">OpenID Connect (OIDC)</a> for single sign-on (SSO)
+authentication. This allows users to log in using an external identity provider such as
+<a href="https://goauthentik.io/">Authentik</a>, <a href="https://www.keycloak.org/">Keycloak</a>,
+<a href="https://www.authelia.com/">Authelia</a>, or any OIDC-compliant provider.</p>
+<h2 id="configuration">Configuration</h2>
+<p>OIDC is configured in the AnyStream config file under the <code>oidc</code> section:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>app {
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    oidc {
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        enable = true
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>        provider {
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>            name = &quot;my-provider&quot;
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>            endpoint = &quot;https://auth.example.com&quot;
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>            client_id = &quot;anystream&quot;
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>            client_secret = &quot;your-client-secret&quot;
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>            admin_group = &quot;anystream-admin&quot;
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>            viewer_group = &quot;anystream-viewer&quot;
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>            groups_field = &quot;groups&quot;
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>            username_fields = [&quot;preferred_username&quot;, &quot;username&quot;]
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>            scopes = [&quot;openid&quot;, &quot;profile&quot;, &quot;email&quot;, &quot;groups&quot;]
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>        }
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    }
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>}
+</code></pre></div>
+<h3 id="provider-settings">Provider Settings</h3>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td>(required)</td>
+<td>A name for this provider, used internally for routing.</td>
+</tr>
+<tr>
+<td><code>endpoint</code></td>
+<td>(required)</td>
+<td>The base URL of your OIDC provider. AnyStream uses <a href="https://openid.net/specs/openid-connect-discovery-1_0.html">discovery</a> to find all other endpoints automatically.</td>
+</tr>
+<tr>
+<td><code>client_id</code></td>
+<td>(required)</td>
+<td>The OAuth2 client ID registered with your provider.</td>
+</tr>
+<tr>
+<td><code>client_secret</code></td>
+<td>(required)</td>
+<td>The OAuth2 client secret.</td>
+</tr>
+<tr>
+<td><code>admin_group</code></td>
+<td><code>anystream-admin</code></td>
+<td>The group name that grants admin (Global) permissions.</td>
+</tr>
+<tr>
+<td><code>viewer_group</code></td>
+<td><code>anystream-viewer</code></td>
+<td>The group name that grants viewer (ViewCollection) permissions.</td>
+</tr>
+<tr>
+<td><code>groups_field</code></td>
+<td><code>groups</code></td>
+<td>The claim field in the OIDC user info response that contains group membership.</td>
+</tr>
+<tr>
+<td><code>username_fields</code></td>
+<td><code>["preferred_username", "username"]</code></td>
+<td>A list of claim fields to try (in order) to determine the username.</td>
+</tr>
+<tr>
+<td><code>scopes</code></td>
+<td><code>["openid", "profile", "email", "groups"]</code></td>
+<td>The OAuth2 scopes to request from the provider.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="setting-up-your-provider">Setting Up Your Provider</h2>
+<h3 id="general-steps">General Steps</h3>
+<ol>
+<li>Create a new OAuth2/OIDC client application in your identity provider.</li>
+<li>Set the <strong>redirect URI</strong> to: <code>https://your-anystream-url/api/users/oidc/callback</code></li>
+<li>Ensure the client is configured to include group membership in the user info response or ID token.</li>
+<li>Create the groups referenced by <code>admin_group</code> and <code>viewer_group</code> in your provider and assign users to them.</li>
+<li>Copy the client ID and secret into your AnyStream config.</li>
+</ol>
+<h3 id="base-url-requirement">Base URL Requirement</h3>
+<p>When using OIDC, you must set <code>BASE_URL</code> in your AnyStream configuration (or ensure proper forwarded headers
+are being passed) so that the callback URL is generated correctly.</p>
+<h2 id="how-it-works">How It Works</h2>
+<p>When OIDC is enabled, a provider-based login option appears on the AnyStream login screen alongside the
+standard username/password login.</p>
+<ul>
+<li><strong>New users</strong>: When a user logs in via OIDC for the first time, an AnyStream account is created automatically.
+  Permissions are assigned based on the user's group membership in the identity provider.</li>
+<li><strong>Returning users</strong>: On subsequent logins, a new session is created for the existing AnyStream account.</li>
+</ul>
+<p>Users authenticated via OIDC use their provider's username (determined by <code>username_fields</code>). Permissions are
+assigned based on group membership at the time of account creation.</p>
 
 
 
@@ -641,7 +1017,7 @@
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      Copyright &copy; 2025 AnyStream Maintainers
+      Copyright &copy; 2026 AnyStream Maintainers
     </div>
   
   
@@ -692,10 +1068,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.action.edit"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["content.action.edit"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>

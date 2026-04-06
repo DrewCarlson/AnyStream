@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://docs.anystream.dev/v1.0.0-SNAPSHOT/3-clients-and-mobile/">
       
       
-        <link rel="prev" href="../2-library-management/">
+        <link rel="prev" href="../6-streaming/">
       
       
         <link rel="next" href="../4-connecting-qbittorrent/">
@@ -417,6 +417,33 @@
       
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../6-streaming/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Streaming and Transcoding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
     
   
   
@@ -491,10 +518,38 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#android-google-tv" class="md-nav__link">
+  <a href="#android" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Android / Google TV
+        Android
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Android">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#device-pairing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Device Pairing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#desktop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Desktop
       
     </span>
   </a>
@@ -564,6 +619,33 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../5-oidc-authentication/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OIDC Authentication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
     
     
     
@@ -573,10 +655,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
         
           
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
             
   
   
@@ -594,8 +676,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -706,10 +788,38 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#android-google-tv" class="md-nav__link">
+  <a href="#android" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Android / Google TV
+        Android
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Android">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#device-pairing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Device Pairing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#desktop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Desktop
       
     </span>
   </a>
@@ -767,9 +877,31 @@
 <p>AnyStream makes your library accessible from anywhere with native web and mobile applications.
 More devices will be supported in the future.</p>
 <h2 id="web">Web</h2>
-<p>AnyStream provides a built-in website to view and manage your library.</p>
-<h2 id="android-google-tv">Android / Google TV</h2>
-<p><strong>Coming soon</strong></p>
+<p>AnyStream provides a built-in website to view and manage your library.
+The web client is served automatically by the AnyStream server and is accessible at your server's URL
+(e.g. <code>http://localhost:8888</code>).</p>
+<p>The web client supports:</p>
+<ul>
+<li>Browsing your movie and TV show libraries</li>
+<li>Searching your collection</li>
+<li>Streaming media with adaptive transcoding</li>
+<li>Managing library directories and scanning</li>
+<li>User and invitation management (admin)</li>
+<li>Monitoring active playback sessions and server logs (admin)</li>
+</ul>
+<h2 id="android">Android</h2>
+<p>An Android client is available that provides a native experience for phones, tablets, and Google TV devices.</p>
+<h3 id="device-pairing">Device Pairing</h3>
+<p>AnyStream supports device pairing to simplify signing in on devices where typing credentials is inconvenient
+(such as a TV). To pair a device:</p>
+<ol>
+<li>Open the AnyStream app on the device you want to pair.</li>
+<li>A pairing QR code will be displayed on screen.</li>
+<li>On a device where you are already signed in, scan the QR code and approve the new device.</li>
+<li>The new device will be signed in automatically.</li>
+</ol>
+<h2 id="desktop">Desktop</h2>
+<p>An experimental desktop client is available for macOS, Windows, and Linux using a native UI.</p>
 <h2 id="ios-apple-tv">iOS / Apple TV</h2>
 <p><strong>Coming soon</strong></p>
 <h2 id="chromecast">Chromecast</h2>
@@ -803,7 +935,7 @@ More devices will be supported in the future.</p>
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      Copyright &copy; 2025 AnyStream Maintainers
+      Copyright &copy; 2026 AnyStream Maintainers
     </div>
   
   

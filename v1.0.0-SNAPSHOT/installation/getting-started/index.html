@@ -387,15 +387,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#java-11" class="md-nav__link">
+  <a href="#java-21" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Java 11+
+        Java 21+
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Java 11+">
+    <nav class="md-nav" aria-label="Java 21+">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -414,6 +414,17 @@
     <span class="md-ellipsis">
       
         macOS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linux" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Linux
       
     </span>
   </a>
@@ -453,6 +464,17 @@
     <span class="md-ellipsis">
       
         macOS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linux_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Linux
       
     </span>
   </a>
@@ -636,6 +658,33 @@
   
   
     <li class="md-nav__item">
+      <a href="../../6-streaming/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Streaming and Transcoding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../3-clients-and-mobile/" class="md-nav__link">
         
   
@@ -689,6 +738,33 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../5-oidc-authentication/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OIDC Authentication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
     
     
     
@@ -698,10 +774,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
         
           
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
             
   
   
@@ -719,8 +795,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -843,15 +919,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#java-11" class="md-nav__link">
+  <a href="#java-21" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Java 11+
+        Java 21+
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Java 11+">
+    <nav class="md-nav" aria-label="Java 21+">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -870,6 +946,17 @@
     <span class="md-ellipsis">
       
         macOS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linux" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Linux
       
     </span>
   </a>
@@ -909,6 +996,17 @@
     <span class="md-ellipsis">
       
         macOS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linux_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Linux
       
     </span>
   </a>
@@ -1021,66 +1119,87 @@ AnyStream communicates with while managing your collection.</p>
 <p><strong>To maintain privacy it is recommended that you run AnyStream with a VPN like <a href="https://airvpn.org/">AirVPN</a>
 or <a href="https://mullvad.net/">Mullvad</a>.</strong></p>
 <h2 id="requirements">Requirements</h2>
-<h3 id="java-11">Java 11+</h3>
+<h3 id="java-21">Java 21+</h3>
+<p>AnyStream requires Java 21 or later. Any compatible JDK or JRE distribution will work.
+<a href="https://www.azul.com/downloads/?version=java-21-lts&amp;package=jre">Azul Zulu</a> builds are a good choice.</p>
 <h4 id="windows">Windows</h4>
 <details class="info">
 <summary>Install Manually</summary>
-<p>Download the <a href="https://www.azul.com/downloads/?version=java-11-lts&amp;package=jre">JRE 11</a> MSI file and run the installer.
+<p>Download the <a href="https://www.azul.com/downloads/?version=java-21-lts&amp;os=windows&amp;package=jre">JRE 21</a> MSI file and run the installer.
 Follow the instructions until the installation is complete. For more information
 see "<a href="https://docs.azul.com/core/zulu-openjdk/install/windows#install-azul-zulu-with-msi-installer">Install Azul Zulu with MSI installer</a>"</p>
 </details>
 <details class="info">
 <summary>Install with Chocolatey</summary>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>choco<span class="w"> </span>install<span class="w"> </span>zulu<span class="w"> </span>--version<span class="o">=</span><span class="m">11</span>.29.11
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>choco<span class="w"> </span>install<span class="w"> </span>zulu21-jre
 </code></pre></div>
 </details>
 <h4 id="macos">macOS</h4>
 <details class="info">
 <summary>Install Manually</summary>
-<p>Download the <a href="https://www.azul.com/downloads/?version=java-11-lts&amp;os=macos&amp;architecture=x86-64-bit&amp;package=jdk">JRE 11 for Intel</a>
-DMG file or <a href="https://www.azul.com/downloads/?version=java-11-lts&amp;os=macos&amp;architecture=arm-64-bit&amp;package=jdk">JRE 11 for M1</a>.
+<p>Download the <a href="https://www.azul.com/downloads/?version=java-21-lts&amp;os=macos&amp;architecture=x86-64-bit&amp;package=jre">JRE 21 for Intel</a>
+DMG file or <a href="https://www.azul.com/downloads/?version=java-21-lts&amp;os=macos&amp;architecture=arm-64-bit&amp;package=jre">JRE 21 for Apple Silicon</a>.
 Double click the file and follow the instructions until the installation is complete.</p>
 </details>
 <details class="info">
 <summary>Install with Homebrew</summary>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>brew<span class="w"> </span>tap<span class="w"> </span>mdogan/zulu
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>brew<span class="w"> </span>install<span class="w"> </span>zulu-jdk11
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>brew<span class="w"> </span>install<span class="w"> </span>--cask<span class="w"> </span>zulu@21
+</code></pre></div>
+</details>
+<h4 id="linux">Linux</h4>
+<details class="info">
+<summary>Install with APT (Debian/Ubuntu)</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>gnupg<span class="w"> </span>ca-certificates<span class="w"> </span>curl
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>curl<span class="w"> </span>-s<span class="w"> </span>https://repos.azul.com/azul-repo.key<span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>gpg<span class="w"> </span>--dearmor<span class="w"> </span>-o<span class="w"> </span>/usr/share/keyrings/azul.gpg
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;deb [signed-by=/usr/share/keyrings/azul.gpg] https://repos.azul.com/zulu/deb stable main&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>/etc/apt/sources.list.d/zulu.list
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>sudo<span class="w"> </span>apt<span class="w"> </span>update
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>zulu21-jre-headless
 </code></pre></div>
 </details>
 <details class="info">
-<summary>Install with MacPorts</summary>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>sudo<span class="w"> </span>port<span class="w"> </span>install<span class="w"> </span>openjdk11-zulu
+<summary>Install with DNF (Fedora/RHEL)</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>sudo<span class="w"> </span>dnf<span class="w"> </span>install<span class="w"> </span>https://cdn.azul.com/zulu/bin/zulu-repo-1.0.0-1.noarch.rpm
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>sudo<span class="w"> </span>dnf<span class="w"> </span>install<span class="w"> </span>zulu21-jre-headless
 </code></pre></div>
 </details>
 <h3 id="ffmpeg">FFmpeg</h3>
 <p><a href="https://ffmpeg.org/">FFmpeg</a> is required to <a href="https://en.wikipedia.org/wiki/Transcoding">transcode</a> your media library
 when streaming to certain devices and analyzing media files.</p>
+<p>AnyStream will automatically search for FFmpeg in common installation directories.
+If it cannot be found, set the <code>FFMPEG_PATH</code> environment variable or config option to the directory containing the
+<code>ffmpeg</code> and <code>ffprobe</code> binaries.</p>
 <h4 id="windows_1">Windows</h4>
 <details class="info">
 <summary>Install Manually</summary>
-<p><a href="https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n4.4-latest-win64-gpl-4.4.zip">Click here</a> to download FFmpeg.
-Extract <code>fmpeg-n4.4-latest-win64-gpl-4.4.zip</code> and rename the <code>bin</code> folder to <code>ffmpeg</code> and move it to <code>C:\Program Files\ffmpeg</code>.</p>
+<p>Download a recent FFmpeg build from <a href="https://www.gyan.dev/ffmpeg/builds/">gyan.dev</a> or
+<a href="https://github.com/BtbN/FFmpeg-Builds/releases">BtbN/FFmpeg-Builds</a>.
+Extract the archive and add the <code>bin</code> folder to your system PATH, or set <code>FFMPEG_PATH</code> to point to the <code>bin</code> directory.</p>
 </details>
 <details class="info">
 <summary>Install with Chocolatey</summary>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>choco<span class="w"> </span>install<span class="w"> </span>ffmpeg
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>choco<span class="w"> </span>install<span class="w"> </span>ffmpeg
 </code></pre></div>
 </details>
 <h4 id="macos_1">macOS</h4>
 <details class="info">
-<summary>Install Manually</summary>
-<p><a href="https://evermeet.cx/pub/ffmpeg/ffmpeg-4.4.1.zip">Click here</a> to download FFmpeg and
-<a href="https://evermeet.cx/pub/ffprobe/ffprobe-4.4.1.zip">here</a> to download FFprobe.
-Extract both files into <code>/usr/local/bin</code></p>
-</details>
-<details class="info">
 <summary>Install with Homebrew</summary>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>brew<span class="w"> </span>install<span class="w"> </span>ffmpeg
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>brew<span class="w"> </span>install<span class="w"> </span>ffmpeg
 </code></pre></div>
 </details>
 <details class="info">
 <summary>Install with MacPorts</summary>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>sudo<span class="w"> </span>port<span class="w"> </span>install<span class="w"> </span>ffmpeg
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>sudo<span class="w"> </span>port<span class="w"> </span>install<span class="w"> </span>ffmpeg
+</code></pre></div>
+</details>
+<h4 id="linux_1">Linux</h4>
+<details class="info">
+<summary>Install with APT (Debian/Ubuntu)</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>ffmpeg
+</code></pre></div>
+</details>
+<details class="info">
+<summary>Install with DNF (Fedora/RHEL)</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>sudo<span class="w"> </span>dnf<span class="w"> </span>install<span class="w"> </span>ffmpeg-free
 </code></pre></div>
 </details>
 <h2 id="download-anystream">Download AnyStream</h2>
@@ -1114,13 +1233,13 @@ or choose your preferred format below:</p>
 <p>AnyStream tries to provide optimal default configuration and can be run without any configuration.</p>
 <details class="info">
 <summary>Configuration (Environment variables)</summary>
-<p>The following optiions can be modified on your first run to customize AnyStream for your system.</p>
+<p>The following options can be modified on your first run to customize AnyStream for your system.</p>
 <table>
 <thead>
 <tr>
-<th>name</th>
-<th>value</th>
-<th>description</th>
+<th>Name</th>
+<th>Default</th>
+<th>Description</th>
 </tr>
 </thead>
 <tbody>
@@ -1132,25 +1251,41 @@ or choose your preferred format below:</p>
 <tr>
 <td><code>DATA_PATH</code></td>
 <td>macos = <code>/Users/&lt;user&gt;/anystream</code><br/>linux = <code>/home/&lt;user&gt;/anystream</code><br/>windows = <code>C:\Users\&lt;user&gt;\anystream</code></td>
-<td>The folder where all data generated by anystream will be stored. Note this is not the folder for your media collection.</td>
+<td>The folder where all data generated by AnyStream will be stored. This is not the folder for your media collection.</td>
 </tr>
 <tr>
 <td><code>DATABASE_URL</code></td>
-<td><code>&lt;DATA_PATH&gt;/config/anystream.db</code></td>
-<td>The file where the database will be stored. (Note the <code>sqlite:</code> prefix is required)</td>
+<td><code>&lt;DATA_PATH&gt;/anystream.db</code></td>
+<td>The file path where the SQLite database will be stored.</td>
+</tr>
+<tr>
+<td><code>CONFIG_PATH</code></td>
+<td>(none)</td>
+<td>Path to a configuration file (<code>.conf</code> for HOCON or <code>.yml</code>/<code>.yaml</code> for YAML). See <a href="../configure-server/">Configure Server</a> for details.</td>
+</tr>
+<tr>
+<td><code>BASE_URL</code></td>
+<td>(none)</td>
+<td>The public URL of your AnyStream instance (e.g. <code>https://stream.example.com</code>). Required when behind a reverse proxy.</td>
 </tr>
 <tr>
 <td><code>FFMPEG_PATH</code></td>
-<td>macos = <code>/usr/bin</code><br/>linux = <code>/usr/bin</code><br/>windows = <code>C:\Program Files\ffmpeg</code></td>
-<td>The directory which contains <a href="https://www.ffmpeg.org/download.html">FFmpeg</a> and FFprobe binaries.</td>
+<td>(auto-detected)</td>
+<td>The directory containing <a href="https://www.ffmpeg.org/download.html">FFmpeg</a> and FFprobe binaries.</td>
+</tr>
+<tr>
+<td><code>TRANSCODE_PATH</code></td>
+<td><code>/tmp</code></td>
+<td>The directory used for temporary transcode output files.</td>
 </tr>
 <tr>
 <td><code>WEB_CLIENT_PATH</code></td>
 <td>(none)</td>
-<td>The folder which contains the Web client files to be served. By default these files are provided by the server binary.</td>
+<td>The folder containing the web client files to serve. By default these files are provided by the server binary.</td>
 </tr>
 </tbody>
 </table>
+<p>For qBittorrent and OIDC configuration, see <a href="../../4-connecting-qbittorrent/">Connecting qBittorrent</a> and <a href="../../5-oidc-authentication/">OIDC Authentication</a>.</p>
 </details>
 <details class="info">
 <summary>Configuration (Program arguments)</summary>
@@ -1177,8 +1312,20 @@ The table below maps the Environment variable name to the CLI argument, see "Con
 <td><code>-app.databaseUrl="..."</code></td>
 </tr>
 <tr>
+<td><code>CONFIG_PATH</code></td>
+<td><code>-config="..."</code></td>
+</tr>
+<tr>
+<td><code>BASE_URL</code></td>
+<td><code>-app.baseUrl="..."</code></td>
+</tr>
+<tr>
 <td><code>FFMPEG_PATH</code></td>
 <td><code>-app.ffmpegPath="..."</code></td>
+</tr>
+<tr>
+<td><code>TRANSCODE_PATH</code></td>
+<td><code>-app.transcodePath="..."</code></td>
 </tr>
 <tr>
 <td><code>WEB_CLIENT_PATH</code></td>
@@ -1202,20 +1349,20 @@ The table below maps the Environment variable name to the CLI argument, see "Con
 </details>
 <details class="info">
 <summary>Command Prompt Download</summary>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>&gt;<span class="w"> </span>curl<span class="w"> </span>-LO<span class="w"> </span>https://github.com/DrewCarlson/AnyStream/releases/download/v1.0.0-SNAPSHOT/anystream-server-1.0.0-SNAPSHOT.tar
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>&gt;<span class="w"> </span>tar<span class="w"> </span>-xvf<span class="w"> </span>anystream-server-1.0.0-SNAPSHOT.tar
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>&gt;<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>anystream-1.0.0-SNAPSHOT/bin
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>&gt;<span class="w"> </span>anystream<span class="w"> </span>-port<span class="o">=</span><span class="m">8888</span><span class="w"> </span>-P:app.ffmpegPath<span class="o">=</span><span class="s2">&quot;C:\Users\&lt;user&gt;\Downloads\ffmpeg&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>&gt;<span class="w"> </span>curl<span class="w"> </span>-LO<span class="w"> </span>https://github.com/DrewCarlson/AnyStream/releases/download/v1.0.0-SNAPSHOT/anystream-server-1.0.0-SNAPSHOT.tar
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>&gt;<span class="w"> </span>tar<span class="w"> </span>-xvf<span class="w"> </span>anystream-server-1.0.0-SNAPSHOT.tar
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>&gt;<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>anystream-1.0.0-SNAPSHOT/bin
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>&gt;<span class="w"> </span>anystream<span class="w"> </span>-port<span class="o">=</span><span class="m">8888</span>
 </code></pre></div>
 <p>AnyStream will be running and printing log messages until you close the window or press <code>ctrl + c</code>.</p>
 </details>
 <h3 id="run-on-linux-or-macos">Run on Linux or macOS</h3>
 <details class="info">
 <summary>anystream from Terminal example</summary>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>$<span class="w"> </span>curl<span class="w"> </span>-LO<span class="w"> </span>https://github.com/DrewCarlson/AnyStream/releases/download/v1.0.0-SNAPSHOT/anystream-server-1.0.0-SNAPSHOT.tar
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>$<span class="w"> </span>tar<span class="w"> </span>-xvf<span class="w"> </span>anystream-server-1.0.0-SNAPSHOT.tar
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>anystream-1.0.0-SNAPSHOT/bin
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>$<span class="w"> </span>./anystream<span class="w"> </span>-port<span class="o">=</span><span class="m">8888</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>$<span class="w"> </span>curl<span class="w"> </span>-LO<span class="w"> </span>https://github.com/DrewCarlson/AnyStream/releases/download/v1.0.0-SNAPSHOT/anystream-server-1.0.0-SNAPSHOT.tar
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>$<span class="w"> </span>tar<span class="w"> </span>-xvf<span class="w"> </span>anystream-server-1.0.0-SNAPSHOT.tar
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>anystream-1.0.0-SNAPSHOT/bin
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>$<span class="w"> </span>./anystream<span class="w"> </span>-port<span class="o">=</span><span class="m">8888</span>
 </code></pre></div>
 </details>
 <h2 id="configure-server">Configure Server</h2>
@@ -1250,7 +1397,7 @@ See <a href="../configure-server/">Installation &gt; Configure Server</a> for wh
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      Copyright &copy; 2025 AnyStream Maintainers
+      Copyright &copy; 2026 AnyStream Maintainers
     </div>
   
   

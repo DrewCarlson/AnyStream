@@ -431,6 +431,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#config-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Config File
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#importing-media" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -439,6 +450,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Importing Media">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pre-configuring-library-directories" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pre-configuring Library Directories
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -446,6 +474,17 @@
     <span class="md-ellipsis">
       
         Inviting Users
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reverse-proxy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reverse Proxy
       
     </span>
   </a>
@@ -483,6 +522,33 @@
     
   
     Library Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../6-streaming/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Streaming and Transcoding
   
 
     
@@ -555,6 +621,33 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../5-oidc-authentication/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OIDC Authentication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
     
     
     
@@ -564,10 +657,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
         
           
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
             
   
   
@@ -585,8 +678,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -697,6 +790,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#config-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Config File
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#importing-media" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -705,6 +809,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Importing Media">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pre-configuring-library-directories" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pre-configuring Library Directories
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -712,6 +833,17 @@
     <span class="md-ellipsis">
       
         Inviting Users
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reverse-proxy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reverse Proxy
       
     </span>
   </a>
@@ -746,15 +878,99 @@
 <h1 id="configure-server">Configure Server</h1>
 <p><em>Is your server running? See <a href="../getting-started/">Installation &gt; Getting Started</a> first.</em></p>
 <p>When the server has started without errors, the web client will be available
-at <a href="https://localhost:8888">localhost:8888</a> or whatever port you've specified.</p>
+at <a href="http://localhost:8888">localhost:8888</a> or whatever port you've specified.</p>
 <h2 id="create-an-admin-user">Create an Admin User</h2>
 <p>After starting a new AnyStream instance, the first user signup does not require an invitation code and will be granted
 global permissions.</p>
 <div class="admonition danger">
 <p class="admonition-title">Danger</p>
 <p>It is important to register an admin user immediately after starting AnyStream for the first time.
-If left incomplete, unauthorized users my be able to modify system files via AnyStream.</p>
+If left incomplete, unauthorized users may be able to modify system files via AnyStream.</p>
 </div>
+<h2 id="config-file">Config File</h2>
+<p>AnyStream supports configuration through a config file in addition to environment variables and CLI arguments.
+The config file path is set with the <code>CONFIG_PATH</code> environment variable or the <code>-config=</code> CLI argument.</p>
+<p>Supported formats:</p>
+<ul>
+<li><strong>HOCON</strong> (<code>.conf</code>) -- a superset of JSON commonly used in JVM applications</li>
+<li><strong>YAML</strong> (<code>.yml</code> or <code>.yaml</code>)</li>
+</ul>
+<p>If the specified config file does not exist, AnyStream will create one with default values on startup.</p>
+<div class="admonition example">
+<p class="admonition-title">Example HOCON config (<code>anystream.conf</code>)</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>app {
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    dataPath = &quot;/path/to/anystream/data&quot;
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    databaseUrl = &quot;/path/to/anystream/data/anystream.db&quot;
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    ffmpegPath = &quot;/usr/bin&quot;
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    transcodePath = &quot;/tmp&quot;
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    baseUrl = &quot;https://stream.example.com&quot;
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    qbittorrent {
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>        url = &quot;http://localhost:9090&quot;
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>        user = &quot;admin&quot;
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>        password = &quot;adminadmin&quot;
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    }
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    libraries {
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>        tv {
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>            directories = [&quot;/media/TV&quot;]
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>        }
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>        movies {
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>            directories = [&quot;/media/Movies&quot;]
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>        }
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>        music {
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>            directories = [&quot;/media/Music&quot;]
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>        }
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>    }
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>    oidc {
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>        enable = false
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>        provider {
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>            name = &quot;my-provider&quot;
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>            endpoint = &quot;https://auth.example.com&quot;
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>            client_id = &quot;anystream&quot;
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>            client_secret = &quot;your-secret&quot;
+<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>        }
+<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>    }
+<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>}
+</code></pre></div>
+</div>
+<div class="admonition example">
+<p class="admonition-title">Example YAML config (<code>anystream.yml</code>)</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">app</span><span class="p">:</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">dataPath</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/path/to/anystream/data</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">databaseUrl</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/path/to/anystream/data/anystream.db</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nt">ffmpegPath</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/usr/bin</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="nt">transcodePath</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/tmp</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="nt">baseUrl</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://stream.example.com</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="nt">qbittorrent</span><span class="p">:</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">    </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">http://localhost:9090</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">    </span><span class="nt">user</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">admin</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">    </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">adminadmin</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">  </span><span class="nt">libraries</span><span class="p">:</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">    </span><span class="nt">tv</span><span class="p">:</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">      </span><span class="nt">directories</span><span class="p">:</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/media/TV</span>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">    </span><span class="nt">movies</span><span class="p">:</span>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">      </span><span class="nt">directories</span><span class="p">:</span>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/media/Movies</span>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">    </span><span class="nt">music</span><span class="p">:</span>
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">      </span><span class="nt">directories</span><span class="p">:</span>
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/media/Music</span>
+<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>
+<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="w">  </span><span class="nt">oidc</span><span class="p">:</span>
+<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="w">    </span><span class="nt">enable</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="w">    </span><span class="nt">provider</span><span class="p">:</span>
+<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="w">      </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my-provider</span>
+<a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a><span class="w">      </span><span class="nt">endpoint</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://auth.example.com</span>
+<a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a><span class="w">      </span><span class="nt">client_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">anystream</span>
+<a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a><span class="w">      </span><span class="nt">client_secret</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">your-secret</span>
+</code></pre></div>
+</div>
+<p>Environment variables override config file values. This allows you to keep a base config file and override
+specific settings per environment.</p>
 <h2 id="importing-media">Importing Media</h2>
 <p>Importing your media files starts by adding a directory to a Library.</p>
 <p>Before adding a library directory, ensure your media files follow the guidelines in
@@ -765,17 +981,54 @@ If left incomplete, unauthorized users my be able to modify system files via Any
 <li>Click "Add Folder"</li>
 <li>Select or paste the folder path and click "Add"</li>
 </ol>
-<p>That's it!  All the media files will be scanned and metadata will be downloaded.
+<p>That's it! All the media files will be scanned and metadata will be downloaded.
 You can navigate to the home page to see your library populate in real time.</p>
+<h3 id="pre-configuring-library-directories">Pre-configuring Library Directories</h3>
+<p>Library directories can also be set in the config file or environment, which is useful for Docker deployments
+where the media paths are known ahead of time. See the <code>libraries</code> section in the config file examples above.</p>
+<p>Directories configured this way are added automatically on startup.</p>
 <h2 id="inviting-users">Inviting Users</h2>
 <p>You can add new users manually or create unique URLs to share which allow a single person to create an account with the
 desired permissions.</p>
 <p>To create an invitation URL:</p>
-<ul>
+<ol>
 <li>Navigate to Settings &gt; Users, then click "Manage Invites".</li>
 <li>Select the permissions required by the new User, then click "Create Invite".</li>
 <li>The new invite will be added to the list and a sharable signup link will be copied to your clipboard.</li>
-</ul>
+</ol>
+<p>The available permissions are:</p>
+<table>
+<thead>
+<tr>
+<th>Permission</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>View Collection</td>
+<td>Browse and stream media from the library.</td>
+</tr>
+<tr>
+<td>Manage Collection</td>
+<td>Add, remove, and scan library directories.</td>
+</tr>
+<tr>
+<td>Manage Torrents</td>
+<td>View, add, pause, resume, and delete torrents in qBittorrent.</td>
+</tr>
+<tr>
+<td>Configure System</td>
+<td>Access admin settings, view active sessions and server logs.</td>
+</tr>
+</tbody>
+</table>
+<p>An admin user (with Global permissions) has all permissions and can manage other users.</p>
+<h2 id="reverse-proxy">Reverse Proxy</h2>
+<p>When running AnyStream behind a reverse proxy (e.g. Nginx, Caddy, Traefik), set the <code>BASE_URL</code> environment variable
+or config option to your public URL so that redirects and OIDC callbacks work correctly.</p>
+<p>AnyStream supports <code>X-Forwarded-For</code>, <code>X-Forwarded-Proto</code>, and standard <code>Forwarded</code> headers automatically when
+<code>BASE_URL</code> is not set.</p>
 
 
 
@@ -805,7 +1058,7 @@ desired permissions.</p>
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      Copyright &copy; 2025 AnyStream Maintainers
+      Copyright &copy; 2026 AnyStream Maintainers
     </div>
   
   

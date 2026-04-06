@@ -10,24 +10,28 @@
       
       
       
-        <link rel="canonical" href="https://docs.anystream.dev/v1.0.0-SNAPSHOT/development/architecture/library-management/">
+        <link rel="canonical" href="https://docs.anystream.dev/v1.0.0-SNAPSHOT/6-streaming/">
       
       
+        <link rel="prev" href="../2-library-management/">
+      
+      
+        <link rel="next" href="../3-clients-and-mobile/">
       
       
         
       
       
-      <link rel="icon" href="../../../img/favicon.ico">
+      <link rel="icon" href="../img/favicon.ico">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>Library management - Docs</title>
+        <title>Streaming and Transcoding - Docs</title>
       
     
     
-      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
       
       
 
@@ -46,9 +50,9 @@
       
     
     
-      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+      <link rel="stylesheet" href="../stylesheets/extra.css">
     
-    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -66,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#library-management" class="md-skip">
+        <a href="#streaming-and-transcoding" class="md-skip">
           Skip to content
         </a>
       
@@ -86,9 +90,9 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../../.." title="Docs" class="md-header__button md-logo" aria-label="Docs" data-md-component="logo">
+    <a href=".." title="Docs" class="md-header__button md-logo" aria-label="Docs" data-md-component="logo">
       
-  <img src="../../../img/as-emblem.svg" alt="logo">
+  <img src="../img/as-emblem.svg" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -105,7 +109,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Library management
+              Streaming and Transcoding
             
           </span>
         </div>
@@ -195,9 +199,9 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../../.." title="Docs" class="md-nav__button md-logo" aria-label="Docs" data-md-component="logo">
+    <a href=".." title="Docs" class="md-nav__button md-logo" aria-label="Docs" data-md-component="logo">
       
-  <img src="../../../img/as-emblem.svg" alt="logo">
+  <img src="../img/as-emblem.svg" alt="logo">
 
     </a>
     Docs
@@ -224,7 +228,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../.." class="md-nav__link">
+      <a href=".." class="md-nav__link">
         
   
   
@@ -298,7 +302,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../installation/getting-started/" class="md-nav__link">
+      <a href="../installation/getting-started/" class="md-nav__link">
         
   
   
@@ -326,7 +330,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../installation/docker/" class="md-nav__link">
+      <a href="../installation/docker/" class="md-nav__link">
         
   
   
@@ -354,7 +358,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../installation/configure-server/" class="md-nav__link">
+      <a href="../installation/configure-server/" class="md-nav__link">
         
   
   
@@ -389,7 +393,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../2-library-management/" class="md-nav__link">
+      <a href="../2-library-management/" class="md-nav__link">
         
   
   
@@ -413,10 +417,150 @@
       
   
   
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Streaming and Transcoding
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Streaming and Transcoding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How It Works
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#supported-codecs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Supported Codecs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ffmpeg-requirement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FFmpeg Requirement
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#transcode-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Transcode Path
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#playback-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Playback State
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#active-sessions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Active Sessions
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
   
   
     <li class="md-nav__item">
-      <a href="../../../3-clients-and-mobile/" class="md-nav__link">
+      <a href="../3-clients-and-mobile/" class="md-nav__link">
         
   
   
@@ -443,7 +587,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../4-connecting-qbittorrent/" class="md-nav__link">
+      <a href="../4-connecting-qbittorrent/" class="md-nav__link">
         
   
   
@@ -451,6 +595,33 @@
     
   
     Connecting qBittorrent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../5-oidc-authentication/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OIDC Authentication
   
 
     
@@ -478,10 +649,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
         
           
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
             
   
   
@@ -499,8 +670,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -517,7 +688,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../documentation/" class="md-nav__link">
+      <a href="../development/documentation/" class="md-nav__link">
         
   
   
@@ -545,7 +716,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../database/" class="md-nav__link">
+      <a href="../development/database/" class="md-nav__link">
         
   
   
@@ -593,6 +764,80 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How It Works
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#supported-codecs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Supported Codecs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ffmpeg-requirement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FFmpeg Requirement
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#transcode-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Transcode Path
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#playback-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Playback State
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#active-sessions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Active Sessions
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -608,7 +853,7 @@
 
 
   
-    <a href="https://github.com/drewcarlson/anystream/edit/main/docs/development/architecture/library-management.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/drewcarlson/anystream/edit/main/docs/6-streaming.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -616,7 +861,50 @@
   
 
 
-<h1 id="library-management">Library Management</h1>
+<h1 id="streaming-and-transcoding">Streaming and Transcoding</h1>
+<p>AnyStream streams your media using <a href="https://en.wikipedia.org/wiki/HTTP_Live_Streaming">HLS (HTTP Live Streaming)</a>,
+which is broadly supported across web browsers, mobile devices, and smart TVs.</p>
+<h2 id="how-it-works">How It Works</h2>
+<p>When you start playing media, AnyStream analyzes the media file and determines the best way to deliver it
+to your device:</p>
+<ol>
+<li><strong>Direct Stream</strong> -- If your device supports the video and audio codecs in the file, AnyStream streams
+   it directly with no transcoding. This uses minimal server resources.</li>
+<li><strong>Audio-only Transcode</strong> -- If the video codec is supported but the audio is not, only the audio is transcoded.</li>
+<li><strong>Video-only Transcode</strong> -- If the audio codec is supported but the video is not, only the video is transcoded.</li>
+<li><strong>Full Transcode</strong> -- If neither the video nor audio codecs are supported, both are transcoded.</li>
+</ol>
+<p>AnyStream automatically makes this decision based on the capabilities reported by the client device.</p>
+<h2 id="supported-codecs">Supported Codecs</h2>
+<p>AnyStream can handle media files with a wide variety of codecs. The following codecs are recognized
+for compatibility detection:</p>
+<p><strong>Video</strong>: H.264 (AVC), H.265 (HEVC), VP8, VP9, AV1</p>
+<p><strong>Audio</strong>: AAC, MP3, Opus, FLAC, Vorbis</p>
+<p>Files using other codecs will be fully transcoded to ensure playback.</p>
+<h2 id="ffmpeg-requirement">FFmpeg Requirement</h2>
+<p>All transcoding is performed by <a href="https://ffmpeg.org/">FFmpeg</a>, which must be installed on the server.
+The Docker image includes FFmpeg pre-installed. For manual installations, see the
+<a href="../installation/getting-started/#ffmpeg">FFmpeg requirements</a> in the Getting Started guide.</p>
+<p>Configure the FFmpeg location with the <code>FFMPEG_PATH</code> environment variable or the <code>app.ffmpegPath</code> config option
+if AnyStream cannot find it automatically.</p>
+<h2 id="transcode-path">Transcode Path</h2>
+<p>Temporary transcode output files are written to the directory specified by <code>TRANSCODE_PATH</code> (default: <code>/tmp</code>).
+For best performance, use a fast storage device (such as an SSD or tmpfs) for this directory.</p>
+<p>In Docker, you can mount a dedicated volume for transcode output:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">services</span><span class="p">:</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">anystream</span><span class="p">:</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">environment</span><span class="p">:</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">      </span><span class="nt">TRANSCODE_PATH</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/app/transcode</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="nt">volumes</span><span class="p">:</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/path/to/fast-storage:/app/transcode</span>
+</code></pre></div>
+<h2 id="playback-state">Playback State</h2>
+<p>AnyStream tracks your playback position so you can resume where you left off. Playback state is saved after
+60 seconds of viewing. When you finish watching (90% or more of the media), the playback state is cleared
+automatically.</p>
+<h2 id="active-sessions">Active Sessions</h2>
+<p>Administrators with the <strong>Configure System</strong> permission can monitor all active playback sessions in real time
+from the admin panel, including which users are watching, what they are watching, and the current transcode status.</p>
 
 
 
@@ -646,7 +934,7 @@
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      Copyright &copy; 2025 AnyStream Maintainers
+      Copyright &copy; 2026 AnyStream Maintainers
     </div>
   
   
@@ -697,10 +985,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["content.action.edit"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["content.action.edit"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>
