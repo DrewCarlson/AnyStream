@@ -149,15 +149,19 @@ class TmdbMetadataProvider(
                 val crew = tmdbMovie.credits?.crew.orEmpty()
                 val cast = tmdbMovie.credits?.cast.orEmpty()
                 val allPeople = (crew + cast).associate { it.id to it.profileImage?.path }
-                dbCredits
-                    .mapNotNull { (person, _) ->
-                        val profileImagePath = allPeople[person.tmdbId]
-                        val imagePath = imageStore.getPersonImagePath(person.id.value).takeUnless(Path::exists)
-                        if (profileImagePath == null || imagePath == null) return@mapNotNull null
-                        async {
-                            imageStore.downloadInto(imagePath, "$IMAGE_URL/w276_and_h350_face$profileImagePath")
+                dbCredits.forEach { (person, _) ->
+                    val profileImagePath = allPeople[person.tmdbId]
+                    val imagePath =
+                        imageStore.getPersonImagePath(person.id.value).takeUnless(Path::exists)
+                    if (profileImagePath != null && imagePath != null) {
+                        launch {
+                            imageStore.downloadInto(
+                                imagePath,
+                                "$IMAGE_URL/w276_and_h350_face$profileImagePath",
+                            )
                         }
-                    }.awaitAll()
+                    }
+                }
             }
             ImportMetadataResult.Success(
                 match = MetadataMatch.MovieMatch(
@@ -170,9 +174,10 @@ class TmdbMetadataProvider(
                 subresults = emptyList(),
             )
         } catch (e: Throwable) {
-            removeLock(lockData)
             logger.error("Failed to insert new movie metadata", e)
             ImportMetadataResult.ErrorDatabaseException(e.stackTraceToString())
+        } finally {
+            removeLock(lockData)
         }
     }
 
@@ -262,7 +267,11 @@ class TmdbMetadataProvider(
                     .flatMap { (metadataId, imageUrls) ->
                         imageUrls.mapNotNull { (imageType, imageUrl) ->
                             if (imageUrl == null) return@mapNotNull null
-                            val cacheFile = imageStore.getMetadataImagePath(imageType, metadataId.value, tvShow.id.value)
+                            val cacheFile = imageStore.getMetadataImagePath(
+                                imageType,
+                                metadataId.value,
+                                tvShow.id.value,
+                            )
                             val url = when (imageType) {
                                 "poster" -> "$IMAGE_URL/w300$imageUrl"
                                 "backdrop" -> "$IMAGE_URL/w1280$imageUrl"
@@ -274,10 +283,14 @@ class TmdbMetadataProvider(
                 personPosterPaths
                     .mapNotNull { (tmdbId, profileImagePath) ->
                         val personId = allPeople.getValue(tmdbId)
-                        val imagePath = imageStore.getPersonImagePath(personId).takeUnless(Path::exists)
+                        val imagePath =
+                            imageStore.getPersonImagePath(personId).takeUnless(Path::exists)
                         if (profileImagePath == null || imagePath == null) return@mapNotNull null
                         async {
-                            imageStore.downloadInto(imagePath, "$IMAGE_URL/w276_and_h350_face$profileImagePath")
+                            imageStore.downloadInto(
+                                imagePath,
+                                "$IMAGE_URL/w276_and_h350_face$profileImagePath",
+                            )
                         }
                     }.awaitAll()
             }
@@ -702,7 +715,8 @@ class TmdbMetadataProvider(
         return buildMap(cast.size + crew.size) {
             cast.forEach { cast ->
                 val person = cast.toPerson()
-                val credit = createCredit(CreditType.CAST, character = cast.character, order = cast.order)
+                val credit =
+                    createCredit(CreditType.CAST, character = cast.character, order = cast.order)
                 compute(person) { _, list ->
                     list?.plus(credit) ?: listOf(credit)
                 }
