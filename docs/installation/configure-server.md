@@ -3,7 +3,7 @@
 _Is your server running? See [Installation > Getting Started](getting-started.md) first._
 
 When the server has started without errors, the web client will be available
-at [localhost:8888](https://localhost:8888) or whatever port you've specified.
+at [localhost:8888](http://localhost:8888) or whatever port you've specified.
 
 ## Create an Admin User
 
@@ -13,7 +13,97 @@ global permissions.
 !!! danger
 
     It is important to register an admin user immediately after starting AnyStream for the first time.
-    If left incomplete, unauthorized users my be able to modify system files via AnyStream.
+    If left incomplete, unauthorized users may be able to modify system files via AnyStream.
+
+## Config File
+
+AnyStream supports configuration through a config file in addition to environment variables and CLI arguments.
+The config file path is set with the `CONFIG_PATH` environment variable or the `-config=` CLI argument.
+
+Supported formats:
+
+- **HOCON** (`.conf`) -- a superset of JSON commonly used in JVM applications
+- **YAML** (`.yml` or `.yaml`)
+
+If the specified config file does not exist, AnyStream will create one with default values on startup.
+
+!!! example "Example HOCON config (`anystream.conf`)"
+
+    ```hocon
+    app {
+        dataPath = "/path/to/anystream/data"
+        databaseUrl = "/path/to/anystream/data/anystream.db"
+        ffmpegPath = "/usr/bin"
+        transcodePath = "/tmp"
+        baseUrl = "https://stream.example.com"
+
+        qbittorrent {
+            url = "http://localhost:9090"
+            user = "admin"
+            password = "adminadmin"
+        }
+
+        libraries {
+            tv {
+                directories = ["/media/TV"]
+            }
+            movies {
+                directories = ["/media/Movies"]
+            }
+            music {
+                directories = ["/media/Music"]
+            }
+        }
+
+        oidc {
+            enable = false
+            provider {
+                name = "my-provider"
+                endpoint = "https://auth.example.com"
+                client_id = "anystream"
+                client_secret = "your-secret"
+            }
+        }
+    }
+    ```
+
+!!! example "Example YAML config (`anystream.yml`)"
+
+    ```yaml
+    app:
+      dataPath: /path/to/anystream/data
+      databaseUrl: /path/to/anystream/data/anystream.db
+      ffmpegPath: /usr/bin
+      transcodePath: /tmp
+      baseUrl: https://stream.example.com
+
+      qbittorrent:
+        url: http://localhost:9090
+        user: admin
+        password: adminadmin
+
+      libraries:
+        tv:
+          directories:
+            - /media/TV
+        movies:
+          directories:
+            - /media/Movies
+        music:
+          directories:
+            - /media/Music
+
+      oidc:
+        enable: false
+        provider:
+          name: my-provider
+          endpoint: https://auth.example.com
+          client_id: anystream
+          client_secret: your-secret
+    ```
+
+Environment variables override config file values. This allows you to keep a base config file and override
+specific settings per environment.
 
 ## Importing Media
 
@@ -27,9 +117,15 @@ Before adding a library directory, ensure your media files follow the guidelines
 3. Click "Add Folder"
 4. Select or paste the folder path and click "Add"
 
-That's it!  All the media files will be scanned and metadata will be downloaded.
+That's it! All the media files will be scanned and metadata will be downloaded.
 You can navigate to the home page to see your library populate in real time.
 
+### Pre-configuring Library Directories
+
+Library directories can also be set in the config file or environment, which is useful for Docker deployments
+where the media paths are known ahead of time. See the `libraries` section in the config file examples above.
+
+Directories configured this way are added automatically on startup.
 
 ## Inviting Users
 
@@ -38,7 +134,25 @@ desired permissions.
 
 To create an invitation URL:
 
-- Navigate to Settings > Users, then click "Manage Invites".
-- Select the permissions required by the new User, then click "Create Invite".
-- The new invite will be added to the list and a sharable signup link will be copied to your clipboard.
+1. Navigate to Settings > Users, then click "Manage Invites".
+2. Select the permissions required by the new User, then click "Create Invite".
+3. The new invite will be added to the list and a sharable signup link will be copied to your clipboard.
 
+The available permissions are:
+
+| Permission        | Description                                                   |
+|-------------------|---------------------------------------------------------------|
+| View Collection   | Browse and stream media from the library.                     |
+| Manage Collection | Add, remove, and scan library directories.                    |
+| Manage Torrents   | View, add, pause, resume, and delete torrents in qBittorrent. |
+| Configure System  | Access admin settings, view active sessions and server logs.  |
+
+An admin user (with Global permissions) has all permissions and can manage other users.
+
+## Reverse Proxy
+
+When running AnyStream behind a reverse proxy (e.g. Nginx, Caddy, Traefik), set the `BASE_URL` environment variable
+or config option to your public URL so that redirects and OIDC callbacks work correctly.
+
+AnyStream supports `X-Forwarded-For`, `X-Forwarded-Proto`, and standard `Forwarded` headers automatically when
+`BASE_URL` is not set.

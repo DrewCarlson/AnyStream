@@ -5,7 +5,7 @@ repo_url: https://github.com/drewcarlson/anystream
 remote_branch: gh-pages
 docs_dir: docs
 edit_uri: edit/main/docs/
-copyright: 'Copyright &copy; 2025 AnyStream Maintainers'
+copyright: 'Copyright &copy; 2026 AnyStream Maintainers'
 
 theme:
   name: material
@@ -53,8 +53,10 @@ nav:
       - Docker Setup: installation/docker.md
       - Configure Server: installation/configure-server.md
   - Library Management: 2-library-management.md
+  - Streaming and Transcoding: 6-streaming.md
   - Clients and Mobile Apps: 3-clients-and-mobile.md
   - Connecting qBittorrent: 4-connecting-qbittorrent.md
+  - OIDC Authentication: 5-oidc-authentication.md
   - Development:
     - Documentation: development/documentation.md
     - Database: development/database.md

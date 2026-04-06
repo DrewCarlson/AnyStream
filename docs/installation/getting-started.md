@@ -14,41 +14,56 @@ or [Mullvad](https://mullvad.net/).**
 
 ## Requirements
 
-### Java 11+
+### Java 21+
+
+AnyStream requires Java 21 or later. Any compatible JDK or JRE distribution will work.
+[Azul Zulu](https://www.azul.com/downloads/?version=java-21-lts&package=jre) builds are a good choice.
 
 #### Windows
 
 ??? info "Install Manually"
 
-    Download the [JRE 11](https://www.azul.com/downloads/?version=java-11-lts&package=jre) MSI file and run the installer.
+    Download the [JRE 21](https://www.azul.com/downloads/?version=java-21-lts&os=windows&package=jre) MSI file and run the installer.
     Follow the instructions until the installation is complete. For more information
     see "[Install Azul Zulu with MSI installer](https://docs.azul.com/core/zulu-openjdk/install/windows#install-azul-zulu-with-msi-installer)"
 
 ??? info "Install with Chocolatey"
 
     ```shell
-    choco install zulu --version=11.29.11
+    choco install zulu21-jre
     ```
 
 #### macOS
 
 ??? info "Install Manually"
 
-    Download the [JRE 11 for Intel](https://www.azul.com/downloads/?version=java-11-lts&os=macos&architecture=x86-64-bit&package=jdk)
-    DMG file or [JRE 11 for M1](https://www.azul.com/downloads/?version=java-11-lts&os=macos&architecture=arm-64-bit&package=jdk).
+    Download the [JRE 21 for Intel](https://www.azul.com/downloads/?version=java-21-lts&os=macos&architecture=x86-64-bit&package=jre)
+    DMG file or [JRE 21 for Apple Silicon](https://www.azul.com/downloads/?version=java-21-lts&os=macos&architecture=arm-64-bit&package=jre).
     Double click the file and follow the instructions until the installation is complete.
 
 ??? info "Install with Homebrew"
 
     ```shell
-    brew tap mdogan/zulu
-    brew install zulu-jdk11
+    brew install --cask zulu@21
     ```
 
-??? info "Install with MacPorts"
+#### Linux
+
+??? info "Install with APT (Debian/Ubuntu)"
 
     ```shell
-    sudo port install openjdk11-zulu
+    sudo apt install gnupg ca-certificates curl
+    curl -s https://repos.azul.com/azul-repo.key | sudo gpg --dearmor -o /usr/share/keyrings/azul.gpg
+    echo "deb [signed-by=/usr/share/keyrings/azul.gpg] https://repos.azul.com/zulu/deb stable main" | sudo tee /etc/apt/sources.list.d/zulu.list
+    sudo apt update
+    sudo apt install zulu21-jre-headless
+    ```
+
+??? info "Install with DNF (Fedora/RHEL)"
+
+    ```shell
+    sudo dnf install https://cdn.azul.com/zulu/bin/zulu-repo-1.0.0-1.noarch.rpm
+    sudo dnf install zulu21-jre-headless
     ```
 
 ### FFmpeg
@@ -56,12 +71,17 @@ or [Mullvad](https://mullvad.net/).**
 [FFmpeg](https://ffmpeg.org/) is required to [transcode](https://en.wikipedia.org/wiki/Transcoding) your media library
 when streaming to certain devices and analyzing media files.
 
+AnyStream will automatically search for FFmpeg in common installation directories.
+If it cannot be found, set the `FFMPEG_PATH` environment variable or config option to the directory containing the
+`ffmpeg` and `ffprobe` binaries.
+
 #### Windows
 
 ??? info "Install Manually"
 
-    [Click here](https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n4.4-latest-win64-gpl-4.4.zip) to download FFmpeg.
-    Extract `fmpeg-n4.4-latest-win64-gpl-4.4.zip` and rename the `bin` folder to `ffmpeg` and move it to `C:\Program Files\ffmpeg`.
+    Download a recent FFmpeg build from [gyan.dev](https://www.gyan.dev/ffmpeg/builds/) or
+    [BtbN/FFmpeg-Builds](https://github.com/BtbN/FFmpeg-Builds/releases).
+    Extract the archive and add the `bin` folder to your system PATH, or set `FFMPEG_PATH` to point to the `bin` directory.
 
 ??? info "Install with Chocolatey"
 
@@ -70,12 +90,6 @@ when streaming to certain devices and analyzing media files.
     ```
 
 #### macOS
-
-??? info "Install Manually"
-
-    [Click here](https://evermeet.cx/pub/ffmpeg/ffmpeg-4.4.1.zip) to download FFmpeg and
-    [here](https://evermeet.cx/pub/ffprobe/ffprobe-4.4.1.zip) to download FFprobe.
-    Extract both files into `/usr/local/bin`
 
 ??? info "Install with Homebrew"
 
@@ -87,6 +101,20 @@ when streaming to certain devices and analyzing media files.
 
     ```shell
     sudo port install ffmpeg
+    ```
+
+#### Linux
+
+??? info "Install with APT (Debian/Ubuntu)"
+
+    ```shell
+    sudo apt install ffmpeg
+    ```
+
+??? info "Install with DNF (Fedora/RHEL)"
+
+    ```shell
+    sudo dnf install ffmpeg-free
     ```
 
 ## Download AnyStream
@@ -114,15 +142,20 @@ AnyStream tries to provide optimal default configuration and can be run without 
 
 ??? info "Configuration (Environment variables)"
 
-    The following optiions can be modified on your first run to customize AnyStream for your system.
+    The following options can be modified on your first run to customize AnyStream for your system.
     
-    | name              | value                                                                                                            | description                                                                                                             |
+    | Name              | Default                                                                                                          | Description                                                                                                             |
     |-------------------|------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------|
     | `PORT`            | `8888`                                                                                                           | The port used to serve the web client and API.                                                                          |
-    | `DATA_PATH`       | macos = `/Users/<user>/anystream`<br/>linux = `/home/<user>/anystream`<br/>windows = `C:\Users\<user>\anystream` | The folder where all data generated by anystream will be stored. Note this is not the folder for your media collection. |
-    | `DATABASE_URL`    | `<DATA_PATH>/config/anystream.db`                                                                         | The file where the database will be stored. (Note the `sqlite:` prefix is required)                                     |
-    | `FFMPEG_PATH`     | macos = `/usr/bin`<br/>linux = `/usr/bin`<br/>windows = `C:\Program Files\ffmpeg`                                | The directory which contains [FFmpeg](https://www.ffmpeg.org/download.html) and FFprobe binaries.                       |
-    | `WEB_CLIENT_PATH` | (none)                                                                                                           | The folder which contains the Web client files to be served. By default these files are provided by the server binary.  |
+    | `DATA_PATH`       | macos = `/Users/<user>/anystream`<br/>linux = `/home/<user>/anystream`<br/>windows = `C:\Users\<user>\anystream` | The folder where all data generated by AnyStream will be stored. This is not the folder for your media collection.      |
+    | `DATABASE_URL`    | `<DATA_PATH>/anystream.db`                                                                                       | The file path where the SQLite database will be stored.                                                                 |
+    | `CONFIG_PATH`     | (none)                                                                                                           | Path to a configuration file (`.conf` for HOCON or `.yml`/`.yaml` for YAML). See [Configure Server](configure-server.md) for details. |
+    | `BASE_URL`        | (none)                                                                                                           | The public URL of your AnyStream instance (e.g. `https://stream.example.com`). Required when behind a reverse proxy.   |
+    | `FFMPEG_PATH`     | (auto-detected)                                                                                                  | The directory containing [FFmpeg](https://www.ffmpeg.org/download.html) and FFprobe binaries.                           |
+    | `TRANSCODE_PATH`  | `/tmp`                                                                                                           | The directory used for temporary transcode output files.                                                                |
+    | `WEB_CLIENT_PATH` | (none)                                                                                                           | The folder containing the web client files to serve. By default these files are provided by the server binary.          |
+
+    For qBittorrent and OIDC configuration, see [Connecting qBittorrent](../4-connecting-qbittorrent.md) and [OIDC Authentication](../5-oidc-authentication.md).
 
 ??? info "Configuration (Program arguments)"
 
@@ -134,7 +167,10 @@ AnyStream tries to provide optimal default configuration and can be run without 
     | `PORT`            | `-port=8888`               |
     | `DATA_PATH`       | `-app.dataPath="..."`      |
     | `DATABASE_URL`    | `-app.databaseUrl="..."`   |
+    | `CONFIG_PATH`     | `-config="..."`            |
+    | `BASE_URL`        | `-app.baseUrl="..."`       |
     | `FFMPEG_PATH`     | `-app.ffmpegPath="..."`    |
+    | `TRANSCODE_PATH`  | `-app.transcodePath="..."` |
     | `WEB_CLIENT_PATH` | `-app.webClientPath="..."` |
 
 ### Run on Windows
@@ -157,7 +193,7 @@ Newer versions of Windows 10 include `curl` and `tar`, if you're running an olde
     > curl -LO https://github.com/DrewCarlson/AnyStream/releases/download/v{{ as_version }}/anystream-server-{{ as_version }}.tar
     > tar -xvf anystream-server-{{ as_version }}.tar
     > cd anystream-{{ as_version }}/bin
-    > anystream -port=8888 -P:app.ffmpegPath="C:\Users\<user>\Downloads\ffmpeg"
+    > anystream -port=8888
     ```
 
     AnyStream will be running and printing log messages until you close the window or press `ctrl + c`.

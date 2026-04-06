@@ -36,7 +36,7 @@ There are 3 parts to consider for providing a stable developer and end user expe
 **Migrations**
 
 To maintain a stable database schema and content over time,
-[Flyway](https://github.com/flyway/flyway?tab=readme-ov-file) is used to preform schema and data migrations.
+[Flyway](https://github.com/flyway/flyway?tab=readme-ov-file) is used to perform schema and data migrations.
 
 Flyway is a JVM library that is bundled with AnyStream to track and perform migrations automatically.
 
@@ -66,12 +66,11 @@ See [Flyway > Migrations](https://documentation.red-gate.com/flyway/flyway-conce
 
 Migrations are written in standard SQL and stored in: `server/db-models/src/main/resources/db/migration`
 
-*todo: fill this out when migration testing infrastructure exists and v1 schema is final*
+Migrations are run automatically on server startup via `runMigrations()` in `RunMigrations.kt`.
+The server will fail to start if any migration fails.
 
 ## Using jOOQ
 
 ### Coroutines Support
 
 ### Data Models
-
-

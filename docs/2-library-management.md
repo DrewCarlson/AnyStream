@@ -1,12 +1,12 @@
 # Library Management
 
-AnyStream libraries represents a single kind of media (Movies, TV, etc.) and contain a list of content directories
-with are regularly scanned to downloading metadata (title, posters, ratings, etc.) and analyze media file contents
+AnyStream libraries represent a single kind of media (Movies, TV, etc.) and contain a list of content directories
+which are regularly scanned to download metadata (title, posters, ratings, etc.) and analyze media file contents
 (audio/video codecs, bitrate, etc.).
 
 ## File and Directory Naming
 
-To understand the file and directory structure of your media files, they must follow a specific naming conventions
+To understand the file and directory structure of your media files, they must follow specific naming conventions
 and folder structures.
 
 Without following these requirements, your library may still be understood by AnyStream but alternative
@@ -36,7 +36,7 @@ There are two common requirements for proper scanning of your media library that
 
 Movie files must be contained within a folder that shares the file's name.
 
-For example, AnyStream expects to find movies structure like:
+For example, AnyStream expects to find movies structured like:
 
       /../Movies/The Cabinet of Dr. Caligari (1920)
       /../Movies/The Cabinet of Dr. Caligari (1920)/The Cabinet of Dr. Caligari (1920).mp4
@@ -57,13 +57,27 @@ For example, AnyStream expects to find tv shows structured like:
 
 Note each season has a folder with the `Season <number>` format where the number optionally contains a leading zero.
 
-Each episode is contained within it's respective season folder using the
-`S<season number>E<episode number> - <episode name>` format where the season and episode numbers contains optional
+Each episode is contained within its respective season folder using the
+`S<season number>E<episode number> - <episode name>` format where the season and episode numbers contain optional
 leading zeros.
 
 Episode files may optionally use the `<show name> - S00E00 - <episode title>` format but the directory structure must
 still contain a parent show and season folder.
 
+### Music
+
+Music support is under active development. Organize your music library with an artist directory containing
+album subdirectories:
+
+      /../Music/Artist Name
+      /../Music/Artist Name/Album Title (2020)
+      /../Music/Artist Name/Album Title (2020)/01 - Track Title.flac
+
 ### Subtitle Files
 
+Subtitle files should be placed alongside their corresponding video file using the same base filename.
+Use language codes to indicate the subtitle language:
 
+      /../Movies/Primer (2004)/Primer (2004).mp4
+      /../Movies/Primer (2004)/Primer (2004).en.srt
+      /../Movies/Primer (2004)/Primer (2004).es.srt
