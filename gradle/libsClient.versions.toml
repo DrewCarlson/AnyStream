@@ -11,7 +11,7 @@ ax_runner = "1.5.2"
 objectstore = "0.2.0"
 vlc = "3.0.19"
 kotlinjs = "2026.3.10"
-androidxCamera = "1.5.3"
+androidxCamera = "1.6.0"
 haze = "1.7.2"
 io-coil-kt-coil3 = "3.4.0"
 
