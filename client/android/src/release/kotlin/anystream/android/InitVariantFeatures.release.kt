@@ -20,5 +20,5 @@
 package anystream.android
 
 class InitVariantFeaturesImpl : InitVariantFeatures {
-    fun init() = Unit
+    override fun init() = Unit
 }
