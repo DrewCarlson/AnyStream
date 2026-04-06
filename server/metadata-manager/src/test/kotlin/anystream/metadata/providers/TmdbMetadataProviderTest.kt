@@ -21,6 +21,8 @@ import anystream.data.MetadataDbQueries
 import anystream.db.*
 import anystream.metadata.ImageStore
 import anystream.models.MediaKind
+import anystream.models.api.ImportMetadata
+import anystream.models.api.ImportMetadataResult
 import anystream.models.api.MetadataMatch
 import anystream.models.api.QueryMetadata
 import anystream.models.api.QueryMetadataResult
@@ -195,5 +197,182 @@ class TmdbMetadataProviderTest :
                     match.movie.title shouldBe "Teenage Mutant Ninja Turtles: Mutant Mayhem"
                     match.movie.releaseDate shouldBe Instant.parse("2023-07-31T00:00:00Z")
                 }
+        }
+
+        test("search movie by metadataId returns specific movie") {
+            val result = tmdbProvider
+                .search(
+                    QueryMetadata(
+                        providerId = null,
+                        mediaKind = MediaKind.MOVIE,
+                        query = null,
+                        metadataId = "77",
+                        year = null,
+                        extras = null,
+                    ),
+                ).shouldBeInstanceOf<QueryMetadataResult.Success>()
+
+            result.results.shouldHaveSize(1)
+
+            result.results
+                .first()
+                .shouldBeInstanceOf<MetadataMatch.MovieMatch>()
+                .asClue { match ->
+                    match.movie.title shouldBe "Memento"
+                    match.remoteMetadataId shouldBe "77"
+                    match.exists shouldBe false
+                }
+        }
+
+        test("search tv show by metadataId returns specific show") {
+            val result = tmdbProvider
+                .search(
+                    QueryMetadata(
+                        providerId = null,
+                        mediaKind = MediaKind.TV,
+                        query = null,
+                        metadataId = "456",
+                        year = null,
+                        extras = null,
+                    ),
+                ).shouldBeInstanceOf<QueryMetadataResult.Success>()
+
+            result.results.shouldHaveSize(1)
+
+            result.results
+                .first()
+                .shouldBeInstanceOf<MetadataMatch.TvShowMatch>()
+                .asClue { match ->
+                    match.tvShow.name shouldBe "The Simpsons"
+                    match.remoteMetadataId shouldBe "456"
+                }
+        }
+
+        test("search movie with nonexistent metadataId returns provider error") {
+            val result = tmdbProvider
+                .search(
+                    QueryMetadata(
+                        providerId = null,
+                        mediaKind = MediaKind.MOVIE,
+                        query = null,
+                        metadataId = "999999999",
+                        year = null,
+                        extras = null,
+                    ),
+                ).shouldBeInstanceOf<QueryMetadataResult.ErrorDataProviderException>()
+        }
+
+        test("search movie with firstResultOnly limits results") {
+            val result = tmdbProvider
+                .search(
+                    QueryMetadata(
+                        providerId = null,
+                        mediaKind = MediaKind.MOVIE,
+                        query = "Star Wars",
+                        metadataId = null,
+                        year = null,
+                        extras = null,
+                        firstResultOnly = true,
+                    ),
+                ).shouldBeInstanceOf<QueryMetadataResult.Success>()
+
+            result.results.shouldHaveSize(1)
+        }
+
+        test("search tv show with firstResultOnly limits results") {
+            val result = tmdbProvider
+                .search(
+                    QueryMetadata(
+                        providerId = null,
+                        mediaKind = MediaKind.TV,
+                        query = "Star Trek",
+                        metadataId = null,
+                        year = null,
+                        extras = null,
+                        firstResultOnly = true,
+                    ),
+                ).shouldBeInstanceOf<QueryMetadataResult.Success>()
+
+            result.results.shouldHaveSize(1)
+        }
+
+        test("import movie then search returns exists=true") {
+            val importResult = tmdbProvider
+                .importMetadata(
+                    ImportMetadata(
+                        metadataIds = listOf("77"),
+                        providerId = "tmdb",
+                        mediaKind = MediaKind.MOVIE,
+                    ),
+                )
+            importResult.shouldHaveSize(1)
+            importResult.first().shouldBeInstanceOf<ImportMetadataResult.Success>()
+
+            val searchResult = tmdbProvider
+                .search(
+                    QueryMetadata(
+                        providerId = null,
+                        mediaKind = MediaKind.MOVIE,
+                        query = null,
+                        metadataId = "77",
+                        year = null,
+                        extras = null,
+                    ),
+                ).shouldBeInstanceOf<QueryMetadataResult.Success>()
+
+            searchResult.results.shouldHaveSize(1)
+            searchResult.results
+                .first()
+                .shouldBeInstanceOf<MetadataMatch.MovieMatch>()
+                .asClue { match ->
+                    match.exists shouldBe true
+                    match.movie.title shouldBe "Memento"
+                }
+        }
+
+        test("import movie twice without refresh returns ErrorMetadataAlreadyExists") {
+            tmdbProvider
+                .importMetadata(
+                    ImportMetadata(
+                        metadataIds = listOf("77"),
+                        providerId = "tmdb",
+                        mediaKind = MediaKind.MOVIE,
+                    ),
+                ).first()
+                .shouldBeInstanceOf<ImportMetadataResult.Success>()
+
+            val secondImport = tmdbProvider.importMetadata(
+                ImportMetadata(
+                    metadataIds = listOf("77"),
+                    providerId = "tmdb",
+                    mediaKind = MediaKind.MOVIE,
+                    refresh = false,
+                ),
+            )
+            secondImport.shouldHaveSize(1)
+            secondImport.first().shouldBeInstanceOf<ImportMetadataResult.ErrorMetadataAlreadyExists>()
+        }
+
+        test("import tv show twice without refresh returns ErrorMetadataAlreadyExists") {
+            tmdbProvider
+                .importMetadata(
+                    ImportMetadata(
+                        metadataIds = listOf("63333"),
+                        providerId = "tmdb",
+                        mediaKind = MediaKind.TV,
+                    ),
+                ).first()
+                .shouldBeInstanceOf<ImportMetadataResult.Success>()
+
+            val secondImport = tmdbProvider.importMetadata(
+                ImportMetadata(
+                    metadataIds = listOf("63333"),
+                    providerId = "tmdb",
+                    mediaKind = MediaKind.TV,
+                    refresh = false,
+                ),
+            )
+            secondImport.shouldHaveSize(1)
+            secondImport.first().shouldBeInstanceOf<ImportMetadataResult.ErrorMetadataAlreadyExists>()
         }
     })
