@@ -28,7 +28,6 @@ import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.js.*
 import kotlinx.browser.window
 
-@ContributesTo(AppScope::class)
 @BindingContainer
 actual object PlatformCoreBindings {
     @Suppress("RedundantNullableReturnType")

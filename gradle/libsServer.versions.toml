@@ -1,7 +1,7 @@
 [versions]
 qbittorrent = "1.1.0-alpha02"
 jdbc_sqlite = "3.51.3.0"
-jooq = "3.20.11"
+jooq = "3.21.1"
 kjob = "0.6.0"
 bouncy_castle = "1.83"
 jaffree = "0.0.1"
@@ -12,12 +12,12 @@ imageio = "3.13.1"
 icu4j = "78.3"
 
 [plugins]
-shadowjar = "com.gradleup.shadow:9.3.2"
+shadowjar = "com.gradleup.shadow:9.4.1"
 jooq = { id = "nu.studer.jooq", version.ref = "jooqGradle" }
-flyway = "org.flywaydb.flyway:12.1.1"
+flyway = "org.flywaydb.flyway:12.3.0"
 
 [libraries]
-flyway-core = "org.flywaydb:flyway-core:12.1.1"
+flyway-core = "org.flywaydb:flyway-core:12.3.0"
 fastObjectPool = "cn.danielw:fast-object-pool:2.2.1"
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 jdbc-sqlite = { module = "org.xerial:sqlite-jdbc", version.ref = "jdbc_sqlite" }

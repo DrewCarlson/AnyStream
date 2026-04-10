@@ -31,7 +31,6 @@ import anystream.models.api.*
 import anystream.util.concurrentMap
 import dev.zacsweers.metro.ContributesIntoSet
 import dev.zacsweers.metro.Inject
-import dev.zacsweers.metro.IntoSet
 import dev.zacsweers.metro.SingleIn
 import dev.zacsweers.metro.binding
 import kotlinx.coroutines.coroutineScope
@@ -41,7 +40,6 @@ import org.slf4j.LoggerFactory
 import java.nio.file.FileSystem
 import kotlin.io.path.*
 
-@IntoSet
 @SingleIn(ServerScope::class)
 @ContributesIntoSet(
     scope = ServerScope::class,

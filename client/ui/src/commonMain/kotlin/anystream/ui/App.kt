@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-@file:OptIn(ExperimentalHazeMaterialsApi::class, ExperimentalAnimationApi::class)
+@file:OptIn(ExperimentalAnimationApi::class)
 
 package anystream.ui
 
@@ -50,12 +50,13 @@ import anystream.ui.theme.AppTheme
 import anystream.ui.util.LocalImageProvider
 import anystream.ui.util.asImageProvider
 import anystream.ui.video.VideoPlayer
-import dev.chrisbanes.haze.HazeProgressive
 import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.blur.HazeProgressive
+import dev.chrisbanes.haze.blur.LocalHazeBlurStyle
+import dev.chrisbanes.haze.blur.blurEffect
+import dev.chrisbanes.haze.blur.materials.HazeMaterials
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
 
 val LocalAppGraph = compositionLocalOf<AppGraph> { error("No AppGraph provided") }
 
@@ -71,6 +72,7 @@ fun App(
     CompositionLocalProvider(
         LocalImageProvider provides client.asImageProvider(),
         LocalAppGraph provides appGraph,
+        LocalHazeBlurStyle provides HazeMaterials.ultraThin(),
     ) {
         AppTheme {
             Scaffold(
@@ -81,14 +83,13 @@ fun App(
                     Box(
                         Modifier
                             .fillMaxWidth()
-                            .hazeEffect(
-                                state = hazeState,
-                                style = HazeMaterials.ultraThin(),
-                            ) {
-                                progressive = HazeProgressive.verticalGradient(
-                                    startIntensity = 0.6f,
-                                    endIntensity = 0f,
-                                )
+                            .hazeEffect(hazeState) {
+                                blurEffect {
+                                    progressive = HazeProgressive.verticalGradient(
+                                        startIntensity = 0.6f,
+                                        endIntensity = 0f,
+                                    )
+                                }
                             },
                     ) {
                         TopAppBar(
@@ -115,10 +116,7 @@ fun App(
                     ) {
                         BottomNavigation(
                             modifier = Modifier
-                                .hazeEffect(
-                                    state = hazeState,
-                                    style = HazeMaterials.regular(),
-                                ),
+                                .hazeEffect(hazeState),
                             selectedRoute = appModel.appUiModel.selectedRoute,
                             onRouteChange = appModel.appUiModel.onNavigateToRoot,
                         )
