@@ -1,17 +1,17 @@
 [versions]
-kotlin = { strictly = "2.3.10" }
+kotlin = { strictly = "2.3.21-RC" }
 coroutines = "1.10.2"
 serialization = "1.10.0"
-ktorio = "3.4.1"
+ktorio = "3.4.2"
 kover = "0.9.8"
 datetime = "0.7.1"
-spotless = "8.3.0"
+spotless = "8.4.0"
 agp = "9.1.0"
-kotest = "6.1.7"
-redacted = "1.15.1"
-poko = "0.21.3"
+kotest = "6.1.11"
+redacted = "1.16.0"
+poko = "0.22.0"
 ktlint = "1.8.0"
-metro = "0.11.4"
+metro = "0.13.2"
 
 [plugins]
 multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }

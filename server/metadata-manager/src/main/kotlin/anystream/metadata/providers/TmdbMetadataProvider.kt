@@ -29,7 +29,6 @@ import app.moviebase.tmdb.Tmdb3
 import app.moviebase.tmdb.model.*
 import dev.zacsweers.metro.ContributesIntoSet
 import dev.zacsweers.metro.Inject
-import dev.zacsweers.metro.IntoSet
 import dev.zacsweers.metro.SingleIn
 import dev.zacsweers.metro.binding
 import io.ktor.client.plugins.*
@@ -57,7 +56,6 @@ import kotlin.time.Duration.Companion.seconds
 
 private const val IMAGE_URL = "https://image.tmdb.org/t/p"
 
-@IntoSet
 @SingleIn(ServerScope::class)
 @ContributesIntoSet(
     scope = ServerScope::class,

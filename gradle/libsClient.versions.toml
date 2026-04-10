@@ -1,18 +1,16 @@
 [versions]
 zxing = "3.5.4"
-anr_watchdog = "1.4.0"
-compose = "1.10.5"
-compose_material = "1.7.8"
-compose_foundation = "1.10.5"
-composejb = "1.11.0-alpha03"
-composejb_lifecycle = "2.10.0-beta01" # Fails on >=2.9.2
-media3 = "1.9.3"
-ax_runner = "1.5.2"
+compose = "1.10.6"
+compose_foundation = "1.10.6"
+composejb = "1.11.0-beta02"
+composejb_material = "1.11.0-alpha06"
+composejb_lifecycle = "2.10.0"
+media3 = "1.10.0"
 objectstore = "0.2.0"
-vlc = "3.0.19"
-kotlinjs = "2026.3.10"
-androidxCamera = "1.5.3"
-haze = "1.7.2"
+vlc = "3.0.23"
+kotlinjs = "2026.4.5"
+androidxCamera = "1.6.0"
+haze = "2.0.0-alpha01"
 io-coil-kt-coil3 = "3.4.0"
 
 [plugins]
@@ -34,7 +32,7 @@ camerax-view = { module = "androidx.camera:camera-view", version.ref = "androidx
 compose-ui-ui = { module = "androidx.compose.ui:ui", version.ref = "compose" }
 compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
 compose-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "compose_foundation" }
-compose-icons = { module = "androidx.compose.material:material-icons-extended", version.ref = "compose_material" }
+compose-icons = "androidx.compose.material:material-icons-extended:1.7.8"
 compose-material = "androidx.compose.material3:material3:1.4.0"
 compose-livedata = { module = "androidx.compose.runtime:runtime-livedata", version.ref = "compose" }
 compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
@@ -44,14 +42,14 @@ compose-desktop = { module = "org.jetbrains.compose.desktop:desktop", version.re
 compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "composejb" }
 compose-foundationjb = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "composejb" }
 compose-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composejb" }
-compose-materialjb = { module = "org.jetbrains.compose.material3:material3", version.ref = "composejb" }
+compose-materialjb = { module = "org.jetbrains.compose.material3:material3", version.ref = "composejb_material" }
 compose-materialjb-icons = "org.jetbrains.compose.material:material-icons-extended:1.7.3"
 compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "composejb" }
 compose-html-core = { module = "org.jetbrains.compose.html:html-core", version.ref = "composejb" }
 compose-backhandler = { module = "org.jetbrains.compose.ui:ui-backhandler", version.ref = "composejb" }
 compose-bundle = "org.jetbrains.androidx.core:core-bundle:1.0.1"
-haze-core = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
-haze-materials = { module = "dev.chrisbanes.haze:haze-materials", version.ref = "haze" }
+haze-core = { module = "org.drewcarlson.haze:haze", version.ref = "haze" }
+haze-materials = { module = "org.drewcarlson.haze:haze-blur-materials", version.ref = "haze" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "io-coil-kt-coil3" }
 coil-ktor = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "io-coil-kt-coil3" }
 routingCompose = "app.softwork:routing-compose:0.5.0"
