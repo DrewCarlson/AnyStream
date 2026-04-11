@@ -26,7 +26,6 @@ import anystream.media.LibraryService
 import anystream.routes.RoutingControllers
 import anystream.service.user.OidcProviderService
 import anystream.util.SqlSessionStorage
-import app.moviebase.tmdb.Tmdb3
 import com.github.kokorin.jaffree.ffmpeg.FFmpeg
 import com.github.kokorin.jaffree.ffprobe.FFprobe
 import dev.zacsweers.metro.DependencyGraph
@@ -131,11 +130,6 @@ interface ServerGraph {
                 json()
             }
         }
-    }
-
-    @Provides
-    fun provideTmdb3(config: AnyStreamConfig): Tmdb3 {
-        return Tmdb3(config.tmdbApiKey)
     }
 
     @Provides

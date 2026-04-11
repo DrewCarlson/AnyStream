@@ -1,0 +1,89 @@
+{
+  "query": "The Pitt",
+  "movies": [ ],
+  "tvShows": [ {
+    "tmdbId": 250307,
+    "id": "69d9548401020304052e2405",
+    "title": "The Pitt",
+    "posterUrl": "https://image.tmdb.org/t/p/w300/kvFSpESyBZMjaeOJDx7RS3P1jey.jpg",
+    "year": 2025,
+    "status": null,
+    "firstAirDate": "2025-01-09"
+  }, {
+    "tmdbId": 3682,
+    "id": null,
+    "title": "The Pitts",
+    "posterUrl": null,
+    "year": 2003,
+    "status": null,
+    "firstAirDate": "2003-03-30"
+  }, {
+    "tmdbId": 243963,
+    "id": null,
+    "title": "The Pradeeps of Pittsburgh",
+    "posterUrl": "https://image.tmdb.org/t/p/w300/ckqyjYZim2TEC7q46ieB3WoiYl6.jpg",
+    "year": 2024,
+    "status": null,
+    "firstAirDate": "2024-10-17"
+  }, {
+    "tmdbId": 49742,
+    "id": null,
+    "title": "Previn and the Pittsburgh",
+    "posterUrl": "https://image.tmdb.org/t/p/w300/vEj7xjUVZ63wdDYjjJXndIIKc2e.jpg",
+    "year": 1977,
+    "status": null,
+    "firstAirDate": "1977-02-27"
+  }, {
+    "tmdbId": 318508,
+    "id": null,
+    "title": "The Pitt Podcast",
+    "posterUrl": "https://image.tmdb.org/t/p/w300/v4dGVlHyChW2V5ZD4ZR03EYgnaa.jpg",
+    "year": 2026,
+    "status": null,
+    "firstAirDate": "2026-01-09"
+  }, {
+    "tmdbId": 53199,
+    "id": null,
+    "title": "Pittsburgh Penguins: In the Room",
+    "posterUrl": "https://image.tmdb.org/t/p/w300/xI2l6bAHaxPDZ3hy49ZcwsHApZ.jpg",
+    "year": null,
+    "status": null,
+    "firstAirDate": null
+  }, {
+    "tmdbId": 112374,
+    "id": null,
+    "title": "Pittanko Kan Kan",
+    "posterUrl": "https://image.tmdb.org/t/p/w300/KV0Ag0oDTduaaxSePJvpQUh6LI.jpg",
+    "year": 2003,
+    "status": null,
+    "firstAirDate": "2003-04-15"
+  }, {
+    "tmdbId": 119237,
+    "id": null,
+    "title": "Pitta Kathalu",
+    "posterUrl": "https://image.tmdb.org/t/p/w300/3yltvu4xxdLaYujjc3A0Omj8R6I.jpg",
+    "year": 2021,
+    "status": null,
+    "firstAirDate": "2021-02-19"
+  }, {
+    "tmdbId": 133936,
+    "id": null,
+    "title": "The Cotswolds With Pam Ayres",
+    "posterUrl": "https://image.tmdb.org/t/p/w300/dPxHPuWkV4CvOaqvW4dywUcAAlv.jpg",
+    "year": 2021,
+    "status": null,
+    "firstAirDate": "2021-09-17"
+  }, {
+    "tmdbId": 270676,
+    "id": null,
+    "title": "The Cotswolds and Beyond With Pam Ayres",
+    "posterUrl": "https://image.tmdb.org/t/p/w300/sxHwIO7lnHJh529I8uqt5bXhRGF.jpg",
+    "year": 2024,
+    "status": null,
+    "firstAirDate": "2024-09-01"
+  } ],
+  "offset": 0,
+  "limit": 20,
+  "totalMovies": 0,
+  "totalTvShows": 10
+}

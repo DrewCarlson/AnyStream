@@ -1,0 +1,1114 @@
+{
+  "id": "69d9d842010203040537cfea",
+  "tmdbId": 77,
+  "imdbId": "tt0209144",
+  "title": "Memento",
+  "originalTitle": "Memento",
+  "originalLanguage": "en",
+  "overview": "Leonard Shelby is tracking down the man who raped and murdered his wife. The difficulty of locating his wife's killer, however, is compounded by the fact that he suffers from a rare, untreatable form of short-term memory loss. Although he can recall details of life before his accident, Leonard cannot remember what happened fifteen minutes ago, where he's going, or why.",
+  "tagline": "Some memories are best forgotten.",
+  "runtime": "PT1H53M",
+  "year": 2000,
+  "premiere": "2001-01-20T00:00:00Z",
+  "theatricalRelease": "2001-05-25T00:00:00Z",
+  "physicalRelease": "2001-09-04T00:00:00Z",
+  "digitalRelease": "2000-10-20T00:00:00Z",
+  "status": "Released",
+  "popularity": 10.68179988861084,
+  "homepage": "",
+  "genres": [ "Mystery", "Thriller" ],
+  "keywords": [ "drug dealer", "amnesia", "insulin", "tattoo", "waitress", "motel", "manipulation", "flashback", "confusion", "revenge", "murder", "memory loss", "memory", "psychological thriller", "whodunit", "los angeles, california", "polaroid", "based on short story", "nonlinear timeline", "mourning", "insurance agent", "individuality", "phone call", "disturbed", "paranoid", "neo-noir", "somber", "reverse chronology", "bewildered", "bold", "suspense mystery" ],
+  "images": [ {
+    "coverType": "Poster",
+    "url": "https://image.tmdb.org/t/p/w300/fKTPH2WvH8nHTXeBYBVhawtRqtR.jpg"
+  }, {
+    "coverType": "Fanart",
+    "url": "https://image.tmdb.org/t/p/w1280/7Wev9JMo6R5XAfz2KDvXb7oPMmy.jpg"
+  } ],
+  "ratings": [ {
+    "origin": "Tmdb",
+    "type": "User",
+    "value": 8.199999809265137,
+    "count": 16073
+  } ],
+  "credits": {
+    "cast": [ {
+      "tmdbCreditId": "52fe4214c3a36847f80024db",
+      "character": "Leonard",
+      "order": 0,
+      "person": {
+        "id": "69d95471010203040528c674",
+        "tmdbId": 529,
+        "name": "Guy Pearce",
+        "images": [ {
+          "coverType": "Headshot",
+          "url": "https://image.tmdb.org/t/p/w276_and_h350_face/vTqk6Nh3WgqPubkS23eOlMAwmwa.jpg"
+        } ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "52fe4214c3a36847f80024df",
+      "character": "Natalie",
+      "order": 1,
+      "person": {
+        "id": "69d9548501020304052e914a",
+        "tmdbId": 530,
+        "name": "Carrie-Anne Moss",
+        "images": [ {
+          "coverType": "Headshot",
+          "url": "https://image.tmdb.org/t/p/w276_and_h350_face/xD4jTA3KmVp5Rq3aHcymL9DUGjD.jpg"
+        } ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "52fe4214c3a36847f80024e3",
+      "character": "Teddy",
+      "order": 2,
+      "person": {
+        "id": "69d9546a01020304052665bd",
+        "tmdbId": 532,
+        "name": "Joe Pantoliano",
+        "images": [ {
+          "coverType": "Headshot",
+          "url": "https://image.tmdb.org/t/p/w276_and_h350_face/3OHUI3nX4SYGGItDk3xqeIvWtIf.jpg"
+        } ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "52fe4214c3a36847f80024e7",
+      "character": "Burt",
+      "order": 3,
+      "person": {
+        "id": "69d9546a0102030405266ae0",
+        "tmdbId": 534,
+        "name": "Mark Boone Junior",
+        "images": [ {
+          "coverType": "Headshot",
+          "url": "https://image.tmdb.org/t/p/w276_and_h350_face/rcncVr356hpfKX9qOrKL3SJlEO7.jpg"
+        } ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "52fe4214c3a36847f80024eb",
+      "character": "Waiter",
+      "order": 4,
+      "person": {
+        "id": "69d954b00102030405363108",
+        "tmdbId": 535,
+        "name": "Russ Fega",
+        "images": [ {
+          "coverType": "Headshot",
+          "url": "https://image.tmdb.org/t/p/w276_and_h350_face/d0W7kq97Ul8Iz5LZIVNDKxSly8M.jpg"
+        } ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "52fe4214c3a36847f80024ef",
+      "character": "Leonard's Wife",
+      "order": 5,
+      "person": {
+        "id": "69d9546e0102030405277f1c",
+        "tmdbId": 536,
+        "name": "Jorja Fox",
+        "images": [ {
+          "coverType": "Headshot",
+          "url": "https://image.tmdb.org/t/p/w276_and_h350_face/hCRdbNzZjkhYyVoZPmhYF5OqpaX.jpg"
+        } ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "52fe4214c3a36847f80024f3",
+      "character": "Sammy",
+      "order": 6,
+      "person": {
+        "id": "69d9546b010203040526855e",
+        "tmdbId": 537,
+        "name": "Stephen Tobolowsky",
+        "images": [ {
+          "coverType": "Headshot",
+          "url": "https://image.tmdb.org/t/p/w276_and_h350_face/bzeQEcNh5x2jsobkBKcbDeezwJh.jpg"
+        } ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "52fe4214c3a36847f80024f7",
+      "character": "Mrs. Jankis",
+      "order": 7,
+      "person": {
+        "id": "69d9546e0102030405279158",
+        "tmdbId": 538,
+        "name": "Harriet Sansom Harris",
+        "images": [ {
+          "coverType": "Headshot",
+          "url": "https://image.tmdb.org/t/p/w276_and_h350_face/1ShvYCWkZycAGb27ZivGrLx1PhS.jpg"
+        } ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "52fe4214c3a36847f80024fb",
+      "character": "Doctor",
+      "order": 8,
+      "person": {
+        "id": "69d95468010203040525c3b0",
+        "tmdbId": 539,
+        "name": "Thomas Lennon",
+        "images": [ {
+          "coverType": "Headshot",
+          "url": "https://image.tmdb.org/t/p/w276_and_h350_face/s8pw7BfuMxN7P0p5XJ9POfod7zW.jpg"
+        } ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "52fe4214c3a36847f80024ff",
+      "character": "Dodd",
+      "order": 9,
+      "person": {
+        "id": "69d95469010203040525ffd9",
+        "tmdbId": 540,
+        "name": "Callum Keith Rennie",
+        "images": [ {
+          "coverType": "Headshot",
+          "url": "https://image.tmdb.org/t/p/w276_and_h350_face/zOeA4IR4xYde2VlDsHZy2SoPZkc.jpg"
+        } ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "52fe4214c3a36847f8002503",
+      "character": "Blonde",
+      "order": 10,
+      "person": {
+        "id": "69d9548401020304052e5df3",
+        "tmdbId": 542,
+        "name": "Kimberly Campbell",
+        "images": [ {
+          "coverType": "Headshot",
+          "url": "https://image.tmdb.org/t/p/w276_and_h350_face/srUMT8MhY0i0CnPNOqdORuxL6JS.jpg"
+        } ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "52fe4214c3a36847f8002507",
+      "character": "Tattooist",
+      "order": 11,
+      "person": {
+        "id": "69d95469010203040525f249",
+        "tmdbId": 543,
+        "name": "Marianne Muellerleile",
+        "images": [ {
+          "coverType": "Headshot",
+          "url": "https://image.tmdb.org/t/p/w276_and_h350_face/8mlAV0ChK35WXQrnlKoEzKNNrFR.jpg"
+        } ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "52fe4214c3a36847f800250b",
+      "character": "Jimmy",
+      "order": 12,
+      "person": {
+        "id": "69d9546e0102030405278677",
+        "tmdbId": 544,
+        "name": "Larry Holden",
+        "images": [ {
+          "coverType": "Headshot",
+          "url": "https://image.tmdb.org/t/p/w276_and_h350_face/1ZYJUFYu97gM0MaCX5EI6oJZu89.jpg"
+        } ]
+      },
+      "movie": null,
+      "tvShow": null
+    } ],
+    "crew": [ {
+      "tmdbCreditId": "52fe4214c3a36847f8002539",
+      "job": "Casting",
+      "department": "PRODUCTION",
+      "person": {
+        "id": "69d9548d01020304052f96b6",
+        "tmdbId": 561,
+        "name": "John Papsidera",
+        "images": [ {
+          "coverType": "Headshot",
+          "url": "https://image.tmdb.org/t/p/w276_and_h350_face/egwEVyrAmdWhtuLqE5fcThZf41E.jpg"
+        } ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "52fe4214c3a36847f8002545",
+      "job": "Editor",
+      "department": "EDITING",
+      "person": {
+        "id": "69d954ad010203040535c533",
+        "tmdbId": 563,
+        "name": "Dody Dorn",
+        "images": [ {
+          "coverType": "Headshot",
+          "url": "https://image.tmdb.org/t/p/w276_and_h350_face/d3RESRZlLhsOIUQNIWxVqaO21q3.jpg"
+        } ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "52fe4214c3a36847f8002515",
+      "job": "Producer",
+      "department": "PRODUCTION",
+      "person": {
+        "id": "69d9d842010203040537cffa",
+        "tmdbId": 550,
+        "name": "Jennifer Todd",
+        "images": [ {
+          "coverType": "Headshot",
+          "url": "https://image.tmdb.org/t/p/w276_and_h350_face/aIecrmmYpqnyCWQArAueqD60qok.jpg"
+        } ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "52fe4214c3a36847f8002527",
+      "job": "Original Music Composer",
+      "department": "SOUND",
+      "person": {
+        "id": "69d9d842010203040537cfff",
+        "tmdbId": 558,
+        "name": "David Julyan",
+        "images": [ {
+          "coverType": "Headshot",
+          "url": "https://image.tmdb.org/t/p/w276_and_h350_face/3VP6FClhIXLwRqVwiqD5t23wPkF.jpg"
+        } ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "52fe4214c3a36847f800253f",
+      "job": "Supervising Sound Editor",
+      "department": "SOUND",
+      "person": {
+        "id": "69d9d842010203040537d003",
+        "tmdbId": 562,
+        "name": "Richard LeGrand Jr.",
+        "images": [ ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "52fe4214c3a36847f8002521",
+      "job": "Executive Producer",
+      "department": "PRODUCTION",
+      "person": {
+        "id": "69d954a30102030405344fe4",
+        "tmdbId": 554,
+        "name": "Aaron Ryder",
+        "images": [ {
+          "coverType": "Headshot",
+          "url": "https://image.tmdb.org/t/p/w276_and_h350_face/2ReBSLRRFjud0Qp3BfnvLheddBj.jpg"
+        } ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "52fe4214c3a36847f8002533",
+      "job": "Production Design",
+      "department": "ART",
+      "person": {
+        "id": "69d9d842010203040537d001",
+        "tmdbId": 560,
+        "name": "Patti Podesta",
+        "images": [ ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "52fe4214c3a36847f800251b",
+      "job": "Producer",
+      "department": "PRODUCTION",
+      "person": {
+        "id": "69d954bc010203040537b276",
+        "tmdbId": 551,
+        "name": "Suzanne Todd",
+        "images": [ {
+          "coverType": "Headshot",
+          "url": "https://image.tmdb.org/t/p/w276_and_h350_face/fRTQ9QFeeTBUqLoyCFlaS8pTGUK.jpg"
+        } ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "52fe4214c3a36847f800252d",
+      "job": "Director of Photography",
+      "department": "CAMERA",
+      "person": {
+        "id": "69d9d842010203040537d000",
+        "tmdbId": 559,
+        "name": "Wally Pfister",
+        "images": [ {
+          "coverType": "Headshot",
+          "url": "https://image.tmdb.org/t/p/w276_and_h350_face/uyWeYsERTTLjpjkE79QeSETLIoA.jpg"
+        } ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "52fe4214c3a36847f80024d1",
+      "job": "Screenplay",
+      "department": "WRITING",
+      "person": {
+        "id": "69d954b00102030405363106",
+        "tmdbId": 525,
+        "name": "Christopher Nolan",
+        "images": [ {
+          "coverType": "Headshot",
+          "url": "https://image.tmdb.org/t/p/w276_and_h350_face/xuAIuYSmsUzKlUMBFGVZaWsY3DZ.jpg"
+        } ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "60633d2c8f26bc002a6ad948",
+      "job": "Camera Operator",
+      "department": "CAMERA",
+      "person": {
+        "id": "69d9d842010203040537d017",
+        "tmdbId": 1532610,
+        "name": "Bob Hall",
+        "images": [ ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "610e433dae384300751b7a3d",
+      "job": "Supervising Sound Editor",
+      "department": "SOUND",
+      "person": {
+        "id": "69d954bc010203040537b311",
+        "tmdbId": 1398120,
+        "name": "Gary S. Gerlich",
+        "images": [ ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "610e4382ae384300751b7a5e",
+      "job": "Sound Re-Recording Mixer",
+      "department": "SOUND",
+      "person": {
+        "id": "69d954a6010203040534b271",
+        "tmdbId": 1392969,
+        "name": "Jonathan Wales",
+        "images": [ ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "610e432e38469a002fb8d467",
+      "job": "Sound Effects Editor",
+      "department": "SOUND",
+      "person": {
+        "id": "69d9d842010203040537d016",
+        "tmdbId": 1429544,
+        "name": "William Hooper",
+        "images": [ ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "610e437392e55b002a5e6171",
+      "job": "Dialogue Editor",
+      "department": "SOUND",
+      "person": {
+        "id": "69d954ad010203040535c490",
+        "tmdbId": 5635,
+        "name": "Walter Spencer",
+        "images": [ ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "610e4366dcf87500485fd086",
+      "job": "Sound Effects Editor",
+      "department": "SOUND",
+      "person": {
+        "id": "69d9d842010203040537d015",
+        "tmdbId": 1415105,
+        "name": "Patrick O'Sullivan",
+        "images": [ ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "610f650ed036b600460a0f43",
+      "job": "Short Story",
+      "department": "WRITING",
+      "person": {
+        "id": "69d9547801020304052ad342",
+        "tmdbId": 527,
+        "name": "Jonathan Nolan",
+        "images": [ {
+          "coverType": "Headshot",
+          "url": "https://image.tmdb.org/t/p/w276_and_h350_face/qgTOwfg2B4C0ZFGAP4EnRZ7domo.jpg"
+        } ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "6566a95589d97f00fe7c7175",
+      "job": "Stunts",
+      "department": "CREW",
+      "person": {
+        "id": "69d9548201020304052d61a1",
+        "tmdbId": 147207,
+        "name": "Corey Michael Eubanks",
+        "images": [ {
+          "coverType": "Headshot",
+          "url": "https://image.tmdb.org/t/p/w276_and_h350_face/h0cIp4kWcrbGMjQlWcPDhyU0aT6.jpg"
+        } ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "5669f7e0c3a3682e98001a71",
+      "job": "Associate Producer",
+      "department": "PRODUCTION",
+      "person": {
+        "id": "69d954b00102030405363109",
+        "tmdbId": 556,
+        "name": "Emma Thomas",
+        "images": [ {
+          "coverType": "Headshot",
+          "url": "https://image.tmdb.org/t/p/w276_and_h350_face/utc1PS6WVWR5tknzTJqXtnD0kBp.jpg"
+        } ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "5669f8c49251415ec5002405",
+      "job": "Stunt Coordinator",
+      "department": "CREW",
+      "person": {
+        "id": "69d954bb0102030405378fe1",
+        "tmdbId": 558896,
+        "name": "Julius LeFlore",
+        "images": [ {
+          "coverType": "Headshot",
+          "url": "https://image.tmdb.org/t/p/w276_and_h350_face/wzDWstuY7MSB0rvnfSpYX8m9ZZ0.jpg"
+        } ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "5669f85ac3a36834c10028e6",
+      "job": "Script Supervisor",
+      "department": "DIRECTING",
+      "person": {
+        "id": "69d9549201020304053058d5",
+        "tmdbId": 1367508,
+        "name": "Steve Gehrke",
+        "images": [ ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "5669f8189251415ec50023ee",
+      "job": "Costume Design",
+      "department": "COSTUME_AND_MAKEUP",
+      "person": {
+        "id": "69d9d842010203040537d008",
+        "tmdbId": 47294,
+        "name": "Cindy Evans",
+        "images": [ ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "5669f86a9251415ec50023fc",
+      "job": "Music Supervisor",
+      "department": "SOUND",
+      "person": {
+        "id": "69d954700102030405285056",
+        "tmdbId": 1070156,
+        "name": "David Klotz",
+        "images": [ ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "5669f808c3a3682647001c96",
+      "job": "Set Decoration",
+      "department": "ART",
+      "person": {
+        "id": "69d9548001020304052ce25b",
+        "tmdbId": 75391,
+        "name": "Danielle Berman",
+        "images": [ ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "5669f76292514173ff006a6d",
+      "job": "Co-Executive Producer",
+      "department": "PRODUCTION",
+      "person": {
+        "id": "69d954a30102030405345168",
+        "tmdbId": 44633,
+        "name": "Christopher Ball",
+        "images": [ ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "5669f77d92514173ff006a70",
+      "job": "Co-Executive Producer",
+      "department": "PRODUCTION",
+      "person": {
+        "id": "69d954a30102030405345172",
+        "tmdbId": 44634,
+        "name": "William Tyrer",
+        "images": [ ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "5669f893c3a3683f560018a1",
+      "job": "Music Editor",
+      "department": "SOUND",
+      "person": {
+        "id": "69d9d842010203040537d012",
+        "tmdbId": 1392170,
+        "name": "Mikael Sandgren",
+        "images": [ ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "5a25b1160e0a264cbc0e6196",
+      "job": "Casting Assistant",
+      "department": "PRODUCTION",
+      "person": {
+        "id": "69d95473010203040529963a",
+        "tmdbId": 959742,
+        "name": "Wendy O'Brien",
+        "images": [ ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "5a25af6a0e0a264cbe0ddf0b",
+      "job": "Co-Producer",
+      "department": "PRODUCTION",
+      "person": {
+        "id": "69d9d842010203040537cffc",
+        "tmdbId": 552,
+        "name": "Elaine Dysinger",
+        "images": [ {
+          "coverType": "Headshot",
+          "url": "https://image.tmdb.org/t/p/w276_and_h350_face/xBfzHm4gLQjGQOprARKVCTI8MNa.jpg"
+        } ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "5a25b05492514103240deea5",
+      "job": "Post Production Supervisor",
+      "department": "CREW",
+      "person": {
+        "id": "69d9d842010203040537d01c",
+        "tmdbId": 1935151,
+        "name": "Jenifer Chatfield",
+        "images": [ ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "5a25b1440e0a264cca0dea1b",
+      "job": "Location Manager",
+      "department": "PRODUCTION",
+      "person": {
+        "id": "69d954b00102030405363108",
+        "tmdbId": 535,
+        "name": "Russ Fega",
+        "images": [ {
+          "coverType": "Headshot",
+          "url": "https://image.tmdb.org/t/p/w276_and_h350_face/d0W7kq97Ul8Iz5LZIVNDKxSly8M.jpg"
+        } ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "5a25b17f0e0a264cd00e1268",
+      "job": "Production Coordinator",
+      "department": "PRODUCTION",
+      "person": {
+        "id": "69d9d842010203040537d019",
+        "tmdbId": 1667272,
+        "name": "Lawrence Lewis",
+        "images": [ ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "5a25b0860e0a264cbe0de0a2",
+      "job": "Unit Production Manager",
+      "department": "PRODUCTION",
+      "person": {
+        "id": "69d954b6010203040536efa9",
+        "tmdbId": 1826954,
+        "name": "Page Rosenberg-Marvin",
+        "images": [ ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "5a25b0ec0e0a264cbe0de10c",
+      "job": "Casting Associate",
+      "department": "PRODUCTION",
+      "person": {
+        "id": "69d9d842010203040537d018",
+        "tmdbId": 1552039,
+        "name": "Terence Harris",
+        "images": [ ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "5e83ad65e33f83001435a709",
+      "job": "Director",
+      "department": "DIRECTING",
+      "person": {
+        "id": "69d954b00102030405363106",
+        "tmdbId": 525,
+        "name": "Christopher Nolan",
+        "images": [ {
+          "coverType": "Headshot",
+          "url": "https://image.tmdb.org/t/p/w276_and_h350_face/xuAIuYSmsUzKlUMBFGVZaWsY3DZ.jpg"
+        } ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "5ff65493976e48003e604003",
+      "job": "Set Costumer",
+      "department": "COSTUME_AND_MAKEUP",
+      "person": {
+        "id": "69d9d842010203040537d01b",
+        "tmdbId": 1830057,
+        "name": "Annie Laoparadonchai",
+        "images": [ ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "5ff654aaa894d6003c5193e0",
+      "job": "Assistant Costume Designer",
+      "department": "COSTUME_AND_MAKEUP",
+      "person": {
+        "id": "69d9d842010203040537d010",
+        "tmdbId": 1326091,
+        "name": "Laura Marolakos ",
+        "images": [ ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "5ff6544ea894d6003d518509",
+      "job": "First Assistant Director",
+      "department": "DIRECTING",
+      "person": {
+        "id": "69d9d842010203040537d01d",
+        "tmdbId": 2399002,
+        "name": "Chris Edmonds",
+        "images": [ ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "5ff65420976e48003d604139",
+      "job": "Key Hair Stylist",
+      "department": "COSTUME_AND_MAKEUP",
+      "person": {
+        "id": "69d9d842010203040537d00c",
+        "tmdbId": 578729,
+        "name": "Larry Waggoner",
+        "images": [ ]
+      },
+      "movie": null,
+      "tvShow": null
+    }, {
+      "tmdbCreditId": "5ff654068741c40041ff504a",
+      "job": "Key Makeup Artist",
+      "department": "COSTUME_AND_MAKEUP",
+      "person": {
+        "id": "69d9547a01020304052b47ee",
+        "tmdbId": 1316296,
+        "name": "Scott H. Eddo",
+        "images": [ ]
+      },
+      "movie": null,
+      "tvShow": null
+    } ]
+  },
+  "certifications": [ {
+    "country": "AR",
+    "certification": "+13"
+  }, {
+    "country": "AU",
+    "certification": "MA15+"
+  }, {
+    "country": "BE",
+    "certification": "18"
+  }, {
+    "country": "BG",
+    "certification": "D"
+  }, {
+    "country": "BR",
+    "certification": "16"
+  }, {
+    "country": "CA",
+    "certification": "14A"
+  }, {
+    "country": "CH",
+    "certification": "14"
+  }, {
+    "country": "CZ",
+    "certification": "12+"
+  }, {
+    "country": "DE",
+    "certification": "16"
+  }, {
+    "country": "DK",
+    "certification": "15"
+  }, {
+    "country": "ES",
+    "certification": "12"
+  }, {
+    "country": "FI",
+    "certification": "K-16"
+  }, {
+    "country": "FI",
+    "certification": "K-15"
+  }, {
+    "country": "FR",
+    "certification": "12"
+  }, {
+    "country": "GB",
+    "certification": "15"
+  }, {
+    "country": "HK",
+    "certification": "IIB"
+  }, {
+    "country": "HU",
+    "certification": "16"
+  }, {
+    "country": "IE",
+    "certification": "18"
+  }, {
+    "country": "IL",
+    "certification": "14"
+  }, {
+    "country": "IN",
+    "certification": "UA"
+  }, {
+    "country": "IT",
+    "certification": "T"
+  }, {
+    "country": "JP",
+    "certification": "PG12"
+  }, {
+    "country": "KR",
+    "certification": "15"
+  }, {
+    "country": "MX",
+    "certification": "B"
+  }, {
+    "country": "NL",
+    "certification": "16"
+  }, {
+    "country": "NO",
+    "certification": "15"
+  }, {
+    "country": "NZ",
+    "certification": "R16"
+  }, {
+    "country": "PL",
+    "certification": "16"
+  }, {
+    "country": "PT",
+    "certification": "M/12"
+  }, {
+    "country": "RU",
+    "certification": "18+"
+  }, {
+    "country": "SE",
+    "certification": "15"
+  }, {
+    "country": "SG",
+    "certification": "NC16"
+  }, {
+    "country": "TR",
+    "certification": "13+"
+  }, {
+    "country": "TW",
+    "certification": "輔12"
+  }, {
+    "country": "US",
+    "certification": "R"
+  } ],
+  "alternativeTitles": [ ],
+  "recommendations": [ {
+    "id": null,
+    "tmdbId": 579047,
+    "title": "Reminiscence"
+  }, {
+    "id": null,
+    "tmdbId": 301355,
+    "title": "Message from the King"
+  }, {
+    "id": null,
+    "tmdbId": 539,
+    "title": "Psycho"
+  }, {
+    "id": null,
+    "tmdbId": 11033,
+    "title": "Dressed to Kill"
+  }, {
+    "id": null,
+    "tmdbId": 354285,
+    "title": "The Sense of an Ending"
+  }, {
+    "id": null,
+    "tmdbId": 522406,
+    "title": "Flashback"
+  }, {
+    "id": null,
+    "tmdbId": 9828,
+    "title": "Unknown"
+  }, {
+    "id": null,
+    "tmdbId": 419835,
+    "title": "Crooked House"
+  }, {
+    "id": null,
+    "tmdbId": 793,
+    "title": "Blue Velvet"
+  }, {
+    "id": null,
+    "tmdbId": 320,
+    "title": "Insomnia"
+  }, {
+    "id": null,
+    "tmdbId": 26039,
+    "title": "Point Blank"
+  }, {
+    "id": null,
+    "tmdbId": 44026,
+    "title": "Mr. Arkadin"
+  }, {
+    "id": null,
+    "tmdbId": 638,
+    "title": "Lost Highway"
+  }, {
+    "id": null,
+    "tmdbId": 13389,
+    "title": "Righteous Kill"
+  }, {
+    "id": null,
+    "tmdbId": 207933,
+    "title": "Stonehearst Asylum"
+  }, {
+    "id": null,
+    "tmdbId": 9270,
+    "title": "Brick"
+  }, {
+    "id": null,
+    "tmdbId": 1160003,
+    "title": "Night of the Hunted"
+  }, {
+    "id": null,
+    "tmdbId": 76812,
+    "title": "Black Butterfly"
+  }, {
+    "id": null,
+    "tmdbId": 629,
+    "title": "The Usual Suspects"
+  }, {
+    "id": null,
+    "tmdbId": 11336,
+    "title": "The Dead Zone"
+  } ],
+  "translations": [ {
+    "title": "Memento",
+    "overview": "Leonard Shelby is tracking down the man who raped and murdered his wife. The difficulty of locating his wife's killer, however, is compounded by the fact that he suffers from a rare, untreatable form of short-term memory loss. Although he can recall details of life before his accident, Leonard cannot remember what happened fifteen minutes ago, where he's going, or why.",
+    "language": "en-US"
+  }, {
+    "title": null,
+    "overview": "Memento è l'imperativo del verbo difettivo latino \"memini, isse\" e può essere tradotto con \"ricordati\", che è la parola chiave del secondo lungometraggio di Christopher Nolan. Intorno a questo principio ruota infatti l'intera vicenda, non raccontata in modo lineare, ma attraverso un apparente caos che incarna il punto di vista del personaggio principale, Leonard Shelby, affetto da una particolare forma di amnesia, che lascia intatti i vecchi ricordi ma comporta la perdita della memoria breve. Attraverso un'affannosa ricerca compiuta per mezzo dell'azione e della scrittura, che serve a registrare ciò di cui la percezione non può farsi sicuro garante, il detective Shelby cerca l'assassino della moglie, l'ultimo ricordo che \"non riesce a ricordare di dimenticare\", in una labirintica realtà continuamente riazzerata e in cui non si può mai pronunciare l'ultima parola.",
+    "language": "it-IT"
+  }, {
+    "title": null,
+    "overview": "Leonard Shelby hat bei einem Unfall sein Kurzeitgedächtnis verloren. Zwar weiß er, wer er ist, doch er kann sich keine Namen, keine Begegnungen länger als ein paar Minuten merken. Sein Leben besteht aus einem Berg Notizen, Fotos und Tätowierungen, mit denen sein Körper übersät ist. Der Film beginnt mit einem Mord, festgehalten auf einem Polaroid. Der einzige Hinweis, dass Shelby den Mord begangen hat. Ein Mann ohne Gedächtnis kann von seiner Umwelt leicht missbraucht werden. Shelby versucht aus dem Wirrwarr von Notizen und Fotos das Geschehen zu entschlüsseln. Wenn er vor dem Spiegel steht, sieht er die Tätowierung: Finde den Mörder deiner Frau. Töte ihn.",
+    "language": "de-DE"
+  }, {
+    "title": "Memento",
+    "overview": "Leonard Shelby életét egyetlen cél vezérli: megtalálni azt, aki megölte és megerőszakolta feleségét és bosszút állni haláláért. Leonard azonban egy furcsa, gyógyíthatatlan betegségben szenved. Amnéziás és a frissen szerzett élményekre is képtelen emlékezni. Egyetlen dologban biztos csupán: bosszút akar állni. Betegsége azonban különösen megnehezíti ezt. Polaroid képekkel dokumentálja minden lépését, névjegykártyák, dokumentumok, tetoválások segítségével próbálja összerakosgatni élete és a brutális gyilkosság darabkáit. A szálak egyre bonyolódnak, mindenki gyanússá válik, talán még maga Leonard is. A nagy kérdés pedig még mindig nyitva áll: ki a gyilkos?",
+    "language": "hu-HU"
+  }, {
+    "title": "Amnésia 2000",
+    "overview": "Leonard é um investigador de seguros que deixou de conseguir manter uma memória de curto prazo após ter sofrido um traumatismo no seguimento do assassinato da sua esposa. Com a sua vida profundamente marcada, ele dedica agora todo o seu tempo a investigar o crime, à procura do assassino.",
+    "language": "pt-PT"
+  }, {
+    "title": null,
+    "overview": "Leonard Shelby sigue la pista del hombre que violó y asesinó a su mujer. Sin embargo, la dificultad de localizar al asesino de su esposa se ve agravada por el hecho de que padece una forma rara e intratable de pérdida de memoria a corto plazo. Aunque puede recordar detalles de la vida antes de su accidente, Leonard no puede recordar qué ha pasado hace quince minutos, adónde va o por qué.",
+    "language": "es-ES"
+  }, {
+    "title": null,
+    "overview": "Leonard Shelby ne porte que des costumes de grands couturiers et ne se déplace qu’au volant de sa Jaguar. En revanche, il habite dans des motels miteux et règle ses notes avec d’épaisses liasses de billets. Leonard n’a qu’une idée en tête: traquer l’homme qui a violé et assassiné sa femme afin de se venger. Sa recherche du meurtrier est rendue plus difficile par le fait qu’il souffre d’une forme rare et incurable d’amnésie. Bien qu’il puisse se souvenir de détails de son passé, il est incapable de savoir ce qu’il a fait dans le quart d’heure précédent, où il se trouve, où il va et pourquoi. Pour ne jamais perdre son objectif de vue, il a structuré sa vie à l’aide de fiches, de notes, de photos, de tatouages sur le corps. C’est ce qui l’aide à garder contact avec sa mission, à retenir les informations et à garder une trace, une notion de l’espace et du temps.",
+    "language": "fr-FR"
+  }, {
+    "title": "Akıl Defteri",
+    "overview": "Leonard Shelby, pahalı takım elbiseler giyer, son model bir Jaguar kullanır; bunun yanında ucuz, tanınmamış motellerde konaklar ve ödemelerini hep nakit parayla gerçekleştirir. Başarılı bir iş adamı görüntüsündedir... Ancak Leonard'ın tek işi intikam almaktır; karısının ırzına geçip öldüren adamın peşindedir. Şüpheleri polis tarafından dikkate alınmayan Leonard'ın yaşamındaki tek mücadelesi, adalet arayışı uzerine kurulmuştur. Katili belirlemesinde ise büyük bir zorlukla karşı karşıyadır. Leonard'ın nadir görülen, tedavisi olmayan bir hafıza kaybı hastalığı vardır. \"Kaza\" oncesi olayları tüm ayrıntılarına kadar hatırlayabilen Leonard, 15 dakika önce ne olduğunu, ne yaptığını, nereye gittiğini ve neden gittiğini bilememektedir.",
+    "language": "tr-TR"
+  }, {
+    "title": null,
+    "overview": "Leonard Shelby ei kykene muistamaan mitään - paitsi sen, että hänen vaimonsa on murhattu. Aivovaurion takia mies kärsii lähimuistin menetyksestä. Kaikki hänen uudet, vaimonsa kuoleman jälkeiset muistot haalistuvat kymmenen minuutin kuluessa. Leonardin elämä on sirpaleina ja hän yrittää pitää langat käsissään ottamalla kuvia muistutukseksi ja jopa tatuoimalla itseensä tärkeitä asioita. Mies haluaa kostaa vaimonsa murhaajille; mutta tuntuuko edes oikeutettu kosto miltään, jos sitä ei pysty muistamaan ja elämään yhä uudestaan?",
+    "language": "fi-FI"
+  }, {
+    "title": "Мементо",
+    "overview": "Леонард Шелби изысканно и дорого одет, ездит на новеньком «Ягуаре», но проживает в дешевых мотелях. Его цель в жизни — найти убийцу жены.Его проблема — редкая форма амнезии, потеря короткой памяти, помня все до убийства, он не помнит, что было пятнадцать минут назад. Его друзья — Тедди и Натали, да и друзья ли они ему. Его спутники — фотоаппарат «Полароид» и татуировки на теле. Главный вопрос — почему наказанных больше, чем виноватых?",
+    "language": "ru-RU"
+  }, {
+    "title": "记忆碎片",
+    "overview": "警方不予受理后，伦纳德·谢尔比执意追查强奸杀害妻子的凶手。然而，一种罕见且无法治愈的失忆症，使他踏上复仇之路难上加难。",
+    "language": "zh-CN"
+  }, {
+    "title": null,
+    "overview": "En djupsinnig film om en man plågad av en mycket sällsynt form av minnesåkomma; han har defekt korttidsminne, som vill hämnas sin mördade hustru.",
+    "language": "sv-SE"
+  }, {
+    "title": null,
+    "overview": "Začne to fotografií a vzkazem na ní: \"Zab ho!\" A od té chvíle se odvíjí tajemný a drsný příběh Leonarda. Jeho žena byla napadena, zavražděna a on si skoro nic nepamatuje. Jeho krátkodobá paměť je pryč. Leonard se ale musí pomstít. Okamžitě jde po vrahovi. Aby nějak kompenzoval výpadky paměti, všechno si fotí, cvaká spouští na svém Polaroidu jako blázen a podstatná fakta si nechává tetovat na tělo. Story je vyprávěna zvláštním způsobem. Každá důležitá filmová scéna končí tam, kde předchozí začala, a tak musíme být pozorní, abychom ten zvláštní propletenec dějů a potkávajících se postav dobře vnímali. K hlavnímu hrdinovi se přidávají další - ukecaný Teddy a barmanka Natalie. Všichni jsou s vraždou nějak propojeni. Ale pořád se nám do mysli vnucuje klíčová otázka: Je skutečně vrahem John G, jehož jméno má Leonard vytetováno na prsou?",
+    "language": "cs-CZ"
+  }, {
+    "title": "Мементо",
+    "overview": "Леонард Шелбі вишукано і дорого одягнений, їздить на новенькому «Ягуарові», але проживає в дешевих мотелях. Його мета в житті — знайти вбивцю дружини. Його проблема — рідкісна форма амнезії, втрата короткої пам’яті: пам’ятаючи все до вбивства, він не пам’ятає, що було п’ятнадцять хвилин тому. Його друзі — Теді та Наталі, та й чи друзі вони йому. Його супутники — фотоапарат «Полароїд» і тату на тілі. Головне питання — чому покараних більше, ніж винних?",
+    "language": "uk-UA"
+  }, {
+    "title": null,
+    "overview": "Leonard is een onderzoeker voor een verzekeringsmaatschappij. Zijn geheugen is ernstig beschadigd na een poging in te grijpen bij de moord van z'n vrouw. Leonard is uit op wraak, maar door z'n slechte geheugen kan hij alleen behoorlijk functioneren door het constant maken van aantekeningen, tatoeages en het maken van polaroid foto's.",
+    "language": "nl-NL"
+  }, {
+    "title": null,
+    "overview": "Mieszkający w San Francisco detektyw ubezpieczeniowy, Leonard Shelby, w wyniku wypadku traci tzw. pamięć krótkotrwałą. Wie, kim jest i pamięta wszystko sprzed wypadku, ale błyskawicznie zapomina o tym, co wydarzyło się przed chwilą. Nie wie gdzie był, co robił i planował. Przy dłuższej rozmowie zapomina od czego się zaczęła. Powracające wspomnienia śmierci żony powodują, że nie daje za wygraną. Notatki, zdjęcia i tatuaże zastępują mu pamięć. Jedyną motywacją do życia jest obsesyjne pragnienie zemsty na mordercy ukochanej kobiety.",
+    "language": "pl-PL"
+  }, {
+    "title": null,
+    "overview": "Selvom Leonard Shelby med sit dyre tøj, sin jaguar og sine mange kontanter ligner en succesrig forretningsmand, har han kun et formål med sit liv: at finde den mand, der voldtog og myrdede hans kone! Men Shelby lider af en sjælden form for hukommelsestab. Efter blot et kvarter kan han ikke huske, hvor han er, hvor han skal hen og hvorfor. Derfor må Shelby sammenstykke sit liv ved at tage billeder og bruge sin krop som notesblok. Men en ting glemmer han aldrig: Hævnen...",
+    "language": "da-DK"
+  }, {
+    "title": "Сећања",
+    "overview": "Ленард је човек без дуготрајног сећања, има само краткотрајно. Захваљујући сложеном саставу подсетника расутих по полароид фотографијама, папирићима, па чак и тетоважама на телу, зна да је примивши ударац у главу у борби са силоватељем и убицом вољене жене заувек гурнут у садашњост. Из прошлости до њега непрестано допиру кратки бљескови лица и догађаја које не може повезати. Све што чини, а очито је да тражи убицу у жељи да му се освети.",
+    "language": "sr-RS"
+  }, {
+    "title": "メメント",
+    "overview": "ロサンジェルスで保険の調査員をしていたレナード。ある日、何者かが家に侵入し、妻がレイプされたうえ殺害されてしまう。その光景を目撃してしまったレナードはショックで前向性健忘となってしまう。彼は記憶を消さないためポラロイドにメモを書き、体にタトゥーを刻みながら犯人の手掛かりを追っていく……。  前向性健忘（発症以前の記憶はあるものの、それ以降は数分前の出来事さえ忘れてしまう症状）という記憶障害に見舞われた男が、最愛の妻を殺した犯人を追う異色サスペンス。",
+    "language": "ja-JP"
+  }, {
+    "title": "Μεμέντο",
+    "overview": "Ο Lenard Shelby φορά ακριβά ευρωπαϊκά κοστούμια, οδηγεί το τελευταίο μοντέλο της Τζάγκουαρ, αλλά ζει σε φτηνά ανώνυμα μοτέλ, πληρώνοντας με ένα παχύ ρολό χαρτονομίσματα. Παρόλο που μοιάζει με επιτυχημένο επιχειρηματία, η μόνη του απασχόληση είναι η αναζήτηση εκδίκησης: πρέπει να εντοπίσει και να τιμωρήσει τον άνθρωπο που βίασε και σκότωσε τη γυναίκα του. Με την αστυνομία να μην ασχολείται με την υπόθεσή του, η απόδοση δικαιοσύνης αποτελεί πλέον το σκοπό της ζωής του. Η δυσκολία στην αναζήτηση του δολοφόνου της γυναίκας του επαυξάνεται από το γεγονός ότι ο Lenard υποφέρει από μια σπάνια και ανίατη μορφή απώλειας μνήμης.",
+    "language": "el-GR"
+  }, {
+    "title": "ממנטו",
+    "overview": "ליאונרד הוא חוקר תביעות ביטוח לשעבר, שנרדף שוב ושוב על ידי אירוע טראומטי: רצח ואונס אשתו. אחרי שחטף חבטה חזקה בראשו, הוא מאבד את זכרונו באופן כמעט טוטאלי ונאלץ לפתח שיטות שונות, כמו רשימת קעקועים על גופו, כדי להזכיר לעצמו דברים חשובים. הוא פוצח במסע נקמה להעניש את האיש שאחראי לטרגדיה שלו וכן להשיב את זכרונו.",
+    "language": "he-IL"
+  }, {
+    "title": "یادگاری",
+    "overview": "لئونارد شلبی (گای پیرس) بر اثر یک اتفاق، حافظه کوتاه مدت خود را از دست می‌دهد و با کمک یادداشت‌ها، خالکوبی‌ها و عکس‌هایش سعی می‌کند کسی که همسرش را کشته است پیدا کند و انتقام بگیرد.",
+    "language": "fa-IR"
+  }, {
+    "title": "메멘토",
+    "overview": "전직 보험 수사관이었던 레너드에게 기억이란 없다. 자신의 아내가 강간당하고 살해되던 날의 충격으로 기억을 10분 이상 지속시키지 못하는 단기 기억상실증 환자가 되었던 것이다. 그가 마지막으로 기억하고 있는 것은 자신의 이름이 레너드 셸비 라는 것과 아내가 강간당하고 살해당했다는 것, 그리고 범인은 존 G 라는 것이 전부. 레너드는 자신의 가정을 파탄 낸 범인을 찾기 위한 방법으로 메모와 문신을 사용하게 된다. 하지만 진실에 다가갈수록 자신의 기억, 주위 사람들에 대한 의심이 갈수록 커져만 가는데...",
+    "language": "ko-KR"
+  }, {
+    "title": "Мементо",
+    "overview": "Той е съвсем наясно със “състоянието” си. Още повече, притежава необходимата дисциплина и мотивация – жестокия спомен за последните мигове от живота на любимата му. Преследван от него, той е изградил живота си наново с помощта на бележки, отметки, чертежи, татуировки и обсебващи навици, които му служат като памет. Те го фиксират във времето и пространството и го свързват с мисията му. За да я завърши, обаче, се налага да разчита на хора, чиито мотиви и почтеност трудно може да преценява.",
+    "language": "bg-BG"
+  }, {
+    "title": null,
+    "overview": "Začne to fotografiou a odkazom na nej: \"Zabi ho!\" A od tej chvíle sa odvíja tajomný a drsný príbeh Leonarda. Jeho žena bola napadnutá, zavraždená a on si skoro nič nepamätá. Jeho krátkodobá pamäť je preč. Leonard sa ale musí pomstiť. Okamžite ide po vrahovi. Aby nejako kompenzoval výpadky pamäti, všetko si fotí, cvaká spúšťa na svojom Polaroide ako blázon a podstatné fakty si necháva tetovať na telo. Príbeh je rozprávaný zvláštnym spôsobom. Každá dôležitá filmová scéna sa končí tam, kde predchádzajúca začala, a tak musíme byť pozorní, aby sme ten zvláštny prepletenec dejov a stretávajúcich sa postáv dobre vnímali. K hlavnému hrdinovi sa pridávajú ďalší - ukecaný Teddy a barmanka Natália. Všetci sú s vraždou nejako prepojení a stále sa nám do mysle vnucuje kľúčová otázka: Je vrahom skutočne John G., ktorého meno má Leonard vytetované na prsiach?",
+    "language": "sk-SK"
+  }, {
+    "title": "Amnésia",
+    "overview": "Leonard está caçando o homem que estuprou e matou sua esposa. Ele tem dificuldades em encontrar o assassino pois sofre de uma forma intratável de perda de memória. Mesmo que ele possa lembrar detalhes da vida antes do acidente, Leonard não consegue lembrar o que aconteceu quinze minutos atrás, onde está indo ou a razão.",
+    "language": "pt-BR"
+  }, {
+    "title": null,
+    "overview": "Un bărbat amnezic care nu-și mai poate aminti evenimentele recente, folosește notițe și tatuaje pentru a da de urma ucigașului soției lui.  Secvența uimitoare și antologică de la începutul lui Memento implică o crimă și un polaroid cu un cadavru. Fotografia alunecă înapoi în cameră, glonțul e absorbit pe țeava pistolului și Leonard, personajul principal, începe să trăiască invers. Se spune că memoria este unul dintre elementele cheie care separă oamenii de animale și că e un dat esențial al condiției umane. Memento e preocupat de toate aspectele ei, mai ales de felul în care poate fi manipulată. Filmul lui Christopher Nolan e unul dintre acele rare și autentice triumfuri din istoria regiei de film moderne, pentru că reușește să fie inovator, proaspăt, șic și excitant, fără să-și obosească audiența. Întregul film este astfel construit încât să reflecte starea mentală a personajului principal, în același timp, lăsându-i spectatorului dreptul la o proprie perspectivă.",
+    "language": "ro-RO"
+  }, {
+    "title": null,
+    "overview": "Srhljiv umor se na platnu odvrti v obratni smeri: proces razvijanja fotografije teče nazaj in ta se vrne v bliskajoč polaroidni fotoaparat; prelita kri steče nazaj v človeške žile in cev puške se odmakne od izkrivljenih ust. Prvi trenutki filma Memento, eksplozivnega novega trilerja Christopherja Nolana, so časovno prikazani v obratni smeri: kot prispodoba za utripanje časa skozi film; čas narašča in upada v ritmu potovanja človeka skozi kaos izgubljenega spomina. Nolan je napisal scenarij za film po kratki zgodbi svojega brata Jonathana. Memento govori o življenju, ki ga usmerjajo fotografije, mapa z dokumenti o preiskavi, na hitro zabeležena sporočila in tetovaže. Memento je pretresljiv in močan triler, v katerem igrajo Carrie-Anne Moss, Joe Pantoliano in Guy Pearce v vlogi Leonarda, človeka, ki se bori, da bi ponovno našel samega sebe med razbitimi delci preteklosti.",
+    "language": "sl-SI"
+  }, {
+    "title": "記憶拼圖",
+    "overview": "黑暗中突然出現了一道閃光，一名男子被開槍射中頭部，兇手正在快速接近中。另一道閃光的出現，時間卻開始倒轉─子彈彈回了槍裡，死亡男子的頭部自動癒合，持槍的兇手還沒殺人，但是他準備為死去的妻子報仇。這是【記憶拼圖】的影片開場，本片可說是繼【刺激驚爆點】之後最具創意的驚悚片佳作。蓋皮爾斯所飾演的藍納一直在找尋殺妻的兇手，一心想親手替妻子報仇。不料藍納卻突然失去記憶，更糟糕的是，這段暫時性的失憶剛好發生在他追蹤殺妻兇手之時。就在藍納開槍射殺兇手時，時光開始倒轉，而藍納開始失憶……..。為了能記得追蹤殺妻兇手的線索，失憶前的藍諾利用筆記、照片、圖表及所有訊息，提醒自己誰可以信賴而誰不能信賴，即使自己的身體也派上了用場，他將「找到他並殺了他」刺青在自己身上，作為神秘記號，提醒自己這句話是找出兇手的關鍵。一名叫娜塔麗的女子也在此時出現，她願意協助藍納追蹤兇手，並找出真相。然而神秘的娜塔麗是否可以信賴？而藍納面對的又是什麼樣的兇手呢？",
+    "language": "zh-TW"
+  }, {
+    "title": "Memento",
+    "overview": "Buvęs draudimo kompanijos darbuotojas Leonardas Shelby (akt. Guy Pearce) tampa žiauraus nusikaltimo liudininku. Prieš pat atsitiktinai atsibudusio jaunuolio akis yra išprievartaujama ir nužudoma jo žmona. Todėl jis nenumaldomai trokšta keršto ir nieko daugiau. Net ir pats palankiausias teismo sprendimas jo nepatenkintų. Jaunuolis nori atkeršyti pats, bet nežino visiškai nieko apie žudiką. Jis nieko neatsimena....",
+    "language": "lt-LT"
+  }, {
+    "title": "兇心人",
+    "overview": "退休保險調查員連納（格培斯飾）的妻子遭姦殺，他誓要找出兇徒繩之於法，但申於兇徒犯案時重傷他的頭部，連納沒有任何短期記憶，雖然記得受傷以前的一切，對於受傷以後發生的任何事，他卻沒法記憶。連納用即影即有相機，備忘條去彌補失憶。緝兇過程中一個叫泰迪的人經常在他身邊出現，神秘女郎妮妲莉更不時提供協助，只是每個人都好像別有居心，使連納更弄不清誰可信任……",
+    "language": "zh-HK"
+  }, {
+    "title": "Amnesia",
+    "overview": "Un hombre con pérdida de memoria a corto plazo intenta localizar al asesino de su esposa.",
+    "language": "es-MX"
+  }, {
+    "title": "Mémento",
+    "overview": "Leonard Shelby ne porte que des costumes de grands couturiers et ne se déplace qu'au volant de sa Jaguar. En revanche, il habite dans des motels miteux et règle ses notes avec d'épaisses liasses de billets. Leonard n'a qu'une idée en tête : traquer l'homme qui a violé et assassiné sa femme afin de se venger. Sa recherche du meurtrier est rendue plus difficile par le fait qu'il souffre d'une forme rare et incurable d'amnésie. Bien qu'il puisse se souvenir de détails de son passé, il est incapable de savoir ce qu'il a fait dans le quart d'heure précédent, où il se trouve, où il va et pourquoi. Pour ne jamais perdre son objectif de vue, il a structuré sa vie à l'aide de fiches, de notes, de photos, de tatouages sur le corps. C'est ce qui l'aide à garder contact avec sa mission, à retenir les informations et à garder une trace, une notion de l'espace et du temps.",
+    "language": "fr-CA"
+  }, {
+    "title": "ภาพหลอนซ่อนรอยมรณะ",
+    "overview": "เรื่องราวของ ลีโอนาร์ด (กาย เพียร์ซ) ชายหนุ่มความจำสั้น เขาถูกคนร้ายบุกมาข่มขืนภรรยาตัวเอง และใช้ไม้ทุบหัวทำให้เขาความจำเสื่อมและสร้างความทรงจำใหม่ ๆ ขึ้นมาไม่ได้ ภาพจำสุดท้ายของ ลีโอนาร์ด คือ ฉากที่เห็นภรรยาของตัวเองกำลังโดนโจรทำร้าย ลีโอนาร์ด จึงต้องใช้การถ่ายภาพ และรอยสักเป็นตัวเตือนความจำว่าตัวเองคือใคร และกำลังทำอะไรอยู่ โดยมีเป้าหมายสำคัญก็คือ สืบหาตัวคนร้ายที่ฆ่าภรรยาเขาให้ได้",
+    "language": "th-TH"
+  }, {
+    "title": "Kẻ Mất Trí Nhớ",
+    "overview": "Memento là câu chuyện xoay quanh Leonard Shelby, một người mắc chứng trí nhớ ngắn hạn truy tìm kẻ đã hãm hiếp và giết chết vợ anh. Leonard chỉ có thể nhớ những chuyện xảy ra trước vụ án mạng còn từ sau đó thì anh không thể nhớ điều gì quá 10 phút nên anh luôn phải ghi chép, chụp ảnh và thậm chí xăm mình để ghi nhớ mọi việc. Phim được chia làm 2 mảng truyện đan xen nhau và cứ thế, bức màn bí mật dần dần được hé lộ qua từng thước phim...",
+    "language": "vi-VN"
+  }, {
+    "title": "تِذكار",
+    "overview": "يقوم ليونارد شيلبي بتعقب الرجل الذي اغتصب زوجته وقتلها. ومع ذلك ، فإن صعوبة تحديد مكان قاتل زوجته تتفاقم بسبب حقيقة أنه يعاني من شكل نادر وغير قابل للعلاج من فقدان الذاكرة قصير المدى. على الرغم من أنه يستطيع تذكر تفاصيل الحياة قبل وقوع الحادث ، إلا أن ليونارد لا يتذكر ما حدث قبل خمسة عشر دقيقة ، إلى أين يذهب ، أو لماذا.",
+    "language": "ar-SA"
+  }, {
+    "title": "Memento",
+    "overview": "Leonard Shelby prati muškarca koji je silovao i ubio njegovu suprugu. Međutim, to mu otežava činjenica da pati od rijetkog, neizlječivog oblika kratkoročnog gubitka pamćenja. Iako se može prisjetiti detalja iz života prije nesreće, Leonard se ne može sjetiti što se dogodilo prije petnaest minuta, kamo ide ili zašto.",
+    "language": "hr-HR"
+  }, {
+    "title": "გახსოვდეს",
+    "overview": "თავის ტრამვის შემდეგ ლეონარდ შელბის დროებით მეხსირებაა აქვს დაკარგული. ის მისი მეუღლის მკვლელს ეძებს. თავისი ჩანაფიქრის განსახორციელებლად ის პოლაროიდით ადამიანებს და ადგილებს ფოტოებს უღებს და საკუთარ სხეულზე სვირინგსაც კი გაიკეთებს, რომ მნიშვნელოვანი რამ დაიმახსოვროს.",
+    "language": "ka-GE"
+  }, {
+    "title": null,
+    "overview": "Leonard és un investigador d'una agència d'assegurances que té la memòria irremissiblement danyada per culpa d'un cop al cap sofert en intentar evitar l'assassinat de la seva dona, aquest és l'últim fet que recorda del passat. Per culpa del cop ha perdut la memòria recent, és a dir, els fets quotidians desapareixen de la seva ment en uns minuts. Així doncs, per investigar i venjar l'assassinat de la seva esposa ha de recórrer a l'ajuda d'una càmera instantània i a les notes tatuades en el seu cos.",
+    "language": "ca-ES"
+  }, {
+    "title": null,
+    "overview": "Leonard Shelby otsib meest, kes vägistas ja mõrvas tema naise. Tema naise mõrvari leidmist raskendab aga asjaolu, et ta kannatab harvaesineva ja ravimatu lühiajalise mälukaotuse all. Kuigi ta suudab meenutada üksikasju elust enne õnnetust, ei mäleta Leonard, mis juhtus viisteist minutit tagasi, kuhu ta läheb või miks.",
+    "language": "et-EE"
+  }, {
+    "title": null,
+    "overview": "Leonard lider av hukommelsestap og klarer ikke lage nye minner. Den siste han husker er sin kones mord og vi opplever Leonard gjennom to fortellinger, den ene går framover og den andre bakover.",
+    "language": "no-NO"
+  } ],
+  "collection": null,
+  "studio": "Newmarket Films",
+  "youtubeTrailerId": "Rq9eM4ZXRgs"
+}

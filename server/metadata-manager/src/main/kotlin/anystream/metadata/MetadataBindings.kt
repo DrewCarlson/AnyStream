@@ -1,6 +1,6 @@
 /*
  * AnyStream
- * Copyright (C) 2021 AnyStream Maintainers
+ * Copyright (C) 2026 AnyStream Maintainers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -15,8 +15,27 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package anystream.util
+package anystream.metadata
 
-import anystream.models.MetadataId
+import anystream.di.ServerScope
+import dev.zacsweers.metro.BindingContainer
+import dev.zacsweers.metro.ContributesTo
+import dev.zacsweers.metro.Provides
+import io.ktor.client.HttpClient
+import io.ktor.client.plugins.defaultRequest
+import wire.client.WireApiClient
 
-val MetadataId.isRemoteId: Boolean get() = value.split(':').run { size == 3 || size == 4 }
+@ContributesTo(ServerScope::class)
+@BindingContainer
+object MetadataBindings {
+    @Provides
+    fun provideWireApiClient(http: HttpClient): WireApiClient {
+        return WireApiClient(
+            http.config {
+                defaultRequest {
+                    url("https://wire.anystream.dev")
+                }
+            },
+        )
+    }
+}

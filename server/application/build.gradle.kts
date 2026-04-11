@@ -113,8 +113,6 @@ dependencies {
 
     implementation(libsServer.jaffree)
 
-    implementation(libsServer.tmdbapi)
-
     implementation(libsServer.imageio.webp)
 
     implementation(libsServer.qbittorrent.client)

@@ -22,16 +22,17 @@ import java.nio.file.Path
 import kotlin.io.path.createDirectory
 import kotlin.io.path.createFile
 
-fun FileSystem.createMovieDirectory(): Pair<Path, Map<Path, List<Path>>> {
+val DEFAULT_MOVIE_FILE_MAP: Map<String, List<String>> = mapOf(
+    "2 Fast 2 Furious (2003)" to listOf("mp4"),
+    "Alice in Wonderland (1951)" to listOf("mkv", "en.srt"),
+    "Conquest Of The Planet Of The Apes (1972)" to listOf("avi", "en.srt", "es.sub"),
+    "Futureworld (1976)" to listOf("webm", "en.ass"),
+    "It's a Mad, Mad, Mad, Mad World (1963)" to listOf("mov", "de.ssa"),
+    "The Last Man on Earth (1964)" to listOf("wmv"),
+)
+
+fun FileSystem.createMovieDirectory(fileMap: Map<String, List<String>> = DEFAULT_MOVIE_FILE_MAP): Pair<Path, Map<Path, List<Path>>> {
     val moviesRoot = getPath("/movies").createDirectory()
-    val fileMap = mapOf(
-        "2 Fast 2 Furious (2003)" to listOf("mp4"),
-        "Alice in Wonderland (1951)" to listOf("mkv", "en.srt"),
-        "Conquest Of The Planet Of The Apes (1972)" to listOf("avi", "en.srt", "es.sub"),
-        "Futureworld (1976)" to listOf("webm", "en.ass"),
-        "It's a Mad, Mad, Mad, Mad World (1963)" to listOf("mov", "de.ssa"),
-        "The Last Man on Earth (1964)" to listOf("wmv"),
-    )
 
     val createdFiles = fileMap
         .map { (name, extensions) ->
@@ -45,32 +46,35 @@ fun FileSystem.createMovieDirectory(): Pair<Path, Map<Path, List<Path>>> {
     return moviesRoot to createdFiles
 }
 
-fun FileSystem.createTvDirectory(): Pair<Path, Map<Path, Map<Path, List<Path>>>> {
+val DEFAULT_TV_FILE_MAP: Map<String, Map<String, List<String>>> = mapOf(
+    "Burn Notice" to mapOf(
+        "Season 01" to listOf(
+            "S01E01 - Burn Notice.mp4",
+            "S01E02 - Identity.mp4",
+        ),
+        "Season 02" to listOf(
+            "S02E01 - Breaking and Entering.mp4",
+            "S02E02 - Turn and Burn.mp4",
+        ),
+    ),
+    "Doctor Who (2005)" to mapOf(
+        "Season 01" to listOf(
+            "S01E01 - Rose.mp4",
+            "S01E01 - Rose.en.srt",
+            "S01E02 - The End of the World.mp4",
+            "S01E02 - The End of the World.en.srt",
+        ),
+        "Season 02" to listOf(
+            "S02E01 - New Earth.mkv",
+            "S02E02 - Tooth and Claw.mkv",
+        ),
+    ),
+)
+
+fun FileSystem.createTvDirectory(
+    fileMap: Map<String, Map<String, List<String>>> = DEFAULT_TV_FILE_MAP,
+): Pair<Path, Map<Path, Map<Path, List<Path>>>> {
     val tvRoot = getPath("/tv").createDirectory()
-    val fileMap = mapOf(
-        "Burn Notice" to mapOf(
-            "Season 01" to listOf(
-                "S01E01 - Burn Notice.mp4",
-                "S01E02 - Identity.mp4",
-            ),
-            "Season 02" to listOf(
-                "S02E01 - Breaking and Entering.mp4",
-                "S02E02 - Turn and Burn.mp4",
-            ),
-        ),
-        "Doctor Who (2005)" to mapOf(
-            "Season 01" to listOf(
-                "S01E01 - Rose.mp4",
-                "S01E01 - Rose.en.srt",
-                "S01E02 - The End of the World.mp4",
-                "S01E02 - The End of the World.en.srt",
-            ),
-            "Season 02" to listOf(
-                "S02E01 - New Earth.mkv",
-                "S02E02 - Tooth and Claw.mkv",
-            ),
-        ),
-    )
 
     val createdFiles = fileMap
         .map { (showName, seasonDirectories) ->

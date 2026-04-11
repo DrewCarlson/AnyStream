@@ -19,19 +19,22 @@ package anystream.metadata
 
 import anystream.data.MetadataDbQueries
 import anystream.db.*
-import anystream.metadata.providers.TmdbMetadataProvider
+import anystream.metadata.providers.WireMetadataProvider
+import anystream.metadata.testing.WireFixtures
 import anystream.models.MediaKind
 import anystream.models.MetadataId
 import anystream.models.Movie
 import anystream.models.api.*
-import app.moviebase.tmdb.Tmdb3
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.client.HttpClient
-import io.ktor.client.plugins.logging.*
+import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.respond
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.headersOf
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlin.test.*
@@ -48,31 +51,26 @@ class MetadataServiceTests :
 
             MetadataDbQueries(db, metadataDao, tagsDao, mediaLinkDao, playbackStatesDao)
         })
-        val tmdb by bindForTest({
-            Tmdb3 {
-                tmdbApiKey = "c1e9e8ade306dd9cbc5e17b05ed4badd"
-                this.httpClient {
-                    install(Logging) {
-                        level = LogLevel.ALL
-                        logger = Logger.SIMPLE
-                    }
-                }
-            }
-        })
 
         val fs by bindFileSystem()
         val manager by bindForTest({
-            val imageStore = ImageStore(fs.getPath("/test"), HttpClient())
-            val provider = TmdbMetadataProvider(tmdb, queries, imageStore)
+            val imageHttpClient = HttpClient(
+                MockEngine { _ -> respond(byteArrayOf(), HttpStatusCode.OK, headersOf()) },
+            )
+            val imageStore = ImageStore(fs.getPath("/test"), imageHttpClient)
+            val provider = WireMetadataProvider(WireFixtures.mockWireApi(), queries, imageStore)
             MetadataService(setOf(provider), metadataDao, imageStore)
         })
 
-        test("import tmdb movie") {
+        // Constants pulled from the recorded fixtures.
+        val mementoWireId = "69d9d842010203040537cfea"
+        val pittShowWireId = "69d9548401020304052e2405"
+
+        test("import wire movie") {
             val request = ImportMetadata(
                 metadataIds = listOf("77"),
                 mediaKind = MediaKind.MOVIE,
-                year = 2000,
-                providerId = "tmdb",
+                providerId = "wire",
                 refresh = false,
             )
             val importResults = manager.importMetadata(request)
@@ -80,75 +78,68 @@ class MetadataServiceTests :
             val metadataMatch = assertIs<MetadataMatch.MovieMatch>(importResult.match)
 
             assertEquals("77", metadataMatch.remoteMetadataId)
-            assertEquals("tmdb:movie:77", metadataMatch.remoteId)
+            assertEquals("wire:movie:77", metadataMatch.remoteId)
             assertEquals("Memento", metadataMatch.movie.title)
+            assertEquals(MetadataId(mementoWireId), metadataMatch.movie.id)
             assertTrue(metadataMatch.exists)
 
             val dbResult = assertNotNull(metadataDao.find(metadataMatch.movie.id))
             assertEquals(metadataMatch.movie.title, dbResult.title)
         }
 
-        test("import tmdb tv show") {
+        test("import wire tv show") {
             val request = ImportMetadata(
-                metadataIds = listOf("63333"),
+                metadataIds = listOf("250307"),
                 mediaKind = MediaKind.TV,
-                year = 2015,
-                providerId = "tmdb",
+                providerId = "wire",
                 refresh = false,
             )
             val importResults = manager.importMetadata(request)
             val importResult = assertIs<ImportMetadataResult.Success>(importResults.first())
             val metadataMatch = assertIs<MetadataMatch.TvShowMatch>(importResult.match)
 
-            assertEquals("63333", metadataMatch.remoteMetadataId)
-            assertEquals("tmdb:tv:63333", metadataMatch.remoteId)
-            assertEquals("The Last Kingdom", metadataMatch.tvShow.name)
+            assertEquals("250307", metadataMatch.remoteMetadataId)
+            assertEquals("wire:tv:250307", metadataMatch.remoteId)
+            assertEquals("The Pitt", metadataMatch.tvShow.name)
+            assertEquals(MetadataId(pittShowWireId), metadataMatch.tvShow.id)
             assertTrue(metadataMatch.exists)
 
             val dbResult = assertNotNull(metadataDao.find(metadataMatch.tvShow.id))
             assertEquals(metadataMatch.tvShow.name, dbResult.title)
         }
 
-        test("query tmdb movie") {
+        test("query wire movie") {
             val queryResult = manager.search(MediaKind.MOVIE) {
-                providerId = "tmdb"
-                query = "the avengers"
-                year = 2012
+                providerId = "wire"
+                query = "Memento"
             }
             val searchResult = queryResult.first()
             assertIs<QueryMetadataResult.Success>(searchResult)
             val result = searchResult.results.first()
             assertIs<MetadataMatch.MovieMatch>(result)
 
-            assertEquals("The Avengers", result.movie.title)
+            assertEquals("Memento", result.movie.title)
         }
 
-        test("query tmdb movie sorted") {
-            listOf(
-                Pair("The BFG", 2016),
-                Pair("Soylent Green", 1973),
-            ).forEach { (title, year) ->
-                val queryResult = manager.search(MediaKind.MOVIE) {
-                    providerId = "tmdb"
-                    query = title
-                    this.year = year
-                    firstResultOnly = true
-                }
-                val searchResult = queryResult.first()
-                assertIs<QueryMetadataResult.Success>(searchResult)
-                val result = searchResult.results.first()
-                assertIs<MetadataMatch.MovieMatch>(result)
-
-                assertEquals(title, result.movie.title)
-                assertEquals(year, result.movie.releaseYear?.toIntOrNull())
+        test("query wire movie firstResultOnly") {
+            val queryResult = manager.search(MediaKind.MOVIE) {
+                providerId = "wire"
+                query = "Memento"
+                firstResultOnly = true
             }
+            val searchResult = queryResult.first()
+            assertIs<QueryMetadataResult.Success>(searchResult)
+            assertEquals(1, searchResult.results.size)
+            val result = searchResult.results.first()
+            assertIs<MetadataMatch.MovieMatch>(result)
+
+            assertEquals("Memento", result.movie.title)
         }
 
-        test("query tmdb tv show sorted") {
+        test("query wire tv show") {
             val queryResult = manager.search(MediaKind.TV) {
-                providerId = "tmdb"
-                query = "the boys"
-                year = null
+                providerId = "wire"
+                query = "The Pitt"
                 firstResultOnly = true
             }
             val searchResult = queryResult.first()
@@ -156,60 +147,7 @@ class MetadataServiceTests :
             val result = searchResult.results.first()
             assertIs<MetadataMatch.TvShowMatch>(result)
 
-            assertEquals("The Boys", result.tvShow.name)
-            assertEquals(2019, result.tvShow.releaseYear?.toIntOrNull())
-        }
-
-        test("query tmdb tv show") {
-            val queryResult = manager.search(MediaKind.TV) {
-                providerId = "tmdb"
-                query = "last kingdom"
-                year = 2015
-            }
-            val searchResult = queryResult.first()
-            assertIs<QueryMetadataResult.Success>(searchResult)
-            val result = searchResult.results.first()
-            assertIs<MetadataMatch.TvShowMatch>(result)
-
-            assertEquals("The Last Kingdom", result.tvShow.name)
-        }
-
-        test("find tmdb tv show by remote id") {
-            val remoteId = "tmdb:tv:456"
-            val queryResult = manager.findByRemoteId(remoteId)
-
-            assertIs<QueryMetadataResult.Success>(queryResult)
-            assertEquals("tmdb", queryResult.providerId)
-            assertNull(queryResult.extras)
-
-            val result = queryResult.results.singleOrNull()
-            assertNotNull(result)
-            assertIs<MetadataMatch.TvShowMatch>(result)
-
-            assertEquals(remoteId, result.remoteId)
-            assertEquals(remoteId, result.tvShow.id.value)
-            assertEquals("456", result.remoteMetadataId)
-
-            assertEquals("The Simpsons", result.tvShow.name)
-        }
-
-        test("find tmdb movie by remote id") {
-            val remoteId = "tmdb:movie:77"
-            val queryResult = manager.findByRemoteId(remoteId)
-
-            assertIs<QueryMetadataResult.Success>(queryResult)
-            assertEquals("tmdb", queryResult.providerId)
-            assertNull(queryResult.extras)
-
-            val result = queryResult.results.singleOrNull()
-            assertNotNull(result)
-            assertIs<MetadataMatch.MovieMatch>(result)
-
-            assertEquals(remoteId, result.remoteId)
-            assertEquals(remoteId, result.movie.id.value)
-            assertEquals("77", result.remoteMetadataId)
-
-            assertEquals("Memento", result.movie.title)
+            assertEquals("The Pitt", result.tvShow.name)
         }
 
         context("MetadataService unit tests") {
@@ -339,11 +277,11 @@ class MetadataServiceTests :
 
             test("findByRemoteId parses movie remote id correctly") {
                 val provider = mockk<MetadataProvider> {
-                    coEvery { id } returns "tmdb"
+                    coEvery { id } returns "wire"
                     coEvery { mediaKinds } returns listOf(MediaKind.MOVIE, MediaKind.TV)
                     coEvery { search(any()) } returns QueryMetadataResult.Success(
-                        "tmdb",
-                        listOf(createMovieMatch("tmdb:movie:42", "Test Movie", "tmdb")),
+                        "wire",
+                        listOf(createMovieMatch("wire:movie:42", "Test Movie", "wire")),
                         null,
                     )
                 }
@@ -352,31 +290,31 @@ class MetadataServiceTests :
                 val imageStore = mockk<ImageStore>()
                 val service = MetadataService(setOf(provider), metadataDao, imageStore)
 
-                val result = service.findByRemoteId("tmdb:movie:42")
+                val result = service.findByRemoteId("wire:movie:42")
                 result.shouldBeInstanceOf<QueryMetadataResult.Success>()
             }
 
             test("findByRemoteId parses tv remote id with season and episode") {
                 val provider = mockk<MetadataProvider> {
-                    coEvery { id } returns "tmdb"
+                    coEvery { id } returns "wire"
                     coEvery { mediaKinds } returns listOf(MediaKind.MOVIE, MediaKind.TV)
                     coEvery {
                         search(
                             match { req ->
-                                req.providerId == "tmdb" &&
+                                req.providerId == "wire" &&
                                     req.mediaKind == MediaKind.TV &&
                                     req.metadataId == "456" &&
                                     req.extras is QueryMetadata.Extras.TvShowExtras
                             },
                         )
-                    } returns QueryMetadataResult.Success("tmdb", emptyList(), null)
+                    } returns QueryMetadataResult.Success("wire", emptyList(), null)
                 }
 
                 val metadataDao = mockk<MetadataDao>()
                 val imageStore = mockk<ImageStore>()
                 val service = MetadataService(setOf(provider), metadataDao, imageStore)
 
-                val result = service.findByRemoteId("tmdb:tv:456-2-5")
+                val result = service.findByRemoteId("wire:tv:456-2-5")
                 result.shouldBeInstanceOf<QueryMetadataResult.Success>()
             }
 
@@ -385,7 +323,7 @@ class MetadataServiceTests :
                 val imageStore = mockk<ImageStore>()
                 val service = MetadataService(emptySet(), metadataDao, imageStore)
 
-                val result = service.findByRemoteId("tmdb:movie:1")
+                val result = service.findByRemoteId("wire:movie:1")
                 result shouldBe QueryMetadataResult.ErrorProviderNotFound
             }
 
@@ -406,10 +344,10 @@ class MetadataServiceTests :
 
             test("importMetadata delegates to matching provider") {
                 val expectedResult = ImportMetadataResult.Success(
-                    match = createMovieMatch("m1", "Imported Movie", "tmdb"),
+                    match = createMovieMatch("m1", "Imported Movie", "wire"),
                 )
                 val provider = mockk<MetadataProvider> {
-                    coEvery { id } returns "tmdb"
+                    coEvery { id } returns "wire"
                     coEvery { mediaKinds } returns listOf(MediaKind.MOVIE)
                     coEvery { importMetadata(any()) } returns listOf(expectedResult)
                 }
@@ -421,7 +359,7 @@ class MetadataServiceTests :
                 val results = service.importMetadata(
                     ImportMetadata(
                         metadataIds = listOf("1"),
-                        providerId = "tmdb",
+                        providerId = "wire",
                         mediaKind = MediaKind.MOVIE,
                     ),
                 )

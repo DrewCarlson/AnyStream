@@ -28,7 +28,7 @@ torrentSearch = "org.drewcarlson:torrentsearch:0.11.0"
 jaffree = { module = "org.drewcarlson:jaffree", version.ref = "jaffree" }
 bouncyCastle = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncy_castle" }
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
-tmdbapi = "app.moviebase:tmdb-api-jvm:1.7.10"
+anystreamWire = "dev.anystream.wire:client:0.1.0"
 ktor-server-permissions = "org.drewcarlson:ktor-permissions:0.3.0"
 icu4j = { module = "com.ibm.icu:icu4j", version.ref = "icu4j" }
 icu4j-charset = { module = "com.ibm.icu:icu4j-charset", version.ref = "icu4j" }

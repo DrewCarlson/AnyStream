@@ -26,4 +26,10 @@ dependencies {
     api(libsServer.jimfs)
 
     implementation(libsServer.jdbc.sqlite)
+
+    // Wire fixture infrastructure shared between metadata-manager and library-manager test sources.
+    api(libsServer.anystreamWire)
+    api(libsCommon.ktor.client.core)
+    api(libsCommon.ktor.client.mock)
+    api(libsCommon.ktor.client.cio)
 }
