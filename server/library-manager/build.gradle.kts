@@ -23,5 +23,4 @@ dependencies {
     testImplementation(libsCommon.ktor.server.tests)
     testImplementation(libsServer.jdbc.sqlite)
     testImplementation(libsServer.jimfs)
-    testImplementation(libsServer.tmdbapi)
 }

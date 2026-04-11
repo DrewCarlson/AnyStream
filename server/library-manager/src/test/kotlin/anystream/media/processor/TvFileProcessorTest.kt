@@ -30,13 +30,13 @@ import anystream.media.createTvDirectory
 import anystream.media.scanner.MediaFileScanner
 import anystream.metadata.ImageStore
 import anystream.metadata.MetadataService
-import anystream.metadata.providers.TmdbMetadataProvider
+import anystream.metadata.providers.WireMetadataProvider
+import anystream.metadata.testing.WireFixtures
 import anystream.models.Descriptor
 import anystream.models.Episode
 import anystream.models.MediaKind
 import anystream.models.api.MediaLinkMatchResult
 import anystream.models.api.MediaScanResult
-import app.moviebase.tmdb.Tmdb3
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.inspectors.shouldForAll
 import io.kotest.matchers.booleans.shouldBeTrue
@@ -47,8 +47,17 @@ import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.client.HttpClient
+import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.respond
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.headersOf
 import kotlin.io.path.absolutePathString
 
+/**
+ * End-to-end scan → match → import for [TvFileProcessor], wired through [WireMetadataProvider] over the
+ * [WireFixtures] mock. Uses a single show folder because the fixture resolves every `/tv/{id}` to The
+ * Pitt, so multiple folders would collide on the same wire id at import time.
+ */
 class TvFileProcessorTest :
     FunSpec({
 
@@ -63,15 +72,13 @@ class TvFileProcessorTest :
 
             MetadataDbQueries(db, metadataDao, tagsDao, mediaLinkDao, playbackStatesDao)
         })
-        val tmdb by bindForTest({
-            Tmdb3 {
-                tmdbApiKey = "c1e9e8ade306dd9cbc5e17b05ed4badd"
-            }
-        })
         val fs by bindFileSystem()
         val metadataService by bindForTest({
-            val imageStore = ImageStore(fs.getPath("/test"), HttpClient())
-            val provider = TmdbMetadataProvider(tmdb, queries, imageStore)
+            val imageHttpClient = HttpClient(
+                MockEngine { _ -> respond(byteArrayOf(), HttpStatusCode.OK, headersOf()) },
+            )
+            val imageStore = ImageStore(fs.getPath("/test"), imageHttpClient)
+            val provider = WireMetadataProvider(WireFixtures.mockWireApi(), queries, imageStore)
             MetadataService(setOf(provider), metadataDao, imageStore)
         })
         val mediaFileScanner by bindForTest({ MediaFileScanner(mediaLinkDao, libraryDao, fs) })
@@ -84,7 +91,7 @@ class TvFileProcessorTest :
             )
         })
 
-        test("match multiple shows from library root") {
+        test("match a show from a library root") {
             libraryDao.insertDefaultLibraries().shouldBeTrue()
 
             val library = libraryDao
@@ -92,7 +99,16 @@ class TvFileProcessorTest :
                 .firstOrNull { it.mediaKind == MediaKind.TV }
                 .shouldNotBeNull()
 
-            val (mediaRootPath, showPaths) = fs.createTvDirectory()
+            val (mediaRootPath, _) = fs.createTvDirectory(
+                fileMap = mapOf(
+                    "The Pitt" to mapOf(
+                        "Season 01" to listOf(
+                            "S01E01 - 7AM.mp4",
+                            "S01E02 - 8AM.mp4",
+                        ),
+                    ),
+                ),
+            )
             val rootDirectory = libraryDao.insertDirectory(
                 parentId = null,
                 libraryId = library.id,
@@ -102,6 +118,7 @@ class TvFileProcessorTest :
             mediaFileScanner.scan(mediaRootPath).shouldBeInstanceOf<MediaScanResult.Success>()
 
             val childDirectories = libraryDao.fetchChildDirectories(rootDirectory.id)
+            childDirectories.shouldHaveSize(1)
 
             childDirectories.forEach { directory ->
                 val result = processor
@@ -111,9 +128,9 @@ class TvFileProcessorTest :
                     .shouldBeInstanceOf<MediaLinkMatchResult.Success>()
 
                 val match = result.matches
-                    .shouldHaveSize(1)
                     .first()
                     .shouldBeInstanceOf<anystream.models.api.MetadataMatch.TvShowMatch>()
+                match.tvShow.name shouldBeEqual "The Pitt"
 
                 val episodeIds = match.episodes.map(Episode::id)
                 libraryDao

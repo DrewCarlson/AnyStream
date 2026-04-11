@@ -31,7 +31,6 @@ If the specified config file does not exist, AnyStream will create one with defa
     host: 0.0.0.0
     base_url: https://stream.example.com
     database_url: /path/to/anystream/data/anystream.db
-    tmdb_api_key: ""
 
     web:
       enable: true

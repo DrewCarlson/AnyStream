@@ -47,8 +47,6 @@ class AnyStreamConfig(
     @SerialName("database_url")
     val databaseUrl: String = env("DATABASE_URL")?.let { "jdbc:sqlite:$it" }
         ?: "jdbc:sqlite:${paths.data}/anystream.db",
-    @SerialName("tmdb_api_key")
-    val tmdbApiKey: String = "",
     val qbittorrent: QbittorrentCredentials? = null,
     val oidc: Oidc = Oidc(enable = false),
     val libraries: LibrariesConfig = LibrariesConfig(),

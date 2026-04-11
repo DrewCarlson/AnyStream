@@ -27,33 +27,35 @@ import anystream.db.bindFileSystem
 import anystream.db.bindForTest
 import anystream.db.bindTestDatabase
 import anystream.media.createMovieDirectory
-import anystream.media.createTvDirectory
 import anystream.media.scanner.MediaFileScanner
 import anystream.metadata.ImageStore
 import anystream.metadata.MetadataService
-import anystream.metadata.providers.TmdbMetadataProvider
+import anystream.metadata.providers.WireMetadataProvider
+import anystream.metadata.testing.WireFixtures
 import anystream.models.Descriptor
-import anystream.models.Episode
 import anystream.models.MediaKind
 import anystream.models.api.MediaLinkMatchResult
 import anystream.models.api.MediaScanResult
 import anystream.models.api.MetadataMatch
-import app.moviebase.tmdb.Tmdb3
-import com.google.common.jimfs.Configuration
-import com.google.common.jimfs.Jimfs
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.inspectors.shouldForAll
 import io.kotest.matchers.booleans.shouldBeTrue
-import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldHaveSize
-import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.client.HttpClient
-import java.nio.file.FileSystem
+import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.respond
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.headersOf
 import kotlin.io.path.absolutePathString
 
+/**
+ * End-to-end scan → match → import for [MovieFileProcessor], wired through [WireMetadataProvider] over
+ * the [WireFixtures] mock. Uses a single movie folder because the fixture resolves every
+ * `/movie/{id}` to Memento, so multiple folders would collide on the same wire id at import time.
+ */
 class MovieFileProcessorTest :
     FunSpec({
 
@@ -67,15 +69,13 @@ class MovieFileProcessorTest :
 
             MetadataDbQueries(db, metadataDao, tagsDao, mediaLinkDao, playbackStatesDao)
         })
-        val tmdb by bindForTest({
-            Tmdb3 {
-                tmdbApiKey = "c1e9e8ade306dd9cbc5e17b05ed4badd"
-            }
-        })
         val fs by bindFileSystem()
         val metadataService by bindForTest({
-            val imageStore = ImageStore(fs.getPath("/test"), HttpClient())
-            val provider = TmdbMetadataProvider(tmdb, queries, imageStore)
+            val imageHttpClient = HttpClient(
+                MockEngine { _ -> respond(byteArrayOf(), HttpStatusCode.OK, headersOf()) },
+            )
+            val imageStore = ImageStore(fs.getPath("/test"), imageHttpClient)
+            val provider = WireMetadataProvider(WireFixtures.mockWireApi(), queries, imageStore)
             MetadataService(setOf(provider), metadataDao, imageStore)
         })
         val mediaFileScanner by bindForTest({ MediaFileScanner(mediaLinkDao, libraryDao, fs) })
@@ -88,7 +88,7 @@ class MovieFileProcessorTest :
             )
         })
 
-        test("match multiple movies from library root") {
+        test("match a movie from a library root") {
             libraryDao.insertDefaultLibraries().shouldBeTrue()
 
             val library = libraryDao
@@ -96,7 +96,9 @@ class MovieFileProcessorTest :
                 .firstOrNull { it.mediaKind == MediaKind.MOVIE }
                 .shouldNotBeNull()
 
-            val (mediaRootPath, moviePaths) = fs.createMovieDirectory()
+            val (mediaRootPath, _) = fs.createMovieDirectory(
+                fileMap = mapOf("Memento (2000)" to listOf("mkv")),
+            )
             val rootDirectory = libraryDao.insertDirectory(
                 parentId = null,
                 libraryId = library.id,
@@ -106,6 +108,7 @@ class MovieFileProcessorTest :
             mediaFileScanner.scan(mediaRootPath).shouldBeInstanceOf<MediaScanResult.Success>()
 
             val childDirectories = libraryDao.fetchChildDirectories(rootDirectory.id)
+            childDirectories.shouldHaveSize(1)
 
             childDirectories.forEach { directory ->
                 val result = processor
@@ -115,9 +118,9 @@ class MovieFileProcessorTest :
                     .shouldBeInstanceOf<MediaLinkMatchResult.Success>()
 
                 val match = result.matches
-                    .shouldHaveSize(1)
                     .first()
                     .shouldBeInstanceOf<MetadataMatch.MovieMatch>()
+                match.movie.title shouldBeEqual "Memento"
 
                 mediaLinkDao
                     .findByDirectoryId(directory.id)

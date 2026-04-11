@@ -19,8 +19,6 @@ package anystream.routes
 
 import anystream.data.MetadataDbQueries
 import anystream.data.UserSession
-import anystream.data.asMovie
-import anystream.data.asTvShow
 import anystream.di.ServerScope
 import anystream.models.*
 import anystream.models.api.CurrentlyWatching
@@ -28,11 +26,6 @@ import anystream.models.api.HomeResponse
 import anystream.models.api.Popular
 import anystream.models.api.RecentlyAdded
 import anystream.models.toTvSeasonModel
-import anystream.models.toTvShowModel
-import anystream.util.toRemoteId
-import app.moviebase.tmdb.Tmdb3
-import app.moviebase.tmdb.model.*
-import com.ibm.icu.util.ULocale
 import dev.zacsweers.metro.ContributesIntoSet
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
@@ -40,15 +33,8 @@ import dev.zacsweers.metro.binding
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.withTimeoutOrNull
-import kotlin.time.Duration.Companion.hours
-import kotlin.time.Duration.Companion.seconds
 
 private const val CURRENTLY_WATCHING_ITEM_LIMIT = 10
-private val POPULAR_MOVIES_REFRESH = 24.hours
 
 @SingleIn(ServerScope::class)
 @ContributesIntoSet(
@@ -57,14 +43,8 @@ private val POPULAR_MOVIES_REFRESH = 24.hours
 )
 @Inject
 class HomeRoutes(
-    private val tmdb: Tmdb3,
     private val queries: MetadataDbQueries,
-    scope: CoroutineScope,
 ) : RoutingController {
-    private val locale = ULocale.getDefault()
-    private val language = locale.language
-    private val region = "$language-${locale.country}"
-
     override fun init(parent: Route) {
         parent.route("/home") {
             authenticate {
@@ -74,61 +54,6 @@ class HomeRoutes(
             }
         }
     }
-
-    private val popularMoviesFlow = callbackFlow<List<TmdbMovieDetail>> {
-        while (true) {
-            val result = tmdb.trending
-                .getTrendingMovies(
-                    TmdbTimeWindow.WEEK,
-                    page = 1,
-                    language = language,
-                    region = region,
-                ).results
-                .map {
-                    tmdb.movies.getDetails(
-                        it.id,
-                        language,
-                        listOf(
-                            AppendResponse.EXTERNAL_IDS,
-                            AppendResponse.CREDITS,
-                            AppendResponse.RELEASES_DATES,
-                            AppendResponse.IMAGES,
-                            AppendResponse.MOVIE_CREDITS,
-                        ),
-                    )
-                }
-            trySend(result)
-            delay(POPULAR_MOVIES_REFRESH)
-        }
-    }.catch { it.printStackTrace() }
-        .stateIn(scope, SharingStarted.Lazily, null)
-    private val popularTvShowsFlow = callbackFlow<List<TmdbShowDetail>> {
-        while (true) {
-            val result = tmdb.trending
-                .getTrendingShows(
-                    TmdbTimeWindow.WEEK,
-                    page = 1,
-                    language = language,
-                    region = region,
-                ).results
-                .map {
-                    tmdb.show.getDetails(
-                        it.id,
-                        language,
-                        listOf(
-                            AppendResponse.EXTERNAL_IDS,
-                            AppendResponse.CREDITS,
-                            AppendResponse.RELEASES_DATES,
-                            AppendResponse.IMAGES,
-                            AppendResponse.TV_CREDITS,
-                        ),
-                    )
-                }
-            trySend(result)
-            delay(POPULAR_MOVIES_REFRESH)
-        }
-    }.catch { it.printStackTrace() }
-        .stateIn(scope, SharingStarted.Lazily, null)
 
     suspend fun RoutingContext.getHome() {
         val session = checkNotNull(call.principal<UserSession>())
@@ -188,55 +113,6 @@ class HomeRoutes(
     }
 
     suspend fun RoutingContext.getPopular() {
-        val (popularMoviesMap, popularTvShows) = loadPopularMovies(
-            queries,
-            popularMoviesFlow,
-            popularTvShowsFlow,
-        )
-        call.respond(Popular(popularMoviesMap, popularTvShows))
-    }
-
-    private suspend fun loadPopularMovies(
-        queries: MetadataDbQueries,
-        popularMoviesFlow: StateFlow<List<TmdbMovieDetail>?>,
-        popularTvShowsFlow: StateFlow<List<TmdbShowDetail>?>,
-    ): Pair<Map<Movie, MediaLink?>, List<TvShow>> {
-        val tmdbPopular = withTimeoutOrNull(5.seconds) {
-            popularMoviesFlow.filterNotNull().first()
-        } ?: return Pair(emptyMap(), emptyList())
-        val existingMovies = if (tmdbPopular.isNotEmpty()) {
-            queries
-                .findMoviesByTmdbId(tmdbPopular.map(TmdbMovieDetail::id))
-                .toMutableList()
-        } else {
-            mutableListOf()
-        }
-        val popularMovies = tmdbPopular.map { dbMovie ->
-            val existingIndex = existingMovies.indexOfFirst { it.tmdbId == dbMovie.id }
-            if (existingIndex == -1) {
-                dbMovie.asMovie(dbMovie.toRemoteId())
-            } else {
-                existingMovies.removeAt(existingIndex)
-            }
-        }
-        val popularMediaLinks = queries.findMediaLinksByMetadataIds(popularMovies.map(Movie::id))
-        val popularMoviesMap = popularMovies.associateWith { m ->
-            popularMediaLinks.find { it.metadataId == m.id }
-        }
-
-        val tmdbPopularShows = popularTvShowsFlow.filterNotNull().first()
-        val existingShows = queries
-            .findTvShowsByTmdbId(tmdbPopularShows.map(TmdbShowDetail::id))
-            .toMutableList()
-        val popularTvShows = tmdbPopularShows
-            .map { series ->
-                val existingIndex = existingShows.indexOfFirst { it.tmdbId == series.id }
-                if (existingIndex == -1) {
-                    series.asTvShow(series.toRemoteId()).toTvShowModel()
-                } else {
-                    existingShows.removeAt(existingIndex)
-                }
-            }
-        return Pair(popularMoviesMap, popularTvShows)
+        call.respond(Popular(emptyMap(), emptyList()))
     }
 }

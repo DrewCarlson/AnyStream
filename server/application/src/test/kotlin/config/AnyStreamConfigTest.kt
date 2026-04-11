@@ -67,7 +67,6 @@ class AnyStreamConfigTest {
         assertEquals(Path("./anystream"), config.paths.data)
         assertEquals(Path("/tmp"), config.paths.transcode)
         assertEquals("jdbc:sqlite:./anystream/anystream.db", config.databaseUrl)
-        assertEquals("", config.tmdbApiKey)
         assertNull(config.qbittorrent)
         assertFalse(config.oidc.enable)
         assertNull(config.oidc.provider)
@@ -199,7 +198,6 @@ class AnyStreamConfigTest {
             port: 9000
             host: 127.0.0.1
             base_url: "https://stream.example.com"
-            tmdb_api_key: deadbeef
             """.trimIndent()
 
         val config = yaml.decodeFromString(AnyStreamConfig.serializer(), source)
@@ -207,7 +205,6 @@ class AnyStreamConfigTest {
         assertEquals(9000, config.port)
         assertEquals("127.0.0.1", config.host)
         assertEquals("https://stream.example.com", config.baseUrl)
-        assertEquals("deadbeef", config.tmdbApiKey)
     }
 
     @Test
@@ -404,7 +401,6 @@ class AnyStreamConfigTest {
                 transcode = Path("/var/cache/anystream"),
                 ffmpeg = Path("/opt/ffmpeg"),
             ),
-            tmdbApiKey = "deadbeef",
             qbittorrent = AnyStreamConfig.QbittorrentCredentials(
                 url = "https://qbt.example.com",
                 user = "admin",
@@ -437,7 +433,6 @@ class AnyStreamConfigTest {
         assertEquals(original.paths.data.toAbsolutePath(), decoded.paths.data)
         assertEquals(original.paths.transcode.toAbsolutePath(), decoded.paths.transcode)
         assertEquals(original.paths.ffmpeg.toAbsolutePath(), decoded.paths.ffmpeg)
-        assertEquals(original.tmdbApiKey, decoded.tmdbApiKey)
         assertEquals(original.qbittorrent?.url, decoded.qbittorrent?.url)
         assertEquals(original.qbittorrent?.user, decoded.qbittorrent?.user)
         assertEquals(original.qbittorrent?.password, decoded.qbittorrent?.password)

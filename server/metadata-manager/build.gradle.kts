@@ -19,7 +19,7 @@ dependencies {
     implementation(libsServer.jooq)
     implementation(libsServer.jdbc.sqlite)
 
-    implementation(libsServer.tmdbapi)
+    implementation(libsServer.anystreamWire)
 
     testImplementation(projects.server.dbModels.testing)
     testImplementation(libsCommon.ktor.client.cio)
