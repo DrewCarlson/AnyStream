@@ -18,11 +18,10 @@
 package anystream
 
 import anystream.test.RESOURCES
-import com.typesafe.config.ConfigFactory
-import com.typesafe.config.ConfigValueFactory
 import io.ktor.client.request.*
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.config.*
+import io.ktor.server.config.yaml.YamlConfigLoader
 import io.ktor.server.testing.*
 import kotlin.test.Ignore
 import kotlin.test.Test
@@ -30,11 +29,11 @@ import kotlin.test.assertEquals
 
 class ApplicationTest {
     private val testEnv = createTestEnvironment {
-        config = HoconApplicationConfig(
-            ConfigFactory
-                .load("application.conf")
-                .withValue("app.webClientPath", ConfigValueFactory.fromAnyRef("$RESOURCES/static")),
-        )
+        val baseConfig = checkNotNull(YamlConfigLoader().load(null)) {
+            "Failed to load application.yml from classpath"
+        }
+        val override = MapApplicationConfig("app.webClientPath" to "$RESOURCES/static")
+        config = override.mergeWith(baseConfig)
     }
 
     @Ignore("server configuration error")

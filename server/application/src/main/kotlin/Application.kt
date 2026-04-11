@@ -27,7 +27,6 @@ import anystream.routes.installWebClientRoutes
 import anystream.util.SqlSessionStorage
 import anystream.util.WebsocketAuthorization
 import anystream.util.headerOrQuery
-import com.typesafe.config.ConfigFactory
 import dev.zacsweers.metro.createGraphFactory
 import io.ktor.http.*
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
@@ -36,6 +35,7 @@ import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.config.*
+import io.ktor.server.config.yaml.YamlConfigLoader
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.autohead.*
@@ -54,26 +54,31 @@ import io.ktor.server.websocket.*
 import io.ktor.util.collections.ConcurrentMap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import net.mamoe.yamlkt.Yaml
+import net.mamoe.yamlkt.YamlMap
 import org.drewcarlson.ktor.permissions.PermissionAuthorization
 import org.slf4j.event.Level
 import java.nio.file.FileSystems
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.exists
-import kotlin.io.path.extension
 import kotlin.io.path.writeText
 import kotlin.time.Duration.Companion.seconds
 
-private val configFileSuffixes = listOf("conf", "yml", "yaml")
+private val configFileSuffixes = listOf("yml", "yaml")
 
 // TODO: add state expiration for incomplete auth flows
 val oauthRedirectUrls = ConcurrentMap<String, String>()
 
 suspend fun main(args: Array<String>) {
-    val defaultConfig = ConfigFactory.load()
-    val configFile = args
+    val yamlLoader = YamlConfigLoader()
+    val defaultConfig = checkNotNull(yamlLoader.load(null)) {
+        "Failed to load default application.yml from classpath"
+    }
+    val configFileArg = args
         .firstOrNull { it.startsWith("-config=") }
         ?.substringAfter("=")
         .orEmpty()
+    val configFile = configFileArg
         .ifBlank { System.getenv("CONFIG_PATH") }
         ?.takeIf { it.isNotBlank() && configFileSuffixes.contains(it.substringAfterLast('.')) }
         ?.let { FileSystems.getDefault().getPath(it) }
@@ -81,24 +86,19 @@ suspend fun main(args: Array<String>) {
     if (configFile?.exists() == false) {
         println("AnyStream config file does not exist, creating at '${configFile.absolutePathString()}'")
         try {
-            val defaultConfig = when (configFile.extension) {
-                "conf" -> "app {\n\n}"
-                else -> "app:\n"
-            }
-            configFile.writeText(defaultConfig)
+            val ymlSting = Yaml.encodeToString(AnyStreamConfig())
+            val ymlMap = Yaml.decodeYamlMapFromString(ymlSting)
+            val ymlNestedMap = YamlMap(mapOf("app" to ymlMap))
+            val ymlNestedString = Yaml.encodeToString(ymlNestedMap)
+            configFile.writeText(ymlNestedString)
         } catch (e: Throwable) {
             println("Failed to write config file:")
             e.printStackTrace()
         }
     }
 
-    val userConfig = configFile?.let { ConfigFactory.parseFile(it.toFile()) }
-    val mergedConfig = if (userConfig == null) {
-        defaultConfig
-    } else {
-        userConfig.withFallback(defaultConfig).resolve()
-    }
-    val appConfig = HoconApplicationConfig(mergedConfig)
+    val userConfig = configFile?.let { yamlLoader.load(it.absolutePathString()) }
+    val appConfig = userConfig?.mergeWith(defaultConfig) ?: defaultConfig
 
     embeddedServer(
         Netty,
@@ -114,7 +114,7 @@ suspend fun main(args: Array<String>) {
     ).startSuspend(wait = true)
 }
 
-@Suppress("unused", "UNUSED_PARAMETER") // Referenced in application.conf
+@Suppress("unused", "UNUSED_PARAMETER") // Referenced in application.yml
 @JvmOverloads
 fun Application.module(testing: Boolean = false) {
     val config = environment.config.property("app").getAs<AnyStreamConfig>()

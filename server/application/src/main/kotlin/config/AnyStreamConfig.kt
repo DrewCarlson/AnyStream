@@ -24,18 +24,26 @@ import kotlin.io.path.Path
 
 @Serializable
 class AnyStreamConfig(
+    @SerialName("base_url")
     val baseUrl: String? = null,
+    @SerialName("disable_web_client")
     val disableWebClient: Boolean = false,
     @Serializable(PathSerializer::class)
+    @SerialName("web_client_path")
     val webClientPath: Path? = null,
     @Serializable(DataPathSerializer::class)
+    @SerialName("data_path")
     val dataPath: Path = Path("./anystream"),
     @Serializable(PathSerializer::class)
+    @SerialName("transcode_path")
     val transcodePath: Path = Path("/tmp"),
     @Serializable(FfmpegPathSerializer::class)
+    @SerialName("ffmpeg_path")
     val ffmpegPath: Path = FfmpegPathSerializer.findInstalledFfmpeg() ?: Path("./ffmpeg"),
     @Serializable(DatabaseUrlSerializer::class)
+    @SerialName("database_url")
     val databaseUrl: String = "jdbc:sqlite:$dataPath/anystream.db",
+    @SerialName("tmdb_api_key")
     val tmdbApiKey: String = "",
     val qbittorrent: QbittorrentCredentials? = null,
     val oidc: Oidc = Oidc(enable = false),

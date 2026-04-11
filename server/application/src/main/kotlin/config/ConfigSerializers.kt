@@ -40,7 +40,7 @@ object FfmpegPathSerializer : PathSerializer() {
             .takeIf { it.exists() }
             ?: findInstalledFfmpeg()
         checkNotNull(pathOrDefault) {
-            "Failed to find FFmpeg, please ensure `app.ffmpegPath` is configured correctly."
+            "Failed to find FFmpeg, please ensure `app.ffmpeg_path` is configured correctly."
         }
         return pathOrDefault
     }
@@ -71,7 +71,7 @@ object DataPathSerializer : PathSerializer() {
             Path(decoder.decodeString())
         } catch (_: SerializationException) {
             Path(System.getProperty("user.home"), "anystream")
-        }.toAbsolutePath()
+        }.toAbsolutePath().normalize()
     }
 }
 
@@ -83,11 +83,11 @@ open class PathSerializer : KSerializer<Path> {
         encoder: Encoder,
         value: Path,
     ) {
-        encoder.encodeString(value.absolutePathString())
+        encoder.encodeString(value.normalize().absolutePathString())
     }
 
     override fun deserialize(decoder: Decoder): Path {
-        return Path(decoder.decodeString()).toAbsolutePath()
+        return Path(decoder.decodeString()).toAbsolutePath().normalize()
     }
 }
 
@@ -95,7 +95,7 @@ object DatabaseUrlSerializer : KSerializer<String> {
     override val descriptor: SerialDescriptor = serialDescriptor<String>()
 
     override fun deserialize(decoder: Decoder): String {
-        val value = Path(decoder.decodeString()).absolutePathString()
+        val value = Path(decoder.decodeString()).normalize().absolutePathString()
         return "jdbc:sqlite:$value"
     }
 

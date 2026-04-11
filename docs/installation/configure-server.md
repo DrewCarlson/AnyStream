@@ -17,65 +17,22 @@ global permissions.
 
 ## Config File
 
-AnyStream supports configuration through a config file in addition to environment variables and CLI arguments.
+AnyStream supports configuration through a YAML config file in addition to environment variables and CLI arguments.
 The config file path is set with the `CONFIG_PATH` environment variable or the `-config=` CLI argument.
 
-Supported formats:
-
-- **HOCON** (`.conf`) -- a superset of JSON commonly used in JVM applications
-- **YAML** (`.yml` or `.yaml`)
+Supported file extensions: `.yml` or `.yaml`.
 
 If the specified config file does not exist, AnyStream will create one with default values on startup.
-
-!!! example "Example HOCON config (`anystream.conf`)"
-
-    ```hocon
-    app {
-        dataPath = "/path/to/anystream/data"
-        databaseUrl = "/path/to/anystream/data/anystream.db"
-        ffmpegPath = "/usr/bin"
-        transcodePath = "/tmp"
-        baseUrl = "https://stream.example.com"
-
-        qbittorrent {
-            url = "http://localhost:9090"
-            user = "admin"
-            password = "adminadmin"
-        }
-
-        libraries {
-            tv {
-                directories = ["/media/TV"]
-            }
-            movies {
-                directories = ["/media/Movies"]
-            }
-            music {
-                directories = ["/media/Music"]
-            }
-        }
-
-        oidc {
-            enable = false
-            provider {
-                name = "my-provider"
-                endpoint = "https://auth.example.com"
-                client_id = "anystream"
-                client_secret = "your-secret"
-            }
-        }
-    }
-    ```
 
 !!! example "Example YAML config (`anystream.yml`)"
 
     ```yaml
     app:
-      dataPath: /path/to/anystream/data
-      databaseUrl: /path/to/anystream/data/anystream.db
-      ffmpegPath: /usr/bin
-      transcodePath: /tmp
-      baseUrl: https://stream.example.com
+      data_path: /path/to/anystream/data
+      database_url: /path/to/anystream/data/anystream.db
+      ffmpeg_path: /usr/bin
+      transcode_path: /tmp
+      base_url: https://stream.example.com
 
       qbittorrent:
         url: http://localhost:9090

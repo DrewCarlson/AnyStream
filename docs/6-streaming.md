@@ -33,7 +33,7 @@ All transcoding is performed by [FFmpeg](https://ffmpeg.org/), which must be ins
 The Docker image includes FFmpeg pre-installed. For manual installations, see the
 [FFmpeg requirements](installation/getting-started.md#ffmpeg) in the Getting Started guide.
 
-Configure the FFmpeg location with the `FFMPEG_PATH` environment variable or the `app.ffmpegPath` config option
+Configure the FFmpeg location with the `FFMPEG_PATH` environment variable or the `app.ffmpeg_path` config option
 if AnyStream cannot find it automatically.
 
 ## Transcode Path

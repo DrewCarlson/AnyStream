@@ -21,7 +21,7 @@ RUN apt-get update && apt-get install -y wget bash \
 
 ENV DATA_PATH=/app/storage/
 ENV DATABASE_URL=/app/storage/anystream.db
-ENV CONFIG_PATH=/app/storage/anystream.conf
+ENV CONFIG_PATH=/app/storage/anystream.yml
 ENV FFMPEG_PATH=/usr/lib/jellyfin-ffmpeg
 ENV WEB_CLIENT_PATH=/app/client-web
 ENV PORT=8888

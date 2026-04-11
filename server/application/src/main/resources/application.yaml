@@ -1,0 +1,60 @@
+ktor:
+  development: "$DEBUG:false"
+  deployment:
+    port: "$PORT:8888"
+    watch:
+      - anystream-server/server-app/build/classes
+      - anystream-server/server-app/build/resources
+      - anystream-server/server-db-models/build/classes
+      - anystream-server/server-db-models/build/resources
+      - anystream-server/server-library-manager/build/classes
+      - anystream-server/server-library-manager/build/resources
+      - anystream-server/server-metadata-manager/build/classes
+      - anystream-server/server-metadata-manager/build/resources
+      - anystream-server/server-shared/build/classes
+      - anystream-server/server-shared/build/resources
+      - anystream-server/server-stream-service/build/classes
+      - anystream-server/server-stream-service/build/resources
+  application:
+    modules:
+      - anystream.modules.StatusPageModuleKt.module
+      - anystream.ApplicationKt.module
+
+app:
+  base_url: "$BASE_URL:"
+  disable_web_client: false
+  web_client_path: "$WEB_CLIENT_PATH:"
+  ffmpeg_path: "$FFMPEG_PATH:"
+  transcode_path: /tmp
+  data_path: "$DATA_PATH:"
+  tmdb_api_key: c1e9e8ade306dd9cbc5e17b05ed4badd
+  database_url: "$DATABASE_URL:"
+  qbittorrent:
+    url: "$QBT_URL:http://localhost:9090"
+    user: "$QBT_USER:admin"
+    password: "$QBT_PASSWORD:adminadmin"
+  libraries:
+    tv:
+      directories: []
+    movies:
+      directories: []
+    music:
+      directories: []
+  oidc:
+    enable: false
+    provider:
+      name: provider
+      endpoint: https://example.com
+      client_id: ""
+      client_secret: ""
+      admin_group: anystream-admin
+      viewer_group: anystream
+      username_fields:
+        - preferred_username
+        - name
+      groups_field: groups
+      scopes:
+        - openid
+        - profile
+        - email
+        - groups

@@ -16,5 +16,5 @@ local.properties
 xcuserdata/
 client/ios/AnyStream.xcodeproj
 anystream.db*
-application.conf
-anystream.conf
+anystream.yml
+anystream.yaml

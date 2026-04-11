@@ -3,7 +3,7 @@
     <ExternalSystemSettings>
       <option name="env">
         <map>
-          <entry key="CONFIG_PATH" value="anystream.conf" />
+          <entry key="CONFIG_PATH" value="anystream.yml" />
         </map>
       </option>
       <option name="executionName" />

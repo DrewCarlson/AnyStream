@@ -94,6 +94,7 @@ dependencies {
     implementation(libsCommon.ktor.server.auth)
     implementation(libsCommon.ktor.server.authJwt)
     implementation(libsCommon.ktor.server.websockets)
+    implementation(libsCommon.ktor.server.configYaml)
     implementation(libsServer.ktor.server.permissions)
 
     implementation(libsCommon.ktor.client.core)
