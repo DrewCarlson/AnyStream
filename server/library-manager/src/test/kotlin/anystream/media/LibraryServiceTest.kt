@@ -24,15 +24,12 @@ import anystream.db.bindForTest
 import anystream.db.bindTestDatabase
 import anystream.media.analyzer.MediaFileAnalyzer
 import anystream.models.MediaKind
-import com.google.common.jimfs.Configuration
-import com.google.common.jimfs.Jimfs
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import org.jooq.DSLContext
-import java.nio.file.FileSystem
 
 class LibraryServiceTest :
     FunSpec({
