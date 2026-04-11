@@ -25,41 +25,9 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.serialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import java.nio.file.FileSystems
 import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
-import kotlin.io.path.exists
-
-object FfmpegPathSerializer : PathSerializer() {
-    private val fs = FileSystems.getDefault()
-
-    override fun deserialize(decoder: Decoder): Path {
-        val path = decoder.decodeString()
-        val pathOrDefault = Path(path)
-            .takeIf { it.exists() }
-            ?: findInstalledFfmpeg()
-        checkNotNull(pathOrDefault) {
-            "Failed to find FFmpeg, please ensure `app.ffmpeg_path` is configured correctly."
-        }
-        return pathOrDefault
-    }
-
-    fun findInstalledFfmpeg(): Path? {
-        return listOf(
-            "/usr/bin",
-            "/usr/local/bin",
-            "/usr/lib/jellyfin-ffmpeg",
-            "C:\\Program Files\\ffmpeg\\bin",
-        ).map(fs::getPath)
-            .firstOrNull { path ->
-                path.exists() && (
-                    path.resolve("ffmpeg").exists() ||
-                        path.resolve("ffmpeg.exe").exists()
-                )
-            }
-    }
-}
 
 object DataPathSerializer : PathSerializer() {
     override fun deserialize(decoder: Decoder): Path {
@@ -68,7 +36,7 @@ object DataPathSerializer : PathSerializer() {
             if (value.isBlank()) {
                 throw SerializationException()
             }
-            Path(decoder.decodeString())
+            Path(value)
         } catch (_: SerializationException) {
             Path(System.getProperty("user.home"), "anystream")
         }.toAbsolutePath().normalize()

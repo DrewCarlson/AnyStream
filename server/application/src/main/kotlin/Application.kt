@@ -23,6 +23,7 @@ import anystream.db.*
 import anystream.jobs.registerJobs
 import anystream.models.MediaKind
 import anystream.models.Permission
+import anystream.modules.installStatusPages
 import anystream.routes.installWebClientRoutes
 import anystream.util.SqlSessionStorage
 import anystream.util.WebsocketAuthorization
@@ -34,8 +35,6 @@ import io.ktor.serialization.kotlinx.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
-import io.ktor.server.config.*
-import io.ktor.server.config.yaml.YamlConfigLoader
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.autohead.*
@@ -55,69 +54,56 @@ import io.ktor.util.collections.ConcurrentMap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import net.mamoe.yamlkt.Yaml
-import net.mamoe.yamlkt.YamlMap
 import org.drewcarlson.ktor.permissions.PermissionAuthorization
 import org.slf4j.event.Level
 import java.nio.file.FileSystems
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.exists
+import kotlin.io.path.readText
 import kotlin.io.path.writeText
 import kotlin.time.Duration.Companion.seconds
 
 private val configFileSuffixes = listOf("yml", "yaml")
 
+private val yaml = Yaml {
+    encodeDefaultValues = true
+}
+
 // TODO: add state expiration for incomplete auth flows
 val oauthRedirectUrls = ConcurrentMap<String, String>()
 
-suspend fun main(args: Array<String>) {
-    val yamlLoader = YamlConfigLoader()
-    val defaultConfig = checkNotNull(yamlLoader.load(null)) {
-        "Failed to load default application.yml from classpath"
-    }
-    val configFileArg = args
-        .firstOrNull { it.startsWith("-config=") }
-        ?.substringAfter("=")
-        .orEmpty()
-    val configFile = configFileArg
-        .ifBlank { System.getenv("CONFIG_PATH") }
+suspend fun main() {
+    val configFile = System
+        .getenv("CONFIG_PATH")
         ?.takeIf { it.isNotBlank() && configFileSuffixes.contains(it.substringAfterLast('.')) }
         ?.let { FileSystems.getDefault().getPath(it) }
 
-    if (configFile?.exists() == false) {
+    if (configFile != null && !configFile.exists()) {
         println("AnyStream config file does not exist, creating at '${configFile.absolutePathString()}'")
         try {
-            val ymlSting = Yaml.encodeToString(AnyStreamConfig())
-            val ymlMap = Yaml.decodeYamlMapFromString(ymlSting)
-            val ymlNestedMap = YamlMap(mapOf("app" to ymlMap))
-            val ymlNestedString = Yaml.encodeToString(ymlNestedMap)
-            configFile.writeText(ymlNestedString)
+            configFile.writeText(yaml.encodeToString(AnyStreamConfig.serializer(), AnyStreamConfig()))
         } catch (e: Throwable) {
             println("Failed to write config file:")
             e.printStackTrace()
         }
     }
 
-    val userConfig = configFile?.let { yamlLoader.load(it.absolutePathString()) }
-    val appConfig = userConfig?.mergeWith(defaultConfig) ?: defaultConfig
+    val config = configFile
+        ?.takeIf { it.exists() }
+        ?.let { yaml.decodeFromString(AnyStreamConfig.serializer(), it.readText()) }
+        ?: AnyStreamConfig()
 
     embeddedServer(
         Netty,
-        environment = applicationEnvironment {
-            config = appConfig
-        },
-        {
-            // TODO: this prevents user config files from setting engine config, is this a problem?
-            val config = CommandLineConfig(args.filter { !it.startsWith("-config") }.toTypedArray())
-            takeFrom(config.engineConfig)
-            loadCommonConfiguration(appConfig.config("ktor.deployment"))
-        },
-    ).startSuspend(wait = true)
+        port = config.port,
+        host = config.host,
+    ) {
+        installStatusPages()
+        module(config)
+    }.startSuspend(wait = true)
 }
 
-@Suppress("unused", "UNUSED_PARAMETER") // Referenced in application.yml
-@JvmOverloads
-fun Application.module(testing: Boolean = false) {
-    val config = environment.config.property("app").getAs<AnyStreamConfig>()
+fun Application.module(config: AnyStreamConfig) {
     val serverGraph = createGraphFactory<ServerGraph.Factory>().create(config, this)
 
     val applicationScope = this as CoroutineScope

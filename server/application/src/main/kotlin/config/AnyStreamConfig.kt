@@ -17,43 +17,49 @@
  */
 package anystream.config
 
+import dev.drewhamilton.poko.Poko
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import java.nio.file.FileSystem
+import java.nio.file.FileSystems
 import java.nio.file.Path
 import kotlin.io.path.Path
+import kotlin.io.path.exists
 
+/**
+ * Lookup function for environment variables. Swappable so tests can inject a fake without mutating the
+ * JVM-global process environment via reflection. Production callers should never reassign this.
+ */
+internal var envLookup: (String) -> String? = System::getenv
+
+private fun env(name: String): String? = envLookup(name)?.takeIf { it.isNotBlank() }
+
+@Poko
 @Serializable
 class AnyStreamConfig(
+    val port: Int = env("PORT")?.toIntOrNull() ?: 8888,
+    val host: String = env("HOST") ?: "0.0.0.0",
     @SerialName("base_url")
-    val baseUrl: String? = null,
-    @SerialName("disable_web_client")
-    val disableWebClient: Boolean = false,
-    @Serializable(PathSerializer::class)
-    @SerialName("web_client_path")
-    val webClientPath: Path? = null,
-    @Serializable(DataPathSerializer::class)
-    @SerialName("data_path")
-    val dataPath: Path = Path("./anystream"),
-    @Serializable(PathSerializer::class)
-    @SerialName("transcode_path")
-    val transcodePath: Path = Path("/tmp"),
-    @Serializable(FfmpegPathSerializer::class)
-    @SerialName("ffmpeg_path")
-    val ffmpegPath: Path = FfmpegPathSerializer.findInstalledFfmpeg() ?: Path("./ffmpeg"),
+    val baseUrl: String? = env("BASE_URL"),
+    val web: WebConfig = WebConfig(),
+    val paths: PathsConfig = PathsConfig(),
     @Serializable(DatabaseUrlSerializer::class)
     @SerialName("database_url")
-    val databaseUrl: String = "jdbc:sqlite:$dataPath/anystream.db",
+    val databaseUrl: String = env("DATABASE_URL")?.let { "jdbc:sqlite:$it" }
+        ?: "jdbc:sqlite:${paths.data}/anystream.db",
     @SerialName("tmdb_api_key")
     val tmdbApiKey: String = "",
     val qbittorrent: QbittorrentCredentials? = null,
     val oidc: Oidc = Oidc(enable = false),
     val libraries: LibrariesConfig = LibrariesConfig(),
 ) {
+    @Poko
     @Serializable
     class Oidc(
         val enable: Boolean = false,
         val provider: Provider? = null,
     ) {
+        @Poko
         @Serializable
         class Provider(
             val name: String,
@@ -75,6 +81,7 @@ class AnyStreamConfig(
         )
     }
 
+    @Poko
     @Serializable
     class QbittorrentCredentials(
         val url: String,
@@ -82,6 +89,7 @@ class AnyStreamConfig(
         val password: String,
     )
 
+    @Poko
     @Serializable
     class LibrariesConfig(
         val tv: LibraryConfig = LibraryConfig(),
@@ -89,8 +97,48 @@ class AnyStreamConfig(
         val music: LibraryConfig = LibraryConfig(),
     )
 
+    @Poko
     @Serializable
     class LibraryConfig(
         val directories: List<String> = emptyList(),
     )
+
+    @Poko
+    @Serializable
+    class WebConfig(
+        val enable: Boolean = true,
+        @Serializable(PathSerializer::class)
+        val path: Path? = env("WEB_PATH")?.let(::Path),
+    )
+
+    @Poko
+    @Serializable
+    class PathsConfig(
+        @Serializable(DataPathSerializer::class)
+        @SerialName("data_path")
+        val data: Path = env("DATA_PATH")?.let(::Path) ?: Path("./anystream"),
+        @Serializable(PathSerializer::class)
+        @SerialName("transcode_path")
+        val transcode: Path = env("TRANSCODE_PATH")?.let(::Path) ?: Path("/tmp"),
+        @Serializable(PathSerializer::class)
+        @SerialName("ffmpeg_path")
+        val ffmpeg: Path = env("FFMPEG_PATH")?.let(::Path)
+            ?: findInstalledFfmpeg()
+            ?: data.resolve("ffmpeg"),
+    )
+}
+
+private fun findInstalledFfmpeg(fs: FileSystem = FileSystems.getDefault()): Path? {
+    return listOf(
+        "/usr/bin",
+        "/usr/local/bin",
+        "/usr/lib/jellyfin-ffmpeg",
+        "C:\\Program Files\\ffmpeg\\bin",
+    ).map(fs::getPath)
+        .firstOrNull { path ->
+            path.exists() && (
+                path.resolve("ffmpeg").exists() ||
+                    path.resolve("ffmpeg.exe").exists()
+            )
+        }
 }

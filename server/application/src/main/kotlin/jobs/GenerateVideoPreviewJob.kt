@@ -56,7 +56,8 @@ class GenerateVideoPreviewJob(
     private val logger = LoggerFactory.getLogger(GenerateVideoPreviewJob::class.java)
 
     private val previewsPath =
-        config.dataPath
+        config.paths
+            .data
             .resolve("previews")
             .createDirectories()
 

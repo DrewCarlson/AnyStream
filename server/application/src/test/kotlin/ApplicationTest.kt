@@ -17,29 +17,28 @@
  */
 package anystream
 
+import anystream.config.AnyStreamConfig
 import anystream.test.RESOURCES
 import io.ktor.client.request.*
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.config.*
-import io.ktor.server.config.yaml.YamlConfigLoader
 import io.ktor.server.testing.*
+import kotlin.io.path.Path
 import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class ApplicationTest {
-    private val testEnv = createTestEnvironment {
-        val baseConfig = checkNotNull(YamlConfigLoader().load(null)) {
-            "Failed to load application.yml from classpath"
-        }
-        val override = MapApplicationConfig("app.webClientPath" to "$RESOURCES/static")
-        config = override.mergeWith(baseConfig)
-    }
+    private val testConfig = AnyStreamConfig(
+        web = AnyStreamConfig.WebConfig(path = Path("$RESOURCES/static")),
+    )
 
     @Ignore("server configuration error")
     @Test
     fun testApiRootRedirectsToFrontEnd() {
         testApplication {
+            application {
+                module(testConfig)
+            }
             val response = client.get("/api")
             assertEquals(HttpStatusCode.Found, response.status)
             assertEquals("/", response.headers["location"])

@@ -74,24 +74,24 @@ interface ServerGraph {
 
     @Provides
     fun provideFfprobe(config: AnyStreamConfig): FFprobe {
-        return FFprobe.atPath(config.ffmpegPath)
+        return FFprobe.atPath(config.paths.ffmpeg)
     }
 
     @Provides
     fun provideFfmpeg(config: AnyStreamConfig): FFmpeg {
-        return FFmpeg.atPath(config.ffmpegPath)
+        return FFmpeg.atPath(config.paths.ffmpeg)
     }
 
     @Named(DATA_PATH)
     @Provides
     fun provideDataPath(config: AnyStreamConfig): Path {
-        return config.dataPath
+        return config.paths.data
     }
 
     @Named(TRANSCODE_PATH)
     @Provides
     fun provideTranscodePath(config: AnyStreamConfig): Path {
-        return config.transcodePath
+        return config.paths.transcode
     }
 
     @SingleIn(ServerScope::class)

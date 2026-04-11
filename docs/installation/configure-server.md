@@ -27,40 +27,60 @@ If the specified config file does not exist, AnyStream will create one with defa
 !!! example "Example YAML config (`anystream.yml`)"
 
     ```yaml
-    app:
+    port: 8888
+    host: 0.0.0.0
+    base_url: https://stream.example.com
+    database_url: /path/to/anystream/data/anystream.db
+    tmdb_api_key: ""
+
+    web:
+      enable: true
+      path: /path/to/web/client
+
+    paths:
       data_path: /path/to/anystream/data
-      database_url: /path/to/anystream/data/anystream.db
-      ffmpeg_path: /usr/bin
       transcode_path: /tmp
-      base_url: https://stream.example.com
+      ffmpeg_path: /usr/bin
 
-      qbittorrent:
-        url: http://localhost:9090
-        user: admin
-        password: adminadmin
+    qbittorrent:
+      url: http://localhost:9090
+      user: admin
+      password: adminadmin
 
-      libraries:
-        tv:
-          directories:
-            - /media/TV
-        movies:
-          directories:
-            - /media/Movies
-        music:
-          directories:
-            - /media/Music
+    libraries:
+      tv:
+        directories:
+          - /media/TV
+      movies:
+        directories:
+          - /media/Movies
+      music:
+        directories:
+          - /media/Music
 
-      oidc:
-        enable: false
-        provider:
-          name: my-provider
-          endpoint: https://auth.example.com
-          client_id: anystream
-          client_secret: your-secret
+    oidc:
+      enable: false
+      provider:
+        name: my-provider
+        endpoint: https://auth.example.com
+        client_id: anystream
+        client_secret: your-secret
     ```
 
-Environment variables override config file values. This allows you to keep a base config file and override
-specific settings per environment.
+Values set in the YAML file take precedence over environment variables. Environment variables only act as
+defaults when the matching field is **absent** from the config file. The mapping between environment variables
+and YAML keys is:
+
+| Environment variable | YAML key             |
+|----------------------|----------------------|
+| `PORT`               | `port`               |
+| `HOST`               | `host`               |
+| `BASE_URL`           | `base_url`           |
+| `DATABASE_URL`       | `database_url`       |
+| `WEB_PATH`           | `web.path`           |
+| `DATA_PATH`          | `paths.data_path`    |
+| `TRANSCODE_PATH`     | `paths.transcode_path` |
+| `FFMPEG_PATH`        | `paths.ffmpeg_path`  |
 
 ## Importing Media
 

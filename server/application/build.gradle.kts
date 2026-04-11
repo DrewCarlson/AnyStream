@@ -94,7 +94,7 @@ dependencies {
     implementation(libsCommon.ktor.server.auth)
     implementation(libsCommon.ktor.server.authJwt)
     implementation(libsCommon.ktor.server.websockets)
-    implementation(libsCommon.ktor.server.configYaml)
+    implementation(libsCommon.yamlkt)
     implementation(libsServer.ktor.server.permissions)
 
     implementation(libsCommon.ktor.client.core)
@@ -136,7 +136,7 @@ tasks.getByName<JavaExec>("run") {
                     .get()
                     .asFile.absolutePath
             }
-        environment("WEB_CLIENT_PATH", webClientPath)
+        environment("WEB_PATH", webClientPath)
     }
     environment(
         "DATABASE_URL",

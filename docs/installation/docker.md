@@ -95,19 +95,19 @@ docker compose up -d
 
 The following environment variables can be set on the AnyStream container:
 
-| Variable          | Default                       | Description                                                               |
-|-------------------|-------------------------------|---------------------------------------------------------------------------|
-| `PORT`            | `8888`                        | The port the server listens on.                                           |
-| `DATA_PATH`       | `/app/storage/`               | Where AnyStream stores its data inside the container.                     |
-| `DATABASE_URL`    | `/app/storage/anystream.db`   | The file path for the SQLite database.                                    |
-| `CONFIG_PATH`     | `/app/storage/anystream.conf` | Path to a configuration file. Mount your config file into this location.  |
-| `FFMPEG_PATH`     | `/usr/lib/jellyfin-ffmpeg`    | Path to FFmpeg binaries (pre-installed in the image).                     |
-| `BASE_URL`        | (none)                        | Public URL when behind a reverse proxy (e.g. `https://stream.example.com`). |
-| `TRANSCODE_PATH`  | `/tmp`                        | Directory for temporary transcode files.                                  |
-| `WEB_CLIENT_PATH` | `/app/client-web`             | Path to web client files (pre-installed in the image).                    |
-| `QBT_URL`         | (none)                        | qBittorrent Web API URL (e.g. `http://qbittorrent:9090`).                |
-| `QBT_USER`        | (none)                        | qBittorrent username.                                                     |
-| `QBT_PASSWORD`    | (none)                        | qBittorrent password.                                                     |
+| Variable         | Default                       | Description                                                               |
+|------------------|-------------------------------|---------------------------------------------------------------------------|
+| `PORT`           | `8888`                        | The port the server listens on.                                           |
+| `DATA_PATH`      | `/app/storage/`               | Where AnyStream stores its data inside the container.                     |
+| `DATABASE_URL`   | `/app/storage/anystream.db`   | The file path for the SQLite database.                                    |
+| `CONFIG_PATH`    | `/app/storage/anystream.conf` | Path to a configuration file. Mount your config file into this location.  |
+| `FFMPEG_PATH`    | `/usr/lib/jellyfin-ffmpeg`    | Path to FFmpeg binaries (pre-installed in the image).                     |
+| `BASE_URL`       | (none)                        | Public URL when behind a reverse proxy (e.g. `https://stream.example.com`). |
+| `TRANSCODE_PATH` | `/tmp`                        | Directory for temporary transcode files.                                  |
+| `WEB_PATH`       | `/app/client-web`             | Path to web client files (pre-installed in the image).                    |
+| `QBT_URL`        | (none)                        | qBittorrent Web API URL (e.g. `http://qbittorrent:9090`).                |
+| `QBT_USER`       | (none)                        | qBittorrent username.                                                     |
+| `QBT_PASSWORD`   | (none)                        | qBittorrent password.                                                     |
 
 ### Volumes
 

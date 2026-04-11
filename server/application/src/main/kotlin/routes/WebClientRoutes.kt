@@ -25,10 +25,12 @@ import kotlin.io.path.absolutePathString
 import kotlin.io.path.exists
 
 fun Application.installWebClientRoutes(config: AnyStreamConfig) {
-    if (config.disableWebClient) {
+    if (!config.web.enable) {
         log.debug("Web client disabled, this instance will serve the API only.")
-    } else if (
-        config.webClientPath?.exists() == false &&
+        return
+    }
+    if (
+        config.web.path?.exists() == false &&
         javaClass.classLoader.getResource("anystream-client-web") != null
     ) {
         log.debug("This instance will serve the web client from jar resources.")
@@ -38,11 +40,11 @@ fun Application.installWebClientRoutes(config: AnyStreamConfig) {
                 useResources = true
             }
         }
-    } else if (config.webClientPath?.exists() == true) {
-        log.debug("This instance will serve the web client from '{}'.", config.webClientPath)
+    } else if (config.web.path?.exists() == true) {
+        log.debug("This instance will serve the web client from '{}'.", config.web.path)
         routing {
             singlePageApplication {
-                filesPath = config.webClientPath.absolutePathString()
+                filesPath = config.web.path.absolutePathString()
             }
         }
     } else {
