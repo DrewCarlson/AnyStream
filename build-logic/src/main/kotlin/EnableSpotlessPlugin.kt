@@ -3,9 +3,14 @@ import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.getByType
 
-
 fun Project.enableSpotlessPlugin(enableComposeRules: Boolean) {
     configure<com.diffplug.gradle.spotless.SpotlessExtension> {
+        json {
+            target("**/*.json")
+            jackson()
+            leadingTabsToSpaces(2)
+            endWithNewline()
+        }
         kotlin {
             target("**/**.kt")
             licenseHeaderFile(rootDir.resolve("licenseHeader.txt"))
@@ -16,7 +21,8 @@ fun Project.enableSpotlessPlugin(enableComposeRules: Boolean) {
                     if (enableComposeRules) {
                         customRuleSets(
                             listOf(
-                                libsCommon.findLibrary("ktlint-composeRules")
+                                libsCommon
+                                    .findLibrary("ktlint-composeRules")
                                     .get()
                                     .get()
                                     .toString(),
