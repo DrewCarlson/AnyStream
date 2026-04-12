@@ -25,6 +25,13 @@ buildscript {
     dependencies {
         classpath(libsCommon.agp)
     }
+    configurations.classpath {
+        resolutionStrategy.activateDependencyLocking()
+    }
+    dependencyLocking {
+        lockAllConfigurations()
+        lockFile = file("gradle/gradle-buildscript.lockfile")
+    }
 }
 
 allprojects {
@@ -51,6 +58,43 @@ kover {
         subprojects {
             it.path.startsWith(":server:") ||
                 it.path.startsWith(":client:")
+        }
+    }
+}
+
+allprojects {
+    dependencyLocking {
+        lockAllConfigurations()
+        val lockFileName = if (project == rootProject) {
+            "gradle-root.lockfile"
+        } else {
+            "gradle-${project.path.removePrefix(":").replace(":", "-")}.lockfile"
+        }
+        lockFile = rootProject.file("gradle/lockfiles/$lockFileName")
+
+        // Cannot be easily validated since gradle fails on locked dependencies
+        // that are missing from configuration on use.
+        ignoredDependencies.addAll("org.jetbrains.compose.desktop:desktop-jvm-*")
+        ignoredDependencies.addAll("org.jetbrains.skiko:skiko-awt-runtime-*")
+    }
+}
+
+tasks.register("resolveAndLockAll") {
+    notCompatibleWithConfigurationCache("Filters configurations at execution time")
+    doFirst {
+        require(gradle.startParameter.isWriteDependencyLocks) {
+            "$path must be run from the command line with the `--write-locks` flag"
+        }
+    }
+    doLast {
+        allprojects.forEach { proj ->
+            proj.configurations
+                .filter { it.isCanBeResolved }
+                .forEach {
+                    it.incoming.resolutionResult
+                        .rootComponent
+                        .get()
+                }
         }
     }
 }

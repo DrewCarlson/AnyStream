@@ -1,0 +1,36 @@
+# This is a Gradle generated file for dependency locking.
+# Manual edits can break the build and are not advised.
+# This file is expected to be part of source control.
+io.github.java-diff-utils:java-diff-utils:4.12=kotlinInternalAbiValidation
+io.r2dbc:r2dbc-spi:1.0.0.RELEASE=compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
+jakarta.activation:jakarta.activation-api:2.1.3=compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
+jakarta.xml.bind:jakarta.xml.bind-api:4.0.2=compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
+org.jetbrains.kotlin:abi-tools-api:2.3.21-RC=kotlinInternalAbiValidation
+org.jetbrains.kotlin:abi-tools:2.3.21-RC=kotlinInternalAbiValidation
+org.jetbrains.kotlin:kotlin-build-tools-api:2.3.21-RC=kotlinBuildToolsApiClasspath,kotlinCompilerClasspath
+org.jetbrains.kotlin:kotlin-build-tools-compat:2.3.21-RC=kotlinBuildToolsApiClasspath,kotlinCompilerClasspath
+org.jetbrains.kotlin:kotlin-build-tools-cri-impl:2.3.21-RC=kotlinBuildToolsApiClasspath,kotlinCompilerClasspath
+org.jetbrains.kotlin:kotlin-build-tools-impl:2.3.21-RC=kotlinBuildToolsApiClasspath,kotlinCompilerClasspath
+org.jetbrains.kotlin:kotlin-compiler-embeddable:2.3.21-RC=kotlinBuildToolsApiClasspath,kotlinCompilerClasspath,kotlinKlibCommonizerClasspath
+org.jetbrains.kotlin:kotlin-compiler-runner:2.3.21-RC=kotlinBuildToolsApiClasspath,kotlinCompilerClasspath
+org.jetbrains.kotlin:kotlin-daemon-client:2.3.21-RC=kotlinBuildToolsApiClasspath,kotlinCompilerClasspath
+org.jetbrains.kotlin:kotlin-daemon-embeddable:2.3.21-RC=kotlinBuildToolsApiClasspath,kotlinCompilerClasspath,kotlinKlibCommonizerClasspath
+org.jetbrains.kotlin:kotlin-klib-abi-reader:2.3.21-RC=kotlinInternalAbiValidation
+org.jetbrains.kotlin:kotlin-klib-commonizer-embeddable:2.3.21-RC=kotlinKlibCommonizerClasspath
+org.jetbrains.kotlin:kotlin-metadata-jvm:2.3.21-RC=kotlinInternalAbiValidation
+org.jetbrains.kotlin:kotlin-reflect:1.6.10=kotlinBuildToolsApiClasspath,kotlinCompilerClasspath,kotlinKlibCommonizerClasspath
+org.jetbrains.kotlin:kotlin-script-runtime:2.3.21-RC=kotlinBuildToolsApiClasspath,kotlinCompilerClasspath,kotlinCompilerPluginClasspathMain,kotlinCompilerPluginClasspathTest,kotlinKlibCommonizerClasspath
+org.jetbrains.kotlin:kotlin-scripting-common:2.3.21-RC=kotlinCompilerPluginClasspathMain,kotlinCompilerPluginClasspathTest
+org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:2.3.21-RC=kotlinCompilerPluginClasspathMain,kotlinCompilerPluginClasspathTest
+org.jetbrains.kotlin:kotlin-scripting-compiler-impl-embeddable:2.3.21-RC=kotlinCompilerPluginClasspathMain,kotlinCompilerPluginClasspathTest
+org.jetbrains.kotlin:kotlin-scripting-jvm:2.3.21-RC=kotlinCompilerPluginClasspathMain,kotlinCompilerPluginClasspathTest
+org.jetbrains.kotlin:kotlin-stdlib:2.3.21-RC=compileClasspath,kotlinBuildToolsApiClasspath,kotlinCompilerClasspath,kotlinCompilerPluginClasspathMain,kotlinCompilerPluginClasspathTest,kotlinInternalAbiValidation,kotlinKlibCommonizerClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
+org.jetbrains.kotlin:kotlin-tooling-core:2.3.21-RC=kotlinBuildToolsApiClasspath,kotlinCompilerClasspath
+org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.8.0=kotlinBuildToolsApiClasspath,kotlinCompilerClasspath,kotlinKlibCommonizerClasspath
+org.jetbrains.kotlinx:kover-jvm-agent:0.9.8=koverJvmAgent,koverJvmReporter
+org.jetbrains:annotations:13.0=compileClasspath,kotlinBuildToolsApiClasspath,kotlinCompilerClasspath,kotlinCompilerPluginClasspathMain,kotlinCompilerPluginClasspathTest,kotlinInternalAbiValidation,kotlinKlibCommonizerClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
+org.jooq:jooq-codegen:3.21.1=compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
+org.jooq:jooq-meta:3.21.1=compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
+org.jooq:jooq:3.21.1=compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
+org.reactivestreams:reactive-streams:1.0.3=compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
+empty=annotationProcessor,implementationDependenciesMetadata,kotlinCompilerPluginClasspath,kotlinNativeCompilerPluginClasspath,kotlinScriptDefExtensions,koverExternalArtifacts,koverExternalArtifactsJvm,testAnnotationProcessor,testImplementationDependenciesMetadata,testKotlinScriptDefExtensions
