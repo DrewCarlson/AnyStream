@@ -48,7 +48,7 @@ class ContentIntegrationTest :
             test("GET /api/media/{id} returns the imported movie") {
                 integrationTest(libraryFileTree = FULL_LAYOUT) {
                     val session = signupAdmin()
-                    val movieLib = waitForLibraryWithMovies(MediaKind.MOVIE, session)
+                    val movieLib = waitForLibrary(MediaKind.MOVIE, session)
 
                     val moviesResponse = client.get("/api/library/${movieLib.id.value}") {
                         withSession(session)
@@ -71,7 +71,7 @@ class ContentIntegrationTest :
             test("GET /api/media/{id} returns the imported tv show with seasons") {
                 integrationTest(libraryFileTree = FULL_LAYOUT) {
                     val session = signupAdmin()
-                    val tvLib = waitForLibraryWithShows(session)
+                    val tvLib = waitForLibrary(MediaKind.TV, session)
 
                     val showsResponse = client.get("/api/library/${tvLib.id.value}") {
                         withSession(session)
@@ -93,8 +93,8 @@ class ContentIntegrationTest :
                 integrationTest(libraryFileTree = FULL_LAYOUT) {
                     val session = signupAdmin()
                     // ensure both libraries are populated before hitting /home
-                    waitForLibraryWithMovies(MediaKind.MOVIE, session)
-                    waitForLibraryWithShows(session)
+                    waitForLibrary(MediaKind.MOVIE, session)
+                    waitForLibrary(MediaKind.TV, session)
 
                     val response = client.get("/api/home") { withSession(session) }
                     response.status shouldBe HttpStatusCode.OK

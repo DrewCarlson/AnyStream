@@ -88,14 +88,18 @@ object WireFixtures {
         return WireApiClient(client)
     }
 
-    private fun mockEngine(): MockEngine {
+    /**
+     * A [MockRequestHandler] that serves recorded fixture JSON for Wire API paths.
+     * Can be composed into a larger [MockEngine] that also handles non-Wire URLs.
+     */
+    fun wireRequestHandler(): MockRequestHandler {
         val mementoJson = loadJson("movie-memento")
         val pittJson = loadJson("tv-pitt")
         val searchMementoJson = loadJson("search-movies-Memento")
         val searchPittJson = loadJson("search-tv-Pitt")
         val searchEmptyJson = loadJson("search-tv-empty")
 
-        val handler: MockRequestHandler = { request ->
+        return { request ->
             val path = request.url.encodedPath
             val params = request.url.parameters
             val body = when {
@@ -117,8 +121,9 @@ object WireFixtures {
                 headers = headersOf(HttpHeaders.ContentType, "application/json"),
             )
         }
-        return MockEngine(handler)
     }
+
+    private fun mockEngine(): MockEngine = MockEngine(wireRequestHandler())
 
     private fun loadJson(name: String): String {
         WireFixtures::class.java.getResourceAsStream("/wire/$name.json")?.use { stream ->

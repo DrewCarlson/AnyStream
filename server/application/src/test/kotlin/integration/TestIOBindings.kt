@@ -41,67 +41,19 @@ class TestIOBindings(
     @SingleIn(ServerScope::class)
     @Provides
     fun provideHttpClient(): HttpClient {
-        return mockHttpClient()
-    }
-}
-
-private fun mockHttpClient(): HttpClient {
-    // Replicate WireFixtures' routing inline so we can also catch image / unknown URLs.
-    val mementoJson = loadFixture("movie-memento")
-    val pittJson = loadFixture("tv-pitt")
-    val searchMementoJson = loadFixture("search-movies-Memento")
-    val searchPittJson = loadFixture("search-tv-Pitt")
-    val searchEmptyJson = loadFixture("search-tv-empty")
-
-    val engine = MockEngine { request ->
-        val host = request.url.host
-        val path = request.url.encodedPath
-        if (host == "wire.anystream.dev") {
-            val params = request.url.parameters
-            val body = when {
-                path.startsWith("/movie/") -> mementoJson
-
-                path.startsWith("/tv/") -> pittJson
-
-                path == "/search" -> when (params["filter"]) {
-                    "MOVIE" -> {
-                        searchMementoJson
-                    }
-
-                    "TV" -> {
-                        if (params["query"] == WireFixtures.EMPTY_TV_QUERY) {
-                            searchEmptyJson
-                        } else {
-                            searchPittJson
-                        }
-                    }
-
-                    else -> {
-                        error("Unknown search filter: '${params["filter"]}'")
-                    }
-                }
-
-                else -> error("No fixture for wire path: $path")
+        val wireHandler = WireFixtures.wireRequestHandler()
+        val engine = MockEngine { request ->
+            if (request.url.host == "wire.anystream.dev") {
+                wireHandler(this, request)
+            } else {
+                // Image downloads or any other 3rd-party call: return empty 200.
+                respond(
+                    content = byteArrayOf(),
+                    status = HttpStatusCode.OK,
+                    headers = headersOf(HttpHeaders.ContentType, "application/octet-stream"),
+                )
             }
-            respond(
-                content = body,
-                status = HttpStatusCode.OK,
-                headers = headersOf(HttpHeaders.ContentType, "application/json"),
-            )
-        } else {
-            // Image downloads or any other 3rd-party call: return empty 200.
-            respond(
-                content = byteArrayOf(),
-                status = HttpStatusCode.OK,
-                headers = headersOf(HttpHeaders.ContentType, "application/octet-stream"),
-            )
         }
+        return HttpClient(engine)
     }
-    return HttpClient(engine)
-}
-
-private fun loadFixture(name: String): String {
-    val stream = WireFixtures::class.java.getResourceAsStream("/wire/$name.json")
-        ?: error("Missing wire fixture '$name.json' on classpath")
-    return stream.bufferedReader().use { it.readText() }
 }

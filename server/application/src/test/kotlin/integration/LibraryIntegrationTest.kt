@@ -17,10 +17,8 @@
  */
 package anystream.integration
 
-import anystream.integration.IntegrationTestScope.Companion.SESSION_HEADER
 import anystream.models.Library
 import anystream.models.MediaKind
-import anystream.models.api.CreateUserBody
 import anystream.models.api.MoviesResponse
 import anystream.models.api.TvShowsResponse
 import io.kotest.core.spec.style.FunSpec
@@ -29,16 +27,7 @@ import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import io.ktor.client.call.body
 import io.ktor.client.request.get
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.contentType
-import kotlinx.coroutines.delay
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.TimeSource
 
 private val MEMENTO_LAYOUT =
     """
@@ -60,7 +49,7 @@ class LibraryIntegrationTest :
         test("startup-configured movie library imports Memento via wire fixtures") {
             integrationTest(libraryFileTree = MEMENTO_LAYOUT) {
                 val session = signupAdmin()
-                val library = waitForLibraryWithMovies(MediaKind.MOVIE, session)
+                val library = waitForLibrary(MediaKind.MOVIE, session)
 
                 val response = client.get("/api/library/${library.id.value}") {
                     withSession(session)
@@ -75,7 +64,7 @@ class LibraryIntegrationTest :
         test("startup-configured tv library imports The Pitt via wire fixtures") {
             integrationTest(libraryFileTree = PITT_LAYOUT) {
                 val session = signupAdmin()
-                val library = waitForLibraryWithShows(session)
+                val library = waitForLibrary(MediaKind.TV, session)
 
                 val response = client.get("/api/library/${library.id.value}") {
                     withSession(session)
@@ -103,78 +92,3 @@ class LibraryIntegrationTest :
             }
         }
     })
-
-internal suspend fun IntegrationTestScope.signupAdmin(
-    username: String = "admin",
-    password: String = "supersecret",
-): String {
-    val response = client.post("/api/users") {
-        contentType(ContentType.Application.Json)
-        setBody(CreateUserBody(username, password, null))
-    }
-    check(response.status == HttpStatusCode.OK) {
-        "Failed to create admin: ${response.status}"
-    }
-    return checkNotNull(response.headers[SESSION_HEADER]) {
-        "Signup did not return a session header"
-    }
-}
-
-internal suspend fun IntegrationTestScope.listLibraries(session: String): List<Library> {
-    val response = client.get("/api/library") { withSession(session) }
-    check(response.status == HttpStatusCode.OK) { "GET /api/library failed: ${response.status}" }
-    return response.body()
-}
-
-internal suspend fun IntegrationTestScope.waitForLibraryWithMovies(
-    mediaKind: MediaKind,
-    session: String,
-    timeout: Duration = 15.seconds,
-): Library {
-    val deadline = TimeSource.Monotonic.markNow() + timeout
-    var lastErr: String? = null
-    while (deadline.hasNotPassedNow()) {
-        val libraries = listLibraries(session)
-        val target = libraries.firstOrNull { it.mediaKind == mediaKind }
-        if (target != null) {
-            val detail = client.get("/api/library/${target.id.value}") { withSession(session) }
-            if (detail.status == HttpStatusCode.OK) {
-                val movies = detail.body<MoviesResponse>()
-                if (movies.movies.isNotEmpty()) return target
-                lastErr = "No movies yet (total=${movies.total})"
-            } else {
-                lastErr = "Library detail status=${detail.status}"
-            }
-        } else {
-            lastErr = "No $mediaKind library found"
-        }
-        delay(200.milliseconds)
-    }
-    error("Timed out waiting for $mediaKind library to populate. Last: $lastErr")
-}
-
-internal suspend fun IntegrationTestScope.waitForLibraryWithShows(
-    session: String,
-    timeout: Duration = 15.seconds,
-): Library {
-    val deadline = TimeSource.Monotonic.markNow() + timeout
-    var lastErr: String? = null
-    while (deadline.hasNotPassedNow()) {
-        val libraries = listLibraries(session)
-        val target = libraries.firstOrNull { it.mediaKind == MediaKind.TV }
-        if (target != null) {
-            val detail = client.get("/api/library/${target.id.value}") { withSession(session) }
-            if (detail.status == HttpStatusCode.OK) {
-                val shows = detail.body<TvShowsResponse>()
-                if (shows.tvShows.isNotEmpty()) return target
-                lastErr = "No tv shows yet"
-            } else {
-                lastErr = "Library detail status=${detail.status}"
-            }
-        } else {
-            lastErr = "No TV library found"
-        }
-        delay(200.milliseconds)
-    }
-    error("Timed out waiting for TV library to populate. Last: $lastErr")
-}
