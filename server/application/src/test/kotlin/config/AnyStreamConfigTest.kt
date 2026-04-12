@@ -19,6 +19,7 @@ package anystream.config
 
 import net.mamoe.yamlkt.Yaml
 import kotlin.io.path.Path
+import kotlin.io.path.absolute
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -64,9 +65,9 @@ class AnyStreamConfigTest {
         assertNull(config.baseUrl)
         assertTrue(config.web.enable)
         assertNull(config.web.path)
-        assertEquals(Path("./anystream"), config.paths.data)
+        assertEquals(Path(System.getProperty("user.home"), "anystream"), config.paths.data)
         assertEquals(Path("/tmp"), config.paths.transcode)
-        assertEquals("jdbc:sqlite:./anystream/anystream.db", config.databaseUrl)
+        assertEquals("jdbc:sqlite:${config.paths.data.resolve("anystream.db")}", config.databaseUrl)
         assertNull(config.qbittorrent)
         assertFalse(config.oidc.enable)
         assertNull(config.oidc.provider)
@@ -305,8 +306,11 @@ class AnyStreamConfigTest {
 
         val config = yaml.decodeFromString(AnyStreamConfig.serializer(), source)
 
-        assertEquals(listOf("/media/TV"), config.libraries.tv.directories)
-        assertEquals(listOf("/media/Movies", "/media/Movies-2"), config.libraries.movies.directories)
+        assertEquals(listOf(Path("/media/TV")), config.libraries.tv.directories)
+        assertEquals(
+            listOf(Path("/media/Movies"), Path("/media/Movies-2")),
+            config.libraries.movies.directories,
+        )
         assertTrue(
             config.libraries.music.directories
                 .isEmpty(),
@@ -416,9 +420,9 @@ class AnyStreamConfigTest {
                 ),
             ),
             libraries = AnyStreamConfig.LibrariesConfig(
-                tv = AnyStreamConfig.LibraryConfig(listOf("/media/TV")),
-                movies = AnyStreamConfig.LibraryConfig(listOf("/media/Movies")),
-                music = AnyStreamConfig.LibraryConfig(listOf("/media/Music")),
+                tv = AnyStreamConfig.LibraryConfig(listOf(Path("/media/TV"))),
+                movies = AnyStreamConfig.LibraryConfig(listOf(Path("/media/Movies"))),
+                music = AnyStreamConfig.LibraryConfig(listOf(Path("/media/Music"))),
             ),
         )
 

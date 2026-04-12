@@ -18,7 +18,7 @@
 package anystream.config
 
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.SerializationException
+import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -26,24 +26,11 @@ import kotlinx.serialization.descriptors.serialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import java.nio.file.Path
-import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
 
-object DataPathSerializer : PathSerializer() {
-    override fun deserialize(decoder: Decoder): Path {
-        return try {
-            val value = decoder.decodeString()
-            if (value.isBlank()) {
-                throw SerializationException()
-            }
-            Path(value)
-        } catch (_: SerializationException) {
-            Path(System.getProperty("user.home"), "anystream")
-        }.toAbsolutePath().normalize()
-    }
-}
+object PathListSerializer : KSerializer<List<Path>> by ListSerializer(PathSerializer)
 
-open class PathSerializer : KSerializer<Path> {
+object PathSerializer : KSerializer<Path> {
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor("Path", PrimitiveKind.STRING)
 
@@ -55,7 +42,7 @@ open class PathSerializer : KSerializer<Path> {
     }
 
     override fun deserialize(decoder: Decoder): Path {
-        return Path(decoder.decodeString()).toAbsolutePath().normalize()
+        return getPath(decoder.decodeString()).toAbsolutePath().normalize()
     }
 }
 
@@ -63,7 +50,7 @@ object DatabaseUrlSerializer : KSerializer<String> {
     override val descriptor: SerialDescriptor = serialDescriptor<String>()
 
     override fun deserialize(decoder: Decoder): String {
-        val value = Path(decoder.decodeString()).normalize().absolutePathString()
+        val value = getPath(decoder.decodeString()).normalize().absolutePathString()
         return "jdbc:sqlite:$value"
     }
 

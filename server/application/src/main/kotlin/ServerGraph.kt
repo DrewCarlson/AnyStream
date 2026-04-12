@@ -33,8 +33,6 @@ import dev.zacsweers.metro.Named
 import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn
 import io.ktor.client.HttpClient
-import io.ktor.client.plugins.cache.HttpCache
-import io.ktor.client.plugins.cache.storage.CacheStorage
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
@@ -83,14 +81,22 @@ interface ServerGraph {
 
     @Named(DATA_PATH)
     @Provides
-    fun provideDataPath(config: AnyStreamConfig): Path {
-        return config.paths.data
+    fun provideDataPath(
+        config: AnyStreamConfig,
+        fileSystem: FileSystem,
+    ): Path {
+        // Re-resolve the configured data path through the injected FileSystem so tests
+        // can swap in an in-memory filesystem (e.g. Jimfs).
+        return fileSystem.getPath(config.paths.data.toString())
     }
 
     @Named(TRANSCODE_PATH)
     @Provides
-    fun provideTranscodePath(config: AnyStreamConfig): Path {
-        return config.paths.transcode
+    fun provideTranscodePath(
+        config: AnyStreamConfig,
+        fileSystem: FileSystem,
+    ): Path {
+        return fileSystem.getPath(config.paths.transcode.toString())
     }
 
     @SingleIn(ServerScope::class)
@@ -122,10 +128,6 @@ interface ServerGraph {
     @Provides
     fun provideHttpClient(): HttpClient {
         return HttpClient {
-            install(HttpCache) {
-                // TODO: Add disk catching
-                publicStorage(CacheStorage.Unlimited())
-            }
             install(ContentNegotiation) {
                 json()
             }
