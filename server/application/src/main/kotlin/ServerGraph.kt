@@ -33,8 +33,6 @@ import dev.zacsweers.metro.Named
 import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn
 import io.ktor.client.HttpClient
-import io.ktor.client.plugins.cache.HttpCache
-import io.ktor.client.plugins.cache.storage.CacheStorage
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
@@ -122,10 +120,6 @@ interface ServerGraph {
     @Provides
     fun provideHttpClient(): HttpClient {
         return HttpClient {
-            install(HttpCache) {
-                // TODO: Add disk catching
-                publicStorage(CacheStorage.Unlimited())
-            }
             install(ContentNegotiation) {
                 json()
             }

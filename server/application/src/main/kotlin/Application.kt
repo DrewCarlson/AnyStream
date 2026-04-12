@@ -50,6 +50,7 @@ import io.ktor.server.plugins.partialcontent.*
 import io.ktor.server.response.*
 import io.ktor.server.sessions.*
 import io.ktor.server.websocket.*
+import io.ktor.util.AttributeKey
 import io.ktor.util.collections.ConcurrentMap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -98,14 +99,15 @@ suspend fun main() {
         port = config.port,
         host = config.host,
     ) {
+        val serverGraph = createGraphFactory<ServerGraph.Factory>()
+            .create(config, this)
         installStatusPages()
-        module(config)
+        module(serverGraph)
     }.startSuspend(wait = true)
 }
 
-fun Application.module(config: AnyStreamConfig) {
-    val serverGraph = createGraphFactory<ServerGraph.Factory>().create(config, this)
-
+fun Application.module(serverGraph: ServerGraph) {
+    val config = serverGraph.config
     val applicationScope = this as CoroutineScope
     monitor.subscribe(ApplicationStopped) {
         // get<KJob>().shutdown()

@@ -90,20 +90,23 @@ class LibraryService(
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        logger.error("Uncaught exception in LibraryService background scope", throwable)
+    }
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default + exceptionHandler)
     private val mediaFileScanner = MediaFileScanner(mediaLinkDao, libraryDao, fs)
 
     val mediaScannerState: StateFlow<MediaScannerState> = mediaFileScanner.state
     val mediaScannerMessages: Flow<MediaScannerMessage> = mediaFileScanner.messages
 
-    suspend fun initializeLibraries(preconfiguredDirectories: Map<MediaKind, List<String>>) {
+    suspend fun initializeLibraries(preconfiguredDirectories: Map<MediaKind, List<Path>>) {
         if (!libraryDao.insertDefaultLibraries()) {
             return
         }
         libraryDao.all().forEach { library ->
             val directories = preconfiguredDirectories[library.mediaKind] ?: return@forEach
             directories.forEach { directory ->
-                addLibraryFolderAndScan(library.id, directory)
+                addLibraryFolderAndScan(library.id, directory.normalize().absolutePathString())
             }
         }
     }
@@ -184,7 +187,7 @@ class LibraryService(
         libraryId: LibraryId,
         path: String,
     ): AddLibraryFolderResponse {
-        val libraryFile = Path(path)
+        val libraryFile = fs.getPath(path)
         if (!libraryFile.exists() || !libraryFile.isDirectory()) {
             logger.debug("Invalid library folder path '{}'", path)
             return AddLibraryFolderResponse.FileError(

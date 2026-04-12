@@ -20,10 +20,10 @@ package anystream.config
 import dev.drewhamilton.poko.Poko
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import java.nio.file.FileSystem
 import java.nio.file.FileSystems
 import java.nio.file.Path
 import kotlin.io.path.Path
+import kotlin.io.path.absolutePathString
 import kotlin.io.path.exists
 
 /**
@@ -31,6 +31,7 @@ import kotlin.io.path.exists
  * JVM-global process environment via reflection. Production callers should never reassign this.
  */
 internal var envLookup: (String) -> String? = System::getenv
+internal var getPath: (String) -> Path = { FileSystems.getDefault().getPath(it) }
 
 private fun env(name: String): String? = envLookup(name)?.takeIf { it.isNotBlank() }
 
@@ -45,8 +46,9 @@ class AnyStreamConfig(
     val paths: PathsConfig = PathsConfig(),
     @Serializable(DatabaseUrlSerializer::class)
     @SerialName("database_url")
-    val databaseUrl: String = env("DATABASE_URL")?.let { "jdbc:sqlite:$it" }
-        ?: "jdbc:sqlite:${paths.data}/anystream.db",
+    val databaseUrl: String = env("DATABASE_URL")
+        ?.let { "jdbc:sqlite:${getPath(it).normalize().absolutePathString()}" }
+        ?: "jdbc:sqlite:${paths.data.resolve("anystream.db")}",
     val qbittorrent: QbittorrentCredentials? = null,
     val oidc: Oidc = Oidc(enable = false),
     val libraries: LibrariesConfig = LibrariesConfig(),
@@ -98,7 +100,8 @@ class AnyStreamConfig(
     @Poko
     @Serializable
     class LibraryConfig(
-        val directories: List<String> = emptyList(),
+        @Serializable(PathListSerializer::class)
+        val directories: List<Path> = emptyList(),
     )
 
     @Poko
@@ -112,27 +115,28 @@ class AnyStreamConfig(
     @Poko
     @Serializable
     class PathsConfig(
-        @Serializable(DataPathSerializer::class)
+        @Serializable(PathSerializer::class)
         @SerialName("data_path")
-        val data: Path = env("DATA_PATH")?.let(::Path) ?: Path("./anystream"),
+        val data: Path = env("DATA_PATH")?.let(getPath)
+            ?: getPath(System.getProperty("user.home")).resolve("anystream"),
         @Serializable(PathSerializer::class)
         @SerialName("transcode_path")
-        val transcode: Path = env("TRANSCODE_PATH")?.let(::Path) ?: Path("/tmp"),
+        val transcode: Path = env("TRANSCODE_PATH")?.let(getPath) ?: getPath("/tmp"),
         @Serializable(PathSerializer::class)
         @SerialName("ffmpeg_path")
-        val ffmpeg: Path = env("FFMPEG_PATH")?.let(::Path)
+        val ffmpeg: Path = env("FFMPEG_PATH")?.let(getPath)
             ?: findInstalledFfmpeg()
             ?: data.resolve("ffmpeg"),
     )
 }
 
-private fun findInstalledFfmpeg(fs: FileSystem = FileSystems.getDefault()): Path? {
-    return listOf(
+private fun findInstalledFfmpeg(): Path? {
+    return sequenceOf(
         "/usr/bin",
         "/usr/local/bin",
         "/usr/lib/jellyfin-ffmpeg",
         "C:\\Program Files\\ffmpeg\\bin",
-    ).map(fs::getPath)
+    ).map(getPath)
         .firstOrNull { path ->
             path.exists() && (
                 path.resolve("ffmpeg").exists() ||
