@@ -2,7 +2,7 @@
 kotlin = { strictly = "2.3.21-RC" }
 coroutines = "1.10.2"
 serialization = "1.11.0"
-ktorio = "3.4.2"
+ktorio = "3.4.3"
 kover = "0.9.8"
 datetime = "0.7.1"
 spotless = "8.4.0"
