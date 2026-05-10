@@ -9,7 +9,7 @@ spotless = "8.4.0"
 agp = "9.1.0"
 kotest = "6.1.11"
 redacted = "1.16.0"
-poko = "0.22.0"
+poko = "0.22.1"
 ktlint = "1.8.0"
 metro = "0.13.2"
 
