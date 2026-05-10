@@ -9,7 +9,7 @@ media3 = "1.10.0"
 objectstore = "0.2.0"
 vlc = "3.0.23"
 kotlinjs = "2026.4.5"
-androidxCamera = "1.6.0"
+androidxCamera = "1.6.1"
 haze = "2.0.0-alpha01"
 io-coil-kt-coil3 = "3.4.0"
 
