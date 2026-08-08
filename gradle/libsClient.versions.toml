@@ -1,6 +1,6 @@
 [versions]
 zxing = "3.5.4"
-compose = "1.10.6"
+compose = "1.11.4"
 compose_foundation = "1.10.6"
 composejb = "1.11.0-beta02"
 composejb_material = "1.11.0-alpha06"
