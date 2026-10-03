@@ -3,7 +3,7 @@ anr_watchdog = "1.4.0"
 ax_runner = "1.7.0"
 leakcanary = "2.14"
 
-okhttp = "5.3.2"
+okhttp = "5.5.0"
 
 [plugins]
 
