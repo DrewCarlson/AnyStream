@@ -33,7 +33,7 @@ compose-ui-ui = { module = "androidx.compose.ui:ui", version.ref = "compose" }
 compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
 compose-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "compose_foundation" }
 compose-icons = "androidx.compose.material:material-icons-extended:1.7.8"
-compose-material = "androidx.compose.material3:material3:1.4.0"
+compose-material = "androidx.compose.material3:material3:1.5.0"
 compose-livedata = { module = "androidx.compose.runtime:runtime-livedata", version.ref = "compose" }
 compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
 compose-lifecycle = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "composejb_lifecycle" }
