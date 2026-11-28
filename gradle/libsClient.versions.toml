@@ -59,7 +59,7 @@ objectstore-json = { module = "org.drewcarlson:objectstore-json", version.ref = 
 objectstore-protobuf = { module = "org.drewcarlson:objectstore-protobuf", version.ref = "objectstore" }
 objectstore-secure = { module = "org.drewcarlson:objectstore-secure", version.ref = "objectstore" }
 vlcj = "uk.co.caprica:vlcj:4.12.1"
-jna = "net.java.dev.jna:jna:5.18.1"
+jna = "net.java.dev.jna:jna:5.19.1"
 molecule = "app.cash.molecule:molecule-runtime:2.2.0"
 
 [bundles]
